@@ -6,12 +6,24 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "prettier": "prettier --write src",
+    "precommit": "lint-staged"
+  },
+  "lint-staged": {
+    "linters": {
+      "src": [
+        "prettier --write",
+        "git add"
+      ]
+    }
   },
   "dependencies": {
     "@types/node": "^20.1.1",
     "@types/react": "^18.2.6",
     "@types/react-dom": "18.2.4",
+    "@weng-lab/psychscreen-ui-components": "^0.6.7",
+    "@weng-lab/ts-ztable": "^4.0.1",
     "autoprefixer": "10.4.14",
     "eslint": "8.40.0",
     "eslint-config-next": "13.4.1",
@@ -21,5 +33,26 @@
     "react-dom": "18.2.0",
     "tailwindcss": "3.3.2",
     "typescript": "5.0.4"
-  }
+  },
+  "devDependencies": {
+    "lint-staged": "^13.2.2",
+    "precommit": "^1.2.2",
+    "prepush": "^3.1.11",
+    "prettier": "^2.8.8"
+  },
+  "prettier": {
+    "trailingComma": "es5",
+    "printWidth": 140,
+    "tabWidth": 2,
+    "arrowParens": "always",
+    "bracketSpacing": true,
+    "singleQuote": false,
+    "semi": false
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
 }
