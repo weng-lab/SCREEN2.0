@@ -1,3 +1,5 @@
+// Search Results Page
+
 'use client'
 import { Typography } from "@mui/material"
 

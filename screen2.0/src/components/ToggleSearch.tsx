@@ -109,7 +109,7 @@ export default function ToggleSearch() {
                     <SearchIcon />
                 </SearchIconWrapper>
                 <StyledInputBase
-                    placeholder='Search cCREs'
+                    placeholder='Enter Search'
                     inputProps={{ 'aria-label': 'search' }}
                     fullWidth
                 />

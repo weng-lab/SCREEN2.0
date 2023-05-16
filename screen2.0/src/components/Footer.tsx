@@ -14,7 +14,10 @@ export default function Footer() {
             <Typography variant="body2" color="text.secondary">
                 {'Copyright © '}
                 <MuiLink color="inherit" href="https://www.umassmed.edu/zlab/">
-                    Zlab?
+                    Weng Lab
+                </MuiLink>{', '}
+                <MuiLink color="inherit" href="https://www.moore-lab.org/">
+                    Moore Lab
                 </MuiLink>{' '}
                 {new Date().getFullYear()}.
             </Typography>
