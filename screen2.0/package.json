@@ -43,7 +43,8 @@
     "lint-staged": "^13.2.2",
     "precommit": "^1.2.2",
     "prepush": "^3.1.11",
-    "prettier": "^2.8.8"
+    "prettier": "^2.8.8",
+    "prettier-plugin-tailwindcss": "^0.3.0"
   },
   "prettier": {
     "trailingComma": "es5",
