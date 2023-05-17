@@ -5,7 +5,7 @@ const nextConfig = {
     buildActivityPosition: "bottom-right",
   },
   generateEtags: false,
-  trailingSlash: true,
+  trailingSlash: false,
 }
 
 module.exports = nextConfig
