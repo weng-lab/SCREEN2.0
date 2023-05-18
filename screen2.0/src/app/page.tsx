@@ -8,7 +8,7 @@ import {
   Container
 } from "@mui/material"
 
-import MainSearch from "../components/MainSearch"
+import MainSearch from "../common/components/MainSearch"
 
 export default function Home() {
   return (

@@ -18,9 +18,14 @@ import {
 
 import MenuIcon from '@mui/icons-material/Menu';
 
-import ToggleSearch from './ToggleSearch';
+import HeaderSearch from './HeaderSearch';
 
 const pageLinks = [{pageName: 'About', link: '/about' }, {pageName: 'Applets', link: '' }, {pageName: 'Downloads', link: '/downloads' }]
+
+/*
+  TODO:
+  - Hamburger Menu, need to align optically without setting the margin to zero - it messes up interacting with the button
+*/
 
 function ResponsiveAppBar() {
   const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
@@ -37,9 +42,9 @@ function ResponsiveAppBar() {
   return (
     <AppBar position="static">
       <Container maxWidth={false}>
-        <Toolbar disableGutters>
+        <Toolbar disableGutters sx={{ justifyContent: 'space-between'}}>
           {/* Display Icon on left when >=900px */}
-          <Box component="a" href="/" sx={{ display: { xs: 'none', md: 'flex' }, mr: 1, height: '40px', width: '40px'}}>
+          <Box component="a" href="/" sx={{ display: { xs: 'none', md: 'flex' }, flexShrink: '0', mr: 1, height: '40px', width: '40px'}}>
             <img src="screenIcon.png"/>
           </Box>
           {/* Display SCREEN after logo on left when >=900px*/}
@@ -51,6 +56,7 @@ function ResponsiveAppBar() {
             sx={{
               mr: 2,
               display: { xs: 'none', md: 'flex' },
+              // flexShrink: 0,
               fontFamily: 'monospace',
               fontWeight: 700,
               letterSpacing: '.3rem',
@@ -112,6 +118,7 @@ function ResponsiveAppBar() {
               mr: 2,
               display: { xs: 'none', sm: 'flex', md: 'none' },
               flexGrow: 1,
+              // flexShrink: 0,
               // textAlign: 'left',
               fontFamily: 'monospace',
               fontWeight: 700,
@@ -122,7 +129,7 @@ function ResponsiveAppBar() {
           >
             SCREEN
           </Typography>
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
+          <Box sx={{ flexGrow: 1, flexShrink: 1, display: { xs: 'none', md: 'flex' } }}>
             {pageLinks.map((page) => (
               <Button
                 key={page.pageName}
@@ -136,7 +143,7 @@ function ResponsiveAppBar() {
           </Box>
           {/* TODO onSubmit for search box, styling for toggle*/}
           <Box sx={{ flexGrow: 0 }}>
-            <ToggleSearch />
+            <HeaderSearch />
           </Box>
         </Toolbar>
       </Container>

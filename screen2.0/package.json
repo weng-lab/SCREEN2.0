@@ -19,6 +19,7 @@
     }
   },
   "dependencies": {
+    "@apollo/client": "^3.7.14",
     "@emotion/react": "^11.11.0",
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.11.16",
@@ -26,11 +27,12 @@
     "@types/node": "^20.1.1",
     "@types/react": "^18.2.6",
     "@types/react-dom": "18.2.4",
-    "@weng-lab/psychscreen-ui-components": "^0.6.7",
+    "@weng-lab/psychscreen-ui-components": "^0.7.0",
     "@weng-lab/ts-ztable": "^4.0.1",
     "autoprefixer": "10.4.14",
     "eslint": "8.40.0",
     "eslint-config-next": "13.4.1",
+    "graphql": "^16.6.0",
     "next": "13.4.1",
     "normalize.css": "^8.0.1",
     "postcss": "8.4.23",
