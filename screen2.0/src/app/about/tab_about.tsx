@@ -1,27 +1,8 @@
-/*
- * SPDX-License-Identifier: MIT
- * Copyright (c) 2016-2020 Michael Purcaro, Henry Pratt, Jill Moore, Zhiping Weng
- */
-
 import React from "react"
-
 import * as Para from "./tab_about_paragraphs"
-// import { tabPanelize } from "../../../common/utility"
 
 class TabAbout extends React.Component {
-  // constructor(props) {
-  //   super(props)
-  //   this.key = "about"
-  // }
-
-  // shouldComponentUpdate(nextProps, nextState) {
-  //   return this.key === nextProps.maintabs_active
-  // }
-
   render() {
-    // if (this.key !== this.props.maintabs_active) {
-    //   return false
-    // }
     let content = (
       <div>
         <div className="row">
