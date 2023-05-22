@@ -23,6 +23,6 @@
 			}
 		]
 	},
-	"include": ["src", ".next/types/**/*.ts"],
+	"include": ["src", ".next/types/**/*.ts", "types"],
 	"exclude": ["node_modules", "yarn.lock", "yarn-error.log", ".cache", "dist"]
 }
