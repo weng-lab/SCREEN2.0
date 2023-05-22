@@ -7,14 +7,29 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "prettier": "prettier --write src",
-    "precommit": "lint-staged"
+    "prettier": "prettier --write src"
   },
   "lint-staged": {
     "linters": {
       "src": [
         "prettier --write",
         "git add"
+      ]
+    }
+  },
+  "configureWebpack": {
+    "resolve": {
+      "extensions": [
+        "*",
+        ".mjs",
+        ".js",
+        ".jsx",
+        ".json",
+        ".gql",
+        ".graphql",
+        ".jpeg",
+        ".jpg",
+        ".png"
       ]
     }
   },
@@ -42,11 +57,12 @@
     "typescript": "5.0.4"
   },
   "devDependencies": {
+    "file-loader": "^6.2.0",
     "lint-staged": "^13.2.2",
-    "precommit": "^1.2.2",
-    "prepush": "^3.1.11",
     "prettier": "^2.8.8",
-    "prettier-plugin-tailwindcss": "^0.3.0"
+    "prettier-plugin-tailwindcss": "^0.3.0",
+    "webpack": "^5.83.1",
+    "webpack-cli": "^5.1.1"
   },
   "prettier": {
     "trailingComma": "es5",
