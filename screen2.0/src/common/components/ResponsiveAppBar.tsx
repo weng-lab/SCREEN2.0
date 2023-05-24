@@ -11,14 +11,11 @@ import {
   Container,
   Button,
   MenuItem,
-  InputBase,
-  Switch,
-  Stack
 } from '@mui/material';
 
 import MenuIcon from '@mui/icons-material/Menu';
-
 import HeaderSearch from './HeaderSearch';
+import Image from 'next/image';
 
 const pageLinks = [{pageName: 'About', link: '/about' }, {pageName: 'Applets', link: '' }, {pageName: 'Downloads', link: '/downloads' }]
 
@@ -45,7 +42,7 @@ function ResponsiveAppBar() {
         <Toolbar disableGutters sx={{ justifyContent: 'space-between'}}>
           {/* Display Icon on left when >=900px */}
           <Box component="a" href="/" sx={{ display: { xs: 'none', md: 'flex' }, flexShrink: '0', mr: 1, height: '40px', width: '40px'}}>
-            <img src="screenIcon.png"/>
+            <Image src="/screenIcon.png" alt="SCREEN Icon" height={40} width={40} />
           </Box>
           {/* Display SCREEN after logo on left when >=900px*/}
           <Typography
