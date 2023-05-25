@@ -82,6 +82,9 @@ jobs:
       - name: Static HTML export with Next.js
         #  should run "yarn next export"
         run: ${{ steps.detect-package-manager.outputs.runner }} next export
+      - name: Check files again after build
+        run: |
+          ls -a
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
