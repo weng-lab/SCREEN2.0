@@ -19,7 +19,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import HeaderSearch from './HeaderSearch';
 import Image from 'next/image';
 
-const pageLinks = [{pageName: 'About', link: '/about' }, {pageName: 'Applets', link: '' }, {pageName: 'Downloads', link: '/downloads' }]
+const pageLinks = [{pageName: 'About', link: '/about' }, {pageName: 'Applets', link: '/' }, {pageName: 'Downloads', link: '/downloads' }]
 
 /*
   TODO:
