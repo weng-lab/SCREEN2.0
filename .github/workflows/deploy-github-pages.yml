@@ -19,6 +19,7 @@ jobs:
           # update the Node version to meet your needs
           node-version: 18
           cache: yarn
+          cache-dependency-path: screen2.0/yarn.lock
       # Build and export, add .nojekyll to out/. See "Configure Build" at https://www.viget.com/articles/host-build-and-deploy-next-js-projects-on-github-pages/
       - name: Build
         run: |
