@@ -48,7 +48,8 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "16"
-          cache: ${{ steps.detect-package-manager.outputs.manager }}
+          cache: "yarn"
+          cache-depency-path: "/home/runner/work/SCREEN2.0/screen2.0/yarn.lock"
       - name: Setup Pages
         uses: actions/configure-pages@v3
         with:
