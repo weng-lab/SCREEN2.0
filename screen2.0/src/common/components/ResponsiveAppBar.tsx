@@ -43,15 +43,14 @@ function ResponsiveAppBar() {
       <Container maxWidth={false}>
         <Toolbar disableGutters sx={{ justifyContent: 'space-between'}}>
           {/* Display Icon on left when >=900px */}
-          <Box component="a" href="/" sx={{ display: { xs: 'none', md: 'flex' }, flexShrink: '0', mr: 1, height: '40px', width: '40px'}}>
-            <Image src="/screenIcon.png" alt="SCREEN Icon" height={40} width={40} />
+          <Box sx={{ display: { xs: 'none', md: 'flex' }, flexShrink: '0', mr: 1, height: '40px', width: '40px'}}>
+            <Link href="/"><img src="/screenIcon.png" alt="SCREEN Icon" height={40} width={40} /></Link>
           </Box>
           {/* Display SCREEN after logo on left when >=900px*/}
-          <Typography
-            variant="h6"
+          
+            <Typography
+            variant="h5"
             noWrap
-            component="a"
-            href="/"
             sx={{
               mr: 2,
               display: { xs: 'none', md: 'flex' },
@@ -62,9 +61,9 @@ function ResponsiveAppBar() {
               color: 'inherit',
               textDecoration: 'none',
             }}
-          >
-            SCREEN
-          </Typography>
+            >
+              <Link href="/">SCREEN</Link>
+            </Typography>
           {/* Display Menu icon on left (and hide above icon and title) when <900px */}
           <Box sx={{ flexGrow: 0, display: { xs: 'inline', md: 'none' } }}>
             <IconButton
@@ -108,8 +107,6 @@ function ResponsiveAppBar() {
           <Typography
             variant="h5"
             noWrap
-            component="a"
-            href="/"
             sx={{
               mr: 2,
               display: { xs: 'none', sm: 'flex', md: 'none' },
@@ -121,7 +118,7 @@ function ResponsiveAppBar() {
               textDecoration: 'none',
             }}
           >
-            SCREEN
+            <Link href="/">SCREEN</Link>
           </Typography>
           <Box sx={{ flexGrow: 1, flexShrink: 1, display: { xs: 'none', md: 'flex' } }}>
             {pageLinks.map((page) => (
