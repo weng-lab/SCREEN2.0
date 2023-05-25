@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: SCREEN2.0/SCREEN2.0/screen2.0
+        working-directory: ./screen2.0
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -22,6 +22,7 @@ jobs:
       # Build and export, add .nojekyll to out/. See "Configure Build" at https://www.viget.com/articles/host-build-and-deploy-next-js-projects-on-github-pages/
       - name: Build
         run: |
+          ls -la
           yarn install
           yarn build
           yarn export
