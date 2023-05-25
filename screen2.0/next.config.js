@@ -10,18 +10,17 @@
 const isGithubActions = process.env.GITHUB_ACTIONS || false
 
 let assetPrefix = ''
-let basePath = '/'
+let basePath = ''
 
 if (isGithubActions) {
   // trim off `<owner>/`
-  const repo = process.env.GITHUB_REPOSITORY.replace(/.*?\//, '')
+  // const repo = process.env.GITHUB_REPOSITORY.replace(/.*?\//, '')
 
-  assetPrefix = `/${repo}/`
-  basePath = `/${repo}`
+  assetPrefix = '/SCREEN2.0'
+  basePath = '/SCREEN2.0'
 }
 
 const nextConfig = {
-  output: 'export',
   reactStrictMode: true,
   devIndicators: {
     buildActivityPosition: "bottom-right",
