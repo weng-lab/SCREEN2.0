@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
           # update the Node version to meet your needs
           node-version: 18
@@ -25,7 +25,7 @@ jobs:
           touch out/.nojekyll
       - name: Deploy
         # https://github.com/JamesIves/github-pages-deploy-action
-        uses: JamesIves/github-pages-deploy-action@4.4.1 
+        uses: JamesIves/github-pages-deploy-action@v4.4.1 
         with:
           branch: gh-pages
           folder: out
