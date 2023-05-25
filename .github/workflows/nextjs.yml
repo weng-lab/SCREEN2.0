@@ -40,7 +40,7 @@ jobs:
         id: detect-package-manager
         run: |
           echo "github.workspace resolves to ${{ github.workspace }}"
-          echo "github.action_path resolves to ${{ github.action_path }}"
+          echo "GITHUB_WORKSPACE resolves to $GITHUB_WORKSPACE"
           echo "github.workflow_ref resolves to ${{ github.workflow_ref }}"
           if [ -f "${{ github.workspace }}/yarn.lock" ]; then
             echo "manager=yarn" >> $GITHUB_OUTPUT
