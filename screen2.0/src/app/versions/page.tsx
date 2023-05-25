@@ -5,5 +5,5 @@ import TabVersions from "./tab_versions";
 
 export default function Downloads() {
     // return TabVersions()
-    return TabDataScreen()
+    return (TabDataScreen())
 }

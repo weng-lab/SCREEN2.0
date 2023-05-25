@@ -5,14 +5,11 @@ import { DataTable } from "@weng-lab/psychscreen-ui-components"
 
 import { Tabs, Tab } from "react-bootstrap"
 
-import { VersionCollection } from "../../../types/types"
-
-
 /**
  * This file and function queries for versions tab data and returns the rendered display
  * @returns versions tab
  */
-export function TabDataScreen() {
+function TabDataScreen() {
   const client = useMemo(
     () =>
       new ApolloClient({
@@ -49,29 +46,23 @@ export function TabDataScreen() {
  * links experiment accessions to their encode url and renders the columns
  * @returns columns for Ztable
  */
-const CtsTableColumns = () => {
-  const renderBiosample = (biosample: any) => biosample
-  const renderExperiments = (experiments: any) => experiments
-  return [
+const CtsTableColumns = [
     {
-      title: "Biosample",
-      data: "biosample_term_name",
-      render: renderBiosample,
+      header: "Biosample",
+      value: (row: any) => row.biosample
     },
     {
-      title: "Experiments",
-      data: "experiments",
-      render: renderExperiments,
-    },
-  ]
-}
+      header: "Experiments",
+      value: (row: any) => row.experiments
+    }
+]
 
 /**
  * creates a url from experiment accession and maps them
  * @param {Map} experiments dict of experiments {assay : [ experiments ]}
  * @returns map of assays to a list of encode experiment urls
  */
-function dccLinks (experiments: any) {
+function dccLinks (experiments: {[assay: string] : string[]}) {
   function dccLink (assay: string, accs: string[]) {
     const url = (acc: string) => "https://www.encodeproject.org/experiments/" + acc
     return (
@@ -97,9 +88,9 @@ function dccLinks (experiments: any) {
  * @returns rendered display of versions tab
  */
 function VersionView(data: any) {
-    let collection: any = {} // version collection { version: { biosample: { assay: [ experiments ] } } }
-    let totals: any = {} // total experiments for each version { version: number of experiments }
-    let versions: any = {} // dict of versions to biosample objects { version: [ { biosample: { assay: [ experiments ] } ] }
+    let collection: { [version: string] : {[biosample: string] : {[assay: string] : string[]}} } = {} // version collection
+    let totals: { [version: string] : number } = {} // total experiments for each version
+    let versions: { [version: string] : {biosample: string, experiments: React.JSX.Element[] }[]} = {} // dict of versions to biosample objects
     let versionIDs: string[] = [] // IDs of each version
 
     // construct collection from query
@@ -124,7 +115,7 @@ function VersionView(data: any) {
     Object.keys(collection).forEach((version) => {
       Object.keys(collection[version]).forEach((biosample) => {
         versions[version].push({
-          biosample_term_name: biosample
+          biosample: biosample
             .substring(0, biosample[biosample.length - 1] === "'" ? biosample.length - 1 : biosample.length)
             .replace(/b'/g, "")
             .replace(/b"/g, ""),
@@ -142,7 +133,13 @@ function VersionView(data: any) {
                 <h3>
                   ENCODE and Roadmap Experiments constituting ground level version {id} ({totals[id].toLocaleString()} total)
                 </h3>
-                <DataTable rows={versions[id]} columns={CtsTableColumns()} />
+                <DataTable 
+                  rows={versions[id]} 
+                  columns={CtsTableColumns} 
+                  itemsPerPage={4}
+                  tableTitle="Versions"
+                  searchable
+                  />
               </Tab>
             ))}
           </Tabs>
