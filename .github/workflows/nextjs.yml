@@ -89,7 +89,7 @@ jobs:
         uses: actions/upload-pages-artifact@v1
         with:
         # Unable to find the folder. What is going on with it not finding files? Can't specify the cache either or it fails.
-          path: ".next/"
+          path: "out"
 
   # Deployment job
   deploy:
