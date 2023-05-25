@@ -9,6 +9,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: screen2.0
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -16,7 +19,6 @@ jobs:
           # update the Node version to meet your needs
           node-version: 18
           cache: yarn
-          cache-dependency-path: screen2.0/yarn.lock
       # Build and export, add .nojekyll to out/. See "Configure Build" at https://www.viget.com/articles/host-build-and-deploy-next-js-projects-on-github-pages/
       - name: Build
         run: |
