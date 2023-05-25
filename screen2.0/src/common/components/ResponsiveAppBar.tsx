@@ -13,6 +13,8 @@ import {
   MenuItem,
 } from '@mui/material';
 
+import Link from 'next/link';
+
 import MenuIcon from '@mui/icons-material/Menu';
 import HeaderSearch from './HeaderSearch';
 import Image from 'next/image';
@@ -96,16 +98,13 @@ function ResponsiveAppBar() {
             >
               {/* This needs to change, onClick it just closes the Menu */}
               {pageLinks.map((page) => (
-                <MenuItem component='a' href={page.link} key={page.pageName} onClick={handleCloseNavMenu}>
-                  <Typography textAlign="center">{page.pageName}</Typography>
+                <MenuItem  key={page.pageName} onClick={handleCloseNavMenu}>
+                  {/* Wrap in next/link to enable dyanic link changing from basePath in next.config.js */}
+                  <Link href={page.link}><Typography textAlign="center">{page.pageName}</Typography></Link>
                 </MenuItem>
               ))}
             </Menu>
           </Box>
-          {/* Display SCREEN Icon after menu icon when <900px */}
-          {/* <Box component="a" href="/" sx={{ display: { xs: 'flex', md: 'none' }, mr: 1, height: 'fit-content', width: 'fit-content'}}>
-            <img src="screenIcon.png" height={40} width={40}/>
-          </Box> */}
           <Typography
             variant="h5"
             noWrap
@@ -115,8 +114,6 @@ function ResponsiveAppBar() {
               mr: 2,
               display: { xs: 'none', sm: 'flex', md: 'none' },
               flexGrow: 1,
-              // flexShrink: 0,
-              // textAlign: 'left',
               fontFamily: 'monospace',
               fontWeight: 700,
               letterSpacing: '.3rem',
@@ -130,15 +127,14 @@ function ResponsiveAppBar() {
             {pageLinks.map((page) => (
               <Button
                 key={page.pageName}
-                component='a'
-                href={page.link}
                 sx={{ my: 2, color: 'white', display: 'block' }}
               >
-                {page.pageName}
+                {/* Wrap in next/link to enable dyanic link changing from basePath in next.config.js */}
+                <Link href={page.link}>{page.pageName}</Link>
               </Button>
             ))}
           </Box>
-          {/* TODO onSubmit for search box, styling for toggle*/}
+          {/* TODO onSubmit for search box */}
           <Box sx={{ flexGrow: 0 }}>
             <HeaderSearch />
           </Box>
