@@ -21,6 +21,9 @@ if (isGithubActions) {
 }
 
 const nextConfig = {
+  output: "export",
+  //Image optimization incompatible with static exports
+  images: { unoptimized: true },
   reactStrictMode: true,
   devIndicators: {
     buildActivityPosition: "bottom-right",
