@@ -1,6 +1,6 @@
 import React, { useMemo } from "react"
 import { ApolloClient, gql, InMemoryCache, useQuery } from "@apollo/client"
-import { LoadingMessage, ErrorMessage } from "../../common/utility-temp"
+import { LoadingMessage, ErrorMessage } from "../../common/utility"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 
 import { Tabs, Tab } from "react-bootstrap"
