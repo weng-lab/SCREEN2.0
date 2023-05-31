@@ -19,6 +19,8 @@ import MenuIcon from '@mui/icons-material/Menu';
 import HeaderSearch from './HeaderSearch';
 import Image from 'next/image';
 
+import nextConfig from '../../../next.config'
+
 const pageLinks = [
   {pageName: 'About', link: '/about' }, 
   {pageName: 'Applets', link: '/' }, 
@@ -49,7 +51,7 @@ function ResponsiveAppBar() {
         <Toolbar disableGutters sx={{ justifyContent: 'space-between'}}>
           {/* Display Icon on left when >=900px */}
           <Box sx={{ display: { xs: 'none', md: 'flex' }, flexShrink: '0', mr: 1, height: '40px', width: '40px'}}>
-            <Link href="/"><img src="/screenIcon.png" alt="SCREEN Icon" height={40} width={40} /></Link>
+            <Link href="/"><Image src={`${nextConfig.basePath}` + "/screenIcon.png"} alt="SCREEN Icon" height={40} width={40} /></Link>
           </Box>
           {/* Display SCREEN after logo on left when >=900px*/}
           
