@@ -13,14 +13,18 @@ import {
   MenuItem,
 } from '@mui/material';
 
+import Link from 'next/link';
+
 import MenuIcon from '@mui/icons-material/Menu';
 import HeaderSearch from './HeaderSearch';
 import Image from 'next/image';
 
+import nextConfig from '../../../next.config'
+
 const pageLinks = [
   {pageName: 'About', link: '/about' }, 
-  {pageName: 'Applets', link: '' }, 
-  {pageName: 'Downloads', link: '/downloads' }, 
+  {pageName: 'Applets', link: '/' }, 
+  {pageName: 'Downloads', link: '/downloads' },
   {pageName: 'Versions', link: '/versions'}
 ]
 
@@ -46,15 +50,16 @@ function ResponsiveAppBar() {
       <Container maxWidth={false}>
         <Toolbar disableGutters sx={{ justifyContent: 'space-between'}}>
           {/* Display Icon on left when >=900px */}
-          <Box component="a" href="/" sx={{ display: { xs: 'none', md: 'flex' }, flexShrink: '0', mr: 1, height: '40px', width: '40px'}}>
-            <Image src="/screenIcon.png" alt="SCREEN Icon" height={40} width={40} />
+          <Box component='a' href={`${nextConfig.basePath}`} sx={{ display: { xs: 'none', md: 'flex' }, flexShrink: '0', mr: 1, height: '40px', width: '40px'}}>
+            <Image src={`${nextConfig.basePath}` + "/screenIcon.png"} alt="SCREEN Icon" height={40} width={40} />
           </Box>
           {/* Display SCREEN after logo on left when >=900px*/}
-          <Typography
-            variant="h6"
+          
+            <Typography
+            variant="h5"
             noWrap
-            component="a"
-            href="/"
+            component='a'
+            href={`${nextConfig.basePath}`}
             sx={{
               mr: 2,
               display: { xs: 'none', md: 'flex' },
@@ -65,9 +70,9 @@ function ResponsiveAppBar() {
               color: 'inherit',
               textDecoration: 'none',
             }}
-          >
-            SCREEN
-          </Typography>
+            >
+              SCREEN
+            </Typography>
           {/* Display Menu icon on left (and hide above icon and title) when <900px */}
           <Box sx={{ flexGrow: 0, display: { xs: 'inline', md: 'none' } }}>
             <IconButton
@@ -101,27 +106,22 @@ function ResponsiveAppBar() {
             >
               {/* This needs to change, onClick it just closes the Menu */}
               {pageLinks.map((page) => (
-                <MenuItem component='a' href={page.link} key={page.pageName} onClick={handleCloseNavMenu}>
-                  <Typography textAlign="center">{page.pageName}</Typography>
+                <MenuItem  key={page.pageName} onClick={handleCloseNavMenu}>
+                  {/* Wrap in next/link to enable dyanic link changing from basePath in next.config.js */}
+                  <Link href={page.link}><Typography textAlign="center">{page.pageName}</Typography></Link>
                 </MenuItem>
               ))}
             </Menu>
           </Box>
-          {/* Display SCREEN Icon after menu icon when <900px */}
-          {/* <Box component="a" href="/" sx={{ display: { xs: 'flex', md: 'none' }, mr: 1, height: 'fit-content', width: 'fit-content'}}>
-            <img src="screenIcon.png" height={40} width={40}/>
-          </Box> */}
           <Typography
             variant="h5"
             noWrap
-            component="a"
-            href="/"
+            component='a'
+            href={`${nextConfig.basePath}`}
             sx={{
               mr: 2,
               display: { xs: 'none', sm: 'flex', md: 'none' },
               flexGrow: 1,
-              // flexShrink: 0,
-              // textAlign: 'left',
               fontFamily: 'monospace',
               fontWeight: 700,
               letterSpacing: '.3rem',
@@ -135,15 +135,14 @@ function ResponsiveAppBar() {
             {pageLinks.map((page) => (
               <Button
                 key={page.pageName}
-                component='a'
-                href={page.link}
                 sx={{ my: 2, color: 'white', display: 'block' }}
               >
-                {page.pageName}
+                {/* Wrap in next/link to enable dyanic link changing from basePath in next.config.js */}
+                <Link href={page.link}>{page.pageName}</Link>
               </Button>
             ))}
           </Box>
-          {/* TODO onSubmit for search box, styling for toggle*/}
+          {/* TODO onSubmit for search box */}
           <Box sx={{ flexGrow: 0 }}>
             <HeaderSearch />
           </Box>

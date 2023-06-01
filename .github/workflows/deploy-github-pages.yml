@@ -6,26 +6,34 @@ on:
   #Allows manual running of the workflow
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./screen2.0
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
           # update the Node version to meet your needs
           node-version: 18
           cache: yarn
+          cache-dependency-path: screen2.0/yarn.lock
       # Build and export, add .nojekyll to out/. See "Configure Build" at https://www.viget.com/articles/host-build-and-deploy-next-js-projects-on-github-pages/
       - name: Build
         run: |
+          ls -la
           yarn install
           yarn build
           yarn export
           touch out/.nojekyll
       - name: Deploy
         # https://github.com/JamesIves/github-pages-deploy-action
-        uses: JamesIves/github-pages-deploy-action@4.4.1 
+        uses: JamesIves/github-pages-deploy-action@v4.4.2 
         with:
           branch: gh-pages
-          folder: out
+          folder: screen2.0/out

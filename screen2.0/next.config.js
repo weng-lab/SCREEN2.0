@@ -1,28 +1,36 @@
 /** @type {import('next').NextConfig} */
 
-// Configure the Next.js next/image, next/link, and next/router to expect the github pages URL
-// Note: High probability this may have implications for the real deployment, I'm not completely sure
-// https://nextjs.org/docs/pages/api-reference/next-config-js/assetPrefix
-// https://nextjs.org/docs/pages/api-reference/next-config-js/basePath
+/**
+ * Configure the Next.js next/image, next/link, and next/router to expect the github pages URL
+ * Note: High probability this may have implications for the real deployment, I'm not completely sure.
+ * The check to see if it's running in github Actions needs to be checked more thoroughly to see if its
+ * being run in the workflow to push to github pages specifically.
+ * https://nextjs.org/docs/pages/api-reference/next-config-js/assetPrefix
+ * https://nextjs.org/docs/pages/api-reference/next-config-js/basePath
+ * 
+ *  https://github.com/vercel/next.js/issues/48996
+ *  There is a bug in current release of Next.js that messes with links that are href="" or href="/"
+ *  Currently, they're broken if you click directly (but not if you open in new tab????) Weird stuff
+ * 
+ * */ 
 
-// May need to mess with images 
+// const isGithubActions = process.env.GITHUB_ACTIONS || false
 
-const isGithubActions = process.env.GITHUB_ACTIONS || false
+// let assetPrefix = ''
+// let basePath = ''
 
-let assetPrefix = ''
-let basePath = '/'
+// if (isGithubActions) {
+//   assetPrefix = '/SCREEN2.0/'
+//   basePath = '/SCREEN2.0'
+// }
 
-if (isGithubActions) {
-  // trim off `<owner>/`
-  const repo = process.env.GITHUB_REPOSITORY.replace(/.*?\//, '')
-
-  assetPrefix = `/${repo}/`
-  basePath = `/${repo}`
-}
+let assetPrefix = '/SCREEN2.0'
+let basePath = '/SCREEN2.0'
 
 const nextConfig = {
-  output: 'export',
-  reactStrictMode: true,
+  output: "export",
+  //Image optimization incompatible with static exports
+  images: { unoptimized: true },
   devIndicators: {
     buildActivityPosition: "bottom-right",
   },
