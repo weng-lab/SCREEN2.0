@@ -14,21 +14,23 @@
  * 
  * */ 
 
-const isGithubActions = process.env.GITHUB_ACTIONS || false
+// const isGithubActions = process.env.GITHUB_ACTIONS || false
 
-let assetPrefix = ''
-let basePath = ''
+// let assetPrefix = ''
+// let basePath = ''
 
-if (isGithubActions) {
-  assetPrefix = '/SCREEN2.0/'
-  basePath = '/SCREEN2.0'
-}
+// if (isGithubActions) {
+//   assetPrefix = '/SCREEN2.0/'
+//   basePath = '/SCREEN2.0'
+// }
+
+let assetPrefix = '/SCREEN2.0'
+let basePath = '/SCREEN2.0'
 
 const nextConfig = {
   output: "export",
   //Image optimization incompatible with static exports
   images: { unoptimized: true },
-  reactStrictMode: true,
   devIndicators: {
     buildActivityPosition: "bottom-right",
   },
