@@ -52,6 +52,7 @@ export default function Home() {
         </Grid2>
         <Grid2 xs={12} lg={6}>
           {/* What is a better alt text for this? */}
+          {/* This image sizing needs to be adjusted for large screens (>1920px), doesn't fill correctly with fill prop. Or just center contents leaving open margins? */}
           <Image src={homeImage} alt={"SCREEN home image"} />
         </Grid2>
       </Grid2>

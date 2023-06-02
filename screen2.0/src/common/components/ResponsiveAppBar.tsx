@@ -12,18 +12,34 @@ import {
   Button,
   MenuItem,
 } from '@mui/material';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import MenuIcon from '@mui/icons-material/Menu';
 
 import Link from 'next/link';
-
-import MenuIcon from '@mui/icons-material/Menu';
-import HeaderSearch from './HeaderSearch';
 import Image from 'next/image';
+
+import HeaderSearch from './HeaderSearch';
 
 import nextConfig from '../../../next.config'
 
 const pageLinks = [
-  {pageName: 'About', link: '/about' }, 
-  {pageName: 'Applets', link: '/' }, 
+  {pageName: 'About', link: '/about', 
+    subPages: [
+      {pageName: 'Overview', link: '/'}, 
+      {pageName: 'Tutorials', link: '/'},
+      {pageName: 'API Documentation', link: '/'},
+      {pageName: 'Versions', link: '/'},
+      {pageName: 'UCSC Genome Browser', link: '/'},
+      {pageName: 'Contact US', link: '/'},
+    ] 
+  }, 
+  {pageName: 'Applets', link: '/applets', 
+    subPages: [
+      {pageName: 'GWAS', link: '/applets/gwas'}, 
+      {pageName: 'Differential Gene Expression', link: '/applets/differential-gene-expression'}, 
+      {pageName: 'Multi-Region Search', link: '/applets/multi-region-search'},
+    ]
+  }, 
   {pageName: 'Downloads', link: '/downloads' },
   {pageName: 'Versions', link: '/versions'}
 ]
@@ -106,7 +122,7 @@ function ResponsiveAppBar() {
             >
               {/* This needs to change, onClick it just closes the Menu */}
               {pageLinks.map((page) => (
-                <MenuItem  key={page.pageName} onClick={handleCloseNavMenu}>
+                <MenuItem key={page.pageName} onClick={handleCloseNavMenu}>
                   {/* Wrap in next/link to enable dyanic link changing from basePath in next.config.js */}
                   <Link href={page.link}><Typography textAlign="center">{page.pageName}</Typography></Link>
                 </MenuItem>
@@ -131,11 +147,20 @@ function ResponsiveAppBar() {
           >
             SCREEN
           </Typography>
+          {/* Main navigation items for desktop */}
+          {/* TODO: Hover Popup for nav items with subPages */}
           <Box sx={{ flexGrow: 1, flexShrink: 1, display: { xs: 'none', md: 'flex' } }}>
             {pageLinks.map((page) => (
               <Button
                 key={page.pageName}
-                sx={{ my: 2, color: 'white', display: 'block' }}
+                sx={{
+                   my: 2, 
+                   color: 'white', 
+                   display: 'flex', 
+                   '& .MuiButton-endIcon': {ml: 0},
+                   '& :hover': { color: 'red' },
+                }}
+                endIcon={page.subPages && <ArrowDropDownIcon/>}
               >
                 {/* Wrap in next/link to enable dyanic link changing from basePath in next.config.js */}
                 <Link href={page.link}>{page.pageName}</Link>
