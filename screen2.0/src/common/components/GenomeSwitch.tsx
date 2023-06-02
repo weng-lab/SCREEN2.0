@@ -5,7 +5,8 @@ import { useEffect } from 'react';
 import { 
     Typography,
     Switch,
-    SwitchProps
+    SwitchProps,
+    Stack
 } from "@mui/material";
 import { styled, alpha } from '@mui/material/styles';
 
@@ -86,22 +87,22 @@ const GenomeSwitch: React.FC<GenomeSwitchProps> = (props: GenomeSwitchProps) => 
         props.onSwitchChange && props.onSwitchChange(checked)
     })
 
-    return (
-        <>
-            <Typography>GRCh38</Typography>
-            <StyledSwitch
-                //This is the value of the switch. When going to the results page, this value needs to mirror the search query
-                //false = human, true = mouse
-                checked={checked}
-                //Not positive that this works as expected
-                defaultChecked={props.initialChecked && props.initialChecked}
-                onChange={handleChange}
-                color="primary"
-                inputProps={{ 'aria-label': 'primary checkbox' }}
-            />
-            <Typography>mm10</Typography>
-        </>
-    );
+  return (
+    <Stack direction='row' alignItems='center'>
+      <Typography>GRCh38</Typography>
+      <StyledSwitch
+        //This is the value of the switch. When going to the results page, this value needs to mirror the search query
+        //false = human, true = mouse
+        checked={checked}
+        //Not positive that this works as expected
+        defaultChecked={props.initialChecked && props.initialChecked}
+        onChange={handleChange}
+        color="primary"
+        inputProps={{ 'aria-label': 'primary checkbox' }}
+      />
+      <Typography>mm10</Typography>
+    </Stack>
+  );
 }
 
 export default GenomeSwitch;

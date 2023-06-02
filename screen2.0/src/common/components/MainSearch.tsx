@@ -62,19 +62,19 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 //This needs to be able to take a prop to define the position of the toggle, and that allows the search to send the genome type in the query
 //
 export default function MainSearch() {
-  return (
-    <Stack direction='row' alignItems='center'>
-      <TextField
-        fullWidth
-        variant='standard'
-        label='Enter a gene name or alias, a genomic region in the form chr:start-end, a SNP rsID, or a cCRE accession.'
-        placeholder='"K562”, “chr11:5205263-5381894", "rs4846913", "EH38E1613479"'
-        helperText='You may also enter a cell type name to filter results.'
-        sx={{
-        }}
-      />
-      <GenomeSwitch />
-    </Stack>
-  )
+    return (
+        <>
+            <TextField
+                fullWidth
+                variant='standard'
+                label='Enter a gene name or alias, a genomic region in the form chr:start-end, a SNP rsID, or a cCRE accession.'
+                placeholder='"K562”, “chr11:5205263-5381894", "rs4846913", "EH38E1613479"'
+                helperText='You may also enter a cell type name to filter results.'
+                sx={{
+                }}
+            />
+            <GenomeSwitch />
+        </>
+    )
 }
 
