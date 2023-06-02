@@ -42,7 +42,7 @@ const StyledSwitch = styled(Switch)(({ theme }) => ({
         transform: 'translateX(22px)',
         '& .MuiSwitch-thumb:before': {
           // @ts-expect-error
-          backgroundImage: `url(${humanIcon.src})`,
+          backgroundImage: `url(${mouseIcon.src})`,
         },
         '& + .MuiSwitch-track': {
           opacity: 1,
@@ -64,7 +64,7 @@ const StyledSwitch = styled(Switch)(({ theme }) => ({
         backgroundRepeat: 'no-repeat',
         backgroundPosition: 'center',
         // @ts-expect-error
-        backgroundImage: `url(${mouseIcon.src})`,
+        backgroundImage: `url(${humanIcon.src})`,
         backgroundSize: '70%',
       },
     },
