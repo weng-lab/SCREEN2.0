@@ -22,6 +22,7 @@ import HeaderSearch from './HeaderSearch';
 
 import nextConfig from '../../../next.config'
 
+// CLICKING ON LINKS ONCE THE POPUP IS OPEN IS BROKEN!!!
 
 /*  
   Links for the AppBar. If adding another page with subpages, you need to add another 
@@ -33,12 +34,12 @@ const pageLinks = [
     link: '/about',
     dropdownID: '0',
     subPages: [
-      { pageName: 'Overview', link: '/' },
-      { pageName: 'Tutorials', link: '/' },
-      { pageName: 'API Documentation', link: '/' },
-      { pageName: 'Versions', link: '/' },
-      { pageName: 'UCSC Genome Browser', link: '/' },
-      { pageName: 'Contact US', link: '/' },
+      { pageName: 'Overview', link: '/about' },
+      { pageName: 'Tutorials', link: '/about#tutorials' },
+      { pageName: 'API Documentation', link: '/about#api-documentation' },
+      { pageName: 'Versions', link: '/about#versions' },
+      { pageName: 'UCSC Genome Browser', link: '/about#ucsc-genome-browser' },
+      { pageName: 'Contact US', link: '/about#contact-us' },
     ]
   },
   {
