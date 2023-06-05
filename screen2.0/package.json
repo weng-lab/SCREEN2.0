@@ -41,7 +41,7 @@
     "@mui/icons-material": "^5.11.16",
     "@mui/material": "^5.13.0",
     "@types/node": "^20.1.1",
-    "@types/react": "^18.2.7",
+    "@types/react": "^18.2.8",
     "@types/react-dom": "18.2.4",
     "@weng-lab/psychscreen-ui-components": "^0.7.0",
     "@weng-lab/ts-ztable": "^4.0.1",
