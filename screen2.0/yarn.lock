@@ -429,10 +429,40 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@mui/base@npm:5.0.0-beta.3":
+  version: 5.0.0-beta.3
+  resolution: "@mui/base@npm:5.0.0-beta.3"
+  dependencies:
+    "@babel/runtime": ^7.21.0
+    "@emotion/is-prop-valid": ^1.2.1
+    "@mui/types": ^7.2.4
+    "@mui/utils": ^5.13.1
+    "@popperjs/core": ^2.11.7
+    clsx: ^1.2.1
+    prop-types: ^15.8.1
+    react-is: ^18.2.0
+  peerDependencies:
+    "@types/react": ^17.0.0 || ^18.0.0
+    react: ^17.0.0 || ^18.0.0
+    react-dom: ^17.0.0 || ^18.0.0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: f4801ea809f4c6a18046006ebc6b2e7c371a84f23f2468bb7db6d37d67a5c5e638e231b8c54f438d40f2de85fda76ca47ea73f2f20b24f80a1588a54ab9511d1
+  languageName: node
+  linkType: hard
+
 "@mui/core-downloads-tracker@npm:^5.13.2":
   version: 5.13.2
   resolution: "@mui/core-downloads-tracker@npm:5.13.2"
   checksum: f603aaddc142392d7f4a1afbc96eb07d09bb71a4517a3b68f37d7eee1ee911b43324feb475dd55c2c45a07da995f44f7b3b134dc72d856da68a504bd0c30f506
+  languageName: node
+  linkType: hard
+
+"@mui/core-downloads-tracker@npm:^5.13.3":
+  version: 5.13.3
+  resolution: "@mui/core-downloads-tracker@npm:5.13.3"
+  checksum: 58140ae4620ab71f7ef932c18f5ddc7904011bd19d48ed78c9705dca83e7807377804322b901b1083d4304aaf72c09e20cd7a234beb232db4e39f6ccafbd8fd6
   languageName: node
   linkType: hard
 
@@ -452,7 +482,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/material@npm:^5.11.7, @mui/material@npm:^5.13.0":
+"@mui/material@npm:^5.11.7":
   version: 5.13.2
   resolution: "@mui/material@npm:5.13.2"
   dependencies:
@@ -482,6 +512,39 @@ __metadata:
     "@types/react":
       optional: true
   checksum: 6583617ce7b8b444967b9673d0c7125059d738c7d70ae2274ea95df6dd115099cc9b1b468564ed6c04a194af0fe8988f9b727315f631ede0a40496ad1a1fe9cc
+  languageName: node
+  linkType: hard
+
+"@mui/material@npm:^5.13.3":
+  version: 5.13.3
+  resolution: "@mui/material@npm:5.13.3"
+  dependencies:
+    "@babel/runtime": ^7.21.0
+    "@mui/base": 5.0.0-beta.3
+    "@mui/core-downloads-tracker": ^5.13.3
+    "@mui/system": ^5.13.2
+    "@mui/types": ^7.2.4
+    "@mui/utils": ^5.13.1
+    "@types/react-transition-group": ^4.4.6
+    clsx: ^1.2.1
+    csstype: ^3.1.2
+    prop-types: ^15.8.1
+    react-is: ^18.2.0
+    react-transition-group: ^4.4.5
+  peerDependencies:
+    "@emotion/react": ^11.5.0
+    "@emotion/styled": ^11.3.0
+    "@types/react": ^17.0.0 || ^18.0.0
+    react: ^17.0.0 || ^18.0.0
+    react-dom: ^17.0.0 || ^18.0.0
+  peerDependenciesMeta:
+    "@emotion/react":
+      optional: true
+    "@emotion/styled":
+      optional: true
+    "@types/react":
+      optional: true
+  checksum: 9083edc8a6979d9ed387c75d19d8ea5485fe8edc32bed47387f4624d2b34e9b9f6b2a6af7102b2ec82db74681b010b651e6f5c351c0c90edb31f61bd23ddfe61
   languageName: node
   linkType: hard
 
@@ -5298,7 +5361,7 @@ __metadata:
     "@emotion/react": ^11.11.0
     "@emotion/styled": ^11.11.0
     "@mui/icons-material": ^5.11.16
-    "@mui/material": ^5.13.0
+    "@mui/material": ^5.13.3
     "@types/node": ^20.1.1
     "@types/react": ^18.2.7
     "@types/react-dom": 18.2.4
