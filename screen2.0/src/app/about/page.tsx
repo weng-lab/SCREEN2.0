@@ -76,7 +76,7 @@ export default function About() {
             the genomic positions in the rDHS. The signals of H3K4me3 and H3K27ac were averaged across an extended region—
             the rDHS plus a 500-bp flanking region on each side—to account for these histone marks at the flanking nucleosomes.
             We then took the log10 of these signals and computed a Z-score for each rDHS compared with all other rDHSs within a
-            biosample. rDHSs with a raw signal of 0 were assigned a Z-score of -10. For all analysis we defined "high signal"
+            biosample. rDHSs with a raw signal of 0 were assigned a Z-score of -10. For all analysis we defined `&quot;`high signal`&quot;`
             as a Z-score greater than 1.64, a threshold corresponding to the 95th percentile of a one-tailed test. We define a
             max-Z of a rDHS as the maximum z-score for a signal across all surveyed biosamples.
           </Typography>
@@ -96,8 +96,8 @@ export default function About() {
           <Typography variant='h4'>Classification of cCREs</Typography>
           <Typography>
             Many uses of cCREs are based on the regulatory role associated with their biochemical signatures. Thus, we putatively
-            defined cCREs in one of the following annotation groups based on each element’s dominant biochemical signals across all
-            available biosamples. Analogous to GENCODE's catalog of genes, which are defined irrespective of their varying expression
+            defined cCREs in one of the following annotation groups based on each element`&apos;`s dominant biochemical signals across all
+            available biosamples. Analogous to GENCODE`&apos;`s catalog of genes, which are defined irrespective of their varying expression
             levels and alternative transcripts across different cell types, we provide a general, cell type-agnostic classification
             of cCREs based on the max-Zs as well as its proximity to the nearest annotated TSS:
           </Typography>
