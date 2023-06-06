@@ -10,7 +10,7 @@ import MuiLink from '@mui/material/Link';
 export default function Footer() {
     return (
         //This positioning needs to change. Need it to be attached to bottom by scroll. Not attached by attaching to bottom of viewport
-        <Box id='test' sx={{ position: "absolute", bottom: "2%", textAlign: 'center', width: '100%'}}>
+        <Box id='Footer' sx={{ position: "absolute", bottom: "0", textAlign: 'center', width: '100%', height: "4rem"}}>
             <Typography variant="body2" color="text.secondary">
                 {'Copyright © '}
                 <MuiLink color="inherit" href="https://www.umassmed.edu/zlab/">
