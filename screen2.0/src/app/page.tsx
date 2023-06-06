@@ -23,8 +23,11 @@ export default function Home() {
       {/* May need to rethink where these margins are set. Which element should be setting content width? */}
       <Grid2 container spacing={6} sx={{ maxWidth: "90%", mr: "auto", ml: "auto", mt: "3rem" }}>
         <Grid2 xs={12}>
-          <Typography variant="h3">
-            SCREEN: Search Candidate cis-Regulatory Elements by ENCODE
+        <Typography variant="h3">
+            SCREEN
+          </Typography>
+          <Typography variant="h5">
+            Search Candidate cis-Regulatory Elements by ENCODE
           </Typography>
         </Grid2>
         <Grid2 xs={12} lg={6}>
