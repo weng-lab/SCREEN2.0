@@ -55,10 +55,6 @@ const pageLinks = [
   {
     pageName: 'Downloads',
     link: '/downloads'
-  },
-  {
-    pageName: 'Versions',
-    link: '/versions'
   }
 ]
 
