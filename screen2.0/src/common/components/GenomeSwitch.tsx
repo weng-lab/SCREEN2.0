@@ -5,7 +5,8 @@ import { useEffect } from 'react';
 import { 
     Typography,
     Switch,
-    SwitchProps
+    SwitchProps,
+    Stack
 } from "@mui/material";
 import { styled, alpha } from '@mui/material/styles';
 
@@ -42,7 +43,7 @@ const StyledSwitch = styled(Switch)(({ theme }) => ({
         transform: 'translateX(22px)',
         '& .MuiSwitch-thumb:before': {
           // @ts-expect-error
-          backgroundImage: `url(${humanIcon.src})`,
+          backgroundImage: `url(${mouseIcon.src})`,
         },
         '& + .MuiSwitch-track': {
           opacity: 1,
@@ -64,7 +65,7 @@ const StyledSwitch = styled(Switch)(({ theme }) => ({
         backgroundRepeat: 'no-repeat',
         backgroundPosition: 'center',
         // @ts-expect-error
-        backgroundImage: `url(${mouseIcon.src})`,
+        backgroundImage: `url(${humanIcon.src})`,
         backgroundSize: '70%',
       },
     },
@@ -86,22 +87,22 @@ const GenomeSwitch: React.FC<GenomeSwitchProps> = (props: GenomeSwitchProps) => 
         props.onSwitchChange && props.onSwitchChange(checked)
     })
 
-    return (
-        <>
-            <Typography>GRCh38</Typography>
-            <StyledSwitch
-                //This is the value of the switch. When going to the results page, this value needs to mirror the search query
-                //false = human, true = mouse
-                checked={checked}
-                //Not positive that this works as expected
-                defaultChecked={props.initialChecked && props.initialChecked}
-                onChange={handleChange}
-                color="primary"
-                inputProps={{ 'aria-label': 'primary checkbox' }}
-            />
-            <Typography>mm10</Typography>
-        </>
-    );
+  return (
+    <Stack direction='row' alignItems='center'>
+      <Typography>GRCh38</Typography>
+      <StyledSwitch
+        //This is the value of the switch. When going to the results page, this value needs to mirror the search query
+        //false = human, true = mouse
+        checked={checked}
+        //Not positive that this works as expected
+        defaultChecked={props.initialChecked && props.initialChecked}
+        onChange={handleChange}
+        color="primary"
+        inputProps={{ 'aria-label': 'primary checkbox' }}
+      />
+      <Typography>mm10</Typography>
+    </Stack>
+  );
 }
 
 export default GenomeSwitch;
