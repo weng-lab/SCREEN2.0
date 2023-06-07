@@ -58,7 +58,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
  * Toggle contains a position (or a boolean value)
  *  
  */
-export type SearchProps = InputBaseProps & {
+export type HeaderSearchProps = InputBaseProps & {
     /**
      * false for human, true for mouse
      */
@@ -66,7 +66,7 @@ export type SearchProps = InputBaseProps & {
     // onChange?: (checked: boolean) => void;
 };
 
-const HeaderSearch: React.FC<SearchProps> = (props: SearchProps) => {
+const HeaderSearch: React.FC<HeaderSearchProps> = (props: HeaderSearchProps) => {
 
     const [value, setValue] = React.useState("");
     const [checked, setChecked] = React.useState(props.initialChecked || false);
@@ -75,12 +75,7 @@ const HeaderSearch: React.FC<SearchProps> = (props: SearchProps) => {
         setValue(event.target.value);
     };
 
-    // const handleCheck = (event: React.ChangeEvent<HTMLInputElement>) => {
-    //     setChecked(event.target.checked);
-    //     console.log()
-    // };
-
-    const handleSubmit = () => { 
+    const handleSubmit = () => {
         window.alert("Submitted with value: " + value + " and checked: " + checked);
     }
 
@@ -88,25 +83,25 @@ const HeaderSearch: React.FC<SearchProps> = (props: SearchProps) => {
         <Stack direction='row' alignItems='center'>
             {/* Wrap search in <form> component. onSubmit() is triggered when the submit button clicked or "enter" pressed when editing the text */}
             <form onSubmit={handleSubmit}>
-            <Search>
-                <StyledInputBase
-                    placeholder='Search SCREEN'
-                    inputProps={{ 'aria-label': 'search' }}
-                    fullWidth
-                    value={value}
-                    onChange={handleChange}
-                    endAdornment={
-                        <InputAdornment position="end">
-                            <IconButton
-                                aria-label="Search"
-                                type='submit'
-                            >
-                                <SearchIcon />
-                            </IconButton>
-                        </InputAdornment>
-                    }
-                />
-            </Search>
+                <Search>
+                    <StyledInputBase
+                        placeholder='Search SCREEN'
+                        inputProps={{ 'aria-label': 'search' }}
+                        fullWidth
+                        value={value}
+                        onChange={handleChange}
+                        endAdornment={
+                            <InputAdornment position="end">
+                                <IconButton
+                                    aria-label="Search"
+                                    type='submit'
+                                >
+                                    <SearchIcon />
+                                </IconButton>
+                            </InputAdornment>
+                        }
+                    />
+                </Search>
             </form>
             <GenomeSwitch
                 initialChecked={props.initialChecked && props.initialChecked}
