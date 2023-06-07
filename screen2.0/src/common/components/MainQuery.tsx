@@ -131,8 +131,6 @@ export default async function MainQuery(assembly: string) {
         variables: cCRE_QUERY_VARIABLES(assembly),
     });
 
-    // we are using Apollo Wrapper here too so we can use
-    // useMutation in the Poll component
     return (
         data
     );
