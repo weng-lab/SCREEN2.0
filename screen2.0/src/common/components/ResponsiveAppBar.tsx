@@ -55,6 +55,10 @@ const pageLinks = [
   {
     pageName: 'Downloads',
     link: '/downloads'
+  },
+  {
+    pageName: 'Search',
+    link: '/search'
   }
 ]
 
