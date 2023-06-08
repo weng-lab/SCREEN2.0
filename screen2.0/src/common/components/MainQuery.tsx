@@ -120,7 +120,7 @@ const cCRE_QUERY_VARIABLES = (assembly: string) => {
             "rank_ctcf_end": 10,
             "cellType": null,
             "element_type": null,
-            "limit": 5
+            "limit": 25000
         }
     )
 }
