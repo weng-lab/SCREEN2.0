@@ -9,7 +9,7 @@ import { registerApolloClient } from "@apollo/experimental-nextjs-app-support/rs
 
 export const { getClient } = registerApolloClient(() => {
   return new ApolloClient({
-    // ssrMode: true,
+    ssrMode: true,
     cache: new InMemoryCache(),
     link: new HttpLink({
       uri: "https://factorbook.api.wenglab.org/graphql",

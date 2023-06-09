@@ -71,13 +71,19 @@ const HeaderSearch: React.FC<HeaderSearchProps> = (props: HeaderSearchProps) => 
     const [value, setValue] = React.useState("");
     const [checked, setChecked] = React.useState(props.initialChecked || false);
 
-    const handleChange = (event: { target: { value: React.SetStateAction<string>; }; }) => {
+    function handleChange(event: { target: { value: React.SetStateAction<string>; }; }) {
         setValue(event.target.value);
     };
 
-    const handleSubmit = () => {
+    function handleSubmit() {
+        // parseInput(value, checked);
         window.alert("Submitted with value: " + value + " and checked: " + checked);
     }
+
+    // function parseInput(value: string, checked: boolean) {
+
+
+    // }
 
     return (
         <Stack direction='row' alignItems='center'>

@@ -57,14 +57,13 @@ const pageLinks = [
     link: '/downloads'
   },
   {
-    pageName: 'Search',
-    link: '/search'
-  }
+    pageName: 'Default Search',
+    link: '/search?assembly=GRCh38&chromosome=chr11&start=5205263&end=5381894'
+  },
 ]
 
-/*
-  TODO:
-  - Hamburger Menu, need to align optically without setting the margin to zero - it messes up interacting with the button
+/**
+ * @todo: Hamburger Menu, need to align optically without setting the margin to zero - it messes up interacting with the button
 */
 
 function ResponsiveAppBar() {

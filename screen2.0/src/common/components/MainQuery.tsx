@@ -98,14 +98,14 @@ query ccreSearchQuery(
     }
   }
 `
-const cCRE_QUERY_VARIABLES = (assembly: string) => {
+function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: number, end: number){
     return (
         {
             "uuid": null,
             "assembly": assembly,
-            "coord_chrom": "chr11",
-            "coord_start": 5205263,
-            "coord_end": 5381894,
+            "coord_chrom": chromosome,
+            "coord_start": start,
+            "coord_end": end,
             "gene_all_start": 0,
             "gene_all_end": 5000000,
             "gene_pc_start": 0,
@@ -125,10 +125,20 @@ const cCRE_QUERY_VARIABLES = (assembly: string) => {
     )
 }
 
-export default async function MainQuery(assembly: string) {
-    const data = await getClient().query({
+/**
+ * 
+ * @param assembly string, "GRCh38" or "mm10"
+ * @param chromosome string, ex: "chr11"
+ * @param start number
+ * @param end number
+ * @returns cCREs matching the search
+ */
+export default async function MainQuery(assembly: string, chromosome: string, start: number, end: number) {
+  console.log(assembly, typeof assembly, start, typeof start, end, typeof end)  
+  
+  const data = await getClient().query({
         query: cCRE_QUERY,
-        variables: cCRE_QUERY_VARIABLES(assembly),
+        variables: cCRE_QUERY_VARIABLES(assembly, chromosome, start, end),
     });
 
     return (
