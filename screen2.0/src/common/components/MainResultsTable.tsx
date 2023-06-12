@@ -9,7 +9,7 @@ const COLUMNS = [{
   header: "Class",
   value: (row: { class: string; }) => row.class
 }, {
-  header: "Chromosome",
+  header: "Chr",
   value: (row: { chromosome: any; }) => row.chromosome,
 },
 {
@@ -42,10 +42,10 @@ const COLUMNS = [{
 },
 ];
 
-function MainQueryResultsTable(props: Partial<DataTableProps<any>>){
+function MainResultsTable(props: Partial<DataTableProps<any>>){
   return (
     <DataTable rows={props.rows || [{}]} columns={COLUMNS} itemsPerPage={props.itemsPerPage} searchable tableTitle={props.tableTitle} />
   )
 }
 
-export default MainQueryResultsTable
+export default MainResultsTable

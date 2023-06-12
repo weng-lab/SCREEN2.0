@@ -2,6 +2,7 @@
  * Send the request to our Server from a server component
  */
 
+// 'use server'
 import { getClient } from "../lib/client";
 import { gql } from "@apollo/client";
 

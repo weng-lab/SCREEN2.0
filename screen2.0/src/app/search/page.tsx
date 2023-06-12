@@ -1,8 +1,13 @@
 // Search Results Page
 
+// 'use client'
 import MainQuery from "../../common/components/MainQuery";
-import MainQueryResultsTable from "../../common/components/MainResultsTable";
+import MainResultsTable from "../../common/components/MainResultsTable";
+import MainResultsFilers from "../../common/components/MainResultsFilters";
 import { ApolloQueryResult } from "@apollo/client";
+
+import Grid2 from "../../common/mui-client-wrappers/Grid2";
+import Typography from "../../common/mui-client-wrappers/Typography"
 
 export default async function Search({
   // Object from URL, see https://nextjs.org/docs/app/api-reference/file-conventions/page#searchparams-optional
@@ -18,7 +23,7 @@ export default async function Search({
    * @param QueryResult Result from Main Query
    * @returns rows usable by the DataTable component
    */
-  //Uh oh this needs better input validation
+  //This needs better input handling
   //Fails in basically any case when input isn't exactly as expected
   function generateRows(QueryResult: ApolloQueryResult<any>) {
     const rows: {
@@ -31,14 +36,14 @@ export default async function Search({
         accession: currentElement.info.accession,
         class: currentElement.pct,
         chromosome: currentElement.chrom,
-        start: currentElement.start,
-        end: (currentElement.start + currentElement.len),
-        dnase: currentElement.dnase_zscore,
+        start: currentElement.start.toLocaleString("en-US"),
+        end: (currentElement.start + currentElement.len).toLocaleString("en-US"),
+        dnase: currentElement.dnase_zscore.toFixed(2),
         //Need to get this data still from somewhere
         atac: "TBD",
-        h3k4me3: currentElement.promoter_zscore,
-        h3k27ac: currentElement.enhancer_zscore,
-        ctcf: currentElement.ctcf_zscore,
+        h3k4me3: currentElement.promoter_zscore.toFixed(2),
+        h3k27ac: currentElement.enhancer_zscore.toFixed(2),
+        ctcf: currentElement.ctcf_zscore.toFixed(2),
       }
     });
     return rows; 
@@ -46,8 +51,15 @@ export default async function Search({
 
   return (
     <main>
-      {/* Feed rows generated from the query result to the Table. Columns for table defined in the MainQueryResultsTable component */}
-      <MainQueryResultsTable rows={generateRows(mainQueryResult)} tableTitle="cCRE Search Results" itemsPerPage={10}/>
+      {/* Feed rows generated from the query result to the Table. Columns for table defined in the MainResultsTable component */}
+      <Grid2 container spacing={3} sx={{mt: "2rem", mb: "2rem"}}>
+        <Grid2 xs={12} lg={3}>
+          <MainResultsFilers />
+        </Grid2>
+        <Grid2 xs={12} lg={9}>
+          <MainResultsTable rows={generateRows(mainQueryResult)} tableTitle={`Searching ${searchParams.chromosome} in ${searchParams.assembly} from ${searchParams.start} to ${searchParams.end}`} itemsPerPage={10}/>
+        </Grid2>
+      </Grid2>
     </main>
   )
 }

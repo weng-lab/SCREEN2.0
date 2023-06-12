@@ -20,7 +20,9 @@ export default function RootLayout({
       <body className={inter.className} id="page-container">
         <div id="content-wrapper">
           <ResponsiveAppBar />
-          {children}
+          <div id="body-wrapper">
+            {children}
+          </div>
         </div>
         <Footer />
       </body>

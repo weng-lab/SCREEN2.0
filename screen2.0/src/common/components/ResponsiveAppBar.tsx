@@ -56,10 +56,6 @@ const pageLinks = [
     pageName: 'Downloads',
     link: '/downloads'
   },
-  {
-    pageName: 'Default Search',
-    link: '/search?assembly=GRCh38&chromosome=chr11&start=5205263&end=5381894'
-  },
 ]
 
 /**
