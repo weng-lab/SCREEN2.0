@@ -8,7 +8,11 @@ import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Paper } from '@mui/material';
 
+import { RangeSlider } from '@weng-lab/psychscreen-ui-components';
+
 export default function MainResultsFilters() {
+  const [DNaseRange, setDNaseRange] = React.useState([1.64, 10])
+
   return (
     <>
       <Accordion>
@@ -35,10 +39,7 @@ export default function MainResultsFilters() {
           <Typography>Chromatin Signals</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Typography>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse
-            malesuada lacus ex, sit amet blandit leo lobortis eget.
-          </Typography>
+          <RangeSlider title='DNase Z-Score' width={250} defaultStart={1.64} defaultEnd={10} min={-10} max={10} minDistance={1} step={0.01} onChange={(value) => setDNaseRange(value)}/>
         </AccordionDetails>
       </Accordion>
       <Accordion>

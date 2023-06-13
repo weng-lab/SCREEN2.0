@@ -1,7 +1,7 @@
 // Search Results Page
 
 // 'use client'
-import MainQuery from "../../common/components/MainQuery";
+import MainQuery from "../../common/lib/queries";
 import MainResultsTable from "../../common/components/MainResultsTable";
 import MainResultsFilers from "../../common/components/MainResultsFilters";
 import { ApolloQueryResult } from "@apollo/client";
