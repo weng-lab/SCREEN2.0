@@ -42,9 +42,16 @@ const COLUMNS = [{
 },
 ];
 
-function MainResultsTable(props: Partial<DataTableProps<any>>){
+function MainResultsTable(props: Partial<DataTableProps<any>>) {
   return (
-    <DataTable rows={props.rows || [{}]} columns={COLUMNS} itemsPerPage={props.itemsPerPage} searchable tableTitle={props.tableTitle} />
+    <DataTable
+      rows={props.rows || [{}]}
+      columns={COLUMNS}
+      itemsPerPage={props.itemsPerPage}
+      searchable
+      tableTitle={props.tableTitle}
+      sortColumn={5}
+    />
   )
 }
 

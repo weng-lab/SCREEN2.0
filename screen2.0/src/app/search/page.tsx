@@ -57,7 +57,10 @@ export default async function Search({
           <MainResultsFilers />
         </Grid2>
         <Grid2 xs={12} lg={9}>
-          <MainResultsTable rows={generateRows(mainQueryResult)} tableTitle={`Searching ${searchParams.chromosome} in ${searchParams.assembly} from ${searchParams.start} to ${searchParams.end}`} itemsPerPage={10}/>
+          <MainResultsTable 
+          rows={generateRows(mainQueryResult)} 
+          tableTitle={`Searching ${searchParams.chromosome} in ${searchParams.assembly} from ${searchParams.start ? Number(searchParams.start).toLocaleString("en-US") : "undefined"} to ${searchParams.end ? Number(searchParams.end).toLocaleString("en-US") : "undefined"}`} 
+          itemsPerPage={10}/>
         </Grid2>
       </Grid2>
     </main>
