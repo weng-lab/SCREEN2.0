@@ -190,9 +190,21 @@ export default function GWAS() {
           </Box>
         </Grid2>
         <Grid2 xs={8} >
+          <Box mb={1}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "left",
+                alignItems: "center"
+              }}
+            >
+              {  
+                loadingStudies ? <div></div> : <Typography variant="h5">{trait}</Typography>
+              }
+            </div>
+          </ Box>
           <Box mb={2} mr={1}>
             {loadingStudy ? LoadingMessage() : data && data[study] && <DataTable
-                tableTitle={trait}
                 rows={data[study].mainTable}
                 columns={[
                     { header: "Total LD blocks", value: (row: any) => row.totalLDblocks },
