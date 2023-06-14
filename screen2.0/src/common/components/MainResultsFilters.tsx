@@ -6,9 +6,9 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { Paper } from '@mui/material';
+// import { Paper } from '@mui/material';
 
-import { RangeSlider } from '@weng-lab/psychscreen-ui-components';
+// import { RangeSlider } from '@weng-lab/psychscreen-ui-components';
 
 export default function MainResultsFilters() {
   const [DNaseRange, setDNaseRange] = React.useState([1.64, 10])
@@ -39,7 +39,11 @@ export default function MainResultsFilters() {
           <Typography>Chromatin Signals</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <RangeSlider title='DNase Z-Score' width={250} defaultStart={1.64} defaultEnd={10} min={-10} max={10} minDistance={1} step={0.01} onChange={(value) => setDNaseRange(value)}/>
+          {/* <RangeSlider title='DNase Z-Score' width={250} defaultStart={1.64} defaultEnd={10} min={-10} max={10} minDistance={1} step={0.01} onChange={(value) => setDNaseRange(value)}/> */}
+          <Typography>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse
+            malesuada lacus ex, sit amet blandit leo lobortis eget.
+          </Typography>
         </AccordionDetails>
       </Accordion>
       <Accordion>
