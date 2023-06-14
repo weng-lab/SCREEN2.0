@@ -1,7 +1,7 @@
 'use client'
 import React, { useMemo, useState, useEffect } from "react"
 import { DataTable } from "@weng-lab/ts-ztable"
-import { createLink, fetchServer, ErrorMessage, LoadingMessage } from "../../../common/utility"
+import { createLink, fetchServer, ErrorMessage, LoadingMessage } from "../../../common/lib/utility"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { Box } from "@mui/material"
 
@@ -168,7 +168,7 @@ export default function GWAS() {
     <main>
       <Grid2 container spacing={2} sx={{mt: '2rem'}}>
         <Grid2 xs={4}>
-          <Box ml={2}>
+          <Box ml={1}>
             {loadingStudies ? LoadingMessage() : studies && studies.gwas && <DataTable
                 rows={studies.gwas.studies}
                 columns={[
@@ -178,11 +178,12 @@ export default function GWAS() {
                 ]}
                 onRowClick={(row: any) => {
                   setStudy(row.value)}}
+                sortDescending={true}
             />}
           </Box>
         </Grid2>
         <Grid2 xs={8} >
-          <Box mb={2} mr={2}>
+          <Box mb={2} mr={1}>
             {loadingStudy ? LoadingMessage() : data && data[study] && <DataTable
                 rows={data[study].mainTable}
                 columns={[
@@ -190,9 +191,10 @@ export default function GWAS() {
                     { header: "# of LD blocks overlapping cCREs", value: (row: any) => row.numLdBlocksOverlapFormat },
                     { header: "# of overlapping cCREs", value: (row: any) => row.numCresOverlap },
                 ]}
+                sortDescending={true}
             />}
           </Box>
-          <Box mr={2}>
+          <Box mr={1}>
             {loadingStudy ? LoadingMessage() : data && data[study] && data[study].cres && <DataTable
                 rows={data[study].cres._all.accessions}
                 columns={[
@@ -200,6 +202,7 @@ export default function GWAS() {
                     { header: "SNPs", value: (row: any) => createLink("http://ensembl.org/Homo_sapiens/Variation/Explore?vdb=variation;v=", row.snps[0]) },
                     { header: "gene", value: (row: any) => createLink("https://www.genecards.org/cgi-bin/carddisp.pl?gene=", row.geneid) },
                 ]}
+                sortDescending={true}
             />}
           </Box>
         </Grid2>
