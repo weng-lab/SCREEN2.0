@@ -78,83 +78,14 @@ const initialstudies = {
 }
 
 export default function GWAS() {
-  // const [ study, setStudy ] = useState(JSON.stringify({
-  //   assembly: "GRCh38",
-  //   gwas_study: "Gretarsdottir_S_20622881_Abdominal_aortic_aneurysm"
-  // }))
-  //const [loading, setLoading] = useState(false)
   const [ study, setStudy ] = React.useState("Gretarsdottir_S_20622881_Abdominal_aortic_aneurysm")
   const [ data, setData ] = React.useState(initialStudy)
-  //define proper type
-  const [ studies, setStudies ] = useState<any>()
-
-  useEffect(() => {
-     fetch("https://screen-beta-api.wenglab.org/gwasws/main", {
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      method: "POST",
-      body: JSON.stringify({
-        assembly: "GRCh38",
-        gwas_study: study
-      })
-    })
-    .then(response => {
-        if (!response.ok) {
-            const error = new Error(response.statusText)
-            // throw new Error(response.statusText)
-            // return ErrorMessage(new Error(response.statusText))
-            return ErrorMessage(error)
-        }
-        return response.json()
-    })
-    .then(data => {
-        setData(data)
-    })
-    .catch((error: Error) => {
-        // logging
-        // throw error
-        return ErrorMessage(error)
-    })
-  }, [ study ])
-
-  // use effect for studies
-  useEffect(() => {
-    fetch("https://screen-beta-api.wenglab.org/gwasws/search", {
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      method: "POST",
-      body: JSON.stringify({
-        assembly: "GRCh38",
-        uuid: "6c4abb33-b6e8-4cf5-b8f0-b40a27ed11ff"
-      })
-    })
-    .then(response => {
-        if (!response.ok) {
-            // throw new Error(response.statusText)
-            return ErrorMessage(Error(response.statusText))
-        }
-        return response.json()
-    })
-    .then(data => {
-        // setData(data)
-        setStudies(data)
-        // return data
-        // setData(data.mainTable)
-        // setAccessions(data.accessions)
-    })
-    .catch((error: Error) => {
-        // logging
-        // throw error
-        return ErrorMessage(error)
-    })
-  }, [ ])
+  const [ studies, setStudies ] = React.useState(initialstudies)
+  const [ loadingStudies, setLoadingStudies ] = React.useState(true)
+  const [ loadingStudy, setLoadingStudy ] = React.useState(true)
+  // const [ studies, setStudies ] = useState<any>()
 
   // fetch list of studies
-
   useEffect(() => {
     fetch("https://screen-beta-api.wenglab.org/gwasws/search", {
       headers: {
@@ -179,15 +110,49 @@ export default function GWAS() {
     .then(data => {
         setStudies(data)
         //set loading to false 
+        setLoadingStudies(false)
     })
     .catch((error: Error) => {
         // logging
         // throw error
         return ErrorMessage(error)
     })
-    //set loading to true  
+    //set loading to true
+    setLoadingStudies(true)
   },[])
 
+  useEffect(() => {
+     fetch("https://screen-beta-api.wenglab.org/gwasws/main", {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+      body: JSON.stringify({
+        assembly: "GRCh38",
+        gwas_study: study
+      })
+    })
+    .then(response => {
+        if (!response.ok) {
+            const error = new Error(response.statusText)
+            // throw new Error(response.statusText)
+            // return ErrorMessage(new Error(response.statusText))
+            return ErrorMessage(error)
+        }
+        return response.json()
+    })
+    .then(data => {
+        setData(data)
+        setLoadingStudy(false)
+    })
+    .catch((error: Error) => {
+        // logging
+        // throw error
+        return ErrorMessage(error)
+    })
+    setLoadingStudy(true)
+  }, [ study ])
 
   // fetch study
   // const data = await fetchServer("https://screen-beta-api.wenglab.org/gwasws/main", study)
@@ -203,20 +168,22 @@ export default function GWAS() {
     <main>
       <Grid2 container spacing={2} sx={{mt: '2rem'}}>
         <Grid2 xs={4}>
-          {studies && studies.gwas && <DataTable
-              rows={studies.gwas.studies}
-              columns={[
-                  { header: "Study", value: (row: any) => row.trait },
-                  { header: "Author", value: (row: any) => createLink("https://pubmed.ncbi.nlm.nih.gov/", row.author) },
-                  { header: "Pubmed", value: (row: any) => row.pubmed },
-              ]}
-              onRowClick={(row: any) => {
-                setStudy(row.value)}}
-          />}
+          <Box ml={2}>
+            {loadingStudies ? LoadingMessage() : studies && studies.gwas && <DataTable
+                rows={studies.gwas.studies}
+                columns={[
+                    { header: "Study", value: (row: any) => row.trait },
+                    { header: "Author", value: (row: any) => createLink("https://pubmed.ncbi.nlm.nih.gov/", row.author) },
+                    { header: "Pubmed", value: (row: any) => row.pubmed },
+                ]}
+                onRowClick={(row: any) => {
+                  setStudy(row.value)}}
+            />}
+          </Box>
         </Grid2>
         <Grid2 xs={8} >
-          <Box mb={2}>
-            {data && data[study] && <DataTable
+          <Box mb={2} mr={2}>
+            {loadingStudy ? LoadingMessage() : data && data[study] && <DataTable
                 rows={data[study].mainTable}
                 columns={[
                     { header: "Total LD blocks", value: (row: any) => row.totalLDblocks },
@@ -225,14 +192,16 @@ export default function GWAS() {
                 ]}
             />}
           </Box>
-          {data && data[study] && data[study].cres && <DataTable
-              rows={data[study].cres._all.accessions}
-              columns={[
-                  { header: "cCRE", value: (row: any) => row.accession },
-                  { header: "SNPs", value: (row: any) => createLink("http://ensembl.org/Homo_sapiens/Variation/Explore?vdb=variation;v=", row.snps[0]) },
-                  { header: "gene", value: (row: any) => createLink("https://www.genecards.org/cgi-bin/carddisp.pl?gene=", row.geneid) },
-              ]}
-          />}
+          <Box mr={2}>
+            {loadingStudy ? LoadingMessage() : data && data[study] && data[study].cres && <DataTable
+                rows={data[study].cres._all.accessions}
+                columns={[
+                    { header: "cCRE", value: (row: any) => row.accession },
+                    { header: "SNPs", value: (row: any) => createLink("http://ensembl.org/Homo_sapiens/Variation/Explore?vdb=variation;v=", row.snps[0]) },
+                    { header: "gene", value: (row: any) => createLink("https://www.genecards.org/cgi-bin/carddisp.pl?gene=", row.geneid) },
+                ]}
+            />}
+          </Box>
         </Grid2>
       </Grid2>
     </main>
