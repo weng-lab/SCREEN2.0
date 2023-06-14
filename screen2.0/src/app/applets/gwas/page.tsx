@@ -1,9 +1,12 @@
 'use client'
+import { Typography } from "@mui/material"
+
 import React, { useMemo, useState, useEffect } from "react"
 import { DataTable } from "@weng-lab/ts-ztable"
 import { createLink, fetchServer, ErrorMessage, LoadingMessage } from "../../../common/lib/utility"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { Box } from "@mui/material"
+import { TypographyType } from '../../../../../../psychscreen-ui-components/src/components/Typography/Typography';
 
 type Props = {
   setState: (value: string) => void
@@ -200,7 +203,7 @@ export default function GWAS() {
             />}
           </Box>
           <Box mr={1}>
-            {loadingStudy ? LoadingMessage() : data && data[study] && data[study].cres && <DataTable
+            {loadingStudy ? <div></div> : data && data[study] && data[study].cres && <DataTable
                 rows={data[study].cres._all.accessions}
                 columns={[
                     { header: "cCRE", value: (row: any) => row.accession },
@@ -208,6 +211,7 @@ export default function GWAS() {
                     { header: "gene", value: (row: any) => createLink("https://www.genecards.org/cgi-bin/carddisp.pl?gene=", row.geneid) },
                 ]}
                 sortDescending={true}
+                itemsPerPage={10}
             />}
           </Box>
         </Grid2>

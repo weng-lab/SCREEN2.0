@@ -50,7 +50,7 @@ export const createLink = (url: string, id: string) => {
  * @returns active loader
  */
 export function LoadingMessage() {
-  console.log("Loading...")
+  // console.log("Loading...")
   // return <CircularProgress />
   return (
     <div
