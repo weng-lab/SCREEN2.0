@@ -1,53 +1,68 @@
 // Search Results Page
 
-'use client'
-import { Typography } from "@mui/material"
+// 'use client'
+import MainQuery from "../../common/lib/queries";
+import MainResultsTable from "../../common/components/MainResultsTable";
+import MainResultsFilers from "../../common/components/MainResultsFilters";
+import { ApolloQueryResult } from "@apollo/client";
 
-import { DataTable, DataTableColumn, DataTableProps } from "@weng-lab/psychscreen-ui-components"
-import { Slider } from "@mui/material"
+import Grid2 from "../../common/mui-client-wrappers/Grid2";
+import Typography from "../../common/mui-client-wrappers/Typography"
 
-type Row = {
-  index: number;
-  text: string;
-  color: string;
-  description: string;
-};
+export default async function Search({
+  // Object from URL, see https://nextjs.org/docs/app/api-reference/file-conventions/page#searchparams-optional
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | undefined };
+}) {
 
-const COLUMNS: DataTableColumn<Row>[] = [{
-  header: "Index",
-  value: row => row.index
-},{
-  header: "Text",
-  value: row => row.text
-}, {
-  header: "Color",
-  value: row => row.color,
-  render: (row: Row) => <div style={{ width: "100%", height: "100%", backgroundColor: row.color }}>&nbsp;</div>
-},
-{
-header: "Description",
-value: row => row.description
-}];
+  // data for query is extracted from URL
+  const mainQueryResult = await MainQuery((searchParams.assembly ? searchParams.assembly : "GRCh38"), (searchParams.chromosome ? searchParams.chromosome : "chr11"),(searchParams.start ? Number(searchParams.start) : 5205263), (searchParams.end ? Number(searchParams.end) : 5381894))
 
-const ROWS = [
-  { index: 0, text: "this is row 0", color: "#ff0000", description: "this is row 0"},
-  { index: 1, text: "this is row 1", color: "#dd0000", description: "this is row 1" },
-  { index: 2, text: "this is row 2", color: "#bb0000", description: "this is row 2" },
-  { index: 3, text: "this is row 3", color: "#990000", description: "this is row 3" },
-  { index: 4, text: "this is row 4", color: "#770000", description: "this is row 4" },
-  { index: 5, text: "this is row 5", color: "#550000", description: "this is row 5" },
-  { index: 6, text: "this is row 6", color: "#330000", description: "this is row 6" },
-  { index: 7, text: "this is row 7", color: "#110000", description: "this is row 7" }
-];
-
-export default function Search() {
-    return (
-      <main>
-        <Typography>
-            This is the search results page
-        </Typography>
-        <DataTable columns={COLUMNS} rows={ROWS} tableTitle="Search Results"/>
-        {/* Is this throwing an error because the state of the columns are undefined. Does the typing need to prevent passing an empty column here */}
-      </main>
-    )
+  /**
+   * @param QueryResult Result from Main Query
+   * @returns rows usable by the DataTable component
+   */
+  //This needs better input handling
+  //Fails in basically any case when input isn't exactly as expected
+  function generateRows(QueryResult: ApolloQueryResult<any>) {
+    const rows: {
+      //atac will need to be changed from string to number when that data is available
+      accession: string; class: string; chromosome: string; start: number; end: number; dnase: number; atac: string; h3k4me3: number; h3k27ac: number; ctcf: number;
+    }[] = [];
+    const cCRE_data: any[] = QueryResult.data.cCRESCREENSearch;
+    cCRE_data.forEach((currentElement, index) => {
+      rows[index] = {
+        accession: currentElement.info.accession,
+        class: currentElement.pct,
+        chromosome: currentElement.chrom,
+        start: currentElement.start.toLocaleString("en-US"),
+        end: (currentElement.start + currentElement.len).toLocaleString("en-US"),
+        dnase: currentElement.dnase_zscore.toFixed(2),
+        //Need to get this data still from somewhere
+        atac: "TBD",
+        h3k4me3: currentElement.promoter_zscore.toFixed(2),
+        h3k27ac: currentElement.enhancer_zscore.toFixed(2),
+        ctcf: currentElement.ctcf_zscore.toFixed(2),
+      }
+    });
+    return rows; 
   }
+
+  return (
+    <main>
+      {/* Feed rows generated from the query result to the Table. Columns for table defined in the MainResultsTable component */}
+      <Grid2 container spacing={3} sx={{mt: "2rem", mb: "2rem"}}>
+        <Grid2 xs={12} lg={3}>
+          <MainResultsFilers />
+        </Grid2>
+        <Grid2 xs={12} lg={9}>
+          <MainResultsTable 
+          rows={generateRows(mainQueryResult)} 
+          tableTitle={`Searching ${searchParams.chromosome} in ${searchParams.assembly} from ${searchParams.start ? Number(searchParams.start).toLocaleString("en-US") : "undefined"} to ${searchParams.end ? Number(searchParams.end).toLocaleString("en-US") : "undefined"}`} 
+          itemsPerPage={10}/>
+        </Grid2>
+      </Grid2>
+    </main>
+  )
+}
