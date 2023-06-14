@@ -55,12 +55,11 @@ const pageLinks = [
   {
     pageName: 'Downloads',
     link: '/downloads'
-  }
+  },
 ]
 
-/*
-  TODO:
-  - Hamburger Menu, need to align optically without setting the margin to zero - it messes up interacting with the button
+/**
+ * @todo: Hamburger Menu, need to align optically without setting the margin to zero - it messes up interacting with the button
 */
 
 function ResponsiveAppBar() {
