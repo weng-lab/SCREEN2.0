@@ -64,7 +64,7 @@ const initialStudy = {
 
 const initialstudies = {
   gwas : {
-    studies : {
+    studies : [{
       Huang_KC_26169365_Yu_Zhi_constitution_type_in_type_2_diabetes: {
         value: 'Huang_KC_26169365_Yu_Zhi_constitution_type_in_type_2_diabetes',
         author: 'Huang KC',
@@ -73,18 +73,18 @@ const initialstudies = {
         total_ldblocks: 11,
         hasenrichment: false
       }
-    }
+    }]
   }
 }
 
-export default async function GWAS() {
+export default function GWAS() {
   // const [ study, setStudy ] = useState(JSON.stringify({
   //   assembly: "GRCh38",
   //   gwas_study: "Gretarsdottir_S_20622881_Abdominal_aortic_aneurysm"
   // }))
   const [ study, setStudy ] = React.useState("Gretarsdottir_S_20622881_Abdominal_aortic_aneurysm")
   const [ data, setData ] = React.useState(initialStudy)
-  // const [ studies, setStudies ] = useState(initialstudies)
+  const [ studies, setStudies ] = useState(initialstudies)
 
   useEffect(() => {
     fetch("https://screen-beta-api.wenglab.org/gwasws/main", {
@@ -109,6 +109,7 @@ export default async function GWAS() {
     })
     .then(data => {
         console.log(study)
+        console.log(data)
         setData(data)
     })
     .catch((error: Error) => {
@@ -119,44 +120,44 @@ export default async function GWAS() {
   }, [ study ])
 
   // use effect for studies
-  // useEffect(() => {
-  //   fetch("https://screen-beta-api.wenglab.org/gwasws/search", {
-  //     headers: {
-  //       Accept: "application/json",
-  //       "Content-Type": "application/json",
-  //     },
-  //     method: "POST",
-  //     body: JSON.stringify({
-  //       assembly: "GRCh38",
-  //       uuid: "6c4abb33-b6e8-4cf5-b8f0-b40a27ed11ff"
-  //     })
-  //   })
-  //   .then(response => {
-  //       if (!response.ok) {
-  //           // throw new Error(response.statusText)
-  //           return ErrorMessage(Error(response.statusText))
-  //       }
-  //       return response.json()
-  //   })
-  //   .then(data => {
-  //       // setData(data)
-  //       setStudies(data)
-  //       // return data
-  //       // setData(data.mainTable)
-  //       // setAccessions(data.accessions)
-  //   })
-  //   .catch((error: Error) => {
-  //       // logging
-  //       // throw error
-  //       return ErrorMessage(error)
-  //   })
-  // }, [ ])
+  useEffect(() => {
+    fetch("https://screen-beta-api.wenglab.org/gwasws/search", {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+      body: JSON.stringify({
+        assembly: "GRCh38",
+        uuid: "6c4abb33-b6e8-4cf5-b8f0-b40a27ed11ff"
+      })
+    })
+    .then(response => {
+        if (!response.ok) {
+            // throw new Error(response.statusText)
+            return ErrorMessage(Error(response.statusText))
+        }
+        return response.json()
+    })
+    .then(data => {
+        // setData(data)
+        setStudies(data)
+        // return data
+        // setData(data.mainTable)
+        // setAccessions(data.accessions)
+    })
+    .catch((error: Error) => {
+        // logging
+        // throw error
+        return ErrorMessage(error)
+    })
+  }, [ ])
 
   // fetch list of studies
-  const studies = await fetchServer("https://screen-beta-api.wenglab.org/gwasws/search", JSON.stringify({
-    "assembly": "GRCh38",
-    "uuid": "6c4abb33-b6e8-4cf5-b8f0-b40a27ed11ff"
-  }))
+  // const studies = fetchServer("https://screen-beta-api.wenglab.org/gwasws/search", JSON.stringify({
+  //   "assembly": "GRCh38",
+  //   "uuid": "6c4abb33-b6e8-4cf5-b8f0-b40a27ed11ff"
+  // }))
 
   // fetch study
   // const data = await fetchServer("https://screen-beta-api.wenglab.org/gwasws/main", study)
@@ -179,7 +180,7 @@ export default async function GWAS() {
                   { header: "Author", value: (row: any) => createLink("https://pubmed.ncbi.nlm.nih.gov/", row.author) },
                   { header: "Pubmed", value: (row: any) => row.pubmed },
               ]}
-              onRowClick={(row: any) => setStudy(row.trait)}
+              onRowClick={(row: any) => setStudy(row.value)}
           />
         </Grid2>
         <Grid2 xs={8} >
