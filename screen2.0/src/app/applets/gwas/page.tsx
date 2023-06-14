@@ -83,7 +83,74 @@ export default async function GWAS() {
   //   gwas_study: "Gretarsdottir_S_20622881_Abdominal_aortic_aneurysm"
   // }))
   const [ study, setStudy ] = React.useState("Gretarsdottir_S_20622881_Abdominal_aortic_aneurysm")
+  const [ data, setData ] = React.useState(initialStudy)
+  // const [ studies, setStudies ] = useState(initialstudies)
 
+  useEffect(() => {
+    fetch("https://screen-beta-api.wenglab.org/gwasws/main", {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+      body: JSON.stringify({
+        assembly: "GRCh38",
+        gwas_study: study
+      })
+    })
+    .then(response => {
+        if (!response.ok) {
+            const error = new Error(response.statusText)
+            // throw new Error(response.statusText)
+            // return ErrorMessage(new Error(response.statusText))
+            return ErrorMessage(error)
+        }
+        return response.json()
+    })
+    .then(data => {
+        console.log(study)
+        setData(data)
+    })
+    .catch((error: Error) => {
+        // logging
+        // throw error
+        return ErrorMessage(error)
+    })
+  }, [ study ])
+
+  // use effect for studies
+  // useEffect(() => {
+  //   fetch("https://screen-beta-api.wenglab.org/gwasws/search", {
+  //     headers: {
+  //       Accept: "application/json",
+  //       "Content-Type": "application/json",
+  //     },
+  //     method: "POST",
+  //     body: JSON.stringify({
+  //       assembly: "GRCh38",
+  //       uuid: "6c4abb33-b6e8-4cf5-b8f0-b40a27ed11ff"
+  //     })
+  //   })
+  //   .then(response => {
+  //       if (!response.ok) {
+  //           // throw new Error(response.statusText)
+  //           return ErrorMessage(Error(response.statusText))
+  //       }
+  //       return response.json()
+  //   })
+  //   .then(data => {
+  //       // setData(data)
+  //       setStudies(data)
+  //       // return data
+  //       // setData(data.mainTable)
+  //       // setAccessions(data.accessions)
+  //   })
+  //   .catch((error: Error) => {
+  //       // logging
+  //       // throw error
+  //       return ErrorMessage(error)
+  //   })
+  // }, [ ])
 
   // fetch list of studies
   const studies = await fetchServer("https://screen-beta-api.wenglab.org/gwasws/search", JSON.stringify({
@@ -93,10 +160,10 @@ export default async function GWAS() {
 
   // fetch study
   // const data = await fetchServer("https://screen-beta-api.wenglab.org/gwasws/main", study)
-  const data = await fetchServer("https://screen-beta-api.wenglab.org/gwasws/main", JSON.stringify({
-    assembly: "GRCh38",
-    gwas_study: study
-  }))
+  // const data = await fetchServer("https://screen-beta-api.wenglab.org/gwasws/main", JSON.stringify({
+  //   assembly: "GRCh38",
+  //   gwas_study: study
+  // }))
 
   // console.log(studies)
   // console.log(data)
