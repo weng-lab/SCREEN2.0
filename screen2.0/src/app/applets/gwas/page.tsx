@@ -174,6 +174,7 @@ export default function GWAS() {
         <Grid2 xs={4}>
           <Box ml={1}>
             {loadingStudies ? LoadingMessage() : studies && studies.gwas && <DataTable
+                tableTitle="GWAS Studies"
                 rows={studies.gwas.studies}
                 columns={[
                     { header: "Study", value: (row: any) => row.trait },
@@ -211,7 +212,8 @@ export default function GWAS() {
                     { header: "# of LD blocks overlapping cCREs", value: (row: any) => row.numLdBlocksOverlapFormat },
                     { header: "# of overlapping cCREs", value: (row: any) => row.numCresOverlap },
                 ]}
-                sortDescending={true}                
+                sortDescending={true}
+                hidePageMenu={true}        
             />}
           </Box>
           <Box mr={1}>
