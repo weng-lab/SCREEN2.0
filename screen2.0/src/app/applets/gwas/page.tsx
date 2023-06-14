@@ -79,6 +79,7 @@ const initialstudies = {
 
 export default function GWAS() {
   const [ study, setStudy ] = React.useState("Gretarsdottir_S_20622881_Abdominal_aortic_aneurysm")
+  const [ trait, setTrait ] = React.useState("Abdominal aortic aneurysm")
   const [ data, setData ] = React.useState(initialStudy)
   const [ studies, setStudies ] = React.useState(initialstudies)
   const [ loadingStudies, setLoadingStudies ] = React.useState(true)
@@ -177,21 +178,25 @@ export default function GWAS() {
                     { header: "Pubmed", value: (row: any) => row.pubmed },
                 ]}
                 onRowClick={(row: any) => {
-                  setStudy(row.value)}}
+                  setStudy(row.value)
+                  setTrait(row.trait)
+                }}
                 sortDescending={true}
+                itemsPerPage={10}
             />}
           </Box>
         </Grid2>
         <Grid2 xs={8} >
           <Box mb={2} mr={1}>
             {loadingStudy ? LoadingMessage() : data && data[study] && <DataTable
+                tableTitle={trait}
                 rows={data[study].mainTable}
                 columns={[
                     { header: "Total LD blocks", value: (row: any) => row.totalLDblocks },
                     { header: "# of LD blocks overlapping cCREs", value: (row: any) => row.numLdBlocksOverlapFormat },
                     { header: "# of overlapping cCREs", value: (row: any) => row.numCresOverlap },
                 ]}
-                sortDescending={true}
+                sortDescending={true}                
             />}
           </Box>
           <Box mr={1}>
