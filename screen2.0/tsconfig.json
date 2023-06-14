@@ -1,12 +1,18 @@
 {
 	"compilerOptions": {
 		"target": "es6",
-		"lib": ["es5", "es6", "dom", "dom.iterable", "esnext"],
+		"lib": [
+		  "es5",
+		  "es6",
+		  "dom",
+		  "dom.iterable",
+		  "esnext"
+		],
 		"allowJs": true,
 		"skipLibCheck": true,
 		"esModuleInterop": true,
 		"allowSyntheticDefaultImports": true,
-		"strict": true,
+		// "strict": true,
 		"forceConsistentCasingInFileNames": true,
 		"module": "esnext",
 		"moduleResolution": "node",
@@ -14,15 +20,30 @@
 		"isolatedModules": true,
 		"noEmit": true,
 		"jsx": "preserve",
-		"typeRoots": ["./types", "./node_modules/@types"],
+		"typeRoots": [
+		  "./types",
+		  "./node_modules/@types"
+		],
 		"noFallthroughCasesInSwitch": true,
 		"incremental": true,
+		"noImplicitAny": false,
 		"plugins": [
-			{
-				"name": "next"
-			}
-		]
-	},
-	"include": ["src", ".next/types/**/*.ts", "types"],
-	"exclude": ["node_modules", "yarn.lock", "yarn-error.log", ".cache", "dist"]
+		  {
+			"name": "next"
+		  }
+		],
+		"strict": false
+	  },
+	  "include": [
+		"src",
+		".next/types/**/*.ts",
+		"./types"
+	  ],
+	  "exclude": [
+		"node_modules",
+		"yarn.lock",
+		"yarn-error.log",
+		".cache",
+		"dist"
+	  ]
 }
