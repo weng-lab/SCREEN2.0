@@ -82,12 +82,14 @@ export default function GWAS() {
   //   assembly: "GRCh38",
   //   gwas_study: "Gretarsdottir_S_20622881_Abdominal_aortic_aneurysm"
   // }))
+  //const [loading, setLoading] = useState(false)
   const [ study, setStudy ] = React.useState("Gretarsdottir_S_20622881_Abdominal_aortic_aneurysm")
   const [ data, setData ] = React.useState(initialStudy)
-  const [ studies, setStudies ] = useState(initialstudies)
+  //define proper type
+  const [ studies, setStudies ] = useState<any>()
 
   useEffect(() => {
-    fetch("https://screen-beta-api.wenglab.org/gwasws/main", {
+     fetch("https://screen-beta-api.wenglab.org/gwasws/main", {
       headers: {
         Accept: "application/json",
         "Content-Type": "application/json",
@@ -108,8 +110,6 @@ export default function GWAS() {
         return response.json()
     })
     .then(data => {
-        console.log(study)
-        console.log(data)
         setData(data)
     })
     .catch((error: Error) => {
@@ -154,10 +154,40 @@ export default function GWAS() {
   }, [ ])
 
   // fetch list of studies
-  // const studies = fetchServer("https://screen-beta-api.wenglab.org/gwasws/search", JSON.stringify({
-  //   "assembly": "GRCh38",
-  //   "uuid": "6c4abb33-b6e8-4cf5-b8f0-b40a27ed11ff"
-  // }))
+
+  useEffect(() => {
+    fetch("https://screen-beta-api.wenglab.org/gwasws/search", {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      method: "POST",
+      body: JSON.stringify({
+        "assembly": "GRCh38",
+        "uuid": "6c4abb33-b6e8-4cf5-b8f0-b40a27ed11ff"
+      })
+    })
+    .then(response => {
+        if (!response.ok) {
+            const error = new Error(response.statusText)
+            // throw new Error(response.statusText)
+            // return ErrorMessage(new Error(response.statusText))
+            return ErrorMessage(error)
+        }
+        return response.json()
+    })
+    .then(data => {
+        setStudies(data)
+        //set loading to false 
+    })
+    .catch((error: Error) => {
+        // logging
+        // throw error
+        return ErrorMessage(error)
+    })
+    //set loading to true  
+  },[])
+
 
   // fetch study
   // const data = await fetchServer("https://screen-beta-api.wenglab.org/gwasws/main", study)
@@ -173,35 +203,36 @@ export default function GWAS() {
     <main>
       <Grid2 container spacing={2} sx={{mt: '2rem'}}>
         <Grid2 xs={4}>
-          <DataTable
+          {studies && studies.gwas && <DataTable
               rows={studies.gwas.studies}
               columns={[
                   { header: "Study", value: (row: any) => row.trait },
                   { header: "Author", value: (row: any) => createLink("https://pubmed.ncbi.nlm.nih.gov/", row.author) },
                   { header: "Pubmed", value: (row: any) => row.pubmed },
               ]}
-              onRowClick={(row: any) => setStudy(row.value)}
-          />
+              onRowClick={(row: any) => {
+                setStudy(row.value)}}
+          />}
         </Grid2>
         <Grid2 xs={8} >
           <Box mb={2}>
-            <DataTable
+            {data && data[study] && <DataTable
                 rows={data[study].mainTable}
                 columns={[
                     { header: "Total LD blocks", value: (row: any) => row.totalLDblocks },
                     { header: "# of LD blocks overlapping cCREs", value: (row: any) => row.numLdBlocksOverlapFormat },
                     { header: "# of overlapping cCREs", value: (row: any) => row.numCresOverlap },
                 ]}
-            />
+            />}
           </Box>
-          <DataTable
+          {data && data[study] && data[study].cres && <DataTable
               rows={data[study].cres._all.accessions}
               columns={[
                   { header: "cCRE", value: (row: any) => row.accession },
                   { header: "SNPs", value: (row: any) => createLink("http://ensembl.org/Homo_sapiens/Variation/Explore?vdb=variation;v=", row.snps[0]) },
                   { header: "gene", value: (row: any) => createLink("https://www.genecards.org/cgi-bin/carddisp.pl?gene=", row.geneid) },
               ]}
-          />
+          />}
         </Grid2>
       </Grid2>
     </main>
