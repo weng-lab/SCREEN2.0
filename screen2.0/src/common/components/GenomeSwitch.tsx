@@ -5,10 +5,13 @@ import { useEffect } from 'react';
 import { 
     Typography,
     Switch,
-    SwitchProps
+    SwitchProps,
+    Stack
 } from "@mui/material";
-
 import { styled, alpha } from '@mui/material/styles';
+
+import mouseIcon from '../../../public/mouse.png'
+import humanIcon from '../../../public/human.png'
 
 export type GenomeSwitchProps = SwitchProps & {
     /**
@@ -20,7 +23,12 @@ export type GenomeSwitchProps = SwitchProps & {
      */
     onSwitchChange?: (checked: boolean) => void;
   };
-  
+
+/**
+ * Typescript does not like accessing .src attribute of the unknown image objects.
+ * Can't find a better solution than this given next.js complications with images 
+ * and modifying basePath. Typescript told to ignore these errors.
+ */
 
 const StyledSwitch = styled(Switch)(({ theme }) => ({
     width: 62,
@@ -34,7 +42,8 @@ const StyledSwitch = styled(Switch)(({ theme }) => ({
         color: '#fff',
         transform: 'translateX(22px)',
         '& .MuiSwitch-thumb:before': {
-          backgroundImage: 'url("mouse.png")',
+          // @ts-expect-error
+          backgroundImage: `url(${mouseIcon.src})`,
         },
         '& + .MuiSwitch-track': {
           opacity: 1,
@@ -55,7 +64,8 @@ const StyledSwitch = styled(Switch)(({ theme }) => ({
         top: 0,
         backgroundRepeat: 'no-repeat',
         backgroundPosition: 'center',
-        backgroundImage: 'url("user.png")',
+        // @ts-expect-error
+        backgroundImage: `url(${humanIcon.src})`,
         backgroundSize: '70%',
       },
     },
@@ -77,22 +87,22 @@ const GenomeSwitch: React.FC<GenomeSwitchProps> = (props: GenomeSwitchProps) => 
         props.onSwitchChange && props.onSwitchChange(checked)
     })
 
-    return (
-        <>
-            <Typography>GRCh38</Typography>
-            <StyledSwitch
-                //This is the value of the switch. When going to the results page, this value needs to mirror the search query
-                //false = human, true = mouse
-                checked={checked}
-                //Not positive that this works as expected
-                defaultChecked={props.initialChecked && props.initialChecked}
-                onChange={handleChange}
-                color="primary"
-                inputProps={{ 'aria-label': 'primary checkbox' }}
-            />
-            <Typography>mm10</Typography>
-        </>
-    );
+  return (
+    <Stack direction='row' alignItems='center'>
+      <Typography>GRCh38</Typography>
+      <StyledSwitch
+        //This is the value of the switch. When going to the results page, this value needs to mirror the search query
+        //false = human, true = mouse
+        checked={checked}
+        //Not positive that this works as expected
+        defaultChecked={props.initialChecked && props.initialChecked}
+        onChange={handleChange}
+        color="primary"
+        inputProps={{ 'aria-label': 'primary checkbox' }}
+      />
+      <Typography>mm10</Typography>
+    </Stack>
+  );
 }
 
 export default GenomeSwitch;

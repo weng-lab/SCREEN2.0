@@ -14,6 +14,8 @@ import SearchIcon from '@mui/icons-material/Search';
 
 import GenomeSwitch from './GenomeSwitch';
 
+import { useRouter } from 'next/navigation';
+
 const Search = styled('div')(({ theme }) => ({
     position: 'relative',
     borderRadius: theme.shape.borderRadius,
@@ -53,41 +55,38 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
     },
 }));
 
-/**
- * Search bar contains a value
- * Toggle contains a position (or a boolean value)
- *  
- */
-export type SearchProps = InputBaseProps & {
-    /**
-     * false for human, true for mouse
-     */
+export type HeaderSearchProps = InputBaseProps & {
+    //false for human, true for mouse
     initialChecked?: boolean;
-    // onChange?: (checked: boolean) => void;
 };
 
-const HeaderSearch: React.FC<SearchProps> = (props: SearchProps) => {
+const HeaderSearch: React.FC<HeaderSearchProps> = (props: HeaderSearchProps) => {
 
     const [value, setValue] = React.useState("");
     const [checked, setChecked] = React.useState(props.initialChecked || false);
 
-    const handleChange = (event: { target: { value: React.SetStateAction<string>; }; }) => {
+    const router = useRouter();
+
+    function handleChange(event: { target: { value: React.SetStateAction<string>; }; }) {
         setValue(event.target.value);
     };
 
-    // const handleCheck = (event: React.ChangeEvent<HTMLInputElement>) => {
-    //     setChecked(event.target.checked);
-    //     console.log()
-    // };
-
-    const handleSubmit = () => { 
-        window.alert("Submitted with value: " + value + " and checked: " + checked);
+    function handleSubmit() {
+        const assembly = (checked ? 'mm10' : 'GRCh38');
+        //if submitted with empty value, use default search
+        if (value == '') { router.push(`/search?assembly=${assembly}&chromosome=chr11&start=5205263&end=5381894`); return }
+        const input = value.split(':');
+        const chromosome = input[0]
+        const coordinates = input[1].split('-')
+        const start = coordinates[0]
+        const end = coordinates[1]
+        router.push(`/search?assembly=${assembly}&chromosome=${chromosome}&start=${start}&end=${end}`)
     }
 
     return (
         <Stack direction='row' alignItems='center'>
-            {/* Wrap search in <form> component. onSubmit() is triggered when the submit button clicked or "enter" pressed when editing the text */}
-            <form onSubmit={handleSubmit}>
+            {/* For some reason, maybe because it is defined in layout, useRouter() is broken in onSubmit in a form component,
+                so cant use typical <form>. Maybe revist eventually */}
             <Search>
                 <StyledInputBase
                     placeholder='Search SCREEN'
@@ -95,11 +94,15 @@ const HeaderSearch: React.FC<SearchProps> = (props: SearchProps) => {
                     fullWidth
                     value={value}
                     onChange={handleChange}
+                    // I'm not positive this is a bulletproof workaround for <form> not working as expected
+                    onKeyDown={(event) => { if (event.code === 'Enter') { handleSubmit() } }}
+                    type='search'
                     endAdornment={
                         <InputAdornment position="end">
                             <IconButton
                                 aria-label="Search"
                                 type='submit'
+                                onClick={() => handleSubmit()}
                             >
                                 <SearchIcon />
                             </IconButton>
@@ -107,7 +110,6 @@ const HeaderSearch: React.FC<SearchProps> = (props: SearchProps) => {
                     }
                 />
             </Search>
-            </form>
             <GenomeSwitch
                 initialChecked={props.initialChecked && props.initialChecked}
                 checked={checked}

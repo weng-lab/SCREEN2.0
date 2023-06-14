@@ -377,3 +377,30 @@ template {
 [hidden] {
   display: none;
 }
+
+
+/* ============================ END OF NORMALIZE.CSS ===================================== */
+
+
+/* Footer
+================================================================= */
+
+/* Set minimum page height to 100% of viewport height, set position to relative so that children can be set with absolute position */
+#page-container {
+  position: relative;
+  min-height: 100vh;
+}
+
+/* Leaves exactly enough space on the bottom of the page for the footer */
+#content-wrapper {
+  padding-bottom: 4rem;
+}
+
+/* Limit the amount of space the content can take up so it doesn't run into edge */
+#body-wrapper {
+  max-width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Footer component has embebed styled to set it's height and position */

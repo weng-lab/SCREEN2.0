@@ -17,9 +17,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <ResponsiveAppBar />
-        {children}
+      <body className={inter.className} id="page-container">
+        <div id="content-wrapper">
+          <ResponsiveAppBar />
+          <div id="body-wrapper">
+            {children}
+          </div>
+        </div>
         <Footer />
       </body>
     </html>
