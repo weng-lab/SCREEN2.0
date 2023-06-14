@@ -51,8 +51,20 @@ export const createLink = (url: string, id: string) => {
  */
 export function LoadingMessage() {
   console.log("Loading...")
-  return <CircularProgress />
-  // return loading({ isFetching: true, isError: false })
+  // return <CircularProgress />
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center"
+      }}
+    >
+      {  
+        <CircularProgress />
+      }
+    </div>
+  )
 }
 
 /**
