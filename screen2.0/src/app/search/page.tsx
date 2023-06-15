@@ -16,8 +16,6 @@ export default async function Search({
   searchParams: { [key: string]: string | undefined };
 }) {
 
-  console.log(searchParams)
-
   //Get search parameters and define defaults. Put into object.
   const mainQueryParams = {
     assembly: searchParams.assembly ? searchParams.assembly : "GRCh38",
@@ -34,8 +32,6 @@ export default async function Search({
     ctcf_s: searchParams.ctcf_s ? Number(searchParams.ctcf_s) : -10,
     ctcf_e: searchParams.ctcf_e ? Number(searchParams.ctcf_e) : 10,
   }
-
-  console.log(mainQueryParams)
 
   //Send query with parameters assembly, chr, start, end
   //Importantly, 

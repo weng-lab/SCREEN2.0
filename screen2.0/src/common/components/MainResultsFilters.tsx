@@ -8,7 +8,7 @@ import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Button from '@mui/material/Button';
 import SendIcon from '@mui/icons-material/Send';
-// import { Paper } from '@mui/material';
+import { Box, Paper } from '@mui/material';
 
 import Link from 'next/link';
 
@@ -32,8 +32,14 @@ export default function MainResultsFilters(props: { mainQueryParams: any }) {
   }
 
   return (
-    <>
-      <Accordion>
+    <Paper elevation={4}>
+      <Box sx={{ minHeight: '64px', display: 'flex', alignItems: 'center'}}>
+        <Typography variant='h5' sx={{ pl: '16px'}}>
+          Refine Your Search
+        </Typography>
+      </Box>
+      <Accordion square disableGutters>
+      {/* <Accordion square>   */}
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="panel1a-content"
@@ -48,7 +54,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any }) {
           </Typography>
         </AccordionDetails>
       </Accordion>
-      <Accordion>
+      <Accordion square defaultExpanded disableGutters>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="panel2a-content"
@@ -59,7 +65,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any }) {
         <AccordionDetails>
           <RangeSlider
             title='DNase Z-Score'
-            width={250}
+            width='100%'
             defaultStart={DNaseStart}
             defaultEnd={DNaseEnd}
             min={-10}
@@ -73,7 +79,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any }) {
             }} />
           <RangeSlider
             title='H3K4me3 Z-Score'
-            width={250}
+            width='100%'
             defaultStart={H3K4me3Start}
             defaultEnd={H3K4me3End}
             min={-10}
@@ -86,7 +92,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any }) {
             }} />
           <RangeSlider
             title='H3K27ac Z-Score'
-            width={250}
+            width='100%'
             defaultStart={H3K27acStart}
             defaultEnd={H3K27acEnd}
             min={-10}
@@ -99,7 +105,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any }) {
             }} />
           <RangeSlider
             title='CTCF Z-Score'
-            width={250}
+            width='100%'
             defaultStart={CTCFStart}
             defaultEnd={CTCFEnd}
             min={-10}
@@ -112,7 +118,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any }) {
             }} />
         </AccordionDetails>
       </Accordion>
-      <Accordion>
+      <Accordion square disableGutters>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="panel3a-content"
@@ -127,7 +133,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any }) {
           </Typography>
         </AccordionDetails>
       </Accordion>
-      <Accordion>
+      <Accordion square disableGutters>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="panel4a-content"
@@ -142,7 +148,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any }) {
           </Typography>
         </AccordionDetails>
       </Accordion>
-      <Accordion>
+      <Accordion square disableGutters>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="panel5a-content"
@@ -157,7 +163,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any }) {
           </Typography>
         </AccordionDetails>
       </Accordion>
-      <Accordion>
+      <Accordion square disableGutters>
         <AccordionSummary
           expandIcon={<ExpandMoreIcon />}
           aria-controls="panel6a-content"
@@ -176,10 +182,11 @@ export default function MainResultsFilters(props: { mainQueryParams: any }) {
         <Button
           variant="contained"
           endIcon={<SendIcon />}
+          sx={{ mt: '16px', mb: '16px', ml: '16px', mr: '16px' }}
         >
           Filter Results
         </Button>
       </Link>
-    </>
+    </Paper>
   );
 }
