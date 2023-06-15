@@ -1,12 +1,7 @@
 //Home Page
 
-'use client'
-import {
-  TextField,
-  Typography,
-  Box,
-  Container
-} from "@mui/material"
+"use client"
+import { TextField, Typography, Box, Container } from "@mui/material"
 
 import MainSearch from "../common/components/MainSearch"
 
@@ -23,33 +18,35 @@ export default function Home() {
       {/* May need to rethink where these margins are set. Which element should be setting content width? */}
       <Grid2 container spacing={6} sx={{ mr: "auto", ml: "auto", mt: "3rem" }}>
         <Grid2 xs={12}>
-        <Typography variant="h3">
-            SCREEN
-          </Typography>
-          <Typography variant="h5">
-            Search Candidate cis-Regulatory Elements by ENCODE
-          </Typography>
+          <Typography variant="h3">SCREEN</Typography>
+          <Typography variant="h5">Search Candidate cis-Regulatory Elements by ENCODE</Typography>
         </Grid2>
         <Grid2 xs={12} lg={6}>
-          <Typography variant="h4">
-            Search
-          </Typography>
+          <Typography variant="h4">Search</Typography>
           <MainSearch />
           <Typography variant="h5" mt="3rem">
             What is SCREEN?
           </Typography>
-          <Typography >
-            SCREEN is a web interface for searching and visualizing the Registry of candidate cis-Regulatory Elements (cCREs) derived from ENCODE data. The Registry contains 1,063,878 human cCREs in GRCh38 and 313,838 mouse cCREs in mm10, with homologous cCREs cross-referenced across species. SCREEN presents the data that support biochemical activities of the cCREs and the expression of nearby genes in specific cell and tissue types.
+          <Typography>
+            SCREEN is a web interface for searching and visualizing the Registry of candidate cis-Regulatory Elements (cCREs) derived from
+            ENCODE data. The Registry contains 1,063,878 human cCREs in GRCh38 and 313,838 mouse cCREs in mm10, with homologous cCREs
+            cross-referenced across species. SCREEN presents the data that support biochemical activities of the cCREs and the expression of
+            nearby genes in specific cell and tissue types.
           </Typography>
           <Typography variant="h5" mt="2rem">
             Version 4 Annotations:
           </Typography>
           <Typography>
-            Human Genome assembly: hg38<br/>
-            Human cCRE count: 1,063,878<br/>
-            Human cell and tissue types covered: 1,518<br/>
-            Mouse Genome assembly: mm10<br/>
-            Mouse cCRE count: 313,838<br/>
+            Human Genome assembly: hg38
+            <br />
+            Human cCRE count: 1,063,878
+            <br />
+            Human cell and tissue types covered: 1,518
+            <br />
+            Mouse Genome assembly: mm10
+            <br />
+            Mouse cCRE count: 313,838
+            <br />
             Mouse cell and tissue types covered: 169
           </Typography>
         </Grid2>

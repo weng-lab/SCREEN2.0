@@ -4,45 +4,49 @@ import { Link, Alert, AlertTitle, CircularProgress } from "@mui/material"
 
 /**
  * Uses fetch to make a query call (server side)
- * @param {string} url 
+ * @param {string} url
  * @param {string} jq json of variables to use when fetching
  * @returns data
  */
 export async function fetchServer<T>(url: string, jq: BodyInit) {
-    return await fetch(url, {
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      method: "POST",
-      body: jq
+  return await fetch(url, {
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+    body: jq,
   })
-  .then(response => {
+    .then((response) => {
       if (!response.ok) {
-          // throw new Error(response.statusText)
-          return ErrorMessage(Error(response.statusText))
+        // throw new Error(response.statusText)
+        return ErrorMessage(Error(response.statusText))
       }
       return response.json()
-  })
-  .then(data => {
+    })
+    .then((data) => {
       return data
-  })
-  .catch((error: Error) => {
+    })
+    .catch((error: Error) => {
       // logging
       // throw error
       return ErrorMessage(error)
-  })
+    })
 }
 
 /**
  * Creates a hyperlink to the url + id with the id as the button
- * @param url 
+ * @param url
  * @param id string to be pasted at the end of the url
  * @returns link anchor to url + id
  */
 export const createLink = (url: string, id: string) => {
   const link = url + id
-  return <Link href={link}><button>{id}</button></Link>
+  return (
+    <Link href={link}>
+      <button>{id}</button>
+    </Link>
+  )
 }
 
 /**
@@ -57,12 +61,10 @@ export function LoadingMessage() {
       style={{
         display: "flex",
         justifyContent: "center",
-        alignItems: "center"
+        alignItems: "center",
       }}
     >
-      {  
-        <CircularProgress />
-      }
+      {<CircularProgress />}
     </div>
   )
 }
@@ -86,7 +88,7 @@ export function ErrorMessage(error: Error) {
 
 // /**
 //  * Uses fetch to make a query call (client side)
-//  * @param {string} url 
+//  * @param {string} url
 //  * @param {string} jq json of variables to use when fetching
 //  * @returns data
 //  */

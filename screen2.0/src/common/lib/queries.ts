@@ -2,11 +2,11 @@
  * Send the request to our Server from a server component
  */
 
-import { getClient } from "../lib/client";
-import { gql } from "@apollo/client";
+import { getClient } from "../lib/client"
+import { gql } from "@apollo/client"
 
 const cCRE_QUERY = gql`
-query ccreSearchQuery(
+  query ccreSearchQuery(
     $accessions: [String!]
     $assembly: String!
     $cellType: String
@@ -98,35 +98,33 @@ query ccreSearchQuery(
     }
   }
 `
-function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: number, end: number){
-    return (
-        {
-            "uuid": null,
-            "assembly": assembly,
-            "coord_chrom": chromosome,
-            "coord_start": start,
-            "coord_end": end,
-            "gene_all_start": 0,
-            "gene_all_end": 5000000,
-            "gene_pc_start": 0,
-            "gene_pc_end": 5000000,
-            "rank_dnase_start": -10,
-            "rank_dnase_end": 10,
-            "rank_promoter_start": -10,
-            "rank_promoter_end": 10,
-            "rank_enhancer_start": -10,
-            "rank_enhancer_end": 10,
-            "rank_ctcf_start": -10,
-            "rank_ctcf_end": 10,
-            "cellType": null,
-            "element_type": null,
-            "limit": 25000
-        }
-    )
+function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: number, end: number) {
+  return {
+    uuid: null,
+    assembly: assembly,
+    coord_chrom: chromosome,
+    coord_start: start,
+    coord_end: end,
+    gene_all_start: 0,
+    gene_all_end: 5000000,
+    gene_pc_start: 0,
+    gene_pc_end: 5000000,
+    rank_dnase_start: -10,
+    rank_dnase_end: 10,
+    rank_promoter_start: -10,
+    rank_promoter_end: 10,
+    rank_enhancer_start: -10,
+    rank_enhancer_end: 10,
+    rank_ctcf_start: -10,
+    rank_ctcf_end: 10,
+    cellType: null,
+    element_type: null,
+    limit: 25000,
+  }
 }
 
 /**
- * 
+ *
  * @param assembly string, "GRCh38" or "mm10"
  * @param chromosome string, ex: "chr11"
  * @param start number
@@ -134,14 +132,12 @@ function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: numbe
  * @returns cCREs matching the search
  */
 export default async function MainQuery(assembly: string, chromosome: string, start: number, end: number) {
-  console.log(assembly, typeof assembly, start, typeof start, end, typeof end)  
-  
-  const data = await getClient().query({
-        query: cCRE_QUERY,
-        variables: cCRE_QUERY_VARIABLES(assembly, chromosome, start, end),
-    });
+  console.log(assembly, typeof assembly, start, typeof start, end, typeof end)
 
-    return (
-        data
-    );
+  const data = await getClient().query({
+    query: cCRE_QUERY,
+    variables: cCRE_QUERY_VARIABLES(assembly, chromosome, start, end),
+  })
+
+  return data
 }
