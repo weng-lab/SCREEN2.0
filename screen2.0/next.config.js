@@ -28,7 +28,7 @@ let assetPrefix = '/SCREEN2.0'
 let basePath = '/SCREEN2.0'
 
 const nextConfig = {
-  output: "export",
+  // output: "export",
   //Image optimization incompatible with static exports
   images: { unoptimized: true },
   devIndicators: {
