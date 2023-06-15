@@ -1,15 +1,15 @@
 // Search Results Page
 // 'use client'
-import {CcreSearch} from "./ccresearch"
+import { CcreSearch } from "./ccresearch"
 import MainQuery, { getGlobals } from "../../common/lib/queries"
 import { ApolloQueryResult } from "@apollo/client"
 
 type cCREData = {
-  info: { accession: string},
-  pct: string,
-  chrom: string,
-  start: number,
-  len: number,
+  info: { accession: string }
+  pct: string
+  chrom: string
+  start: number
+  len: number
   dnase_zscore: number
   atac: string
   promoter_zscore: number
@@ -19,12 +19,10 @@ type cCREData = {
 
 export default async function Search({
   // Object from URL, see https://nextjs.org/docs/app/api-reference/file-conventions/page#searchparams-optional
-  searchParams
+  searchParams,
 }: {
   searchParams: { [key: string]: string | undefined }
 }) {
-  
-  
   //Get search parameters and define defaults. Put into object.
   const mainQueryParams = {
     assembly: searchParams.assembly ? searchParams.assembly : "GRCh38",
@@ -113,7 +111,12 @@ export default async function Search({
   return (
     <main>
       {/* Feed rows generated from the query result to the Table. Columns for table defined in the MainResultsTable component */}
-      <CcreSearch mainQueryParams={mainQueryParams} globals={globals} ccrerows={generateRows(mainQueryResult)} assembly={mainQueryParams.assembly}/>
+      <CcreSearch
+        mainQueryParams={mainQueryParams}
+        globals={globals}
+        ccrerows={generateRows(mainQueryResult)}
+        assembly={mainQueryParams.assembly}
+      />
     </main>
   )
 }

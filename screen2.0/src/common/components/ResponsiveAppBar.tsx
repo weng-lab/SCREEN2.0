@@ -96,16 +96,16 @@ function ResponsiveAppBar() {
         <Toolbar disableGutters sx={{ justifyContent: "space-between" }}>
           {/* Display Icon on left when >=900px */}
           <Link href={"/"}>
-            <Image  src={ "/screenIcon.png"} alt="SCREEN Icon" height={40} width={40} />
-          </Link>            
-          
+            <Image src={"/screenIcon.png"} alt="SCREEN Icon" height={40} width={40} />
+          </Link>
+
           {/* Display SCREEN after logo on left when >=900px*/}
 
           <Typography
             variant="h5"
             noWrap
             component="a"
-            href={'/'}
+            href={"/"}
             sx={{
               mr: 2,
               display: { xs: "none", md: "flex" },

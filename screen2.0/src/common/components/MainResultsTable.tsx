@@ -1,8 +1,8 @@
 "use client"
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 
 import { DataTable, DataTableProps } from "@weng-lab/psychscreen-ui-components"
-import React from 'react'
+import React from "react"
 
 const COLUMNS = [
   {
@@ -56,8 +56,8 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
   const createQueryString = React.useCallback(
     (name: string, value: string) => {
       const params = new URLSearchParams(searchParams)
-      params.set(name, value) 
-      
+      params.set(name, value)
+
       return params.toString()
     },
     [searchParams]
@@ -68,10 +68,9 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
       columns={COLUMNS}
       itemsPerPage={props.itemsPerPage}
       searchable
-      onRowClick={(r)=>{
-                  
-          router.push(pathname + '?' + createQueryString('accession', r.accession))
-        }}
+      onRowClick={(r) => {
+        router.push(pathname + "?" + createQueryString("accession", r.accession))
+      }}
       tableTitle={props.tableTitle}
       sortColumn={5}
     />

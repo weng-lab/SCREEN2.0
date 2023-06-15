@@ -1,5 +1,5 @@
 export type GenomicRegion = {
-    chrom: string,
-    start: number, 
-    end: number
+  chrom: string
+  start: number
+  end: number
 }
