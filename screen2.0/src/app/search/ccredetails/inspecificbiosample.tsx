@@ -57,26 +57,26 @@ const ctAgnosticColumns = () =>  [
     value: () => "cell type agnostic" },
     {
       header: "DNase max-Z",
-      value: (row: any) => row.dnase,
-      render: (row: any) => z_score(row.dnase)
+      value: (row: cCRERow) => row.dnase,
+      render: (row: cCRERow) => z_score(row.dnase)
     },
     {
         header: "H3K4me3 max-Z",
-        value: (row: any) => row.h3k4me3,
-        render: (row: any) => z_score(row.h3k4me3)
+        value: (row: cCRERow) => row.h3k4me3,
+        render: (row: cCRERow) => z_score(row.h3k4me3)
     },{
         header: "H3K27ac max-Z",
-        value: (row: any) => row.h3k27ac,
-        render: (row: any) => z_score(row.h3k27ac)
+        value: (row: cCRERow) => row.h3k27ac,
+        render: (row: cCRERow) => z_score(row.h3k27ac)
     },{
         header: "CTCF max-Z",
-        value: (row: any) => row.ctcf,
-        render: (row: any) => z_score(row.ctcf)
+        value: (row: cCRERow) => row.ctcf,
+        render: (row: cCRERow) => z_score(row.ctcf)
     },
     {
         header: "Group",
-        value: (row: any) => row.group,
-        render: (row: any) => ctgroup(row.group)
+        value: (row: cCRERow) => row.group,
+        render: (row: cCRERow) => ctgroup(row.group)
     }
   ]   
 

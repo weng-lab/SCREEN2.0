@@ -94,7 +94,7 @@ export default async function Search({
     return rows
   }
 
-  const passesCriteria = (currentElement: any) => {
+  const passesCriteria = (currentElement: cCREData) => {
     //Chromatin Signals
     if (
       mainQueryParams.dnase_s < currentElement.dnase_zscore &&
