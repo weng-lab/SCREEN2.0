@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
 /* These were provided in the project by default, keeping for later */
 /* :root {
   --foreground-rgb: 0, 0, 0;
@@ -204,7 +203,8 @@ textarea {
  */
 
 button,
-input { /* 1 */
+input {
+  /* 1 */
   overflow: visible;
 }
 
@@ -214,7 +214,8 @@ input { /* 1 */
  */
 
 button,
-select { /* 1 */
+select {
+  /* 1 */
   text-transform: none;
 }
 
@@ -378,9 +379,7 @@ template {
   display: none;
 }
 
-
 /* ============================ END OF NORMALIZE.CSS ===================================== */
-
 
 /* Footer
 ================================================================= */

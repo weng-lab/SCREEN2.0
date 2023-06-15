@@ -1,21 +1,20 @@
 // Search Results Page
 
 // 'use client'
-import MainQuery from "../../common/lib/queries";
-import MainResultsTable from "../../common/components/MainResultsTable";
-import MainResultsFilers from "../../common/components/MainResultsFilters";
-import { ApolloQueryResult } from "@apollo/client";
+import MainQuery from "../../common/lib/queries"
+import MainResultsTable from "../../common/components/MainResultsTable"
+import MainResultsFilers from "../../common/components/MainResultsFilters"
+import { ApolloQueryResult } from "@apollo/client"
 
-import Grid2 from "../../common/mui-client-wrappers/Grid2";
+import Grid2 from "../../common/mui-client-wrappers/Grid2"
 import Typography from "../../common/mui-client-wrappers/Typography"
 
 export default async function Search({
   // Object from URL, see https://nextjs.org/docs/app/api-reference/file-conventions/page#searchparams-optional
   searchParams,
 }: {
-  searchParams: { [key: string]: string | undefined };
+  searchParams: { [key: string]: string | undefined }
 }) {
-
   //Get search parameters and define defaults. Put into object.
   const mainQueryParams = {
     assembly: searchParams.assembly ? searchParams.assembly : "GRCh38",
@@ -34,7 +33,7 @@ export default async function Search({
   }
 
   //Send query with parameters assembly, chr, start, end
-  //Importantly, 
+  //Importantly,
   const mainQueryResult = await MainQuery(mainQueryParams.assembly, mainQueryParams.chromosome, mainQueryParams.start, mainQueryParams.end)
 
   /**
@@ -46,10 +45,19 @@ export default async function Search({
   function generateRows(QueryResult: ApolloQueryResult<any>) {
     const rows: {
       //atac will need to be changed from string to number when that data is available
-      accession: string; class: string; chromosome: string; start: number; end: number; dnase: number; atac: string; h3k4me3: number; h3k27ac: number; ctcf: number;
-    }[] = [];
-    const cCRE_data: any[] = QueryResult.data.cCRESCREENSearch;
-    let offset = 0;
+      accession: string
+      class: string
+      chromosome: string
+      start: number
+      end: number
+      dnase: number
+      atac: string
+      h3k4me3: number
+      h3k27ac: number
+      ctcf: number
+    }[] = []
+    const cCRE_data: any[] = QueryResult.data.cCRESCREENSearch
+    let offset = 0
     cCRE_data.forEach((currentElement, index) => {
       if (passesCriteria(currentElement)) {
         rows[index - offset] = {
@@ -70,19 +78,24 @@ export default async function Search({
       else {
         offset += 1
       }
-    });
-    return rows;
+    })
+    return rows
   }
 
   function passesCriteria(currentElement: any) {
     //Chromatin Signals
     if (
-      (mainQueryParams.dnase_s < currentElement.dnase_zscore && currentElement.dnase_zscore < mainQueryParams.dnase_e) &&
-      (mainQueryParams.h3k4me3_s < currentElement.promoter_zscore && currentElement.promoter_zscore < mainQueryParams.h3k4me3_e) &&
-      (mainQueryParams.h3k27ac_s < currentElement.enhancer_zscore && currentElement.enhancer_zscore < mainQueryParams.h3k27ac_e) &&
-      (mainQueryParams.ctcf_s < currentElement.ctcf_zscore && currentElement.ctcf_zscore < mainQueryParams.ctcf_e)
-    ){ return true }
-    else return false
+      mainQueryParams.dnase_s < currentElement.dnase_zscore &&
+      currentElement.dnase_zscore < mainQueryParams.dnase_e &&
+      mainQueryParams.h3k4me3_s < currentElement.promoter_zscore &&
+      currentElement.promoter_zscore < mainQueryParams.h3k4me3_e &&
+      mainQueryParams.h3k27ac_s < currentElement.enhancer_zscore &&
+      currentElement.enhancer_zscore < mainQueryParams.h3k27ac_e &&
+      mainQueryParams.ctcf_s < currentElement.ctcf_zscore &&
+      currentElement.ctcf_zscore < mainQueryParams.ctcf_e
+    ) {
+      return true
+    } else return false
   }
 
   return (
@@ -90,15 +103,16 @@ export default async function Search({
       {/* Feed rows generated from the query result to the Table. Columns for table defined in the MainResultsTable component */}
       <Grid2 container spacing={3} sx={{ mt: "2rem", mb: "2rem" }}>
         <Grid2 xs={12} lg={3}>
-          <MainResultsFilers
-            mainQueryParams={mainQueryParams} 
-          />
+          <MainResultsFilers mainQueryParams={mainQueryParams} />
         </Grid2>
         <Grid2 xs={12} lg={9}>
           <MainResultsTable
             rows={generateRows(mainQueryResult)}
-            tableTitle={`Searching ${mainQueryParams.chromosome} in ${mainQueryParams.assembly} from ${mainQueryParams.start.toLocaleString("en-US")} to ${mainQueryParams.end.toLocaleString("en-US")}`}
-            itemsPerPage={10} />
+            tableTitle={`Searching ${mainQueryParams.chromosome} in ${mainQueryParams.assembly} from ${mainQueryParams.start.toLocaleString(
+              "en-US"
+            )} to ${mainQueryParams.end.toLocaleString("en-US")}`}
+            itemsPerPage={10}
+          />
         </Grid2>
       </Grid2>
     </main>
