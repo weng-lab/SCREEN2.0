@@ -178,8 +178,8 @@ export default function GWAS() {
                 rows={studies.gwas.studies}
                 columns={[
                     { header: "Study", value: (row: any) => row.trait },
-                    { header: "Author", value: (row: any) => createLink("https://pubmed.ncbi.nlm.nih.gov/", row.author) },
-                    { header: "Pubmed", value: (row: any) => row.pubmed },
+                    { header: "Author", value: (row: any) => row.author },
+                    { header: "Pubmed", value: (row: any) => createLink("https://pubmed.ncbi.nlm.nih.gov/", row.pubmed) },
                 ]}
                 onRowClick={(row: any) => {
                   setStudy(row.value)
