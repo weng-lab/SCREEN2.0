@@ -1,15 +1,11 @@
 "use client"
 import { Typography } from "@mui/material"
 
-import React, { useMemo, useState, useEffect } from "react"
+import React, { useEffect } from "react"
 import { DataTable } from "@weng-lab/ts-ztable"
-import { createLink, fetchServer, ErrorMessage, LoadingMessage } from "../../../common/lib/utility"
+import { createLink, ErrorMessage, LoadingMessage } from "../../../common/lib/utility"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { Box } from "@mui/material"
-
-type Props = {
-  setState: (value: string) => void
-}
 
 const initialStudy = {
   Gretarsdottir_S_20622881_Abdominal_aortic_aneurysm: {

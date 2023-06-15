@@ -132,12 +132,45 @@ function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: numbe
  * @returns cCREs matching the search
  */
 export default async function MainQuery(assembly: string, chromosome: string, start: number, end: number) {
-  console.log(assembly, typeof assembly, start, typeof start, end, typeof end)
-
+  
   const data = await getClient().query({
     query: cCRE_QUERY,
     variables: cCRE_QUERY_VARIABLES(assembly, chromosome, start, end),
   })
 
   return data
+}
+export const TOP_TISSUES = gql`
+query q($accession: [String!], $assembly: String!) {
+  ccREBiosampleQuery(assembly: $assembly) {
+    biosamples {
+      
+      sampleType
+cCREZScores(accession:$accession)  {
+score
+assay
+experiment_accession
+
+}        
+name
+ontology
+    }
+  }
+  cCREQuery(assembly: $assembly, accession: $accession) {
+      accession
+      group
+      zScores {
+        score
+        experiment
+      }
+      dnase: maxZ(assay: "DNase")
+      h3k4me3: maxZ(assay: "H3K4me3")
+      h3k27ac: maxZ(assay: "H3K27ac")
+      ctcf: maxZ(assay: "CTCF")
+  }
+}
+`
+export const getGlobals = async () =>{
+  const res  = await (fetch("https://downloads.wenglab.org/bycelltype.json"))
+  return res.json()
 }

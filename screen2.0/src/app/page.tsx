@@ -1,7 +1,7 @@
 //Home Page
 
 "use client"
-import { TextField, Typography, Box, Container } from "@mui/material"
+import { Typography } from "@mui/material"
 
 import MainSearch from "../common/components/MainSearch"
 
