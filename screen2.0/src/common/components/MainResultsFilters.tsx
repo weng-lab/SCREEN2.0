@@ -48,16 +48,17 @@ export default function MainResultsFilters(props: { mainQueryParams: any }) {
   const [TF, setTF] = useState<boolean>(props.mainQueryParams.TF)
 
   //IMPORTANT: This will wipe the current cCRE when Nishi puts it in. Need to preserve it once I know the param name of the cCRE
-  function constructURL(){
+  function constructURL() {
     const url = `search?assembly=${props.mainQueryParams.assembly}&chromosome=${props.mainQueryParams.chromosome}&start=${props.mainQueryParams.start}&end=${props.mainQueryParams.end}&dnase_s=${DNaseStart}&dnase_e=${DNaseEnd}&h3k4me3_s=${H3K4me3Start}&h3k4me3_e=${H3K4me3End}&h3k27ac_s=${H3K27acStart}&h3k27ac_e=${H3K27acEnd}&ctcf_s=${CTCFStart}&ctcf_e=${CTCFEnd}&CA=${outputT_or_F(CA)}&CA_CTCF=${outputT_or_F(CA_CTCF)}&CA_H3K4me3=${outputT_or_F(CA_H3K4me3)}&CA_TF=${outputT_or_F(CA_TF)}&dELS=${outputT_or_F(dELS)}&pELS=${outputT_or_F(pELS)}&PLS=${outputT_or_F(PLS)}&TF=${outputT_or_F(TF)}`
     return url
   }
 
-  function outputT_or_F(input: boolean){
-    if (input == true) { return 't'}
+  function outputT_or_F(input: boolean) {
+    if (input == true) { return 't' }
     else return 'f'
   }
 
+  //Need to make this responsive
   return (
     <Paper elevation={4}>
       <Box sx={{ minHeight: "64px", display: "flex", alignItems: "center" }}>
@@ -79,13 +80,13 @@ export default function MainResultsFilters(props: { mainQueryParams: any }) {
       {/* Chromatin Signals */}
       <Accordion square defaultExpanded disableGutters>
         <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel2a-content" id="panel2a-header">
-          <Typography>Chromatin Signals</Typography>
+          <Typography>Chromatin Signals (Z-Scores)</Typography>
         </AccordionSummary>
         <AccordionDetails>
           <Grid2 container spacing={3}>
-            <Grid2 xs={6}>
+            <Grid2 xs={6} lg={12} xl={6}>
               <RangeSlider
-                title="DNase Z-Score"
+                title="DNase"
                 width="100%"
                 defaultStart={DNaseStart}
                 defaultEnd={DNaseEnd}
@@ -100,9 +101,9 @@ export default function MainResultsFilters(props: { mainQueryParams: any }) {
                 }}
               />
             </Grid2>
-            <Grid2 xs={6}>
+            <Grid2 xs={6} lg={12} xl={6}>
               <RangeSlider
-                title="H3K4me3 Z-Score"
+                title="H3K4me3"
                 width="100%"
                 defaultStart={H3K4me3Start}
                 defaultEnd={H3K4me3End}
@@ -116,9 +117,9 @@ export default function MainResultsFilters(props: { mainQueryParams: any }) {
                 }}
               />
             </Grid2>
-            <Grid2 xs={6}>
+            <Grid2 xs={6} lg={12} xl={6}>
               <RangeSlider
-                title="H3K27ac Z-Score"
+                title="H3K27ac"
                 width="100%"
                 defaultStart={H3K27acStart}
                 defaultEnd={H3K27acEnd}
@@ -132,9 +133,9 @@ export default function MainResultsFilters(props: { mainQueryParams: any }) {
                 }}
               />
             </Grid2>
-            <Grid2 xs={6}>
+            <Grid2 xs={6} lg={12} xl={6}>
               <RangeSlider
-                title="CTCF Z-Score"
+                title="CTCF"
                 width="100%"
                 defaultStart={CTCFStart}
                 defaultEnd={CTCFEnd}
@@ -160,16 +161,24 @@ export default function MainResultsFilters(props: { mainQueryParams: any }) {
           <Typography>
             cCRE Classes
           </Typography>
-          <FormGroup>
-            <FormControlLabel checked={CA} onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setCA(checked)} control={<Checkbox />} label="CA" />
-            <FormControlLabel checked={CA_CTCF} onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setCA_CTCF(checked)} control={<Checkbox />} label="CA-CTCF" />
-            <FormControlLabel checked={CA_H3K4me3} onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setCA_H3K4me3(checked)} control={<Checkbox />} label="CA-H3K4me3" />
-            <FormControlLabel checked={CA_TF} onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setCA_TF(checked)} control={<Checkbox />} label="CA-TF" />
-            <FormControlLabel checked={dELS} onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setdELS(checked)} control={<Checkbox />} label="dELS" />
-            <FormControlLabel checked={pELS} onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setpELS(checked)} control={<Checkbox />} label="pELS" />
-            <FormControlLabel checked={PLS} onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setPLS(checked)} control={<Checkbox />} label="PLS" />
-            <FormControlLabel checked={TF} onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setTF(checked)} control={<Checkbox />} label="TF" />
-          </FormGroup>
+          <Grid2 container spacing={0}>
+            <Grid2 xs={6} sm={6} xl={6}>
+              <FormGroup>
+                <FormControlLabel checked={CA} onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setCA(checked)} control={<Checkbox />} label="CA" />
+                <FormControlLabel checked={CA_CTCF} onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setCA_CTCF(checked)} control={<Checkbox />} label="CA-CTCF" />
+                <FormControlLabel checked={CA_H3K4me3} onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setCA_H3K4me3(checked)} control={<Checkbox />} label="CA-H3K4me3" />
+                <FormControlLabel checked={CA_TF} onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setCA_TF(checked)} control={<Checkbox />} label="CA-TF" />
+              </FormGroup>
+            </Grid2>
+            <Grid2 xs={6} sm={6} xl={6}>
+              <FormGroup>
+                <FormControlLabel checked={dELS} onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setdELS(checked)} control={<Checkbox />} label="dELS" />
+                <FormControlLabel checked={pELS} onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setpELS(checked)} control={<Checkbox />} label="pELS" />
+                <FormControlLabel checked={PLS} onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setPLS(checked)} control={<Checkbox />} label="PLS" />
+                <FormControlLabel checked={TF} onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setTF(checked)} control={<Checkbox />} label="TF" />
+              </FormGroup>
+            </Grid2>
+          </Grid2>
         </AccordionDetails>
       </Accordion>
       {/* Linked Genes */}
