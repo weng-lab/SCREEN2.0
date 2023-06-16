@@ -132,7 +132,6 @@ function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: numbe
  * @returns cCREs matching the search
  */
 export default async function MainQuery(assembly: string, chromosome: string, start: number, end: number) {
-  console.log(assembly, typeof assembly, start, typeof start, end, typeof end)
 
   const data = await getClient().query({
     query: cCRE_QUERY,
