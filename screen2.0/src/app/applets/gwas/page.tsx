@@ -6,7 +6,6 @@ import { DataTable } from "@weng-lab/ts-ztable"
 import { createLink, fetchServer, ErrorMessage, LoadingMessage } from "../../../common/lib/utility"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { Box } from "@mui/material"
-import { TypographyType } from "../../../../../../psychscreen-ui-components/src/components/Typography/Typography"
 
 type Props = {
   setState: (value: string) => void
