@@ -4,7 +4,7 @@ import { client } from "./client"
 import { useQuery } from "@apollo/client"
 import { TOP_TISSUES } from "./queries"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
-import { z_score, ctgroup } from "./utils"
+import { z_score, ctgroup } from "../../../common/lib/utility"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { CircularProgress } from "@mui/material"
 
