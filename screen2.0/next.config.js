@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 
+
+
 /**
  * Configure the Next.js next/image, next/link, and next/router to expect the github pages URL
  * Note: High probability this may have implications for the real deployment, I'm not completely sure.
@@ -24,8 +26,9 @@
 //   basePath = '/SCREEN2.0'
 // }
 
-let assetPrefix = '/SCREEN2.0'
-let basePath = '/SCREEN2.0'
+
+let assetPrefix = ''
+let basePath = ''
 
 const nextConfig = {
   // output: "export",
