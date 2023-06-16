@@ -57,30 +57,8 @@ export default async function Search({
   function checkTrueFalse(urlInput: string){
     if (urlInput == 't') { return true }
     else { return false }
-    // Classification Filters
-    CA: searchParams.CA ? checkTrueFalse(searchParams.CA) : true,
-    CA_CTCF: searchParams.CA_CTCF ? checkTrueFalse(searchParams.CA_CTCF) : true,
-    CA_H3K4me3: searchParams.CA_H3K4me3 ? checkTrueFalse(searchParams.CA_H3K4me3) : true,
-    CA_TF: searchParams.CA_TF ? checkTrueFalse(searchParams.CA_TF) : true,
-    dELS: searchParams.dELS ? checkTrueFalse(searchParams.dELS) : true,
-    pELS: searchParams.pELS ? checkTrueFalse(searchParams.pELS) : true,
-    PLS: searchParams.PLS ? checkTrueFalse(searchParams.PLS) : true,
-    TF: searchParams.TF ? checkTrueFalse(searchParams.TF) : true,
   }
 
-  //Should there be functionality here to log unexpected input (not 't' or 'f')
-  function checkTrueFalse(urlInput: string){
-    if (urlInput == 't') { return true }
-    else { return false }
-  }
-
-  //Send query with parameters assembly, chr, start, end
-  //Can send with additional parameters to cut back on the amount of returned items for specific searches,
-  //but nothing else is currently specified when coming from home page or header search
-  //The return object should be typed, so that I can stop marking the object as <any>
-  //Can send with additional parameters to cut back on the amount of returned items for specific searches,
-  //but nothing else is currently specified when coming from home page or header search
-  //The return object should be typed, so that I can stop marking the object as <any>
   const mainQueryResult = await MainQuery(mainQueryParams.assembly, mainQueryParams.chromosome, mainQueryParams.start, mainQueryParams.end)
 
   const globals = await getGlobals()
