@@ -29,7 +29,9 @@ export default async function Search({
     chromosome: searchParams.chromosome ? searchParams.chromosome : "chr11",
     start: searchParams.start ? Number(searchParams.start) : 5205263,
     end: searchParams.end ? Number(searchParams.end) : 5381894,
+    // Chromatin Filters
     // "[...]_s" = start, "[...]_e" = end. Used to filter results
+    //Maybe make these properly cased to make URL a bit more readable
     dnase_s: searchParams.dnase_s ? Number(searchParams.dnase_s) : -10,
     dnase_e: searchParams.dnase_e ? Number(searchParams.dnase_e) : 10,
     h3k4me3_s: searchParams.h3k4me3_s ? Number(searchParams.h3k4me3_s) : -10,
@@ -38,10 +40,27 @@ export default async function Search({
     h3k27ac_e: searchParams.h3k27ac_e ? Number(searchParams.h3k27ac_e) : 10,
     ctcf_s: searchParams.ctcf_s ? Number(searchParams.ctcf_s) : -10,
     ctcf_e: searchParams.ctcf_e ? Number(searchParams.ctcf_e) : 10,
+    // Classification Filters
+    CA: searchParams.CA ? checkTrueFalse(searchParams.CA) : true,
+    CA_CTCF: searchParams.CA_CTCF ? checkTrueFalse(searchParams.CA_CTCF) : true,
+    CA_H3K4me3: searchParams.CA_H3K4me3 ? checkTrueFalse(searchParams.CA_H3K4me3) : true,
+    CA_TF: searchParams.CA_TF ? checkTrueFalse(searchParams.CA_TF) : true,
+    dELS: searchParams.dELS ? checkTrueFalse(searchParams.dELS) : true,
+    pELS: searchParams.pELS ? checkTrueFalse(searchParams.pELS) : true,
+    PLS: searchParams.PLS ? checkTrueFalse(searchParams.PLS) : true,
+    TF: searchParams.TF ? checkTrueFalse(searchParams.TF) : true,
+  }
+
+  //Should there be functionality here to log unexpected input (not 't' or 'f')
+  function checkTrueFalse(urlInput: string){
+    if (urlInput == 't') { return true }
+    else { return false }
   }
 
   //Send query with parameters assembly, chr, start, end
-  //Importantly,
+  //Can send with additional parameters to cut back on the amount of returned items for specific searches,
+  //but nothing else is currently specified when coming from home page or header search
+  //The return object should be typed, so that I can stop marking the object as <any>
   const mainQueryResult = await MainQuery(mainQueryParams.assembly, mainQueryParams.chromosome, mainQueryParams.start, mainQueryParams.end)
 
   const globals = await getGlobals()
@@ -92,20 +111,83 @@ export default async function Search({
     return rows
   }
 
-  const passesCriteria = (currentElement: cCREData) => {
-    //Chromatin Signals
+
+  function passesCriteria(currentElement: cCREData) {
+    if ((passesChromatinFilter(currentElement)) && passesClassificationFilter(currentElement)) {
+      return true
+    }
+    else return false
+  }
+
+  function passesChromatinFilter(currentElement: any) {
     if (
       mainQueryParams.dnase_s < currentElement.dnase_zscore &&
-      currentElement.dnase_zscore < mainQueryParams.dnase_e &&
+        currentElement.dnase_zscore < mainQueryParams.dnase_e &&
       mainQueryParams.h3k4me3_s < currentElement.promoter_zscore &&
-      currentElement.promoter_zscore < mainQueryParams.h3k4me3_e &&
+        currentElement.promoter_zscore < mainQueryParams.h3k4me3_e &&
       mainQueryParams.h3k27ac_s < currentElement.enhancer_zscore &&
-      currentElement.enhancer_zscore < mainQueryParams.h3k27ac_e &&
+        currentElement.enhancer_zscore < mainQueryParams.h3k27ac_e &&
       mainQueryParams.ctcf_s < currentElement.ctcf_zscore &&
-      currentElement.ctcf_zscore < mainQueryParams.ctcf_e
-    ) {
-      return true
-    } else return false
+        currentElement.ctcf_zscore < mainQueryParams.ctcf_e
+    ) { return true }
+    else return false
+  }
+
+  //Consider changing this to a switch, might be slightly faster and cleaner.
+  function passesClassificationFilter(currentElement: any){
+    const currentElementClass: string = currentElement.pct
+    if (currentElementClass == "CA") {
+      if (mainQueryParams.CA == true) {
+        return true
+      }
+      else return false
+    }
+    else if (currentElementClass == "CA-CTCF") {
+      if (mainQueryParams.CA_CTCF == true) {
+        return true
+      }
+      else return false
+    }
+    else if (currentElementClass == "CA-H3K4me3") {
+      if (mainQueryParams.CA_H3K4me3 == true) {
+        return true
+      }
+      else return false
+    }
+    else if (currentElementClass == "CA-TF") {
+      if (mainQueryParams.CA_TF == true) {
+        return true
+      }
+      else return false
+    }
+    else if (currentElementClass == "dELS") {
+      if (mainQueryParams.dELS == true) {
+        return true
+      }
+      else return false
+    }
+    else if (currentElementClass == "pELS") {
+      if (mainQueryParams.pELS == true) {
+        return true
+      }
+      else return false
+    }
+    else if (currentElementClass == "PLS") {
+      if (mainQueryParams.PLS == true) {
+        return true
+      }
+      else return false
+    }
+    else if (currentElementClass == "TF") {
+      if (mainQueryParams.TF == true) {
+        return true
+      }
+      else return false
+    }
+    else {
+      console.log("Something went wrong, cCRE class not determined!")
+      return false
+    }
   }
 
   return (
