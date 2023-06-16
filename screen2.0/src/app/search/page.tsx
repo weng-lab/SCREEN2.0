@@ -1,13 +1,21 @@
 // Search Results Page
-
 // 'use client'
-import MainQuery from "../../common/lib/queries"
-import MainResultsTable from "../../common/components/MainResultsTable"
-import MainResultsFilers from "../../common/components/MainResultsFilters"
+import { CcreSearch } from "./ccresearch"
+import MainQuery, { getGlobals } from "../../common/lib/queries"
 import { ApolloQueryResult } from "@apollo/client"
 
-import Grid2 from "../../common/mui-client-wrappers/Grid2"
-import Typography from "../../common/mui-client-wrappers/Typography"
+type cCREData = {
+  info: { accession: string }
+  pct: string
+  chrom: string
+  start: number
+  len: number
+  dnase_zscore: number
+  atac: string
+  promoter_zscore: number
+  enhancer_zscore: number
+  ctcf_zscore: number
+}
 
 export default async function Search({
   // Object from URL, see https://nextjs.org/docs/app/api-reference/file-conventions/page#searchparams-optional
@@ -36,27 +44,29 @@ export default async function Search({
   //Importantly,
   const mainQueryResult = await MainQuery(mainQueryParams.assembly, mainQueryParams.chromosome, mainQueryParams.start, mainQueryParams.end)
 
+  const globals = await getGlobals()
+
   /**
    * @param QueryResult Result from Main Query
    * @returns rows usable by the DataTable component
    */
   //This needs better input handling
   //Fails in basically any case when input isn't exactly as expected
-  function generateRows(QueryResult: ApolloQueryResult<any>) {
+  const generateRows = (QueryResult: ApolloQueryResult<any>) => {
     const rows: {
       //atac will need to be changed from string to number when that data is available
       accession: string
       class: string
       chromosome: string
-      start: number
-      end: number
+      start: string
+      end: string
       dnase: number
       atac: string
       h3k4me3: number
       h3k27ac: number
       ctcf: number
     }[] = []
-    const cCRE_data: any[] = QueryResult.data.cCRESCREENSearch
+    const cCRE_data: cCREData[] = QueryResult.data.cCRESCREENSearch
     let offset = 0
     cCRE_data.forEach((currentElement, index) => {
       if (passesCriteria(currentElement)) {
@@ -66,12 +76,12 @@ export default async function Search({
           chromosome: currentElement.chrom,
           start: currentElement.start.toLocaleString("en-US"),
           end: (currentElement.start + currentElement.len).toLocaleString("en-US"),
-          dnase: currentElement.dnase_zscore.toFixed(2),
+          dnase: +currentElement.dnase_zscore.toFixed(2),
           //Need to get this data still from somewhere
           atac: "TBD",
-          h3k4me3: currentElement.promoter_zscore.toFixed(2),
-          h3k27ac: currentElement.enhancer_zscore.toFixed(2),
-          ctcf: currentElement.ctcf_zscore.toFixed(2),
+          h3k4me3: +currentElement.promoter_zscore.toFixed(2),
+          h3k27ac: +currentElement.enhancer_zscore.toFixed(2),
+          ctcf: +currentElement.ctcf_zscore.toFixed(2),
         }
       }
       // Offset incremented to account for missing rows which do not meet filter criteria
@@ -82,7 +92,7 @@ export default async function Search({
     return rows
   }
 
-  function passesCriteria(currentElement: any) {
+  const passesCriteria = (currentElement: cCREData) => {
     //Chromatin Signals
     if (
       mainQueryParams.dnase_s < currentElement.dnase_zscore &&
@@ -101,20 +111,12 @@ export default async function Search({
   return (
     <main>
       {/* Feed rows generated from the query result to the Table. Columns for table defined in the MainResultsTable component */}
-      <Grid2 container spacing={3} sx={{ mt: "2rem", mb: "2rem" }}>
-        <Grid2 xs={12} lg={3}>
-          <MainResultsFilers mainQueryParams={mainQueryParams} />
-        </Grid2>
-        <Grid2 xs={12} lg={9}>
-          <MainResultsTable
-            rows={generateRows(mainQueryResult)}
-            tableTitle={`Searching ${mainQueryParams.chromosome} in ${mainQueryParams.assembly} from ${mainQueryParams.start.toLocaleString(
-              "en-US"
-            )} to ${mainQueryParams.end.toLocaleString("en-US")}`}
-            itemsPerPage={10}
-          />
-        </Grid2>
-      </Grid2>
+      <CcreSearch
+        mainQueryParams={mainQueryParams}
+        globals={globals}
+        ccrerows={generateRows(mainQueryResult)}
+        assembly={mainQueryParams.assembly}
+      />
     </main>
   )
 }

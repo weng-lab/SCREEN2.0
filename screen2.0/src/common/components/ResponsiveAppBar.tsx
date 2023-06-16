@@ -95,20 +95,17 @@ function ResponsiveAppBar() {
       <Container maxWidth={false}>
         <Toolbar disableGutters sx={{ justifyContent: "space-between" }}>
           {/* Display Icon on left when >=900px */}
-          <Box
-            component="a"
-            href={`${nextConfig.basePath}`}
-            sx={{ display: { xs: "none", md: "flex" }, flexShrink: "0", mr: 1, height: "40px", width: "40px" }}
-          >
-            <Image src={`${nextConfig.basePath}` + "/screenIcon.png"} alt="SCREEN Icon" height={40} width={40} />
-          </Box>
+          <Link href={"/"}>
+            <Image src={"/screenIcon.png"} alt="SCREEN Icon" height={40} width={40} />
+          </Link>
+
           {/* Display SCREEN after logo on left when >=900px*/}
 
           <Typography
             variant="h5"
             noWrap
             component="a"
-            href={`${nextConfig.basePath}`}
+            href={"/"}
             sx={{
               mr: 2,
               display: { xs: "none", md: "flex" },

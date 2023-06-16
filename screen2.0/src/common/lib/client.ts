@@ -2,8 +2,6 @@
 import { ApolloClient, HttpLink, InMemoryCache } from "@apollo/client"
 import { registerApolloClient } from "@apollo/experimental-nextjs-app-support/rsc"
 
-// Not true typescript, coppied from js, need to type more strictly maybe?
-
 /**
  * @returns an ApolloClient instance scoped for the current request
  */
