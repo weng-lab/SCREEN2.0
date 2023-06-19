@@ -77,7 +77,7 @@ const getCellInfo = cache(async () => {
   return cellInfo
 })
 
-export default async function DifferentialGeneExpression() {
+export default function DifferentialGeneExpression() {
   const [ loading, setLoading ] = useState(true)
   const [ loadingChart, setLoadingChart ] = useState(true)
   const [ data, setData ] = useState(initialChart)
