@@ -1,6 +1,7 @@
 import React, { ReactElement } from "react"
 import { ApolloClient, gql, InMemoryCache, useQuery } from "@apollo/client"
 import { Link, Alert, AlertTitle, CircularProgress } from "@mui/material"
+import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 
 /**
  * Uses fetch to make a query call (server side)
@@ -64,7 +65,13 @@ export function LoadingMessage() {
         alignItems: "center",
       }}
     >
-      {<CircularProgress />}
+      {
+        <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "2rem" }}>
+          <Grid2 xs={12} lg={12}>
+            <CircularProgress />
+          </Grid2>
+        </Grid2>
+      }
     </div>
   )
 }
