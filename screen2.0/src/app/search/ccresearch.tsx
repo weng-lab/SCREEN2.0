@@ -12,18 +12,24 @@ export const StyledTab = styled(Tab)(() => ({
 }))
 export const CcreSearch = ({ mainQueryParams, ccrerows, globals, assembly }) => {
   const searchParams: any = useSearchParams()!
+  //Variable name "value" makes little sense here, can we rename to something meaningful
+  //"ShowDetail" or something
   const [value, setValue] = React.useState(0)
   const handleChange = (_, newValue: number) => {
     setValue(newValue)
   }
+
+  //This needs to be changed, this will switch to the details tab anytime filter is updated
   useEffect(() => {
     if (searchParams.get("accession")) {
       setValue(1)
     }
   }, [searchParams])
 
+  //Need meaningful variable names please
   let f = ccrerows.find((c) => c.accession === searchParams.get("accession"))
   const region = { start: f?.start, chrom: f?.chromosome, end: f?.end }
+
   return (
     <>
       <Grid2 container spacing={3} sx={{ mt: "2rem", mb: "2rem" }}>
@@ -42,9 +48,8 @@ export const CcreSearch = ({ mainQueryParams, ccrerows, globals, assembly }) => 
           <Grid2 xs={12} lg={9}>
             <MainResultsTable
               rows={ccrerows}
-              tableTitle={`Searching ${mainQueryParams.chromosome} in ${
-                mainQueryParams.assembly
-              } from ${mainQueryParams.start.toLocaleString("en-US")} to ${mainQueryParams.end.toLocaleString("en-US")}`}
+              tableTitle={`Searching ${mainQueryParams.chromosome} in ${mainQueryParams.assembly
+                } from ${mainQueryParams.start.toLocaleString("en-US")} to ${mainQueryParams.end.toLocaleString("en-US")}`}
               itemsPerPage={10}
             />
           </Grid2>

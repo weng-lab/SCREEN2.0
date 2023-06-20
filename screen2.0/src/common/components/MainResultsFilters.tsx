@@ -11,11 +11,15 @@ import {
   Paper,
   FormGroup,
   FormControlLabel,
-  Checkbox
+  Checkbox,
+  TextField,
+  Tooltip,
+  IconButton
 } from "@mui/material/"
 
 import SendIcon from "@mui/icons-material/Send"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
+import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 
 import Grid2 from "@mui/material/Unstable_Grid2"
 
@@ -67,14 +71,48 @@ export default function MainResultsFilters(props: { mainQueryParams: any }) {
         </Typography>
       </Box>
       {/* Biosample Activity */}
-      <Accordion square disableGutters>
+      <Accordion square disableGutters defaultExpanded>
         <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
           <Typography>Biosample Activity</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Typography>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex, sit amet blandit leo lobortis eget.
-          </Typography>
+          <Grid2 container spacing={2}>
+            <Grid2 xs={6}>
+              <Typography>
+                Tissue/Organ
+              </Typography>
+            </Grid2>
+            <Grid2 xs={6}>
+              <TextField size="small" label="Filter Tissues"/>
+            </Grid2>
+            <Grid2 xs={12}>
+              <Accordion>
+                <AccordionSummary expandIcon={<KeyboardArrowRightIcon />}   
+                sx={{ flexDirection: "row-reverse",
+                '& .MuiAccordionSummary-expandIconWrapper.Mui-expanded': {
+                  transform: 'rotate(90deg)',
+                }
+                 }}>
+                  <Typography>Tisue/Organ</Typography>
+                </AccordionSummary>
+                <AccordionDetails sx={{ display: 'flex' }}>
+                  <Tooltip title="Full tissue name here" arrow placement="right">
+                    <FormGroup>
+                      <FormControlLabel onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => null} control={<Checkbox defaultChecked />} label="Sub Tissue" />
+                    </FormGroup>
+                  </Tooltip>
+                </AccordionDetails>
+              </Accordion>
+            </Grid2>
+            <Grid2 xs={12}>
+              <Typography>
+                Biosample Type
+              </Typography>
+              <FormGroup>
+                <FormControlLabel onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => null} control={<Checkbox defaultChecked />} label="Sub Tissue" />
+              </FormGroup>
+            </Grid2>
+          </Grid2>
         </AccordionDetails>
       </Accordion>
       {/* Chromatin Signals */}

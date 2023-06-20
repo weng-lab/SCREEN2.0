@@ -33,7 +33,6 @@ export default async function Search({
     // Chromatin Filters
     // "[...]_s" = start, "[...]_e" = end. Used to filter results
     //Maybe make these properly cased to make URL a bit more readable
-    //Maybe make these properly cased to make URL a bit more readable
     dnase_s: searchParams.dnase_s ? Number(searchParams.dnase_s) : -10,
     dnase_e: searchParams.dnase_e ? Number(searchParams.dnase_e) : 10,
     h3k4me3_s: searchParams.h3k4me3_s ? Number(searchParams.h3k4me3_s) : -10,
