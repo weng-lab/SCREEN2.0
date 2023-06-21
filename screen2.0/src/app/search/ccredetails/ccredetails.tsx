@@ -6,6 +6,7 @@ import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { StyledTab } from "../ccresearch"
 import { InSpecificBiosamples } from "./inspecificbiosample"
 import { LinkedGenes } from "./linkedgenes"
+import { Ortholog } from "./linkedccres"
 
 type CcreDetailsProps = {
   accession: string
@@ -47,6 +48,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
             <Grid2 xs={12} lg={12}>
               {value === 0 && <InSpecificBiosamples accession={accession} globals={globals} assembly={assembly} />}
               {value === 1 && <LinkedGenes accession={accession} assembly={assembly} />}
+              {value === 5 && <Ortholog accession={accession} assembly={assembly} />}
             </Grid2>
           </Grid2>
         }
