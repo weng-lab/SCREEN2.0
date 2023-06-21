@@ -34,7 +34,7 @@ export const Ortholog = ({accession, assembly}) => {
                 accession: ccre.accession,
                 chrom: ccre.chromosome,
                 start: ccre.start,
-                stop: ccre.strop
+                stop: ccre.stop
             })
         }
     }
@@ -46,7 +46,7 @@ export const Ortholog = ({accession, assembly}) => {
                 <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "2rem" }}>
                     <Grid2 xs={12} lg={12}>
                     <DataTable
-                        tableTitle="Linked cCREs"
+                        tableTitle={`Linked cCREs in ${(assembly == 'GRCh38') ? "mm10" : "GRCh38"}`}
                         columns={[
                         {
                             header: "Accession",
