@@ -49,3 +49,21 @@ export const GENE_NAME = gql`
     }
   }
 `
+export const ORTHOLOG_QUERY = gql`
+  query (
+    $assembly: String!
+    $accession: String!
+  ) 
+  {
+    orthologQuery(accession:$accession,assembly:$assembly) {
+      assembly
+      accession
+      ortholog {
+        stop
+        start
+        chromosome
+        accession
+      }
+    }
+  }
+`
