@@ -1,11 +1,13 @@
 "use client"
 import { Box, TextField, Typography } from "@mui/material"
-import React, { useState, useEffect, cache, Fragment } from "react"
+import React, { useState, useEffect, cache, Fragment, useRef } from "react"
 import { fetchServer } from "../../../common/lib/utility"
-import { DataTable } from "@weng-lab/psychscreen-ui-components"
+import { DataTable } from "@weng-lab/ts-ztable"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { ErrorMessage, LoadingMessage } from "../../../common/lib/utility"
 import { payload, initialCellTypes, initialChart } from "./types"
+import * as d3 from "d3"
+import select from "d3-selection"
 
 type ccre = {
   accession: string,
@@ -23,17 +25,13 @@ const geneBlue = "#1E90FF"
 
 const SetRange_x = ({dr1, dr2}) => {
   let range: number[] = []
-  let min_x: number = parseInt(dr1.toString()[0] + dr1.toString()[0] + "00000")
-  let max_x: number = parseInt(dr2.toString()[0] + dr2.toString()[0] + "00000")
+  let min_x: number = parseInt(dr1.toString()[0] + dr1.toString()[1] + "00000")
+  let max_x: number = parseInt(dr2.toString()[0] + dr2.toString()[1] + "00000")
   max_x += 200000
   while (min_x < max_x){
     range.push(min_x)
     min_x += 200000
   }
-
-  // const x_loc = (index: number) => {
-  //   return index * 100
-  // }
 
   return (
       range.map((x, i) => (<text key={x} x={i * 100} y="400">{x}</text>))
@@ -42,15 +40,20 @@ const SetRange_x = ({dr1, dr2}) => {
 
 const SetRange_y = ({ymin, ymax}) => {
   let range: number[] = []
-  let min_y: number = parseInt(ymin.toString()[0]) - 0.5
+  let min_y: number = 0
+  if (ymin < 0)
+    min_y = parseInt(ymin.toString()[0] + ymin.toString()[1]) - 0.5
+  else
+    min_y= parseInt(ymin.toString()[0]) - 0.5
   let max_y: number = parseInt(ymax.toString()[0]) + 0.5
-  while (min_y < max_y){
-    range.push(min_y)
-    min_y += 0.5
+
+  while (max_y > min_y){
+    range.push(max_y)
+    max_y -= 0.5
   }
 
   return (
-      range.map((y, i) => (<text x="80" y={i * 10}>{y}</text>))
+      range.map((y, i) => (<text x="0" y={i * 50}>{y}</text>))
   )
 }
 
@@ -96,7 +99,8 @@ export default function DifferentialGeneExpression() {
   const [ dr1, setdr1 ] = useState<number>(0)
   const [ dr2, setdr2 ] = useState<number>(0)
 
-  // TODO: not fetching correctly
+  const svgRef = useRef<SVGSVGElement | null>(null)
+
   // fetch list of cell types
   useEffect(() => {
     fetch("https://storage.googleapis.com/gcp.wenglab.org/newV4/GRCh38.json")
@@ -143,11 +147,20 @@ export default function DifferentialGeneExpression() {
         return response.json()
       })
       .then((data) => {
-        console.log(data)
+        // console.log(data)
         setData(data)
+
         // set domain range
         setdr1(data[data.gene].nearbyDEs.xdomain[0])
         setdr2(data[data.gene].nearbyDEs.xdomain[1])
+        
+        console.log(d3.select(svgRef.current))
+        d3.select(svgRef.current)
+          .append("rect")
+          .attr("width", 1000)
+          .attr("height", 1000)
+          .attr("fill", "blue")
+
         setLoadingChart(false)
       })
       .catch((error: Error) => {
@@ -196,7 +209,7 @@ export default function DifferentialGeneExpression() {
             {loading 
             ? LoadingMessage() 
             : cellTypes && 
-              cellTypes["cellTypesInfoArr"] && (
+              cellTypes["cellTypeInfoArr"] && (
               <DataTable
                 tableTitle="Cell types 2"
                 rows={cellTypes["cellTypeInfoArr"]}
@@ -207,6 +220,8 @@ export default function DifferentialGeneExpression() {
                 onRowClick={(row: any) => {
                   setct2(row.value)
                 }}
+                sortDescending={true}
+                searchable={true}
               />
             )}
           </Box>
@@ -246,8 +261,17 @@ export default function DifferentialGeneExpression() {
                   />
                 </Box>
                 <Box mt={1}>
-                  {/* <div> */}
-                  <svg className="chart" width={420} height={150} aria-labelledby="title desc" role="img">
+                  <div id="data">
+                    <svg ref={svgRef} viewBox="0 0 1000 500">
+                      {/* <line/>
+                      <rect width={100} height={100} fill="blue"/>
+                      <circle/> */}
+                    </svg>
+                  </div>
+                  {/* <svg className="bar-chart"></svg> */}
+                  {/* <script src="https://d3js.org/d3.v6.js"></script> */}
+                  {/* <script src="plot.ts"></script> */}
+                  <svg className="graph" aria-labelledby="title desc" role="img" viewBox="0 0 1000 500">
                     <title id="title">this is a chart</title>
                     <desc id="desc">some description</desc>
                     <g className="grid x-grid" id="xGrid">
@@ -257,7 +281,6 @@ export default function DifferentialGeneExpression() {
                       <line x1="90" x2="705" y1="370" y2="370"></line>
                     </g>
                     <g className="labels x-labels">
-                      {/* {setRange_x(dr1, dr2)} */}
                       <SetRange_x dr1={dr1} dr2={dr2}/>
                     </g>
                     <g className="labels y-labels">
@@ -265,17 +288,13 @@ export default function DifferentialGeneExpression() {
                       {/* <text x="50" y="200" className="label-title">log2 gene expression fold change</text> */}
                     </g>
                     <g className="data" data-setname="Our first data set">
-                      <circle cx={data[data.gene].diffCREs.data.value} cy={data[data.gene].diffCREs.data.center} data-value={data[data.gene].diffCREs.data.value} r="4" stroke="red"></circle>
+                      <circle cx={data[data.gene].diffCREs.data.center} cy={data[data.gene].diffCREs.data.value} data-value={data[data.gene].diffCREs.data.value} r="4" stroke="red"></circle>
+                      <circle cx="90" cy="100" data-value={data[data.gene].diffCREs.data.value} r="4" stroke="red"></circle>
                       {/* {data[data.gene].diffCREs.data.map((point) => (
-                        "proximal-like signature" === point.typ 
-                        ? <circle key={point} cx={point.value} cy={point.center} data-value={point.value} r="4" stroke="red"></circle> 
-                        : <circle key={point} cx={point.value} cy={point.center} data-value={point.value} r="4" stroke="yellow"></circle>
-                        <circle key={point} cx={point.value} cy={point.center} data-value={point.value} r="4" stroke="red"></circle>
                         <Point point={point} />
                       ))} */}
                     </g>
                   </svg>
-                  {/* </div> */}
                 </Box>
               </Fragment>
             )}
