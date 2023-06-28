@@ -43,13 +43,12 @@ export const CcreSearch = ({ mainQueryParams, ccrerows, globals, assembly }) => 
       {value === 0 && (
         <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "1rem" }}>
           <Grid2 xs={12} lg={3}>
-            <MainResultsFilers mainQueryParams={mainQueryParams} />
+            <MainResultsFilers mainQueryParams={mainQueryParams} byCellType={globals}/>
           </Grid2>
           <Grid2 xs={12} lg={9}>
             <MainResultsTable
               rows={ccrerows}
-              tableTitle={`Searching ${mainQueryParams.chromosome} in ${mainQueryParams.assembly
-                } from ${mainQueryParams.start.toLocaleString("en-US")} to ${mainQueryParams.end.toLocaleString("en-US")}`}
+              tableTitle={`Searching ${mainQueryParams.chromosome} in ${mainQueryParams.assembly} from ${mainQueryParams.start.toLocaleString("en-US")} to ${mainQueryParams.end.toLocaleString("en-US")}`}
               itemsPerPage={10}
             />
           </Grid2>

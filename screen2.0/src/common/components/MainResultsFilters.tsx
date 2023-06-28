@@ -12,14 +12,10 @@ import {
   FormGroup,
   FormControlLabel,
   Checkbox,
-  TextField,
-  Tooltip,
-  IconButton
 } from "@mui/material/"
 
 import SendIcon from "@mui/icons-material/Send"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
-import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 
 import Grid2 from "@mui/material/Unstable_Grid2"
 
@@ -28,8 +24,10 @@ import Link from "next/link"
 import { RangeSlider } from "@weng-lab/psychscreen-ui-components"
 import { useState } from "react"
 
+import BiosampleActivity from "./Filters/BiosampleActivity"
+
 //Need to go back and define the types in mainQueryParams object
-export default function MainResultsFilters(props: { mainQueryParams: any }) {
+export default function MainResultsFilters(props: { mainQueryParams: any, byCellType: any }) {
   //No alternatives provided for default, as all these attributes should exist and are given a default value in Search's page.tsx
   //Chromatin Filters
   const [DNaseStart, setDNaseStart] = useState<number>(props.mainQueryParams.dnase_s)
@@ -71,48 +69,12 @@ export default function MainResultsFilters(props: { mainQueryParams: any }) {
         </Typography>
       </Box>
       {/* Biosample Activity */}
-      <Accordion square disableGutters defaultExpanded>
+      <Accordion square defaultExpanded disableGutters>
         <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
           <Typography>Biosample Activity</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Grid2 container spacing={2}>
-            <Grid2 xs={6}>
-              <Typography>
-                Tissue/Organ
-              </Typography>
-            </Grid2>
-            <Grid2 xs={6}>
-              <TextField size="small" label="Filter Tissues"/>
-            </Grid2>
-            <Grid2 xs={12}>
-              <Accordion>
-                <AccordionSummary expandIcon={<KeyboardArrowRightIcon />}   
-                sx={{ flexDirection: "row-reverse",
-                '& .MuiAccordionSummary-expandIconWrapper.Mui-expanded': {
-                  transform: 'rotate(90deg)',
-                }
-                 }}>
-                  <Typography>Tisue/Organ</Typography>
-                </AccordionSummary>
-                <AccordionDetails sx={{ display: 'flex' }}>
-                  <Tooltip title="Full tissue name here" arrow placement="right">
-                    <FormGroup>
-                      <FormControlLabel onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => null} control={<Checkbox defaultChecked />} label="Sub Tissue" />
-                    </FormGroup>
-                  </Tooltip>
-                </AccordionDetails>
-              </Accordion>
-            </Grid2>
-            <Grid2 xs={12}>
-              <Typography>
-                Biosample Type
-              </Typography>
-              <FormGroup>
-                <FormControlLabel onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => null} control={<Checkbox defaultChecked />} label="Sub Tissue" />
-              </FormGroup>
-            </Grid2>
-          </Grid2>
+          <BiosampleActivity byCellType={props.byCellType} />
         </AccordionDetails>
       </Accordion>
       {/* Chromatin Signals */}

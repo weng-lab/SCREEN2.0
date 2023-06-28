@@ -50,7 +50,6 @@ const COLUMNS = [
 function MainResultsTable(props: Partial<DataTableProps<any>>) {
   const router = useRouter()
   const pathname = usePathname()
-  console.log("pathname", pathname)
   const searchParams: any = useSearchParams()!
 
   const createQueryString = React.useCallback(

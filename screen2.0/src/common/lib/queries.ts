@@ -140,6 +140,7 @@ export default async function MainQuery(assembly: string, chromosome: string, st
 
   return data
 }
+
 export const TOP_TISSUES = gql`
   query q($accession: [String!], $assembly: String!) {
     ccREBiosampleQuery(assembly: $assembly) {
