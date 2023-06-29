@@ -24,7 +24,7 @@ import Grid2 from "@mui/material/Unstable_Grid2"
 
 import Link from "next/link"
 
-import { RangeSlider } from "@weng-lab/psychscreen-ui-components"
+import { RangeSlider, DataTable } from "@weng-lab/psychscreen-ui-components"
 import { useState } from "react"
 
 //Need to go back and define the types in mainQueryParams object
@@ -61,27 +61,18 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
     else return 'f'
   }
 
+  //This needs better typing, won't accept {}[] because byCellType isn't type defined
   /**
-     * Want: A sorted collection of elements grouped by "tissue" type.
-     * Every element in each collection should have "value", "name" and "biosample type", and an "assay" array of assay types available
-     * 
-     * For each top-level element:
-     * check element[0].tissue for tissue type
-     * For each sub-item:
-     * Add assay to assays array
-     * Add name to summaryName
-     * Add biosample_summary to verboseName
-     * 
-     * Each element:
-     * assays: ["",""] - contains available assay types
-     * summaryName: "" - contains element[1][0].name
-     * verboseName: "" - contains element[1][0].biosample_summary
-     * queryValue: "" - contains element[1][0].value
-     * biosampleType: "" - contains element[1][0].biosample_type
-     * 
-     * Are all possible tissue types static?
-     *
-     */
+   * @param experiments Array of objects containing biosample experiments for a given biosample type
+   * @returns an object with keys dnase, atac, h3k4me3, h3k27ac, ctcf with each marked true or false
+   */
+  function availableAssays(experiments: any) {
+    const assays = { dnase: false, atac: false, h3k4me3: false, h3k27ac: false, ctcf: false }
+    experiments.forEach(exp => 
+      assays[exp['assay'].toLowerCase()] = true
+    )
+    return assays
+  }
 
   /**
    * This should probably be put into a server-rendered component
@@ -90,7 +81,6 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
    */
   function parseByCellType(byCellType: any) {
     const biosamples = {}
-    // make big json into array consisting of entries of the form ["LNCAP_ENCDO000ACX", [{"assay": "CTCF", "cellTypeDesc": "LNCAP", ...}, {...}]] and for each entry:
     Object.entries(byCellType.byCellType).forEach(entry => {
       // if the tissue catergory hasn't been catalogued, make a new blank array for it
       const experiments = entry[1]
@@ -123,26 +113,67 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
       )
       Object.defineProperty(biosamples, experiments[0].tissue, { value: tissueArr, enumerable: true, writable: true })
     })
+    // console.log(Object.entries(biosamples).sort())
     return biosamples
   }
 
-  //This needs better typing, won't accept {}[] because byCellType isn't type defined
   /**
-   * @param experiments Array of objects containing biosample experiments for a given biosample type
-   * @returns an object with keys dnase, atac, h3k4me3, h3k27ac, ctcf with each marked true or false
+   * 
+   * @returns MUI Accordion components populated with a table of each tissue's biosamples
    */
-  function availableAssays(experiments: any) {
-    const assays = { dnase: false, atac: false, h3k4me3: false, h3k27ac: false, ctcf: false }
-    experiments.forEach(exp => 
-      assays[exp['assay'].toLowerCase()] = true
+  function generateBiosampleTables() {
+    const biosamples = parseByCellType(props.byCellType)
+    const cols = [{
+      header: "Biosample",
+      value: row => row.summaryName,
+      render: row =>
+        <Tooltip title={row.verboseName} arrow placement="right">
+          <Typography variant="body2">
+            {row.summaryName}
+          </Typography>
+        </Tooltip>,
+    }, {
+      header: "Data Available",
+      value: row => 'coming soon',
+      render: row => {
+        const sixth = 2 * 3.1416 * 10 / 6
+        return(
+        <svg height="50" width="50" viewBox="0 0 50 50">
+          <circle r="20" cx="25" cy="25" fill="white" />
+          <circle r="10" cx="25" cy="25" fill="bisque"
+            stroke="tomato"
+            stroke-width="20"
+            stroke-dasharray={`${sixth} ${sixth * 5}`} />
+          <circle r="10" cx="25" cy="25" fill="transparent"
+            stroke="tomato"
+            stroke-width="20"
+            stroke-dasharray={`${sixth * 0} ${sixth * 2} ${sixth} ${sixth * 3}`} />
+        </svg>)}
+    }];
+
+    return (
+      Object.entries(biosamples).sort().map((tissue: [string, {}[]], i) => {
+        return (
+          <Accordion key={tissue[0]}>
+            <AccordionSummary expandIcon={<KeyboardArrowRightIcon />}
+              sx={{
+                flexDirection: "row-reverse",
+                '& .MuiAccordionSummary-expandIconWrapper.Mui-expanded': {
+                  transform: 'rotate(90deg)',
+                }
+              }}>
+              <Typography>{tissue[0]}</Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ display: 'flex' }}>
+              <DataTable columns={cols} rows={tissue[1]} dense />
+            </AccordionDetails>
+          </Accordion>
+        )
+      })
     )
-    return assays
   }
 
-  const biosamples = parseByCellType(props.byCellType)
-  console.log(biosamples)
-
-  //Need to make this responsive
+  //Need to make this more responsive
   return (
     <Paper elevation={4}>
       <Box sx={{ minHeight: "64px", display: "flex", alignItems: "center" }}>
@@ -165,25 +196,8 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
             <Grid2 xs={6}>
               <TextField size="small" label="Filter Tissues" />
             </Grid2>
-            <Grid2 xs={12} maxHeight={350} overflow={'auto'}>
-              <Accordion>
-                <AccordionSummary expandIcon={<KeyboardArrowRightIcon />}
-                  sx={{
-                    flexDirection: "row-reverse",
-                    '& .MuiAccordionSummary-expandIconWrapper.Mui-expanded': {
-                      transform: 'rotate(90deg)',
-                    }
-                  }}>
-                  <Typography>Tisue/Organ</Typography>
-                </AccordionSummary>
-                <AccordionDetails sx={{ display: 'flex' }}>
-                  <Tooltip title="Full tissue name here" arrow placement="right">
-                    <FormGroup>
-                      <FormControlLabel onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => null} control={<Checkbox defaultChecked />} label="Sub Tissue" />
-                    </FormGroup>
-                  </Tooltip>
-                </AccordionDetails>
-              </Accordion>
+            <Grid2 xs={12} maxHeight={500} overflow={'auto'}>
+              {generateBiosampleTables()}
             </Grid2>
             <Grid2 xs={12}>
               <Typography>
@@ -341,3 +355,4 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
     </Paper>
   )
 }
+
