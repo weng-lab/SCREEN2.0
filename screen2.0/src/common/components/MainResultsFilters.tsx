@@ -12,10 +12,13 @@ import {
   FormGroup,
   FormControlLabel,
   Checkbox,
+  TextField,
+  Tooltip,
 } from "@mui/material/"
 
 import SendIcon from "@mui/icons-material/Send"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
+import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 
 import Grid2 from "@mui/material/Unstable_Grid2"
 
@@ -23,8 +26,6 @@ import Link from "next/link"
 
 import { RangeSlider } from "@weng-lab/psychscreen-ui-components"
 import { useState } from "react"
-
-import BiosampleActivity from "./Filters/BiosampleActivity"
 
 //Need to go back and define the types in mainQueryParams object
 export default function MainResultsFilters(props: { mainQueryParams: any, byCellType: any }) {
@@ -60,6 +61,87 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
     else return 'f'
   }
 
+  /**
+     * Want: A sorted collection of elements grouped by "tissue" type.
+     * Every element in each collection should have "value", "name" and "biosample type", and an "assay" array of assay types available
+     * 
+     * For each top-level element:
+     * check element[0].tissue for tissue type
+     * For each sub-item:
+     * Add assay to assays array
+     * Add name to summaryName
+     * Add biosample_summary to verboseName
+     * 
+     * Each element:
+     * assays: ["",""] - contains available assay types
+     * summaryName: "" - contains element[1][0].name
+     * verboseName: "" - contains element[1][0].biosample_summary
+     * queryValue: "" - contains element[1][0].value
+     * biosampleType: "" - contains element[1][0].biosample_type
+     * 
+     * Are all possible tissue types static?
+     *
+     */
+
+  /**
+   * This should probably be put into a server-rendered component
+   * @param byCellType JSON of byCellType
+   * @returns an object of sorted biosample types, grouped by tissue type
+   */
+  function parseByCellType(byCellType: any) {
+    const biosamples = {}
+    // make big json into array consisting of entries of the form ["LNCAP_ENCDO000ACX", [{"assay": "CTCF", "cellTypeDesc": "LNCAP", ...}, {...}]] and for each entry:
+    Object.entries(byCellType.byCellType).forEach(entry => {
+      // if the tissue catergory hasn't been catalogued, make a new blank array for it
+      const experiments = entry[1]
+      var tissueArr = []
+      if (!biosamples[experiments[0].tissue]) {
+        Object.defineProperty(biosamples, experiments[0].tissue,
+          {
+            value: [],
+            enumerable: true,
+            writable: true
+          }
+        )
+      }
+      //The existing tissues
+      tissueArr = biosamples[experiments[0].tissue];
+      tissueArr.push(
+        {
+          //display name
+          summaryName: experiments[0].name,
+          //hover name
+          verboseName: experiments[0].biosample_summary,
+          //for filtering
+          biosampleType: experiments[0].biosample_type,
+          //for query
+          queryValue: experiments[0].value,
+          //for filling in available assay wheels
+          //THIS DATA IS MISSING ATAC DATA! ATAC will always be false
+          assays: availableAssays(experiments)
+        }
+      )
+      Object.defineProperty(biosamples, experiments[0].tissue, { value: tissueArr, enumerable: true, writable: true })
+    })
+    return biosamples
+  }
+
+  //This needs better typing, won't accept {}[] because byCellType isn't type defined
+  /**
+   * @param experiments Array of objects containing biosample experiments for a given biosample type
+   * @returns an object with keys dnase, atac, h3k4me3, h3k27ac, ctcf with each marked true or false
+   */
+  function availableAssays(experiments: any) {
+    const assays = { dnase: false, atac: false, h3k4me3: false, h3k27ac: false, ctcf: false }
+    experiments.forEach(exp => 
+      assays[exp['assay'].toLowerCase()] = true
+    )
+    return assays
+  }
+
+  const biosamples = parseByCellType(props.byCellType)
+  console.log(biosamples)
+
   //Need to make this responsive
   return (
     <Paper elevation={4}>
@@ -74,7 +156,44 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
           <Typography>Biosample Activity</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <BiosampleActivity byCellType={props.byCellType} />
+          <Grid2 container spacing={2}>
+            <Grid2 xs={6}>
+              <Typography>
+                Tissue/Organ
+              </Typography>
+            </Grid2>
+            <Grid2 xs={6}>
+              <TextField size="small" label="Filter Tissues" />
+            </Grid2>
+            <Grid2 xs={12} maxHeight={350} overflow={'auto'}>
+              <Accordion>
+                <AccordionSummary expandIcon={<KeyboardArrowRightIcon />}
+                  sx={{
+                    flexDirection: "row-reverse",
+                    '& .MuiAccordionSummary-expandIconWrapper.Mui-expanded': {
+                      transform: 'rotate(90deg)',
+                    }
+                  }}>
+                  <Typography>Tisue/Organ</Typography>
+                </AccordionSummary>
+                <AccordionDetails sx={{ display: 'flex' }}>
+                  <Tooltip title="Full tissue name here" arrow placement="right">
+                    <FormGroup>
+                      <FormControlLabel onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => null} control={<Checkbox defaultChecked />} label="Sub Tissue" />
+                    </FormGroup>
+                  </Tooltip>
+                </AccordionDetails>
+              </Accordion>
+            </Grid2>
+            <Grid2 xs={12}>
+              <Typography>
+                Biosample Type
+              </Typography>
+              <FormGroup>
+                <FormControlLabel onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => null} control={<Checkbox defaultChecked />} label="Sub Tissue" />
+              </FormGroup>
+            </Grid2>
+          </Grid2>
         </AccordionDetails>
       </Accordion>
       {/* Chromatin Signals */}
