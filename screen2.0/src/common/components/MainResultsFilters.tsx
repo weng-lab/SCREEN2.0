@@ -136,18 +136,30 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
       header: "Data Available",
       value: row => 'coming soon',
       render: row => {
-        const sixth = 2 * 3.1416 * 10 / 6
+        const fifth = 2 * 3.1416 * 10 / 5
         return(
         <svg height="50" width="50" viewBox="0 0 50 50">
           <circle r="20" cx="25" cy="25" fill="white" />
-          <circle r="10" cx="25" cy="25" fill="bisque"
-            stroke="tomato"
-            stroke-width="20"
-            stroke-dasharray={`${sixth} ${sixth * 5}`} />
           <circle r="10" cx="25" cy="25" fill="transparent"
-            stroke="tomato"
+            stroke="#06DA93"
             stroke-width="20"
-            stroke-dasharray={`${sixth * 0} ${sixth * 2} ${sixth} ${sixth * 3}`} />
+            stroke-dasharray={`${fifth} ${fifth * 4}`} />
+          <circle r="10" cx="25" cy="25" fill="transparent"
+            stroke="#FFCD00"
+            stroke-width="20"
+            stroke-dasharray={`${fifth * 0} ${fifth} ${fifth} ${fifth * 3}`} />
+          <circle r="10" cx="25" cy="25" fill="transparent"
+            stroke="#FF0000"
+            stroke-width="20"
+            stroke-dasharray={`${fifth * 0} ${fifth * 2} ${fifth} ${fifth * 2}`} />
+          <circle r="10" cx="25" cy="25" fill="transparent"
+            stroke="#00B0F0"
+            stroke-width="20"
+            stroke-dasharray={`${fifth * 0} ${fifth * 3 } ${fifth} ${fifth * 1}`} />
+          <circle r="10" cx="25" cy="25" fill="transparent"
+            stroke="#a8329b"
+            stroke-width="20"
+            stroke-dasharray={`${fifth * 0} ${fifth * 4 } ${fifth}`} />
         </svg>)}
     }];
 
