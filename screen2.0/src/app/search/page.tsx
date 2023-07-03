@@ -29,7 +29,15 @@ export default async function Search({
     chromosome: searchParams.chromosome ? searchParams.chromosome : "chr11",
     start: searchParams.start ? Number(searchParams.start) : 5205263,
     end: searchParams.end ? Number(searchParams.end) : 5381894,
-    // Chromatin Filters
+    // Biosample Filters
+    // URL could probably be cut down by putting this into one long string where each letter is t/f or 0/1
+    CellLine: searchParams.CellLine ? checkTrueFalse(searchParams.CellLine): true,
+    PrimaryCell: searchParams.PrimaryCell ? checkTrueFalse(searchParams.PrimaryCell): true,
+    Tissue: searchParams.Tissue ? checkTrueFalse(searchParams.Tissue): true,
+    Organoid: searchParams.Organoid ? checkTrueFalse(searchParams.Organoid): true,
+    InVitro: searchParams.InVitro ? checkTrueFalse(searchParams.InVitro): true,
+    //TODO NEED A NEW FUNCTION TO PARSE THIS INFORMATION INTO AN OBJECT
+    Biosample: searchParams.Biosample ? null : { selected: false, biosample: "" },
     // Chromatin Filters
     // "[...]_s" = start, "[...]_e" = end. Used to filter results
     //Maybe make these properly cased to make URL a bit more readable
@@ -42,6 +50,7 @@ export default async function Search({
     ctcf_s: searchParams.ctcf_s ? Number(searchParams.ctcf_s) : -10,
     ctcf_e: searchParams.ctcf_e ? Number(searchParams.ctcf_e) : 10,
     // Classification Filters
+    // URL could probably be cut down by putting this into one long string where each letter is t/f or 0/1
     CA: searchParams.CA ? checkTrueFalse(searchParams.CA) : true,
     CA_CTCF: searchParams.CA_CTCF ? checkTrueFalse(searchParams.CA_CTCF) : true,
     CA_H3K4me3: searchParams.CA_H3K4me3 ? checkTrueFalse(searchParams.CA_H3K4me3) : true,

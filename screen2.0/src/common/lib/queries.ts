@@ -98,7 +98,7 @@ const cCRE_QUERY = gql`
     }
   }
 `
-function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: number, end: number) {
+function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: number, end: number, biosample?: string) {
   return {
     uuid: null,
     assembly: assembly,
@@ -129,13 +129,14 @@ function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: numbe
  * @param chromosome string, ex: "chr11"
  * @param start number
  * @param end number
+ * @param biosample optional - a biosample selection
  * @returns cCREs matching the search
  */
-export default async function MainQuery(assembly: string, chromosome: string, start: number, end: number) {
+export default async function MainQuery(assembly: string, chromosome: string, start: number, end: number, biosample?: string) {
 
   const data = await getClient().query({
     query: cCRE_QUERY,
-    variables: cCRE_QUERY_VARIABLES(assembly, chromosome, start, end),
+    variables: cCRE_QUERY_VARIABLES(assembly, chromosome, start, end, biosample),
   })
 
   return data

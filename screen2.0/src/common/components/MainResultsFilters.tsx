@@ -30,7 +30,18 @@ import { useState } from "react"
 //Need to go back and define the types in mainQueryParams object
 export default function MainResultsFilters(props: { mainQueryParams: any, byCellType: any }) {
   //No alternatives provided for default, as all these attributes should exist and are given a default value in Search's page.tsx
-  //Chromatin Filters
+
+  //Biosample Filter
+  //Checkboxes. Biosample Types are hard-coded while the tissue categories are not.
+  const [CellLine, setCellLine] = useState<boolean>(props.mainQueryParams.CellLine)
+  const [PrimaryCell, setPrimaryCell] = useState<boolean>(props.mainQueryParams.PrimaryCell)
+  const [Tissue, setTissue] = useState<boolean>(props.mainQueryParams.Tissue)
+  const [Organoid, setOrganoid] = useState<boolean>(props.mainQueryParams.Organoid)
+  const [InVitro, setInVitro] = useState<boolean>(props.mainQueryParams.InVitro)
+  //Selected Biosample
+  const [Biosample, setBiosample] = useState<{}>(props.mainQueryParams.Biosample)
+
+  //Chromatin Filter
   const [DNaseStart, setDNaseStart] = useState<number>(props.mainQueryParams.dnase_s)
   const [DNaseEnd, setDNaseEnd] = useState<number>(props.mainQueryParams.dnase_e)
   const [H3K4me3Start, setH3K4me3Start] = useState<number>(props.mainQueryParams.h3k4me3_s)
@@ -40,7 +51,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
   const [CTCFStart, setCTCFStart] = useState<number>(props.mainQueryParams.ctcf_s)
   const [CTCFEnd, setCTCFEnd] = useState<number>(props.mainQueryParams.ctcf_e)
 
-  //Classification Filters
+  //Classification Filter
   const [CA, setCA] = useState<boolean>(props.mainQueryParams.CA)
   const [CA_CTCF, setCA_CTCF] = useState<boolean>(props.mainQueryParams.CA_CTCF)
   const [CA_H3K4me3, setCA_H3K4me3] = useState<boolean>(props.mainQueryParams.CA_H3K4me3)
@@ -75,6 +86,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
   }
 
   /**
+   * Is defining properties of an object much slower than defining an Array element? May need to switch
    * This should probably be put into a server-rendered component
    * @param byCellType JSON of byCellType
    * @returns an object of sorted biosample types, grouped by tissue type
@@ -117,54 +129,112 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
     return biosamples
   }
 
+  function assayHoverInfo(assays: {dnase: boolean, h3k27ac: boolean, h3k4me3, ctcf: boolean,  atac: boolean}){
+    const dnase = assays.dnase
+    const h3k27ac = assays.h3k27ac
+    const h3k4me3 = assays.h3k4me3
+    const ctcf = assays.ctcf
+    const atac = assays.atac
+
+    if (dnase && h3k27ac && h3k4me3 && ctcf && atac) {
+      return "All assays available"
+    }
+
+    else if (!dnase && !h3k27ac && !h3k4me3 && !ctcf && !atac) {
+      return "No assays available"
+    }
+
+    else return `Available:\n${dnase ? "DNase\n" : ""}${h3k27ac ? "H3K27ac\n" : ""}${h3k4me3 ? "H3K4me3\n" : ""}${ctcf ? "CTCF\n" : ""}${atac ? "ATAC\n" : ""}`
+  }
+
   /**
    * 
+   * @param biosamples The biosamples object to filter
+   * @returns The same object but filtered with the current state of Biosample Type filters
+   */
+  function filterBiosamples(biosamples: {}) {
+    const filteredBiosamples = Object.entries(biosamples).map(([str, objArray]) => 
+      //How do I make this not throw a ts error?
+      //@ts-expect-error
+      [str, objArray.filter(biosample => {
+        if (Tissue && biosample.biosampleType === "tissue"){
+          return true
+        }
+        else if (PrimaryCell && biosample.biosampleType === "primary cell"){
+          return true
+        }
+        else if (CellLine && biosample.biosampleType === "cell line"){
+          return true
+        }
+        else if (InVitro && biosample.biosampleType === "in vitro differentiated cells"){
+          return true
+        }
+        else if (Organoid && biosample.biosampleType === "organoid"){
+          return true
+        }
+        else return false
+      })]
+    )
+    // console.log("filtered:")
+    console.log(filteredBiosamples)
+    return filteredBiosamples
+  }
+
+  //This is being called every time the state is changed, which is problematic. Need to have it be called only once, or on change to biosample filter state. Instant checkboxes rely on atomatically running this. Of note, it runs twice?
+  /**
    * @returns MUI Accordion components populated with a table of each tissue's biosamples
    */
   function generateBiosampleTables() {
     const biosamples = parseByCellType(props.byCellType)
+    // console.log(biosamples)
+    const filteredBiosamples = filterBiosamples(biosamples)
+    // console.log(filteredBiosamples)
     const cols = [{
       header: "Biosample",
       value: row => row.summaryName,
       render: row =>
-        <Tooltip title={row.verboseName} arrow placement="right">
+        <Tooltip title={row.verboseName} arrow>
           <Typography variant="body2">
             {row.summaryName}
           </Typography>
         </Tooltip>,
     }, {
-      header: "Data Available",
-      value: row => 'coming soon',
+      header: "Assays",
+      value: row => null,
       render: row => {
         const fifth = 2 * 3.1416 * 10 / 5
-        return(
-        <svg height="50" width="50" viewBox="0 0 50 50">
-          <circle r="20" cx="25" cy="25" fill="white" />
-          <circle r="10" cx="25" cy="25" fill="transparent"
-            stroke="#06DA93"
-            stroke-width="20"
-            stroke-dasharray={`${fifth} ${fifth * 4}`} />
-          <circle r="10" cx="25" cy="25" fill="transparent"
-            stroke="#FFCD00"
-            stroke-width="20"
-            stroke-dasharray={`${fifth * 0} ${fifth} ${fifth} ${fifth * 3}`} />
-          <circle r="10" cx="25" cy="25" fill="transparent"
-            stroke="#FF0000"
-            stroke-width="20"
-            stroke-dasharray={`${fifth * 0} ${fifth * 2} ${fifth} ${fifth * 2}`} />
-          <circle r="10" cx="25" cy="25" fill="transparent"
-            stroke="#00B0F0"
-            stroke-width="20"
-            stroke-dasharray={`${fifth * 0} ${fifth * 3 } ${fifth} ${fifth * 1}`} />
-          <circle r="10" cx="25" cy="25" fill="transparent"
-            stroke="#a8329b"
-            stroke-width="20"
-            stroke-dasharray={`${fifth * 0} ${fifth * 4 } ${fifth}`} />
-        </svg>)}
+        return (
+          <Tooltip title={assayHoverInfo(row.assays)} arrow>
+            <svg height="50" width="50" viewBox="0 0 50 50">
+              <circle r="20" cx="25" cy="25" fill="white" />
+              <circle r="10" cx="25" cy="25" fill="transparent"
+                stroke={`${row.assays.dnase ? "#06DA93" : "transparent"}`}
+                strokeWidth="20"
+                strokeDasharray={`${fifth} ${fifth * 4}`} />
+              <circle r="10" cx="25" cy="25" fill="transparent"
+                stroke={`${row.assays.h3k27ac ? "#FFCD00" : "transparent"}`}
+                strokeWidth="20"
+                strokeDasharray={`${fifth * 0} ${fifth} ${fifth} ${fifth * 3}`} />
+              <circle r="10" cx="25" cy="25" fill="transparent"
+                stroke={`${row.assays.h3k4me3 ? "#FF0000" : "transparent"}`}
+                strokeWidth="20"
+                strokeDasharray={`${fifth * 0} ${fifth * 2} ${fifth} ${fifth * 2}`} />
+              <circle r="10" cx="25" cy="25" fill="transparent"
+                stroke={`${row.assays.ctcf ? "#00B0F0" : "transparent"}`}
+                strokeWidth="20"
+                strokeDasharray={`${fifth * 0} ${fifth * 3} ${fifth} ${fifth * 1}`} />
+              <circle r="10" cx="25" cy="25" fill="transparent"
+                stroke={`${row.assays.atac ? "#02C7B9" : "transparent"}`}
+                strokeWidth="20"
+                strokeDasharray={`${fifth * 0} ${fifth * 4} ${fifth}`} />
+            </svg>
+          </Tooltip>
+        )
+      }
     }];
 
     return (
-      Object.entries(biosamples).sort().map((tissue: [string, {}[]], i) => {
+      filteredBiosamples.sort().map((tissue: [string, {}[]], i) => {
         return (
           <Accordion key={tissue[0]}>
             <AccordionSummary expandIcon={<KeyboardArrowRightIcon />}
@@ -216,7 +286,11 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
                 Biosample Type
               </Typography>
               <FormGroup>
-                <FormControlLabel onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => null} control={<Checkbox defaultChecked />} label="Sub Tissue" />
+                <FormControlLabel checked={Tissue} onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setTissue(checked)} control={<Checkbox />} label="Tissue" />
+                <FormControlLabel checked={PrimaryCell} onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setPrimaryCell(checked)} control={<Checkbox />} label="Primary Cell" />
+                <FormControlLabel checked={InVitro} onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setInVitro(checked)} control={<Checkbox />} label="In Vitro" />
+                <FormControlLabel checked={Organoid} onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setOrganoid(checked)} control={<Checkbox />} label="Organoid" />
+                <FormControlLabel checked={CellLine} onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setCellLine(checked)} control={<Checkbox />} label="Cell Line" />
               </FormGroup>
             </Grid2>
           </Grid2>
