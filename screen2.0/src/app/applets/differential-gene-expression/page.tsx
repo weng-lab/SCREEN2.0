@@ -6,8 +6,7 @@ import { DataTable } from "@weng-lab/ts-ztable"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { ErrorMessage, LoadingMessage } from "../../../common/lib/utility"
 import { payload, initialCellTypes, initialChart } from "./types"
-import * as d3 from "d3"
-import select from "d3-selection"
+import { Point2D, Range2D, linearTransform2D } from 'jubilant-carnival'
 
 type ccre = {
   accession: string,
@@ -23,37 +22,137 @@ type ccre = {
 const geneRed = "#FF0000"
 const geneBlue = "#1E90FF"
 
-const SetRange_x = ({dr1, dr2}) => {
-  let range: number[] = []
-  let min_x: number = parseInt(dr1.toString()[0] + dr1.toString()[1] + "00000")
-  let max_x: number = parseInt(dr2.toString()[0] + dr2.toString()[1] + "00000")
-  max_x += 200000
-  while (min_x < max_x){
-    range.push(min_x)
-    min_x += 200000
+/**
+ * Sets and labels the x-axis
+ * @param {Range2D, Range2D} // x axis range for graph and y axis range for the dimensions  
+ * @returns list of labels along the x-axis
+ */
+const SetRange_x = ({dr1, dr2, range, dimensions}) => {
+  let range_x: number[] = []
+  let zeros: string = "00000"
+
+  // change margins of x-axis based on the difference in range
+  // if (range.x.end - range.x.start > 100) {
+  //   zeros = ""
+  //   let j: number = (range.x.end - range.x.start).toString().length - 2
+  //   while (j > 0){
+  //     zeros += "0"
+  //     j -= 1
+  //   }
+  // }
+
+  // round and create list of labels
+  let min_x: number = parseInt(range.x.start.toString()[0] + range.x.start.toString()[1] + zeros)
+  let max_x: number = parseInt(range.x.end.toString()[0] + range.x.end.toString()[1] + zeros)
+  // max_x += 100000
+  // max_x += parseInt("1" + zeros)
+
+  while (min_x <= max_x){
+    // if (min_x / 100000 % 2 === 0)
+    range_x.push(min_x)
+    min_x += parseInt("1" + zeros)
+  }
+
+  // line and label
+  const Axis_name = ({x, label, zeros}) => {
+    if (label / parseInt("1" + zeros) % 2 === 0)
+      return (
+        <Fragment>
+          <text x={x - 35} y="500">{label}</text>
+          <line x1={x} x2={x} y1={450} y2={470} stroke="black"></line>
+        </Fragment>
+      )
+    else 
+      return (
+        <Fragment>
+          <line x1={x} x2={x} y1={450} y2={470} stroke="black"></line>
+        </Fragment>
+      )
+  }
+
+  // create point and transform
+  const x_axis = (x: number) => {
+    const p: Point2D = ({x: x, y: range.y.start})
+    const t = linearTransform2D(range, dimensions)(p)
+    // return <text x={t.x} y="500">{x}</text>
+    return (
+      <Axis_name x={t.x} label={x} zeros={zeros}/>
+    )
   }
 
   return (
-      range.map((x, i) => (<text key={x} x={i * 100} y="400">{x}</text>))
+      range_x.map((x: number, i: number) => (x_axis(x)))
   )
 }
 
-const SetRange_y = ({ymin, ymax}) => {
-  let range: number[] = []
+/**
+ * Sets and labels the y-axis
+ * @param {Range2D, Range2D} // y axis range for graph and y axis range for the dimensions  
+ * @returns list of labels along the y-axis
+ */
+const SetRange_y = ({ymin, ymax, range, dimensions}) => {
+  let range_y: number[] = []
   let min_y: number = 0
   if (ymin < 0)
-    min_y = parseInt(ymin.toString()[0] + ymin.toString()[1]) - 0.5
+    min_y = parseInt(ymin.toString()[0] + (ymin - 0.5).toString()[1]) - 0.5
   else
-    min_y= parseInt(ymin.toString()[0]) - 0.5
-  let max_y: number = parseInt(ymax.toString()[0]) + 0.5
+    min_y= parseInt((ymin - 0.5).toString()[0]) - 0.5
+  let max_y: number = parseInt((ymax + 0.5).toString()[0]) + 0.5
 
-  while (max_y > min_y){
-    range.push(max_y)
-    max_y -= 0.5
+  if (max_y > (0.5 + ymax)) max_y -= 0.5
+  if (min_y < (ymin - 0.5)) min_y += 0.5
+
+  while (min_y <= max_y){
+    range_y.push(min_y)
+    min_y += 0.5
+  }
+
+  const y_axis = (y: number, i: number, range_y: number[]) => {
+    const p: Point2D = ({x: range.x.start, y: y})
+    const t = linearTransform2D(range, dimensions)(p)
+    let r: number = range_y[range_y.length]
+    if (range_y[i+1])
+      r = linearTransform2D(range, dimensions)({x: range.x.start, y: range_y[i+1]}).y
+    // const y_dim = 500 - t.y
+
+    // dotted line for 0
+    const Dotted = ({y}) => {
+      let i: number = 0
+      let r: number[]  = []
+      while (i < 80){
+        r.push(i)
+        i += 1
+      }
+
+      return r.map((i: number) => (
+        <line x1={100+i*10} x2={100+i*10+3} y1={y} y2={y} stroke="black"></line>
+      ))
+    }
+
+    if (y === 0.0)
+      return (
+        <Fragment>
+          <text x="25" y={t.y + 5}>{y}</text>
+          <line x1={75} x2={100} y1={t.y} y2={t.y} stroke="black"></line>
+          <Dotted y={t.y}/>
+          <line x1={900} x2={925} y1={t.y} y2={t.y} stroke="black"></line>
+          <text x="950" y={t.y + 5}>{y}</text>
+        </Fragment>
+      )
+    else
+      return (
+        <Fragment>
+          <text x="25" y={t.y + 5}>{y}</text>
+          <line x1={75} x2={100} y1={t.y} y2={t.y} stroke="black"></line>
+          <rect x={75} y={r} width={20} height={t.y-r} fill="#6A9A17"></rect>
+          <line x1={900} x2={925} y1={t.y} y2={t.y} stroke="black"></line>
+          <text x="950" y={t.y + 5}>{y}</text>
+        </Fragment>
+      )
   }
 
   return (
-      range.map((y, i) => (<text x="0" y={i * 50}>{y}</text>))
+      range_y.map((y: number, i : number) => (y_axis(y, i, range_y)))
   )
 }
 
@@ -63,12 +162,18 @@ const SetRange_y = ({ymin, ymax}) => {
    * @param typ proximal-like signature or enhancer-like signature
    * @returns data point
    */
- const Point = ({point}) => {
-  let color: string = ""
-  if (point.typ === "proximal-like signature") color = "red"
-  else color = "yellow"
+ const Point = ({point, i, range, dimensions}) => {
+  const p : Point2D = ({x: point.center, y: point.value})
+  if (p.x > range.x.end || p.x < range.x.start || p.y > range.y.end || p.y < range.y.start) return <></>
+  const t = linearTransform2D(range,dimensions)(p)
   
-  return <circle key={point} cx={point.value} cy={point.center} data-value={point.value} r="4" stroke={color}></circle>
+  // promotor or enhancer
+  let color: string = ""
+  if (point.typ[3] === "m") color = "red"
+  else color = "#FFC95F"
+  // const y_dim = 450 - t.y
+
+  return <circle key={i} cx={t.x} cy={t.y} r="3" fill={color}></circle>
 }
 
 /**
@@ -99,7 +204,8 @@ export default function DifferentialGeneExpression() {
   const [ dr1, setdr1 ] = useState<number>(0)
   const [ dr2, setdr2 ] = useState<number>(0)
 
-  const svgRef = useRef<SVGSVGElement | null>(null)
+  const [ range, setRange ] = useState<Range2D>({x: {start: dr1, end: dr2}, y: {start: 0, end: 0}})
+  const [ dimensions, setDimensions ] = useState<Range2D>({x: {start: 100, end: 900}, y: {start: 450, end: 50}})
 
   // fetch list of cell types
   useEffect(() => {
@@ -153,13 +259,33 @@ export default function DifferentialGeneExpression() {
         // set domain range
         setdr1(data[data.gene].nearbyDEs.xdomain[0])
         setdr2(data[data.gene].nearbyDEs.xdomain[1])
+
+        let min_x: number = parseInt(dr1.toString()[0] + dr1.toString()[1] + "00000")
+        let max_x: number = parseInt(dr2.toString()[0] + dr2.toString()[1] + "00000")
+        max_x += 100000
         
-        console.log(d3.select(svgRef.current))
-        d3.select(svgRef.current)
-          .append("rect")
-          .attr("width", 1000)
-          .attr("height", 1000)
-          .attr("fill", "blue")
+        let ymin: number = data[data.gene].nearbyDEs.ymin
+        let ymax: number = data[data.gene].nearbyDEs.ymax
+        let min_y: number = 0.0        
+        if (ymin < 0)
+          min_y = parseInt(ymin.toString()[0] + (ymin - 0.5).toString()[1]) - 0.5
+        else
+          min_y= parseInt((ymin - 0.5).toString()[0]) - 0.5
+        let max_y: number = parseInt((ymax + 0.5).toString()[0]) + 0.5
+
+        if (max_y > (0.5 + ymax)) max_y -= 0.5
+        if (min_y < (ymin - 0.5)) min_y += 0.5
+
+        setRange({
+          x:{
+            start: min_x,
+            end: max_x
+          },
+          y: {
+            start: min_y,
+            end: max_y
+          }
+        })
 
         setLoadingChart(false)
       })
@@ -247,52 +373,80 @@ export default function DifferentialGeneExpression() {
                   label={dr1} 
                   variant="outlined"
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                    setdr1(parseInt(event.target.value));
-                  }} 
+                    setdr1(parseInt(event.target.value))
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter"){
+                      setRange({
+                        x: {
+                          start: dr1,
+                          end: dr2
+                        },
+                        y: {
+                          start: range.y.start,
+                          end: range.y.end
+                        }
+                      })
+                    }
+                  }}
                   />
                   <Typography display="inline">to</Typography>
                   <TextField 
                   id="outlined-basic" 
-                  label={dr1} 
+                  label={dr2} 
                   variant="outlined"
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                    setdr2(parseInt(event.target.value));
+                    setdr2(parseInt(event.target.value))
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter"){
+                      setRange({
+                        x: {
+                          start: dr1,
+                          end: dr2
+                        },
+                        y: {
+                          start: range.y.start,
+                          end: range.y.end
+                        }
+                      })
+                    }
                   }}
                   />
                 </Box>
-                <Box mt={1}>
-                  <div id="data">
-                    <svg ref={svgRef} viewBox="0 0 1000 500">
-                      {/* <line/>
-                      <rect width={100} height={100} fill="blue"/>
-                      <circle/> */}
-                    </svg>
+                <Box mt={2}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Typography>{ct1} vs {ct2}</Typography>
                   </div>
-                  {/* <svg className="bar-chart"></svg> */}
-                  {/* <script src="https://d3js.org/d3.v6.js"></script> */}
-                  {/* <script src="plot.ts"></script> */}
                   <svg className="graph" aria-labelledby="title desc" role="img" viewBox="0 0 1000 500">
-                    <title id="title">this is a chart</title>
+                    <title id="title">{ct1} vs {ct2}</title>
                     <desc id="desc">some description</desc>
                     <g className="grid x-grid" id="xGrid">
-                      <line x1="90" x2="90" y1="5" y2="371"></line>
+                      <line x1="100" x2="900" y1="450" y2="450"></line>
                     </g>
                     <g className="grid y-grid" id="yGrid">
-                      <line x1="90" x2="705" y1="370" y2="370"></line>
+                      <line x1="900" x2="900" y1="50" y2="450"></line>
                     </g>
                     <g className="labels x-labels">
-                      <SetRange_x dr1={dr1} dr2={dr2}/>
+                      <SetRange_x dr1={dr1} dr2={dr2} range={range} dimensions={dimensions}/>
+                      <line x1="100" y1="450" x2="900" y2="450" stroke="black"></line>
                     </g>
                     <g className="labels y-labels">
-                      <SetRange_y ymin={data[data.gene].nearbyDEs.ymin} ymax={data[data.gene].nearbyDEs.ymax} />
-                      {/* <text x="50" y="200" className="label-title">log2 gene expression fold change</text> */}
+                      <SetRange_y ymin={data[data.gene].nearbyDEs.ymin} ymax={data[data.gene].nearbyDEs.ymax} range={range} dimensions={dimensions}/>
+                      <line x1="100" y1="50" x2="100" y2="450" stroke="black"></line>
+                      <line x1="900" y1="50" x2="900" y2="450" stroke="black"></line>
+                      {/* <text x="50" y="200" className="verticaltext">log2 gene expression fold change</text> */}
                     </g>
                     <g className="data" data-setname="Our first data set">
-                      <circle cx={data[data.gene].diffCREs.data.center} cy={data[data.gene].diffCREs.data.value} data-value={data[data.gene].diffCREs.data.value} r="4" stroke="red"></circle>
-                      <circle cx="90" cy="100" data-value={data[data.gene].diffCREs.data.value} r="4" stroke="red"></circle>
-                      {/* {data[data.gene].diffCREs.data.map((point) => (
-                        <Point point={point} />
-                      ))} */}
+                      {data[data.gene].diffCREs.data.map((point, i: number) => (
+                        <Point point={point} i={i} range={range} dimensions={dimensions}/>
+                      ))}
                     </g>
                   </svg>
                 </Box>
