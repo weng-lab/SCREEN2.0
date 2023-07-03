@@ -39,7 +39,10 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
   const [Organoid, setOrganoid] = useState<boolean>(props.mainQueryParams.Organoid)
   const [InVitro, setInVitro] = useState<boolean>(props.mainQueryParams.InVitro)
   //Selected Biosample
-  const [Biosample, setBiosample] = useState<{}>(props.mainQueryParams.Biosample)
+  //{selected: boolean, biosample: string}
+  const [Biosample, setBiosample] = useState<{selected: boolean, biosample: string}>(props.mainQueryParams.Biosample)
+  const [BiosampleHighlight, setBiosampleHighlight] = useState<{} | null>(null)
+  const [SearchString, setSearchString] = useState<string>("")
 
   //Chromatin Filter
   const [DNaseStart, setDNaseStart] = useState<number>(props.mainQueryParams.dnase_s)
@@ -247,7 +250,14 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
               <Typography>{tissue[0]}</Typography>
             </AccordionSummary>
             <AccordionDetails sx={{ display: 'flex' }}>
-              <DataTable columns={cols} rows={tissue[1]} dense />
+              <DataTable
+                columns={cols}
+                rows={tissue[1]}
+                dense
+                searchable
+                highlighted={BiosampleHighlight}
+                onRowClick={(row, i) => { setBiosample({ selected: true, biosample: row.queryValue }); setBiosampleHighlight(row) }}
+              />
             </AccordionDetails>
           </Accordion>
         )
@@ -276,10 +286,13 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
               </Typography>
             </Grid2>
             <Grid2 xs={6}>
-              <TextField size="small" label="Filter Tissues" />
+              <TextField size="small" label="Filter Tissues" onChange={(event) => setSearchString(event.target.value)}/>
             </Grid2>
             <Grid2 xs={12} maxHeight={500} overflow={'auto'}>
               {generateBiosampleTables()}
+            </Grid2>
+            <Grid2 xs={12}>
+              {Biosample.selected && <Button variant="outlined" onClick={() => {setBiosample({selected: false, biosample: ""}); setBiosampleHighlight(null)}}>Clear Biosample Selection</Button>}
             </Grid2>
             <Grid2 xs={12}>
               <Typography>
