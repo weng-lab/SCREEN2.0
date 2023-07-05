@@ -179,7 +179,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
       })]
     )
     // console.log("filtered:")
-    console.log(filteredBiosamples)
+    // console.log(filteredBiosamples)
     return filteredBiosamples
   }
 
@@ -196,7 +196,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
       header: "Biosample",
       value: row => row.summaryName,
       render: row =>
-        <Tooltip title={row.verboseName} arrow>
+        <Tooltip title={row.verboseName + " - " + row.biosampleType} arrow>
           <Typography variant="body2">
             {row.summaryName}
           </Typography>
@@ -209,7 +209,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
         return (
           <Tooltip title={assayHoverInfo(row.assays)} arrow>
             <svg height="50" width="50" viewBox="0 0 50 50">
-              <circle r="20" cx="25" cy="25" fill="white" />
+              <circle r="20" cx="25" cy="25" fill="#EEEEEE" />
               <circle r="10" cx="25" cy="25" fill="transparent"
                 stroke={`${row.assays.dnase ? "#06DA93" : "transparent"}`}
                 strokeWidth="20"
@@ -234,33 +234,36 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
           </Tooltip>
         )
       }
-    }];
+      }];
 
     return (
       filteredBiosamples.sort().map((tissue: [string, {}[]], i) => {
-        return (
-          <Accordion key={tissue[0]}>
-            <AccordionSummary expandIcon={<KeyboardArrowRightIcon />}
-              sx={{
-                flexDirection: "row-reverse",
-                '& .MuiAccordionSummary-expandIconWrapper.Mui-expanded': {
-                  transform: 'rotate(90deg)',
-                }
-              }}>
-              <Typography>{tissue[0]}</Typography>
-            </AccordionSummary>
-            <AccordionDetails sx={{ display: 'flex' }}>
-              <DataTable
-                columns={cols}
-                rows={tissue[1]}
-                dense
-                searchable
-                highlighted={BiosampleHighlight}
-                onRowClick={(row, i) => { setBiosample({ selected: true, biosample: row.queryValue }); setBiosampleHighlight(row) }}
-              />
-            </AccordionDetails>
-          </Accordion>
-        )
+        // Is user enters a search, check to see if the tissue name matches
+        if (tissue[0].includes(SearchString)) {
+          return (
+            <Accordion key={tissue[0]}>
+              <AccordionSummary expandIcon={<KeyboardArrowRightIcon />}
+                sx={{
+                  flexDirection: "row-reverse",
+                  '& .MuiAccordionSummary-expandIconWrapper.Mui-expanded': {
+                    transform: 'rotate(90deg)',
+                  }
+                }}>
+                <Typography>{tissue[0]}</Typography>
+              </AccordionSummary>
+              <AccordionDetails sx={{ display: 'flex' }}>
+                <DataTable
+                  columns={cols}
+                  rows={tissue[1]}
+                  dense
+                  searchable
+                  highlighted={BiosampleHighlight}
+                  onRowClick={(row, i) => { setBiosample({ selected: true, biosample: row.queryValue }); setBiosampleHighlight(row) }}
+                />
+              </AccordionDetails>
+            </Accordion>
+          )
+        }
       })
     )
   }
@@ -301,7 +304,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
               <FormGroup>
                 <FormControlLabel checked={Tissue} onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setTissue(checked)} control={<Checkbox />} label="Tissue" />
                 <FormControlLabel checked={PrimaryCell} onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setPrimaryCell(checked)} control={<Checkbox />} label="Primary Cell" />
-                <FormControlLabel checked={InVitro} onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setInVitro(checked)} control={<Checkbox />} label="In Vitro" />
+                <FormControlLabel checked={InVitro} onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setInVitro(checked)} control={<Checkbox />} label="In Vitro Differentiated Cell" />
                 <FormControlLabel checked={Organoid} onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setOrganoid(checked)} control={<Checkbox />} label="Organoid" />
                 <FormControlLabel checked={CellLine} onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setCellLine(checked)} control={<Checkbox />} label="Cell Line" />
               </FormGroup>
