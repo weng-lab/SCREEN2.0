@@ -1,12 +1,14 @@
 "use client"
 import { Box, TextField, Typography } from "@mui/material"
 import React, { useState, useEffect, cache, Fragment, useRef } from "react"
-import { fetchServer } from "../../../common/lib/utility"
+import { createLink, fetchServer } from "../../../common/lib/utility"
 import { DataTable } from "@weng-lab/ts-ztable"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { ErrorMessage, LoadingMessage } from "../../../common/lib/utility"
 import { payload, initialCellTypes, initialChart } from "./types"
 import { Point2D, Range2D, linearTransform2D } from 'jubilant-carnival'
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+import Link from "@mui/material"
 
 type ccre = {
   accession: string,
@@ -35,37 +37,52 @@ const SetRange_x = ({dr1, dr2, range, dimensions}) => {
   // if (range.x.end - range.x.start > 100) {
   //   zeros = ""
   //   let j: number = (range.x.end - range.x.start).toString().length - 2
+  //   console.log(range.x.end - range.x.start)
   //   while (j > 0){
   //     zeros += "0"
   //     j -= 1
   //   }
+  //   console.log(zeros)
   // }
 
   // round and create list of labels
-  let min_x: number = parseInt(range.x.start.toString()[0] + range.x.start.toString()[1] + zeros)
-  let max_x: number = parseInt(range.x.end.toString()[0] + range.x.end.toString()[1] + zeros)
+  let min_x: number = Math.floor(range.x.start / parseInt("1" + zeros)) * parseInt("1" + zeros)
+  let max_x: number = Math.ceil(range.x.end / parseInt("1" + zeros)) * parseInt("1" + zeros)
+  
+  // let min_x: number = parseInt(range.x.start.toString()[0] + range.x.start.toString()[1] + zeros)
+  // let max_x: number = parseInt(range.x.end.toString()[0] + range.x.end.toString()[1] + zeros)
+  
   // max_x += 100000
   // max_x += parseInt("1" + zeros)
 
   while (min_x <= max_x){
-    // if (min_x / 100000 % 2 === 0)
     range_x.push(min_x)
     min_x += parseInt("1" + zeros)
   }
 
   // line and label
   const Axis_name = ({x, label, zeros}) => {
-    if (label / parseInt("1" + zeros) % 2 === 0)
+    // add commas
+    // let l: string = ""
+    // let comma: number = 0
+    // for (let n in label.reverse){
+    //   comma += 1
+    //   l += n.toString()
+    //   if (comma === 3) l += ","
+    // }
+    // l = l.reverse
+
+    if (label / parseInt("1" + zeros) % 2 === 0 || range_x.length < 7)
       return (
         <Fragment>
-          <text x={x - 35} y="500">{label}</text>
+          <text x={x - 30} y="500" style={{fontSize: 13}}>{label}</text>
           <line x1={x} x2={x} y1={450} y2={470} stroke="black"></line>
         </Fragment>
       )
     else 
       return (
         <Fragment>
-          <line x1={x} x2={x} y1={450} y2={470} stroke="black"></line>
+          <line x1={x} x2={x} y1={450} y2={460} stroke="black"></line>
         </Fragment>
       )
   }
@@ -74,7 +91,7 @@ const SetRange_x = ({dr1, dr2, range, dimensions}) => {
   const x_axis = (x: number) => {
     const p: Point2D = ({x: x, y: range.y.start})
     const t = linearTransform2D(range, dimensions)(p)
-    // return <text x={t.x} y="500">{x}</text>
+
     return (
       <Axis_name x={t.x} label={x} zeros={zeros}/>
     )
@@ -132,21 +149,22 @@ const SetRange_y = ({ymin, ymax, range, dimensions}) => {
     if (y === 0.0)
       return (
         <Fragment>
-          <text x="25" y={t.y + 5}>{y}</text>
-          <line x1={75} x2={100} y1={t.y} y2={t.y} stroke="black"></line>
+          <text x="30" y={t.y + 5} style={{fontSize: 13}}>{y}</text>
+          <line x1={80} x2={100} y1={t.y} y2={t.y} stroke="black"></line>
+          <rect x={80} y={r} width={20} height={t.y-r} fill="#6A9A17" fillOpacity={.80}></rect>
           <Dotted y={t.y}/>
-          <line x1={900} x2={925} y1={t.y} y2={t.y} stroke="black"></line>
-          <text x="950" y={t.y + 5}>{y}</text>
+          <line x1={900} x2={920} y1={t.y} y2={t.y} stroke="black"></line>
+          <text x="940" y={t.y + 5} style={{fontSize: 13}}>{y}</text>
         </Fragment>
       )
     else
       return (
         <Fragment>
-          <text x="25" y={t.y + 5}>{y}</text>
-          <line x1={75} x2={100} y1={t.y} y2={t.y} stroke="black"></line>
-          <rect x={75} y={r} width={20} height={t.y-r} fill="#6A9A17"></rect>
-          <line x1={900} x2={925} y1={t.y} y2={t.y} stroke="black"></line>
-          <text x="950" y={t.y + 5}>{y}</text>
+          <text x="30" y={t.y + 5} style={{fontSize: 13}}>{y}</text>
+          <rect x={80} y={r} width={20} height={t.y-r} fill="#6A9A17" fillOpacity={.80}></rect>
+          <line x1={80} x2={100} y1={t.y} y2={t.y} stroke="black"></line>
+          <line x1={900} x2={920} y1={t.y} y2={t.y} stroke="black"></line>
+          <text x="940" y={t.y + 5} style={{fontSize: 13}}>{y}</text>
         </Fragment>
       )
   }
@@ -173,7 +191,104 @@ const SetRange_y = ({ymin, ymax, range, dimensions}) => {
   else color = "#FFC95F"
   // const y_dim = 450 - t.y
 
-  return <circle key={i} cx={t.x} cy={t.y} r="3" fill={color}></circle>
+  return <circle 
+            key={i}
+            aria-label={p.x + "," + p.y} 
+            cx={t.x} 
+            cy={t.y} 
+            r="4" 
+            fill={color}
+            onMouseOver={e => i}
+          />
+}
+
+const BarPoint = ({point, i, range, dimensions}) => {
+  let p1: Point2D = ({x: 0, y: 0})
+  let p2: Point2D = ({x: 0, y: 0})
+  let x1: number = point.start
+  let x2: number = point.stop
+  
+  // cut bars off at axis if out of range
+  if (point.start > range.x.end || point.stop < range.x.start) return <></>
+  else if (point.start < range.x.start) x1 = range.x.start
+  else if (point.stop > range.x.end) x2 = range.x.end 
+
+  if (point.fc >= 0){
+    p1 = linearTransform2D(range,dimensions)({x: x1, y: point.fc})
+    p2 = linearTransform2D(range,dimensions)({x: x2, y: 0})
+  }
+  else {
+    p1 = linearTransform2D(range,dimensions)({x: x1, y: 0})
+    p2 = linearTransform2D(range,dimensions)({x: x2, y: point.fc})
+  }
+
+  return <rect 
+            key={i} 
+            x={p1.x} 
+            y={p1.y} 
+            width={p2.x - p1.x} 
+            height={p2.y - p1.y}
+            fill="#6A9A17"
+            fillOpacity={.50}
+          />
+}
+
+const GenePoint = ({point, i, range, dimensions}) => {
+  let p1: Point2D = ({x: 0, y: 0})
+  let p2: Point2D = ({x: 0, y: 0})
+  let x1: number = point.start
+  let x2: number = point.stop
+
+  // cut off lines if out of axis range
+  if (point.start > range.x.end || point.stop < range.x.start) return <></>
+  else if (point.start < range.x.start) x1 = range.x.start
+  else if (point.stop > range.x.end) x2 = range.x.end 
+
+  p1 = linearTransform2D(range,dimensions)({x: x1, y: 0})
+  p2 = linearTransform2D(range,dimensions)({x: x2, y: 0})
+  
+  let color: string = geneRed
+  if (point.strand === "-") color = geneBlue
+
+  if (x1 === range.x.start) // arrow at start
+    return (
+      <Fragment>
+        <line key={i} x1={p1.x} x2={p2.x} y1={(i+1)*20} y2={(i+1)*20} stroke={color}></line>
+        <text 
+          style={{fontSize: 13, fontStyle: "italic"}} 
+          x={p2.x + 20} 
+          y={(i+1)*20+5}
+        >
+            <a href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + point.gene}>{point.gene}</a>
+        </text>
+      </Fragment>
+    )
+  else if (x2 === range.x.end) // arrow at end
+    return (
+      <Fragment>
+        <line key={i} x1={p1.x} x2={p2.x} y1={(i+1)*20} y2={(i+1)*20} stroke={color}></line>
+        <text 
+          style={{fontSize: 13, fontStyle: "italic"}} 
+          x={p2.x + 20} 
+          y={(i+1)*20+5}
+        >
+            <a href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + point.gene}>{point.gene}</a>
+        </text>
+      </Fragment>
+    )
+  
+  return (
+  <Fragment>
+    <line key={i} x1={p1.x} x2={p2.x} y1={(i+1)*20} y2={(i+1)*20} stroke={color}></line>
+    <text 
+      style={{fontSize: 13, fontStyle: "italic"}} 
+      x={p2.x + 20} 
+      y={(i+1)*20+5}
+      >
+        <a href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + point.gene}>{point.gene}</a>
+    </text>
+  </Fragment>
+  )
 }
 
 /**
@@ -195,6 +310,7 @@ const getCellInfo = cache(async () => {
 export default function DifferentialGeneExpression() {
   const [ loading, setLoading ] = useState<boolean>(true)
   const [ loadingChart, setLoadingChart ] = useState<boolean>(true)
+  const [ errorLoading, setError ] = useState<boolean>(false)
   const [ data, setData ] = useState(initialChart)
   const [ cellTypes, setCellTypes ] = useState(initialCellTypes)
 
@@ -259,10 +375,15 @@ export default function DifferentialGeneExpression() {
         // set domain range
         setdr1(data[data.gene].nearbyDEs.xdomain[0])
         setdr2(data[data.gene].nearbyDEs.xdomain[1])
+        // console.log(data[data.gene].nearbyDEs.xdomain[1])
+        let min_x: number = Math.floor(data[data.gene].nearbyDEs.xdomain[0] / parseInt("100000")) * 100000
+        let max_x: number = Math.ceil(data[data.gene].nearbyDEs.xdomain[1] / parseInt("100000")) * 100000
 
-        let min_x: number = parseInt(dr1.toString()[0] + dr1.toString()[1] + "00000")
-        let max_x: number = parseInt(dr2.toString()[0] + dr2.toString()[1] + "00000")
-        max_x += 100000
+        // console.log(Math.floor(s))
+
+        // let min_x: number = parseInt(data[data.gene].nearbyDEs.xdomain[0][0] + data[data.gene].nearbyDEs.xdomain[0][1] + "00000")
+        // let max_x: number = parseInt(data[data.gene].nearbyDEs.xdomain[1][0] + data[data.gene].nearbyDEs.xdomain[1][1] + "00000")
+        // max_x += 100000
         
         let ymin: number = data[data.gene].nearbyDEs.ymin
         let ymax: number = data[data.gene].nearbyDEs.ymax
@@ -275,6 +396,11 @@ export default function DifferentialGeneExpression() {
 
         if (max_y > (0.5 + ymax)) max_y -= 0.5
         if (min_y < (ymin - 0.5)) min_y += 0.5
+
+        // setdr1(min_x)
+        // setdr2(max_x)
+        // console.log(min_x)
+        // console.log(max_x)
 
         setRange({
           x:{
@@ -354,7 +480,9 @@ export default function DifferentialGeneExpression() {
         </Grid2>
         <Grid2 xs={8}>
           <Box mb={1}>
-            {loadingChart 
+            {errorLoading ? 
+              ErrorMessage(new Error("")) 
+            : loadingChart 
             ? LoadingMessage() 
             : data && data.gene && data[data.gene] && data[data.gene].xdomain &&
             (
@@ -376,18 +504,18 @@ export default function DifferentialGeneExpression() {
                     setdr1(parseInt(event.target.value))
                   }}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter"){
+                    if (e.key === "Enter" && range.x.end - dr1 > 0){
                       setRange({
                         x: {
                           start: dr1,
-                          end: dr2
+                          end: range.x.end
                         },
                         y: {
                           start: range.y.start,
                           end: range.y.end
                         }
                       })
-                    }
+                    } else ErrorMessage(new Error("invalid range"))
                   }}
                   />
                   <Typography display="inline">to</Typography>
@@ -399,10 +527,10 @@ export default function DifferentialGeneExpression() {
                     setdr2(parseInt(event.target.value))
                   }}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter"){
+                    if (e.key === "Enter" && dr2 - range.x.start > 0){
                       setRange({
                         x: {
-                          start: dr1,
+                          start: range.x.start,
                           end: dr2
                         },
                         y: {
@@ -410,7 +538,7 @@ export default function DifferentialGeneExpression() {
                           end: range.y.end
                         }
                       })
-                    }
+                    } else ErrorMessage(new Error("invalid range"))
                   }}
                   />
                 </Box>
@@ -441,14 +569,29 @@ export default function DifferentialGeneExpression() {
                       <SetRange_y ymin={data[data.gene].nearbyDEs.ymin} ymax={data[data.gene].nearbyDEs.ymax} range={range} dimensions={dimensions}/>
                       <line x1="100" y1="50" x2="100" y2="450" stroke="black"></line>
                       <line x1="900" y1="50" x2="900" y2="450" stroke="black"></line>
-                      {/* <text x="50" y="200" className="verticaltext">log2 gene expression fold change</text> */}
+                      <text x="70" y="50" style={{fontSize: 12, writingMode: "vertical-rl"}}>log2 gene expression fold change</text>
+                      <text x="930" y="50" style={{fontSize: 12, writingMode: "vertical-lr"}}>change in cCRE Z-score</text>
                     </g>
                     <g className="data" data-setname="Our first data set">
                       {data[data.gene].diffCREs.data.map((point, i: number) => (
                         <Point point={point} i={i} range={range} dimensions={dimensions}/>
                       ))}
+                      {data[data.gene].nearbyDEs.data.map((point, i: number) => (
+                        <BarPoint point={point} i={i} range={range} dimensions={dimensions} />
+                      ))}
                     </g>
                   </svg>
+                  <Box mt={2}>
+                    <svg className="graph" aria-labelledby="title desc" role="img" viewBox="0 0 1000 1000">
+                      <title id="genes"></title>
+                      <desc id="desc">genes</desc>
+                      <g className="data">
+                        {data[data.gene].nearbyDEs.genes.map((point, i: number) => (
+                          <GenePoint point={point} i={i} range={range} dimensions={dimensions}/>
+                        ))}
+                      </g>
+                    </svg>
+                  </Box>
                 </Box>
               </Fragment>
             )}
