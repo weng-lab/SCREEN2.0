@@ -1,6 +1,6 @@
 "use client"
 import React, { useEffect } from "react"
-import { Tab, Tabs } from "@mui/material"
+import { Tab, Tabs, Typography } from "@mui/material"
 import MainResultsTable from "../../common/components/MainResultsTable"
 import MainResultsFilers from "../../common/components/MainResultsFilters"
 import { CcreDetails } from "./ccredetails/ccredetails"
@@ -46,6 +46,11 @@ export const CcreSearch = ({ mainQueryParams, ccrerows, globals, assembly }) => 
             <MainResultsFilers mainQueryParams={mainQueryParams} byCellType={globals}/>
           </Grid2>
           <Grid2 xs={12} lg={9}>
+            {mainQueryParams.Biosample.selected && 
+              <Typography>
+                Biosample Selected: {mainQueryParams.Biosample.biosample}
+              </Typography>
+            }
             <MainResultsTable
               rows={ccrerows}
               tableTitle={`Searching ${mainQueryParams.chromosome} in ${mainQueryParams.assembly} from ${mainQueryParams.start.toLocaleString("en-US")} to ${mainQueryParams.end.toLocaleString("en-US")}`}

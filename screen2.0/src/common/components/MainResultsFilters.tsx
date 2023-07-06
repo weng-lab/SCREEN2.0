@@ -40,7 +40,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
   const [InVitro, setInVitro] = useState<boolean>(props.mainQueryParams.InVitro)
   //Selected Biosample
   //{selected: boolean, biosample: string}
-  const [Biosample, setBiosample] = useState<{selected: boolean, biosample: string}>(props.mainQueryParams.Biosample)
+  const [Biosample, setBiosample] = useState<{selected: boolean, biosample: string | null}>(props.mainQueryParams.Biosample)
   const [BiosampleHighlight, setBiosampleHighlight] = useState<{} | null>(null)
   const [SearchString, setSearchString] = useState<string>("")
 
@@ -64,14 +64,30 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
   const [PLS, setPLS] = useState<boolean>(props.mainQueryParams.PLS)
   const [TF, setTF] = useState<boolean>(props.mainQueryParams.TF)
 
-  //IMPORTANT: This will wipe the current cCRE when Nishi puts it in. Need to preserve it once I know the param name of the cCRE
+  //IMPORTANT: This will wipe the current cCRE when Nishi puts it in. Need to talk to Nishi about deciding when/how to display the cCRE details
   function constructURL() {
-    const url = `search?assembly=${props.mainQueryParams.assembly}&chromosome=${props.mainQueryParams.chromosome}&start=${props.mainQueryParams.start}&end=${props.mainQueryParams.end}&dnase_s=${DNaseStart}&dnase_e=${DNaseEnd}&h3k4me3_s=${H3K4me3Start}&h3k4me3_e=${H3K4me3End}&h3k27ac_s=${H3K27acStart}&h3k27ac_e=${H3K27acEnd}&ctcf_s=${CTCFStart}&ctcf_e=${CTCFEnd}&CA=${outputT_or_F(CA)}&CA_CTCF=${outputT_or_F(CA_CTCF)}&CA_H3K4me3=${outputT_or_F(CA_H3K4me3)}&CA_TF=${outputT_or_F(CA_TF)}&dELS=${outputT_or_F(dELS)}&pELS=${outputT_or_F(pELS)}&PLS=${outputT_or_F(PLS)}&TF=${outputT_or_F(TF)}`
+    const url = `${urlBasics}${biosampleFilters}${chromatinFilters}${classificationFilters}`
     return url
   }
 
+  //Assembly, Chromosome, Start, End
+  const urlBasics =
+    `search?assembly=${props.mainQueryParams.assembly}&chromosome=${props.mainQueryParams.chromosome}&start=${props.mainQueryParams.start}&end=${props.mainQueryParams.end}`
+
+  const biosampleFilters =
+    `&Tissue=${outputT_or_F(Tissue)}&PrimaryCell=${outputT_or_F(PrimaryCell)}&InVitro=${outputT_or_F(InVitro)}&Organoid=${outputT_or_F(Organoid)}&CellLine=${outputT_or_F(CellLine)}${Biosample.selected ? ("&Biosample=" + Biosample.biosample) : ""}`
+
+
+  const chromatinFilters =
+    `&dnase_s=${DNaseStart}&dnase_e=${DNaseEnd}&h3k4me3_s=${H3K4me3Start}&h3k4me3_e=${H3K4me3End}&h3k27ac_s=${H3K27acStart}&h3k27ac_e=${H3K27acEnd}&ctcf_s=${CTCFStart}&ctcf_e=${CTCFEnd}`
+
+
+  const classificationFilters =
+    `&CA=${outputT_or_F(CA)}&CA_CTCF=${outputT_or_F(CA_CTCF)}&CA_H3K4me3=${outputT_or_F(CA_H3K4me3)}&CA_TF=${outputT_or_F(CA_TF)}&dELS=${outputT_or_F(dELS)}&pELS=${outputT_or_F(pELS)}&PLS=${outputT_or_F(PLS)}&TF=${outputT_or_F(TF)}`
+
+
   function outputT_or_F(input: boolean) {
-    if (input == true) { return 't' }
+    if (input === true) { return 't' }
     else return 'f'
   }
 
@@ -128,7 +144,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
       )
       Object.defineProperty(biosamples, experiments[0].tissue, { value: tissueArr, enumerable: true, writable: true })
     })
-    // console.log(Object.entries(biosamples).sort())
+    console.log(Object.entries(biosamples).sort())
     return biosamples
   }
 
@@ -203,7 +219,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
         </Tooltip>,
     }, {
       header: "Assays",
-      value: row => null,
+      value: row => Object.keys(row.assays).filter((key) => row.assays[key] === true).length,
       render: row => {
         const fifth = 2 * 3.1416 * 10 / 5
         return (
@@ -295,7 +311,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
               {generateBiosampleTables()}
             </Grid2>
             <Grid2 xs={12}>
-              {Biosample.selected && <Button variant="outlined" onClick={() => {setBiosample({selected: false, biosample: ""}); setBiosampleHighlight(null)}}>Clear Biosample Selection</Button>}
+              {Biosample.selected && <Button variant="outlined" onClick={() => {setBiosample({selected: false, biosample: null}); setBiosampleHighlight(null)}}>Clear Biosample Selection</Button>}
             </Grid2>
             <Grid2 xs={12}>
               <Typography>

@@ -25,6 +25,7 @@ export default async function Search({
 }) {
   //Get search parameters and define defaults. Put into object.
   const mainQueryParams = {
+    // Current cCRE, if any
     assembly: searchParams.assembly ? searchParams.assembly : "GRCh38",
     chromosome: searchParams.chromosome ? searchParams.chromosome : "chr11",
     start: searchParams.start ? Number(searchParams.start) : 5205263,
@@ -37,7 +38,7 @@ export default async function Search({
     Organoid: searchParams.Organoid ? checkTrueFalse(searchParams.Organoid): true,
     InVitro: searchParams.InVitro ? checkTrueFalse(searchParams.InVitro): true,
     //TODO NEED A NEW FUNCTION TO PARSE THIS INFORMATION INTO AN OBJECT
-    Biosample: searchParams.Biosample ? null : { selected: false, biosample: "" },
+    Biosample: searchParams.Biosample ? { selected: true, biosample: searchParams.Biosample } : { selected: false, biosample: null },
     // Chromatin Filters
     // "[...]_s" = start, "[...]_e" = end. Used to filter results
     //Maybe make these properly cased to make URL a bit more readable
@@ -67,7 +68,8 @@ export default async function Search({
     else { return false }
   }
 
-  const mainQueryResult = await MainQuery(mainQueryParams.assembly, mainQueryParams.chromosome, mainQueryParams.start, mainQueryParams.end)
+  //How do I implement error handling here?
+  const mainQueryResult = await MainQuery(mainQueryParams.assembly, mainQueryParams.chromosome, mainQueryParams.start, mainQueryParams.end, mainQueryParams.Biosample.biosample)
 
   const globals = await getGlobals()
 

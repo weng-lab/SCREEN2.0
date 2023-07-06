@@ -117,7 +117,7 @@ function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: numbe
     rank_enhancer_end: 10,
     rank_ctcf_start: -10,
     rank_ctcf_end: 10,
-    cellType: null,
+    cellType: biosample,
     element_type: null,
     limit: 25000,
   }
@@ -129,11 +129,12 @@ function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: numbe
  * @param chromosome string, ex: "chr11"
  * @param start number
  * @param end number
- * @param biosample optional - a biosample selection
+ * @param biosample optional - a biosample selection. If not specified or "undefined", will be marked as "null" in gql query
  * @returns cCREs matching the search
  */
-export default async function MainQuery(assembly: string, chromosome: string, start: number, end: number, biosample?: string) {
+export default async function MainQuery(assembly: string, chromosome: string, start: number, end: number, biosample: string = null) {
 
+  console.log("queried with: " + biosample)
   const data = await getClient().query({
     query: cCRE_QUERY,
     variables: cCRE_QUERY_VARIABLES(assembly, chromosome, start, end, biosample),
