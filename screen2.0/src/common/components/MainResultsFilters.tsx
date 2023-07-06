@@ -130,9 +130,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
       tissueArr.push(
         {
           //display name
-          summaryName: experiments[0].name,
-          //hover name
-          verboseName: experiments[0].biosample_summary,
+          summaryName: experiments[0].biosample_summary,
           //for filtering
           biosampleType: experiments[0].biosample_type,
           //for query
@@ -212,7 +210,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
       header: "Biosample",
       value: row => row.summaryName,
       render: row =>
-        <Tooltip title={row.verboseName + " - " + row.biosampleType} arrow>
+        <Tooltip title={"Biosample Type: " + row.biosampleType} arrow>
           <Typography variant="body2">
             {row.summaryName}
           </Typography>
@@ -225,7 +223,9 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
         return (
           <Tooltip title={assayHoverInfo(row.assays)} arrow>
             <svg height="50" width="50" viewBox="0 0 50 50">
-              <circle r="20" cx="25" cy="25" fill="#EEEEEE" />
+              <circle r="20.125" cx="25" cy="25" fill="#EEEEEE"
+                stroke="black"
+                strokeWidth="0.25" />
               <circle r="10" cx="25" cy="25" fill="transparent"
                 stroke={`${row.assays.dnase ? "#06DA93" : "transparent"}`}
                 strokeWidth="20"
