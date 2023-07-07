@@ -37,8 +37,7 @@ export default async function Search({
     Tissue: searchParams.Tissue ? checkTrueFalse(searchParams.Tissue): true,
     Organoid: searchParams.Organoid ? checkTrueFalse(searchParams.Organoid): true,
     InVitro: searchParams.InVitro ? checkTrueFalse(searchParams.InVitro): true,
-    //TODO NEED A NEW FUNCTION TO PARSE THIS INFORMATION INTO AN OBJECT
-    Biosample: searchParams.Biosample ? { selected: true, biosample: searchParams.Biosample } : { selected: false, biosample: null },
+    Biosample: searchParams.Biosample ? { selected: true, biosample: searchParams.Biosample, tissue: searchParams.BiosampleTissue, summaryName: searchParams.BiosampleSummary } : { selected: false, biosample: null, tissue: null, summaryName: null },
     // Chromatin Filters
     // "[...]_s" = start, "[...]_e" = end. Used to filter results
     //Maybe make these properly cased to make URL a bit more readable

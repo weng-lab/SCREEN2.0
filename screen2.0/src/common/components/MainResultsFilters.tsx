@@ -25,7 +25,8 @@ import Grid2 from "@mui/material/Unstable_Grid2"
 import Link from "next/link"
 
 import { RangeSlider, DataTable } from "@weng-lab/psychscreen-ui-components"
-import { useState } from "react"
+import { useState, useMemo } from "react"
+import { useRouter } from "next/navigation"
 
 //Need to go back and define the types in mainQueryParams object
 export default function MainResultsFilters(props: { mainQueryParams: any, byCellType: any }) {
@@ -39,8 +40,8 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
   const [Organoid, setOrganoid] = useState<boolean>(props.mainQueryParams.Organoid)
   const [InVitro, setInVitro] = useState<boolean>(props.mainQueryParams.InVitro)
   //Selected Biosample
-  //{selected: boolean, biosample: string}
-  const [Biosample, setBiosample] = useState<{selected: boolean, biosample: string | null}>(props.mainQueryParams.Biosample)
+  //Todo page and url
+  const [Biosample, setBiosample] = useState<{selected: boolean, biosample: string | null, tissue: string | null, summaryName: string | null}>(props.mainQueryParams.Biosample)
   const [BiosampleHighlight, setBiosampleHighlight] = useState<{} | null>(null)
   const [SearchString, setSearchString] = useState<string>("")
 
@@ -64,27 +65,30 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
   const [PLS, setPLS] = useState<boolean>(props.mainQueryParams.PLS)
   const [TF, setTF] = useState<boolean>(props.mainQueryParams.TF)
 
+  const router = useRouter()
+
   //IMPORTANT: This will wipe the current cCRE when Nishi puts it in. Need to talk to Nishi about deciding when/how to display the cCRE details
-  function constructURL() {
+  /**
+   * 
+   * @param newBiosample optional, use if setting Biosample State and then immediately triggering router before re-render when the new state is accessible
+   * @returns A URL configured with filter information
+   */
+  function constructURL(newBiosample?: {selected: boolean, biosample: string, tissue: string, summaryName: string}) {
+    //Assembly, Chromosome, Start, End
+    const urlBasics = `search?assembly=${props.mainQueryParams.assembly}&chromosome=${props.mainQueryParams.chromosome}&start=${props.mainQueryParams.start}&end=${props.mainQueryParams.end}`
+
+    //Can probably get biosample down to one string, and extract other info when parsing byCellType
+    const biosampleFilters = `&Tissue=${outputT_or_F(Tissue)}&PrimaryCell=${outputT_or_F(PrimaryCell)}&InVitro=${outputT_or_F(InVitro)}&Organoid=${outputT_or_F(Organoid)}&CellLine=${outputT_or_F(CellLine)}${Biosample.selected || (newBiosample && newBiosample.selected) ? ("&Biosample=" + (newBiosample ? newBiosample.biosample : Biosample.biosample) + "&BiosampleTissue=" + (newBiosample ? newBiosample.tissue : Biosample.tissue) + "&BiosampleSummary=" + (newBiosample ? newBiosample.summaryName : Biosample.summaryName)) : ""}`
+
+    const chromatinFilters = `&dnase_s=${DNaseStart}&dnase_e=${DNaseEnd}&h3k4me3_s=${H3K4me3Start}&h3k4me3_e=${H3K4me3End}&h3k27ac_s=${H3K27acStart}&h3k27ac_e=${H3K27acEnd}&ctcf_s=${CTCFStart}&ctcf_e=${CTCFEnd}`
+
+    const classificationFilters = `&CA=${outputT_or_F(CA)}&CA_CTCF=${outputT_or_F(CA_CTCF)}&CA_H3K4me3=${outputT_or_F(CA_H3K4me3)}&CA_TF=${outputT_or_F(CA_TF)}&dELS=${outputT_or_F(dELS)}&pELS=${outputT_or_F(pELS)}&PLS=${outputT_or_F(PLS)}&TF=${outputT_or_F(TF)}`
+
     const url = `${urlBasics}${biosampleFilters}${chromatinFilters}${classificationFilters}`
     return url
   }
 
-  //Assembly, Chromosome, Start, End
-  const urlBasics =
-    `search?assembly=${props.mainQueryParams.assembly}&chromosome=${props.mainQueryParams.chromosome}&start=${props.mainQueryParams.start}&end=${props.mainQueryParams.end}`
-
-  const biosampleFilters =
-    `&Tissue=${outputT_or_F(Tissue)}&PrimaryCell=${outputT_or_F(PrimaryCell)}&InVitro=${outputT_or_F(InVitro)}&Organoid=${outputT_or_F(Organoid)}&CellLine=${outputT_or_F(CellLine)}${Biosample.selected ? ("&Biosample=" + Biosample.biosample) : ""}`
-
-
-  const chromatinFilters =
-    `&dnase_s=${DNaseStart}&dnase_e=${DNaseEnd}&h3k4me3_s=${H3K4me3Start}&h3k4me3_e=${H3K4me3End}&h3k27ac_s=${H3K27acStart}&h3k27ac_e=${H3K27acEnd}&ctcf_s=${CTCFStart}&ctcf_e=${CTCFEnd}`
-
-
-  const classificationFilters =
-    `&CA=${outputT_or_F(CA)}&CA_CTCF=${outputT_or_F(CA_CTCF)}&CA_H3K4me3=${outputT_or_F(CA_H3K4me3)}&CA_TF=${outputT_or_F(CA_TF)}&dELS=${outputT_or_F(dELS)}&pELS=${outputT_or_F(pELS)}&PLS=${outputT_or_F(PLS)}&TF=${outputT_or_F(TF)}`
-
+  
 
   function outputT_or_F(input: boolean) {
     if (input === true) { return 't' }
@@ -105,8 +109,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
   }
 
   /**
-   * Is defining properties of an object much slower than defining an Array element? May need to switch
-   * This should probably be put into a server-rendered component
+   * 
    * @param byCellType JSON of byCellType
    * @returns an object of sorted biosample types, grouped by tissue type
    */
@@ -137,12 +140,13 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
           queryValue: experiments[0].value,
           //for filling in available assay wheels
           //THIS DATA IS MISSING ATAC DATA! ATAC will always be false
-          assays: availableAssays(experiments)
+          assays: availableAssays(experiments),
+          //for displaying tissue category when selected
+          biosampleTissue: experiments[0].tissue
         }
       )
       Object.defineProperty(biosamples, experiments[0].tissue, { value: tissueArr, enumerable: true, writable: true })
     })
-    console.log(Object.entries(biosamples).sort())
     return biosamples
   }
 
@@ -192,8 +196,6 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
         else return false
       })]
     )
-    // console.log("filtered:")
-    // console.log(filteredBiosamples)
     return filteredBiosamples
   }
 
@@ -202,10 +204,9 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
    * @returns MUI Accordion components populated with a table of each tissue's biosamples
    */
   function generateBiosampleTables() {
+    console.log("Table Generation Called")
     const biosamples = parseByCellType(props.byCellType)
-    // console.log(biosamples)
     const filteredBiosamples = filterBiosamples(biosamples)
-    // console.log(filteredBiosamples)
     const cols = [{
       header: "Biosample",
       value: row => row.summaryName,
@@ -255,6 +256,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
     return (
       filteredBiosamples.sort().map((tissue: [string, {}[]], i) => {
         // Is user enters a search, check to see if the tissue name matches
+        console.log(tissue[1])
         if (tissue[0].includes(SearchString)) {
           return (
             <Accordion key={tissue[0]}>
@@ -265,16 +267,21 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
                     transform: 'rotate(90deg)',
                   }
                 }}>
-                <Typography>{tissue[0]}</Typography>
+                <Typography>{tissue[0][0].toUpperCase() + tissue[0].slice(1)}</Typography>
               </AccordionSummary>
-              <AccordionDetails sx={{ display: 'flex' }}>
+              <AccordionDetails>
                 <DataTable
                   columns={cols}
                   rows={tissue[1]}
                   dense
                   searchable
                   highlighted={BiosampleHighlight}
-                  onRowClick={(row, i) => { setBiosample({ selected: true, biosample: row.queryValue }); setBiosampleHighlight(row) }}
+                  onRowClick={(row, i) => {
+                    setBiosample({ selected: true, biosample: row.queryValue, tissue: row.biosampleTissue, summaryName: row.summaryName });
+                    setBiosampleHighlight(row);
+                    //Push to router with new biosample to avoid accessing stale Biosample value
+                    router.push(constructURL({ selected: true, biosample: row.queryValue, tissue: row.biosampleTissue, summaryName: row.summaryName }))
+                  }}
                 />
               </AccordionDetails>
             </Accordion>
@@ -283,6 +290,10 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
       })
     )
   }
+
+  //Only trigger re-render of the tables if the relevant state variables change. Prevents sluggish sliders in other filters
+  const biosampleTables = useMemo(() => generateBiosampleTables(), [CellLine, PrimaryCell, Tissue, Organoid, InVitro, Biosample, BiosampleHighlight, SearchString])
+
 
   //Need to make this more responsive
   return (
@@ -305,13 +316,33 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
               </Typography>
             </Grid2>
             <Grid2 xs={6}>
-              <TextField size="small" label="Filter Tissues" onChange={(event) => setSearchString(event.target.value)}/>
+              <TextField size="small" label="Filter Tissues" onChange={(event) => setSearchString(event.target.value)} />
             </Grid2>
+              {Biosample.selected &&
+                <Grid2 container spacing={2}>
+                  <Grid2 xs={12}>
+                    <Paper elevation={0}>
+                      <Typography>Selected Biosample:</Typography>
+                      <Typography>{Biosample.tissue[0].toUpperCase() + Biosample.tissue.slice(1) + " - " + Biosample.summaryName}</Typography>
+                    </Paper>
+                  </Grid2>
+                  <Grid2 xs={12}>
+                    <Button
+                      variant="outlined"
+                      fullWidth
+                      onClick={() => { 
+                        setBiosample({ selected: false, biosample: null, tissue: null, summaryName: null }); 
+                        setBiosampleHighlight(null);
+                        router.push(constructURL({ selected: false, biosample: null, tissue: null, summaryName: null }))
+                      }}
+                    >
+                      Clear
+                    </Button>
+                  </Grid2>                
+                </Grid2>
+              }
             <Grid2 xs={12} maxHeight={500} overflow={'auto'}>
-              {generateBiosampleTables()}
-            </Grid2>
-            <Grid2 xs={12}>
-              {Biosample.selected && <Button variant="outlined" onClick={() => {setBiosample({selected: false, biosample: null}); setBiosampleHighlight(null)}}>Clear Biosample Selection</Button>}
+              {biosampleTables}
             </Grid2>
             <Grid2 xs={12}>
               <Typography>
@@ -329,7 +360,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
         </AccordionDetails>
       </Accordion>
       {/* Chromatin Signals */}
-      <Accordion square defaultExpanded disableGutters>
+      <Accordion square disableGutters>
         <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel2a-content" id="panel2a-header">
           <Typography>Chromatin Signals (Z-Scores)</Typography>
         </AccordionSummary>
@@ -404,7 +435,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
         </AccordionDetails>
       </Accordion>
       {/* Classification */}
-      <Accordion square disableGutters defaultExpanded>
+      <Accordion square disableGutters>
         <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel3a-content" id="panel3a-header">
           <Typography>Classification</Typography>
         </AccordionSummary>
