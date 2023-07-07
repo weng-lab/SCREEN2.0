@@ -1,7 +1,8 @@
-import React, { ReactElement } from "react"
+import React, { ReactElement, useState } from "react"
 import { ApolloClient, gql, InMemoryCache, useQuery } from "@apollo/client"
 import { Link, Alert, AlertTitle, CircularProgress } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import { Snackbar, Stack } from "@mui/material"
 
 /**
  * Uses fetch to make a query call (server side)
@@ -82,14 +83,25 @@ export function LoadingMessage() {
  * @returns error message
  */
 export function ErrorMessage(error: Error) {
+  let open: boolean = true
   console.log("Error!")
   console.log(error.message)
   // throw error
+
+  const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === "clickaway") {
+      return
+    }
+    open = false
+  }
+
   return (
-    <Alert severity="error">
-      <AlertTitle>Error</AlertTitle>
-      There was an error loading this page, try reloading. — <strong>{error.message}</strong>
-    </Alert>
+    <Snackbar open={true} autoHideDuration={60} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
+      <Alert severity="error">
+        <AlertTitle>Error</AlertTitle>
+        There was an error loading. — <strong>{error.message}</strong>
+      </Alert>
+    </Snackbar>
   )
 }
 
@@ -211,4 +223,3 @@ export const ctgroup = (group: string) => {
     </span>
   )
 }
-
