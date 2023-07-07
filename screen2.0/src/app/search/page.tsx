@@ -67,7 +67,7 @@ export default async function Search({
     else { return false }
   }
 
-  //How do I implement error handling here?
+  //TODO: Error Handling Here. Prevent broken query from erroring out whole application
   const mainQueryResult = await MainQuery(mainQueryParams.assembly, mainQueryParams.chromosome, mainQueryParams.start, mainQueryParams.end, mainQueryParams.Biosample.biosample)
 
   const globals = await getGlobals()

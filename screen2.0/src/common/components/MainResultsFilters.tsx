@@ -78,7 +78,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
     const urlBasics = `search?assembly=${props.mainQueryParams.assembly}&chromosome=${props.mainQueryParams.chromosome}&start=${props.mainQueryParams.start}&end=${props.mainQueryParams.end}`
 
     //Can probably get biosample down to one string, and extract other info when parsing byCellType
-    const biosampleFilters = `&Tissue=${outputT_or_F(Tissue)}&PrimaryCell=${outputT_or_F(PrimaryCell)}&InVitro=${outputT_or_F(InVitro)}&Organoid=${outputT_or_F(Organoid)}&CellLine=${outputT_or_F(CellLine)}${Biosample.selected || (newBiosample && newBiosample.selected) ? ("&Biosample=" + (newBiosample ? newBiosample.biosample : Biosample.biosample) + "&BiosampleTissue=" + (newBiosample ? newBiosample.tissue : Biosample.tissue) + "&BiosampleSummary=" + (newBiosample ? newBiosample.summaryName : Biosample.summaryName)) : ""}`
+    const biosampleFilters = `&Tissue=${outputT_or_F(Tissue)}&PrimaryCell=${outputT_or_F(PrimaryCell)}&InVitro=${outputT_or_F(InVitro)}&Organoid=${outputT_or_F(Organoid)}&CellLine=${outputT_or_F(CellLine)}${(Biosample.selected && !newBiosample) || (newBiosample && newBiosample.selected) ? ("&Biosample=" + (newBiosample ? newBiosample.biosample : Biosample.biosample) + "&BiosampleTissue=" + (newBiosample ? newBiosample.tissue : Biosample.tissue) + "&BiosampleSummary=" + (newBiosample ? newBiosample.summaryName : Biosample.summaryName)) : ""}`
 
     const chromatinFilters = `&dnase_s=${DNaseStart}&dnase_e=${DNaseEnd}&h3k4me3_s=${H3K4me3Start}&h3k4me3_e=${H3K4me3End}&h3k27ac_s=${H3K27acStart}&h3k27ac_e=${H3K27acEnd}&ctcf_s=${CTCFStart}&ctcf_e=${CTCFEnd}`
 
@@ -344,7 +344,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
             <Grid2 xs={12} maxHeight={500} overflow={'auto'}>
               {biosampleTables}
             </Grid2>
-            <Grid2 xs={12}>
+            <Grid2 xs={12} sx={{mt: 1}}>
               <Typography>
                 Biosample Type
               </Typography>
