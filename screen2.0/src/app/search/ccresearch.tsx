@@ -12,9 +12,7 @@ export const StyledTab = styled(Tab)(() => ({
 }))
 export const CcreSearch = ({ mainQueryParams, ccrerows, globals, assembly }) => {
   const searchParams: any = useSearchParams()!
-  //Variable name "value" makes little sense here, can we rename to something meaningful
-  //"ShowDetail" or something
-  const [value, setValue] = React.useState(0)
+  const [value, setValue] = React.useState(searchParams.get("accession") ? 1: 0)
   const handleChange = (_, newValue: number) => {
     setValue(newValue)
   }

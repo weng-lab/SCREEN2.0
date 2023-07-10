@@ -11,6 +11,7 @@ import Image from "next/image"
 import HeaderSearch from "./HeaderSearch"
 
 import nextConfig from "../../../next.config"
+import screenIcon from "../../../public/screenIcon.png"
 
 // CLICKING ON LINKS ONCE THE POPUP IS OPEN IS BROKEN!!!
 
@@ -96,7 +97,7 @@ function ResponsiveAppBar() {
         <Toolbar disableGutters sx={{ justifyContent: "space-between" }}>
           {/* Display Icon on left when >=900px */}
           <Link href={"/"}>
-            <Image src={"/screenIcon.png"} alt="SCREEN Icon" height={40} width={40} />
+            <Image src={screenIcon} alt="SCREEN Icon" height={40} width={40} />
           </Link>
 
           {/* Display SCREEN after logo on left when >=900px*/}
