@@ -1,5 +1,4 @@
 // Search Results Page
-// 'use client'
 import { CcreSearch } from "./ccresearch"
 import MainQuery, { getGlobals } from "../../common/lib/queries"
 import { ApolloQueryResult } from "@apollo/client"

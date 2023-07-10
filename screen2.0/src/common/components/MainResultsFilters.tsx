@@ -255,8 +255,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
 
     return (
       filteredBiosamples.sort().map((tissue: [string, {}[]], i) => {
-        // Is user enters a search, check to see if the tissue name matches
-        console.log(tissue[1])
+        // If user enters a search, check to see if the tissue name matches
         if (tissue[0].includes(SearchString)) {
           return (
             <Accordion key={tissue[0]}>
