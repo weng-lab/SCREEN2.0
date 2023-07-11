@@ -2,7 +2,7 @@
 import React, { useState, useEffect, cache, Fragment, useCallback } from "react"
 
 import { fetchServer, ErrorMessage, LoadingMessage } from "../../../common/lib/utility"
-import { GENE_AUTOCOMPLETE_QUERY, SetRange_x, SetRange_y, Point, BarPoint, GenePoint, initialChart } from "./utils"
+import { GENE_AUTOCOMPLETE_QUERY, SetRange_x, SetRange_y, Point, BarPoint, GenePoint, initialChart, initialGeneList } from "./utils"
 
 import { gene, cellTypeInfoArr, QueryResponse } from "./types"
 import { geneRed, geneBlue, promoterRed, enhancerYellow } from "../../../common/lib/colors"
@@ -43,7 +43,7 @@ export default function DifferentialGeneExpression() {
   const [genes, setGenes] = useState<gene[]>([])
   const [geneIDs, setGeneIDs] = useState<{ label: string; id: number }[]>([])
   const [geneID, setGeneID] = useState<string>("Gm25142")
-  const [gene, setGene] = useState<gene>()
+  const [gene, setGene] = useState<gene>(initialGeneList)
   const [geneDesc, setgeneDesc] = useState<{ name: string; desc: string }[]>()
   const [geneList, setGeneList] = useState<gene[]>([])
 
@@ -95,7 +95,7 @@ export default function DifferentialGeneExpression() {
       method: "POST",
       body: JSON.stringify({
         assembly: "mm10",
-        gene: geneID,
+        gene: gene.name,
         uuid: "62ba8f8c-8335-4404-8c48-b569cf401664",
         ct1: ct1,
         ct2: ct2,
