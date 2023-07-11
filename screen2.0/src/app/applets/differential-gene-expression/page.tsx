@@ -227,11 +227,12 @@ export default function DifferentialGeneExpression() {
     <main>
       <Grid2 container spacing={3} sx={{ mt: "2rem" }}>
         <Grid2 xs={3}>
-          <Box ml={0}>
-            {loading
-              ? LoadingMessage()
-              : cellTypes &&
-                cellTypes["cellTypeInfoArr"] && (
+        {loading
+          ? LoadingMessage()
+          : cellTypes &&
+            cellTypes["cellTypeInfoArr"] && (
+              <Box>
+                <Box ml={0}>
                   <DataTable
                     tableTitle="Cell 1"
                     rows={cellTypes["cellTypeInfoArr"]}
@@ -245,13 +246,8 @@ export default function DifferentialGeneExpression() {
                     sortDescending={true}
                     searchable={true}
                   />
-                )}
-          </Box>
-          <Box ml={0} mt={1}>
-            {loading
-              ? LoadingMessage()
-              : cellTypes &&
-                cellTypes["cellTypeInfoArr"] && (
+                </Box>
+                <Box ml={0} mt={1}>
                   <DataTable
                     tableTitle="Cell 2"
                     rows={cellTypes["cellTypeInfoArr"]}
@@ -265,8 +261,9 @@ export default function DifferentialGeneExpression() {
                     sortDescending={true}
                     searchable={true}
                   />
-                )}
-          </Box>
+                  </Box>
+                </Box>
+          )}
         </Grid2>
         <Grid2 xs={9}>
           <Box mb={1}>
@@ -285,12 +282,12 @@ export default function DifferentialGeneExpression() {
                       <Grid2 xs={3}>
                         <Box sx={{"& > :not(style)": { m: 1.5, width: "20ch" },}}>
                           <Grid2 container spacing={3} sx={{ mt: "2rem" }}>
-                            <Grid2 xs={4} md={4}>
+                            <Grid2 xs={4}>
                               <Typography variant="h6" display="inline" lineHeight={2.5}>
                                 Gene:
                               </Typography>
                             </Grid2>
-                            <Grid2 xs={0}>
+                            <Grid2 xs={8}>
                               <Autocomplete
                                 disablePortal
                                 freeSolo={true}
@@ -353,33 +350,31 @@ export default function DifferentialGeneExpression() {
                                   )
                                 }}
                               />
-                              <Grid2 xs={0}>
-                                <Button
-                                  variant="text"
-                                  onClick={() => {
-                                    for (let g of geneList) {
-                                      if (g.name === geneID && g.end - g.start > 0) {
-                                        setdr1(g.start)
-                                        setdr2(g.end)
-                                        setGene(g)
-                                        setRange({
-                                          x: {
-                                            start: g.start,
-                                            end: g.end,
-                                          },
-                                          y: {
-                                            start: range.y.start,
-                                            end: range.y.end,
-                                          },
-                                        })
-                                        break
-                                      }
+                              <Button
+                                variant="text"
+                                onClick={() => {
+                                  for (let g of geneList) {
+                                    if (g.name === geneID && g.end - g.start > 0) {
+                                      setdr1(g.start)
+                                      setdr2(g.end)
+                                      setGene(g)
+                                      setRange({
+                                        x: {
+                                          start: g.start,
+                                          end: g.end,
+                                        },
+                                        y: {
+                                          start: range.y.start,
+                                          end: range.y.end,
+                                        },
+                                      })
+                                      break
                                     }
-                                  }}
-                                >
-                                  Search
-                                </Button>
-                              </Grid2>
+                                  }
+                                }}
+                              >
+                                Search
+                              </Button>
                             </Grid2>
                           </Grid2>
                         </Box>
