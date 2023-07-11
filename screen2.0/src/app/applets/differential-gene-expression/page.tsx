@@ -23,20 +23,14 @@ type ccre = {
 }
 
 type gene = {
-  chrom: string,
-  start: number,
-  end: number,
-  id: string,
+  chrom: string
+  start: number
+  end: number
+  id: string
   name: string
 }
 
-type QueryResponse = [
-  number,
-  string[],
-  any,
-  [string, string, string, string, string, string][],
-  string[]
-];
+type QueryResponse = [number, string[], any, [string, string, string, string, string, string][], string[]]
 
 const geneRed = "#FF0000"
 const geneBlue = "#1E90FF"
@@ -79,16 +73,16 @@ const SetRange_x = ({ dr1, dr2, range, dimensions }) => {
     if ((label / parseInt("1" + zeros)) % 2 === 0 || range_x.length < 7)
       return (
         <Fragment>
-          <text x={x - 30} y="490" style={{ fontSize: 12.5 }}>
+          <text x={x - 30} y={480} style={{ fontSize: 12.5 }}>
             {label.toLocaleString("en-US")}
           </text>
-          <line x1={x} x2={x} y1={450} y2={465} stroke="black"></line>
+          <line x1={x} x2={x} y1={450} y2={456} stroke="black"></line>
         </Fragment>
       )
     else
       return (
         <Fragment>
-          <line x1={x} x2={x} y1={450} y2={460} stroke="black"></line>
+          <line x1={x} x2={x} y1={450} y2={454} stroke="black"></line>
         </Fragment>
       )
   }
@@ -130,29 +124,32 @@ const SetRange_y = ({ ymin, ymax, range, dimensions, ct1, ct2 }) => {
     const t = linearTransform2D(range, dimensions)(p)
     let r: number = range_y[range_y.length]
     if (range_y[i + 1]) r = linearTransform2D(range, dimensions)({ x: range.x.start, y: range_y[i + 1] }).y
-    let cellTypeLabel: string[] = ["translate(15," + (t.y).toString() + ") rotate(-90)", "translate(15," + (t.y + 197).toString() + ") rotate(-90)"] 
+    let cellTypeLabel: string[] = [
+      "translate(25," + t.y.toString() + ") rotate(-90)",
+      "translate(25," + (t.y + 180).toString() + ") rotate(-90)",
+    ]
 
     if (y === 0.0)
       return (
         <Fragment>
-          <text x={50} y={t.y + 5} style={{ fontSize: 13 }}>
-            {y}
+          <text x={60} y={t.y + 5} style={{ fontSize: 13 }}>
+            {"0.0"}
           </text>
-          <line x1={90} x2={100} y1={t.y} y2={t.y} stroke="black"></line>
+          <line x1={94} x2={100} y1={t.y} y2={t.y} stroke="black"></line>
           <line x1={100} x2={900} y1={t.y} y2={t.y} stroke="black"></line>
-          <line x1={900} x2={910} y1={t.y} y2={t.y} stroke="#6B854C"></line>
-          <text x={925} y={t.y + 5} style={{ fontSize: 13 }}>
-            {y}
+          <line x1={900} x2={906} y1={t.y} y2={t.y} stroke="#549623"></line>
+          <text x={920} y={t.y + 5} style={{ fontSize: 13 }}>
+            {"0.0"}
           </text>
-          <line x1={15} x2={28} y1={t.y} y2={t.y} stroke="black"></line>
+          <line x1={27} x2={36} y1={t.y} y2={t.y} stroke="black"></line>
           <g transform={cellTypeLabel[1]}>
-            <text x={10} y={10} style={{ fontSize: 11 }}>
-            ◄{ct1.replace(/_/g," ")}
+            <text x={10} y={10} style={{ fontSize: 10 }}>
+              ◄{ct1.replace(/_/g, " ")}
             </text>
           </g>
           <g transform={cellTypeLabel[0]}>
-            <text x={10} y={10} style={{ fontSize: 11 }}>
-              {ct2.replace(/_/g," ")}►
+            <text x={10} y={10} style={{ fontSize: 10 }}>
+              {ct2.replace(/_/g, " ")}►
             </text>
           </g>
         </Fragment>
@@ -160,13 +157,13 @@ const SetRange_y = ({ ymin, ymax, range, dimensions, ct1, ct2 }) => {
     else
       return (
         <Fragment>
-          <text x={50} y={t.y + 5} style={{ fontSize: 13 }}>
-            {y}
+          <text x={60} y={t.y + 5} style={{ fontSize: 13, textAlign: "right" }}>
+            {y.toString().split(".").length > 1 ? y : y.toString() + ".0"}
           </text>
-            <line x1={90} x2={100} y1={t.y} y2={t.y} stroke="black"></line>
-            <line x1={900} x2={910} y1={t.y} y2={t.y} stroke="#6B854C"></line>
-          <text x={925} y={t.y + 5} style={{ fontSize: 13 }}>
-            {y}
+          <line x1={94} x2={100} y1={t.y} y2={t.y} stroke="black"></line>
+          <line x1={900} x2={906} y1={t.y} y2={t.y} stroke="#549623"></line>
+          <text x={920} y={t.y + 5} style={{ fontSize: 13, textAlign: "right" }}>
+            {y.toString().split(".").length > 1 ? y : y.toString() + ".0"}
           </text>
         </Fragment>
       )
@@ -195,7 +192,7 @@ const Point = ({ point, i, range, dimensions }) => {
 
   return (
     <Fragment>
-      <circle key={i} cx={t.x} cy={t.y} r="4" fill={color} >
+      <circle key={i} cx={t.x} cy={t.y} r="4" fill={color}>
         <title>{"coordinates: " + point.center.toLocaleString("en-US") + "\nz-score: " + point.value}</title>
       </circle>
     </Fragment>
@@ -229,19 +226,13 @@ const BarPoint = ({ point, i, range, dimensions }) => {
     p2 = linearTransform2D(range, dimensions)({ x: x2, y: point.fc })
   }
 
-  return <rect 
-            key={i} 
-            x={p1.x} 
-            y={p1.y} 
-            width={p2.x - p1.x} 
-            height={p2.y - p1.y} 
-            fill="#6B854C" 
-            fillOpacity={0.5}
-          >
-              <title>
-                {"fc: " + point.fc + "\nstart: " + point.start.toLocaleString("en-US") + "\nstop: " + point.stop.toLocaleString("en-US")}
-              </title>
-          </rect>
+  return (
+    <rect key={i} x={p1.x} y={p1.y} width={p2.x - p1.x} height={p2.y - p1.y} fill="#549623" fillOpacity={0.5}>
+      <title>
+        {"fc: " + point.fc + "\nstart: " + point.start.toLocaleString("en-US") + "\nstop: " + point.stop.toLocaleString("en-US")}
+      </title>
+    </rect>
+  )
 }
 
 /**
@@ -270,12 +261,16 @@ const GenePoint = ({ point, i, range, dimensions, toggleGenes }) => {
   let color: string = geneRed
   if (point.strand === "-") color = geneBlue
 
-  if (toggleGenes){
+  if (toggleGenes) {
     size = 12
   }
 
-  const GeneTooltip = ({point}) => {
-    return <title>{"gene: " + point.gene + "\nstart: " + point.start.toLocaleString("en-US") + "\nstop: " + point.stop.toLocaleString("en-US")}</title>
+  const GeneTooltip = ({ point }) => {
+    return (
+      <title>
+        {"gene: " + point.gene + "\nstart: " + point.start.toLocaleString("en-US") + "\nstop: " + point.stop.toLocaleString("en-US")}
+      </title>
+    )
   }
 
   return (
@@ -287,10 +282,17 @@ const GenePoint = ({ point, i, range, dimensions, toggleGenes }) => {
         <GeneTooltip point={point} />
         <a href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + point.gene}>{point.gene}</a>
       </text>
-      {
-      x1 === range.x.start ? <text x={p1.x - 15} y={(i + 4) * size + 5} style={{ fill: color }}>◄</text> 
-      : x2 === range.x.end ? <text x={p2.x - 3} y={(i + 4) * size + 5} style={{ fill: color }}>►</text> 
-      : <></>}
+      {x1 === range.x.start ? (
+        <text x={p1.x - 15} y={(i + 4) * size + 5} style={{ fill: color }}>
+          ◄
+        </text>
+      ) : x2 === range.x.end ? (
+        <text x={p2.x - 3} y={(i + 4) * size + 5} style={{ fill: color }}>
+          ►
+        </text>
+      ) : (
+        <></>
+      )}
     </Fragment>
   )
 }
@@ -323,35 +325,37 @@ query ($assembly: String!, $name_prefix: [String!], $limit: Int) {
       }
     }
   }  
- `;
+ `
 
 export default function DifferentialGeneExpression() {
   const [loading, setLoading] = useState<boolean>(true)
   const [loadingChart, setLoadingChart] = useState<boolean>(true)
   const [errorLoading, setError] = useState<boolean>(false)
   const [data, setData] = useState(initialChart)
-  const [option, setOption ] = useState<string>("range")
+  const [option, setOption] = useState<string>("range")
   const [options, setOptions] = useState<string[]>([])
 
   const [geneDesc, setgeneDesc] = useState<{ name: string; desc: string }[]>()
   const [cellTypes, setCellTypes] = useState(initialCellTypes)
   // const [geneList, setGeneList ] = useState<{name: string, id: string, coordinates: {start: number, chromosome: string, end: number}}[]>([{
   //   coordinates: {
-  //       start: 108107280, 
-  //       chromosome: 'chr3', 
+  //       start: 108107280,
+  //       chromosome: 'chr3',
   //       end: 108146146
   //     },
   //   id: "ENSMUSG00000000001.4",
   //   name: "Gnai3"
   // }])
 
-  const [geneList, setGeneList ] = useState<{chrom: string, start: number, end: number, id: string, name: string}[]>([{
-    chrom: 'chr3', 
-    start: 108107280, 
-    end: 108146146,
-    id: "ENSMUSG00000000001.4",
-    name: "Gnai3"
-  }])
+  const [geneList, setGeneList] = useState<{ chrom: string; start: number; end: number; id: string; name: string }[]>([
+    {
+      chrom: "chr3",
+      start: 108107280,
+      end: 108146146,
+      id: "ENSMUSG00000000001.4",
+      name: "Gnai3",
+    },
+  ])
 
   const [toggleGenes, setToggleGenes] = useState<boolean>(false)
   const [toggleFC, setToggleFC] = useState<boolean>(true)
@@ -361,10 +365,10 @@ export default function DifferentialGeneExpression() {
   const [ct1, setct1] = useState<string>("C57BL/6_limb_embryo_11.5_days")
   const [ct2, setct2] = useState<string>("C57BL/6_limb_embryo_15.5_days")
 
-  const [ genes, setGenes ] = useState<gene[]>([])
-  const [ geneIDs, setGeneIDs ] = useState<{label: string, id: number}[]>([])
-  const [ geneID, setGeneID ] = useState<string>("Gm25142")
-  const [ gene, setGene ] = useState<gene>()
+  const [genes, setGenes] = useState<gene[]>([])
+  const [geneIDs, setGeneIDs] = useState<{ label: string; id: number }[]>([])
+  const [geneID, setGeneID] = useState<string>("Gm25142")
+  const [gene, setGene] = useState<gene>()
 
   const [dr1, setdr1] = useState<number>(0)
   const [dr2, setdr2] = useState<number>(0)
@@ -470,38 +474,28 @@ export default function DifferentialGeneExpression() {
     const fetchData = async () => {
       let f = await Promise.all(
         options.map((gene) =>
-          fetch(
-            "https://clinicaltables.nlm.nih.gov/api/ncbi_genes/v3/search?authenticity_token=&terms=" +
-              gene.toUpperCase()
-          )
+          fetch("https://clinicaltables.nlm.nih.gov/api/ncbi_genes/v3/search?authenticity_token=&terms=" + gene.toUpperCase())
             .then((x) => x && x.json())
             .then((x) => {
-              const matches =
-                (x as QueryResponse)[3] &&
-                (x as QueryResponse)[3].filter(
-                  (x) => x[3] === gene.toUpperCase()
-                );
+              const matches = (x as QueryResponse)[3] && (x as QueryResponse)[3].filter((x) => x[3] === gene.toUpperCase())
               return {
-                desc:
-                  matches && matches.length >= 1
-                    ? matches[0][4]
-                    : "(no description available)",
+                desc: matches && matches.length >= 1 ? matches[0][4] : "(no description available)",
                 name: gene,
-              };
+              }
             })
             .catch(() => {
-              return { desc: "(no description available)", name: gene };
+              return { desc: "(no description available)", name: gene }
             })
         )
-      );
-      setgeneDesc(f);
-    };
+      )
+      setgeneDesc(f)
+    }
 
-    options && fetchData();
+    options && fetchData()
   }, [options])
 
   const onSearchChange = async (value: string) => {
-    setOptions([]);
+    setOptions([])
     const response = await fetch("https://ga.staging.wenglab.org/graphql", {
       method: "POST",
       body: JSON.stringify({
@@ -513,10 +507,10 @@ export default function DifferentialGeneExpression() {
         },
       }),
       headers: { "Content-Type": "application/json" },
-    });
-    const genesSuggestion = (await response.json()).data?.gene;
+    })
+    const genesSuggestion = (await response.json()).data?.gene
     if (genesSuggestion && genesSuggestion.length > 0) {
-      const r = genesSuggestion.map((g) => g.name);
+      const r = genesSuggestion.map((g) => g.name)
       const g = genesSuggestion.map((g) => {
         return {
           chrom: g.coordinates.chromosome,
@@ -524,13 +518,13 @@ export default function DifferentialGeneExpression() {
           end: g.coordinates.end,
           id: g.id,
           name: g.name,
-        };
-      });
-      setOptions(r);
-      setGeneList(g);
+        }
+      })
+      setOptions(r)
+      setGeneList(g)
     } else if (genesSuggestion && genesSuggestion.length === 0) {
-      setOptions([]);
-      setGeneList([]);
+      setOptions([])
+      setGeneList([])
     }
   }
 
@@ -543,20 +537,20 @@ export default function DifferentialGeneExpression() {
 
   // create list of gene labels
   const geneLabels = (g: gene[]) => {
-    let ids: {label: string, id: number}[] = []
+    let ids: { label: string; id: number }[] = []
     // console.log(g)
-    for (let i in g){
-      ids.push({label: g[i].gene, id: parseInt(i)})
+    for (let i in g) {
+      ids.push({ label: g[i].gene, id: parseInt(i) })
     }
     return ids
   }
 
   // create list of gene labels (all genes)
   const geneLabels2 = (g: any) => {
-    let ids: {label: string, id: number}[] = []
+    let ids: { label: string; id: number }[] = []
     // console.log(g)
-    for (let i in g){
-      ids.push({label: g[i].name, id: parseInt(i)})
+    for (let i in g) {
+      ids.push({ label: g[i].name, id: parseInt(i) })
     }
     return ids
   }
@@ -617,252 +611,264 @@ export default function DifferentialGeneExpression() {
               : data &&
                 data.gene &&
                 data[data.gene] &&
-                data[data.gene].xdomain && geneList && data[data.gene].nearbyDEs.genes && (
+                data[data.gene].xdomain &&
+                geneList &&
+                data[data.gene].nearbyDEs.genes && (
                   <Fragment>
                     <Grid2 container spacing={3} sx={{ mt: "2rem" }}>
-                    <Grid2 xs={3}>
-                    <Box
-                      component="form"
-                      sx={{
-                        "& > :not(style)": { m: 1.5, width: "25ch" },
-                        
-                      }}
-                    > 
-                      <Grid2 container spacing={3} sx={{ mt: "2rem" }}>
-                      <Grid2 xs={4}>
-                        <Typography variant="h6" display="inline" lineHeight={2.5}>Gene:</Typography>
-                      </Grid2>
-                      <Grid2 xs={0}>
-                      <Autocomplete
-                        disablePortal
-                        freeSolo={true}
-                        id="gene-ids"
-                        // options={geneLabels2(geneList)}
-                        // options={geneLabels(data[data.gene].nearbyDEs.genes)}
-                        noOptionsText="e.g. Gm25142"
-                        options={options}
-                        sx={{ width: 200 }}
-                        ListboxProps={{
-                          style: {
-                            maxHeight: "180px",
-                          },
-                        }}
-                        onChange={(event: React.ChangeEvent<HTMLInputElement>, value: string) => {
-                          // if (value != "") 
-                          //   debounceFn(value)
-                          setGeneID(value)
-                        }}
-                        // value={geneID}
-                        // inputValue={geneID}
-                        onInputChange={(event: React.ChangeEvent<HTMLInputElement>, value: string) => {
-                          if (value != "") 
-                            debounceFn(value)
-                          setGeneID(value)
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key == "Enter"){
-                            for (let g of geneList){
-                              if (g.name === geneID && g.end - g.start > 0) {
-                                setdr1(g.start)
-                                setdr2(g.end)
-                                setGene(g)
-                                setRange({
-                                  x: {
-                                    start: g.start,
-                                    end: g.end,
+                      <Grid2 xs={3}>
+                        <Box
+                          sx={{
+                            "& > :not(style)": { m: 1.5, width: "20ch" },
+                          }}
+                        >
+                          <Grid2 container spacing={3} sx={{ mt: "2rem" }}>
+                            <Grid2 xs={4}>
+                              <Typography variant="h6" display="inline" lineHeight={2.5}>
+                                Gene:
+                              </Typography>
+                            </Grid2>
+                            <Grid2 xs={0}>
+                              <Autocomplete
+                                disablePortal
+                                freeSolo={true}
+                                id="gene-ids"
+                                // options={geneLabels2(geneList)}
+                                // options={geneLabels(data[data.gene].nearbyDEs.genes)}
+                                noOptionsText="e.g. Gm25142"
+                                options={options}
+                                sx={{ width: 200 }}
+                                ListboxProps={{
+                                  style: {
+                                    maxHeight: "180px",
                                   },
-                                  y: {
-                                    start: range.y.start,
-                                    end: range.y.end,
-                                  },
-                                })
-                                break
-                              }
-                            }
-                          }
-                        }}
-                        renderInput={ (props) => <TextField {...props} label={geneID}/> }
-                        renderOption={(props, opt) => {
-                          return (
-                            <li {...props} key={props.id}>
-                              <Grid2 container alignItems="center">
-                                <Grid2
-                                  sx={{ width: "calc(100% - 44px)", wordWrap: "break-word" }}
+                                }}
+                                onChange={(event: React.ChangeEvent<HTMLInputElement>, value: string) => {
+                                  // if (value != "")
+                                  //   debounceFn(value)
+                                  setGeneID(value)
+                                }}
+                                // value={geneID}
+                                // inputValue={geneID}
+                                onInputChange={(event: React.ChangeEvent<HTMLInputElement>, value: string) => {
+                                  if (value != "") debounceFn(value)
+                                  setGeneID(value)
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key == "Enter") {
+                                    for (let g of geneList) {
+                                      if (g.name === geneID && g.end - g.start > 0) {
+                                        setdr1(g.start)
+                                        setdr2(g.end)
+                                        setGene(g)
+                                        setRange({
+                                          x: {
+                                            start: g.start,
+                                            end: g.end,
+                                          },
+                                          y: {
+                                            start: range.y.start,
+                                            end: range.y.end,
+                                          },
+                                        })
+                                        break
+                                      }
+                                    }
+                                  }
+                                }}
+                                renderInput={(props) => <TextField {...props} label={geneID} />}
+                                renderOption={(props, opt) => {
+                                  return (
+                                    <li {...props} key={props.id}>
+                                      <Grid2 container alignItems="center">
+                                        <Grid2 sx={{ width: "calc(100% - 44px)" }}>
+                                          <Box component="span" sx={{ fontWeight: "regular" }}>
+                                            {opt}
+                                          </Box>
+                                          {geneDesc && geneDesc.find((g) => g.name === opt) && (
+                                            <Typography variant="body2" color="text.secondary">
+                                              {geneDesc.find((g) => g.name === opt)?.desc}
+                                            </Typography>
+                                          )}
+                                        </Grid2>
+                                      </Grid2>
+                                    </li>
+                                  )
+                                }}
+                              />
+                              <Grid2 xs={0}>
+                                <Button
+                                  variant="text"
+                                  onClick={() => {
+                                    for (let g of geneList) {
+                                      if (g.name === geneID && g.end - g.start > 0) {
+                                        setdr1(g.start)
+                                        setdr2(g.end)
+                                        setGene(g)
+                                        setRange({
+                                          x: {
+                                            start: g.start,
+                                            end: g.end,
+                                          },
+                                          y: {
+                                            start: range.y.start,
+                                            end: range.y.end,
+                                          },
+                                        })
+                                        break
+                                      }
+                                    }
+                                  }}
                                 >
-                                  <Box component="span" sx={{ fontWeight: "regular" }}>
-                                    {opt}
-                                  </Box>
-                                  {geneDesc && geneDesc.find((g) => g.name === opt) && (
-                                    <Typography variant="body2" color="text.secondary">
-                                      {geneDesc.find((g) => g.name === opt)?.desc}
-                                    </Typography>
-                                  )}
-                                </Grid2>
+                                  Search
+                                </Button>
                               </Grid2>
-                            </li>
-                          );
-                        }}
-                    />
-                    <Grid2 xs={0}>
-                      <Button 
-                        variant="text"
-                        onClick={() => {
-                          for (let g of geneList){
-                            if (g.name === geneID && g.end - g.start > 0) {
-                              setdr1(g.start)
-                              setdr2(g.end)
-                              setGene(g)
-                              setRange({
-                                x: {
-                                  start: g.start,
-                                  end: g.end,
-                                },
-                                y: {
-                                  start: range.y.start,
-                                  end: range.y.end,
-                                },
-                              })
-                              break
-                            }
-                          }
-                        }}
-                      >Search</Button>
-                    </Grid2>
-                    </Grid2>
-                    </Grid2>
-                    </Box>
-                    </Grid2>
-                    <Grid2 xs={7}>
-                    <Box
-                      component="form"
-                      sx={{
-                        "& > :not(style)": { m: 2.5, width: "20ch" },
-                        
-                      }}
-                    >
-                      <Typography variant="h6" display="inline" lineHeight={4.75}>Domain Range:</Typography>
-                      <TextField
-                        id="outlined-basic"
-                        label={dr1.toLocaleString("en-US")}
-                        variant="outlined"
-                        onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                          setdr1(parseInt(event.target.value))
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            if (range.x.end - dr1 > 100000) {
-                              setRange({
-                                x: {
-                                  start: dr1,
-                                  end: range.x.end,
-                                },
-                                y: {
-                                  start: range.y.start,
-                                  end: range.y.end,
-                                },
-                              })
-                              setSlider([dr1, range.x.end + 1200000])
-                              setMin(dr1)
-                            } else ErrorMessage(new Error("invalid range"))
-                          } else ErrorMessage(new Error("invalid range"))
-                        }}
-                      />
-                      <Typography display="inline" sx={{lineHeight: 4}}>to</Typography>
-                      <TextField
-                        id="outlined-basic"
-                        label={dr2.toLocaleString("en-US")}
-                        variant="outlined"
-                        onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                          setdr2(parseInt(event.target.value))
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            if (dr2 - range.x.start >= 100000) {
-                              setRange({
-                                x: {
-                                  start: range.x.start,
-                                  end: dr2,
-                                },
-                                y: {
-                                  start: range.y.start,
-                                  end: range.y.end,
-                                },
-                              })
-                              setSlider([range.x.start - 1200000, dr2])
-                              setMax(dr2)
-                            } else ErrorMessage(new Error("invalid range"))
-                          } else ErrorMessage(new Error("invalid range"))
-                        }}
-                      />
-                    </Box>
-                    </Grid2>
-                    <Grid2 xs={2}>
-                    <Box alignContent="right">
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "right",
-                            alignItems: "right",
-                          }}>
-                        <Box mt={4}>
-                          <FormGroup>
-                        <FormControlLabel control={
-                          <Switch 
-                            defaultChecked
-                            checked={toggleccres}
-                            onChange={(()=> {
-                              if (toggleccres === true) settoggleccres(false) 
-                              else settoggleccres(true)
-                            })} 
-                          />} 
-                            label="cCREs" 
-                        />
-                        <FormControlLabel control={
-                          <Switch 
-                            defaultChecked
-                            checked={toggleFC}
-                            onChange={(()=> {
-                              if (toggleFC === true) setToggleFC(false) 
-                              else setToggleFC(true)
-                            })} 
-                          />} 
-                            label="log2 fold change" 
-                        />
-                        <FormControlLabel control={
-                          <Switch 
-                            checked={toggleGenes}
-                            onChange={(()=> {
-                              if (toggleGenes === true) setToggleGenes(false) 
-                              else setToggleGenes(true)
-                            })} 
-                          />} 
-                            label="genes" 
-                        />
-                      </FormGroup>
-                      </Box>
-                        </div>
-                      </Box>
-                    </Grid2>
+                            </Grid2>
+                          </Grid2>
+                        </Box>
+                      </Grid2>
+                      <Grid2 xs={7}>
+                        <Box
+                          sx={{
+                            "& > :not(style)": { m: 2.5, width: "15ch" },
+                          }}
+                        >
+                          <Typography variant="h6" display="inline" lineHeight={4.75}>
+                            Domain Range:
+                          </Typography>
+                          <TextField
+                            id="outlined-basic"
+                            label={dr1.toLocaleString("en-US")}
+                            variant="outlined"
+                            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                              setdr1(parseInt(event.target.value))
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                if (range.x.end - dr1 > 100000) {
+                                  setRange({
+                                    x: {
+                                      start: dr1,
+                                      end: range.x.end,
+                                    },
+                                    y: {
+                                      start: range.y.start,
+                                      end: range.y.end,
+                                    },
+                                  })
+                                  setSlider([dr1, range.x.end + 1200000])
+                                  setMin(dr1)
+                                } else ErrorMessage(new Error("invalid range"))
+                              } else ErrorMessage(new Error("invalid range"))
+                            }}
+                          />
+                          <Typography display="inline" sx={{ lineHeight: 4 }}>
+                            to
+                          </Typography>
+                          <TextField
+                            id="outlined-basic"
+                            label={dr2.toLocaleString("en-US")}
+                            variant="outlined"
+                            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                              setdr2(parseInt(event.target.value))
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                if (dr2 - range.x.start >= 100000) {
+                                  setRange({
+                                    x: {
+                                      start: range.x.start,
+                                      end: dr2,
+                                    },
+                                    y: {
+                                      start: range.y.start,
+                                      end: range.y.end,
+                                    },
+                                  })
+                                  setSlider([range.x.start - 1200000, dr2])
+                                  setMax(dr2)
+                                } else ErrorMessage(new Error("invalid range"))
+                              } else ErrorMessage(new Error("invalid range"))
+                            }}
+                          />
+                        </Box>
+                      </Grid2>
+                      <Grid2 xs={2}>
+                        <Box alignContent="right">
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "right",
+                              alignItems: "right",
+                            }}
+                          >
+                            <Box mt={4}>
+                              <FormGroup>
+                                <FormControlLabel
+                                  control={
+                                    <Switch
+                                      defaultChecked
+                                      checked={toggleccres}
+                                      onChange={() => {
+                                        if (toggleccres === true) settoggleccres(false)
+                                        else settoggleccres(true)
+                                      }}
+                                    />
+                                  }
+                                  label="cCREs"
+                                />
+                                <FormControlLabel
+                                  control={
+                                    <Switch
+                                      defaultChecked
+                                      checked={toggleFC}
+                                      onChange={() => {
+                                        if (toggleFC === true) setToggleFC(false)
+                                        else setToggleFC(true)
+                                      }}
+                                    />
+                                  }
+                                  label="log2 fold change"
+                                />
+                                <FormControlLabel
+                                  control={
+                                    <Switch
+                                      checked={toggleGenes}
+                                      onChange={() => {
+                                        if (toggleGenes === true) setToggleGenes(false)
+                                        else setToggleGenes(true)
+                                      }}
+                                    />
+                                  }
+                                  label="genes"
+                                />
+                              </FormGroup>
+                            </Box>
+                          </div>
+                        </Box>
+                      </Grid2>
                     </Grid2>
                     <Box>
                       <Box mb={3}>
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "center",
-                          alignItems: "center",
-                        }}
-                      >
-                        <Typography variant="h5">
-                          {ct1.replace(/_/g," ")} vs {ct2.replace(/_/g," ")}
-                        </Typography>
-                      </div>
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Typography variant="h5">
+                            {ct1.replace(/_/g, " ")} vs {ct2.replace(/_/g, " ")}
+                          </Typography>
+                        </div>
                       </Box>
                       <svg className="graph" aria-labelledby="title desc" role="img" viewBox="0 0 1000 520">
                         {/* <title id="title"> */}
                         {/* {ct1} vs {ct2} */}
                         {/* </title> */}
-                        <desc id="desc">{ct1} vs {ct2}</desc>
+                        <desc id="desc">
+                          {ct1} vs {ct2}
+                        </desc>
                         <g className="x-grid grid" id="xGrid">
                           <line x1="100" x2="900" y1="450" y2="450"></line>
                         </g>
@@ -896,69 +902,95 @@ export default function DifferentialGeneExpression() {
                             ct2={ct2}
                           />
                           <line x1="100" y1="50" x2="100" y2="450" stroke="black"></line>
-                          <line x1="900" y1="50" x2="900" y2="450" stroke="#6B854C"></line>
-                          {!toggleFC ? <></> : <text x="890" y="50" style={{ fontSize: 12, writingMode: "vertical-rl", fill: "#6B854C" }}>
-                            log2 gene expression fold change
-                          </text>}
-                          {!toggleccres ? <></> : <text x="110" y="50" style={{ fontSize: 12, writingMode: "vertical-lr" }}>
-                            change in cCRE Z-score
-                          </text>}
+                          <line x1="900" y1="50" x2="900" y2="450" stroke="#549623"></line>
+                          {!toggleFC ? (
+                            <></>
+                          ) : (
+                            <text x="890" y="50" style={{ fontSize: 12, writingMode: "vertical-rl", fill: "#549623" }}>
+                              log2 gene expression fold change
+                            </text>
+                          )}
+                          {!toggleccres ? (
+                            <></>
+                          ) : (
+                            <text x="110" y="50" style={{ fontSize: 12, writingMode: "vertical-lr" }}>
+                              change in cCRE Z-score
+                            </text>
+                          )}
                         </g>
                         <g className="data" data-setname="Our first data set">
-                          {!toggleFC ? <></> : data[data.gene].nearbyDEs.data.map((point, i: number) => (
-                            <BarPoint point={point} i={i} range={range} dimensions={dimensions} />
-                          ))}
-                          {!toggleccres ? <></> : data[data.gene].diffCREs.data.map((point, i: number) => (
-                            <Point point={point} i={i} range={range} dimensions={dimensions} />
-                          ))}
-                          {!toggleGenes ? <></> : data[data.gene].nearbyDEs.genes.map((point, i: number) => (
-                              <GenePoint point={point} i={i} range={range} dimensions={dimensions} toggleGenes={toggleGenes}/>
-                            ))}
+                          {!toggleFC ? (
+                            <></>
+                          ) : (
+                            data[data.gene].nearbyDEs.data.map((point, i: number) => (
+                              <BarPoint point={point} i={i} range={range} dimensions={dimensions} />
+                            ))
+                          )}
+                          {!toggleccres ? (
+                            <></>
+                          ) : (
+                            data[data.gene].diffCREs.data.map((point, i: number) => (
+                              <Point point={point} i={i} range={range} dimensions={dimensions} />
+                            ))
+                          )}
+                          {!toggleGenes ? (
+                            <></>
+                          ) : (
+                            data[data.gene].nearbyDEs.genes.map((point, i: number) => (
+                              <GenePoint point={point} i={i} range={range} dimensions={dimensions} toggleGenes={toggleGenes} />
+                            ))
+                          )}
                         </g>
                       </svg>
                       <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                          }}>
-                      <Box width={400} mb={1}>
-                              <Slider value={slider} step={100000} marks min={min} max={max} valueLabelDisplay="auto"
-                                onChange={((event: Event, value: number | number[]) => {
-                                  let n: number = 0
-                                  if (value[0] > value[1]) return <></>
-                                  if (value[0] !== slider[0]){
-                                    setSlider([value[0], slider[1]])
-                                    setdr1(value[0])
-                                    setRange({
-                                      x: {
-                                        start: value[0],
-                                        end: range.x.end,
-                                      },
-                                      y: {
-                                        start: range.y.start,
-                                        end: range.y.end,
-                                      },
-                                    })
-                                  } 
-                                  else {
-                                    setSlider([slider[0], value[1]])
-                                    setdr2(value[1])
-                                    setRange({
-                                      x: {
-                                        start: range.x.start,
-                                        end: value[1],
-                                      },
-                                      y: {
-                                        start: range.y.start,
-                                        end: range.y.end,
-                                      },
-                                    })
-                                  }
-                                })}
-                              />
-                            </Box>
-                            </div>
+                        style={{
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Box width={400} mb={1}>
+                          <Slider
+                            value={slider}
+                            step={100000}
+                            marks
+                            min={min}
+                            max={max}
+                            valueLabelDisplay="auto"
+                            onChange={(event: Event, value: number | number[]) => {
+                              let n: number = 0
+                              if (value[0] > value[1]) return <></>
+                              if (value[0] !== slider[0]) {
+                                setSlider([value[0], slider[1]])
+                                setdr1(value[0])
+                                setRange({
+                                  x: {
+                                    start: value[0],
+                                    end: range.x.end,
+                                  },
+                                  y: {
+                                    start: range.y.start,
+                                    end: range.y.end,
+                                  },
+                                })
+                              } else {
+                                setSlider([slider[0], value[1]])
+                                setdr2(value[1])
+                                setRange({
+                                  x: {
+                                    start: range.x.start,
+                                    end: value[1],
+                                  },
+                                  y: {
+                                    start: range.y.start,
+                                    end: range.y.end,
+                                  },
+                                })
+                              }
+                            }}
+                          />
+                        </Box>
+                      </div>
                       <Box mt={2}>
                         <svg className="graph" aria-labelledby="title desc" role="img" viewBox="0 0 1000 1000">
                           <title id="genes"></title>
@@ -975,7 +1007,7 @@ export default function DifferentialGeneExpression() {
                           </g>
                           <g className="data">
                             {data[data.gene].nearbyDEs.genes.map((point, i: number) => (
-                              <GenePoint point={point} i={i} range={range} dimensions={dimensions} toggleGenes={false}/>
+                              <GenePoint point={point} i={i} range={range} dimensions={dimensions} toggleGenes={false} />
                             ))}
                           </g>
                         </svg>
