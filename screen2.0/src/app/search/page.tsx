@@ -202,7 +202,7 @@ export default async function Search({
       <CcreSearch
         mainQueryParams={mainQueryParams}
         globals={globals}
-        ccrerows={generateRows(mainQueryResult)}
+        ccrerows={(mainQueryResult === -1) ? [] : generateRows(mainQueryResult)}
         assembly={mainQueryParams.assembly}
       />
     </main>

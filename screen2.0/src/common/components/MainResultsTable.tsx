@@ -63,7 +63,7 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
   )
   return (
     <DataTable
-      rows={props.rows || [{}]}
+      rows={props.rows || []}
       columns={COLUMNS}
       itemsPerPage={props.itemsPerPage}
       searchable

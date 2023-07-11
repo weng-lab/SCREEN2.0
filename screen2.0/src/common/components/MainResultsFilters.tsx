@@ -40,7 +40,6 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
   const [Organoid, setOrganoid] = useState<boolean>(props.mainQueryParams.Organoid)
   const [InVitro, setInVitro] = useState<boolean>(props.mainQueryParams.InVitro)
   //Selected Biosample
-  //Todo page and url
   const [Biosample, setBiosample] = useState<{selected: boolean, biosample: string | null, tissue: string | null, summaryName: string | null}>(props.mainQueryParams.Biosample)
   const [BiosampleHighlight, setBiosampleHighlight] = useState<{} | null>(null)
   const [SearchString, setSearchString] = useState<string>("")
@@ -275,6 +274,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
                   dense
                   searchable
                   highlighted={BiosampleHighlight}
+                  sortColumn={1}
                   onRowClick={(row, i) => {
                     setBiosample({ selected: true, biosample: row.queryValue, tissue: row.biosampleTissue, summaryName: row.summaryName });
                     setBiosampleHighlight(row);

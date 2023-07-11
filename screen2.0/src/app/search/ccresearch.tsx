@@ -2,7 +2,7 @@
 import React, { useEffect } from "react"
 import { Tab, Tabs, Typography } from "@mui/material"
 import MainResultsTable from "../../common/components/MainResultsTable"
-import MainResultsFilers from "../../common/components/MainResultsFilters"
+import MainResultsFilters from "../../common/components/MainResultsFilters"
 import { CcreDetails } from "./ccredetails/ccredetails"
 import Grid2 from "../../common/mui-client-wrappers/Grid2"
 import { useSearchParams } from "next/navigation"
@@ -41,7 +41,7 @@ export const CcreSearch = ({ mainQueryParams, ccrerows, globals, assembly }) => 
       {value === 0 && (
         <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "1rem" }}>
           <Grid2 xs={12} lg={3}>
-            <MainResultsFilers mainQueryParams={mainQueryParams} byCellType={globals}/>
+            <MainResultsFilters mainQueryParams={mainQueryParams} byCellType={globals}/>
           </Grid2>
           <Grid2 xs={12} lg={9}>
             <MainResultsTable

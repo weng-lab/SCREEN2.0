@@ -3,7 +3,7 @@
  */
 
 import { getClient } from "../lib/client"
-import { gql } from "@apollo/client"
+import { ApolloQueryResult, gql } from "@apollo/client"
 
 const cCRE_QUERY = gql`
   query ccreSearchQuery(
@@ -135,14 +135,21 @@ function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: numbe
 export default async function MainQuery(assembly: string, chromosome: string, start: number, end: number, biosample: string = null) {
 
   console.log("queried with: " + biosample)
-  const data = await getClient().query({
-    query: cCRE_QUERY,
-    variables: cCRE_QUERY_VARIABLES(assembly, chromosome, start, end, biosample),
-  })
-
-  return data
+  var data: ApolloQueryResult<any> | -1;
+  try {
+    data = await getClient().query({
+        query: cCRE_QUERY,
+        variables: cCRE_QUERY_VARIABLES(assembly, chromosome, start, end, biosample),
+      })
+  }
+  catch (error){
+    console.log(error)
+    data = -1
+  }
+  finally {
+    return data
+  }  
 }
-
 export const TOP_TISSUES = gql`
   query q($accession: [String!], $assembly: String!) {
     ccREBiosampleQuery(assembly: $assembly) {
