@@ -1,8 +1,8 @@
 import React, { ReactElement, useState } from "react"
 import { ApolloClient, gql, InMemoryCache, useQuery } from "@apollo/client"
-import { Link, Alert, AlertTitle, CircularProgress } from "@mui/material"
+import { Link, Alert, AlertTitle, CircularProgress, Typography } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
-import { Snackbar, Stack } from "@mui/material"
+import { Snackbar, Stack, Box } from "@mui/material"
 
 /**
  * Uses fetch to make a query call (server side)
@@ -65,14 +65,15 @@ export function LoadingMessage() {
         justifyContent: "center",
         alignItems: "center",
       }}
-    >
-      {
+    >      
         <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "2rem" }}>
           <Grid2 xs={12} lg={12}>
-            <CircularProgress />
+            <Box mt={2}>
+              <CircularProgress />
+              <Typography>Loading...</Typography>
+            </Box>
           </Grid2>
         </Grid2>
-      }
     </div>
   )
 }
@@ -96,7 +97,7 @@ export function ErrorMessage(error: Error) {
   }
 
   return (
-    <Snackbar open={true} autoHideDuration={60} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
+    <Snackbar open={true} autoHideDuration={120} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
       <Alert severity="error">
         <AlertTitle>Error</AlertTitle>
         There was an error loading. — <strong>{error.message}</strong>
@@ -140,86 +141,3 @@ export function ErrorMessage(error: Error) {
 
 //   return data
 // }
-
-export const z_score = (d: any) => (d === -11.0 || d === "--" || d === undefined ? "--" : d.toFixed(2))
-
-export const ctgroup = (group: string) => {
-  group = group.split(",")[0]
-  if (group === "CA-CTCF")
-    return (
-      <span style={{ color: "#00B0F0" }}>
-        <strong>chromatin accessible with ctcf</strong>
-      </span>
-    )
-  if (group === "CA-TF")
-    return (
-      <span style={{ color: "#be28e5" }}>
-        <strong>chromatin accessible with tf</strong>
-      </span>
-    )
-  if (group === "CA-H3K4me3")
-    return (
-      <span style={{ color: "#ffaaaa" }}>
-        <strong>chromatin accessible with H3K4me3</strong>
-      </span>
-    )
-  if (group === "TF")
-    return (
-      <span style={{ color: "#d876ec" }}>
-        <strong>tf only</strong>
-      </span>
-    )
-  if (group === "CA")
-    return (
-      <span style={{ color: "#06DA93" }}>
-        <strong>chromatin accessible only</strong>
-      </span>
-    )
-  if (group === "pELS")
-    return (
-      <span style={{ color: "#ffcd00" }}>
-        <strong>proximal enhancer-like signature</strong>
-      </span>
-    )
-  if (group === "dELS")
-    return (
-      <span style={{ color: "#ffcd00" }}>
-        <strong>distal enhancer-like signature</strong>
-      </span>
-    )
-  if (group === "PLS")
-    return (
-      <span style={{ color: "#ff0000" }}>
-        <strong>promoter-like signature</strong>
-      </span>
-    )
-  if (group === "DNase-H3K4me3")
-    return (
-      <span style={{ color: "#ffaaaa" }}>
-        <strong>DNase-H3K4me3</strong>
-      </span>
-    )
-  if (group === "ctcf")
-    return (
-      <span style={{ color: "#00b0f0" }}>
-        <strong>CTCF bound</strong>
-      </span>
-    )
-  if (group === "ylowdnase")
-    return (
-      <span style={{ color: "#8c8c8c" }}>
-        <strong>low DNase</strong>
-      </span>
-    )
-  if (group === "zunclassified")
-    return (
-      <span style={{ color: "#8c8c8c" }}>
-        <strong>zunclassified</strong>
-      </span>
-    )
-  return (
-    <span style={{ color: "#06da93" }}>
-      <strong>DNase only</strong>
-    </span>
-  )
-}
