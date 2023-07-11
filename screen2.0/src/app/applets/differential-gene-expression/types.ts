@@ -78,3 +78,76 @@ export const initialChart = {
     ct1: "C57BL/6_limb_embryo_11.5_days",
     ct2: "C57BL/6_limb_embryo_15.5_days"
 }
+
+/**
+ * define types for list of cell types
+ */
+export type initialCellTypesInfo = {
+    cellTypeInfoArr: [
+        {
+            assay: string,
+            cellTypeDesc: string,
+            cellTypeName: string,
+            biosample_summary: string,
+            biosample_type: string,
+            name: string,
+            expID: string,
+            isde: boolean,
+            fileID: string,
+            synonyms: string,
+            tissue: string,
+            rnaseq: boolean,
+            checked: boolean,
+            value: string
+        },
+    ]
+}
+
+/**
+ * define types for cell info fetch
+ */
+export type initialChartTypes = {
+    Gm25142: {
+        xdomain: number[],
+        coord: { 
+            chrom: string, 
+            start: number, 
+            end: number 
+        },
+        diffCREs: { 
+            data: [{
+                accession: string,
+                center: number,
+                len: number,
+                start: number,
+                stop: number,
+                typ: string,
+                value: number,
+                width: number
+            }] 
+        },
+        nearbyDEs: {
+            names: string[],
+            data: [{
+                fc: number, 
+                gene: string, 
+                start: number, 
+                stop: number, 
+                strand: string
+            }],
+            xdomain: number[],
+            genes: [{
+                gene: string, 
+                start: number, 
+                stop: number, 
+                strand: string
+            }],
+            ymin: number,
+            ymax: number
+        }
+    },
+    assembly: string,
+    gene: string,
+    ct1: string,
+    ct2: string
+}
