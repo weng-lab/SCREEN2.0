@@ -70,9 +70,102 @@ const cCRE_QUERY = gql`
         accession
         isproximal
         concordant
-        ctcfmax
-        k4me3max
-        k27acmax
+       
+      }
+      genesallpc {
+        accession
+        all {
+          end
+          start
+          chromosome
+          assembly
+          intersecting_genes {
+            name
+          }
+        }
+        pc {
+          end
+          assembly
+          chromosome
+          start
+          intersecting_genes {
+            name
+          }
+        }
+      }
+    }
+  }
+`
+
+const cCRE_QUERY_WITH_BIOSAMPLES = gql`
+  query ccreSearchQuery(
+    $accessions: [String!]
+    $assembly: String!
+    $cellType: String
+    $coord_chrom: String
+    $coord_end: Int
+    $coord_start: Int
+    $element_type: String
+    $gene_all_start: Int
+    $gene_all_end: Int
+    $gene_pc_start: Int
+    $gene_pc_end: Int
+    $rank_ctcf_end: Float!
+    $rank_ctcf_start: Float!
+    $rank_dnase_end: Float!
+    $rank_dnase_start: Float!
+    $rank_enhancer_end: Float!
+    $rank_enhancer_start: Float!
+    $rank_promoter_end: Float!
+    $rank_promoter_start: Float!
+    $uuid: String
+    $limit: Int
+  ) {
+    cCRESCREENSearch(
+      assembly: $assembly
+      accessions: $accessions
+      cellType: $cellType
+      coord_chrom: $coord_chrom
+      coord_end: $coord_end
+      coord_start: $coord_start
+      element_type: $element_type
+      gene_all_start: $gene_all_start
+      gene_all_end: $gene_all_end
+      gene_pc_start: $gene_pc_start
+      gene_pc_end: $gene_pc_end
+      rank_ctcf_end: $rank_ctcf_end
+      rank_ctcf_start: $rank_ctcf_start
+      rank_dnase_end: $rank_dnase_end
+      rank_dnase_start: $rank_dnase_start
+      rank_enhancer_end: $rank_enhancer_end
+      rank_enhancer_start: $rank_enhancer_start
+      rank_promoter_end: $rank_promoter_end
+      rank_promoter_start: $rank_promoter_start
+      uuid: $uuid
+      limit: $limit
+    ) {
+      chrom
+      start
+      len
+      pct
+      vistaids
+      sct
+      pct
+      maxz
+      rfacets
+      in_cart
+      ctspecific {
+        ct
+        dnase_zscore
+        h3k4me3_zscore
+        h3k27ac_zscore
+        ctcf_zscore
+      }
+      info {
+        accession
+        isproximal
+        concordant
+       
       }
       genesallpc {
         accession
@@ -134,11 +227,12 @@ function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: numbe
  */
 export default async function MainQuery(assembly: string, chromosome: string, start: number, end: number, biosample: string = null) {
 
-  console.log("queried with: " + biosample)
+  console.log("queried with: " + assembly, chromosome, start, end, biosample)
+ 
   var data: ApolloQueryResult<any> | -1;
   try {
     data = await getClient().query({
-        query: cCRE_QUERY,
+        query: biosample ? cCRE_QUERY_WITH_BIOSAMPLES: cCRE_QUERY,
         variables: cCRE_QUERY_VARIABLES(assembly, chromosome, start, end, biosample),
       })
   }

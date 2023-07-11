@@ -9,11 +9,18 @@ type cCREData = {
   chrom: string
   start: number
   len: number
-  dnase_zscore: number
+  dnase_zscore?: number
   atac: string
-  promoter_zscore: number
-  enhancer_zscore: number
-  ctcf_zscore: number
+  promoter_zscore?: number
+  enhancer_zscore?: number
+  ctcf_zscore?: number
+  ctspecific?: {
+    ct?: string
+    dnase_zscore?: number
+    h3k4me3_zscore?: number
+    h3k27ac_zscore?: number
+    ctcf_zscore?: number
+  }
 }
 
 export default async function Search({
@@ -66,9 +73,10 @@ export default async function Search({
     else { return false }
   }
 
+  
   //TODO: Error Handling Here. Prevent broken query from erroring out whole application
   const mainQueryResult = await MainQuery(mainQueryParams.assembly, mainQueryParams.chromosome, mainQueryParams.start, mainQueryParams.end, mainQueryParams.Biosample.biosample)
-
+  
   const globals = await getGlobals()
 
   /**
@@ -77,7 +85,7 @@ export default async function Search({
    */
   //This needs better input handling
   //Fails in basically any case when input isn't exactly as expected
-  const generateRows = (QueryResult: ApolloQueryResult<any>) => {
+  const generateRows = (QueryResult: ApolloQueryResult<any>,biosample: string = null) => {
     const rows: {
       //atac will need to be changed from string to number when that data is available
       accession: string
@@ -85,28 +93,29 @@ export default async function Search({
       chromosome: string
       start: string
       end: string
-      dnase: number
+      dnase?: number
       atac: string
-      h3k4me3: number
-      h3k27ac: number
-      ctcf: number
+      h3k4me3?: number
+      h3k27ac?: number
+      ctcf?: number
     }[] = []
     const cCRE_data: cCREData[] = QueryResult.data.cCRESCREENSearch
+    
     let offset = 0
     cCRE_data.forEach((currentElement, index) => {
-      if (passesCriteria(currentElement)) {
+      if (passesCriteria(currentElement, biosample)) {
         rows[index - offset] = {
           accession: currentElement.info.accession,
           class: currentElement.pct,
           chromosome: currentElement.chrom,
           start: currentElement.start.toLocaleString("en-US"),
           end: (currentElement.start + currentElement.len).toLocaleString("en-US"),
-          dnase: +currentElement.dnase_zscore.toFixed(2),
+          dnase: biosample ? currentElement.ctspecific.dnase_zscore : currentElement.dnase_zscore,
           //Need to get this data still from somewhere
           atac: "TBD",
-          h3k4me3: +currentElement.promoter_zscore.toFixed(2),
-          h3k27ac: +currentElement.enhancer_zscore.toFixed(2),
-          ctcf: +currentElement.ctcf_zscore.toFixed(2),
+          h3k4me3: biosample ? currentElement.ctspecific.h3k4me3_zscore : currentElement.promoter_zscore,
+          h3k27ac: biosample ? currentElement.ctspecific.h3k27ac_zscore : currentElement.enhancer_zscore,
+          ctcf: biosample ? currentElement.ctspecific.ctcf_zscore : currentElement.ctcf_zscore,
         }
       }
       // Offset incremented to account for missing rows which do not meet filter criteria
@@ -114,27 +123,32 @@ export default async function Search({
         offset += 1
       }
     })
+    
     return rows
   }
 
 
-  function passesCriteria(currentElement: cCREData) {
-    if ((passesChromatinFilter(currentElement)) && passesClassificationFilter(currentElement)) {
+  function passesCriteria(currentElement: cCREData,biosample: string = null) {
+    if ((passesChromatinFilter(currentElement,biosample)) && passesClassificationFilter(currentElement)) {
       return true
     }
     else return false
   }
 
-  function passesChromatinFilter(currentElement: any) {
+  function passesChromatinFilter(currentElement: any,biosample: string = null) {
+    const dnase = biosample ? currentElement.ctspecific.dnase_zscore : currentElement.dnase_zscore
+    const h3k4me3= biosample ? currentElement.ctspecific.h3k4me3_zscore : currentElement.promoter_zscore
+    const h3k27ac= biosample ? currentElement.ctspecific.h3k27ac_zscore : currentElement.enhancer_zscore
+    const ctcf= biosample ? currentElement.ctspecific.ctcf_zscore : currentElement.ctcf_zscore
     if (
-      mainQueryParams.dnase_s < currentElement.dnase_zscore &&
-        currentElement.dnase_zscore < mainQueryParams.dnase_e &&
-      mainQueryParams.h3k4me3_s < currentElement.promoter_zscore &&
-        currentElement.promoter_zscore < mainQueryParams.h3k4me3_e &&
-      mainQueryParams.h3k27ac_s < currentElement.enhancer_zscore &&
-        currentElement.enhancer_zscore < mainQueryParams.h3k27ac_e &&
-      mainQueryParams.ctcf_s < currentElement.ctcf_zscore &&
-        currentElement.ctcf_zscore < mainQueryParams.ctcf_e
+      mainQueryParams.dnase_s < dnase &&
+        dnase < mainQueryParams.dnase_e &&
+      mainQueryParams.h3k4me3_s < h3k4me3 &&
+        h3k4me3 < mainQueryParams.h3k4me3_e &&
+      mainQueryParams.h3k27ac_s < h3k27ac &&
+        h3k27ac < mainQueryParams.h3k27ac_e &&
+      mainQueryParams.ctcf_s < ctcf &&
+        ctcf < mainQueryParams.ctcf_e
     ) { return true }
     else return false
   }
@@ -202,7 +216,7 @@ export default async function Search({
       <CcreSearch
         mainQueryParams={mainQueryParams}
         globals={globals}
-        ccrerows={(mainQueryResult === -1) ? [] : generateRows(mainQueryResult)}
+        ccrerows={(mainQueryResult === -1) ? [] : generateRows(mainQueryResult, mainQueryParams.Biosample.biosample)}
         assembly={mainQueryParams.assembly}
       />
     </main>
