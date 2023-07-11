@@ -303,7 +303,7 @@ export const initialGeneList = {
     start: 108107280,
     end: 108146146,
     id: "ENSMUSG00000000001.4",
-    name: "Gnai3",
+    name: "Gm25142",
 }
 
 /**
