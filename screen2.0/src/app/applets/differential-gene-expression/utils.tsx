@@ -24,7 +24,7 @@ export const GENE_AUTOCOMPLETE_QUERY = `
  * @param dimensions x and y range of svg
  * @returns data point
  */
-export const Point = ({ point, i, range, dimensions }) => {
+export const Point = ({ key, point, i, range, dimensions }) => {
     const p: Point2D = { x: point.center, y: point.value }
   
     // invalid range
@@ -40,7 +40,7 @@ export const Point = ({ point, i, range, dimensions }) => {
   
     return (
       <Fragment>
-        <circle key={i} cx={t.x} cy={t.y} r="4" fill={color}>
+        <circle key={key} cx={t.x} cy={t.y} r="4" fill={color}>
           <title>{"coordinates: " + point.center.toLocaleString("en-US") + "\nz-score: " + point.value}</title>
         </circle>
       </Fragment>
@@ -55,7 +55,7 @@ export const Point = ({ point, i, range, dimensions }) => {
  * @param dimensions x and y range of svg
  * @returns data point
  */
-export const BarPoint = ({ point, i, range, dimensions }) => {
+export const BarPoint = ({ key, point, i, range, dimensions }) => {
     let p1: Point2D = { x: 0, y: 0 }
     let p2: Point2D = { x: 0, y: 0 }
     let x1: number = point.start
@@ -76,7 +76,7 @@ export const BarPoint = ({ point, i, range, dimensions }) => {
     }
   
     return (
-      <rect key={i} x={p1.x} y={p1.y} width={p2.x - p1.x} height={p2.y - p1.y} fill="#549623" fillOpacity={0.5}>
+      <rect key={key} x={p1.x} y={p1.y} width={p2.x - p1.x} height={p2.y - p1.y} fill="#549623" fillOpacity={0.5}>
         <title>
           {"fc: " + point.fc + "\nstart: " + point.start.toLocaleString("en-US") + "\nstop: " + point.stop.toLocaleString("en-US")}
         </title>
@@ -92,7 +92,7 @@ export const BarPoint = ({ point, i, range, dimensions }) => {
    * @param dimensions x and y range of svg
    * @returns data point
    */
-export const GenePoint = ({ point, i, range, dimensions, toggleGenes }) => {
+export const GenePoint = ({ key, point, i, range, dimensions, toggleGenes }) => {
     let p1: Point2D = { x: 0, y: 0 }
     let p2: Point2D = { x: 0, y: 0 }
     let x1: number = point.start
@@ -125,8 +125,8 @@ export const GenePoint = ({ point, i, range, dimensions, toggleGenes }) => {
     }
   
     return (
-      <Fragment>
-        <line key={i} x1={p1.x} x2={p2.x} y1={(i + 4) * size} y2={(i + 4) * size} stroke={color}>
+      <Fragment key={key}>
+        <line x1={p1.x} x2={p2.x} y1={(i + 4) * size} y2={(i + 4) * size} stroke={color}>
           <GeneTooltip point={point} />
         </line>
         <text style={{ fontSize: 13, fontStyle: "italic" }} x={p2.x + size} y={(i + 4) * size + 5}>
@@ -290,7 +290,7 @@ export const SetRange_y = ({ ymin, ymax, range, dimensions, ct1, ct2 }) => {
     return range_y.map((y: number, i: number) => y_axis(y, i, range_y, ct1, ct2))
 }
 
-const payload = JSON.stringify({
+export const payload = JSON.stringify({
     "assembly": "mm10",
     "gene": "Gm25142",
     "uuid": "62ba8f8c-8335-4404-8c48-b569cf401664",

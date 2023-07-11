@@ -2,7 +2,7 @@
 import React, { useState, useEffect, cache, Fragment, useCallback } from "react"
 
 import { fetchServer, ErrorMessage, LoadingMessage } from "../../../common/lib/utility"
-import { GENE_AUTOCOMPLETE_QUERY, SetRange_x, SetRange_y, Point, BarPoint, GenePoint, initialChart, initialGeneList } from "./utils"
+import { GENE_AUTOCOMPLETE_QUERY, payload, SetRange_x, SetRange_y, Point, BarPoint, GenePoint, initialChart, initialGeneList } from "./utils"
 
 import { gene, cellTypeInfoArr, QueryResponse } from "./types"
 import { geneRed, geneBlue, promoterRed, enhancerYellow } from "../../../common/lib/colors"
@@ -579,21 +579,21 @@ export default function DifferentialGeneExpression() {
                             <></>
                           ) : (
                             data[data.gene].nearbyDEs.data.map((point, i: number) => (
-                              <BarPoint point={point} i={i} range={range} dimensions={dimensions} />
+                              <BarPoint key={i} point={point} i={i} range={range} dimensions={dimensions} />
                             ))
                           )}
                           {!toggleccres ? (
                             <></>
                           ) : (
                             data[data.gene].diffCREs.data.map((point, i: number) => (
-                              <Point point={point} i={i} range={range} dimensions={dimensions} />
+                              <Point key={i} point={point} i={i} range={range} dimensions={dimensions} />
                             ))
                           )}
                           {!toggleGenes ? (
                             <></>
                           ) : (
                             data[data.gene].nearbyDEs.genes.map((point, i: number) => (
-                              <GenePoint point={point} i={i} range={range} dimensions={dimensions} toggleGenes={toggleGenes} />
+                              <GenePoint key={i} point={point} i={i} range={range} dimensions={dimensions} toggleGenes={toggleGenes} />
                             ))
                           )}
                         </g>
@@ -663,7 +663,7 @@ export default function DifferentialGeneExpression() {
                           </g>
                           <g className="data">
                             {data[data.gene].nearbyDEs.genes.map((point, i: number) => (
-                              <GenePoint point={point} i={i} range={range} dimensions={dimensions} toggleGenes={false} />
+                              <GenePoint key={i} point={point} i={i} range={range} dimensions={dimensions} toggleGenes={false} />
                             ))}
                           </g>
                         </svg>
