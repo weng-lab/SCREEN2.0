@@ -95,7 +95,7 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
         router.push(pathname + "?" + createQueryString("accession", r.accession))
       }}
       tableTitle={props.tableTitle}
-      sortColumn={5}
+      sortColumn={0}
     />
   )
 }

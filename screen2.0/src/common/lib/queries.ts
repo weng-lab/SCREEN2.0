@@ -273,6 +273,6 @@ export const TOP_TISSUES = gql`
   }
 `
 export const getGlobals = async () => {
-  const res = await fetch("https://downloads.wenglab.org/bycelltype.json")
+  const res = await fetch("https://downloads.wenglab.org/databyct.json")
   return res.json()
 }
