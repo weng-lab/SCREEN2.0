@@ -13,7 +13,7 @@ type geneRow = {
   celltype: string
   method: string
 }
-export const LinkedGenes: React.FC<{ accession: string, assembly: string}>  = ({ accession, assembly }) => {
+export const LinkedGenes: React.FC<{ accession: string; assembly: string }> = ({ accession, assembly }) => {
   // returns geneids from linked genes query
   const geneIDs = (linkedGenes: { assay: string; celltype: string; gene: string }[]) => {
     let geneIDs: string[] = []
@@ -27,7 +27,7 @@ export const LinkedGenes: React.FC<{ accession: string, assembly: string}>  = ({
   const { loading: loading_linked, data: data_linked } = useQuery(LINKED_GENES, {
     variables: {
       assembly,
-      accession
+      accession,
     },
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",

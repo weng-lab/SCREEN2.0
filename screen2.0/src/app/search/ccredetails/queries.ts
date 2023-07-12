@@ -64,72 +64,86 @@ export const ORTHOLOG_QUERY = gql`
   }
 `
 
-export const NEARBY_GENOMIC_FEATURES_QUERY= gql`
-query features($coordinates: [GenomicRangeInput!],
-  $chromosome: String, $start: Int, $end: Int, 
-  $b: String!, $c: String!, $a: String!) {            
-  gene(chromosome: $chromosome, start: $start, end: $end, assembly: $b) {
-            name
-            id
-            coordinates {
-                chromosome
-                start
-                end
-            }
-        }
-  
-  cCREQuery(assembly: $c, coordinates: $coordinates) {
-            accession
-            coordinates {
-                chromosome
-                start
-                end
-            }
-            group
-        }
-  
-  snpQuery(coordinates: $coordinates, assembly: $a, common: true) {
-            id
-            coordinates {
-                chromosome
-                start
-                end
-            }
-        }
+export const NEARBY_GENOMIC_FEATURES_QUERY = gql`
+  query features($coordinates: [GenomicRangeInput!], $chromosome: String, $start: Int, $end: Int, $b: String!, $c: String!, $a: String!) {
+    gene(chromosome: $chromosome, start: $start, end: $end, assembly: $b) {
+      name
+      id
+      coordinates {
+        chromosome
+        start
+        end
+      }
+    }
+
+    cCREQuery(assembly: $c, coordinates: $coordinates) {
+      accession
+      coordinates {
+        chromosome
+        start
+        end
+      }
+      group
+    }
+
+    snpQuery(coordinates: $coordinates, assembly: $a, common: true) {
+      id
+      coordinates {
+        chromosome
+        start
+        end
+      }
+    }
   }
 `
 
+export const NEARBY_GENOMIC_FEATURES_NOSNPS_QUERY = gql`
+  query features($coordinates: [GenomicRangeInput!], $chromosome: String, $start: Int, $end: Int, $b: String!, $c: String!) {
+    gene(chromosome: $chromosome, start: $start, end: $end, assembly: $b) {
+      name
+      id
+      coordinates {
+        chromosome
+        start
+        end
+      }
+    }
 
-export const NEARBY_GENOMIC_FEATURES_NOSNPS_QUERY= gql`
-query features($coordinates: [GenomicRangeInput!],
-  $chromosome: String, $start: Int, $end: Int, 
-  $b: String!, $c: String!) {            
-  gene(chromosome: $chromosome, start: $start, end: $end, assembly: $b) {
-            name
-            id
-            coordinates {
-                chromosome
-                start
-                end
-            }
-        }
-  
-  cCREQuery(assembly: $c, coordinates: $coordinates) {
+    cCREQuery(assembly: $c, coordinates: $coordinates) {
+      accession
+      coordinates {
+        chromosome
+        start
+        end
+      }
+      group
+    }
+  }
+`
+export const CRE_TF_DCC_QUERY = gql`
+  query tfpeaks($assembly: String, $range: [ChromosomeRangeInput]!, $target: String) {
+    peaks(assembly: $assembly, range: $range, target: $target) {
+      peaks {
+        chrom
+        chrom_start
+        chrom_end
+        dataset {
+          biosample
+          accession
+          target
+          files(types: "replicated_peaks") {
             accession
-            coordinates {
-                chromosome
-                start
-                end
-            }
-            group
+          }
         }
       }
+    }
+  }
 `
 
 export const TF_INTERSECTION_QUERY = gql`
-query tfpeaks($assembly: String, $range: [ChromosomeRangeInput]!, $species: String) {
-  peaks(assembly: $assembly, range: $range) {
-    peaks {
+  query tfpeaks($assembly: String, $range: [ChromosomeRangeInput]!, $species: String) {
+    peaks(assembly: $assembly, range: $range) {
+      peaks {
         chrom
         chrom_start
         chrom_end
@@ -142,12 +156,13 @@ query tfpeaks($assembly: String, $range: [ChromosomeRangeInput]!, $species: Stri
     }
     peakDataset(species: $species) {
       partitionByTarget {
-      target {
-        name
-      }
-      counts {
-        total
-      }
+        target {
+          name
+        }
+        counts {
+          total
+        }
       }
     }
-}`
+  }
+`

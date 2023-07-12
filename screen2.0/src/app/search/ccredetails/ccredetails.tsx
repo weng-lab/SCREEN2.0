@@ -49,8 +49,27 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
             <Grid2 xs={12} lg={12}>
               {value === 0 && <InSpecificBiosamples accession={accession} globals={globals} assembly={assembly} />}
               {value === 1 && <LinkedGenes accession={accession} assembly={assembly} />}
-              {value ===2 && <NearByGenomicFeatures accession={accession} assembly={assembly} coordinates={{chromosome: region.chrom, start: +region.start.toString().replace(/\D/g,''), end: +region.end.toString().replace(/\D/g,'')}} />}
-              {value ===3 && <TfIntersection assembly={assembly} coordinates={{chromosome: region.chrom, start: +region.start.toString().replace(/\D/g,''), end: +region.end.toString().replace(/\D/g,'')}}/> }
+              {value === 2 && (
+                <NearByGenomicFeatures
+                  accession={accession}
+                  assembly={assembly}
+                  coordinates={{
+                    chromosome: region.chrom,
+                    start: +region.start.toString().replace(/\D/g, ""),
+                    end: +region.end.toString().replace(/\D/g, ""),
+                  }}
+                />
+              )}
+              {value === 3 && (
+                <TfIntersection
+                  assembly={assembly}
+                  coordinates={{
+                    chromosome: region.chrom,
+                    start: +region.start.toString().replace(/\D/g, ""),
+                    end: +region.end.toString().replace(/\D/g, ""),
+                  }}
+                />
+              )}
               {value === 5 && <Ortholog accession={accession} assembly={assembly} />}
             </Grid2>
           </Grid2>

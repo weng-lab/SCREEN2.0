@@ -46,7 +46,7 @@ export type cellTypeInfoArr = {
  */
 export type DEs = {
   Gm25142: {
-  // [geneID: string]: {
+    // [geneID: string]: {
     xdomain: number[]
     coord: {
       chrom: string
