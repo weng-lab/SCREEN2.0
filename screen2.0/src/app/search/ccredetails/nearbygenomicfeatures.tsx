@@ -30,15 +30,15 @@ export const NearByGenomicFeatures: React.FC<{assembly: string, accession: strin
     const pathname = usePathname()
     const searchParams: any = useSearchParams()!
 
-  const createQueryString = React.useCallback(
-    (name: string, value: string) => {
-      const params = new URLSearchParams(searchParams)
-      params.set(name, value)
+    const createQueryString = React.useCallback(
+        (name: string, value: string) => {
+        const params = new URLSearchParams(searchParams)
+        params.set(name, value)
 
-      return params.toString()
-    },
-    [searchParams]
-  )
+        return params.toString()
+        },
+        [searchParams]
+    )
     const { loading, data } = useQuery(assembly.toLowerCase()==="mm10" ? NEARBY_GENOMIC_FEATURES_NOSNPS_QUERY : NEARBY_GENOMIC_FEATURES_QUERY, {
         variables: assembly.toLowerCase()==="mm10" ? {
           

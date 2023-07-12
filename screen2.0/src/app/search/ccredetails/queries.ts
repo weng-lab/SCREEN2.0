@@ -125,3 +125,29 @@ query features($coordinates: [GenomicRangeInput!],
         }
       }
 `
+
+export const TF_INTERSECTION_QUERY = gql`
+query tfpeaks($assembly: String, $range: [ChromosomeRangeInput]!, $species: String) {
+  peaks(assembly: $assembly, range: $range) {
+    peaks {
+        chrom
+        chrom_start
+        chrom_end
+        dataset {
+          biosample
+          accession
+          target
+        }
+      }
+    }
+    peakDataset(species: $species) {
+      partitionByTarget {
+      target {
+        name
+      }
+      counts {
+        total
+      }
+      }
+    }
+}`
