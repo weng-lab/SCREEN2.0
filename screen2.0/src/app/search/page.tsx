@@ -74,6 +74,7 @@ export default async function Search({
       h3k4me3?: number
       h3k27ac?: number
       ctcf?: number
+      linkedGenes: {pc: {name: string}[], all: {name: string}[]}
     }[] = []
     const cCRE_data: cCREData[] = QueryResult.data.cCRESCREENSearch
     let offset = 0
@@ -91,6 +92,7 @@ export default async function Search({
           h3k4me3: biosample ? currentElement.ctspecific.h3k4me3_zscore : currentElement.promoter_zscore,
           h3k27ac: biosample ? currentElement.ctspecific.h3k27ac_zscore : currentElement.enhancer_zscore,
           ctcf: biosample ? currentElement.ctspecific.ctcf_zscore : currentElement.ctcf_zscore,
+          linkedGenes: {pc: currentElement.genesallpc.pc.intersecting_genes, all: currentElement.genesallpc.all.intersecting_genes}
         }
       }
       // Offset incremented to account for missing rows which do not meet filter criteria

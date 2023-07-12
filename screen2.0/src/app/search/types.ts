@@ -22,6 +22,14 @@ export type cCREData = {
     h3k27ac_zscore?: number
     ctcf_zscore?: number
   }
+  genesallpc: {
+    all: {
+      intersecting_genes: {name: string}[]
+    }
+    pc: {
+      intersecting_genes: {name: string}[]
+    }
+  }
 }
 
 export type MainQueryParams = {

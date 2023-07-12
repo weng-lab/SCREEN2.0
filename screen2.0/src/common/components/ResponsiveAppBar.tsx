@@ -97,9 +97,6 @@ function ResponsiveAppBar() {
           <Link href={"/"}>
             <Image src={screenIcon} alt="SCREEN Icon" height={40} width={40} />
           </Link>
-
-          {/* Display SCREEN after logo on left when >=900px*/}
-
           <Typography
             variant="h5"
             noWrap
@@ -107,6 +104,7 @@ function ResponsiveAppBar() {
             href={"/"}
             sx={{
               mr: 2,
+              ml: 1,
               display: { xs: "none", md: "flex" },
               // flexShrink: 0,
               fontFamily: "monospace",
