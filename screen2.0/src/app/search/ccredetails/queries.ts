@@ -63,3 +63,65 @@ export const ORTHOLOG_QUERY = gql`
     }
   }
 `
+
+export const NEARBY_GENOMIC_FEATURES_QUERY= gql`
+query features($coordinates: [GenomicRangeInput!],
+  $chromosome: String, $start: Int, $end: Int, 
+  $b: String!, $c: String!, $a: String!) {            
+  gene(chromosome: $chromosome, start: $start, end: $end, assembly: $b) {
+            name
+            id
+            coordinates {
+                chromosome
+                start
+                end
+            }
+        }
+  
+  cCREQuery(assembly: $c, coordinates: $coordinates) {
+            accession
+            coordinates {
+                chromosome
+                start
+                end
+            }
+            group
+        }
+  
+  snpQuery(coordinates: $coordinates, assembly: $a, common: true) {
+            id
+            coordinates {
+                chromosome
+                start
+                end
+            }
+        }
+  }
+`
+
+
+export const NEARBY_GENOMIC_FEATURES_NOSNPS_QUERY= gql`
+query features($coordinates: [GenomicRangeInput!],
+  $chromosome: String, $start: Int, $end: Int, 
+  $b: String!, $c: String!) {            
+  gene(chromosome: $chromosome, start: $start, end: $end, assembly: $b) {
+            name
+            id
+            coordinates {
+                chromosome
+                start
+                end
+            }
+        }
+  
+  cCREQuery(assembly: $c, coordinates: $coordinates) {
+            accession
+            coordinates {
+                chromosome
+                start
+                end
+            }
+            group
+        }
+      }
+`

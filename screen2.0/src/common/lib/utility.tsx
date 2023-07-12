@@ -45,7 +45,7 @@ export async function fetchServer<T>(url: string, jq: BodyInit) {
 export const createLink = (url: string, id: string) => {
   const link = url + id
   return (
-    <Link href={link}>
+    <Link href={link} rel="noopener noreferrer" target="_blank" >
       <button>{id}</button>
     </Link>
   )
