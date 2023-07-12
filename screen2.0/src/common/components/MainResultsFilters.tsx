@@ -97,7 +97,6 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     biosample_summary: string;
     biosample_type: string;
     tissue: string;
-    checked: boolean;
     value: string;
   }[]) {
     const assays = { dnase: false, atac: false, h3k4me3: false, h3k27ac: false, ctcf: false }

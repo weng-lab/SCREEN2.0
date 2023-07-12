@@ -33,7 +33,7 @@ export type cCREData = {
 }
 
 export type MainQueryParams = {
-  assembly: string;
+  assembly: "GRCh38" | "mm10";
   chromosome: string;
   start: number;
   end: number;
@@ -73,7 +73,6 @@ export type CellTypeData = {
       biosample_summary: string,
       biosample_type: string,
       tissue: string,
-      checked: boolean,
       value: string,
     }[]
   }

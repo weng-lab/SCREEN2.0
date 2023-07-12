@@ -277,7 +277,14 @@ export const TOP_TISSUES = gql`
  * 
  * @returns the shortened byCellType file from https://downloads.wenglab.org/databyct.json
  */
-export const getGlobals = async () => {
-  const res = await fetch("https://downloads.wenglab.org/databyct.json")
+export const getGlobals = async (assembly: "GRCh38" | "mm10") => {
+  console.log(assembly)
+  var res: Response;
+  if (assembly === "GRCh38") {
+    res = await fetch("https://downloads.wenglab.org/databyct.json")
+  }
+  else if (assembly === "mm10") {
+    res = await fetch("https://downloads.wenglab.org/mm10_byct.json")
+  }
   return res.json()
 }

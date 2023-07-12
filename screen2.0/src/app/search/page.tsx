@@ -14,7 +14,7 @@ export default async function Search({
 }) {
   //Get search parameters and define defaults.
   const mainQueryParams: MainQueryParams = {
-    assembly: searchParams.assembly ? searchParams.assembly : "GRCh38",
+    assembly: (searchParams.assembly === "GRCh38" || searchParams.assembly === "mm10") ? searchParams.assembly : "GRCh38",
     chromosome: searchParams.chromosome ? searchParams.chromosome : "chr11",
     start: searchParams.start ? Number(searchParams.start) : 5205263,
     end: searchParams.end ? Number(searchParams.end) : 5381894,
@@ -52,8 +52,8 @@ export default async function Search({
   //Main query. Returns -1 if query returns an error
   const mainQueryResult: ApolloQueryResult<any> | -1 = await MainQuery(mainQueryParams.assembly, mainQueryParams.chromosome, mainQueryParams.start, mainQueryParams.end, mainQueryParams.Biosample.biosample)
   
-  //Contains shortened byCellType.json
-  const globals: CellTypeData = await getGlobals()
+  //Contains cell type data of the specified assembly
+  const globals: CellTypeData = await getGlobals(mainQueryParams.assembly)
 
 
   /**
