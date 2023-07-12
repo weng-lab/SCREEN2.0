@@ -4582,12 +4582,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jubilant-carnival@npm:^0.2.8":
-  version: 0.2.8
-  resolution: "jubilant-carnival@npm:0.2.8"
+"jubilant-carnival@npm:^0.6.0":
+  version: 0.6.0
+  resolution: "jubilant-carnival@npm:0.6.0"
   peerDependencies:
-    react: ^16.3.1
-  checksum: 8db1381527bdaf1e3235314e9cc103d8ffe425badd829a12c58ebd350939442006dcd5d0a9ec014e71306c58c50411f6a5b53482255dab5f8cbd88bf8cb5619b
+    react: ">=16"
+  checksum: 1661b8422f77ffa750e2ffff9b6dc5bf8af18f3f5c60c001a8982ddfa33362b56e66cad2060f222a6e69cd33480f8615df8009acbf6cc83c8210a7033b102bb6
   languageName: node
   linkType: hard
 
@@ -6481,7 +6481,7 @@ __metadata:
     eslint-config-next: 13.4.7
     file-loader: ^6.2.0
     graphql: ^16.7.1
-    jubilant-carnival: ^0.2.8
+    jubilant-carnival: ^0.6.0
     lint-staged: ^13.2.3
     next: 13.4.9
     normalize.css: ^8.0.1
