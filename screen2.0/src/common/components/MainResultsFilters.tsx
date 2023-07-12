@@ -287,7 +287,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
   }
 
   //Only trigger re-render of the tables if the relevant state variables change. Prevents sluggish sliders in other filters
-  const biosampleTables = useMemo(() => generateBiosampleTables(), [CellLine, PrimaryCell, Tissue, Organoid, InVitro, Biosample, BiosampleHighlight, SearchString])
+  const biosampleTables = useMemo(() => generateBiosampleTables(), [CellLine, PrimaryCell, Tissue, Organoid, InVitro, Biosample, BiosampleHighlight, SearchString, generateBiosampleTables])
 
 
   //Need to make this more responsive
