@@ -13,6 +13,7 @@ export const StyledTab = styled(Tab)(() => ({
 export const CcreSearch = ({ mainQueryParams, ccrerows, globals, assembly }) => {
   const searchParams: ReadonlyURLSearchParams = useSearchParams()!
   const [value, setValue] = React.useState(searchParams.get("accession") ? 1: 0)
+
   const handleChange = (_, newValue: number) => {
     setValue(newValue)
   }
