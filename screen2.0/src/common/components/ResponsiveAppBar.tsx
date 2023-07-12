@@ -68,7 +68,6 @@ function ResponsiveAppBar() {
 
   // Open Dropdown
   const handleOpenNavMenu_Dropdown = (event: React.MouseEvent<HTMLElement>, dropdownID: string) => {
-    console.log("Open Dropdown " + String(dropdownID))
     if (dropdownID == "0") {
       setAnchorElNav_Dropdown0(event.currentTarget)
     } else if (dropdownID == "1") {
@@ -83,7 +82,6 @@ function ResponsiveAppBar() {
 
   // Close Dropdown
   const handleCloseNavMenu_Dropdown = (dropdownID: string) => {
-    console.log("Close Dropdown " + String(dropdownID))
     if (dropdownID == "0") {
       setAnchorElNav_Dropdown0(null)
     } else if (dropdownID == "1") {

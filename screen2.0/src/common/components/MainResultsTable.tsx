@@ -35,16 +35,13 @@ let COLUMNS = (rows) => {
 
   if(rows && rows[0].dnase!==null)
   {
-    console.log(rows[0].dnase,"dnase")
       col.push({
         header: "DNase",
         value: (row) => (row.dnase && row.dnase.toFixed(2)) || 0,
     })
   }
-
   if(rows &&  rows[0].ctcf!==null )
   {
-    console.log(rows[0].ctcf,"ctcf")
     col.push({
       header: "CTCF",
       value: (row) => (row.ctcf && row.ctcf.toFixed(2)) || 0,
@@ -95,7 +92,7 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
         router.push(pathname + "?" + createQueryString("accession", r.accession))
       }}
       tableTitle={props.tableTitle}
-      sortColumn={0}
+      sortColumn={6}
     />
   )
 }

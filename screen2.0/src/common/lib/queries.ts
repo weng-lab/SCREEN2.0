@@ -244,6 +244,7 @@ export default async function MainQuery(assembly: string, chromosome: string, st
     return data
   }  
 }
+
 export const TOP_TISSUES = gql`
   query q($accession: [String!], $assembly: String!) {
     ccREBiosampleQuery(assembly: $assembly) {
@@ -272,6 +273,10 @@ export const TOP_TISSUES = gql`
     }
   }
 `
+/**
+ * 
+ * @returns the shortened byCellType file from https://downloads.wenglab.org/databyct.json
+ */
 export const getGlobals = async () => {
   const res = await fetch("https://downloads.wenglab.org/databyct.json")
   return res.json()

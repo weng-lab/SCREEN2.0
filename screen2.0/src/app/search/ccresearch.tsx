@@ -5,13 +5,13 @@ import MainResultsTable from "../../common/components/MainResultsTable"
 import MainResultsFilters from "../../common/components/MainResultsFilters"
 import { CcreDetails } from "./ccredetails/ccredetails"
 import Grid2 from "../../common/mui-client-wrappers/Grid2"
-import { useSearchParams } from "next/navigation"
+import { ReadonlyURLSearchParams, useSearchParams } from "next/navigation"
 import styled from "@emotion/styled"
 export const StyledTab = styled(Tab)(() => ({
   textTransform: "none",
 }))
 export const CcreSearch = ({ mainQueryParams, ccrerows, globals, assembly }) => {
-  const searchParams: any = useSearchParams()!
+  const searchParams: ReadonlyURLSearchParams = useSearchParams()!
   const [value, setValue] = React.useState(searchParams.get("accession") ? 1: 0)
   const handleChange = (_, newValue: number) => {
     setValue(newValue)
@@ -46,7 +46,6 @@ export const CcreSearch = ({ mainQueryParams, ccrerows, globals, assembly }) => 
           <Grid2 xs={12} lg={9}>
             <MainResultsTable
               rows={ccrerows}
-              
               tableTitle={`Searching ${mainQueryParams.chromosome} in ${mainQueryParams.assembly} from ${mainQueryParams.start.toLocaleString("en-US")} to ${mainQueryParams.end.toLocaleString("en-US")}`}
               itemsPerPage={10}
             />

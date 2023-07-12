@@ -27,13 +27,14 @@ import Link from "next/link"
 import { RangeSlider, DataTable } from "@weng-lab/psychscreen-ui-components"
 import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
+import { CellTypeData, FilteredBiosampleData, MainQueryParams, UnfilteredBiosampleData } from "../../app/search/types"
+import { outputT_or_F } from "../lib/filter-helpers"
 
 //Need to go back and define the types in mainQueryParams object
-export default function MainResultsFilters(props: { mainQueryParams: any, byCellType: any }) {
+export default function MainResultsFilters(props: { mainQueryParams: MainQueryParams, byCellType: CellTypeData }) {
   //No alternatives provided for default, as all these attributes should exist and are given a default value in Search's page.tsx
-
+  
   //Biosample Filter
-  //Checkboxes. Biosample Types are hard-coded while the tissue categories are not.
   const [CellLine, setCellLine] = useState<boolean>(props.mainQueryParams.CellLine)
   const [PrimaryCell, setPrimaryCell] = useState<boolean>(props.mainQueryParams.PrimaryCell)
   const [Tissue, setTissue] = useState<boolean>(props.mainQueryParams.Tissue)
@@ -87,22 +88,21 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
     return url
   }
 
-  
-
-  function outputT_or_F(input: boolean) {
-    if (input === true) { return 't' }
-    else return 'f'
-  }
-
-  //This needs better typing, won't accept {}[] because byCellType isn't type defined
   /**
    * @param experiments Array of objects containing biosample experiments for a given biosample type
    * @returns an object with keys dnase, atac, h3k4me3, h3k27ac, ctcf with each marked true or false
    */
-  function availableAssays(experiments: any) {
+  function availableAssays(experiments: {
+    assay: string;
+    biosample_summary: string;
+    biosample_type: string;
+    tissue: string;
+    checked: boolean;
+    value: string;
+  }[]) {
     const assays = { dnase: false, atac: false, h3k4me3: false, h3k27ac: false, ctcf: false }
-    experiments.forEach(exp => 
-      assays[exp['assay'].toLowerCase()] = true
+    experiments.forEach(exp =>
+      assays[exp.assay.toLowerCase()] = true
     )
     return assays
   }
@@ -112,7 +112,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
    * @param byCellType JSON of byCellType
    * @returns an object of sorted biosample types, grouped by tissue type
    */
-  function parseByCellType(byCellType: any) {
+  function parseByCellType(byCellType: CellTypeData): UnfilteredBiosampleData {
     const biosamples = {}
     Object.entries(byCellType.byCellType).forEach(entry => {
       // if the tissue catergory hasn't been catalogued, make a new blank array for it
@@ -172,10 +172,8 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
    * @param biosamples The biosamples object to filter
    * @returns The same object but filtered with the current state of Biosample Type filters
    */
-  function filterBiosamples(biosamples: {}) {
-    const filteredBiosamples = Object.entries(biosamples).map(([str, objArray]) => 
-      //How do I make this not throw a ts error?
-      //@ts-expect-error
+  function filterBiosamples(biosamples: UnfilteredBiosampleData): FilteredBiosampleData {
+    const filteredBiosamples: FilteredBiosampleData = Object.entries(biosamples).map(([str, objArray]) => 
       [str, objArray.filter(biosample => {
         if (Tissue && biosample.biosampleType === "tissue"){
           return true
@@ -203,9 +201,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
    * @returns MUI Accordion components populated with a table of each tissue's biosamples
    */
   function generateBiosampleTables() {
-    console.log("Table Generation Called")
-    const biosamples = parseByCellType(props.byCellType)
-    const filteredBiosamples = filterBiosamples(biosamples)
+    const filteredBiosamples: FilteredBiosampleData = filterBiosamples(parseByCellType(props.byCellType))
     const cols = [{
       header: "Biosample",
       value: row => row.summaryName,
@@ -375,7 +371,7 @@ export default function MainResultsFilters(props: { mainQueryParams: any, byCell
                 max={10}
                 minDistance={1}
                 step={0.1}
-                //How do I correctly type this? Doesn't like Number[]
+                //These are not properly typed due to an issue in the component library. Type properly when fixed
                 onChange={(value: any) => {
                   setDNaseStart(value[0])
                   setDNaseEnd(value[1])
