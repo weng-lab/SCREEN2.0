@@ -1,4 +1,4 @@
-export const z_score = (d) => (d === -11.0 || d === "--" || d === undefined ? "--" : d.toFixed(2))
+export const z_score = (d: any) => (d === -11.0 || d === "--" || d === undefined ? "--" : d.toFixed(2))
 
 export const ctgroup = (group: string) => {
   group = group.split(",")[0]
