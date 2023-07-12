@@ -1,16 +1,23 @@
 "use client"
 import React, { useState, useEffect, cache, Fragment, useCallback } from "react"
 
-import { fetchServer, ErrorMessage, LoadingMessage } from "../../../common/lib/utility"
-import { GENE_AUTOCOMPLETE_QUERY, payload, SetRange_x, SetRange_y, Point, BarPoint, GenePoint, initialChart, initialGeneList } from "./utils"
+import { fetchServer, LoadingMessage, ErrorMessage } from "../../../common/lib/utility"
+import {
+  SetRange_x,
+  SetRange_y,
+  Point,
+  BarPoint,
+  GenePoint,
+} from "./utils"
 
 import { gene, cellTypeInfoArr, QueryResponse } from "./types"
+import { GENE_AUTOCOMPLETE_QUERY, payload, initialChart, initialGeneList } from "./const"
 import { geneRed, geneBlue, promoterRed, enhancerYellow } from "../../../common/lib/colors"
 import { Range2D } from "jubilant-carnival"
 
 import { DataTable } from "@weng-lab/ts-ztable"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
-import { Autocomplete, Box, Button, FormControlLabel, FormGroup, Slider, Switch, TextField, Typography, debounce } from "@mui/material"
+import { Autocomplete, Box, Button, FormControlLabel, FormGroup, Slider, Switch, TextField, Typography, debounce, Popover, Alert, AlertTitle } from "@mui/material"
 
 /**
  * server fetch for list of cell types
@@ -33,9 +40,9 @@ export default function DifferentialGeneExpression() {
   const [loadingChart, setLoadingChart] = useState<boolean>(true)
   const [errorLoading, setError] = useState<boolean>(false)
   const [data, setData] = useState(initialChart)
-  
+
   const [options, setOptions] = useState<string[]>([])
-  
+
   const [cellTypes, setCellTypes] = useState<cellTypeInfoArr>()
   const [ct1, setct1] = useState<string>("C57BL/6_limb_embryo_11.5_days")
   const [ct2, setct2] = useState<string>("C57BL/6_limb_embryo_15.5_days")
@@ -52,10 +59,14 @@ export default function DifferentialGeneExpression() {
   const [min, setMin] = useState<number>(0)
   const [max, setMax] = useState<number>(0)
 
-  const [range, setRange] = useState<Range2D>({ 
-    x: { start: dr1, end: dr2 }, y: { start: 0, end: 0 } })
-  const [dimensions, setDimensions] = useState<Range2D>({ 
-    x: { start: 100, end: 900 }, y: { start: 450, end: 50 } })
+  const [range, setRange] = useState<Range2D>({
+    x: { start: dr1, end: dr2 },
+    y: { start: 0, end: 0 },
+  })
+  const [dimensions, setDimensions] = useState<Range2D>({
+    x: { start: 100, end: 900 },
+    y: { start: 450, end: 50 },
+  })
 
   const [toggleGenes, setToggleGenes] = useState<boolean>(false)
   const [toggleFC, setToggleFC] = useState<boolean>(true)
@@ -115,7 +126,7 @@ export default function DifferentialGeneExpression() {
         // set domain range
         setdr1(data[data.gene].nearbyDEs.xdomain[0])
         setdr2(data[data.gene].nearbyDEs.xdomain[1])
-        
+
         // round x1, x2
         let min_x: number = Math.floor(data[data.gene].nearbyDEs.xdomain[0] / parseInt("100000")) * 100000
         let max_x: number = Math.ceil(data[data.gene].nearbyDEs.xdomain[1] / parseInt("100000")) * 100000
@@ -216,54 +227,54 @@ export default function DifferentialGeneExpression() {
     }
   }
 
-  const debounceFn = useCallback(debounce(onSearchChange, 120), [])
+  const debounceFn = useCallback(debounce(onSearchChange, 500), [])
 
   // server
   // const data1 = await fetchServer("https://screen-beta-api.wenglab.org/dews/search", payload)
   // const cellInfo = await getCellInfo()
   // const cellTypes2 = await getCellTypes()
 
-  return (
+  return loading ? LoadingMessage() : (
     <main>
       <Grid2 container spacing={3} sx={{ mt: "2rem" }}>
         <Grid2 xs={3}>
-        {loading
-          ? LoadingMessage()
-          : cellTypes &&
-            cellTypes["cellTypeInfoArr"] && (
-              <Box>
-                <Box ml={0}>
-                  <DataTable
-                    tableTitle="Cell 1"
-                    rows={cellTypes["cellTypeInfoArr"]}
-                    columns={[
-                      { header: "Cell Type", value: (row: any) => row.biosample_summary },
-                      { header: "Tissue", value: (row: any) => row.tissue },
-                    ]}
-                    onRowClick={(row: any) => {
-                      setct1(row.value)
-                    }}
-                    sortDescending={true}
-                    searchable={true}
-                  />
-                </Box>
-                <Box ml={0} mt={1}>
-                  <DataTable
-                    tableTitle="Cell 2"
-                    rows={cellTypes["cellTypeInfoArr"]}
-                    columns={[
-                      { header: "Cell Type", value: (row: any) => row.biosample_summary },
-                      { header: "Tissue", value: (row: any) => row.tissue },
-                    ]}
-                    onRowClick={(row: any) => {
-                      setct2(row.value)
-                    }}
-                    sortDescending={true}
-                    searchable={true}
-                  />
+          {loading
+            ? <></>
+            : cellTypes &&
+              cellTypes["cellTypeInfoArr"] && (
+                <Box>
+                  <Box ml={0}>
+                    <DataTable
+                      tableTitle="Cell 1"
+                      rows={cellTypes["cellTypeInfoArr"]}
+                      columns={[
+                        { header: "Cell Type", value: (row: any) => row.biosample_summary },
+                        { header: "Tissue", value: (row: any) => row.tissue },
+                      ]}
+                      onRowClick={(row: any) => {
+                        setct1(row.value)
+                      }}
+                      sortDescending={true}
+                      searchable={true}
+                    />
+                  </Box>
+                  <Box ml={0} mt={1}>
+                    <DataTable
+                      tableTitle="Cell 2"
+                      rows={cellTypes["cellTypeInfoArr"]}
+                      columns={[
+                        { header: "Cell Type", value: (row: any) => row.biosample_summary },
+                        { header: "Tissue", value: (row: any) => row.tissue },
+                      ]}
+                      onRowClick={(row: any) => {
+                        setct2(row.value)
+                      }}
+                      sortDescending={true}
+                      searchable={true}
+                    />
                   </Box>
                 </Box>
-          )}
+              )}
         </Grid2>
         <Grid2 xs={9}>
           <Box mb={1}>
@@ -275,12 +286,11 @@ export default function DifferentialGeneExpression() {
                 data.gene &&
                 data[data.gene] &&
                 data[data.gene].xdomain &&
-                geneList &&
                 data[data.gene].nearbyDEs.genes && (
                   <Fragment>
                     <Grid2 container spacing={3} sx={{ mt: "2rem" }}>
                       <Grid2 xs={3}>
-                        <Box sx={{"& > :not(style)": { m: 1.5, width: "20ch" },}}>
+                        <Box sx={{ "& > :not(style)": { m: 1.5, width: "20ch" } }}>
                           <Grid2 container spacing={3} sx={{ mt: "2rem" }}>
                             <Grid2 xs={4}>
                               <Typography variant="h6" display="inline" lineHeight={2.5}>
@@ -380,7 +390,7 @@ export default function DifferentialGeneExpression() {
                         </Box>
                       </Grid2>
                       <Grid2 xs={7}>
-                        <Box sx={{"& > :not(style)": { m: 1.0, width: "15ch", mt: 2.5 }}} ml={10}>
+                        <Box sx={{ "& > :not(style)": { m: 1.0, width: "15ch", mt: 2.5 } }} ml={10}>
                           <Typography variant="h6" display="inline" lineHeight={5}>
                             Domain Range:
                           </Typography>
@@ -389,7 +399,6 @@ export default function DifferentialGeneExpression() {
                             label={dr1.toLocaleString("en-US")}
                             variant="standard"
                             size="small"
-                            
                             onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
                               setdr1(parseInt(event.target.value))
                             }}
@@ -409,7 +418,7 @@ export default function DifferentialGeneExpression() {
                                   setSlider([dr1, range.x.end + 1200000])
                                   setMin(dr1)
                                 } else ErrorMessage(new Error("invalid range"))
-                              } else ErrorMessage(new Error("invalid range"))
+                              }
                             }}
                           />
                           <Typography display="inline" lineHeight={5}>
@@ -439,7 +448,7 @@ export default function DifferentialGeneExpression() {
                                   setSlider([range.x.start - 1200000, dr2])
                                   setMax(dr2)
                                 } else ErrorMessage(new Error("invalid range"))
-                              } else ErrorMessage(new Error("invalid range"))
+                              }
                             }}
                           />
                         </Box>
@@ -458,7 +467,6 @@ export default function DifferentialGeneExpression() {
                                 <FormControlLabel
                                   control={
                                     <Switch
-                                      defaultChecked
                                       checked={toggleccres}
                                       onChange={() => {
                                         if (toggleccres === true) settoggleccres(false)
@@ -471,7 +479,6 @@ export default function DifferentialGeneExpression() {
                                 <FormControlLabel
                                   control={
                                     <Switch
-                                      defaultChecked
                                       checked={toggleFC}
                                       onChange={() => {
                                         if (toggleFC === true) setToggleFC(false)
@@ -540,26 +547,23 @@ export default function DifferentialGeneExpression() {
                           </text>
                         </g>
                         <g className="labels x-labels">
-                          <SetRange_x range={range} dimensions={dimensions} />
+                          {SetRange_x(range, dimensions)}
+                          {/* <SetRange_x range={range} dimensions={dimensions} /> */}
                           <line x1="100" y1="450" x2="900" y2="450" stroke="black"></line>
                         </g>
                         <g className="labels y-labels">
-                          <SetRange_y
-                            ymin={data[data.gene].nearbyDEs.ymin}
-                            ymax={data[data.gene].nearbyDEs.ymax}
-                            range={range}
-                            dimensions={dimensions}
-                            ct1={ct1}
-                            ct2={ct2}
-                          />
+                          {SetRange_y(data[data.gene].nearbyDEs.ymin, data[data.gene].nearbyDEs.ymax, range, dimensions, ct1, ct2)}
+                          {/* <SetRange_y ymin={data[data.gene].nearbyDEs.ymin} ymax={data[data.gene].nearbyDEs.ymax} range={range} dimensions={dimensions} ct1={ct1} ct2={ct2} /> */}
                           <line x1="100" y1="50" x2="100" y2="450" stroke="black"></line>
                           <line x1="900" y1="50" x2="900" y2="450" stroke="#549623"></line>
                           {!toggleFC ? (
                             <></>
                           ) : (
-                            <text x="890" y="50" style={{ fontSize: 12, writingMode: "vertical-rl", fill: "#549623" }}>
-                              log2 gene expression fold change
-                            </text>
+                            <g transform="translate(890,240) rotate(-90)">
+                              <text  style={{ fontSize: 12, fill: "#549623" }}>
+                                log2 gene expression fold change
+                              </text>
+                            </g>
                           )}
                           {!toggleccres ? (
                             <></>
@@ -569,26 +573,29 @@ export default function DifferentialGeneExpression() {
                             </text>
                           )}
                         </g>
-                        <g className="data" data-setname="Our first data set">
+                        <g className="data" data-setname="de plot">
                           {!toggleFC ? (
                             <></>
                           ) : (
                             data[data.gene].nearbyDEs.data.map((point, i: number) => (
-                              <BarPoint key={i} point={point} i={i} range={range} dimensions={dimensions} />
+                              BarPoint(point, i, range, dimensions)
+                              // <BarPoint point={point} i={i} range={range} dimensions={dimensions} />
                             ))
                           )}
                           {!toggleccres ? (
                             <></>
                           ) : (
                             data[data.gene].diffCREs.data.map((point, i: number) => (
-                              <Point key={i} point={point} i={i} range={range} dimensions={dimensions} />
+                              Point(point, i, range, dimensions)
+                              // <Point point={point} i={i} range={range} dimensions={dimensions} />
                             ))
                           )}
                           {!toggleGenes ? (
                             <></>
                           ) : (
                             data[data.gene].nearbyDEs.genes.map((point, i: number) => (
-                              <GenePoint key={i} point={point} i={i} range={range} dimensions={dimensions} toggleGenes={toggleGenes} />
+                              GenePoint(point, i, range, dimensions, toggleGenes)
+                              // <GenePoint point={point} i={i} range={range} dimensions={dimensions} toggleGenes={toggleGenes} />
                             ))
                           )}
                         </g>
@@ -658,7 +665,8 @@ export default function DifferentialGeneExpression() {
                           </g>
                           <g className="data">
                             {data[data.gene].nearbyDEs.genes.map((point, i: number) => (
-                              <GenePoint key={i} point={point} i={i} range={range} dimensions={dimensions} toggleGenes={false} />
+                              GenePoint(point, i, range, dimensions, false)
+                              // <GenePoint point={point} i={i} range={range} dimensions={dimensions} toggleGenes={false} />
                             ))}
                           </g>
                         </svg>
