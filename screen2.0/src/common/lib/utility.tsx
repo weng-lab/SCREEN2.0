@@ -1,6 +1,6 @@
-import React, { ReactElement, useState } from "react"
-import { ApolloClient, gql, InMemoryCache, useQuery } from "@apollo/client"
-import { Link, Alert, AlertTitle, CircularProgress, Typography } from "@mui/material"
+import React, { ReactElement } from "react"
+import { ApolloClient, gql, InMemoryCache } from "@apollo/client"
+import { Link, Alert, AlertTitle, CircularProgress, Typography, Popover, Popper } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { Snackbar, Stack, Box } from "@mui/material"
 
@@ -57,24 +57,15 @@ export const createLink = (url: string, id: string) => {
  */
 export function LoadingMessage() {
   // console.log("Loading...")
-  // return <CircularProgress />
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >      
-        <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "2rem" }}>
-          <Grid2 xs={12} lg={12}>
-            <Box mt={2}>
-              <CircularProgress />
-              <Typography>Loading...</Typography>
-            </Box>
-          </Grid2>
-        </Grid2>
-    </div>
+      <Grid2 container alignItems="center" justifyContent="center" direction="column" sx={{ minHeight: '90vh' }}>
+          <Box>
+            <CircularProgress />
+          </Box>
+          <Box mt={1} ml={1}>
+            <Typography>Loading...</Typography>
+          </Box>
+      </Grid2>
   )
 }
 
@@ -85,9 +76,16 @@ export function LoadingMessage() {
  */
 export function ErrorMessage(error: Error) {
   let open: boolean = true
-  console.log("Error!")
+
+  // debugging
+  // console.log("Error!")
   console.log(error.message)
   // throw error
+  
+  function toggleOpen(toggle: boolean) {
+    if (toggle === true) open = false
+    else open = true
+  }
 
   const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === "clickaway") {
@@ -97,14 +95,24 @@ export function ErrorMessage(error: Error) {
   }
 
   return (
-    <Snackbar open={true} autoHideDuration={120} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
-      <Alert severity="error">
-        <AlertTitle>Error</AlertTitle>
-        There was an error loading. — <strong>{error.message}</strong>
-      </Alert>
-    </Snackbar>
+    <Grid2 container alignItems="center" justifyContent="center" direction="column" sx={{ minHeight: '90vh' }}>
+      {/* <Popover
+      id="errorpopper"
+      open={open}
+      anchorOrigin={{
+        vertical: "center",
+        horizontal: "center"
+      }}
+    > */}
+        <Alert severity="error" variant="filled">
+          <AlertTitle>Error</AlertTitle>
+          There was an error loading. — <strong>{error.message}</strong>
+        </Alert>
+      {/* </Popover> */}
+    </Grid2>
   )
 }
+
 
 // /**
 //  * Uses fetch to make a query call (client side)
