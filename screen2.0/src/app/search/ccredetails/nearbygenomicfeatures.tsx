@@ -172,10 +172,11 @@ export const NearByGenomicFeatures: React.FC<{
                           onClick={() => router.push(pathname + "?" + createQueryString("accession", row.name))}
                           style={{
                             color: "#1976d2",
-                            textDecoration: "underline",
-                            fontSize: "14px",
+                         //   textDecoration: "underline",
+                            fontSize: "12px",
                             lineHeight: "20px",
                             fontWeight: 400,
+                            fontFamily: "sans-serif",
                             letterSpacing: "0.1px",
                             //marginBottom: "10px",
                           }}
