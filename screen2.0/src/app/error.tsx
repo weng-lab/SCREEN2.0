@@ -1,18 +1,12 @@
-'use client' // Error components must be Client Components
+"use client" // Error components must be Client Components
 
 // See https://nextjs.org/docs/app/api-reference/file-conventions/error
 
-import { useEffect } from 'react'
-import { ErrorMessage } from '../common/lib/utility'
-import { Button } from '@mui/material'
+import { useEffect } from "react"
+import { ErrorMessage } from "../common/lib/utility"
+import { Button } from "@mui/material"
 
-export default function Error({
-  error,
-  reset,
-}: {
-  error: Error & { digest?: string }
-  reset: () => void
-}) {
+export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
     // Log the error to an error reporting service
     console.error(error)

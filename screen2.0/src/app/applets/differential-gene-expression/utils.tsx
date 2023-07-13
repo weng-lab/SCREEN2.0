@@ -10,8 +10,8 @@ import { Point2D, Range2D, linearTransform2D } from "jubilant-carnival"
  * @param {Range2D} dimensions x and y range of svg
  * @returns data point
  */
-export const Point = ( point: any, i: number, range: Range2D, dimensions: Range2D ) => {
-// export const Point = ({point, i, range, dimensions}) => {
+export const Point = (point: any, i: number, range: Range2D, dimensions: Range2D) => {
+  // export const Point = ({point, i, range, dimensions}) => {
   const p: Point2D = { x: point.center, y: point.value }
 
   // invalid range
@@ -42,13 +42,12 @@ export const Point = ( point: any, i: number, range: Range2D, dimensions: Range2
  * @param {Range2D} dimensions x and y range of svg
  * @returns data point
  */
-export const BarPoint = ( point: any, i: number, range: Range2D, dimensions: Range2D) => {
-// export const BarPoint = ({point, i, range, dimensions}) => {
+export const BarPoint = (point: any, i: number, range: Range2D, dimensions: Range2D) => {
+  // export const BarPoint = ({point, i, range, dimensions}) => {
   let p1: Point2D = { x: 0, y: 0 }
   let p2: Point2D = { x: 0, y: 0 }
   let x1: number = point.start
-  let x2: number = point.stop  
-  
+  let x2: number = point.stop
 
   // cut bars off at axis if out of range
   if (point.start > range.x.end || point.stop < range.x.start) return <></>
@@ -66,11 +65,11 @@ export const BarPoint = ( point: any, i: number, range: Range2D, dimensions: Ran
 
   return (
     <Fragment key={i}>
-    <rect x={p1.x} y={p1.y} width={p2.x - p1.x} height={p2.y - p1.y} fill="#549623" fillOpacity={0.5}>
-      <title>
-        {"fc: " + point.fc + "\nstart: " + point.start.toLocaleString("en-US") + "\nstop: " + point.stop.toLocaleString("en-US")}
-      </title>
-    </rect>
+      <rect x={p1.x} y={p1.y} width={p2.x - p1.x} height={p2.y - p1.y} fill="#549623" fillOpacity={0.5}>
+        <title>
+          {"fc: " + point.fc + "\nstart: " + point.start.toLocaleString("en-US") + "\nstop: " + point.stop.toLocaleString("en-US")}
+        </title>
+      </rect>
     </Fragment>
   )
 }
@@ -84,8 +83,8 @@ export const BarPoint = ( point: any, i: number, range: Range2D, dimensions: Ran
  * @param {boolean} toggleGenes is switch for gene plot on
  * @returns data point
  */
-export const GenePoint = ( point: any, i: number, range: Range2D, dimensions: Range2D, toggleGenes: boolean ) => {
-// export const GenePoint = ({ point, i, range, dimensions, toggleGenes}) => {
+export const GenePoint = (point: any, i: number, range: Range2D, dimensions: Range2D, toggleGenes: boolean) => {
+  // export const GenePoint = ({ point, i, range, dimensions, toggleGenes}) => {
   let p1: Point2D = { x: 0, y: 0 }
   let p2: Point2D = { x: 0, y: 0 }
   let x1: number = point.start
@@ -93,7 +92,7 @@ export const GenePoint = ( point: any, i: number, range: Range2D, dimensions: Ra
   let size: number = 20
   let color: string = geneRed
   if (point.strand === "-") color = geneBlue
-  
+
   // cut off lines if out of axis range
   if (point.start > range.x.end || point.stop < range.x.start) return <></>
   else if (point.start < range.x.start) x1 = range.x.start
@@ -148,7 +147,7 @@ export const GenePoint = ( point: any, i: number, range: Range2D, dimensions: Ra
  * @returns list of labels along the x-axis
  */
 export const SetRange_x = (range: Range2D, dimensions: Range2D) => {
-// export const SetRange_x = ({range, dimensions}) => {
+  // export const SetRange_x = ({range, dimensions}) => {
   let range_x: number[] = []
   let zeros: string = "00000"
 
@@ -174,7 +173,7 @@ export const SetRange_x = (range: Range2D, dimensions: Range2D) => {
   }
 
   // line and label
-  const Axis_name = (x: number, label: number, zeros: string ) => {
+  const Axis_name = (x: number, label: number, zeros: string) => {
     if ((label / parseInt("1" + zeros)) % 2 === 0 || range_x.length < 7)
       return (
         <Fragment key={x}>
@@ -215,7 +214,7 @@ export const SetRange_x = (range: Range2D, dimensions: Range2D) => {
  * @returns list of labels along the y-axis
  */
 export const SetRange_y = (ymin: number, ymax: number, range: Range2D, dimensions: Range2D, ct1: string, ct2: string) => {
-// export const SetRange_y = ({ymin, ymax, range, dimensions, ct1, ct2}) => {
+  // export const SetRange_y = ({ymin, ymax, range, dimensions, ct1, ct2}) => {
   let range_y: number[] = []
   let min_y: number = 0
   if (ymin < 0) min_y = parseInt(ymin.toString()[0] + (ymin - 0.5).toString()[1]) - 0.5

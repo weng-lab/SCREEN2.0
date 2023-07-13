@@ -5,7 +5,6 @@ import { ApolloQueryResult } from "@apollo/client"
 import { cCREData, CellTypeData, MainQueryParams } from "./types"
 import { checkTrueFalse, passesCriteria } from "../../common/lib/filter-helpers"
 
-
 export default async function Search({
   // Object from URL, see https://nextjs.org/docs/app/api-reference/file-conventions/page#searchparams-optional
   searchParams,
@@ -14,18 +13,25 @@ export default async function Search({
 }) {
   //Get search parameters and define defaults.
   const mainQueryParams: MainQueryParams = {
-    assembly: (searchParams.assembly === "GRCh38" || searchParams.assembly === "mm10") ? searchParams.assembly : "GRCh38",
+    assembly: searchParams.assembly === "GRCh38" || searchParams.assembly === "mm10" ? searchParams.assembly : "GRCh38",
     chromosome: searchParams.chromosome ? searchParams.chromosome : "chr11",
     start: searchParams.start ? Number(searchParams.start) : 5205263,
     end: searchParams.end ? Number(searchParams.end) : 5381894,
     // Biosample Filters
     // URL could probably be cut down by putting this into one long string where each letter is t/f or 0/1
-    CellLine: searchParams.CellLine ? checkTrueFalse(searchParams.CellLine): true,
-    PrimaryCell: searchParams.PrimaryCell ? checkTrueFalse(searchParams.PrimaryCell): true,
-    Tissue: searchParams.Tissue ? checkTrueFalse(searchParams.Tissue): true,
-    Organoid: searchParams.Organoid ? checkTrueFalse(searchParams.Organoid): true,
-    InVitro: searchParams.InVitro ? checkTrueFalse(searchParams.InVitro): true,
-    Biosample: searchParams.Biosample ? { selected: true, biosample: searchParams.Biosample, tissue: searchParams.BiosampleTissue, summaryName: searchParams.BiosampleSummary } : { selected: false, biosample: null, tissue: null, summaryName: null },
+    CellLine: searchParams.CellLine ? checkTrueFalse(searchParams.CellLine) : true,
+    PrimaryCell: searchParams.PrimaryCell ? checkTrueFalse(searchParams.PrimaryCell) : true,
+    Tissue: searchParams.Tissue ? checkTrueFalse(searchParams.Tissue) : true,
+    Organoid: searchParams.Organoid ? checkTrueFalse(searchParams.Organoid) : true,
+    InVitro: searchParams.InVitro ? checkTrueFalse(searchParams.InVitro) : true,
+    Biosample: searchParams.Biosample
+      ? {
+          selected: true,
+          biosample: searchParams.Biosample,
+          tissue: searchParams.BiosampleTissue,
+          summaryName: searchParams.BiosampleSummary,
+        }
+      : { selected: false, biosample: null, tissue: null, summaryName: null },
     // Chromatin Filters
     // "[...]_s" = start, "[...]_e" = end.
     //Maybe make these properly cased to make URL a bit more readable
@@ -50,11 +56,16 @@ export default async function Search({
   }
 
   //Main query. Returns -1 if query returns an error
-  const mainQueryResult: ApolloQueryResult<any> | -1 = await MainQuery(mainQueryParams.assembly, mainQueryParams.chromosome, mainQueryParams.start, mainQueryParams.end, mainQueryParams.Biosample.biosample)
-  
+  const mainQueryResult: ApolloQueryResult<any> | -1 = await MainQuery(
+    mainQueryParams.assembly,
+    mainQueryParams.chromosome,
+    mainQueryParams.start,
+    mainQueryParams.end,
+    mainQueryParams.Biosample.biosample
+  )
+
   //Contains cell type data of the specified assembly
   const globals: CellTypeData = await getGlobals(mainQueryParams.assembly)
-
 
   /**
    * This needs better input handling
@@ -74,7 +85,7 @@ export default async function Search({
       h3k4me3?: number
       h3k27ac?: number
       ctcf?: number
-      linkedGenes: {pc: {name: string}[], all: {name: string}[]}
+      linkedGenes: { pc: { name: string }[]; all: { name: string }[] }
     }[] = []
     const cCRE_data: cCREData[] = QueryResult.data.cCRESCREENSearch
     let offset = 0
@@ -92,7 +103,7 @@ export default async function Search({
           h3k4me3: biosample ? currentElement.ctspecific.h3k4me3_zscore : currentElement.promoter_zscore,
           h3k27ac: biosample ? currentElement.ctspecific.h3k27ac_zscore : currentElement.enhancer_zscore,
           ctcf: biosample ? currentElement.ctspecific.ctcf_zscore : currentElement.ctcf_zscore,
-          linkedGenes: {pc: currentElement.genesallpc.pc.intersecting_genes, all: currentElement.genesallpc.all.intersecting_genes}
+          linkedGenes: { pc: currentElement.genesallpc.pc.intersecting_genes, all: currentElement.genesallpc.all.intersecting_genes },
         }
       }
       // Offset incremented to account for missing rows which do not meet filter criteria
@@ -100,7 +111,7 @@ export default async function Search({
         offset += 1
       }
     })
-    
+
     return rows
   }
 
@@ -109,7 +120,7 @@ export default async function Search({
       <CcreSearch
         mainQueryParams={mainQueryParams}
         globals={globals}
-        ccrerows={(mainQueryResult === -1) ? [] : generateRows(mainQueryResult, mainQueryParams.Biosample.biosample)}
+        ccrerows={mainQueryResult === -1 ? [] : generateRows(mainQueryResult, mainQueryParams.Biosample.biosample)}
         assembly={mainQueryParams.assembly}
       />
     </main>

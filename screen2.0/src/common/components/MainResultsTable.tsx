@@ -7,7 +7,6 @@ import { Typography } from "@mui/material"
 import Link from "next/link"
 
 let COLUMNS = (rows) => {
-
   let col: DataTableColumn<any>[] = [
     {
       header: "Accession",
@@ -32,7 +31,7 @@ let COLUMNS = (rows) => {
     {
       header: "ATAC",
       value: (row: { atac: number }) => row.atac,
-    }
+    },
   ]
 
   if (rows && rows[0].dnase !== null) {
@@ -63,8 +62,8 @@ let COLUMNS = (rows) => {
   //Is there a good way to sort linked genes? Set to "" because I'm not sure
   col.push({
     header: "Linked\u00A0Genes\u00A0(Distance)",
-    value: row => "",
-    render: (row) =>
+    value: (row) => "",
+    render: (row) => (
       <>
         <Typography variant="body2">
           {`PC:\u00A0${row.linkedGenes.pc[0].name},\u00A0${row.linkedGenes.pc[1].name},\u00A0${row.linkedGenes.pc[2].name}`}
@@ -73,6 +72,7 @@ let COLUMNS = (rows) => {
           {`All:\u00A0${row.linkedGenes.all[0].name},\u00A0${row.linkedGenes.all[1].name},\u00A0${row.linkedGenes.all[2].name}`}
         </Typography>
       </>
+    ),
   })
 
   return col
@@ -92,7 +92,6 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
     },
     [searchParams]
   )
-
 
   return (
     <DataTable

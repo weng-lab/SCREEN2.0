@@ -24,86 +24,89 @@ export type cCREData = {
   }
   genesallpc: {
     all: {
-      intersecting_genes: {name: string}[]
+      intersecting_genes: { name: string }[]
     }
     pc: {
-      intersecting_genes: {name: string}[]
+      intersecting_genes: { name: string }[]
     }
   }
 }
 
 export type MainQueryParams = {
-  assembly: "GRCh38" | "mm10";
-  chromosome: string;
-  start: number;
-  end: number;
-  CellLine?: boolean;
-  PrimaryCell?: boolean;
-  Tissue?: boolean;
-  Organoid?: boolean;
-  InVitro?: boolean;
+  assembly: "GRCh38" | "mm10"
+  chromosome: string
+  start: number
+  end: number
+  CellLine?: boolean
+  PrimaryCell?: boolean
+  Tissue?: boolean
+  Organoid?: boolean
+  InVitro?: boolean
   Biosample?: {
-    selected: boolean;
-    biosample: string;
-    tissue: string;
-    summaryName: string;
-  };
-  dnase_s?: number;
-  dnase_e?: number;
-  h3k4me3_s?: number;
-  h3k4me3_e?: number;
-  h3k27ac_s?: number;
-  h3k27ac_e?: number;
-  ctcf_s?: number;
-  ctcf_e?: number;
-  CA?: boolean;
-  CA_CTCF?: boolean;
-  CA_H3K4me3?: boolean;
-  CA_TF?: boolean;
-  dELS?: boolean;
-  pELS?: boolean;
-  PLS?: boolean;
-  TF?: boolean;
+    selected: boolean
+    biosample: string
+    tissue: string
+    summaryName: string
+  }
+  dnase_s?: number
+  dnase_e?: number
+  h3k4me3_s?: number
+  h3k4me3_e?: number
+  h3k27ac_s?: number
+  h3k27ac_e?: number
+  ctcf_s?: number
+  ctcf_e?: number
+  CA?: boolean
+  CA_CTCF?: boolean
+  CA_H3K4me3?: boolean
+  CA_TF?: boolean
+  dELS?: boolean
+  pELS?: boolean
+  PLS?: boolean
+  TF?: boolean
 }
 
 export type CellTypeData = {
   byCellType: {
     [key: string]: {
-      assay: string,
-      biosample_summary: string,
-      biosample_type: string,
-      tissue: string,
-      value: string,
+      assay: string
+      biosample_summary: string
+      biosample_type: string
+      tissue: string
+      value: string
     }[]
   }
 }
 
 export type UnfilteredBiosampleData = {
   [key: string]: {
-    summaryName: string,
-    biosampleType: string,
-    biosampleTissue: string,
-    queryValue: string,
+    summaryName: string
+    biosampleType: string
+    biosampleTissue: string
+    queryValue: string
     assays: {
-      atac: boolean,
-      ctcf: boolean,
-      dnase: boolean,
-      h3k27ac: boolean,
+      atac: boolean
+      ctcf: boolean
+      dnase: boolean
+      h3k27ac: boolean
       h3k4me3: boolean
     }
   }[]
 }
 
-export type FilteredBiosampleData = [string , {
-  summaryName: string;
-  biosampleType: string;
-  biosampleTissue: string;
-  queryValue: string;
-  assays: {
-      atac: boolean;
-      ctcf: boolean;
-      dnase: boolean;
-      h3k27ac: boolean;
-      h3k4me3: boolean;
-  };
-}[]][]
+export type FilteredBiosampleData = [
+  string,
+  {
+    summaryName: string
+    biosampleType: string
+    biosampleTissue: string
+    queryValue: string
+    assays: {
+      atac: boolean
+      ctcf: boolean
+      dnase: boolean
+      h3k27ac: boolean
+      h3k4me3: boolean
+    }
+  }[]
+][]

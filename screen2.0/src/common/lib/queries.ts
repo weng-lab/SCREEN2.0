@@ -70,7 +70,6 @@ const cCRE_QUERY = gql`
         accession
         isproximal
         concordant
-       
       }
       genesallpc {
         accession
@@ -165,7 +164,6 @@ const cCRE_QUERY_WITH_BIOSAMPLES = gql`
         accession
         isproximal
         concordant
-       
       }
       genesallpc {
         accession
@@ -226,23 +224,20 @@ function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: numbe
  * @returns cCREs matching the search
  */
 export default async function MainQuery(assembly: string, chromosome: string, start: number, end: number, biosample: string = null) {
-
   console.log("queried with: " + assembly, chromosome, start, end, biosample)
- 
-  var data: ApolloQueryResult<any> | -1;
+
+  var data: ApolloQueryResult<any> | -1
   try {
     data = await getClient().query({
-        query: biosample ? cCRE_QUERY_WITH_BIOSAMPLES: cCRE_QUERY,
-        variables: cCRE_QUERY_VARIABLES(assembly, chromosome, start, end, biosample),
-      })
-  }
-  catch (error){
+      query: biosample ? cCRE_QUERY_WITH_BIOSAMPLES : cCRE_QUERY,
+      variables: cCRE_QUERY_VARIABLES(assembly, chromosome, start, end, biosample),
+    })
+  } catch (error) {
     console.log(error)
     data = -1
-  }
-  finally {
+  } finally {
     return data
-  }  
+  }
 }
 
 export const TOP_TISSUES = gql`
@@ -274,16 +269,15 @@ export const TOP_TISSUES = gql`
   }
 `
 /**
- * 
+ *
  * @returns the shortened byCellType file from https://downloads.wenglab.org/databyct.json
  */
 export const getGlobals = async (assembly: "GRCh38" | "mm10") => {
   console.log(assembly)
-  var res: Response;
+  var res: Response
   if (assembly === "GRCh38") {
     res = await fetch("https://downloads.wenglab.org/databyct.json")
-  }
-  else if (assembly === "mm10") {
+  } else if (assembly === "mm10") {
     res = await fetch("https://downloads.wenglab.org/mm10_byct.json")
   }
   return res.json()
