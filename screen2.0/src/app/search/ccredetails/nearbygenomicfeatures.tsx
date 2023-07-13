@@ -4,10 +4,11 @@ import { client } from "./client"
 import { useQuery } from "@apollo/client"
 import { NEARBY_GENOMIC_FEATURES_QUERY, NEARBY_GENOMIC_FEATURES_NOSNPS_QUERY } from "./queries"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
-import { CircularProgress } from "@mui/material"
-import { DataTable, Typography } from "@weng-lab/psychscreen-ui-components"
+import { CircularProgress, Typography } from "@mui/material"
+import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { createLink } from "../../../common/lib/utility"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
+
 const genesDistance = (
   coordinates: { chromosome: string; start: number; end: number },
   ccrecoord: { chromosome: string; start: number; end: number }
@@ -134,8 +135,8 @@ export const NearByGenomicFeatures: React.FC<{
         </Grid2>
       ) : (
         <>
-          <Grid2 container spacing={3} sx={{ ml: "1rem", mr: "1rem", mt: "1rem", mb: "1rem" }}>
-            <Grid2 xs={4} lg={4}>
+          <Grid2 container spacing={5}>
+            <Grid2 xs={12} md={6} xl={4}>
               {
                 <DataTable
                   columns={[
@@ -158,29 +159,15 @@ export const NearByGenomicFeatures: React.FC<{
                 />
               }
             </Grid2>
-            <Grid2 xs={4} lg={4}>
+            <Grid2 xs={12} md={6} xl={4}>
               {
                 <DataTable
                   columns={[
                     {
-                      header: "accession",
+                      header: "Accession",
                       value: (row) => row.name,
                       render: (row) => (
-                        <Typography
-                          type="body"
-                          size="medium"
-                          onClick={() => router.push(pathname + "?" + createQueryString("accession", row.name))}
-                          style={{
-                            color: "#1976d2",
-                         //   textDecoration: "underline",
-                            fontSize: "12px",
-                            lineHeight: "20px",
-                            fontWeight: 400,
-                            fontFamily: "sans-serif",
-                            letterSpacing: "0.1px",
-                            //marginBottom: "10px",
-                          }}
-                        >
+                        <Typography component="button" onClick={() => router.push(pathname + "?" + createQueryString("accession", row.name))} variant="body2" color="primary">
                           {row.name}
                         </Typography>
                       ),
@@ -199,7 +186,7 @@ export const NearByGenomicFeatures: React.FC<{
                 />
               }
             </Grid2>
-            <Grid2 xs={4} lg={4}>
+            <Grid2 xs={12} md={6} xl={4}>
               {
                 <DataTable
                   columns={[
