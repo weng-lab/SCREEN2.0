@@ -48,7 +48,7 @@
     "@weng-lab/ts-ztable": "^4.0.1",
     "autoprefixer": "10.4.14",
     "eslint": "8.44.0",
-    "eslint-config-next": "13.4.7",
+    "eslint-config-next": "13.4.10",
     "graphql": "^16.7.1",
     "jubilant-carnival": "^0.6.0",
     "next": "13.4.10",
