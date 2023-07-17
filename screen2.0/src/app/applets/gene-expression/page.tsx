@@ -5,44 +5,56 @@ import { fetchServer, LoadingMessage, ErrorMessage, createLink } from "../../../
 
 import { DataTable } from "@weng-lab/ts-ztable"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
-import { Accordion, AccordionDetails, AccordionSummary, Box, Button, ButtonBase, Checkbox, FormControlLabel, FormGroup, Link, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material"
+import { Autocomplete, TextField, Accordion, AccordionDetails, AccordionSummary, Box, Button, debounce, ButtonBase, Checkbox, FormControlLabel, FormGroup, Link, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material"
 import { styled } from '@mui/material/styles'
 import { CheckBox, ExpandMore } from "@mui/icons-material"
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { ToggleButtonMean } from "./utils"
+import { PlotGeneExpression, ToggleButtonMean } from "./utils"
+import { BiosampleList, CellComponents, GeneExpression } from "./types"
+import { Range2D } from "jubilant-carnival"
 
-export type biosamplelist = {
-    cell_line: boolean,
-    in_vitro: boolean,
-    primary_cell: boolean,
-    tissue: boolean
-}
+export const GENE_AUTOCOMPLETE_QUERY = `
+  query ($assembly: String!, $name_prefix: [String!], $limit: Int) {
+    gene(assembly: $assembly, name_prefix: $name_prefix, limit: $limit) {
+      name
+      id
+      coordinates {
+        start
+        chromosome
+        end
+      }
+    }
+  }  
+`
 
-export type cellcomponents = {
-    cell: boolean,
-    chromatin: boolean,
-    cytosol: boolean,
-    membrane: boolean,
-    nucleolus: boolean,
-    nucleoplasm: boolean,
-    nucleus: boolean
-}
+export type gene = {
+    chrom: string
+    start: number
+    end: number
+    id: string
+    name: string
+  }
 
 export default function GeneExpression(){
     const [ loading, setLoading ] = useState<boolean>(true)
     const [ error, setError ] = useState<boolean>(false)
-    const [ data, setData ] = useState()
+    const [ data, setData ] = useState<GeneExpression>()
+    const [options, setOptions] = useState<string[]>([])
 
     const [ assembly, setAssembly ] = useState<string>("GRCh38")
-    const [ current_gene, setGene ] = useState<string>("OR51AB1P")
+    const [ current_gene, setCurrentGene ] = useState<string>("OR51AB1P")
+    const [geneID, setGeneID] = useState<string>("OR51AB1P")
+    const [ gene, setGene ] = useState<gene>()
+    const [geneDesc, setgeneDesc] = useState<{ name: string; desc: string }[]>()
+    const [geneList, setGeneList] = useState<gene[]>([])
 
-    const [ group, setGroup ] = useState<string>("tissue")              // experiment, tissue, tissue max
-    const [ RNAtype, setRNAType ] = useState<string>("any")             // any, polyA RNA-seq, total RNA-seq
-    const [ scale, setScale ] = useState<string>("linear")              // linear or log2
-    const [ replicates, setReplicates ] = useState<string>("single")    // single or mean
+    const [ group, setGroup ] = useState<string>("byTissueMaxFPKM")              // experiment, tissue, tissue max
+    const [ RNAtype, setRNAType ] = useState<string>("all")             // any, polyA RNA-seq, total RNA-seq
+    const [ scale, setScale ] = useState<string>("rawFPKM")              // linear or log2
+    const [ replicates, setReplicates ] = useState<string>("mean")    // single or mean
 
     const [ biosamples_list, setBiosamplesList ] = useState<string[]>([ "cell line", "in vitro differentiated cells", "primary cell", "tissue" ])
-    const [ biosamples, setBiosamples ] = useState<biosamplelist>({
+    const [ biosamples, setBiosamples ] = useState<BiosampleList>({
         cell_line: true,
         in_vitro: true,
         primary_cell: true,
@@ -50,7 +62,7 @@ export default function GeneExpression(){
     })
 
     const [ cell_components_list, setCellComponentsList ] = useState<string[]>([ "cell" ])
-    const [ cell_components, setCellComponents ] = useState<cellcomponents>({
+    const [ cell_components, setCellComponents ] = useState<CellComponents>({
         cell: true,
         chromatin: false,
         cytosol: false,
@@ -58,6 +70,16 @@ export default function GeneExpression(){
         nucleolus: false,
         nucleoplasm: false,
         nucleus: false
+    })
+
+    const [range, setRange] = useState<Range2D>({
+        x: { start: 0, end: 4 },
+        y: { start: 0, end: 0 },
+    })
+    
+    const [dimensions, setDimensions] = useState<Range2D>({
+        x: { start: 125, end: 700 },
+        y: { start: 4900, end: 100 },
     })
 
     // fetch gene expression data
@@ -108,7 +130,7 @@ export default function GeneExpression(){
         return checkList
     }
 
-    function getToggleList(b: biosamplelist, c: cellcomponents){
+    function getToggleList(b: BiosampleList, c: CellComponents){
         let list: string[] = []
         if (b)
             Object.keys(b).map((label: string) => {if (b[label]) list.push(label)})
@@ -116,15 +138,147 @@ export default function GeneExpression(){
             Object.keys(c).map((label: string) => {if (c[label]) list.push(label)})
         
         return list
-    } 
+    }
+
+    // gene descriptions
+  useEffect(() => {
+    const fetchData = async () => {
+      let f = await Promise.all(
+        options.map((gene) =>
+          fetch("https://clinicaltables.nlm.nih.gov/api/ncbi_genes/v3/search?authenticity_token=&terms=" + gene.toUpperCase())
+            .then((x) => x && x.json())
+            .then((x) => {
+              const matches = (x as QueryResponse)[3] && (x as QueryResponse)[3].filter((x) => x[3] === gene.toUpperCase())
+              return {
+                desc: matches && matches.length >= 1 ? matches[0][4] : "(no description available)",
+                name: gene,
+              }
+            })
+            .catch(() => {
+              return { desc: "(no description available)", name: gene }
+            })
+        )
+      )
+      setgeneDesc(f)
+    }
+
+    options && fetchData()
+  }, [options])
+
+  // gene list
+  const onSearchChange = async (value: string) => {
+    setOptions([])
+    const response = await fetch("https://ga.staging.wenglab.org/graphql", {
+      method: "POST",
+      body: JSON.stringify({
+        query: GENE_AUTOCOMPLETE_QUERY,
+        variables: {
+          assembly: "GRCh38",
+          name_prefix: value,
+          limit: 100,
+        },
+      }),
+      headers: { "Content-Type": "application/json" },
+    })
+    const genesSuggestion = (await response.json()).data?.gene
+    if (genesSuggestion && genesSuggestion.length > 0) {
+      const r = genesSuggestion.map((g) => g.name)
+      const g = genesSuggestion.map((g) => {
+        return {
+          chrom: g.coordinates.chromosome,
+          start: g.coordinates.start,
+          end: g.coordinates.end,
+          id: g.id,
+          name: g.name,
+        }
+      })
+      setOptions(r)
+      setGeneList(g)
+    } else if (genesSuggestion && genesSuggestion.length === 0) {
+      setOptions([])
+      setGeneList([])
+    }
+  }
+
+  const debounceFn = useCallback(debounce(onSearchChange, 500), [])
 
     return (
         <main>
             <Grid2 container mt="2rem">
-            <Grid2 xs={9}>
+            <Grid2 xs={6}>
                 <Box mt={1}>
                     <Typography variant="h5">{current_gene} Gene Expression Profiles by RNA-seq</Typography>
                 </Box>
+                <Box mt={3} ml={3}>
+                <Autocomplete
+                                disablePortal
+                                freeSolo={true}
+                                id="gene-ids"
+                                noOptionsText="e.g. Gm25142"
+                                options={options}
+                                sx={{ width: 200 }}
+                                ListboxProps={{
+                                  style: {
+                                    maxHeight: "180px",
+                                  },
+                                }}
+                                onChange={(event: React.ChangeEvent<HTMLInputElement>, value: string) => {
+                                  if (value != "") debounceFn(value)
+                                  setGeneID(value)
+                                }}
+                                onInputChange={(event: React.ChangeEvent<HTMLInputElement>, value: string) => {
+                                  if (value != "") debounceFn(value)
+                                  setGeneID(value)
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key == "Enter") {
+                                    for (let g of geneList) {
+                                      if (g.name === geneID && g.end - g.start > 0) {
+                                        setGene(g)
+                                        setCurrentGene(g.name)
+                                        break
+                                      }
+                                    }
+                                  }
+                                }}
+                                renderInput={(props) => <TextField {...props} label={geneID} />}
+                                renderOption={(props, opt) => {
+                                  return (
+                                    <li {...props} key={props.id}>
+                                      <Grid2 container alignItems="center">
+                                        <Grid2 sx={{ width: "calc(100% - 44px)" }}>
+                                          <Box component="span" sx={{ fontWeight: "regular" }}>
+                                            {opt}
+                                          </Box>
+                                          {geneDesc && geneDesc.find((g) => g.name === opt) && (
+                                            <Typography variant="body2" color="text.secondary">
+                                              {geneDesc.find((g) => g.name === opt)?.desc}
+                                            </Typography>
+                                          )}
+                                        </Grid2>
+                                      </Grid2>
+                                    </li>
+                                  )
+                                }}
+                              />
+                              <Button
+                                variant="text"
+                                onClick={() => {
+                                    for (let g of geneList) {
+                                        if (g.name === geneID && g.end - g.start > 0) {
+                                          setGene(g)
+                                          setCurrentGene(g.name)
+                                          break
+                                        }
+                                    }
+                                }}
+                              >
+                                Search
+                              </Button>
+                </Box>
+            </Grid2>
+            <Grid2 xs={3}>
+        
             </Grid2>
             <Grid2 xs={1}>
                 <Box mt={0} sx={{ height: 100, width: 150, border: '1px dashed grey' }}>
@@ -157,7 +311,7 @@ export default function GeneExpression(){
                                     value={group}
                                     exclusive
                                     onChange={(event: React.MouseEvent<HTMLElement>, value: string) => {
-                                        setGroup(value)
+                                        if (value !== group) setGroup(value)
                                     }}
                                     aria-label="Platform"
                                 >
@@ -177,7 +331,7 @@ export default function GeneExpression(){
                                     value={RNAtype}
                                     exclusive
                                     onChange={(event: React.MouseEvent<HTMLElement>, value: string) => {
-                                        setRNAType(value)
+                                        if (value !== RNAtype) setRNAType(value)
                                     }}
                                     aria-label="Platform"
                                 >
@@ -202,9 +356,9 @@ export default function GeneExpression(){
                                                 setBiosamplesList(toggleList(biosamples_list, "cell line"))
                                                 setBiosamples({
                                                     cell_line: biosamples.cell_line ? false : true,
-                                                    in_vitro: true,
-                                                    primary_cell: true,
-                                                    tissue: true
+                                                    in_vitro: biosamples.in_vitro,
+                                                    primary_cell: biosamples.primary_cell,
+                                                    tissue: biosamples.tissue
                                                 })
                                             }}
                                         />
@@ -218,10 +372,10 @@ export default function GeneExpression(){
                                             onClick={() => {
                                                 setBiosamplesList(toggleList(biosamples_list, "in vitro differentiated cells"))
                                                 setBiosamples({
-                                                    cell_line: true,
+                                                    cell_line: biosamples.cell_line,
                                                     in_vitro: biosamples.in_vitro ? false : true,
-                                                    primary_cell: true,
-                                                    tissue: true
+                                                    primary_cell: biosamples.primary_cell,
+                                                    tissue: biosamples.tissue
                                                 })
                                             }} 
                                         />
@@ -235,10 +389,10 @@ export default function GeneExpression(){
                                             onClick={() => {
                                                 setBiosamplesList(toggleList(biosamples_list, "primary cell"))
                                                 setBiosamples({
-                                                    cell_line: true,
-                                                    in_vitro: true,
+                                                    cell_line: biosamples.cell_line,
+                                                    in_vitro: biosamples.in_vitro,
                                                     primary_cell: biosamples.primary_cell ? false : true,
-                                                    tissue: true
+                                                    tissue: biosamples.tissue
                                                 })
                                             }}
                                         />
@@ -252,9 +406,9 @@ export default function GeneExpression(){
                                             onClick={() => {
                                                 setBiosamplesList(toggleList(biosamples_list, "tissue"))
                                                 setBiosamples({
-                                                    cell_line: true,
-                                                    in_vitro: true,
-                                                    primary_cell: true,
+                                                    cell_line: biosamples.cell_line,
+                                                    in_vitro: biosamples.in_vitro,
+                                                    primary_cell: biosamples.primary_cell,
                                                     tissue: biosamples.tissue ? false : true
                                                 })
                                             }}
@@ -420,10 +574,11 @@ export default function GeneExpression(){
                         <AccordionDetails>
                             <ToggleButtonGroup
                                 color="primary"
-                                value={scale}
+                                value={scale === "logFPKM" ? "log2" : "linear"}
                                 exclusive
                                 onChange={(event: React.MouseEvent<HTMLElement>, value: string) => {
-                                    setScale(value)
+                                    if (value === "linear") setScale("rawFPKM")
+                                    else setScale("logFPKM")
                                 }}
                                 aria-label="Platform"
                             >
@@ -453,7 +608,21 @@ export default function GeneExpression(){
                     </Accordion>
                 </Grid2>
                 <Grid2 xs={9}>
-
+                    { error ? ErrorMessage(new Error("Error loading data")) : loading ? LoadingMessage() : data && data["all"] && data["polyA RNA-seq"] && data["total RNA-seq"] && (
+                        <Box>
+                        <svg className="graph" aria-labelledby="title desc" role="img" viewBox="0 0 1200 5000">
+                            <g className="x-grid grid" id="xGrid">
+                                <line x1="100" x2="1100" y1="4900" y2="5900"></line>
+                            </g>
+                            <g className="y-grid grid" id="yGrid">
+                                <line x1="900" x2="1100" y1="100" y2="4900"></line>
+                            </g>
+                            <g className="data" data-setname="gene expression plot">
+                                {PlotGeneExpression(data, range, dimensions, RNAtype, group, scale, replicates, biosamples_list, cell_components_list)}
+                            </g>
+                        </svg>
+                    </Box>
+                    )}
                 </Grid2>
             </Grid2>
         </main>
