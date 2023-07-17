@@ -45,7 +45,7 @@ export async function fetchServer<T>(url: string, jq: BodyInit) {
 export const createLink = (url: string, id: string) => {
   const link = url + id
   return (
-    <Link href={link}>
+    <Link href={link} rel="noopener noreferrer" target="_blank">
       <button>{id}</button>
     </Link>
   )
@@ -58,14 +58,14 @@ export const createLink = (url: string, id: string) => {
 export function LoadingMessage() {
   // console.log("Loading...")
   return (
-      <Grid2 container alignItems="center" justifyContent="center" direction="column" sx={{ minHeight: '90vh' }}>
-          <Box>
-            <CircularProgress />
-          </Box>
-          <Box mt={1} ml={1}>
-            <Typography>Loading...</Typography>
-          </Box>
-      </Grid2>
+    <Grid2 container alignItems="center" justifyContent="center" direction="column" sx={{ minHeight: "90vh" }}>
+      <Box>
+        <CircularProgress />
+      </Box>
+      <Box mt={1} ml={1}>
+        <Typography>Loading...</Typography>
+      </Box>
+    </Grid2>
   )
 }
 
@@ -81,7 +81,7 @@ export function ErrorMessage(error: Error) {
   // console.log("Error!")
   console.log(error.message)
   // throw error
-  
+
   function toggleOpen(toggle: boolean) {
     if (toggle === true) open = false
     else open = true
@@ -95,7 +95,7 @@ export function ErrorMessage(error: Error) {
   }
 
   return (
-    <Grid2 container alignItems="center" justifyContent="center" direction="column" sx={{ minHeight: '90vh' }}>
+    <Grid2 container alignItems="center" justifyContent="center" direction="column" sx={{ minHeight: "90vh" }}>
       {/* <Popover
       id="errorpopper"
       open={open}
@@ -104,15 +104,14 @@ export function ErrorMessage(error: Error) {
         horizontal: "center"
       }}
     > */}
-        <Alert severity="error" variant="filled">
-          <AlertTitle>Error</AlertTitle>
-          There was an error loading. — <strong>{error.message}</strong>
-        </Alert>
+      <Alert severity="error" variant="filled">
+        <AlertTitle>Error</AlertTitle>
+        There was an error loading. — <strong>{error.message}</strong>
+      </Alert>
       {/* </Popover> */}
     </Grid2>
   )
 }
-
 
 // /**
 //  * Uses fetch to make a query call (client side)

@@ -69,7 +69,6 @@ function ResponsiveAppBar() {
 
   // Open Dropdown
   const handleOpenNavMenu_Dropdown = (event: React.MouseEvent<HTMLElement>, dropdownID: string) => {
-    console.log("Open Dropdown " + String(dropdownID))
     if (dropdownID == "0") {
       setAnchorElNav_Dropdown0(event.currentTarget)
     } else if (dropdownID == "1") {
@@ -84,7 +83,6 @@ function ResponsiveAppBar() {
 
   // Close Dropdown
   const handleCloseNavMenu_Dropdown = (dropdownID: string) => {
-    console.log("Close Dropdown " + String(dropdownID))
     if (dropdownID == "0") {
       setAnchorElNav_Dropdown0(null)
     } else if (dropdownID == "1") {
@@ -100,9 +98,6 @@ function ResponsiveAppBar() {
           <Link href={"/"}>
             <Image src={screenIcon} alt="SCREEN Icon" height={40} width={40} />
           </Link>
-
-          {/* Display SCREEN after logo on left when >=900px*/}
-
           <Typography
             variant="h5"
             noWrap
@@ -110,6 +105,7 @@ function ResponsiveAppBar() {
             href={"/"}
             sx={{
               mr: 2,
+              ml: 1,
               display: { xs: "none", md: "flex" },
               // flexShrink: 0,
               fontFamily: "monospace",

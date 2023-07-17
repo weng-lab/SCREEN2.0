@@ -3,7 +3,7 @@
  */
 
 import { getClient } from "../lib/client"
-import { gql } from "@apollo/client"
+import { ApolloQueryResult, gql } from "@apollo/client"
 
 const cCRE_QUERY = gql`
   query ccreSearchQuery(
@@ -70,9 +70,6 @@ const cCRE_QUERY = gql`
         accession
         isproximal
         concordant
-        ctcfmax
-        k4me3max
-        k27acmax
       }
       genesallpc {
         accession
@@ -98,7 +95,101 @@ const cCRE_QUERY = gql`
     }
   }
 `
-function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: number, end: number) {
+
+const cCRE_QUERY_WITH_BIOSAMPLES = gql`
+  query ccreSearchQuery(
+    $accessions: [String!]
+    $assembly: String!
+    $cellType: String
+    $coord_chrom: String
+    $coord_end: Int
+    $coord_start: Int
+    $element_type: String
+    $gene_all_start: Int
+    $gene_all_end: Int
+    $gene_pc_start: Int
+    $gene_pc_end: Int
+    $rank_ctcf_end: Float!
+    $rank_ctcf_start: Float!
+    $rank_dnase_end: Float!
+    $rank_dnase_start: Float!
+    $rank_enhancer_end: Float!
+    $rank_enhancer_start: Float!
+    $rank_promoter_end: Float!
+    $rank_promoter_start: Float!
+    $uuid: String
+    $limit: Int
+  ) {
+    cCRESCREENSearch(
+      assembly: $assembly
+      accessions: $accessions
+      cellType: $cellType
+      coord_chrom: $coord_chrom
+      coord_end: $coord_end
+      coord_start: $coord_start
+      element_type: $element_type
+      gene_all_start: $gene_all_start
+      gene_all_end: $gene_all_end
+      gene_pc_start: $gene_pc_start
+      gene_pc_end: $gene_pc_end
+      rank_ctcf_end: $rank_ctcf_end
+      rank_ctcf_start: $rank_ctcf_start
+      rank_dnase_end: $rank_dnase_end
+      rank_dnase_start: $rank_dnase_start
+      rank_enhancer_end: $rank_enhancer_end
+      rank_enhancer_start: $rank_enhancer_start
+      rank_promoter_end: $rank_promoter_end
+      rank_promoter_start: $rank_promoter_start
+      uuid: $uuid
+      limit: $limit
+    ) {
+      chrom
+      start
+      len
+      pct
+      vistaids
+      sct
+      pct
+      maxz
+      rfacets
+      in_cart
+      ctspecific {
+        ct
+        dnase_zscore
+        h3k4me3_zscore
+        h3k27ac_zscore
+        ctcf_zscore
+      }
+      info {
+        accession
+        isproximal
+        concordant
+      }
+      genesallpc {
+        accession
+        all {
+          end
+          start
+          chromosome
+          assembly
+          intersecting_genes {
+            name
+          }
+        }
+        pc {
+          end
+          assembly
+          chromosome
+          start
+          intersecting_genes {
+            name
+          }
+        }
+      }
+    }
+  }
+`
+function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: number, end: number, biosample?: string) {
   return {
     uuid: null,
     assembly: assembly,
@@ -117,7 +208,7 @@ function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: numbe
     rank_enhancer_end: 10,
     rank_ctcf_start: -10,
     rank_ctcf_end: 10,
-    cellType: null,
+    cellType: biosample,
     element_type: null,
     limit: 25000,
   }
@@ -129,16 +220,26 @@ function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: numbe
  * @param chromosome string, ex: "chr11"
  * @param start number
  * @param end number
+ * @param biosample optional - a biosample selection. If not specified or "undefined", will be marked as "null" in gql query
  * @returns cCREs matching the search
  */
-export default async function MainQuery(assembly: string, chromosome: string, start: number, end: number) {
-  const data = await getClient().query({
-    query: cCRE_QUERY,
-    variables: cCRE_QUERY_VARIABLES(assembly, chromosome, start, end),
-  })
+export default async function MainQuery(assembly: string, chromosome: string, start: number, end: number, biosample: string = null) {
+  console.log("queried with: " + assembly, chromosome, start, end, biosample)
 
-  return data
+  var data: ApolloQueryResult<any> | -1
+  try {
+    data = await getClient().query({
+      query: biosample ? cCRE_QUERY_WITH_BIOSAMPLES : cCRE_QUERY,
+      variables: cCRE_QUERY_VARIABLES(assembly, chromosome, start, end, biosample),
+    })
+  } catch (error) {
+    console.log(error)
+    data = -1
+  } finally {
+    return data
+  }
 }
+
 export const TOP_TISSUES = gql`
   query q($accession: [String!], $assembly: String!) {
     ccREBiosampleQuery(assembly: $assembly) {
@@ -167,7 +268,17 @@ export const TOP_TISSUES = gql`
     }
   }
 `
-export const getGlobals = async () => {
-  const res = await fetch("https://downloads.wenglab.org/bycelltype.json")
+/**
+ *
+ * @returns the shortened byCellType file from https://downloads.wenglab.org/databyct.json
+ */
+export const getGlobals = async (assembly: "GRCh38" | "mm10") => {
+  console.log(assembly)
+  var res: Response
+  if (assembly === "GRCh38") {
+    res = await fetch("https://downloads.wenglab.org/databyct.json")
+  } else if (assembly === "mm10") {
+    res = await fetch("https://downloads.wenglab.org/mm10_byct.json")
+  }
   return res.json()
 }
