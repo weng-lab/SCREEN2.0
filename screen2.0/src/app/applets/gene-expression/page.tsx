@@ -12,6 +12,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { PlotGeneExpression, ToggleButtonMean } from "./utils"
 import { BiosampleList, CellComponents, GeneExpression } from "./types"
 import { Range2D } from "jubilant-carnival"
+import { QueryResponse } from "../differential-gene-expression/types"
 
 export const GENE_AUTOCOMPLETE_QUERY = `
   query ($assembly: String!, $name_prefix: [String!], $limit: Int) {
