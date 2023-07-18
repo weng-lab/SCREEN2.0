@@ -43,7 +43,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
             <StyledTab label="TF and His-mod Intersection" />
             <StyledTab label="TF Motifs and Sequence Features" />
             <StyledTab label="Linked cCREs in other Assemblies" />
-            <StyledTab label="RAMPAGE" />
+            <StyledTab label="Associated RAMPAGE Signal" />
           </Tabs>
         {/* </Grid2> */}
         
