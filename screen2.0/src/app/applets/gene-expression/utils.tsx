@@ -98,7 +98,7 @@ export function PlotGeneExpression(data: GeneExpression, range: Range2D, dimensi
           <title>{item.value}</title>
         </rect>
         <text x={p1.x + 125 + 150} y={(y+(i*20)+32.5)} style={{ fontSize: 12 }}>
-          {item.value + " "}
+          {parseInt(item.value.toFixed(3)) + " "}
         <a href={"https://www.encodeproject.org/experiments/" + item.expID}>{item.expID}</a>
           {" " + item.cellType}
         </text>
