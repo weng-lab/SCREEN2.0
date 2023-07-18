@@ -9,6 +9,7 @@ import { NearByGenomicFeatures } from "./nearbygenomicfeatures"
 import { LinkedGenes } from "./linkedgenes"
 import { Ortholog } from "./linkedccres"
 import { TfIntersection } from "./tfintersection"
+import Rampage from "./rampage"
 type CcreDetailsProps = {
   accession: string
   assembly: string
@@ -23,17 +24,17 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
   }
   return (
     <Paper>
-      <Grid2 container spacing={3} sx={{ ml: "2rem", mt: "2rem", mb: "2rem" }}>
+      <Grid2 container spacing={3} sx={{ ml: "1.5rem" }}>
         <Grid2 xs={2} lg={2}>
-          <Typography sx={{ ml: "1rem", mt: "1rem" }} variant="h5">
+          <Typography sx={{ ml: "1rem", mt: "0rem" }} variant="h5">
             {accession}
           </Typography>
         </Grid2>
         <Grid2 xs={3} lg={3}>
-          <Typography sx={{ mt: "1.5rem" }}>{`${region.chrom}:${region.start}-${region.end}`}</Typography>
+          <Typography sx={{ mt: "0.25rem" }}>{`${region.chrom}:${region.start}-${region.end}`}</Typography>
         </Grid2>
       </Grid2>
-      <Grid2 container spacing={3} sx={{ ml: "2rem", mt: "2rem", mb: "2rem" }}>
+      <Grid2 container spacing={3} sx={{ ml: "4rem", mb: "1rem", mr: "4rem", mt: "1rem" }}>
         <Grid2 xs={12} lg={12}>
           <Tabs aria-label="basic tabs example" value={value} onChange={handleChange}>
             <StyledTab label="In Specific Biosamples" />
@@ -42,11 +43,13 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
             <StyledTab label="TF and His-mod Intersection" />
             <StyledTab label="TF Motifs and Sequence Features" />
             <StyledTab label="Linked cCREs in other Assemblies" />
+            <StyledTab label="RAMPAGE" />
           </Tabs>
-        </Grid2>
-        {
-          <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "1rem", mr: "2rem" }}>
-            <Grid2 xs={12} lg={12}>
+        {/* </Grid2> */}
+        
+          {/* <Grid2 xs={12}> */}
+          <Grid2 container spacing={3} ml="1rem">
+            <Grid2 xs={12} lg={12} md={12}>
               {value === 0 && <InSpecificBiosamples accession={accession} globals={globals} assembly={assembly} />}
               {value === 1 && <LinkedGenes accession={accession} assembly={assembly} />}
               {value === 2 && (
@@ -71,9 +74,11 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
                 />
               )}
               {value === 5 && <Ortholog accession={accession} assembly={assembly} />}
+              {value === 6 && <Rampage accession={accession} assembly={assembly} chromosome={region.chrom}/>}
             </Grid2>
           </Grid2>
-        }
+          </Grid2>
+        
       </Grid2>
     </Paper>
   )
