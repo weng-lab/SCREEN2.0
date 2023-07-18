@@ -39,6 +39,7 @@ export function PlotGeneExpression(data: GeneExpression, range: Range2D, dimensi
   let itemsRID: any = data[RNAtype]["itemsByRID"]
   let total: number = 0 // total of log2 or linear if tissue max
   let p1: Point2D = { x: 0, y: 0 }
+  let max: number = 0
 
   // let tissues: {[tissue: string]: {
   //   sum: number, 
@@ -78,10 +79,14 @@ export function PlotGeneExpression(data: GeneExpression, range: Range2D, dimensi
           }]
         }
       }
+      if (tissues[itemsRID[id]["tissue"]].sum > max) max = tissues[itemsRID[id]["tissue"]].sum
     })
   })
 
-  function BarPlot(entry: any, index: number, tmp: number){
+  range.x.end = max
+
+  // returns bar plot for a tissue
+  function plotGeneExp(entry: any, index: number, y: number){
     let tissue: string = entry[0]
     let info: any = entry[1]
 
@@ -89,30 +94,30 @@ export function PlotGeneExpression(data: GeneExpression, range: Range2D, dimensi
       p1 = linearTransform2D(range, dimensions)({ x: item.value, y: 0 })
       return (
         <Fragment key={i}>
-        <rect x={125} width={p1.x + 125} y={(tmp)+(i*20+20)} height={18} fill={item["color"]}>
+        <rect x={125} width={p1.x + 125} y={(y)+(i*20+20)} height={18} fill={item["color"]}>
           <title>{item.value}</title>
         </rect>
-        <text x={p1.x + 125 + 150} y={(tmp+(i*20)+32.5)} style={{ fontSize: 12 }}>
+        <text x={p1.x + 125 + 150} y={(y+(i*20)+32.5)} style={{ fontSize: 12 }}>
           {item.value + " "}
         <a href={"https://www.encodeproject.org/experiments/" + item.expID}>{item.expID}</a>
           {" " + item.cellType}
         </text>
-        <line x1={125} x2={125} y1={(tmp)+(i*20+20)} y2={(tmp)+(i*20+38)} stroke="black"/>
+        <line x1={125} x2={125} y1={(y)+(i*20+20)} y2={(y)+(i*20+38)} stroke="black"/>
         </Fragment>
       )
     })
   }
 
-  let tmp: number = 0
+  let y: number = 0
   return (
     Object.entries(tissues).map((entry, index: number) => {
       let info: any = entry[1]
-      tmp += info.values.length*20+20+25
+      y += info.values.length*20+20+25
       return (
         <Fragment key={index}>
-              <text x={10} y={tmp - info.values.length*20+20} style={{ fontSize: 20, fontWeight: "bolder" }}>{entry[0]}</text>
-              <line x1={0} x2={900} y1={tmp - info.values.length*20+20+10} y2={tmp - info.values.length*20+20+5} stroke="black"/>
-              {BarPlot(entry, index, tmp - info.values.length*20+20)}
+              <text x={10} y={y - info.values.length*20+20} style={{ fontSize: 20, fontWeight: "bolder" }}>{entry[0]}</text>
+              <line x1={0} x2={900} y1={y - info.values.length*20+20+10} y2={y - info.values.length*20+20+5} stroke="black"/>
+              {plotGeneExp(entry, index, y - info.values.length*20+20)}
         </Fragment>
       )
     })

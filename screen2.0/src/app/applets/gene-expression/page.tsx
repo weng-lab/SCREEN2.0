@@ -79,7 +79,7 @@ export default function GeneExpression(){
     })
     
     const [dimensions, setDimensions] = useState<Range2D>({
-        x: { start: 125, end: 700 },
+        x: { start: 125, end: 650 },
         y: { start: 4900, end: 100 },
     })
 
@@ -115,8 +115,8 @@ export default function GeneExpression(){
         setLoading(true)
     }, [assembly, current_gene, biosamples_list, cell_components_list, biosamples, cell_components ])
 
+    // remove or add list of checked items
     const toggleList = (checkList: string[], option: string) => {
-        // console.log(checkList)
         if (checkList.includes(option)){
             const index = checkList.indexOf(option, 0);
             if (index > -1) {
@@ -126,19 +126,8 @@ export default function GeneExpression(){
         else {
             checkList.push(option)
         }
-        // console.log(checkList)
 
         return checkList
-    }
-
-    function getToggleList(b: BiosampleList, c: CellComponents){
-        let list: string[] = []
-        if (b)
-            Object.keys(b).map((label: string) => {if (b[label]) list.push(label)})
-        else
-            Object.keys(c).map((label: string) => {if (c[label]) list.push(label)})
-        
-        return list
     }
 
     // gene descriptions
@@ -201,16 +190,19 @@ export default function GeneExpression(){
     }
   }
 
+  // delay fetch
   const debounceFn = useCallback(debounce(onSearchChange, 500), [])
 
     return (
         <main>
             <Grid2 container mt="2rem">
-            <Grid2 xs={6}>
-                <Box mt={1}>
+            <Grid2 xs={7.2}>
+                <Box mt={4}>
                     <Typography variant="h5">{current_gene} Gene Expression Profiles by RNA-seq</Typography>
                 </Box>
-                <Box mt={3} ml={3}>
+            </Grid2>
+            <Grid2 xs={2}>
+            <Box mt={3} ml={3}>
                 <Autocomplete
                                 disablePortal
                                 freeSolo={true}
@@ -278,11 +270,8 @@ export default function GeneExpression(){
                               </Button>
                 </Box>
             </Grid2>
-            <Grid2 xs={3}>
-        
-            </Grid2>
-            <Grid2 xs={1}>
-                <Box mt={0} sx={{ height: 100, width: 150, border: '1px dashed grey' }}>
+            <Grid2 xs={1} mt={3}>
+                <Box mt={0} sx={{ height: 100, width: 150 }}>
                     <Link href={"https://genome.ucsc.edu/"}>
                         <Button variant="contained">
                             <img src="https://genome-euro.ucsc.edu/images/ucscHelixLogo.png" width={150}/>
@@ -290,8 +279,8 @@ export default function GeneExpression(){
                     </Link>
                 </Box>
             </Grid2>
-            <Grid2 xs={1.5} ml={1}>
-                <Box mt={0} sx={{ height: 100, width: 170, border: '1px dashed grey' }}>
+            <Grid2 xs={1.5} ml={1} mt={3}>
+                <Box mt={0} sx={{ height: 100, width: 165 }}>
                     <Link href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + current_gene}>
                         <Button variant="contained">
                             <img src="https://geneanalytics.genecards.org/media/81632/gc.png" width={150}/>
@@ -300,7 +289,7 @@ export default function GeneExpression(){
                 </Box>
             </Grid2>
             </Grid2>
-            <Grid2 container spacing={3} mt="2rem">
+            <Grid2 container spacing={3}>
                 <Grid2 xs={3}>
                     <Accordion>
                         <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
