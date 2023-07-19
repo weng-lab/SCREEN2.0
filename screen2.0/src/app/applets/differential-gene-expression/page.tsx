@@ -587,24 +587,24 @@ export default function DifferentialGeneExpression() {
                           {!toggleFC ? (
                             <></>
                           ) : (
-                            data[data.gene].nearbyDEs.data.map((point, i: number) =>
-                              BarPoint(point, i, range, dimensions)
+                            data[data.gene].nearbyDEs.data.map(
+                              (point, i: number) => BarPoint(point, i, range, dimensions)
                               // <BarPoint point={point} i={i} range={range} dimensions={dimensions} />
                             )
                           )}
                           {!toggleccres ? (
                             <></>
                           ) : (
-                            data[data.gene].diffCREs.data.map((point, i: number) =>
-                              Point(point, i, range, dimensions)
+                            data[data.gene].diffCREs.data.map(
+                              (point, i: number) => Point(point, i, range, dimensions)
                               // <Point point={point} i={i} range={range} dimensions={dimensions} />
                             )
                           )}
                           {!toggleGenes ? (
                             <></>
                           ) : (
-                            data[data.gene].nearbyDEs.genes.map((point, i: number) =>
-                              GenePoint(point, i, range, dimensions, toggleGenes)
+                            data[data.gene].nearbyDEs.genes.map(
+                              (point, i: number) => GenePoint(point, i, range, dimensions, toggleGenes)
                               // <GenePoint point={point} i={i} range={range} dimensions={dimensions} toggleGenes={toggleGenes} />
                             )
                           )}
@@ -674,8 +674,8 @@ export default function DifferentialGeneExpression() {
                             </text>
                           </g>
                           <g className="data">
-                            {data[data.gene].nearbyDEs.genes.map((point, i: number) =>
-                              GenePoint(point, i, range, dimensions, false)
+                            {data[data.gene].nearbyDEs.genes.map(
+                              (point, i: number) => GenePoint(point, i, range, dimensions, false)
                               // <GenePoint point={point} i={i} range={range} dimensions={dimensions} toggleGenes={false} />
                             )}
                           </g>
