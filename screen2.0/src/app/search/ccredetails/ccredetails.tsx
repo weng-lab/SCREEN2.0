@@ -26,12 +26,12 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
     <Paper>
       <Grid2 container spacing={3} sx={{ ml: "1.5rem" }}>
         <Grid2 xs={2} lg={2}>
-          <Typography sx={{ ml: "1rem", mt: "0rem" }} variant="h5">
+          <Typography sx={{ ml: "1rem", mt: "1rem" }} variant="h5">
             {accession}
           </Typography>
         </Grid2>
         <Grid2 xs={3} lg={3}>
-          <Typography sx={{ mt: "0.25rem" }}>{`${region.chrom}:${region.start}-${region.end}`}</Typography>
+          <Typography lineHeight={3} sx={{ mt: "0.5rem" }}>{`${region.chrom}:${region.start}-${region.end}`}</Typography>
         </Grid2>
       </Grid2>
       <Grid2 container spacing={3} sx={{ ml: "4rem", mb: "1rem", mr: "4rem", mt: "1rem" }}>
@@ -45,8 +45,8 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
             <StyledTab label="Linked cCREs in other Assemblies" />
             <StyledTab label="Associated RAMPAGE Signal" />
           </Tabs>
-        {/* </Grid2> */}
-        
+          {/* </Grid2> */}
+
           {/* <Grid2 xs={12}> */}
           <Grid2 container spacing={3} ml="1rem">
             <Grid2 xs={12} lg={12} md={12}>
@@ -74,11 +74,10 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
                 />
               )}
               {value === 5 && <Ortholog accession={accession} assembly={assembly} />}
-              {value === 6 && <Rampage accession={accession} assembly={assembly} chromosome={region.chrom}/>}
+              {value === 6 && <Rampage accession={accession} assembly={assembly} chromosome={region.chrom} />}
             </Grid2>
           </Grid2>
-          </Grid2>
-        
+        </Grid2>
       </Grid2>
     </Paper>
   )
