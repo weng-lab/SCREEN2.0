@@ -22,7 +22,28 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Typography,
+  Container,
+  IconButton,
+  Drawer,
+  Toolbar,
+  AppBar,
+  Stack,
 } from "@mui/material"
+import makeStyles, { ThemeProvider, createTheme } from "@mui/material/styles"
+import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos"
+
+import MenuIcon from "@mui/icons-material/Menu"
+import CloseIcon from "@mui/icons-material/Close"
+import Divider from "@mui/material/Divider"
+import ListItemButton from "@mui/material/ListItemButton"
+import ListItemIcon from "@mui/material/ListItemIcon"
+import ListItemText from "@mui/material/ListItemText"
+import FolderIcon from "@mui/icons-material/Folder"
+import ImageIcon from "@mui/icons-material/Image"
+import DescriptionIcon from "@mui/icons-material/Description"
+import InputBase from "@mui/material/InputBase"
+import SearchIcon from "@mui/icons-material/Search"
+
 import { styled } from "@mui/material/styles"
 import { CheckBox, ExpandMore } from "@mui/icons-material"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
@@ -30,6 +51,7 @@ import { PlotGeneExpression, ToggleButtonMean } from "./utils"
 import { BiosampleList, CellComponents, GeneExpression } from "./types"
 import { Range2D } from "jubilant-carnival"
 import { QueryResponse } from "../differential-gene-expression/types"
+import { InputBaseProps, InputAdornment, InputLabel } from "@mui/material"
 
 export const GENE_AUTOCOMPLETE_QUERY = `
   query ($assembly: String!, $name_prefix: [String!], $limit: Int) {
@@ -58,6 +80,7 @@ export default function GeneExpression() {
   const [error, setError] = useState<boolean>(false)
   const [data, setData] = useState<GeneExpression>()
   const [options, setOptions] = useState<string[]>([])
+  const [open, setState] = useState<boolean>(false)
 
   const [assembly, setAssembly] = useState<string>("GRCh38")
   const [current_gene, setCurrentGene] = useState<string>("OR51AB1P")
@@ -97,8 +120,10 @@ export default function GeneExpression() {
 
   const [dimensions, setDimensions] = useState<Range2D>({
     x: { start: 125, end: 650 },
-    y: { start: 4900, end: 100 },
+    y: { start: 250, end: 0 },
   })
+
+  const [plotSize, setPlotSize] = useState<number>(12)
 
   // fetch gene expression data
   useEffect(() => {
@@ -209,416 +234,513 @@ export default function GeneExpression() {
   // delay fetch
   const debounceFn = useCallback(debounce(onSearchChange, 500), [])
 
+  const toggleDrawer = (open) => (event) => {
+    if (event.type === "keydown" && (event.key === "Tab" || event.key === "Shift")) {
+      return
+    }
+    //changes the function state according to the value of open
+    if (open) setPlotSize(9)
+    else setPlotSize(12)
+    setState(open)
+  }
+
+  const theme = createTheme({
+    palette: {
+      mode: "light",
+      primary: {
+        main: "#FAFDF5",
+      },
+      secondary: {
+        main: "#0A0102",
+      },
+    },
+  })
+
   return (
     <main>
       <Grid2 container mt="2rem">
-        <Grid2 xs={7}>
-          <Box mt={4}>
-            <Typography variant="h5">{current_gene} Gene Expression Profiles by RNA-seq</Typography>
-          </Box>
-        </Grid2>
-        <Grid2 xs={2}>
-          <Box mt={3} ml={3}>
-            <Autocomplete
-              disablePortal
-              freeSolo={true}
-              id="gene-ids"
-              noOptionsText="e.g. Gm25142"
-              options={options}
-              sx={{ width: 200 }}
-              ListboxProps={{
-                style: {
-                  maxHeight: "180px",
+        <Grid2>
+          {/* <Grid2 xs={12 - plotSize} md={12 - plotSize} lg={12 - plotSize} width={plotSize*30}> */}
+          <Box sx={{ display: "flex" }}>
+            <Drawer
+              sx={{
+                width: plotSize * 30,
+                flexShrink: 0,
+                "& .MuiDrawer-paper": {
+                  width: plotSize * 30,
+                  boxSizing: "border-box",
+                  mt: 13,
                 },
               }}
-              onChange={(event: React.ChangeEvent<HTMLInputElement>, value: string) => {
-                if (value != "") debounceFn(value)
-                setGeneID(value)
-              }}
-              onInputChange={(event: React.ChangeEvent<HTMLInputElement>, value: string) => {
-                if (value != "") debounceFn(value)
-                setGeneID(value)
-              }}
-              onKeyDown={(e) => {
-                if (e.key == "Enter") {
-                  for (let g of geneList) {
-                    if (g.name === geneID && g.end - g.start > 0) {
-                      setGene(g)
-                      setCurrentGene(g.name)
-                      break
-                    }
-                  }
-                }
-              }}
-              renderInput={(props) => <TextField {...props} label={geneID} />}
-              renderOption={(props, opt) => {
-                return (
-                  <li {...props} key={props.id}>
-                    <Grid2 container alignItems="center">
-                      <Grid2 sx={{ width: "calc(100% - 44px)" }}>
-                        <Box component="span" sx={{ fontWeight: "regular" }}>
-                          {opt}
-                        </Box>
-                        {geneDesc && geneDesc.find((g) => g.name === opt) && (
-                          <Typography variant="body2" color="text.secondary">
-                            {geneDesc.find((g) => g.name === opt)?.desc}
-                          </Typography>
-                        )}
-                      </Grid2>
-                    </Grid2>
-                  </li>
-                )
-              }}
-            />
-            <Button
-              variant="text"
-              onClick={() => {
-                for (let g of geneList) {
-                  if (g.name === geneID && g.end - g.start > 0) {
-                    setGene(g)
-                    setCurrentGene(g.name)
-                    break
-                  }
-                }
-              }}
+              // PaperProps={{sx: {mt: 12.5}}}
+              anchor="left"
+              open={open}
+              onClose={toggleDrawer(false)}
+              variant="persistent"
             >
-              Search
-            </Button>
-          </Box>
-        </Grid2>
-        <Grid2 xs={1.2} mt={3}>
-          <Box mt={0} sx={{ height: 100, width: 150 }}>
-            <Link href={"https://genome.ucsc.edu/"}>
-              <Button variant="contained">
-                <img src="https://genome-euro.ucsc.edu/images/ucscHelixLogo.png" width={150} />
-              </Button>
-            </Link>
-          </Box>
-        </Grid2>
-        <Grid2 xs={1.5} ml={0} mt={3}>
-          <Box mt={0} sx={{ height: 100, width: 165 }}>
-            <Link href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + current_gene}>
-              <Button variant="contained">
-                <img src="https://geneanalytics.genecards.org/media/81632/gc.png" width={150} />
-              </Button>
-            </Link>
-          </Box>
-        </Grid2>
-      </Grid2>
-      <Grid2 container spacing={3}>
-        <Grid2 xs={3}>
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography>Group By</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <ToggleButtonGroup
-                color="primary"
-                value={group}
-                exclusive
-                onChange={(event: React.MouseEvent<HTMLElement>, value: string) => {
-                  if (value !== group) setGroup(value)
-                }}
-                aria-label="Platform"
-              >
-                <ToggleButton value="byExpressionFPKM">Experiment</ToggleButton>
-                <ToggleButton value="byTissueFPKM">Tissue</ToggleButton>
-                <ToggleButton value="byTissueMaxFPKM">Tissue Max</ToggleButton>
-              </ToggleButtonGroup>
-            </AccordionDetails>
-          </Accordion>
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography>RNA Type</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <ToggleButtonGroup
-                color="primary"
-                value={RNAtype}
-                exclusive
-                onChange={(event: React.MouseEvent<HTMLElement>, value: string) => {
-                  if (value !== RNAtype) setRNAType(value)
-                }}
-                aria-label="Platform"
-              >
-                <ToggleButton value="total RNA-seq">Total RNA-seq</ToggleButton>
-                <ToggleButton value="polyA RNA-seq">PolyA RNA-seq</ToggleButton>
-                <ToggleButton value="all">Any</ToggleButton>
-              </ToggleButtonGroup>
-            </AccordionDetails>
-          </Accordion>
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography>Biosample Types</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <FormGroup>
-                <FormControlLabel
-                  label="cell line"
-                  control={
-                    <Checkbox
-                      checked={biosamples["cell_line"]}
-                      onClick={() => {
-                        setBiosamplesList(toggleList(biosamples_list, "cell line"))
-                        setBiosamples({
-                          cell_line: biosamples.cell_line ? false : true,
-                          in_vitro: biosamples.in_vitro,
-                          primary_cell: biosamples.primary_cell,
-                          tissue: biosamples.tissue,
-                        })
-                      }}
-                    />
-                  }
-                />
-                <FormControlLabel
-                  label="in vitro differentiated cells"
-                  control={
-                    <Checkbox
-                      checked={biosamples["in_vitro"]}
-                      onClick={() => {
-                        setBiosamplesList(toggleList(biosamples_list, "in vitro differentiated cells"))
-                        setBiosamples({
-                          cell_line: biosamples.cell_line,
-                          in_vitro: biosamples.in_vitro ? false : true,
-                          primary_cell: biosamples.primary_cell,
-                          tissue: biosamples.tissue,
-                        })
-                      }}
-                    />
-                  }
-                />
-                <FormControlLabel
-                  label="primary cell"
-                  control={
-                    <Checkbox
-                      checked={biosamples["primary_cell"]}
-                      onClick={() => {
-                        setBiosamplesList(toggleList(biosamples_list, "primary cell"))
-                        setBiosamples({
-                          cell_line: biosamples.cell_line,
-                          in_vitro: biosamples.in_vitro,
-                          primary_cell: biosamples.primary_cell ? false : true,
-                          tissue: biosamples.tissue,
-                        })
-                      }}
-                    />
-                  }
-                />
-                <FormControlLabel
-                  label="tissue"
-                  control={
-                    <Checkbox
-                      checked={biosamples["tissue"]}
-                      onClick={() => {
-                        setBiosamplesList(toggleList(biosamples_list, "tissue"))
-                        setBiosamples({
-                          cell_line: biosamples.cell_line,
-                          in_vitro: biosamples.in_vitro,
-                          primary_cell: biosamples.primary_cell,
-                          tissue: biosamples.tissue ? false : true,
-                        })
-                      }}
-                    />
-                  }
-                />
-              </FormGroup>
-            </AccordionDetails>
-          </Accordion>
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography>Cellular Compartments</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <FormGroup>
-                <FormControlLabel
-                  label="cell"
-                  control={
-                    <Checkbox
-                      checked={cell_components["cell"]}
-                      onClick={() => {
-                        setCellComponentsList(toggleList(cell_components_list, "cell"))
-                        setCellComponents({
-                          cell: cell_components.cell ? false : true,
-                          chromatin: cell_components.chromatin,
-                          cytosol: cell_components.cytosol,
-                          membrane: cell_components.membrane,
-                          nucleolus: cell_components.nucleolus,
-                          nucleoplasm: cell_components.nucleoplasm,
-                          nucleus: cell_components.nucleus,
-                        })
-                      }}
-                    />
-                  }
-                />
-                <FormControlLabel
-                  label="chromatin"
-                  control={
-                    <Checkbox
-                      checked={cell_components["chromatin"]}
-                      onClick={() => {
-                        setCellComponentsList(toggleList(cell_components_list, "chromatin"))
-                        setCellComponents({
-                          cell: cell_components.cell,
-                          chromatin: cell_components.chromatin ? false : true,
-                          cytosol: cell_components.cytosol,
-                          membrane: cell_components.membrane,
-                          nucleolus: cell_components.nucleolus,
-                          nucleoplasm: cell_components.nucleoplasm,
-                          nucleus: cell_components.nucleus,
-                        })
-                      }}
-                    />
-                  }
-                />
-                <FormControlLabel
-                  label="cytosol"
-                  control={
-                    <Checkbox
-                      checked={cell_components["cytosol"]}
-                      onClick={() => {
-                        setCellComponentsList(toggleList(cell_components_list, "cytosol"))
-                        setCellComponents({
-                          cell: cell_components.cell,
-                          chromatin: cell_components.chromatin,
-                          cytosol: cell_components.cytosol ? false : true,
-                          membrane: cell_components.membrane,
-                          nucleolus: cell_components.nucleolus,
-                          nucleoplasm: cell_components.nucleoplasm,
-                          nucleus: cell_components.nucleus,
-                        })
-                      }}
-                    />
-                  }
-                />
-                <FormControlLabel
-                  label="membrane"
-                  control={
-                    <Checkbox
-                      checked={cell_components["membrane"]}
-                      onClick={() => {
-                        setCellComponentsList(toggleList(cell_components_list, "membrane"))
-                        setCellComponents({
-                          cell: cell_components.cell,
-                          chromatin: cell_components.chromatin,
-                          cytosol: cell_components.cytosol,
-                          membrane: cell_components.membrane ? false : true,
-                          nucleolus: cell_components.nucleolus,
-                          nucleoplasm: cell_components.nucleoplasm,
-                          nucleus: cell_components.nucleus,
-                        })
-                      }}
-                    />
-                  }
-                />
-                <FormControlLabel
-                  label="nucleolus"
-                  control={
-                    <Checkbox
-                      checked={cell_components["nucleoplus"]}
-                      onClick={() => {
-                        setCellComponentsList(toggleList(cell_components_list, "nucleoplus"))
-                        setCellComponents({
-                          cell: cell_components.cell,
-                          chromatin: cell_components.chromatin,
-                          cytosol: cell_components.cytosol,
-                          membrane: cell_components.membrane,
-                          nucleolus: cell_components.nucleolus ? false : true,
-                          nucleoplasm: cell_components.nucleoplasm,
-                          nucleus: cell_components.nucleus,
-                        })
-                      }}
-                    />
-                  }
-                />
-                <FormControlLabel
-                  label="nucleoplasm"
-                  control={
-                    <Checkbox
-                      checked={cell_components["nucleoplasm"]}
-                      onClick={() => {
-                        setCellComponentsList(toggleList(cell_components_list, "nucleoplasm"))
-                        setCellComponents({
-                          cell: cell_components.cell,
-                          chromatin: cell_components.chromatin,
-                          cytosol: cell_components.cytosol,
-                          membrane: cell_components.membrane,
-                          nucleolus: cell_components.nucleolus,
-                          nucleoplasm: cell_components.nucleoplasm ? false : true,
-                          nucleus: cell_components.nucleus,
-                        })
-                      }}
-                    />
-                  }
-                />
-                <FormControlLabel
-                  label="nucleus"
-                  control={
-                    <Checkbox
-                      checked={cell_components["nucleus"]}
-                      onClick={() => {
-                        setCellComponentsList(toggleList(cell_components_list, "nucleus"))
-                        setCellComponents({
-                          cell: true,
-                          chromatin: false,
-                          cytosol: false,
-                          membrane: false,
-                          nucleolus: false,
-                          nucleoplasm: false,
-                          nucleus: cell_components.nucleus ? false : true,
-                        })
-                      }}
-                    />
-                  }
-                />
-              </FormGroup>
-            </AccordionDetails>
-          </Accordion>
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography>Scale</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <ToggleButtonGroup
-                color="primary"
-                value={scale === "logFPKM" ? "log2" : "linear"}
-                exclusive
-                onChange={(event: React.MouseEvent<HTMLElement>, value: string) => {
-                  if (value === "linear") setScale("rawFPKM")
-                  else setScale("logFPKM")
-                }}
-                aria-label="Platform"
-              >
-                <ToggleButton value="linear">Linear</ToggleButton>
-                <ToggleButton value="log2">Log2</ToggleButton>
-              </ToggleButtonGroup>
-            </AccordionDetails>
-          </Accordion>
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography>Replicates</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              {/* <ToggleButton color="secondary" selected={replicates === "mean"} value="linear" onClick={() => {
+              <Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "right",
+                    direction: "row",
+                    alignItems: "right",
+                  }}
+                >
+                  <IconButton>
+                    <ArrowBackIosIcon onClick={toggleDrawer(false)} />
+                  </IconButton>
+                </Box>
+                <Divider sx={{ mb: 2 }} />
+                <Box>
+                  <Accordion>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <Typography>Group By</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <ToggleButtonGroup
+                        color="primary"
+                        value={group}
+                        exclusive
+                        onChange={(event: React.MouseEvent<HTMLElement>, value: string) => {
+                          if (value !== group) setGroup(value)
+                        }}
+                        aria-label="Platform"
+                      >
+                        <ToggleButton value="byExpressionFPKM">Experiment</ToggleButton>
+                        <ToggleButton value="byTissueFPKM">Tissue</ToggleButton>
+                        <ToggleButton value="byTissueMaxFPKM">Tissue Max</ToggleButton>
+                      </ToggleButtonGroup>
+                    </AccordionDetails>
+                  </Accordion>
+                  <Accordion>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <Typography>RNA Type</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <ToggleButtonGroup
+                        color="primary"
+                        value={RNAtype}
+                        exclusive
+                        onChange={(event: React.MouseEvent<HTMLElement>, value: string) => {
+                          if (value !== RNAtype) setRNAType(value)
+                        }}
+                        aria-label="Platform"
+                      >
+                        <ToggleButton value="total RNA-seq">Total RNA-seq</ToggleButton>
+                        <ToggleButton value="polyA RNA-seq">PolyA RNA-seq</ToggleButton>
+                        <ToggleButton value="all">Any</ToggleButton>
+                      </ToggleButtonGroup>
+                    </AccordionDetails>
+                  </Accordion>
+                  <Accordion>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <Typography>Biosample Types</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <FormGroup>
+                        <FormControlLabel
+                          label="cell line"
+                          control={
+                            <Checkbox
+                              checked={biosamples["cell_line"]}
+                              onClick={() => {
+                                setBiosamplesList(toggleList(biosamples_list, "cell line"))
+                                setBiosamples({
+                                  cell_line: biosamples.cell_line ? false : true,
+                                  in_vitro: biosamples.in_vitro,
+                                  primary_cell: biosamples.primary_cell,
+                                  tissue: biosamples.tissue,
+                                })
+                              }}
+                            />
+                          }
+                        />
+                        <FormControlLabel
+                          label="in vitro differentiated cells"
+                          control={
+                            <Checkbox
+                              checked={biosamples["in_vitro"]}
+                              onClick={() => {
+                                setBiosamplesList(toggleList(biosamples_list, "in vitro differentiated cells"))
+                                setBiosamples({
+                                  cell_line: biosamples.cell_line,
+                                  in_vitro: biosamples.in_vitro ? false : true,
+                                  primary_cell: biosamples.primary_cell,
+                                  tissue: biosamples.tissue,
+                                })
+                              }}
+                            />
+                          }
+                        />
+                        <FormControlLabel
+                          label="primary cell"
+                          control={
+                            <Checkbox
+                              checked={biosamples["primary_cell"]}
+                              onClick={() => {
+                                setBiosamplesList(toggleList(biosamples_list, "primary cell"))
+                                setBiosamples({
+                                  cell_line: biosamples.cell_line,
+                                  in_vitro: biosamples.in_vitro,
+                                  primary_cell: biosamples.primary_cell ? false : true,
+                                  tissue: biosamples.tissue,
+                                })
+                              }}
+                            />
+                          }
+                        />
+                        <FormControlLabel
+                          label="tissue"
+                          control={
+                            <Checkbox
+                              checked={biosamples["tissue"]}
+                              onClick={() => {
+                                setBiosamplesList(toggleList(biosamples_list, "tissue"))
+                                setBiosamples({
+                                  cell_line: biosamples.cell_line,
+                                  in_vitro: biosamples.in_vitro,
+                                  primary_cell: biosamples.primary_cell,
+                                  tissue: biosamples.tissue ? false : true,
+                                })
+                              }}
+                            />
+                          }
+                        />
+                      </FormGroup>
+                    </AccordionDetails>
+                  </Accordion>
+                  <Accordion>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <Typography>Cellular Compartments</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <FormGroup>
+                        <FormControlLabel
+                          label="cell"
+                          control={
+                            <Checkbox
+                              checked={cell_components["cell"]}
+                              onClick={() => {
+                                setCellComponentsList(toggleList(cell_components_list, "cell"))
+                                setCellComponents({
+                                  cell: cell_components.cell ? false : true,
+                                  chromatin: cell_components.chromatin,
+                                  cytosol: cell_components.cytosol,
+                                  membrane: cell_components.membrane,
+                                  nucleolus: cell_components.nucleolus,
+                                  nucleoplasm: cell_components.nucleoplasm,
+                                  nucleus: cell_components.nucleus,
+                                })
+                              }}
+                            />
+                          }
+                        />
+                        <FormControlLabel
+                          label="chromatin"
+                          control={
+                            <Checkbox
+                              checked={cell_components["chromatin"]}
+                              onClick={() => {
+                                setCellComponentsList(toggleList(cell_components_list, "chromatin"))
+                                setCellComponents({
+                                  cell: cell_components.cell,
+                                  chromatin: cell_components.chromatin ? false : true,
+                                  cytosol: cell_components.cytosol,
+                                  membrane: cell_components.membrane,
+                                  nucleolus: cell_components.nucleolus,
+                                  nucleoplasm: cell_components.nucleoplasm,
+                                  nucleus: cell_components.nucleus,
+                                })
+                              }}
+                            />
+                          }
+                        />
+                        <FormControlLabel
+                          label="cytosol"
+                          control={
+                            <Checkbox
+                              checked={cell_components["cytosol"]}
+                              onClick={() => {
+                                setCellComponentsList(toggleList(cell_components_list, "cytosol"))
+                                setCellComponents({
+                                  cell: cell_components.cell,
+                                  chromatin: cell_components.chromatin,
+                                  cytosol: cell_components.cytosol ? false : true,
+                                  membrane: cell_components.membrane,
+                                  nucleolus: cell_components.nucleolus,
+                                  nucleoplasm: cell_components.nucleoplasm,
+                                  nucleus: cell_components.nucleus,
+                                })
+                              }}
+                            />
+                          }
+                        />
+                        <FormControlLabel
+                          label="membrane"
+                          control={
+                            <Checkbox
+                              checked={cell_components["membrane"]}
+                              onClick={() => {
+                                setCellComponentsList(toggleList(cell_components_list, "membrane"))
+                                setCellComponents({
+                                  cell: cell_components.cell,
+                                  chromatin: cell_components.chromatin,
+                                  cytosol: cell_components.cytosol,
+                                  membrane: cell_components.membrane ? false : true,
+                                  nucleolus: cell_components.nucleolus,
+                                  nucleoplasm: cell_components.nucleoplasm,
+                                  nucleus: cell_components.nucleus,
+                                })
+                              }}
+                            />
+                          }
+                        />
+                        <FormControlLabel
+                          label="nucleolus"
+                          control={
+                            <Checkbox
+                              checked={cell_components["nucleoplus"]}
+                              onClick={() => {
+                                setCellComponentsList(toggleList(cell_components_list, "nucleoplus"))
+                                setCellComponents({
+                                  cell: cell_components.cell,
+                                  chromatin: cell_components.chromatin,
+                                  cytosol: cell_components.cytosol,
+                                  membrane: cell_components.membrane,
+                                  nucleolus: cell_components.nucleolus ? false : true,
+                                  nucleoplasm: cell_components.nucleoplasm,
+                                  nucleus: cell_components.nucleus,
+                                })
+                              }}
+                            />
+                          }
+                        />
+                        <FormControlLabel
+                          label="nucleoplasm"
+                          control={
+                            <Checkbox
+                              checked={cell_components["nucleoplasm"]}
+                              onClick={() => {
+                                setCellComponentsList(toggleList(cell_components_list, "nucleoplasm"))
+                                setCellComponents({
+                                  cell: cell_components.cell,
+                                  chromatin: cell_components.chromatin,
+                                  cytosol: cell_components.cytosol,
+                                  membrane: cell_components.membrane,
+                                  nucleolus: cell_components.nucleolus,
+                                  nucleoplasm: cell_components.nucleoplasm ? false : true,
+                                  nucleus: cell_components.nucleus,
+                                })
+                              }}
+                            />
+                          }
+                        />
+                        <FormControlLabel
+                          label="nucleus"
+                          control={
+                            <Checkbox
+                              checked={cell_components["nucleus"]}
+                              onClick={() => {
+                                setCellComponentsList(toggleList(cell_components_list, "nucleus"))
+                                setCellComponents({
+                                  cell: true,
+                                  chromatin: false,
+                                  cytosol: false,
+                                  membrane: false,
+                                  nucleolus: false,
+                                  nucleoplasm: false,
+                                  nucleus: cell_components.nucleus ? false : true,
+                                })
+                              }}
+                            />
+                          }
+                        />
+                      </FormGroup>
+                    </AccordionDetails>
+                  </Accordion>
+                  <Accordion>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <Typography>Scale</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <ToggleButtonGroup
+                        color="primary"
+                        value={scale}
+                        exclusive
+                        onChange={(event: React.MouseEvent<HTMLElement>, value: string) => {
+                          if (value !== scale) setScale(value)
+                        }}
+                        aria-label="Platform"
+                      >
+                        <ToggleButton value="rawFPKM">Linear</ToggleButton>
+                        <ToggleButton value="logFPKM">Log2</ToggleButton>
+                      </ToggleButtonGroup>
+                    </AccordionDetails>
+                  </Accordion>
+                  <Accordion>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <Typography>Replicates</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      {/* <ToggleButton color="secondary" selected={replicates === "mean"} value="linear" onClick={() => {
                                     if (replicates === "mean") setReplicates("single")
                                     else setReplicates("mean")
                                 }}>
                                     Mean
                                 </ToggleButton> */}
-              <ToggleButtonMean
-                color="primary"
-                selected={replicates === "mean"}
-                value="linear"
-                onClick={() => {
-                  if (replicates === "mean") setReplicates("single")
-                  else setReplicates("mean")
-                }}
-              >
-                mean
-              </ToggleButtonMean>
-            </AccordionDetails>
-          </Accordion>
+                      <ToggleButtonGroup
+                        color="primary"
+                        value={replicates}
+                        exclusive
+                        onChange={(event: React.MouseEvent<HTMLElement>, value: string) => {
+                          setReplicates(value)
+                        }}
+                        aria-label="Platform"
+                      >
+                        <ToggleButton value="mean">Average</ToggleButton>
+                        <ToggleButton value="single">Individual</ToggleButton>
+                      </ToggleButtonGroup>
+                    </AccordionDetails>
+                  </Accordion>
+                </Box>
+              </Box>
+            </Drawer>
+          </Box>
         </Grid2>
-        <Grid2 xs={9}>
+        <Grid2 xs={plotSize} md={plotSize} lg={plotSize} ml={open ? plotSize : 0}>
+          <ThemeProvider theme={theme}>
+            <AppBar position="static" color="primary">
+              {/* <Container maxWidth="lg"> */}
+              <Toolbar style={{ height: "120px" }}>
+                <Grid2 xs={0.5} md={0.5} lg={0.5}>
+                  <IconButton
+                    edge="start"
+                    color="inherit"
+                    aria-label="open drawer"
+                    onClick={() => {
+                      if (open) toggleDrawer(false)
+                      else toggleDrawer(true)
+                      toggleDrawer(true)
+                      console.log(open)
+
+                      if (open) {
+                        setState(false)
+                        setPlotSize(12)
+                      } else {
+                        setState(true)
+                        setPlotSize(9)
+                      }
+                    }}
+                    sx={{
+                      mr: 1,
+                      xs: 0.5,
+                      display: {
+                        xs: "block",
+                      },
+                      ...(open && { display: "none" }),
+                    }}
+                  >
+                    <MenuIcon />
+                  </IconButton>
+                </Grid2>
+                <Grid2 xs={4} md={6} lg={7}>
+                  <Box mt={0.5}>
+                    <Typography variant="h5">{current_gene} Gene Expression Profiles by RNA-seq</Typography>
+                  </Box>
+                </Grid2>
+                <Grid2 xs={1} md={2} lg={2} mt={4.5} mr={2}>
+                  <Autocomplete
+                    disablePortal
+                    freeSolo={true}
+                    id="gene-ids"
+                    noOptionsText="e.g. Gm25142"
+                    options={options}
+                    size="small"
+                    sx={{ width: 200 }}
+                    ListboxProps={{
+                      style: {
+                        maxHeight: "120px",
+                      },
+                    }}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>, value: string) => {
+                      if (value != "") debounceFn(value)
+                      setGeneID(value)
+                    }}
+                    onInputChange={(event: React.ChangeEvent<HTMLInputElement>, value: string) => {
+                      if (value != "") debounceFn(value)
+                      setGeneID(value)
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key == "Enter") {
+                        for (let g of geneList) {
+                          if (g.name === geneID && g.end - g.start > 0) {
+                            setGene(g)
+                            setCurrentGene(g.name)
+                            break
+                          }
+                        }
+                      }
+                    }}
+                    renderInput={(props) => <TextField {...props} label={geneID} />}
+                    renderOption={(props, opt) => {
+                      return (
+                        <li {...props} key={props.id}>
+                          <Grid2 container alignItems="center">
+                            <Grid2 sx={{ width: "calc(100% - 44px)" }}>
+                              <Box component="span" sx={{ fontWeight: "regular" }}>
+                                {opt}
+                              </Box>
+                              {geneDesc && geneDesc.find((g) => g.name === opt) && (
+                                <Typography variant="body2" color="text.secondary">
+                                  {geneDesc.find((g) => g.name === opt)?.desc}
+                                </Typography>
+                              )}
+                            </Grid2>
+                          </Grid2>
+                        </li>
+                      )
+                    }}
+                  />
+                  <Button
+                    variant="text"
+                    onClick={() => {
+                      for (let g of geneList) {
+                        if (g.name === geneID && g.end - g.start > 0) {
+                          setGene(g)
+                          setCurrentGene(g.name)
+                          break
+                        }
+                      }
+                    }}
+                    color="secondary"
+                  >
+                    Search
+                  </Button>
+                </Grid2>
+                <Grid2 xs={1.5} mt={5.5} sx={{ height: 100, width: 150 }}>
+                  <Link href={"https://genome.ucsc.edu/"}>
+                    <Button variant="contained">
+                      <img src="https://genome-euro.ucsc.edu/images/ucscHelixLogo.png" width={150} />
+                    </Button>
+                  </Link>
+                </Grid2>
+                <Grid2 xs={1.5} mt={5.5} ml={1} sx={{ height: 100, width: 167 }}>
+                  <Link href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + current_gene}>
+                    <Button variant="contained">
+                      <img src="https://geneanalytics.genecards.org/media/81632/gc.png" width={150} />
+                    </Button>
+                  </Link>
+                </Grid2>
+              </Toolbar>
+              {/* </Container> */}
+            </AppBar>
+          </ThemeProvider>
+        </Grid2>
+      </Grid2>
+      <Grid2 container spacing={3}>
+        <Grid2 xs={3}></Grid2>
+        <Grid2 xs={plotSize} mt={1}>
           {error
             ? ErrorMessage(new Error("Error loading data"))
             : loading
@@ -627,29 +749,9 @@ export default function GeneExpression() {
               data["all"] &&
               data["polyA RNA-seq"] &&
               data["total RNA-seq"] && (
-                <Box>
-                  <svg className="graph" aria-labelledby="title desc" role="img" viewBox="0 0 1200 24000">
-                    <g className="x-grid grid" id="xGrid">
-                      <line x1="100" x2="1100" y1="4900" y2="5900"></line>
-                    </g>
-                    <g className="y-grid grid" id="yGrid">
-                      <line x1="900" x2="1100" y1="100" y2="4900"></line>
-                    </g>
-                    <g className="data" data-setname="gene expression plot">
-                      {PlotGeneExpression(
-                        data,
-                        range,
-                        dimensions,
-                        RNAtype,
-                        group,
-                        scale,
-                        replicates,
-                        biosamples_list,
-                        cell_components_list
-                      )}
-                    </g>
-                  </svg>
-                </Box>
+                <Stack>
+                  {PlotGeneExpression(data, range, dimensions, RNAtype, group, scale, replicates, biosamples_list, cell_components_list)}
+                </Stack>
               )}
         </Grid2>
       </Grid2>
