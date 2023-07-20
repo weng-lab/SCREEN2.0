@@ -5,6 +5,33 @@ import { AppBar, Box, Toolbar, IconButton, Typography, Menu, Container, Button, 
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown"
 import MenuIcon from "@mui/icons-material/Menu"
 
+import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import {
+  Autocomplete,
+  TextField,
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  debounce,
+  ButtonBase,
+  Checkbox,
+  FormControlLabel,
+  FormGroup,
+  ToggleButton,
+  ToggleButtonGroup,
+  Drawer,
+} from "@mui/material"
+import CloseIcon from "@mui/icons-material/Close"
+import Divider from "@mui/material/Divider"
+import ListItemButton from "@mui/material/ListItemButton"
+import ListItemIcon from "@mui/material/ListItemIcon"
+import ListItemText from "@mui/material/ListItemText"
+import FolderIcon from "@mui/icons-material/Folder"
+import ImageIcon from "@mui/icons-material/Image"
+import DescriptionIcon from "@mui/icons-material/Description"
+import InputBase from "@mui/material/InputBase"
+import SearchIcon from "@mui/icons-material/Search"
+
 import Link from "next/link"
 import Image from "next/image"
 
@@ -39,9 +66,9 @@ const pageLinks = [
     dropdownID: "1",
     subPages: [
       { pageName: "GWAS", link: "/applets/gwas" },
-      { pageName: "Gene Expression", link: "/applets/gene-expression "},
+      { pageName: "Gene Expression", link: "/applets/gene-expression " },
       { pageName: "Differential Gene Expression", link: "/applets/differential-gene-expression" },
-      { pageName: "Multi-Region Search", link: "/applets/multi-region-search" }
+      { pageName: "Multi-Region Search", link: "/applets/multi-region-search" },
     ],
   },
   {
@@ -55,6 +82,7 @@ const pageLinks = [
  */
 
 function ResponsiveAppBar() {
+  const [open, setState] = React.useState<boolean>(false)
   // Hamburger Menu, deals with setting it's position
   const [anchorElNav_Hamburger, setAnchorElNav_Hamburger] = React.useState<null | HTMLElement>(null)
 
@@ -88,6 +116,14 @@ function ResponsiveAppBar() {
     } else if (dropdownID == "1") {
       setAnchorElNav_Dropdown1(null)
     }
+  }
+
+  const toggleDrawer = (open) => (event) => {
+    if (event.type === "keydown" && (event.key === "Tab" || event.key === "Shift")) {
+      return
+    }
+    //changes the function state according to the value of open
+    setState(open)
   }
 
   return (
@@ -240,6 +276,32 @@ function ResponsiveAppBar() {
           <Box sx={{ flexGrow: 0 }}>
             <HeaderSearch />
           </Box>
+          <IconButton
+            edge="start"
+            color="inherit"
+            aria-label="open drawer"
+            onClick={toggleDrawer(true)}
+            sx={{
+              mr: 2,
+              display: {
+                xs: "block",
+                sm: "none",
+              },
+            }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Drawer anchor="left" open={open} onClose={toggleDrawer(false)}>
+            <Box>
+              <IconButton>
+                <CloseIcon onClick={toggleDrawer(false)} />
+              </IconButton>
+              <Divider sx={{ mb: 2 }} />
+              <Box>
+                <Typography>hello</Typography>
+              </Box>
+            </Box>
+          </Drawer>
         </Toolbar>
       </Container>
     </AppBar>
