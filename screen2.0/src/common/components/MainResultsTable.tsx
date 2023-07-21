@@ -4,7 +4,6 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { DataTable, DataTableProps, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import React from "react"
 import { Typography } from "@mui/material"
-import Link from "next/link"
 
 let COLUMNS = (rows) => {
   let col: DataTableColumn<any>[] = [
@@ -34,25 +33,25 @@ let COLUMNS = (rows) => {
     },
   ]
 
-  if (rows && rows[0].dnase !== null) {
+  if (rows[0] && rows[0].dnase !== null) {
     col.push({
       header: "DNase",
       value: (row) => (row.dnase && row.dnase.toFixed(2)) || 0,
     })
   }
-  if (rows && rows[0].ctcf !== null) {
+  if (rows[0] && rows[0].ctcf !== null) {
     col.push({
       header: "CTCF",
       value: (row) => (row.ctcf && row.ctcf.toFixed(2)) || 0,
     })
   }
-  if (rows && rows[0].h3k27ac != null) {
+  if (rows[0] && rows[0].h3k27ac != null) {
     col.push({
       header: "H3K27ac",
       value: (row) => (row.h3k27ac && row.h3k27ac.toFixed(2)) || 0,
     })
   }
-  if (rows && rows[0].h3k4me3 != null) {
+  if (rows[0] && rows[0].h3k4me3 != null) {
     col.push({
       header: "H3K4me3",
       value: (row) => (row.h3k4me3 && row.h3k4me3.toFixed(2)) || 0,
@@ -95,7 +94,7 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
 
   return (
     <DataTable
-      key={props.rows[0].dnase + props.rows[0].ctcf + props.rows[0].h3k27ac + props.rows[0].h3k4me3}
+      key={props.rows[0] && props.rows[0].dnase + props.rows[0].ctcf + props.rows[0].h3k27ac + props.rows[0].h3k4me3}
       rows={props.rows || []}
       columns={COLUMNS(props.rows)}
       itemsPerPage={props.itemsPerPage}
