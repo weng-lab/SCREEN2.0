@@ -390,9 +390,9 @@ template {
   min-height: 100vh;
 }
 
-/* Leaves exactly enough space on the bottom of the page for the footer */
+/* Leaves exactly enough space on the bottom of the page for the footer + 2rem */
 #content-wrapper {
-  padding-bottom: 4rem;
+  padding-bottom: 6rem;
 }
 
 /* Limit the amount of space the content can take up so it doesn't run into edge */

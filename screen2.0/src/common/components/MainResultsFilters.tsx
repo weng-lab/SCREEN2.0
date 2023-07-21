@@ -25,10 +25,10 @@ import Grid2 from "@mui/material/Unstable_Grid2"
 import Link from "next/link"
 
 import { RangeSlider, DataTable } from "@weng-lab/psychscreen-ui-components"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { CellTypeData, FilteredBiosampleData, MainQueryParams, UnfilteredBiosampleData } from "../../app/search/types"
-import { outputT_or_F } from "../lib/filter-helpers"
+import { outputT_or_F, parseByCellType, filterBiosamples, assayHoverInfo, constructURL } from "../lib/filter-helpers"
 
 //Need to go back and define the types in mainQueryParams object
 export default function MainResultsFilters(props: { mainQueryParams: MainQueryParams; byCellType: CellTypeData }) {
@@ -70,146 +70,38 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
   const [PLS, setPLS] = useState<boolean>(props.mainQueryParams.PLS)
   const [TF, setTF] = useState<boolean>(props.mainQueryParams.TF)
 
+  const urlParams = {
+    Tissue: Tissue,
+    PrimaryCell: PrimaryCell,
+    InVitro: InVitro,
+    Organoid: Organoid,
+    CellLine: CellLine,
+    Biosample: { selected: Biosample.selected, biosample: Biosample.biosample, tissue: Biosample.tissue, summaryName: Biosample.summaryName },
+    DNaseStart: DNaseStart,
+    DNaseEnd: DNaseEnd,
+    H3K4me3Start: H3K4me3Start,
+    H3K4me3End: H3K4me3End,
+    H3K27acStart: H3K27acStart,
+    H3K27acEnd: H3K27acEnd,
+    CTCFStart: CTCFStart,
+    CTCFEnd: CTCFEnd,
+    CA: CA,
+    CA_CTCF: CA_CTCF,
+    CA_H3K4me3: CA_H3K4me3,
+    CA_TF: CA_TF,
+    dELS: dELS,
+    pELS: pELS,
+    PLS: PLS,
+    TF: TF
+  }
+
   const router = useRouter()
 
-  //IMPORTANT: This will wipe the current cCRE when Nishi puts it in. Need to talk to Nishi about deciding when/how to display the cCRE details
-  /**
-   *
-   * @param newBiosample optional, use if setting Biosample State and then immediately triggering router before re-render when the new state is accessible
-   * @returns A URL configured with filter information
-   */
-  function constructURL(newBiosample?: { selected: boolean; biosample: string; tissue: string; summaryName: string }) {
-    //Assembly, Chromosome, Start, End
-    const urlBasics = `search?assembly=${props.mainQueryParams.assembly}&chromosome=${props.mainQueryParams.chromosome}&start=${props.mainQueryParams.start}&end=${props.mainQueryParams.end}`
-
-    //Can probably get biosample down to one string, and extract other info when parsing byCellType
-    const biosampleFilters = `&Tissue=${outputT_or_F(Tissue)}&PrimaryCell=${outputT_or_F(PrimaryCell)}&InVitro=${outputT_or_F(
-      InVitro
-    )}&Organoid=${outputT_or_F(Organoid)}&CellLine=${outputT_or_F(CellLine)}${
-      (Biosample.selected && !newBiosample) || (newBiosample && newBiosample.selected)
-        ? "&Biosample=" +
-          (newBiosample ? newBiosample.biosample : Biosample.biosample) +
-          "&BiosampleTissue=" +
-          (newBiosample ? newBiosample.tissue : Biosample.tissue) +
-          "&BiosampleSummary=" +
-          (newBiosample ? newBiosample.summaryName : Biosample.summaryName)
-        : ""
-    }`
-
-    const chromatinFilters = `&dnase_s=${DNaseStart}&dnase_e=${DNaseEnd}&h3k4me3_s=${H3K4me3Start}&h3k4me3_e=${H3K4me3End}&h3k27ac_s=${H3K27acStart}&h3k27ac_e=${H3K27acEnd}&ctcf_s=${CTCFStart}&ctcf_e=${CTCFEnd}`
-
-    const classificationFilters = `&CA=${outputT_or_F(CA)}&CA_CTCF=${outputT_or_F(CA_CTCF)}&CA_H3K4me3=${outputT_or_F(
-      CA_H3K4me3
-    )}&CA_TF=${outputT_or_F(CA_TF)}&dELS=${outputT_or_F(dELS)}&pELS=${outputT_or_F(pELS)}&PLS=${outputT_or_F(PLS)}&TF=${outputT_or_F(TF)}`
-
-    const url = `${urlBasics}${biosampleFilters}${chromatinFilters}${classificationFilters}`
-    return url
-  }
-
-  /**
-   * @param experiments Array of objects containing biosample experiments for a given biosample type
-   * @returns an object with keys dnase, atac, h3k4me3, h3k27ac, ctcf with each marked true or false
-   */
-  function availableAssays(
-    experiments: {
-      assay: string
-      biosample_summary: string
-      biosample_type: string
-      tissue: string
-      value: string
-    }[]
-  ) {
-    const assays = { dnase: false, atac: false, h3k4me3: false, h3k27ac: false, ctcf: false }
-    experiments.forEach((exp) => (assays[exp.assay.toLowerCase()] = true))
-    return assays
-  }
-
-  /**
-   *
-   * @param byCellType JSON of byCellType
-   * @returns an object of sorted biosample types, grouped by tissue type
-   */
-  function parseByCellType(byCellType: CellTypeData): UnfilteredBiosampleData {
-    const biosamples = {}
-    Object.entries(byCellType.byCellType).forEach((entry) => {
-      // if the tissue catergory hasn't been catalogued, make a new blank array for it
-      const experiments = entry[1]
-      var tissueArr = []
-      if (!biosamples[experiments[0].tissue]) {
-        Object.defineProperty(biosamples, experiments[0].tissue, {
-          value: [],
-          enumerable: true,
-          writable: true,
-        })
-      }
-      //The existing tissues
-      tissueArr = biosamples[experiments[0].tissue]
-      tissueArr.push({
-        //display name
-        summaryName: experiments[0].biosample_summary,
-        //for filtering
-        biosampleType: experiments[0].biosample_type,
-        //for query
-        queryValue: experiments[0].value,
-        //for filling in available assay wheels
-        //THIS DATA IS MISSING ATAC DATA! ATAC will always be false
-        assays: availableAssays(experiments),
-        //for displaying tissue category when selected
-        biosampleTissue: experiments[0].tissue,
-      })
-      Object.defineProperty(biosamples, experiments[0].tissue, { value: tissueArr, enumerable: true, writable: true })
-    })
-    return biosamples
-  }
-
-  function assayHoverInfo(assays: { dnase: boolean; h3k27ac: boolean; h3k4me3; ctcf: boolean; atac: boolean }) {
-    const dnase = assays.dnase
-    const h3k27ac = assays.h3k27ac
-    const h3k4me3 = assays.h3k4me3
-    const ctcf = assays.ctcf
-    const atac = assays.atac
-
-    if (dnase && h3k27ac && h3k4me3 && ctcf && atac) {
-      return "All assays available"
-    } else if (!dnase && !h3k27ac && !h3k4me3 && !ctcf && !atac) {
-      return "No assays available"
-    } else
-      return `Available:\n${dnase ? "DNase\n" : ""}${h3k27ac ? "H3K27ac\n" : ""}${h3k4me3 ? "H3K4me3\n" : ""}${ctcf ? "CTCF\n" : ""}${
-        atac ? "ATAC\n" : ""
-      }`
-  }
-
-  /**
-   *
-   * @param biosamples The biosamples object to filter
-   * @returns The same object but filtered with the current state of Biosample Type filters
-   */
-  function filterBiosamples(biosamples: UnfilteredBiosampleData): FilteredBiosampleData {
-    const filteredBiosamples: FilteredBiosampleData = Object.entries(biosamples).map(([str, objArray]) => [
-      str,
-      objArray.filter((biosample) => {
-        if (Tissue && biosample.biosampleType === "tissue") {
-          return true
-        } else if (PrimaryCell && biosample.biosampleType === "primary cell") {
-          return true
-        } else if (CellLine && biosample.biosampleType === "cell line") {
-          return true
-        } else if (InVitro && biosample.biosampleType === "in vitro differentiated cells") {
-          return true
-        } else if (Organoid && biosample.biosampleType === "organoid") {
-          return true
-        } else return false
-      }),
-    ])
-    return filteredBiosamples
-  }
-
-  //This is being called every time the state is changed, which is problematic. Need to have it be called only once, or on change to biosample filter state. Instant checkboxes rely on atomatically running this. Of note, it runs twice?
   /**
    * @returns MUI Accordion components populated with a table of each tissue's biosamples
    */
-  function generateBiosampleTables() {
-    const filteredBiosamples: FilteredBiosampleData = filterBiosamples(parseByCellType(props.byCellType))
+  const biosampleTables = () => {
+    const filteredBiosamples: FilteredBiosampleData = filterBiosamples(parseByCellType(props.byCellType), Tissue, PrimaryCell, CellLine, InVitro, Organoid)
     const cols = [
       {
         header: "Biosample",
@@ -310,7 +202,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                   setBiosampleHighlight(row)
                   //Push to router with new biosample to avoid accessing stale Biosample value
                   router.push(
-                    constructURL({ selected: true, biosample: row.queryValue, tissue: row.biosampleTissue, summaryName: row.summaryName })
+                    constructURL(props.mainQueryParams, urlParams, { selected: true, biosample: row.queryValue, tissue: row.biosampleTissue, summaryName: row.summaryName })
                   )
                 }}
               />
@@ -321,10 +213,14 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     })
   }
 
-  //Only trigger re-render of the tables if the relevant state variables change. Prevents sluggish sliders in other filters
-  const biosampleTables = useMemo(
-    () => generateBiosampleTables(),
-    [CellLine, PrimaryCell, Tissue, Organoid, InVitro, Biosample, BiosampleHighlight, SearchString, generateBiosampleTables]
+  /**
+   * Biosample Tables, only re-rendered if the relevant state variables change. Prevents sluggish sliders in other filters
+   */
+  const BiosampleTables = useMemo(
+    () => biosampleTables(),
+    // Linter wants to include biosampleTables here as a dependency. Including it breaks intended functionality. Revisit later?
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [CellLine, InVitro, Organoid, PrimaryCell, Tissue, BiosampleHighlight, SearchString, props.byCellType, props.mainQueryParams]
   )
 
   //Need to make this more responsive
@@ -346,7 +242,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
               <Typography>Tissue/Organ</Typography>
             </Grid2>
             <Grid2 xs={6}>
-              <TextField size="small" label="Filter Tissues" onChange={(event) => setSearchString(event.target.value)} />
+              <TextField value={SearchString} size="small" label="Filter Tissues" onChange={(event) => setSearchString(event.target.value)} />
             </Grid2>
             {Biosample.selected && (
               <Grid2 container spacing={2}>
@@ -363,7 +259,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                     onClick={() => {
                       setBiosample({ selected: false, biosample: null, tissue: null, summaryName: null })
                       setBiosampleHighlight(null)
-                      router.push(constructURL({ selected: false, biosample: null, tissue: null, summaryName: null }))
+                      router.push(constructURL(props.mainQueryParams, urlParams,{ selected: false, biosample: null, tissue: null, summaryName: null }))
                     }}
                   >
                     Clear
@@ -372,7 +268,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
               </Grid2>
             )}
             <Grid2 xs={12} maxHeight={500} overflow={"auto"}>
-              {biosampleTables}
+              {BiosampleTables}
             </Grid2>
             <Grid2 xs={12} sx={{ mt: 1 }}>
               <Typography>Biosample Type</Typography>
@@ -587,7 +483,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
           </Typography>
         </AccordionDetails>
       </Accordion>
-      <Link href={constructURL()}>
+      <Link href={constructURL(props.mainQueryParams, urlParams)}>
         <Button variant="contained" endIcon={<SendIcon />} sx={{ mt: "16px", mb: "16px", ml: "16px", mr: "16px" }}>
           Filter Results
         </Button>
