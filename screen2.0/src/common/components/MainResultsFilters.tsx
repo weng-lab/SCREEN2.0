@@ -71,153 +71,149 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
   const [TF, setTF] = useState<boolean>(props.mainQueryParams.TF)
 
   const urlParams = {
-    Tissue: Tissue,
-    PrimaryCell: PrimaryCell,
-    InVitro: InVitro,
-    Organoid: Organoid,
-    CellLine: CellLine,
+    Tissue,
+    PrimaryCell,
+    InVitro,
+    Organoid,
+    CellLine,
     Biosample: { selected: Biosample.selected, biosample: Biosample.biosample, tissue: Biosample.tissue, summaryName: Biosample.summaryName },
-    DNaseStart: DNaseStart,
-    DNaseEnd: DNaseEnd,
-    H3K4me3Start: H3K4me3Start,
-    H3K4me3End: H3K4me3End,
-    H3K27acStart: H3K27acStart,
-    H3K27acEnd: H3K27acEnd,
-    CTCFStart: CTCFStart,
-    CTCFEnd: CTCFEnd,
-    CA: CA,
-    CA_CTCF: CA_CTCF,
-    CA_H3K4me3: CA_H3K4me3,
-    CA_TF: CA_TF,
-    dELS: dELS,
-    pELS: pELS,
-    PLS: PLS,
-    TF: TF
+    DNaseStart,
+    DNaseEnd,
+    H3K4me3Start,
+    H3K4me3End,
+    H3K27acStart,
+    H3K27acEnd,
+    CTCFStart,
+    CTCFEnd,
+    CA,
+    CA_CTCF,
+    CA_H3K4me3,
+    CA_TF,
+    dELS,
+    pELS,
+    PLS,
+    TF
   }
 
   const router = useRouter()
 
   /**
-   * @returns MUI Accordion components populated with a table of each tissue's biosamples
-   */
-  const biosampleTables = () => {
-    const filteredBiosamples: FilteredBiosampleData = filterBiosamples(parseByCellType(props.byCellType), Tissue, PrimaryCell, CellLine, InVitro, Organoid)
-    const cols = [
-      {
-        header: "Biosample",
-        value: (row) => row.summaryName,
-        render: (row) => (
-          <Tooltip title={"Biosample Type: " + row.biosampleType} arrow>
-            <Typography variant="body2">{row.summaryName}</Typography>
-          </Tooltip>
-        ),
-      },
-      {
-        header: "Assays",
-        value: (row) => Object.keys(row.assays).filter((key) => row.assays[key] === true).length,
-        render: (row) => {
-          const fifth = (2 * 3.1416 * 10) / 5
-          return (
-            <Tooltip title={assayHoverInfo(row.assays)} arrow>
-              <svg height="50" width="50" viewBox="0 0 50 50">
-                <circle r="20.125" cx="25" cy="25" fill="#EEEEEE" stroke="black" strokeWidth="0.25" />
-                <circle
-                  r="10"
-                  cx="25"
-                  cy="25"
-                  fill="transparent"
-                  stroke={`${row.assays.dnase ? "#06DA93" : "transparent"}`}
-                  strokeWidth="20"
-                  strokeDasharray={`${fifth} ${fifth * 4}`}
-                />
-                <circle
-                  r="10"
-                  cx="25"
-                  cy="25"
-                  fill="transparent"
-                  stroke={`${row.assays.h3k27ac ? "#FFCD00" : "transparent"}`}
-                  strokeWidth="20"
-                  strokeDasharray={`${fifth * 0} ${fifth} ${fifth} ${fifth * 3}`}
-                />
-                <circle
-                  r="10"
-                  cx="25"
-                  cy="25"
-                  fill="transparent"
-                  stroke={`${row.assays.h3k4me3 ? "#FF0000" : "transparent"}`}
-                  strokeWidth="20"
-                  strokeDasharray={`${fifth * 0} ${fifth * 2} ${fifth} ${fifth * 2}`}
-                />
-                <circle
-                  r="10"
-                  cx="25"
-                  cy="25"
-                  fill="transparent"
-                  stroke={`${row.assays.ctcf ? "#00B0F0" : "transparent"}`}
-                  strokeWidth="20"
-                  strokeDasharray={`${fifth * 0} ${fifth * 3} ${fifth} ${fifth * 1}`}
-                />
-                <circle
-                  r="10"
-                  cx="25"
-                  cy="25"
-                  fill="transparent"
-                  stroke={`${row.assays.atac ? "#02C7B9" : "transparent"}`}
-                  strokeWidth="20"
-                  strokeDasharray={`${fifth * 0} ${fifth * 4} ${fifth}`}
-                />
-              </svg>
-            </Tooltip>
-          )
-        },
-      },
-    ]
-
-    return filteredBiosamples.sort().map((tissue: [string, {}[]], i) => {
-      // If user enters a search, check to see if the tissue name matches
-      if (tissue[0].includes(SearchString)) {
-        return (
-          <Accordion key={tissue[0]}>
-            <AccordionSummary
-              expandIcon={<KeyboardArrowRightIcon />}
-              sx={{
-                flexDirection: "row-reverse",
-                "& .MuiAccordionSummary-expandIconWrapper.Mui-expanded": {
-                  transform: "rotate(90deg)",
-                },
-              }}
-            >
-              <Typography>{tissue[0][0].toUpperCase() + tissue[0].slice(1)}</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <DataTable
-                columns={cols}
-                rows={tissue[1]}
-                dense
-                searchable
-                highlighted={BiosampleHighlight}
-                sortColumn={1}
-                onRowClick={(row, i) => {
-                  setBiosample({ selected: true, biosample: row.queryValue, tissue: row.biosampleTissue, summaryName: row.summaryName })
-                  setBiosampleHighlight(row)
-                  //Push to router with new biosample to avoid accessing stale Biosample value
-                  router.push(
-                    constructURL(props.mainQueryParams, urlParams, { selected: true, biosample: row.queryValue, tissue: row.biosampleTissue, summaryName: row.summaryName })
-                  )
-                }}
-              />
-            </AccordionDetails>
-          </Accordion>
-        )
-      }
-    })
-  }
-
-  /**
    * Biosample Tables, only re-rendered if the relevant state variables change. Prevents sluggish sliders in other filters
    */
-  const BiosampleTables = useMemo(
-    () => biosampleTables(),
+  const biosampleTables = useMemo(
+    () => {
+      const filteredBiosamples: FilteredBiosampleData = filterBiosamples(parseByCellType(props.byCellType), Tissue, PrimaryCell, CellLine, InVitro, Organoid)
+      const cols = [
+        {
+          header: "Biosample",
+          value: (row) => row.summaryName,
+          render: (row) => (
+            <Tooltip title={"Biosample Type: " + row.biosampleType} arrow>
+              <Typography variant="body2">{row.summaryName}</Typography>
+            </Tooltip>
+          ),
+        },
+        {
+          header: "Assays",
+          value: (row) => Object.keys(row.assays).filter((key) => row.assays[key] === true).length,
+          render: (row) => {
+            const fifth = (2 * 3.1416 * 10) / 5
+            return (
+              <Tooltip title={assayHoverInfo(row.assays)} arrow>
+                <svg height="50" width="50" viewBox="0 0 50 50">
+                  <circle r="20.125" cx="25" cy="25" fill="#EEEEEE" stroke="black" strokeWidth="0.25" />
+                  <circle
+                    r="10"
+                    cx="25"
+                    cy="25"
+                    fill="transparent"
+                    stroke={`${row.assays.dnase ? "#06DA93" : "transparent"}`}
+                    strokeWidth="20"
+                    strokeDasharray={`${fifth} ${fifth * 4}`}
+                  />
+                  <circle
+                    r="10"
+                    cx="25"
+                    cy="25"
+                    fill="transparent"
+                    stroke={`${row.assays.h3k27ac ? "#FFCD00" : "transparent"}`}
+                    strokeWidth="20"
+                    strokeDasharray={`${fifth * 0} ${fifth} ${fifth} ${fifth * 3}`}
+                  />
+                  <circle
+                    r="10"
+                    cx="25"
+                    cy="25"
+                    fill="transparent"
+                    stroke={`${row.assays.h3k4me3 ? "#FF0000" : "transparent"}`}
+                    strokeWidth="20"
+                    strokeDasharray={`${fifth * 0} ${fifth * 2} ${fifth} ${fifth * 2}`}
+                  />
+                  <circle
+                    r="10"
+                    cx="25"
+                    cy="25"
+                    fill="transparent"
+                    stroke={`${row.assays.ctcf ? "#00B0F0" : "transparent"}`}
+                    strokeWidth="20"
+                    strokeDasharray={`${fifth * 0} ${fifth * 3} ${fifth} ${fifth * 1}`}
+                  />
+                  <circle
+                    r="10"
+                    cx="25"
+                    cy="25"
+                    fill="transparent"
+                    stroke={`${row.assays.atac ? "#02C7B9" : "transparent"}`}
+                    strokeWidth="20"
+                    strokeDasharray={`${fifth * 0} ${fifth * 4} ${fifth}`}
+                  />
+                </svg>
+              </Tooltip>
+            )
+          },
+        },
+      ]
+
+      return filteredBiosamples.sort().map((tissue: [string, {}[]], i) => {
+        // If user enters a search, check to see if the tissue name matches
+        if (tissue[0].includes(SearchString)) {
+          return (
+            <Accordion key={tissue[0]}>
+              <AccordionSummary
+                expandIcon={<KeyboardArrowRightIcon />}
+                sx={{
+                  flexDirection: "row-reverse",
+                  "& .MuiAccordionSummary-expandIconWrapper.Mui-expanded": {
+                    transform: "rotate(90deg)",
+                  },
+                }}
+              >
+                <Typography>{tissue[0][0].toUpperCase() + tissue[0].slice(1)}</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <DataTable
+                  columns={cols}
+                  rows={tissue[1]}
+                  dense
+                  searchable
+                  highlighted={BiosampleHighlight}
+                  sortColumn={1}
+                  onRowClick={(row, i) => {
+                    setBiosample({ selected: true, biosample: row.queryValue, tissue: row.biosampleTissue, summaryName: row.summaryName })
+                    setBiosampleHighlight(row)
+                    //Push to router with new biosample to avoid accessing stale Biosample value
+                    router.push(
+                      constructURL(props.mainQueryParams, urlParams, { selected: true, biosample: row.queryValue, tissue: row.biosampleTissue, summaryName: row.summaryName })
+                    )
+                  }}
+                />
+              </AccordionDetails>
+            </Accordion>
+          )
+        }
+      })
+    }
+    ,
     // Linter wants to include biosampleTables here as a dependency. Including it breaks intended functionality. Revisit later?
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [CellLine, InVitro, Organoid, PrimaryCell, Tissue, BiosampleHighlight, SearchString, props.byCellType, props.mainQueryParams]
@@ -259,7 +255,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                     onClick={() => {
                       setBiosample({ selected: false, biosample: null, tissue: null, summaryName: null })
                       setBiosampleHighlight(null)
-                      router.push(constructURL(props.mainQueryParams, urlParams,{ selected: false, biosample: null, tissue: null, summaryName: null }))
+                      router.push(constructURL(props.mainQueryParams, urlParams, { selected: false, biosample: null, tissue: null, summaryName: null }))
                     }}
                   >
                     Clear
@@ -268,7 +264,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
               </Grid2>
             )}
             <Grid2 xs={12} maxHeight={500} overflow={"auto"}>
-              {BiosampleTables}
+              {biosampleTables}
             </Grid2>
             <Grid2 xs={12} sx={{ mt: 1 }}>
               <Typography>Biosample Type</Typography>
