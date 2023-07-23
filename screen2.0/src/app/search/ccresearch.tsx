@@ -1,18 +1,21 @@
 "use client"
-import React, { useEffect } from "react"
-import { Tab, Tabs, Typography } from "@mui/material"
+import React, { useEffect, useState } from "react"
+import { Tab, Tabs } from "@mui/material"
 import MainResultsTable from "../../common/components/MainResultsTable"
 import MainResultsFilters from "../../common/components/MainResultsFilters"
 import { CcreDetails } from "./ccredetails/ccredetails"
 import Grid2 from "../../common/mui-client-wrappers/Grid2"
 import { ReadonlyURLSearchParams, useSearchParams } from "next/navigation"
 import styled from "@emotion/styled"
+import { GenomeBrowserView } from "./gbview/genomebrowserview"
+
 export const StyledTab = styled(Tab)(() => ({
   textTransform: "none",
 }))
 export const CcreSearch = ({ mainQueryParams, ccrerows, globals, assembly }) => {
   const searchParams: ReadonlyURLSearchParams = useSearchParams()!
-  const [value, setValue] = React.useState(searchParams.get("accession") ? 1 : 0)
+  const [value, setValue] = useState(searchParams.get("accession") ? 1 : 0)
+  const [tabIndex, setTabIndex] = useState(0)
 
   const handleChange = (_, newValue: number) => {
     setValue(newValue)
@@ -45,13 +48,18 @@ export const CcreSearch = ({ mainQueryParams, ccrerows, globals, assembly }) => 
             <MainResultsFilters mainQueryParams={mainQueryParams} byCellType={globals} />
           </Grid2>
           <Grid2 xs={12} lg={9}>
-            <MainResultsTable
+            <Tabs aria-label="basic tabs example" value={tabIndex} onChange={(_,val)=>setTabIndex(val)}>
+              <StyledTab label="Genome Browser View" />
+              <StyledTab label="Table View" />              
+            </Tabs>
+            {tabIndex===0 && <GenomeBrowserView assembly={mainQueryParams.assembly} coordinates={{start: 520000, end: 590000, chromosome: "chr11"}}/>}
+            {tabIndex===1 && <MainResultsTable
               rows={ccrerows}
               tableTitle={`Searching ${mainQueryParams.chromosome} in ${
                 mainQueryParams.assembly
               } from ${mainQueryParams.start.toLocaleString("en-US")} to ${mainQueryParams.end.toLocaleString("en-US")}`}
               itemsPerPage={10}
-            />
+            />}
           </Grid2>
         </Grid2>
       )}
