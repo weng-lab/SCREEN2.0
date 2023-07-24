@@ -7,18 +7,32 @@ import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { createLink, LoadingMessage, ErrorMessage } from "../../../common/lib/utility"
 import {
+  AppBar,
   Box,
   Button,
+  Drawer,
   FormControl,
   FormControlLabel,
+  IconButton,
   InputLabel,
   Link,
   MenuItem,
   Select,
   SelectChangeEvent,
+  Stack,
   Switch,
+  ThemeProvider,
+  Toolbar,
   Typography,
+  createTheme
 } from "@mui/material"
+
+import MenuIcon from "@mui/icons-material/Menu"
+import CloseIcon from "@mui/icons-material/Close"
+import Divider from "@mui/material/Divider"
+
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
+
 import { Range2D } from "jubilant-carnival"
 import { PlotActivityProfiles } from "./utils"
 
@@ -26,10 +40,6 @@ export default function Rampage({ accession, assembly, chromosome }) {
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<boolean>(false)
   const [data, setData] = useState()
-  const [options, setOptions] = useState<string[]>([])
-  const [sort, setSort] = useState<string>("byValue")
-  const [zeros, setZeros] = useState<boolean>(false)
-
   const [transcript, setTranscript] = useState<string>("")
 
   const [payload, setPayload] = useState<{ accession: string; assembly: string; chromosome: string }>({
@@ -65,7 +75,7 @@ export default function Rampage({ accession, assembly, chromosome }) {
       .then((response) => {
         if (!response.ok) {
           setError(true)
-          return ErrorMessage(new Error(response.statusText))
+          return <ErrorMessage error={(new Error(response.statusText))} />
         }
         return response.json()
       })
@@ -75,7 +85,7 @@ export default function Rampage({ accession, assembly, chromosome }) {
         setLoading(false)
       })
       .catch((error: Error) => {
-        return ErrorMessage(error)
+        return <ErrorMessage error={error} />
       })
     setLoading(true)
   }, [payload])
@@ -86,119 +96,101 @@ export default function Rampage({ accession, assembly, chromosome }) {
     })
   }
 
+  // temp theme for toolbar color
+  const theme = createTheme({
+    palette: {
+      mode: "light",
+      // primary: {
+      //   main: "#nnn",
+      // },
+      secondary: {
+        main: "#nnn",
+      },
+    },
+    components: {
+      MuiAccordion: {
+        defaultProps: {
+          elevation: 0
+        }
+      }
+    }
+  })
+
   return error
-    ? ErrorMessage(new Error("Error loading data"))
+    ? <ErrorMessage error={new Error("Error loading data")} />
     : loading
-    ? LoadingMessage()
+    ? <LoadingMessage />
     : data &&
       data[payload.accession] && (
-        <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "2rem", mr: "1rem" }}>
-          <Grid2 xs={4} lg={5} md={5}>
-            <Box>
-              <Typography variant="h4">TSS Activity Profiles by RAMPAGE</Typography>
-            </Box>
-            <Box mt={2}>
-              <Typography variant="h5">{data[payload.accession]["gene"]["name"]}</Typography>
-              <Typography>
-                {data[payload.accession]["gene"]["ensemblid_ver"] +
-                  " (" +
-                  parseInt(data[payload.accession]["gene"]["distance"]).toLocaleString("en-US") +
-                  " bases from cCRE)"}
-              </Typography>
-            </Box>
-            <Box mt={2}>
-              <Typography display="inline" lineHeight={2.5}>
-                {"Transcript: "}{" "}
-              </Typography>
-              <FormControl>
-                <InputLabel id="transcription-select-label"></InputLabel>
-                <Select
-                  defaultValue={transcript}
-                  labelId="transcription-select-label"
-                  id="transcription-select"
-                  value={transcript}
-                  size="small"
-                  onChange={(event: SelectChangeEvent) => {
-                    setTranscript(event.target.value)
-                  }}
-                >
-                  {transcriptItems(data[payload.accession]["sortedTranscripts"])}
-                </Select>
-              </FormControl>
-              <Typography lineHeight={3}>
-                {payload.chromosome +
-                  ": " +
-                  parseInt(data[payload.accession]["gene"]["start"]).toLocaleString("en-US") +
-                  " - " +
-                  parseInt(data[payload.accession]["gene"]["stop"]).toLocaleString("en-US") +
-                  " unprocessed pseudogene"}
-              </Typography>
-            </Box>
-          </Grid2>
-          <Grid2 xs={1.3} mt={0}>
-            <Box mt={0} sx={{ height: 100, width: 150 }}>
-              <Link href={"https://genome.ucsc.edu/"}>
-                <Button variant="contained">
-                  <img src="https://genome-euro.ucsc.edu/images/ucscHelixLogo.png" width={150} />
-                </Button>
-              </Link>
-            </Box>
-          </Grid2>
-          <Grid2 xs={3} ml={0} mt={0}>
-            <Box mt={0} sx={{ height: 100, width: 165 }}>
-              <Link href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + data[payload.accession]["gene"]["name"]}>
-                <Button variant="contained">
-                  <img src="https://geneanalytics.genecards.org/media/81632/gc.png" width={150} />
-                </Button>
-              </Link>
-            </Box>
-          </Grid2>
-          <Grid2 xs={2} lg={2} md={2}>
-            <Box mt={5} ml={30}>
-              <FormControl key={sort}>
-                <InputLabel id="sort-by-label">Sort By</InputLabel>
-                <Select
-                  labelId="sort-by-label"
-                  id="sort-by"
-                  value={sort}
-                  onChange={(event: SelectChangeEvent) => {
-                    setSort(event.target.value)
-                  }}
-                >
-                  <MenuItem value="byTissue">Tissue</MenuItem>
-                  <MenuItem value="byTissueMax">Tissue Max</MenuItem>
-                  <MenuItem value="byValue">Value</MenuItem>
-                </Select>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={zeros}
-                      onChange={() => {
-                        if (zeros) setZeros(false)
-                        else setZeros(true)
-                      }}
-                    />
-                  }
-                  label="zeros"
-                />
-              </FormControl>
-            </Box>
-          </Grid2>
-          <Grid2 xs={12} lg={12} md={12}>
-            <Box width="1500px">
-              <svg className="graph" aria-labelledby="title desc" role="img" viewBox="0 0 1200 12000">
-                <g className="x-grid grid" id="xGrid">
-                  <line x1="100" x2="1100" y1="4900" y2="5900"></line>
-                </g>
-                <g className="y-grid grid" id="yGrid">
-                  <line x1="900" x2="1100" y1="100" y2="4900"></line>
-                </g>
-                <g className="data" data-setname="gene expression plot">
-                  {PlotActivityProfiles(data[payload.accession], sort, zeros, range, dimensions)}
-                </g>
-              </svg>
-            </Box>
-          </Grid2>
+        <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "2rem", mr: "2rem", width: `100%` }}>
+          {/* tool bar */}
+          <ThemeProvider theme={theme}>
+            <AppBar position="static" color="secondary">
+              <Toolbar style={{ }}>
+                {/* description */}
+                <Grid2 xs={9} md={9} lg={9}>
+                    <Box sx={{ mt: 0.5 }}>
+                      <Typography variant="h5" fontSize={30}>TSS Activity Profiles by RAMPAGE</Typography>
+                    </Box>
+                  <Box mt={2} ml={0.5}>
+                    <Typography variant="h5">{data[payload.accession]["gene"]["name"]}</Typography>
+                    <Typography>
+                      {data[payload.accession]["gene"]["ensemblid_ver"] +
+                        " (" +
+                        parseInt(data[payload.accession]["gene"]["distance"]).toLocaleString("en-US") +
+                        " bases from cCRE)"}
+                    </Typography>
+                  </Box>
+                  <Box mt={2} ml={0.5}>
+                    <Typography display="inline" lineHeight={2.5}>
+                      {"Transcript: "}{" "}
+                    </Typography>
+                    <FormControl>
+                      <InputLabel id="transcription-select-label"></InputLabel>
+                      <Select
+                        sx={{ height: 30, mt: 0.5 }}
+                        defaultValue={transcript}
+                        labelId="transcription-select-label"
+                        id="transcription-select"
+                        value={transcript}
+                        size="small"
+                        onChange={(event: SelectChangeEvent) => {
+                          setTranscript(event.target.value)
+                        }}
+                      >
+                        {transcriptItems(data[payload.accession]["sortedTranscripts"])}
+                      </Select>
+                    </FormControl>
+                    <Typography>
+                      {payload.chromosome +
+                        ":" +
+                        parseInt(data[payload.accession]["gene"]["start"]).toLocaleString("en-US") +
+                        "-" +
+                        parseInt(data[payload.accession]["gene"]["stop"]).toLocaleString("en-US") +
+                        " unprocessed pseudogene"}
+                    </Typography>
+                  </Box>
+                </Grid2>
+                {/* ucsc */}
+                <Grid2 xs={1.5} sx={{ mt: 2, height: 100, width: 190, mb: 18 }}>
+                  <Link href={"https://genome.ucsc.edu/"}>
+                    <Button variant="contained">
+                      <img src="https://genome-euro.ucsc.edu/images/ucscHelixLogo.png" width={150} />
+                    </Button>
+                  </Link>
+                </Grid2>
+                {/* gene card */}
+                <Grid2 xs={1.5} sx={{ mt: 2, height: 100, width: 214, mb: 18 }}>
+                  <Link href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + data[payload.accession]["gene"]["name"]}>
+                    <Button variant="contained">
+                      <img src="https://geneanalytics.genecards.org/media/81632/gc.png" width={150} />
+                    </Button>
+                  </Link>
+                </Grid2>
+              </Toolbar>
+            </AppBar>
+            <PlotActivityProfiles data={data[payload.accession]} range={range} dimensions={dimensions} />
+          </ThemeProvider>
         </Grid2>
       )
 }
