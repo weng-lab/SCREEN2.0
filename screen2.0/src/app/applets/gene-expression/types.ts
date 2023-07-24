@@ -1,3 +1,36 @@
+export type gene = {
+  chrom: string
+  start: number
+  end: number
+  id: string
+  name: string
+}
+
+export type RIDItem = {
+  // [id: string]: {
+    ageTitle: string
+    cellType: string
+    logFPKM: number
+    logTPM: number
+    rID: number
+    rawFPKM: number
+    rawTPM: number
+    rep: number
+    tissue: string
+  // }[]
+}
+
+export type GeneExpEntry = {
+  value: number
+  biosample_term?: string,
+  cellType?: string
+  expID: string
+  rep?: number
+  tissue: string
+  strand?: string,
+  color: string
+}
+
 export type BiosampleList = {
   cell_line: boolean
   in_vitro: boolean
@@ -15,7 +48,7 @@ export type CellComponents = {
   nucleus: boolean
 }
 
-export type GeneExpression = {
+export type GeneExpressions = {
   all: {
     assembly: string
     coords: {
