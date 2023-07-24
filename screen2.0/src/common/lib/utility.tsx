@@ -22,7 +22,7 @@ export async function fetchServer<T>(url: string, jq: BodyInit) {
     .then((response) => {
       if (!response.ok) {
         // throw new Error(response.statusText)
-        return ErrorMessage(Error(response.statusText))
+        return <ErrorMessage error={Error(response.statusText)} />
       }
       return response.json()
     })
@@ -32,7 +32,7 @@ export async function fetchServer<T>(url: string, jq: BodyInit) {
     .catch((error: Error) => {
       // logging
       // throw error
-      return ErrorMessage(error)
+      return <ErrorMessage error={error} />
     })
 }
 
@@ -74,41 +74,39 @@ export function LoadingMessage() {
  * @param {Error} error
  * @returns error message
  */
-export function ErrorMessage(error: Error) {
-  let open: boolean = true
-
+export function ErrorMessage(props: {error: Error}) {
   // debugging
   // console.log("Error!")
-  console.log(error.message)
+  console.log(props.error.message)
   // throw error
 
   function toggleOpen(toggle: boolean) {
-    if (toggle === true) open = false
-    else open = true
+    // if (toggle === true) setOpen(false)
+    // else setOpen(true)
   }
 
   const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === "clickaway") {
       return
     }
-    open = false
+    // setOpen(false)
   }
 
   return (
     <Grid2 container alignItems="center" justifyContent="center" direction="column" sx={{ minHeight: "90vh" }}>
-      {/* <Popover
+      <Snackbar
       id="errorpopper"
-      open={open}
+      open={true}
       anchorOrigin={{
-        vertical: "center",
+        vertical: "bottom",
         horizontal: "center"
       }}
-    > */}
+    >
       <Alert severity="error" variant="filled">
         <AlertTitle>Error</AlertTitle>
-        There was an error loading. — <strong>{error.message}</strong>
+        There was an error loading. — <strong>{props.error.message}</strong>
       </Alert>
-      {/* </Popover> */}
+      </Snackbar>
     </Grid2>
   )
 }
