@@ -14,6 +14,7 @@ import Rampage from "./rampage"
 import MenuIcon from "@mui/icons-material/Menu"
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos"
 import Divider from "@mui/material/Divider"
+import GeneExpression from "../../applets/gene-expression/page"
 
 type CcreDetailsProps = {
   accession: string
@@ -25,7 +26,6 @@ type CcreDetailsProps = {
 export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, globals, assembly }) => {
   const [value, setValue] = React.useState(0)
   const [open, setState] = React.useState<boolean>(false)
-  const [plotSize, setPlotSize] = React.useState<number>(12)
 
   const handleChange = (_, newValue: number) => {
     setValue(newValue)
@@ -35,9 +35,6 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
     if (event.type === "keydown" && (event.key === "Tab" || event.key === "Shift")) {
       return
     }
-    //changes the function state according to the value of open
-    if (open) setPlotSize(9)
-    else setPlotSize(0)
     setState(open)
   }
 
@@ -45,9 +42,9 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
   const theme = createTheme({
     palette: {
       mode: "light",
-      primary: {
-        main: "#nnn",
-      },
+      // primary: {
+      //   main: "#nnn",
+      // },
       secondary: {
         main: "#nnn",
       },
@@ -101,7 +98,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
                     onChange={handleChange} 
                     orientation="vertical"
                     variant="fullWidth"
-                    >
+                  >
                       <StyledTab label="In Specific Biosamples" sx={{ alignSelf: "start" }} />
                       <StyledTab label="Linked Genes" sx={{ alignSelf: "start" }} />
                       <StyledTab label="Nearby Genomic Features" sx={{ alignSelf: "start" }} />
@@ -109,6 +106,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
                       <StyledTab label="TF Motifs and Sequence Features" sx={{ alignSelf: "start" }} />
                       <StyledTab label="Linked cCREs in other Assemblies" sx={{ alignSelf: "start" }} />
                       <StyledTab label="Associated RAMPAGE Signal" sx={{ alignSelf: "start" }} />
+                      <StyledTab label="Associated Gene Expression" sx={{ alignSelf: "start" }} />
                   </Tabs>
                 </Box>
               </Box>
@@ -124,38 +122,26 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
                     edge="start"
                     color="inherit"
                     aria-label="open drawer"
-                    onClick={() => {
-                      if (open) toggleDrawer(false)
-                      else toggleDrawer(true)
-                      toggleDrawer(true)
-
-                      if (open) {
-                        setState(false)
-                        setPlotSize(12)
-                      } else {
-                        setState(true)
-                        setPlotSize(9)
-                      }
-                    }}
+                    onClick={toggleDrawer(true)}
                     sx={{
                       mr: 1,
                       xs: 0.5,
                       display: {
                         xs: "block",
                       },
-                      // ...(open && { display: "none" }),
+                      ...(open && { display: "none" }),
                     }}
                   >
                     <MenuIcon />
                   </IconButton>
                 </Grid2>
                 <Grid2 xs={3} lg={3}>
-                  <Typography sx={{ ml: "0rem" }} variant="h4" fontSize={30}>
+                  <Typography sx={{ ml: 4, mt: 0.5, alignItems: "center", justifyContent: "center", display: "flex" }} variant="h5" fontSize={30}>
                     {accession}
                   </Typography>
                 </Grid2>
                 <Grid2 xs={20} lg={20} sx={{ alignItems: "right", justifyContent: "right", display: "flex" }}>
-                  <Typography lineHeight={5} sx={{ mt: 0.25 }} variant="h6">{`${region.chrom}:${region.start}-${region.end}`}</Typography>
+                  <Typography lineHeight={5} sx={{ mt: 0.25 }} variant="body1">{`${region.chrom}:${region.start}-${region.end}`}</Typography>
                 </Grid2>
             </Toolbar>
           </AppBar>
@@ -188,6 +174,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
               )}
               {value === 5 && <Ortholog accession={accession} assembly={assembly} />}
               {value === 6 && <Rampage accession={accession} assembly={assembly} chromosome={region.chrom} />}
+              {value === 7 && <GeneExpression accession={accession} assembly={assembly} region={region} />}
             </Grid2>
           </Grid2>
         </Grid2>
