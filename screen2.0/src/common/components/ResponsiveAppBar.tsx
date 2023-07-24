@@ -276,29 +276,31 @@ function ResponsiveAppBar() {
           <Box sx={{ flexGrow: 0 }}>
             <HeaderSearch />
           </Box>
+          {/* Settings */}
+          <Box sx={{ ml: 3, flexGrow: 0 }}>
           <IconButton
             edge="start"
             color="inherit"
             aria-label="open drawer"
             onClick={toggleDrawer(true)}
             sx={{
-              mr: 2,
+              mr: 0,
               display: {
                 xs: "block",
-                sm: "none",
               },
             }}
           >
             <MenuIcon />
           </IconButton>
-          <Drawer anchor="left" open={open} onClose={toggleDrawer(false)}>
+          </Box>
+          <Drawer anchor="right" open={open} onClose={toggleDrawer(false)}>
             <Box>
-              <IconButton>
-                <CloseIcon onClick={toggleDrawer(false)} />
+              <IconButton onClick={toggleDrawer(false)}>
+                <CloseIcon />
               </IconButton>
               <Divider sx={{ mb: 2 }} />
-              <Box>
-                <Typography>hello</Typography>
+              <Box margin={2}>
+                <Typography variant="h6">Settings</Typography>
               </Box>
             </Box>
           </Drawer>
