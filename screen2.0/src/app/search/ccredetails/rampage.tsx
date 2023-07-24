@@ -24,7 +24,7 @@ import {
   ThemeProvider,
   Toolbar,
   Typography,
-  createTheme
+  createTheme,
 } from "@mui/material"
 
 import MenuIcon from "@mui/icons-material/Menu"
@@ -75,7 +75,7 @@ export default function Rampage({ accession, assembly, chromosome }) {
       .then((response) => {
         if (!response.ok) {
           setError(true)
-          return <ErrorMessage error={(new Error(response.statusText))} />
+          return <ErrorMessage error={new Error(response.statusText)} />
         }
         return response.json()
       })
@@ -110,87 +110,91 @@ export default function Rampage({ accession, assembly, chromosome }) {
     components: {
       MuiAccordion: {
         defaultProps: {
-          elevation: 0
-        }
-      }
-    }
+          elevation: 0,
+        },
+      },
+    },
   })
 
-  return error
-    ? <ErrorMessage error={new Error("Error loading data")} />
-    : loading
-    ? <LoadingMessage />
-    : data &&
-      data[payload.accession] && (
-        <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "2rem", mr: "2rem", width: `100%` }}>
-          {/* tool bar */}
-          <ThemeProvider theme={theme}>
-            <AppBar position="static" color="secondary">
-              <Toolbar style={{ }}>
-                {/* description */}
-                <Grid2 xs={9} md={9} lg={9}>
-                    <Box sx={{ mt: 0.5 }}>
-                      <Typography variant="h5" fontSize={30}>TSS Activity Profiles by RAMPAGE</Typography>
-                    </Box>
-                  <Box mt={2} ml={0.5}>
-                    <Typography variant="h5">{data[payload.accession]["gene"]["name"]}</Typography>
-                    <Typography>
-                      {data[payload.accession]["gene"]["ensemblid_ver"] +
-                        " (" +
-                        parseInt(data[payload.accession]["gene"]["distance"]).toLocaleString("en-US") +
-                        " bases from cCRE)"}
-                    </Typography>
-                  </Box>
-                  <Box mt={2} ml={0.5}>
-                    <Typography display="inline" lineHeight={2.5}>
-                      {"Transcript: "}{" "}
-                    </Typography>
-                    <FormControl>
-                      <InputLabel id="transcription-select-label"></InputLabel>
-                      <Select
-                        sx={{ height: 30, mt: 0.5 }}
-                        defaultValue={transcript}
-                        labelId="transcription-select-label"
-                        id="transcription-select"
-                        value={transcript}
-                        size="small"
-                        onChange={(event: SelectChangeEvent) => {
-                          setTranscript(event.target.value)
-                        }}
-                      >
-                        {transcriptItems(data[payload.accession]["sortedTranscripts"])}
-                      </Select>
-                    </FormControl>
-                    <Typography>
-                      {payload.chromosome +
-                        ":" +
-                        parseInt(data[payload.accession]["gene"]["start"]).toLocaleString("en-US") +
-                        "-" +
-                        parseInt(data[payload.accession]["gene"]["stop"]).toLocaleString("en-US") +
-                        " unprocessed pseudogene"}
-                    </Typography>
-                  </Box>
-                </Grid2>
-                {/* ucsc */}
-                <Grid2 xs={1.5} sx={{ mt: 2, height: 100, width: 190, mb: 18 }}>
-                  <Link href={"https://genome.ucsc.edu/"}>
-                    <Button variant="contained">
-                      <img src="https://genome-euro.ucsc.edu/images/ucscHelixLogo.png" width={150} />
-                    </Button>
-                  </Link>
-                </Grid2>
-                {/* gene card */}
-                <Grid2 xs={1.5} sx={{ mt: 2, height: 100, width: 214, mb: 18 }}>
-                  <Link href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + data[payload.accession]["gene"]["name"]}>
-                    <Button variant="contained">
-                      <img src="https://geneanalytics.genecards.org/media/81632/gc.png" width={150} />
-                    </Button>
-                  </Link>
-                </Grid2>
-              </Toolbar>
-            </AppBar>
-            <PlotActivityProfiles data={data[payload.accession]} range={range} dimensions={dimensions} />
-          </ThemeProvider>
-        </Grid2>
-      )
+  return error ? (
+    <ErrorMessage error={new Error("Error loading data")} />
+  ) : loading ? (
+    <LoadingMessage />
+  ) : (
+    data &&
+    data[payload.accession] && (
+      <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "2rem", mr: "2rem", width: `100%` }}>
+        {/* tool bar */}
+        <ThemeProvider theme={theme}>
+          <AppBar position="static" color="secondary">
+            <Toolbar style={{}}>
+              {/* description */}
+              <Grid2 xs={9} md={9} lg={9}>
+                <Box sx={{ mt: 0.5 }}>
+                  <Typography variant="h5" fontSize={30}>
+                    TSS Activity Profiles by RAMPAGE
+                  </Typography>
+                </Box>
+                <Box mt={2} ml={0.5}>
+                  <Typography variant="h5">{data[payload.accession]["gene"]["name"]}</Typography>
+                  <Typography>
+                    {data[payload.accession]["gene"]["ensemblid_ver"] +
+                      " (" +
+                      parseInt(data[payload.accession]["gene"]["distance"]).toLocaleString("en-US") +
+                      " bases from cCRE)"}
+                  </Typography>
+                </Box>
+                <Box mt={2} ml={0.5}>
+                  <Typography display="inline" lineHeight={2.5}>
+                    {"Transcript: "}{" "}
+                  </Typography>
+                  <FormControl>
+                    <InputLabel id="transcription-select-label"></InputLabel>
+                    <Select
+                      sx={{ height: 30, mt: 0.5 }}
+                      defaultValue={transcript}
+                      labelId="transcription-select-label"
+                      id="transcription-select"
+                      value={transcript}
+                      size="small"
+                      onChange={(event: SelectChangeEvent) => {
+                        setTranscript(event.target.value)
+                      }}
+                    >
+                      {transcriptItems(data[payload.accession]["sortedTranscripts"])}
+                    </Select>
+                  </FormControl>
+                  <Typography>
+                    {payload.chromosome +
+                      ":" +
+                      parseInt(data[payload.accession]["gene"]["start"]).toLocaleString("en-US") +
+                      "-" +
+                      parseInt(data[payload.accession]["gene"]["stop"]).toLocaleString("en-US") +
+                      " unprocessed pseudogene"}
+                  </Typography>
+                </Box>
+              </Grid2>
+              {/* ucsc */}
+              <Grid2 xs={1.5} sx={{ mt: 2, height: 100, width: 190, mb: 18 }}>
+                <Link href={"https://genome.ucsc.edu/"}>
+                  <Button variant="contained">
+                    <img src="https://genome-euro.ucsc.edu/images/ucscHelixLogo.png" width={150} />
+                  </Button>
+                </Link>
+              </Grid2>
+              {/* gene card */}
+              <Grid2 xs={1.5} sx={{ mt: 2, height: 100, width: 214, mb: 18 }}>
+                <Link href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + data[payload.accession]["gene"]["name"]}>
+                  <Button variant="contained">
+                    <img src="https://geneanalytics.genecards.org/media/81632/gc.png" width={150} />
+                  </Button>
+                </Link>
+              </Grid2>
+            </Toolbar>
+          </AppBar>
+          <PlotActivityProfiles data={data[payload.accession]} range={range} dimensions={dimensions} />
+        </ThemeProvider>
+      </Grid2>
+    )
+  )
 }

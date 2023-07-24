@@ -8,26 +8,26 @@ export type gene = {
 
 export type RIDItem = {
   // [id: string]: {
-    ageTitle: string
-    cellType: string
-    logFPKM: number
-    logTPM: number
-    rID: number
-    rawFPKM: number
-    rawTPM: number
-    rep: number
-    tissue: string
+  ageTitle: string
+  cellType: string
+  logFPKM: number
+  logTPM: number
+  rID: number
+  rawFPKM: number
+  rawTPM: number
+  rep: number
+  tissue: string
   // }[]
 }
 
 export type GeneExpEntry = {
   value: number
-  biosample_term?: string,
+  biosample_term?: string
   cellType?: string
   expID: string
   rep?: number
   tissue: string
-  strand?: string,
+  strand?: string
   color: string
 }
 

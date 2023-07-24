@@ -74,7 +74,7 @@ export function LoadingMessage() {
  * @param {Error} error
  * @returns error message
  */
-export function ErrorMessage(props: {error: Error}) {
+export function ErrorMessage(props: { error: Error }) {
   // debugging
   // console.log("Error!")
   console.log(props.error.message)
@@ -95,17 +95,17 @@ export function ErrorMessage(props: {error: Error}) {
   return (
     <Grid2 container alignItems="center" justifyContent="center" direction="column" sx={{ minHeight: "90vh" }}>
       <Snackbar
-      id="errorpopper"
-      open={true}
-      anchorOrigin={{
-        vertical: "bottom",
-        horizontal: "center"
-      }}
-    >
-      <Alert severity="error" variant="filled">
-        <AlertTitle>Error</AlertTitle>
-        There was an error loading. — <strong>{props.error.message}</strong>
-      </Alert>
+        id="errorpopper"
+        open={true}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "center",
+        }}
+      >
+        <Alert severity="error" variant="filled">
+          <AlertTitle>Error</AlertTitle>
+          There was an error loading. — <strong>{props.error.message}</strong>
+        </Alert>
       </Snackbar>
     </Grid2>
   )

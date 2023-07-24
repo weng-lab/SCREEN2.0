@@ -278,20 +278,20 @@ function ResponsiveAppBar() {
           </Box>
           {/* Settings */}
           <Box sx={{ ml: 3, flexGrow: 0 }}>
-          <IconButton
-            edge="start"
-            color="inherit"
-            aria-label="open drawer"
-            onClick={toggleDrawer(true)}
-            sx={{
-              mr: 0,
-              display: {
-                xs: "block",
-              },
-            }}
-          >
-            <MenuIcon />
-          </IconButton>
+            <IconButton
+              edge="start"
+              color="inherit"
+              aria-label="open drawer"
+              onClick={toggleDrawer(true)}
+              sx={{
+                mr: 0,
+                display: {
+                  xs: "block",
+                },
+              }}
+            >
+              <MenuIcon />
+            </IconButton>
           </Box>
           <Drawer anchor="right" open={open} onClose={toggleDrawer(false)}>
             <Box>
