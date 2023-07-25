@@ -1,6 +1,6 @@
 "use client"
-import React, { useState, useEffect } from "react"
-import { Accordion, AccordionDetails, AccordionSummary, PaperProps } from "@mui/material"
+import React, { useState } from "react"
+import { Accordion, AccordionDetails, AccordionSummary } from "@mui/material"
 import {
   AppBar,
   Box,
@@ -25,7 +25,7 @@ import { Point2D, Range2D, linearTransform2D } from "jubilant-carnival"
 import { Fragment } from "react"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
-import { RIDItem, GeneExpEntry } from "../../applets/gene-expression/types"
+import { RIDItemList, GeneExpEntry } from "../../applets/gene-expression/types"
 
 export const z_score = (d: any) => (d === -11.0 || d === "--" || d === undefined ? "--" : d.toFixed(2))
 
@@ -116,7 +116,7 @@ export function PlotActivityProfiles(props: { data: any; range: Range2D; dimensi
   const [collapse, setCollapse] = useState<{ [id: string]: { expand: boolean } }>({})
 
   let transcripts: string[] = props.data["sortedTranscripts"]
-  let itemsRID: { [id: string]: RIDItem } = props.data["tsss"][transcripts[0]]["itemsByID"]
+  let itemsRID: RIDItemList = props.data["tsss"][transcripts[0]]["itemsByID"]
   let tissues: { [id: string]: { sum: number; values: GeneExpEntry[] } } = {} // dict of ftissues
   let p1: Point2D = { x: 0, y: 0 }
   let max: number = 0

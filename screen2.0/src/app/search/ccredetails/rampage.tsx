@@ -1,51 +1,36 @@
 "use client"
 import React, { useState, useEffect } from "react"
-import { client } from "./client"
-import { gql, useQuery } from "@apollo/client"
-import { ORTHOLOG_QUERY } from "./queries"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
-import { DataTable } from "@weng-lab/psychscreen-ui-components"
-import { createLink, LoadingMessage, ErrorMessage } from "../../../common/lib/utility"
+import { LoadingMessage, ErrorMessage } from "../../../common/lib/utility"
 import {
   AppBar,
   Box,
   Button,
-  Drawer,
   FormControl,
-  FormControlLabel,
-  IconButton,
   InputLabel,
-  Link,
   MenuItem,
   Select,
   SelectChangeEvent,
-  Stack,
-  Switch,
   ThemeProvider,
   Toolbar,
   Typography,
   createTheme,
 } from "@mui/material"
 
-import MenuIcon from "@mui/icons-material/Menu"
-import CloseIcon from "@mui/icons-material/Close"
-import Divider from "@mui/material/Divider"
-
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
-
 import { Range2D } from "jubilant-carnival"
 import { PlotActivityProfiles } from "./utils"
+import Image from "next/image"
 
-export default function Rampage({ accession, assembly, chromosome }) {
+export default function Rampage(props: { accession: string, assembly: string, chromosome: string }) {
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<boolean>(false)
   const [data, setData] = useState()
   const [transcript, setTranscript] = useState<string>("")
 
   const [payload, setPayload] = useState<{ accession: string; assembly: string; chromosome: string }>({
-    accession: accession,
-    assembly: assembly,
-    chromosome: chromosome,
+    accession: props.accession,
+    assembly: props.assembly,
+    chromosome: props.chromosome,
   })
 
   const [range, setRange] = useState<Range2D>({
@@ -92,7 +77,7 @@ export default function Rampage({ accession, assembly, chromosome }) {
 
   function transcriptItems(transcripts: string[]) {
     return Object.values(transcripts).map((t: string) => {
-      return <MenuItem value={t}>{t}</MenuItem>
+      return <MenuItem key={t} value={t}>{t}</MenuItem>
     })
   }
 
@@ -176,19 +161,15 @@ export default function Rampage({ accession, assembly, chromosome }) {
               </Grid2>
               {/* ucsc */}
               <Grid2 xs={1.5} sx={{ mt: 2, height: 100, width: 190, mb: 18 }}>
-                <Link href={"https://genome.ucsc.edu/"}>
-                  <Button variant="contained">
-                    <img src="https://genome-euro.ucsc.edu/images/ucscHelixLogo.png" width={150} />
+                  <Button variant="contained" href="https://genome.ucsc.edu/" color="secondary">
+                    <Image src="https://genome-euro.ucsc.edu/images/ucscHelixLogo.png" width={150} height={100} alt="ucsc-button" />
                   </Button>
-                </Link>
               </Grid2>
               {/* gene card */}
               <Grid2 xs={1.5} sx={{ mt: 2, height: 100, width: 214, mb: 18 }}>
-                <Link href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + data[payload.accession]["gene"]["name"]}>
-                  <Button variant="contained">
-                    <img src="https://geneanalytics.genecards.org/media/81632/gc.png" width={150} />
+                  <Button variant="contained" href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + data[payload.accession]["gene"]["name"]} color="secondary">
+                    <Image src="https://geneanalytics.genecards.org/media/81632/gc.png" width={150} height={100} alt="gene-card-button"/>
                   </Button>
-                </Link>
               </Grid2>
             </Toolbar>
           </AppBar>
