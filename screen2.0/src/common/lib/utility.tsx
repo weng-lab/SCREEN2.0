@@ -77,7 +77,8 @@ export function LoadingMessage() {
 export function ErrorMessage(props: { error: Error }) {
   // debugging
   // console.log("Error!")
-  console.log(props.error.message)
+  // console.log(props.error.message)
+  console.log(props.error)
   // throw error
 
   function toggleOpen(toggle: boolean) {
@@ -104,7 +105,7 @@ export function ErrorMessage(props: { error: Error }) {
       >
         <Alert severity="error" variant="filled">
           <AlertTitle>Error</AlertTitle>
-          There was an error loading. — <strong>{props.error.message}</strong>
+          There was an error loading. — <strong>{"Error"}</strong>
         </Alert>
       </Snackbar>
     </Grid2>
