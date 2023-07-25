@@ -1,5 +1,5 @@
 "use client"
-import React from "react"
+import React, { useState} from "react"
 import { Tab, Tabs, Typography, Paper } from "@mui/material"
 import { GenomicRegion } from "../types"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
@@ -9,6 +9,7 @@ import { NearByGenomicFeatures } from "./nearbygenomicfeatures"
 import { LinkedGenes } from "./linkedgenes"
 import { Ortholog } from "./linkedccres"
 import { TfIntersection } from "./tfintersection"
+import { TfMotifs } from "./tfmotifs"
 type CcreDetailsProps = {
   accession: string
   assembly: string
@@ -17,7 +18,7 @@ type CcreDetailsProps = {
 }
 
 export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, globals, assembly }) => {
-  const [value, setValue] = React.useState(0)
+  const [value, setValue] = useState(0)
   const handleChange = (_, newValue: number) => {
     setValue(newValue)
   }
@@ -70,6 +71,11 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
                   }}
                 />
               )}
+              {value===4 && <TfMotifs assembly={assembly}  coordinates={{
+                    chromosome: region.chrom,
+                    start: +region.start.toString().replace(/\D/g, ""),
+                    end: +region.end.toString().replace(/\D/g, ""),
+                  }}/>}
               {value === 5 && <Ortholog accession={accession} assembly={assembly} />}
             </Grid2>
           </Grid2>

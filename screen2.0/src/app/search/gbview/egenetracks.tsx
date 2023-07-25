@@ -18,6 +18,7 @@ export type EGeneTrackProps = {
   highlights?: Set<string>;
   onSettingsClick?: () => void;
   onHeightChanged?: (x: number) => void;
+  width?: number;
   squish?: boolean;
 };
 
@@ -28,7 +29,7 @@ const EGeneTracks: React.FC<EGeneTrackProps> = (props) => {
     <g>
       <EmptyTrack
         height={40}
-        width={1400}
+        width={props.width || 1400}
         text="GENCODE genes"
         transform=""
         id=""
@@ -37,7 +38,7 @@ const EGeneTracks: React.FC<EGeneTrackProps> = (props) => {
         <SquishTranscriptTrack
           transform="translate(0,40)"
           rowHeight={20}
-          width={1400}
+          width={props.width || 1400}
           domain={props.expandedCoordinates}
           id="innergencode"
           data={props.genes || []}
@@ -51,7 +52,7 @@ const EGeneTracks: React.FC<EGeneTrackProps> = (props) => {
         <PackTranscriptTrack
           transform="translate(0,40)"
           rowHeight={20}
-          width={1400}
+          width={props.width || 1400}
           domain={props.expandedCoordinates}
           id="innergencode"
           data={props.genes || []}
@@ -64,7 +65,7 @@ const EGeneTracks: React.FC<EGeneTrackProps> = (props) => {
       )}
       {settingsMousedOver && (
         <rect
-          width={1400}
+        width={props.width || 1400}
           height={height}
           transform="translate(0,0)"
           fill="#bf2604"

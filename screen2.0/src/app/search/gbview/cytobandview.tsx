@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { gql, useQuery } from "@apollo/client";
 import { Cytobands } from "umms-gb";
 import { Grid } from "@mui/material";
-
+import { client } from "../ccredetails/client"
 export type GenomicRange = {
     chromosome?: string;
     start: number;
@@ -47,6 +47,9 @@ const CytobandView: React.FC<CytobandsProps> = (props) => {
       assembly: props.assembly,
       chromosome: props.chromosome,
     },
+    fetchPolicy: "cache-and-network",
+    nextFetchPolicy: "cache-first",
+    client,
   });
   const domain = useMemo(
     () =>

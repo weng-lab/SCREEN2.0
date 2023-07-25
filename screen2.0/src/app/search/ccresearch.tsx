@@ -52,7 +52,7 @@ export const CcreSearch = ({ mainQueryParams, ccrerows, globals, assembly }) => 
               <StyledTab label="Genome Browser View" />
               <StyledTab label="Table View" />              
             </Tabs>
-            {tabIndex===0 && <GenomeBrowserView assembly={mainQueryParams.assembly} coordinates={{start: 520000, end: 590000, chromosome: "chr11"}}/>}
+            {tabIndex===0 && <GenomeBrowserView biosample={mainQueryParams.Biosample.biosample}  assembly={mainQueryParams.assembly} coordinates={{start: +mainQueryParams.start, end: +mainQueryParams.end, chromosome: mainQueryParams.chromosome}}/>}
             {tabIndex===1 && <MainResultsTable
               rows={ccrerows}
               tableTitle={`Searching ${mainQueryParams.chromosome} in ${
