@@ -59,7 +59,7 @@ const GENE_AUTOCOMPLETE_QUERY = gql`
   }  
 `
 
-export default function GeneExpression() {
+export function GeneExpression(props: { accession: string, assembly: string, hamburger: boolean }) {
   const searchParams: ReadonlyURLSearchParams = useSearchParams()!
   const router = useRouter()
   const pathname = usePathname()
@@ -72,7 +72,7 @@ export default function GeneExpression() {
   const [options, setOptions] = useState<string[]>([])
   const [open, setState] = useState<boolean>(true)
 
-  const [current_assembly, setAssembly] = useState<string>("GRCh38")
+  const [current_assembly, setAssembly] = useState<string>(props.assembly ? props.assembly : "GRCh38")
   const [current_gene, setGene] = useState<string>(searchParams.get("gene") ? searchParams.get("gene") : "OR51AB1P")
   const [geneID, setGeneID] = useState<string>(searchParams.get("gene") ? searchParams.get("gene") : "OR51AB1P")
   const [geneDesc, setgeneDesc] = useState<{ name: string; desc: string }[]>()
@@ -283,7 +283,7 @@ export default function GeneExpression() {
                     boxSizing: "border-box",
                       mt: pathname.split("/").includes("search") ? 47.5 : 12.6,
                       // ml: pathname.split("/").includes("search") ? `${drawerWidth+96}px` : props.hamburger ? 96 : 0
-                      ml: 0
+                      ml: pathname.split("/").includes("search") && props.hamburger ? `${drawerWidth+96}px` : pathname.split("/").includes("search") ? `${96}px` : 0
                     },
                   }}
                   PaperProps={{ sx: { mt: 12.5 }, elevation: 2 }}
