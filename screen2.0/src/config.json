@@ -29,5 +29,16 @@
     "bed_intersect": "https://api.wenglab.org/screen_v13/postws/lines",
     "staticServer": "/assets",
     "overrides": {}
+  },
+  "Downloads": {
+    "HumanCCREs": "https://downloads.wenglab.org/Registry-V4/GRCh38-cCREs.bed",
+    "HumanPromoters": "https://downloads.wenglab.org/Registry-V4/GRCh38-PLS.bed",
+    "HumanEnhancers": "https://downloads.wenglab.org/Registry-V4/GRCh38-ELS.bed",
+    "HumanCTCF": "https://downloads.wenglab.org/Registry-V4/GRCh38-CTCF.bed",
+    "HumanGeneLinks": "https://downloads.wenglab.org/GRCh38-Gene-Links.txt",
+    "MouseCCREs": "https://downloads.wenglab.org/Registry-V4/mm10-cCREs.bed",
+    "MousePromoters": "https://downloads.wenglab.org/Registry-V4/mm10-PLS.bed",
+    "MouseEnhancers": "https://downloads.wenglab.org/Registry-V4/mm10-ELS.bed",
+    "MouseCTCF": "https://downloads.wenglab.org/Registry-V4/mm10-CTCF.bed"
   }
 }

@@ -184,7 +184,7 @@ export function filterBiosamples(biosamples: UnfilteredBiosampleData, Tissue: bo
   return filteredBiosamples
 }
 
-export function assayHoverInfo(assays: { dnase: boolean; h3k27ac: boolean; h3k4me3: any; ctcf: boolean; atac: boolean }) {
+export function assayHoverInfo(assays: { dnase: boolean; h3k27ac: boolean; h3k4me3: boolean; ctcf: boolean; atac: boolean }) {
   const dnase = assays.dnase
   const h3k27ac = assays.h3k27ac
   const h3k4me3 = assays.h3k4me3
