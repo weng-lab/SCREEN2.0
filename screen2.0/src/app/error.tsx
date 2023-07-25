@@ -14,7 +14,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
 
   return (
     <div>
-      {ErrorMessage(error)}
+      <ErrorMessage error={error} />
       <Button
         onClick={
           // Attempt to recover by trying to re-render the segment

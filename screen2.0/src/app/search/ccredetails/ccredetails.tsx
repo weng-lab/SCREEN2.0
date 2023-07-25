@@ -28,7 +28,8 @@ import Rampage from "./rampage"
 import MenuIcon from "@mui/icons-material/Menu"
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos"
 import Divider from "@mui/material/Divider"
-import GeneExpression from "../../applets/gene-expression/page"
+import { GeneExpression } from "../../applets/gene-expression/gene-expression"
+// import GeneExpression from "../../applets/gene-expression/page"
 
 type CcreDetailsProps = {
   accession: string

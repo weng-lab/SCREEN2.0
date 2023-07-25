@@ -32,7 +32,7 @@ export default function GWAS() {
       .then((response) => {
         if (!response.ok) {
           // throw new Error(response.statusText)
-          return ErrorMessage(new Error(response.statusText))
+          return <ErrorMessage error={(new Error(response.statusText))} />
         }
         return response.json()
       })
@@ -43,7 +43,7 @@ export default function GWAS() {
       .catch((error: Error) => {
         // logging
         // throw error
-        return ErrorMessage(error)
+        return <ErrorMessage error={error} />
       })
     setLoadingStudies(true)
   }, [])
@@ -63,7 +63,7 @@ export default function GWAS() {
       .then((response) => {
         if (!response.ok) {
           // throw new Error(response.statusText)
-          return ErrorMessage(new Error(response.statusText))
+          return <ErrorMessage error={(new Error(response.statusText))} />
         }
         return response.json()
       })
@@ -74,7 +74,7 @@ export default function GWAS() {
       .catch((error: Error) => {
         // logging
         // throw error
-        return ErrorMessage(error)
+        return <ErrorMessage error={error} />
       })
     setLoadingStudy(true)
   }, [study])
