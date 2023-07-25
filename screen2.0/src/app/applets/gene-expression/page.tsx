@@ -42,8 +42,10 @@ import MenuIcon from "@mui/icons-material/Menu"
 import Divider from "@mui/material/Divider"
 import { CheckBox, ExpandMore } from "@mui/icons-material"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
+import Image from "next/image"
+import { gql } from "@apollo/client"
 
-export const GENE_AUTOCOMPLETE_QUERY = `
+const GENE_AUTOCOMPLETE_QUERY = gql`
   query ($assembly: String!, $name_prefix: [String!], $limit: Int) {
     gene(assembly: $assembly, name_prefix: $name_prefix, limit: $limit) {
       name
@@ -57,7 +59,7 @@ export const GENE_AUTOCOMPLETE_QUERY = `
   }  
 `
 
-export default function GeneExpression({ accession, assembly, region }) {
+export default function GeneExpression(props: { accession: string, assembly: string, hamburger: boolean }) {
   const searchParams: ReadonlyURLSearchParams = useSearchParams()!
   const router = useRouter()
   const pathname = usePathname()
@@ -69,8 +71,9 @@ export default function GeneExpression({ accession, assembly, region }) {
   const [data, setData] = useState<GeneExpressions>()
   const [options, setOptions] = useState<string[]>([])
   const [open, setState] = useState<boolean>(true)
+  const [ham, setHam] = useState<boolean>(props.hamburger)
 
-  const [current_assembly, setAssembly] = useState<string>(assembly ? assembly : "GRCh38")
+  const [current_assembly, setAssembly] = useState<string>(props.assembly ? props.assembly : "GRCh38")
   const [current_gene, setGene] = useState<string>(searchParams.get("gene") ? searchParams.get("gene") : "OR51AB1P")
   const [geneID, setGeneID] = useState<string>(searchParams.get("gene") ? searchParams.get("gene") : "OR51AB1P")
   const [geneDesc, setgeneDesc] = useState<{ name: string; desc: string }[]>()
@@ -247,6 +250,20 @@ export default function GeneExpression({ accession, assembly, region }) {
   })
 
   const drawerWidth: number = 350
+  let drawerHeight: number = window.screen.height
+  let drawerHeightTab: number = window.screen.height
+
+  // 1080
+  if (window.screen.height < 1200) {
+    drawerHeight *= 0.85 
+    drawerHeightTab *= 0.60
+  } // 2k
+  else if (window.screen.height < 2000) {
+    drawerHeight *= 0.90 
+    drawerHeightTab *= 0.70
+  } // 4k
+
+  useCallback(() => {setHam(props.hamburger)}, [ props.hamburger ])
 
   return (
     <main>
@@ -259,11 +276,17 @@ export default function GeneExpression({ accession, assembly, region }) {
                 <Drawer
                   sx={{
                     width: `${drawerWidth}px`,
+                    // height: 600,
+                    display: "flex",
                     flexShrink: 0,
                     "& .MuiDrawer-paper": {
                       width: `${drawerWidth}px`,
-                      boxSizing: "border-box",
-                      mt: 12.6,
+                    height: pathname.split("/").includes("search") ? drawerHeightTab : drawerHeight,
+                    display: "flex",
+                    boxSizing: "border-box",
+                      mt: pathname.split("/").includes("search") ? 47.5 : 12.6,
+                      // ml: pathname.split("/").includes("search") ? `${drawerWidth+96}px` : props.hamburger ? 96 : 0
+                      ml: pathname.split("/").includes("search") && props.hamburger ? `${drawerWidth+96}px` : pathname.split("/").includes("search") ? `${96}px` : 0
                     },
                   }}
                   PaperProps={{ sx: { mt: 12.5 }, elevation: 2 }}
@@ -272,7 +295,7 @@ export default function GeneExpression({ accession, assembly, region }) {
                   onClose={toggleDrawer(false)}
                   variant="persistent"
                 >
-                  <Box>
+                  <Paper>
                     <Box
                       sx={{
                         display: "flex",
@@ -606,7 +629,7 @@ export default function GeneExpression({ accession, assembly, region }) {
                         </AccordionDetails>
                       </Accordion>
                     </Stack>
-                  </Box>
+                  </Paper>
                 </Drawer>
               </Box>
             </Grid2>
@@ -653,19 +676,16 @@ export default function GeneExpression({ accession, assembly, region }) {
                   </Grid2>
                   {/* ucsc */}
                   <Grid2 xs={1.5} sx={{ mt: 2, height: 100, width: 190 }}>
-                    <Link href={"https://genome.ucsc.edu/"}>
-                      <Button variant="contained">
-                        <img src="https://genome-euro.ucsc.edu/images/ucscHelixLogo.png" width={150} />
+                      <Button variant="contained" href={"https://genome.ucsc.edu/"} color="secondary">
+                        <Image src="https://genome-euro.ucsc.edu/images/ucscHelixLogo.png" width={150} height={100} alt="ucsc-button"/>
                       </Button>
-                    </Link>
                   </Grid2>
                   {/* gene card */}
                   <Grid2 xs={1.5} sx={{ mt: 2, height: 100, width: 214 }}>
-                    <Link href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + current_gene}>
-                      <Button variant="contained">
-                        <img src="https://geneanalytics.genecards.org/media/81632/gc.png" width={150} />
+                      <Button variant="contained" href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + current_gene} color="secondary">
+                        <Image src="https://geneanalytics.genecards.org/media/81632/gc.png" width={150} height={100} alt="gene-card-button"/>
+                        
                       </Button>
-                    </Link>
                   </Grid2>
                 </Toolbar>
                 {/* </Container> */}

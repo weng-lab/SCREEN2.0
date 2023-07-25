@@ -7,7 +7,6 @@ export type gene = {
 }
 
 export type RIDItem = {
-  // [id: string]: {
   ageTitle: string
   cellType: string
   logFPKM: number
@@ -17,7 +16,10 @@ export type RIDItem = {
   rawTPM: number
   rep: number
   tissue: string
-  // }[]
+}
+
+export type RIDItemList = {
+  [id: string]: RIDItem
 }
 
 export type GeneExpEntry = {
@@ -48,6 +50,17 @@ export type CellComponents = {
   nucleus: boolean
 }
 
+export type ExpEntry = {
+  [group: string]: {
+    [tissue: string]: {
+      color: string
+      displayName: string
+      items: number[]
+      name: string
+    }
+  }
+}
+
 export type GeneExpressions = {
   all: {
     assembly: string
@@ -58,119 +71,9 @@ export type GeneExpressions = {
     }
     ensemblid_ver: string
     gene: string
-    itemsByRID: {
-      [id: number]: {
-        ageTitle: string
-        cellType: string
-        logFPKM: number
-        logTPM: number
-        rID: number
-        rawFPKM: number
-        rawTPM: number
-        rep: number
-        tissue: string
-      }
-    }
-    mean: {
-      byExpressionFPKM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byExpressionTPM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byTissueFPKM: {
-        [tissue_type: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byTissueTPM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byTissueMaxFPKM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byTissueMaxTPM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-    }
-    single: {
-      byExpressionFPKM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byExpressionTPM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byTissueFPKM: {
-        [tissue_type: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byTissueTPM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byTissueMaxFPKM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byTissueMaxTPM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-    }
+    itemsByRID: RIDItemList
+    mean: ExpEntry
+    single: ExpEntry
     strand: string
   }
   assembly: string
@@ -184,119 +87,9 @@ export type GeneExpressions = {
     }
     ensemblid_ver: string
     gene: string
-    itemsByRID: {
-      [id: number]: {
-        ageTitle: string
-        cellType: string
-        logFPKM: number
-        logTPM: number
-        rID: number
-        rawFPKM: number
-        rawTPM: number
-        rep: number
-        tissue: string
-      }
-    }
-    mean: {
-      byExpressionFPKM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byExpressionTPM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byTissueFPKM: {
-        [tissue_type: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byTissueTPM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byTissueMaxFPKM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byTissueMaxTPM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-    }
-    single: {
-      byExpressionFPKM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byExpressionTPM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byTissueFPKM: {
-        [tissue_type: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byTissueTPM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byTissueMaxFPKM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byTissueMaxTPM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-    }
+    itemsByRID: RIDItemList
+    mean: ExpEntry
+    single: ExpEntry
     strand: string
   }
   "total RNA-seq": {
@@ -308,119 +101,9 @@ export type GeneExpressions = {
     }
     ensemblid_ver: string
     gene: string
-    itemsByRID: {
-      [id: number]: {
-        ageTitle: string
-        cellType: string
-        logFPKM: number
-        logTPM: number
-        rID: number
-        rawFPKM: number
-        rawTPM: number
-        rep: number
-        tissue: string
-      }
-    }
-    mean: {
-      byExpressionFPKM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byExpressionTPM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byTissueFPKM: {
-        [tissue_type: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byTissueTPM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byTissueMaxFPKM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byTissueMaxTPM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-    }
-    single: {
-      byExpressionFPKM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byExpressionTPM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byTissueFPKM: {
-        [tissue_type: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byTissueTPM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byTissueMaxFPKM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-      byTissueMaxTPM: {
-        [id: string]: {
-          color: string
-          displayName: string
-          items: number[]
-          name: string
-        }
-      }
-    }
+    itemsByRID: RIDItemList
+    mean: ExpEntry
+    single: ExpEntry
     strand: string
   }
 }

@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Stack, ToggleButton, Typography } from "@mui/material"
 import { styled } from "@mui/material/styles"
-import { RIDItem, GeneExpEntry, GeneExpressions } from "./types"
+import { RIDItemList, GeneExpEntry, GeneExpressions } from "./types"
 import { Fragment } from "react"
 import { Range2D, Point2D, linearTransform2D } from "jubilant-carnival"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
@@ -25,7 +25,7 @@ export function PlotGeneExpression(props: {
 }) {
   const [collapse, setCollapse] = useState<{ [id: string]: { expand: boolean } }>({})
 
-  let itemsRID: { [id: string]: RIDItem } = props.data[props.RNAtype]["itemsByRID"]
+  let itemsRID: RIDItemList = props.data[props.RNAtype]["itemsByRID"]
   let tissues: { [id: string]: { sum: number; values: GeneExpEntry[] } } = {} // dict of ftissues
   let p1: Point2D = { x: 0, y: 0 }
   let max: number = 0
