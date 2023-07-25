@@ -429,7 +429,7 @@ export default function DifferentialGeneExpression() {
                                   })
                                   setSlider([dr1, range.x.end + 1200000])
                                   setMin(dr1)
-                                } else ErrorMessage(new Error("invalid range"))
+                                } else return <ErrorMessage error={(new Error("invalid range"))} />
                               }
                             }}
                           />
@@ -459,7 +459,7 @@ export default function DifferentialGeneExpression() {
                                   })
                                   setSlider([range.x.start - 1200000, dr2])
                                   setMax(dr2)
-                                } else ErrorMessage(new Error("invalid range"))
+                                } else return <ErrorMessage error={(new Error("invalid range"))} />
                               }
                             }}
                           />
