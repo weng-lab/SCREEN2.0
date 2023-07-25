@@ -31,6 +31,7 @@ import ImageIcon from "@mui/icons-material/Image"
 import DescriptionIcon from "@mui/icons-material/Description"
 import InputBase from "@mui/material/InputBase"
 import SearchIcon from "@mui/icons-material/Search"
+import { ThemeProvider, createTheme } from "@mui/material/styles"
 
 import Link from "next/link"
 import Image from "next/image"
@@ -126,8 +127,28 @@ function ResponsiveAppBar() {
     setState(open)
   }
 
-  return (
-    <AppBar position="static">
+  // temp theme for toolbar color
+  const theme = createTheme({
+    palette: {
+      mode: "light",
+      // primary: {
+      //   main: "#nnn",
+      // },
+      secondary: {
+        main: "#000F9F",
+      },
+    },
+    components: {
+      MuiAccordion: {
+        defaultProps: {
+          elevation: 0,
+        },
+      },
+    },
+  })
+
+  return (<ThemeProvider theme={theme}>
+    <AppBar position="static" color="secondary">
       <Container maxWidth={false}>
         <Toolbar disableGutters sx={{ justifyContent: "space-between" }}>
           {/* Display Icon on left when >=900px */}
@@ -307,6 +328,7 @@ function ResponsiveAppBar() {
         </Toolbar>
       </Container>
     </AppBar>
+    </ThemeProvider>
   )
 }
 export default ResponsiveAppBar

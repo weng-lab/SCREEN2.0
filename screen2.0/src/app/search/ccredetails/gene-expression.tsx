@@ -549,6 +549,7 @@ export function GeneExpression(props: { accession: string, assembly: string, gen
                             color="primary"
                             value={group}
                             exclusive
+                            size="small"
                             onChange={(event: React.MouseEvent<HTMLElement>, value: string) => {
                               if (value !== group) setGroup(value)
                             }}
@@ -570,6 +571,7 @@ export function GeneExpression(props: { accession: string, assembly: string, gen
                             color="primary"
                             value={RNAtype}
                             exclusive
+                            size="small"
                             onChange={(event: React.MouseEvent<HTMLElement>, value: string) => {
                               if (value !== RNAtype) setRNAType(value)
                             }}
