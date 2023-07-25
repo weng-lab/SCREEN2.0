@@ -88,7 +88,7 @@ export default function DifferentialGeneExpression() {
         if (!response.ok) {
           // throw new Error(response.statusText)
           setError(true)
-          return ErrorMessage(new Error(response.statusText))
+          return <ErrorMessage error={new Error(response.statusText)} />
         }
         return response.json()
       })
@@ -99,7 +99,7 @@ export default function DifferentialGeneExpression() {
       .catch((error: Error) => {
         // logging
         // throw error
-        return ErrorMessage(error)
+        return <ErrorMessage error={error} />
       })
     setLoading(true)
   }, [])
@@ -124,7 +124,7 @@ export default function DifferentialGeneExpression() {
         if (!response.ok) {
           // throw new Error(response.statusText)
           setError(true)
-          return ErrorMessage(new Error(response.statusText))
+          return <ErrorMessage error={new Error(response.statusText)} />
         }
         return response.json()
       })
@@ -170,7 +170,7 @@ export default function DifferentialGeneExpression() {
       .catch((error: Error) => {
         // logging
         // throw error
-        return ErrorMessage(error)
+        return <ErrorMessage error={error} />
       })
     setLoadingChart(true)
   }, [ct1, ct2, gene])
@@ -243,7 +243,7 @@ export default function DifferentialGeneExpression() {
   // const cellTypes2 = await getCellTypes()
 
   return loading ? (
-    LoadingMessage()
+    <LoadingMessage />
   ) : (
     <main>
       <Grid2 container spacing={3} sx={{ mt: "2rem" }}>
@@ -291,9 +291,9 @@ export default function DifferentialGeneExpression() {
         <Grid2 xs={9}>
           <Box mb={1}>
             {errorLoading
-              ? ErrorMessage(new Error("Error loading data"))
+              ? <ErrorMessage error={new Error("Error loading")} />
               : loadingChart
-              ? LoadingMessage()
+              ? <LoadingMessage />
               : data &&
                 data.gene &&
                 data[data.gene] &&
