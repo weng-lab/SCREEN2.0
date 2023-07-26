@@ -2,15 +2,8 @@
 import React, { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 
-import {
-    Autocomplete,
-    TextField,
-    Box,
-    Button,
-    debounce,
-    Typography,
-  } from "@mui/material"
-  
+import { Autocomplete, TextField, Box, Button, debounce, Typography } from "@mui/material"
+
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { gene } from "./types"
 import { QueryResponse } from "../../../../types/types"
@@ -30,7 +23,12 @@ const GENE_AUTOCOMPLETE_QUERY = `
   }  
 `
 
-export default function GeneAutoComplete(props: { assembly: string, gene: string, pathname: string, setGene: Dispatch<SetStateAction<string>> }){
+export default function GeneAutoComplete(props: {
+  assembly: string
+  gene: string
+  pathname: string
+  setGene: Dispatch<SetStateAction<string>>
+}) {
   const router = useRouter()
 
   const [options, setOptions] = useState<string[]>([])
@@ -38,7 +36,7 @@ export default function GeneAutoComplete(props: { assembly: string, gene: string
   const [geneList, setGeneList] = useState<gene[]>([])
   const [geneID, setGeneID] = useState<string>(props.gene ? props.gene : "OR51AB1P")
   const [assembly, setAssembly] = useState<string>(props.assembly)
-//   const [current_gene, setGene] = useState<string>(props.gene ? props.gene : "OR51AB1P")
+  //   const [current_gene, setGene] = useState<string>(props.gene ? props.gene : "OR51AB1P")
 
   // gene descriptions
   useEffect(() => {
@@ -105,75 +103,75 @@ export default function GeneAutoComplete(props: { assembly: string, gene: string
 
   return (
     <Box>
-        <Autocomplete
-                disablePortal
-                freeSolo={true}
-                id="gene-ids"
-                noOptionsText="e.g. Gm25142"
-                options={options}
-                size="small"
-                sx={{ width: 200 }}
-                ListboxProps={{
-                  style: {
-                    maxHeight: "120px",
-                  },
-                }}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>, value: string) => {
-                  if (value != "") debounceFn(value)
-                  setGeneID(value)
-                }}
-                onInputChange={(event: React.ChangeEvent<HTMLInputElement>, value: string) => {
-                  if (value != "") debounceFn(value)
-                  setGeneID(value)
-                }}
-                onKeyDown={(e) => {
-                  if (e.key == "Enter") {
-                    for (let g of geneList) {
-                      if (g.name === geneID && g.end - g.start > 0) {
-                        props.setGene(g.name)
-                        // replace url if ge applet
-                        if (props.pathname.split("/").includes("gene-expression")) router.replace(props.pathname + "?gene=" + g.name)
-                        break
-                      }
-                    }
-                  }
-                }}
-                renderInput={(props) => <TextField {...props} label={geneID} />}
-                renderOption={(props, opt) => {
-                  return (
-                    <li {...props} key={props.id}>
-                      <Grid2 container alignItems="center">
-                        <Grid2 sx={{ width: "calc(100% - 44px)" }}>
-                          <Box component="span" sx={{ fontWeight: "regular" }}>
-                            {opt}
-                          </Box>
-                          {geneDesc && geneDesc.find((g) => g.name === opt) && (
-                            <Typography variant="body2" color="text.secondary">
-                              {geneDesc.find((g) => g.name === opt)?.desc}
-                            </Typography>
-                          )}
-                        </Grid2>
-                      </Grid2>
-                    </li>
-                  )
-                }}
-              />
-              <Button
-                variant="text"
-                onClick={() => {
-                  for (let g of geneList) {
-                    if (g.name === geneID && g.end - g.start > 0) {
-                      props.setGene(g.name)
-                    // replace url if ge applet
-                      if (props.pathname.split("/").includes("gene-expression")) router.replace(props.pathname + "?gene=" + g.name)
-                      break
-                    }
-                  }
-                }}
-                color="primary"
-              >
-                Search
-              </Button>
+      <Autocomplete
+        disablePortal
+        freeSolo={true}
+        id="gene-ids"
+        noOptionsText="e.g. Gm25142"
+        options={options}
+        size="small"
+        sx={{ width: 200 }}
+        ListboxProps={{
+          style: {
+            maxHeight: "120px",
+          },
+        }}
+        onChange={(event: React.ChangeEvent<HTMLInputElement>, value: string) => {
+          if (value != "") debounceFn(value)
+          setGeneID(value)
+        }}
+        onInputChange={(event: React.ChangeEvent<HTMLInputElement>, value: string) => {
+          if (value != "") debounceFn(value)
+          setGeneID(value)
+        }}
+        onKeyDown={(e) => {
+          if (e.key == "Enter") {
+            for (let g of geneList) {
+              if (g.name === geneID && g.end - g.start > 0) {
+                props.setGene(g.name)
+                // replace url if ge applet
+                if (props.pathname.split("/").includes("gene-expression")) router.replace(props.pathname + "?gene=" + g.name)
+                break
+              }
+            }
+          }
+        }}
+        renderInput={(props) => <TextField {...props} label={geneID} />}
+        renderOption={(props, opt) => {
+          return (
+            <li {...props} key={props.id}>
+              <Grid2 container alignItems="center">
+                <Grid2 sx={{ width: "calc(100% - 44px)" }}>
+                  <Box component="span" sx={{ fontWeight: "regular" }}>
+                    {opt}
+                  </Box>
+                  {geneDesc && geneDesc.find((g) => g.name === opt) && (
+                    <Typography variant="body2" color="text.secondary">
+                      {geneDesc.find((g) => g.name === opt)?.desc}
+                    </Typography>
+                  )}
+                </Grid2>
+              </Grid2>
+            </li>
+          )
+        }}
+      />
+      <Button
+        variant="text"
+        onClick={() => {
+          for (let g of geneList) {
+            if (g.name === geneID && g.end - g.start > 0) {
+              props.setGene(g.name)
+              // replace url if ge applet
+              if (props.pathname.split("/").includes("gene-expression")) router.replace(props.pathname + "?gene=" + g.name)
+              break
+            }
+          }
+        }}
+        color="primary"
+      >
+        Search
+      </Button>
     </Box>
   )
 }

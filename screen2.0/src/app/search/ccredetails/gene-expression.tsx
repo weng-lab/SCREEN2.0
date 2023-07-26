@@ -8,19 +8,7 @@ import { PlotGeneExpression } from "../../applets/gene-expression/utils"
 import { GeneExpressions } from "../../applets/gene-expression/types"
 import { Range2D } from "jubilant-carnival"
 
-import {
-  Box,
-  Button,
-  Typography,
-  IconButton,
-  Drawer,
-  Toolbar,
-  AppBar,
-  Stack,
-  Paper,
-  TextField,
-  MenuItem,
-} from "@mui/material"
+import { Box, Button, Typography, IconButton, Drawer, Toolbar, AppBar, Stack, Paper, TextField, MenuItem } from "@mui/material"
 
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import Divider from "@mui/material/Divider"
@@ -30,15 +18,22 @@ import MenuIcon from "@mui/icons-material/Menu"
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos"
 
 import Image from "next/image"
-import { OptionsBiosampleTypes, OptionsCellularComponents, OptionsGroupBy, OptionsRNAType, OptionsReplicates, OptionsScale } from "../../applets/gene-expression/options"
+import {
+  OptionsBiosampleTypes,
+  OptionsCellularComponents,
+  OptionsGroupBy,
+  OptionsRNAType,
+  OptionsReplicates,
+  OptionsScale,
+} from "../../applets/gene-expression/options"
 
-export function GeneExpression(props: { accession: string, assembly: string, genes: { pc: { name: string, __typename: string }[], all: { name: string, __typename: string }[] }, hamburger: boolean }) {
-  // const searchParams: ReadonlyURLSearchParams = useSearchParams()!
-  const router = useRouter()
+export function GeneExpression(props: {
+  accession: string
+  assembly: string
+  genes: { pc: { name: string; __typename: string }[]; all: { name: string; __typename: string }[] }
+  hamburger: boolean
+}) {
   const pathname = usePathname()
-
-  // if (!pathname.split("/").includes("search") && !searchParams.get("gene")) router.push(pathname + "?gene=OR51AB1P")
-
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<boolean>(false)
   const [data, setData] = useState<GeneExpressions>()
@@ -51,10 +46,10 @@ export function GeneExpression(props: { accession: string, assembly: string, gen
   const [biosamples, setBiosamples] = useState<string[]>(["cell line", "in vitro differentiated cells", "primary cell", "tissue"])
   const [cell_components, setCellComponents] = useState<string[]>(["cell"])
 
-  const [group, setGroup] = useState<string>("byTissueMaxFPKM")   // experiment, tissue, tissue max
-  const [RNAtype, setRNAType] = useState<string>("all")           // any, polyA RNA-seq, total RNA-seq
-  const [scale, setScale] = useState<string>("rawFPKM")           // linear or log2
-  const [replicates, setReplicates] = useState<string>("mean")    // single or mean
+  const [group, setGroup] = useState<string>("byTissueMaxFPKM") // experiment, tissue, tissue max
+  const [RNAtype, setRNAType] = useState<string>("all") // any, polyA RNA-seq, total RNA-seq
+  const [scale, setScale] = useState<string>("rawFPKM") // linear or log2
+  const [replicates, setReplicates] = useState<string>("mean") // single or mean
 
   const [range, setRange] = useState<Range2D>({
     x: { start: 0, end: 4 },
@@ -116,12 +111,12 @@ export function GeneExpression(props: { accession: string, assembly: string, gen
 
   // 1080
   if (drawerHeight < 1200) {
-    drawerHeight *= 0.85 
-    drawerHeightTab *= 0.60
+    drawerHeight *= 0.85
+    drawerHeightTab *= 0.6
   } // 2k
   else if (drawerHeight < 2000) {
-    drawerHeight *= 0.90 
-    drawerHeightTab *= 0.70
+    drawerHeight *= 0.9
+    drawerHeightTab *= 0.7
   } // 4k
 
   return (
@@ -140,7 +135,12 @@ export function GeneExpression(props: { accession: string, assembly: string, gen
                       height: pathname.split("/").includes("search") ? drawerHeightTab : drawerHeight,
                       width: `${drawerWidth}px`,
                       mt: pathname.split("/").includes("search") ? 47.5 : 12.6,
-                      ml: pathname.split("/").includes("search") && props.hamburger ? `${drawerWidth+96}px` : pathname.split("/").includes("search") ? `${96}px` : 0
+                      ml:
+                        pathname.split("/").includes("search") && props.hamburger
+                          ? `${drawerWidth + 96}px`
+                          : pathname.split("/").includes("search")
+                          ? `${96}px`
+                          : 0,
                     },
                   }}
                   PaperProps={{ sx: { mt: 0 }, elevation: 2 }}
@@ -166,14 +166,8 @@ export function GeneExpression(props: { accession: string, assembly: string, gen
                     </Box>
                     <Divider sx={{ mb: 2 }} />
                     <Stack sx={{ mb: "2rem" }}>
-                      <OptionsBiosampleTypes 
-                        biosamples={biosamples} 
-                        setBiosamples={setBiosamples}
-                      />
-                      <OptionsCellularComponents
-                        cell_components={cell_components}
-                        setCellComponents={setCellComponents}
-                      />
+                      <OptionsBiosampleTypes biosamples={biosamples} setBiosamples={setBiosamples} />
+                      <OptionsCellularComponents cell_components={cell_components} setCellComponents={setCellComponents} />
                       <OptionsGroupBy group={group} setGroup={setGroup} />
                       <OptionsRNAType RNAtype={RNAtype} setRNAType={setRNAType} />
                       <OptionsScale scale={scale} setScale={setScale} />
@@ -201,22 +195,28 @@ export function GeneExpression(props: { accession: string, assembly: string, gen
                   </Grid2>
                   <Grid2 xs={5} md={8} lg={9}>
                     <Box mt={0.5}>
-                    <Typography variant="h4" sx={{ fontSize: 28, fontStyle: "italic", display: "inline" }}>
+                      <Typography variant="h4" sx={{ fontSize: 28, fontStyle: "italic", display: "inline" }}>
                         {current_gene}
                       </Typography>
-                      <Typography variant="h4" sx={{ fontSize: 28, display: "inline" }}> Gene Expression Profiles by RNA-seq</Typography>
+                      <Typography variant="h4" sx={{ fontSize: 28, display: "inline" }}>
+                        {" "}
+                        Gene Expression Profiles by RNA-seq
+                      </Typography>
                     </Box>
                   </Grid2>
                   <Grid2 xs={1.5} sx={{ mt: 2, height: 100, width: 190 }}>
-                      <Button variant="contained" href={"https://genome.ucsc.edu/"} color="secondary">
-                        <Image src="https://genome-euro.ucsc.edu/images/ucscHelixLogo.png" width={150} height={100} alt="ucsc-button"/>
-                      </Button>
+                    <Button variant="contained" href={"https://genome.ucsc.edu/"} color="secondary">
+                      <Image src="https://genome-euro.ucsc.edu/images/ucscHelixLogo.png" width={150} height={100} alt="ucsc-button" />
+                    </Button>
                   </Grid2>
                   <Grid2 xs={1.5} sx={{ mt: 2, height: 100, width: 214 }}>
-                      <Button variant="contained" href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + current_gene} color="secondary">
-                        <Image src="https://geneanalytics.genecards.org/media/81632/gc.png" width={150} height={100} alt="gene-card-button"/>
-                        
-                      </Button>
+                    <Button
+                      variant="contained"
+                      href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + current_gene}
+                      color="secondary"
+                    >
+                      <Image src="https://geneanalytics.genecards.org/media/81632/gc.png" width={150} height={100} alt="gene-card-button" />
+                    </Button>
                   </Grid2>
                 </Toolbar>
               </AppBar>
@@ -225,20 +225,28 @@ export function GeneExpression(props: { accession: string, assembly: string, gen
           <Grid2 container spacing={3}>
             <Grid2 xs={1} md={1} lg={1} sx={{ mt: 2, ml: 8 }}>
               <TextField select value={current_gene}>
-                  {options.map((option: string) => {
-                    return <MenuItem key={option} value={option} onClick={() => setGene(option)}>{option}</MenuItem>
-                  })}
-                </TextField>
+                {options.map((option: string) => {
+                  return (
+                    <MenuItem key={option} value={option} onClick={() => setGene(option)}>
+                      {option}
+                    </MenuItem>
+                  )
+                })}
+              </TextField>
             </Grid2>
-            {
-              biosamples.length === 0 ? <ErrorMessage error={(new Error("No biosample type selected"))} /> :
-              cell_components.length === 0 ? <ErrorMessage error={(new Error("No cellular compartment selected"))} /> : 
-              loading ? (
-                <Grid2 xs={12} md={12} lg={12}>
+            {biosamples.length === 0 ? (
+              <ErrorMessage error={new Error("No biosample type selected")} />
+            ) : cell_components.length === 0 ? (
+              <ErrorMessage error={new Error("No cellular compartment selected")} />
+            ) : loading ? (
+              <Grid2 xs={12} md={12} lg={12}>
                 <LoadingMessage />
               </Grid2>
             ) : (
-              data && data["all"] && data["polyA RNA-seq"] && data["total RNA-seq"] && (
+              data &&
+              data["all"] &&
+              data["polyA RNA-seq"] &&
+              data["total RNA-seq"] && (
                 <PlotGeneExpression
                   data={data}
                   range={range}

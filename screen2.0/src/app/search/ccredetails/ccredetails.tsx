@@ -1,16 +1,6 @@
 "use client"
 import React from "react"
-import {
-  Tabs,
-  Typography,
-  Paper,
-  ThemeProvider,
-  AppBar,
-  Toolbar,
-  IconButton,
-  Drawer,
-  Box,
-} from "@mui/material"
+import { Tabs, Typography, Paper, ThemeProvider, AppBar, Toolbar, IconButton, Drawer, Box } from "@mui/material"
 import { GenomicRegion } from "../types"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { StyledTab } from "../ccresearch"
@@ -31,17 +21,17 @@ type CcreDetailsProps = {
   accession: string
   assembly: string
   region: GenomicRegion
-  globals: any,
-  genes: { 
-    pc: { 
-      name: string, 
-      __typename: string 
-    }[], 
-    all: { 
-      name: string, 
-      __typename: string 
-    }[] 
-  } 
+  globals: any
+  genes: {
+    pc: {
+      name: string
+      __typename: string
+    }[]
+    all: {
+      name: string
+      __typename: string
+    }[]
+  }
 }
 
 export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, globals, assembly, genes }) => {

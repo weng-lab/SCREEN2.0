@@ -22,7 +22,7 @@ import { PlotActivityProfiles } from "./utils"
 import Image from "next/image"
 import { defaultTheme } from "../../../common/lib/themes"
 
-export default function Rampage(props: { accession: string, assembly: string, chromosome: string }) {
+export default function Rampage(props: { accession: string; assembly: string; chromosome: string }) {
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<boolean>(false)
   const [data, setData] = useState()
@@ -61,7 +61,7 @@ export default function Rampage(props: { accession: string, assembly: string, ch
       .then((response) => {
         if (!response.ok) {
           setError(true)
-          return <ErrorMessage error={new Error(response.statusText)} />
+          return <ErrorMessage error={(new Error(response.statusText))} />
         }
         return response.json()
       })
@@ -78,7 +78,11 @@ export default function Rampage(props: { accession: string, assembly: string, ch
 
   function transcriptItems(transcripts: string[]) {
     return Object.values(transcripts).map((t: string) => {
-      return <MenuItem key={t} value={t}>{t}</MenuItem>
+      return (
+        <MenuItem key={t} value={t}>
+          {t}
+        </MenuItem>
+      )
     })
   }
 
@@ -90,11 +94,9 @@ export default function Rampage(props: { accession: string, assembly: string, ch
     data &&
     data[payload.accession] && (
       <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "2rem", mr: "2rem", width: `100%` }}>
-        {/* tool bar */}
         <ThemeProvider theme={defaultTheme}>
           <AppBar position="static" color="secondary">
             <Toolbar style={{}}>
-              {/* description */}
               <Grid2 xs={9} md={9} lg={9}>
                 <Box sx={{ mt: 0.5 }}>
                   <Typography variant="h5" fontSize={30}>
@@ -140,17 +142,19 @@ export default function Rampage(props: { accession: string, assembly: string, ch
                   </Typography>
                 </Box>
               </Grid2>
-              {/* ucsc */}
               <Grid2 xs={1.5} sx={{ mt: 2, height: 100, width: 190, mb: 18 }}>
-                  <Button variant="contained" href="https://genome.ucsc.edu/" color="secondary">
-                    <Image src="https://genome-euro.ucsc.edu/images/ucscHelixLogo.png" width={150} height={100} alt="ucsc-button" />
-                  </Button>
+                <Button variant="contained" href="https://genome.ucsc.edu/" color="secondary">
+                  <Image src="https://genome-euro.ucsc.edu/images/ucscHelixLogo.png" width={150} height={100} alt="ucsc-button" />
+                </Button>
               </Grid2>
-              {/* gene card */}
               <Grid2 xs={1.5} sx={{ mt: 2, height: 100, width: 214, mb: 18 }}>
-                  <Button variant="contained" href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + data[payload.accession]["gene"]["name"]} color="secondary">
-                    <Image src="https://geneanalytics.genecards.org/media/81632/gc.png" width={150} height={100} alt="gene-card-button"/>
-                  </Button>
+                <Button
+                  variant="contained"
+                  href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + data[payload.accession]["gene"]["name"]}
+                  color="secondary"
+                >
+                  <Image src="https://geneanalytics.genecards.org/media/81632/gc.png" width={150} height={100} alt="gene-card-button" />
+                </Button>
               </Grid2>
             </Toolbar>
           </AppBar>

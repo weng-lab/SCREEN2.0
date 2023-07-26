@@ -57,5 +57,4 @@ export const Genes = "#000000"
 export const TFChIP_seq = "#1262EB"
 export const RBP = "#f68800"
 
-
 export const Enhancer_GeneLinks = "#A872E5"

@@ -32,7 +32,7 @@ export default function GWAS() {
       .then((response) => {
         if (!response.ok) {
           // throw new Error(response.statusText)
-          return <ErrorMessage error={(new Error(response.statusText))} />
+          return <ErrorMessage error={new Error(response.statusText)} />
         }
         return response.json()
       })
@@ -63,7 +63,7 @@ export default function GWAS() {
       .then((response) => {
         if (!response.ok) {
           // throw new Error(response.statusText)
-          return <ErrorMessage error={(new Error(response.statusText))} />
+          return <ErrorMessage error={new Error(response.statusText)} />
         }
         return response.json()
       })

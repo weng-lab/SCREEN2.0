@@ -59,7 +59,13 @@ export const CcreSearch = ({ mainQueryParams, ccrerows, globals, assembly }) => 
       {value === 1 && (
         <Grid2 container spacing={3}>
           <Grid2 xs={12} lg={12}>
-            <CcreDetails accession={searchParams.get("accession")} region={region} globals={globals} assembly={assembly} genes={f.linkedGenes} />
+            <CcreDetails
+              accession={searchParams.get("accession")}
+              region={region}
+              globals={globals}
+              assembly={assembly}
+              genes={f.linkedGenes}
+            />
           </Grid2>
         </Grid2>
       )}

@@ -84,7 +84,7 @@ export function PlotGeneExpression(props: {
             onClick={() => {
               let c: { [id: string]: { expand: boolean } } = {}
               let uncollapse: boolean = true
-              if (Object.keys(collapse).length !== 0){
+              if (Object.keys(collapse).length !== 0) {
                 Object.keys(collapse).map((b: string) => {
                   if (collapse[b].expand) uncollapse = false
                   c[b] = { expand: false }
@@ -95,8 +95,10 @@ export function PlotGeneExpression(props: {
                     c[b].expand = true
                   })
                 }
-              }
-              else Object.keys(tissues).map((b: string) => {c[b] = { expand: false }})
+              } else
+                Object.keys(tissues).map((b: string) => {
+                  c[b] = { expand: false }
+                })
               setCollapse(c)
             }}
           >

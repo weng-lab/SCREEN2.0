@@ -40,7 +40,7 @@ export const Ortholog = ({ accession, assembly }) => {
   return loading ? (
     <LoadingMessage />
   ) : error ? (
-      <ErrorMessage error={error} />
+    <ErrorMessage error={error} />
   ) : (
     <div>
       <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "2rem" }}>

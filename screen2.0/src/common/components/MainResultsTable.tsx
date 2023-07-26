@@ -85,11 +85,7 @@ let COLUMNS = (rows) => {
         </Typography>
         <Typography variant="body2" color="primary" display="inline">
           {/* link to new tab - should use Link but won't nav after click without <a> */}
-          <a
-            target="_blank"
-            href={`/applets/gene-expression?gene=${row.linkedGenes.pc[0].name}`}
-            rel="noopener noreferrer"
-          >
+          <a target="_blank" href={`/applets/gene-expression?gene=${row.linkedGenes.pc[0].name}`} rel="noopener noreferrer">
             {` ${row.linkedGenes.pc[0].name}, `}
           </a>
           {/* with button for onClick */}
@@ -102,24 +98,16 @@ let COLUMNS = (rows) => {
             >{`${row.linkedGenes.pc[1].name}, `}</button>
           </a>
           {/* no button or link */}
-          <a href={`/applets/gene-expression?gene=${row.linkedGenes.pc[2].name}`}>
-            {`${row.linkedGenes.pc[2].name}`}
-          </a>
+          <a href={`/applets/gene-expression?gene=${row.linkedGenes.pc[2].name}`}>{`${row.linkedGenes.pc[2].name}`}</a>
         </Typography>
         <Typography></Typography>
         <Typography variant="body2" display="inline">
           {`All: `}
         </Typography>
         <Typography variant="body2" color="primary" display="inline">
-          <a href={`/applets/gene-expression?gene=${row.linkedGenes.all[0].name}`}>
-            {` ${row.linkedGenes.all[0].name}, `}
-          </a>
-          <a href={`/applets/gene-expression?gene=${row.linkedGenes.all[1].name}`}>
-            {`${row.linkedGenes.all[1].name}, `}
-          </a>
-          <a href={`/applets/gene-expression?gene=${row.linkedGenes.all[2].name}`}>
-            {`${row.linkedGenes.all[2].name}`}
-          </a>
+          <a target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?gene=${row.linkedGenes.all[0].name}`}>{` ${row.linkedGenes.all[0].name}, `}</a>
+          <a target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?gene=${row.linkedGenes.all[1].name}`}>{`${row.linkedGenes.all[1].name}, `}</a>
+          <a target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?gene=${row.linkedGenes.all[2].name}`}>{`${row.linkedGenes.all[2].name}`}</a>
         </Typography>
       </Box>
     ),
