@@ -29,7 +29,7 @@ import { RIDItemList, GeneExpEntry } from "../../applets/gene-expression/types"
 export function PlotActivityProfiles(props: { data: any; range: Range2D; dimensions: Range2D }) {
   const [sort, setSort] = useState<string>("byValue")
   const [zeros, setZeros] = useState<boolean>(false)
-  const [collapse, setCollapse] = useState<{ [id: string]: { expand: boolean } }>({})
+  const [collapse, setCollapse] = useState<{ [id: string]: boolean }>({})
 
   let transcripts: string[] = props.data["sortedTranscripts"]
   let itemsRID: RIDItemList = props.data["tsss"][transcripts[0]]["itemsByID"]
@@ -99,7 +99,6 @@ export function PlotActivityProfiles(props: { data: any; range: Range2D; dimensi
   let y: number = 0
   return (
     <>
-      {/* sort */}
       <Grid2 xs={8} md={8} lg={8} sx={{ ml: 6, mt: 2, display: "flex" }}>
         <Box>
           <FormControl key={sort}>
@@ -127,22 +126,22 @@ export function PlotActivityProfiles(props: { data: any; range: Range2D; dimensi
         <Box>
           <Button
             onClick={() => {
-              let c: { [id: string]: { expand: boolean } } = {}
+              let c: { [id: string]: boolean } = {}
               let uncollapse: boolean = true
               if (Object.keys(collapse).length !== 0) {
                 Object.keys(collapse).map((b: string) => {
-                  if (collapse[b].expand) uncollapse = false
-                  c[b] = { expand: false }
+                  if (collapse[b]) uncollapse = false
+                  c[b] = false
                 })
 
                 if (uncollapse) {
                   Object.keys(collapse).map((b: string) => {
-                    c[b].expand = true
+                    c[b] = true
                   })
                 }
               } else
                 Object.keys(tissues).map((b: string) => {
-                  c[b] = { expand: false }
+                  c[b] = false
                 })
               setCollapse(c)
             }}
@@ -177,7 +176,7 @@ export function PlotActivityProfiles(props: { data: any; range: Range2D; dimensi
             return (
               <Accordion
                 key={index}
-                expanded={collapse[entry[0]] ? collapse[entry[0]].expand : true}
+                expanded={collapse ? collapse[entry[0]] : true}
                 disableGutters={true}
                 sx={{ padding: 0, mr: 4 }}
               >
@@ -185,13 +184,13 @@ export function PlotActivityProfiles(props: { data: any; range: Range2D; dimensi
                   expandIcon={<ExpandMoreIcon />}
                   sx={{ padding: 0, margin: 0 }}
                   onClick={() => {
-                    let tmp: { [id: string]: { expand: boolean } } = {}
+                    let tmp: { [id: string]: boolean } = {}
                     Object.entries(tissues).map((x) => {
                       if (x[0] === entry[0]) {
-                        if (collapse[entry[0]] === undefined || collapse[entry[0]].expand) tmp[entry[0]] = { expand: false }
-                        else tmp[entry[0]] = { expand: true }
+                        if (collapse[entry[0]] === undefined || collapse[entry[0]]) tmp[entry[0]] = false
+                        else tmp[entry[0]] = true
                       } else {
-                        tmp[x[0]] = { expand: collapse[x[0]] !== undefined ? collapse[x[0]].expand : true }
+                        tmp[x[0]] = (collapse[x[0]] !== undefined ? collapse[x[0]] : true)
                       }
                     })
                     setCollapse(tmp)

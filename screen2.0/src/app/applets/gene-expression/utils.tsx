@@ -23,7 +23,7 @@ export function PlotGeneExpression(props: {
   scale: string
   replicates: string
 }) {
-  const [collapse, setCollapse] = useState<{ [id: string]: { expand: boolean } }>({})
+  const [collapse, setCollapse] = useState<{ [id: string]: boolean }>({})
 
   let itemsRID: RIDItemList = props.data[props.RNAtype]["itemsByRID"]
   let tissues: { [id: string]: { sum: number; values: GeneExpEntry[] } } = {} // dict of ftissues
@@ -82,22 +82,22 @@ export function PlotGeneExpression(props: {
         <Box>
           <Button
             onClick={() => {
-              let c: { [id: string]: { expand: boolean } } = {}
+              let c: { [id: string]: boolean } = {}
               let uncollapse: boolean = true
               if (Object.keys(collapse).length !== 0) {
                 Object.keys(collapse).map((b: string) => {
-                  if (collapse[b].expand) uncollapse = false
-                  c[b] = { expand: false }
+                  if (collapse[b]) uncollapse = false
+                  c[b] = false
                 })
 
                 if (uncollapse) {
                   Object.keys(collapse).map((b: string) => {
-                    c[b].expand = true
+                    c[b] = true
                   })
                 }
               } else
                 Object.keys(tissues).map((b: string) => {
-                  c[b] = { expand: false }
+                  c[b] = false
                 })
               setCollapse(c)
             }}
@@ -115,7 +115,7 @@ export function PlotGeneExpression(props: {
             return (
               <Accordion
                 key={index}
-                expanded={collapse[entry[0]] ? collapse[entry[0]].expand : true}
+                expanded={collapse[entry[0]] ? collapse[entry[0]] : true}
                 disableGutters={true}
                 sx={{ padding: 0, ml: "2rem", mr: "2rem" }}
               >
@@ -123,13 +123,13 @@ export function PlotGeneExpression(props: {
                   expandIcon={<ExpandMoreIcon />}
                   sx={{ padding: 0, margin: 0 }}
                   onClick={() => {
-                    let tmp: { [id: string]: { expand: boolean } } = {}
+                    let tmp: { [id: string]: boolean } = {}
                     Object.entries(tissues).map((x) => {
                       if (x[0] === entry[0]) {
-                        if (collapse[entry[0]] === undefined || collapse[entry[0]].expand) tmp[entry[0]] = { expand: false }
-                        else tmp[entry[0]] = { expand: true }
+                        if (collapse[entry[0]] === undefined || collapse[entry[0]]) tmp[entry[0]] = false
+                        else tmp[entry[0]] = true
                       } else {
-                        tmp[x[0]] = { expand: collapse[x[0]] !== undefined ? collapse[x[0]].expand : true }
+                        tmp[x[0]] = (collapse[x[0]] !== undefined ? collapse[x[0]] : true)
                       }
                     })
                     setCollapse(tmp)
