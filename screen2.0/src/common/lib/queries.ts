@@ -189,6 +189,39 @@ const cCRE_QUERY_WITH_BIOSAMPLES = gql`
     }
   }
 `
+
+const BIOSAMPLE_QUERY = gql`
+  query biosamples {
+    human: ccREBiosampleQuery(assembly: "grch38") {
+      biosamples {
+        name
+        dnase: experimentAccession(assay: "DNase")
+        h3k4me3: experimentAccession(assay: "H3K4me3")
+        h3k27ac: experimentAccession(assay: "H3K27ac")
+        ctcf: experimentAccession(assay: "CTCF")
+        dnase_signal: fileAccession(assay: "DNase")
+        h3k4me3_signal: fileAccession(assay: "H3K4me3")
+        h3k27ac_signal: fileAccession(assay: "H3K27ac")
+        ctcf_signal: fileAccession(assay: "CTCF")
+      }
+    }
+    mouse: ccREBiosampleQuery(assembly: "mm10") {
+      biosamples {
+        name
+        dnase: experimentAccession(assay: "DNase")
+        h3k4me3: experimentAccession(assay: "H3K4me3")
+        h3k27ac: experimentAccession(assay: "H3K27ac")
+        ctcf: experimentAccession(assay: "CTCF")
+        dnase_signal: fileAccession(assay: "DNase")
+        h3k4me3_signal: fileAccession(assay: "H3K4me3")
+        h3k27ac_signal: fileAccession(assay: "H3K27ac")
+        ctcf_signal: fileAccession(assay: "CTCF")
+      }
+    }
+  }
+`
+
+
 function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: number, end: number, biosample?: string) {
   return {
     uuid: null,
@@ -223,7 +256,7 @@ function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: numbe
  * @param biosample optional - a biosample selection. If not specified or "undefined", will be marked as "null" in gql query
  * @returns cCREs matching the search
  */
-export default async function MainQuery(assembly: string, chromosome: string, start: number, end: number, biosample: string = null) {
+export async function MainQuery(assembly: string, chromosome: string, start: number, end: number, biosample: string = null) {
   console.log("queried with: " + assembly, chromosome, start, end, biosample)
 
   var data: ApolloQueryResult<any> | -1
@@ -231,6 +264,21 @@ export default async function MainQuery(assembly: string, chromosome: string, st
     data = await getClient().query({
       query: biosample ? cCRE_QUERY_WITH_BIOSAMPLES : cCRE_QUERY,
       variables: cCRE_QUERY_VARIABLES(assembly, chromosome, start, end, biosample),
+    })
+  } catch (error) {
+    console.log(error)
+    data = -1
+  } finally {
+    return data
+  }
+}
+
+export async function biosampleQuery() {
+
+  var data: ApolloQueryResult<any> | -1
+  try {
+    data = await getClient().query({
+      query: BIOSAMPLE_QUERY
     })
   } catch (error) {
     console.log(error)
