@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Stack, ToggleButton, Typography } from "@mui/material"
 import { styled } from "@mui/material/styles"
-import { RIDItemList, GeneExpEntry, GeneExpressions } from "./types"
+import { RIDItemList, GeneExpEntry, GeneExpressions, BiosampleList, CellComponents } from "./types"
 import { Fragment } from "react"
 import { Range2D, Point2D, linearTransform2D } from "jubilant-carnival"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
@@ -78,7 +78,7 @@ export function PlotGeneExpression(props: {
   let y: number = 0
   return (
     <>
-      <Grid2 xs={10} md={10} lg={10} sx={{ alignItems: "right", justifyContent: "right", display: "flex", mr: 4, mt: 2 }}>
+      <Grid2 xs={8} md={8} lg={8} sx={{ alignItems: "right", justifyContent: "right", display: "flex", mr: 4, mt: 2 }}>
         <Box>
           <Button
             onClick={() => {
