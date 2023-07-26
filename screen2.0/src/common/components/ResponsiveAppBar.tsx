@@ -40,7 +40,7 @@ import HeaderSearch from "./HeaderSearch"
 
 import nextConfig from "../../../next.config"
 import screenIcon from "../../../public/screenIcon.png"
-import { accordionTheme } from "../lib/themes"
+import { defaultTheme } from "../lib/themes"
 
 // CLICKING ON LINKS ONCE THE POPUP IS OPEN IS BROKEN!!!
 
@@ -128,7 +128,7 @@ function ResponsiveAppBar() {
   }
 
   return (
-  <ThemeProvider theme={accordionTheme}>
+  <ThemeProvider theme={defaultTheme}>
     <AppBar position="static">
       <Container maxWidth={false}>
         <Toolbar disableGutters sx={{ justifyContent: "space-between" }}>
