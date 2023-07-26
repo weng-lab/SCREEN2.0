@@ -40,6 +40,7 @@ import HeaderSearch from "./HeaderSearch"
 
 import nextConfig from "../../../next.config"
 import screenIcon from "../../../public/screenIcon.png"
+import { accordionTheme } from "../lib/themes"
 
 // CLICKING ON LINKS ONCE THE POPUP IS OPEN IS BROKEN!!!
 
@@ -123,32 +124,12 @@ function ResponsiveAppBar() {
     if (event.type === "keydown" && (event.key === "Tab" || event.key === "Shift")) {
       return
     }
-    //changes the function state according to the value of open
     setState(open)
   }
 
-  // temp theme for toolbar color
-  const theme = createTheme({
-    palette: {
-      mode: "light",
-      // primary: {
-      //   main: "#nnn",
-      // },
-      secondary: {
-        main: "#000F9F",
-      },
-    },
-    components: {
-      MuiAccordion: {
-        defaultProps: {
-          elevation: 0,
-        },
-      },
-    },
-  })
-
-  return (<ThemeProvider theme={theme}>
-    <AppBar position="static" color="secondary">
+  return (
+  <ThemeProvider theme={accordionTheme}>
+    <AppBar position="static">
       <Container maxWidth={false}>
         <Toolbar disableGutters sx={{ justifyContent: "space-between" }}>
           {/* Display Icon on left when >=900px */}
