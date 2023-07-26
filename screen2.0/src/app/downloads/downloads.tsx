@@ -5,7 +5,7 @@ import {
   Typography,
   Tabs,
   Tab,
-  Box
+  Box,
 } from "@mui/material"
 
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
@@ -15,12 +15,12 @@ import { DetailedElements } from './detailed-elements';
 import { DataMatrices } from './data-matrices';
 import { useMemo } from 'react';
 
-function a11yProps(index: number) {
-  return {
-    id: `simple-tab-${index}`,
-    'aria-controls': `simple-tabpanel-${index}`,
-  };
-}
+// function a11yProps(index: number) {
+//   return {
+//     id: `simple-tab-${index}`,
+//     'aria-controls': `simple-tabpanel-${index}`,
+//   };
+// }
 
 export default function DownloadsPage(props: {biosamples: any}) {
   const [value, setValue] = React.useState(0);
@@ -29,23 +29,16 @@ export default function DownloadsPage(props: {biosamples: any}) {
     setValue(newValue);
   };
 
-  const biosamples = props.biosamples.data
-
-  const h3k4me3H = useMemo(() => ((biosamples && biosamples.human && biosamples.human.biosamples) || []).filter((x) => x.h3k4me3 !== null), [biosamples])
-
-  console.log(biosamples)
-  console.log(h3k4me3H)
-
   return (
       <Box sx={{ width: '100%' }}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
-            <Tab label="Quick Start" {...a11yProps(0)} />
-            <Tab label="Detailed Elements" {...a11yProps(1)} />
-            <Tab label="Data Matrices" {...a11yProps(2)} />
+            <Tab label="Quick Start" /*{...a11yProps(0)}*/ />
+            <Tab label="Detailed Elements" /*{...a11yProps(1)}*/ />
+            <Tab label="Data Matrices" /*{...a11yProps(2)}*/ />
           </Tabs>
         </Box>
-        <QuickStart value={value} />
+        <QuickStart value={value} biosamples={props.biosamples}/>
         <DetailedElements value={value} />
         <DataMatrices value={value} />
       </Box>

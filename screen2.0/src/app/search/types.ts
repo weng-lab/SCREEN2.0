@@ -110,3 +110,16 @@ export type FilteredBiosampleData = [
     }
   }[]
 ][]
+
+//What is a good name for this?
+export type Biosample = {
+  ctcf: string | null
+  ctcf_signal: string | null
+  dnase: string | null
+  dnase_signal: string | null
+  h3k27ac: string | null
+  h3k27ac_signal: string | null
+  h3k4me3: string | null
+  h3k4me3_signal: string | null
+  name: string | null
+}
