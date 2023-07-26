@@ -20,11 +20,9 @@ import {
   Box,
   Button,
   debounce,
-  ButtonBase,
   Checkbox,
   FormControlLabel,
   FormGroup,
-  Link,
   ToggleButton,
   ToggleButtonGroup,
   Typography,
@@ -38,7 +36,7 @@ import {
 } from "@mui/material"
 
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
-import { ThemeProvider, createTheme } from "@mui/material/styles"
+import { ThemeProvider } from "@mui/material/styles"
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos"
 import MenuIcon from "@mui/icons-material/Menu"
 import Divider from "@mui/material/Divider"
@@ -46,6 +44,7 @@ import { CheckBox, ExpandMore } from "@mui/icons-material"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import Image from "next/image"
 import { gql } from "@apollo/client"
+import { accordionTheme } from "../../../common/lib/themes"
 
 const GENE_AUTOCOMPLETE_QUERY = gql`
   query ($assembly: String!, $name_prefix: [String!], $limit: Int) {
@@ -230,26 +229,7 @@ export function GeneExpression(props: { accession: string, assembly: string, gen
     setState(open)
   }
 
-  // temp theme for toolbar color
-  const theme = createTheme({
-    palette: {
-      mode: "light",
-      // primary: {
-      //   main: "#nnn",
-      // },
-      secondary: {
-        main: "#nnn",
-      },
-    },
-    components: {
-      MuiAccordion: {
-        defaultProps: {
-          elevation: 0,
-        },
-      },
-    },
-  })
-
+  // set drawer height based on window size
   const drawerWidth: number = 350
   let drawerHeight: number = window.screen.height
   let drawerHeightTab: number = window.screen.height
@@ -267,7 +247,7 @@ export function GeneExpression(props: { accession: string, assembly: string, gen
   return (
     <main>
       <Paper sx={{ ml: open ? `${drawerWidth}px` : 0 }} elevation={2}>
-        <ThemeProvider theme={theme}>
+        <ThemeProvider theme={accordionTheme}>
           <Grid2 container spacing={3} sx={{ mt: "2rem", ml: "1.5rem", mr: "2rem" }}>
             {/* hamburger with options for plot */}
             <Grid2>
@@ -712,6 +692,7 @@ export function GeneExpression(props: { accession: string, assembly: string, gen
                 onChange={(event: React.ChangeEvent<HTMLInputElement>, value: string) => {
                   if (value != "") debounceFn(value)
                   setGeneID(value)
+                  router.push
                 }}
                 onInputChange={(event: React.ChangeEvent<HTMLInputElement>, value: string) => {
                   if (value != "") debounceFn(value)

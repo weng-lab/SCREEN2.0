@@ -20,6 +20,7 @@ import {
 import { Range2D } from "jubilant-carnival"
 import { PlotActivityProfiles } from "./utils"
 import Image from "next/image"
+import { accordionTheme } from "../../../common/lib/themes"
 
 export default function Rampage(props: { accession: string, assembly: string, chromosome: string }) {
   const [loading, setLoading] = useState<boolean>(true)
@@ -81,26 +82,6 @@ export default function Rampage(props: { accession: string, assembly: string, ch
     })
   }
 
-  // temp theme for toolbar color
-  const theme = createTheme({
-    palette: {
-      mode: "light",
-      // primary: {
-      //   main: "#nnn",
-      // },
-      secondary: {
-        main: "#nnn",
-      },
-    },
-    components: {
-      MuiAccordion: {
-        defaultProps: {
-          elevation: 0,
-        },
-      },
-    },
-  })
-
   return error ? (
     <ErrorMessage error={new Error("Error loading data")} />
   ) : loading ? (
@@ -110,7 +91,7 @@ export default function Rampage(props: { accession: string, assembly: string, ch
     data[payload.accession] && (
       <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "2rem", mr: "2rem", width: `100%` }}>
         {/* tool bar */}
-        <ThemeProvider theme={theme}>
+        <ThemeProvider theme={accordionTheme}>
           <AppBar position="static" color="secondary">
             <Toolbar style={{}}>
               {/* description */}

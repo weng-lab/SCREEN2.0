@@ -2,24 +2,16 @@
 import React, { useState } from "react"
 import { Accordion, AccordionDetails, AccordionSummary } from "@mui/material"
 import {
-  AppBar,
   Box,
   Button,
-  Drawer,
   FormControl,
   FormControlLabel,
-  IconButton,
   InputLabel,
-  Link,
   MenuItem,
   Select,
   SelectChangeEvent,
-  Stack,
   Switch,
-  ThemeProvider,
-  Toolbar,
   Typography,
-  createTheme,
 } from "@mui/material"
 import { Point2D, Range2D, linearTransform2D } from "jubilant-carnival"
 import { Fragment } from "react"
@@ -27,89 +19,13 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { RIDItemList, GeneExpEntry } from "../../applets/gene-expression/types"
 
-export const z_score = (d: any) => (d === -11.0 || d === "--" || d === undefined ? "--" : d.toFixed(2))
-
-export const ctgroup = (group: string) => {
-  group = group.split(",")[0]
-  if (group === "CA-CTCF")
-    return (
-      <span style={{ color: "#00B0F0" }}>
-        <strong>chromatin accessible with ctcf</strong>
-      </span>
-    )
-  if (group === "CA-TF")
-    return (
-      <span style={{ color: "#be28e5" }}>
-        <strong>chromatin accessible with tf</strong>
-      </span>
-    )
-  if (group === "CA-H3K4me3")
-    return (
-      <span style={{ color: "#ffaaaa" }}>
-        <strong>chromatin accessible with H3K4me3</strong>
-      </span>
-    )
-  if (group === "TF")
-    return (
-      <span style={{ color: "#d876ec" }}>
-        <strong>tf only</strong>
-      </span>
-    )
-  if (group === "CA")
-    return (
-      <span style={{ color: "#06DA93" }}>
-        <strong>chromatin accessible only</strong>
-      </span>
-    )
-  if (group === "pELS")
-    return (
-      <span style={{ color: "#ffcd00" }}>
-        <strong>proximal enhancer-like signature</strong>
-      </span>
-    )
-  if (group === "dELS")
-    return (
-      <span style={{ color: "#ffcd00" }}>
-        <strong>distal enhancer-like signature</strong>
-      </span>
-    )
-  if (group === "PLS")
-    return (
-      <span style={{ color: "#ff0000" }}>
-        <strong>promoter-like signature</strong>
-      </span>
-    )
-  if (group === "DNase-H3K4me3")
-    return (
-      <span style={{ color: "#ffaaaa" }}>
-        <strong>DNase-H3K4me3</strong>
-      </span>
-    )
-  if (group === "ctcf")
-    return (
-      <span style={{ color: "#00b0f0" }}>
-        <strong>CTCF bound</strong>
-      </span>
-    )
-  if (group === "ylowdnase")
-    return (
-      <span style={{ color: "#8c8c8c" }}>
-        <strong>low DNase</strong>
-      </span>
-    )
-  if (group === "zunclassified")
-    return (
-      <span style={{ color: "#8c8c8c" }}>
-        <strong>zunclassified</strong>
-      </span>
-    )
-  return (
-    <span style={{ color: "#06da93" }}>
-      <strong>DNase only</strong>
-    </span>
-  )
-}
-
+/**
+ * Plots associated RAMPAGE signals
+ * @param {any} data signals to plot
+ * @param {Range2D} range size of plot dimensions
+ * @param {Range2D} dimensions size of window to plot on 
+ * @returns plot of RAMPAGE signals
+ */
 export function PlotActivityProfiles(props: { data: any; range: Range2D; dimensions: Range2D }) {
   const [sort, setSort] = useState<string>("byValue")
   const [zeros, setZeros] = useState<boolean>(false)
@@ -213,16 +129,19 @@ export function PlotActivityProfiles(props: { data: any; range: Range2D; dimensi
             onClick={() => {
               let c: { [id: string]: { expand: boolean } } = {}
               let uncollapse: boolean = true
-              Object.keys(collapse).map((b: string) => {
-                if (collapse[b].expand) uncollapse = false
-                c[b] = { expand: false }
-              })
-
-              if (uncollapse) {
+              if (Object.keys(collapse).length !== 0){
                 Object.keys(collapse).map((b: string) => {
-                  c[b].expand = true
+                  if (collapse[b].expand) uncollapse = false
+                  c[b] = { expand: false }
                 })
+
+                if (uncollapse) {
+                  Object.keys(collapse).map((b: string) => {
+                    c[b].expand = true
+                  })
+                }
               }
+              else Object.keys(tissues).map((b: string) => {c[b] = { expand: false }})
               setCollapse(c)
             }}
           >
@@ -292,5 +211,88 @@ export function PlotActivityProfiles(props: { data: any; range: Range2D; dimensi
         </Box>
       </Grid2>
     </>
+  )
+}
+
+export const z_score = (d: any) => (d === -11.0 || d === "--" || d === undefined ? "--" : d.toFixed(2))
+
+export const ctgroup = (group: string) => {
+  group = group.split(",")[0]
+  if (group === "CA-CTCF")
+    return (
+      <span style={{ color: "#00B0F0" }}>
+        <strong>chromatin accessible with ctcf</strong>
+      </span>
+    )
+  if (group === "CA-TF")
+    return (
+      <span style={{ color: "#be28e5" }}>
+        <strong>chromatin accessible with tf</strong>
+      </span>
+    )
+  if (group === "CA-H3K4me3")
+    return (
+      <span style={{ color: "#ffaaaa" }}>
+        <strong>chromatin accessible with H3K4me3</strong>
+      </span>
+    )
+  if (group === "TF")
+    return (
+      <span style={{ color: "#d876ec" }}>
+        <strong>tf only</strong>
+      </span>
+    )
+  if (group === "CA")
+    return (
+      <span style={{ color: "#06DA93" }}>
+        <strong>chromatin accessible only</strong>
+      </span>
+    )
+  if (group === "pELS")
+    return (
+      <span style={{ color: "#ffcd00" }}>
+        <strong>proximal enhancer-like signature</strong>
+      </span>
+    )
+  if (group === "dELS")
+    return (
+      <span style={{ color: "#ffcd00" }}>
+        <strong>distal enhancer-like signature</strong>
+      </span>
+    )
+  if (group === "PLS")
+    return (
+      <span style={{ color: "#ff0000" }}>
+        <strong>promoter-like signature</strong>
+      </span>
+    )
+  if (group === "DNase-H3K4me3")
+    return (
+      <span style={{ color: "#ffaaaa" }}>
+        <strong>DNase-H3K4me3</strong>
+      </span>
+    )
+  if (group === "ctcf")
+    return (
+      <span style={{ color: "#00b0f0" }}>
+        <strong>CTCF bound</strong>
+      </span>
+    )
+  if (group === "ylowdnase")
+    return (
+      <span style={{ color: "#8c8c8c" }}>
+        <strong>low DNase</strong>
+      </span>
+    )
+  if (group === "zunclassified")
+    return (
+      <span style={{ color: "#8c8c8c" }}>
+        <strong>zunclassified</strong>
+      </span>
+    )
+  return (
+    <span style={{ color: "#06da93" }}>
+      <strong>DNase only</strong>
+    </span>
   )
 }

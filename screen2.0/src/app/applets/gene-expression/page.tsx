@@ -45,7 +45,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import Image from "next/image"
 import { gql } from "@apollo/client"
 
-const GENE_AUTOCOMPLETE_QUERY = gql`
+const GENE_AUTOCOMPLETE_QUERY = `
   query ($assembly: String!, $name_prefix: [String!], $limit: Int) {
     gene(assembly: $assembly, name_prefix: $name_prefix, limit: $limit) {
       name
