@@ -31,10 +31,20 @@ type CcreDetailsProps = {
   accession: string
   assembly: string
   region: GenomicRegion
-  globals: any
+  globals: any,
+  genes: { 
+    pc: { 
+      name: string, 
+      __typename: string 
+    }[], 
+    all: { 
+      name: string, 
+      __typename: string 
+    }[] 
+  } 
 }
 
-export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, globals, assembly }) => {
+export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, globals, assembly, genes }) => {
   const [value, setValue] = React.useState(0)
   const [open, setState] = React.useState<boolean>(true)
 
@@ -67,7 +77,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
                     mt: 24.18,
                   },
                 }}
-                PaperProps={{ sx: { mt: 12.5 }, elevation: 2 }}
+                PaperProps={{ sx: { mt: 0 }, elevation: 2 }}
                 anchor="left"
                 open={open}
                 onClose={toggleDrawer(false)}
@@ -105,7 +115,6 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
               </Drawer>
             </Box>
           </Grid2>
-          {/* tool bar */}
           <ThemeProvider theme={defaultTheme}>
             <AppBar position="static" color="secondary">
               <Toolbar style={{ height: "120px" }}>
@@ -174,7 +183,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
                 )}
                 {value === 5 && <Ortholog accession={accession} assembly={assembly} />}
                 {value === 6 && <Rampage accession={accession} assembly={assembly} chromosome={region.chrom} />}
-                {value === 7 && <GeneExpression accession={accession} assembly={assembly} gene="OR51AB1P" hamburger={open} />}
+                {value === 7 && <GeneExpression accession={accession} assembly={assembly} genes={genes} hamburger={open} />}
               </Grid2>
             </Grid2>
           </Grid2>
