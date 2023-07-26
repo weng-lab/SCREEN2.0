@@ -1,7 +1,6 @@
 "use client"
 import React from "react"
 import {
-  Tab,
   Tabs,
   Typography,
   Paper,
@@ -10,9 +9,6 @@ import {
   Toolbar,
   IconButton,
   Drawer,
-  Stack,
-  Button,
-  createTheme,
   Box,
 } from "@mui/material"
 import { GenomicRegion } from "../types"
@@ -28,9 +24,8 @@ import Rampage from "./rampage"
 import MenuIcon from "@mui/icons-material/Menu"
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos"
 import Divider from "@mui/material/Divider"
-// import { GeneExpression } from "../../applets/gene-expression/gene-expression"
 import { GeneExpression } from "./gene-expression"
-// import GeneExpression from "../../applets/gene-expression/page"
+import { defaultTheme } from "../../../common/lib/themes"
 
 type CcreDetailsProps = {
   accession: string
@@ -53,19 +48,6 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
     }
     setState(open)
   }
-
-  // temp theme for toolbar color
-  const theme = createTheme({
-    palette: {
-      mode: "light",
-      // primary: {
-      //   main: "#nnn",
-      // },
-      secondary: {
-        main: "#nnn",
-      },
-    },
-  })
 
   const drawerWidth: number = 350
 
@@ -124,7 +106,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
             </Box>
           </Grid2>
           {/* tool bar */}
-          <ThemeProvider theme={theme}>
+          <ThemeProvider theme={defaultTheme}>
             <AppBar position="static" color="secondary">
               <Toolbar style={{ height: "120px" }}>
                 <Grid2 xs={0.5} md={0.5} lg={0.5}>

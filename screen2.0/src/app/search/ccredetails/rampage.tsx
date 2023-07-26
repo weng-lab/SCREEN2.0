@@ -20,7 +20,7 @@ import {
 import { Range2D } from "jubilant-carnival"
 import { PlotActivityProfiles } from "./utils"
 import Image from "next/image"
-import { accordionTheme } from "../../../common/lib/themes"
+import { defaultTheme } from "../../../common/lib/themes"
 
 export default function Rampage(props: { accession: string, assembly: string, chromosome: string }) {
   const [loading, setLoading] = useState<boolean>(true)
@@ -91,7 +91,7 @@ export default function Rampage(props: { accession: string, assembly: string, ch
     data[payload.accession] && (
       <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "2rem", mr: "2rem", width: `100%` }}>
         {/* tool bar */}
-        <ThemeProvider theme={accordionTheme}>
+        <ThemeProvider theme={defaultTheme}>
           <AppBar position="static" color="secondary">
             <Toolbar style={{}}>
               {/* description */}

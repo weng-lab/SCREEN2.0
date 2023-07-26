@@ -44,6 +44,7 @@ import { CheckBox, ExpandMore } from "@mui/icons-material"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import Image from "next/image"
 import { gql } from "@apollo/client"
+import { defaultTheme } from "../../../common/lib/themes"
 
 const GENE_AUTOCOMPLETE_QUERY = `
   query ($assembly: String!, $name_prefix: [String!], $limit: Int) {
@@ -228,26 +229,6 @@ export default function GeneExpression() {
     setState(open)
   }
 
-  // temp theme for toolbar color
-  const theme = createTheme({
-    palette: {
-      mode: "light",
-      // primary: {
-      //   main: "#nnn",
-      // },
-      secondary: {
-        main: "#nnn",
-      },
-    },
-    components: {
-      MuiAccordion: {
-        defaultProps: {
-          elevation: 0,
-        },
-      },
-    },
-  })
-
   const drawerWidth: number = 350
   let drawerHeight: number = window.screen.height
   let drawerHeightTab: number = window.screen.height
@@ -265,7 +246,7 @@ export default function GeneExpression() {
   return (
     <main>
       <Paper sx={{ ml: open ? `${drawerWidth}px` : 0 }} elevation={2}>
-        <ThemeProvider theme={theme}>
+        <ThemeProvider theme={defaultTheme}>
           <Grid2 container spacing={3} sx={{ mt: "2rem", ml: "1.5rem", mr: "2rem" }}>
             {/* hamburger with options for plot */}
             <Grid2>

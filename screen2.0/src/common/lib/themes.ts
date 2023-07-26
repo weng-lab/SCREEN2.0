@@ -1,20 +1,20 @@
 import { ThemeProvider, createTheme } from "@mui/material/styles"
 
-// temp theme for toolbar color - UMass blue / empty secondary
-export const accordionTheme = createTheme({
+// temp theme for toolbar color and accordion outline - UMass blue / empty secondary
+export const defaultTheme = createTheme({
     palette: {
       mode: "light",
       primary: {
         main: "#000F9F",
         light: "#42a5f5",
-        dark: "#nnn",
-        contrastText: "#eeeeee"
+        dark: "#000F9F",
+        contrastText: "#fff"
       },
       secondary: {
         main: "#nnn",
         light: "#nnn",
         dark: "#nnn",
-        // contrastText: "#eeeeee"
+        contrastText: "#fff"
       },
     //   background: {
     //     paper: "#fff",

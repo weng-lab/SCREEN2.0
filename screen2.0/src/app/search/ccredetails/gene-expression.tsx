@@ -44,7 +44,7 @@ import { CheckBox, ExpandMore } from "@mui/icons-material"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import Image from "next/image"
 import { gql } from "@apollo/client"
-import { accordionTheme } from "../../../common/lib/themes"
+import { defaultTheme } from "../../../common/lib/themes"
 
 const GENE_AUTOCOMPLETE_QUERY = gql`
   query ($assembly: String!, $name_prefix: [String!], $limit: Int) {
@@ -247,7 +247,7 @@ export function GeneExpression(props: { accession: string, assembly: string, gen
   return (
     <main>
       <Paper sx={{ ml: open ? `${drawerWidth}px` : 0 }} elevation={2}>
-        <ThemeProvider theme={accordionTheme}>
+        <ThemeProvider theme={defaultTheme}>
           <Grid2 container spacing={3} sx={{ mt: "2rem", ml: "1.5rem", mr: "2rem" }}>
             {/* hamburger with options for plot */}
             <Grid2>
