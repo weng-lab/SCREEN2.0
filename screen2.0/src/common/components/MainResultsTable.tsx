@@ -3,9 +3,25 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation"
 
 import { DataTable, DataTableProps, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import React from "react"
-import { Typography } from "@mui/material"
+import { Box, Button, Typography } from "@mui/material"
+import Link from "next/link"
 
 let COLUMNS = (rows) => {
+  // can prob just use link instead here
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams: any = useSearchParams()!
+
+  const createQueryString = React.useCallback(
+    (name: string, value: string) => {
+      const params = new URLSearchParams(searchParams)
+      params.set(name, value)
+
+      return params.toString()
+    },
+    [searchParams]
+  )
+
   let col: DataTableColumn<any>[] = [
     {
       header: "Accession",
@@ -63,14 +79,37 @@ let COLUMNS = (rows) => {
     header: "Linked\u00A0Genes\u00A0(Distance)",
     value: (row) => "",
     render: (row) => (
-      <>
-        <Typography variant="body2">
-          {`PC:\u00A0${row.linkedGenes.pc[0].name},\u00A0${row.linkedGenes.pc[1].name},\u00A0${row.linkedGenes.pc[2].name}`}
+      <Box>
+        <Typography variant="body2" display="inline">
+          {`PC: `}
         </Typography>
-        <Typography variant="body2">
-          {`All:\u00A0${row.linkedGenes.all[0].name},\u00A0${row.linkedGenes.all[1].name},\u00A0${row.linkedGenes.all[2].name}`}
+        <Typography variant="body2" color="primary" display="inline">
+          {/* link to new tab - should use Link but won't nav after click without <a> */}
+          <a target="_blank" href={`/applets/gene-expression?gene=${row.linkedGenes.pc[0].name}`} rel="noopener noreferrer">
+            {` ${row.linkedGenes.pc[0].name}, `}
+          </a>
+          {/* with button for onClick */}
+          <a href={`/applets/gene-expression?gene=${row.linkedGenes.pc[1].name}`}>
+            <button
+              type="button"
+              onClick={() => {
+                router.push(pathname.split("/")[0] + "?" + createQueryString("gene", row.linkedGenes.pc[0].name))
+              }}
+            >{`${row.linkedGenes.pc[1].name}, `}</button>
+          </a>
+          {/* no button or link */}
+          <a href={`/applets/gene-expression?gene=${row.linkedGenes.pc[2].name}`}>{`${row.linkedGenes.pc[2].name}`}</a>
         </Typography>
-      </>
+        <Typography></Typography>
+        <Typography variant="body2" display="inline">
+          {`All: `}
+        </Typography>
+        <Typography variant="body2" color="primary" display="inline">
+          <a target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?gene=${row.linkedGenes.all[0].name}`}>{` ${row.linkedGenes.all[0].name}, `}</a>
+          <a target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?gene=${row.linkedGenes.all[1].name}`}>{`${row.linkedGenes.all[1].name}, `}</a>
+          <a target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?gene=${row.linkedGenes.all[2].name}`}>{`${row.linkedGenes.all[2].name}`}</a>
+        </Typography>
+      </Box>
     ),
   })
 

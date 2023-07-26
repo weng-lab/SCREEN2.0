@@ -1,10 +1,4 @@
-import {
-  cCREData,
-  MainQueryParams,
-  CellTypeData,
-  UnfilteredBiosampleData,
-  FilteredBiosampleData
-} from "../../app/search/types"
+import { cCREData, MainQueryParams, CellTypeData, UnfilteredBiosampleData, FilteredBiosampleData } from "../../app/search/types"
 
 /**
  *
@@ -104,9 +98,9 @@ function passesClassificationFilter(currentElement: cCREData, mainQueryParams: M
 }
 
 /**
-   * @param experiments Array of objects containing biosample experiments for a given biosample type
-   * @returns an object with keys dnase, atac, h3k4me3, h3k27ac, ctcf with each marked true or false
-   */
+ * @param experiments Array of objects containing biosample experiments for a given biosample type
+ * @returns an object with keys dnase, atac, h3k4me3, h3k27ac, ctcf with each marked true or false
+ */
 function availableAssays(
   experiments: {
     assay: string
@@ -122,10 +116,10 @@ function availableAssays(
 }
 
 /**
-   *
-   * @param byCellType JSON of byCellType
-   * @returns an object of sorted biosample types, grouped by tissue type
-   */
+ *
+ * @param byCellType JSON of byCellType
+ * @returns an object of sorted biosample types, grouped by tissue type
+ */
 export function parseByCellType(byCellType: CellTypeData): UnfilteredBiosampleData {
   const biosamples = {}
   Object.entries(byCellType.byCellType).forEach((entry) => {
@@ -164,7 +158,14 @@ export function parseByCellType(byCellType: CellTypeData): UnfilteredBiosampleDa
  * @param biosamples The biosamples object to filter
  * @returns The same object but filtered with the current state of Biosample Type filters
  */
-export function filterBiosamples(biosamples: UnfilteredBiosampleData, Tissue: boolean, PrimaryCell: boolean, CellLine: boolean, InVitro: boolean, Organoid: boolean,): FilteredBiosampleData {
+export function filterBiosamples(
+  biosamples: UnfilteredBiosampleData,
+  Tissue: boolean,
+  PrimaryCell: boolean,
+  CellLine: boolean,
+  InVitro: boolean,
+  Organoid: boolean
+): FilteredBiosampleData {
   const filteredBiosamples: FilteredBiosampleData = Object.entries(biosamples).map(([str, objArray]) => [
     str,
     objArray.filter((biosample) => {
@@ -196,8 +197,9 @@ export function assayHoverInfo(assays: { dnase: boolean; h3k27ac: boolean; h3k4m
   } else if (!dnase && !h3k27ac && !h3k4me3 && !ctcf && !atac) {
     return "No assays available"
   } else
-    return `Available:\n${dnase ? "DNase\n" : ""}${h3k27ac ? "H3K27ac\n" : ""}${h3k4me3 ? "H3K4me3\n" : ""}${ctcf ? "CTCF\n" : ""}${atac ? "ATAC\n" : ""
-      }`
+    return `Available:\n${dnase ? "DNase\n" : ""}${h3k27ac ? "H3K27ac\n" : ""}${h3k4me3 ? "H3K4me3\n" : ""}${ctcf ? "CTCF\n" : ""}${
+      atac ? "ATAC\n" : ""
+    }`
 }
 
 //IMPORTANT: This will wipe the current cCRE when Nishi puts it in. Need to talk to Nishi about deciding when/how to display the cCRE details
@@ -209,33 +211,33 @@ export function assayHoverInfo(assays: { dnase: boolean; h3k27ac: boolean; h3k4m
 export function constructURL(
   mainQueryParams: MainQueryParams,
   urlParams: {
-    Tissue: boolean,
-    PrimaryCell: boolean,
-    InVitro: boolean,
-    Organoid: boolean,
-    CellLine: boolean,
-    Biosample: { selected: boolean; biosample: string | null; tissue: string | null; summaryName: string | null },
-    DNaseStart: number,
-    DNaseEnd: number,
-    H3K4me3Start: number,
-    H3K4me3End: number,
-    H3K27acStart: number,
-    H3K27acEnd: number,
-    CTCFStart: number,
-    CTCFEnd: number,
-    CA: boolean,
-    CA_CTCF: boolean,
-    CA_H3K4me3: boolean,
-    CA_TF: boolean,
-    dELS: boolean,
-    pELS: boolean,
-    PLS: boolean,
+    Tissue: boolean
+    PrimaryCell: boolean
+    InVitro: boolean
+    Organoid: boolean
+    CellLine: boolean
+    Biosample: { selected: boolean; biosample: string | null; tissue: string | null; summaryName: string | null }
+    DNaseStart: number
+    DNaseEnd: number
+    H3K4me3Start: number
+    H3K4me3End: number
+    H3K27acStart: number
+    H3K27acEnd: number
+    CTCFStart: number
+    CTCFEnd: number
+    CA: boolean
+    CA_CTCF: boolean
+    CA_H3K4me3: boolean
+    CA_TF: boolean
+    dELS: boolean
+    pELS: boolean
+    PLS: boolean
     TF: boolean
   },
   newBiosample?: {
-    selected: boolean;
-    biosample: string;
-    tissue: string;
+    selected: boolean
+    biosample: string
+    tissue: string
     summaryName: string
   }
 ) {
@@ -243,23 +245,26 @@ export function constructURL(
   const urlBasics = `search?assembly=${mainQueryParams.assembly}&chromosome=${mainQueryParams.chromosome}&start=${mainQueryParams.start}&end=${mainQueryParams.end}`
 
   //Can probably get biosample down to one string, and extract other info when parsing byCellType
-  const biosampleFilters = `&Tissue=${outputT_or_F(urlParams.Tissue)}&PrimaryCell=${outputT_or_F(urlParams.PrimaryCell)}&InVitro=${outputT_or_F(
-    urlParams.InVitro
-  )}&Organoid=${outputT_or_F(urlParams.Organoid)}&CellLine=${outputT_or_F(urlParams.CellLine)}${(urlParams.Biosample.selected && !newBiosample) || (newBiosample && newBiosample.selected)
-    ? "&Biosample=" +
-    (newBiosample ? newBiosample.biosample : urlParams.Biosample.biosample) +
-    "&BiosampleTissue=" +
-    (newBiosample ? newBiosample.tissue : urlParams.Biosample.tissue) +
-    "&BiosampleSummary=" +
-    (newBiosample ? newBiosample.summaryName : urlParams.Biosample.summaryName)
-    : ""
-    }`
+  const biosampleFilters = `&Tissue=${outputT_or_F(urlParams.Tissue)}&PrimaryCell=${outputT_or_F(
+    urlParams.PrimaryCell
+  )}&InVitro=${outputT_or_F(urlParams.InVitro)}&Organoid=${outputT_or_F(urlParams.Organoid)}&CellLine=${outputT_or_F(urlParams.CellLine)}${
+    (urlParams.Biosample.selected && !newBiosample) || (newBiosample && newBiosample.selected)
+      ? "&Biosample=" +
+        (newBiosample ? newBiosample.biosample : urlParams.Biosample.biosample) +
+        "&BiosampleTissue=" +
+        (newBiosample ? newBiosample.tissue : urlParams.Biosample.tissue) +
+        "&BiosampleSummary=" +
+        (newBiosample ? newBiosample.summaryName : urlParams.Biosample.summaryName)
+      : ""
+  }`
 
   const chromatinFilters = `&dnase_s=${urlParams.DNaseStart}&dnase_e=${urlParams.DNaseEnd}&h3k4me3_s=${urlParams.H3K4me3Start}&h3k4me3_e=${urlParams.H3K4me3End}&h3k27ac_s=${urlParams.H3K27acStart}&h3k27ac_e=${urlParams.H3K27acEnd}&ctcf_s=${urlParams.CTCFStart}&ctcf_e=${urlParams.CTCFEnd}`
 
   const classificationFilters = `&CA=${outputT_or_F(urlParams.CA)}&CA_CTCF=${outputT_or_F(urlParams.CA_CTCF)}&CA_H3K4me3=${outputT_or_F(
     urlParams.CA_H3K4me3
-  )}&CA_TF=${outputT_or_F(urlParams.CA_TF)}&dELS=${outputT_or_F(urlParams.dELS)}&pELS=${outputT_or_F(urlParams.pELS)}&PLS=${outputT_or_F(urlParams.PLS)}&TF=${outputT_or_F(urlParams.TF)}`
+  )}&CA_TF=${outputT_or_F(urlParams.CA_TF)}&dELS=${outputT_or_F(urlParams.dELS)}&pELS=${outputT_or_F(urlParams.pELS)}&PLS=${outputT_or_F(
+    urlParams.PLS
+  )}&TF=${outputT_or_F(urlParams.TF)}`
 
   const url = `${urlBasics}${biosampleFilters}${chromatinFilters}${classificationFilters}`
   return url

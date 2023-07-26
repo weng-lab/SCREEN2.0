@@ -1,3 +1,5 @@
+export type QueryResponse = [number, string[], any, [string, string, string, string, string, string][], string[]]
+
 export type GenomicRange = {
     chromosome: string;
     start: number;
