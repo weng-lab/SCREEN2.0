@@ -76,7 +76,12 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     InVitro,
     Organoid,
     CellLine,
-    Biosample: { selected: Biosample.selected, biosample: Biosample.biosample, tissue: Biosample.tissue, summaryName: Biosample.summaryName },
+    Biosample: {
+      selected: Biosample.selected,
+      biosample: Biosample.biosample,
+      tissue: Biosample.tissue,
+      summaryName: Biosample.summaryName,
+    },
     DNaseStart,
     DNaseEnd,
     H3K4me3Start,
@@ -92,7 +97,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     dELS,
     pELS,
     PLS,
-    TF
+    TF,
   }
 
   const router = useRouter()
@@ -102,7 +107,14 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
    */
   const biosampleTables = useMemo(
     () => {
-      const filteredBiosamples: FilteredBiosampleData = filterBiosamples(parseByCellType(props.byCellType), Tissue, PrimaryCell, CellLine, InVitro, Organoid)
+      const filteredBiosamples: FilteredBiosampleData = filterBiosamples(
+        parseByCellType(props.byCellType),
+        Tissue,
+        PrimaryCell,
+        CellLine,
+        InVitro,
+        Organoid
+      )
       const cols = [
         {
           header: "Biosample",
@@ -203,7 +215,12 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                     setBiosampleHighlight(row)
                     //Push to router with new biosample to avoid accessing stale Biosample value
                     router.push(
-                      constructURL(props.mainQueryParams, urlParams, { selected: true, biosample: row.queryValue, tissue: row.biosampleTissue, summaryName: row.summaryName })
+                      constructURL(props.mainQueryParams, urlParams, {
+                        selected: true,
+                        biosample: row.queryValue,
+                        tissue: row.biosampleTissue,
+                        summaryName: row.summaryName,
+                      })
                     )
                   }}
                 />
@@ -212,8 +229,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
           )
         }
       })
-    }
-    ,
+    },
     // Linter wants to include biosampleTables here as a dependency. Including it breaks intended functionality. Revisit later?
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [CellLine, InVitro, Organoid, PrimaryCell, Tissue, BiosampleHighlight, SearchString, props.byCellType, props.mainQueryParams]
@@ -238,7 +254,12 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
               <Typography>Tissue/Organ</Typography>
             </Grid2>
             <Grid2 xs={6}>
-              <TextField value={SearchString} size="small" label="Filter Tissues" onChange={(event) => setSearchString(event.target.value)} />
+              <TextField
+                value={SearchString}
+                size="small"
+                label="Filter Tissues"
+                onChange={(event) => setSearchString(event.target.value)}
+              />
             </Grid2>
             {Biosample.selected && (
               <Grid2 container spacing={2}>
@@ -255,7 +276,14 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                     onClick={() => {
                       setBiosample({ selected: false, biosample: null, tissue: null, summaryName: null })
                       setBiosampleHighlight(null)
-                      router.push(constructURL(props.mainQueryParams, urlParams, { selected: false, biosample: null, tissue: null, summaryName: null }))
+                      router.push(
+                        constructURL(props.mainQueryParams, urlParams, {
+                          selected: false,
+                          biosample: null,
+                          tissue: null,
+                          summaryName: null,
+                        })
+                      )
                     }}
                   >
                     Clear

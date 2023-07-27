@@ -14,7 +14,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
   return (
     <html>
       <body>
-        {ErrorMessage(error)}
+        <ErrorMessage error={error} />
         <Button
           onClick={
             // Attempt to recover by trying to re-render the segment

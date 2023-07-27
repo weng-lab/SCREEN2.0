@@ -88,7 +88,7 @@ export default function DifferentialGeneExpression() {
         if (!response.ok) {
           // throw new Error(response.statusText)
           setError(true)
-          return ErrorMessage(new Error(response.statusText))
+          return <ErrorMessage error={new Error(response.statusText)} />
         }
         return response.json()
       })
@@ -99,7 +99,7 @@ export default function DifferentialGeneExpression() {
       .catch((error: Error) => {
         // logging
         // throw error
-        return ErrorMessage(error)
+        return <ErrorMessage error={error} />
       })
     setLoading(true)
   }, [])
@@ -124,7 +124,7 @@ export default function DifferentialGeneExpression() {
         if (!response.ok) {
           // throw new Error(response.statusText)
           setError(true)
-          return ErrorMessage(new Error(response.statusText))
+          return <ErrorMessage error={new Error(response.statusText)} />
         }
         return response.json()
       })
@@ -170,7 +170,7 @@ export default function DifferentialGeneExpression() {
       .catch((error: Error) => {
         // logging
         // throw error
-        return ErrorMessage(error)
+        return <ErrorMessage error={error} />
       })
     setLoadingChart(true)
   }, [ct1, ct2, gene])
@@ -243,7 +243,7 @@ export default function DifferentialGeneExpression() {
   // const cellTypes2 = await getCellTypes()
 
   return loading ? (
-    LoadingMessage()
+    <LoadingMessage />
   ) : (
     <main>
       <Grid2 container spacing={3} sx={{ mt: "2rem" }}>
@@ -291,9 +291,9 @@ export default function DifferentialGeneExpression() {
         <Grid2 xs={9}>
           <Box mb={1}>
             {errorLoading
-              ? ErrorMessage(new Error("Error loading data"))
+              ? <ErrorMessage error={new Error("Error loading")} />
               : loadingChart
-              ? LoadingMessage()
+              ? <LoadingMessage />
               : data &&
                 data.gene &&
                 data[data.gene] &&
@@ -429,7 +429,7 @@ export default function DifferentialGeneExpression() {
                                   })
                                   setSlider([dr1, range.x.end + 1200000])
                                   setMin(dr1)
-                                } else ErrorMessage(new Error("invalid range"))
+                                } else return <ErrorMessage error={(new Error("invalid range"))} />
                               }
                             }}
                           />
@@ -459,7 +459,7 @@ export default function DifferentialGeneExpression() {
                                   })
                                   setSlider([range.x.start - 1200000, dr2])
                                   setMax(dr2)
-                                } else ErrorMessage(new Error("invalid range"))
+                                } else return <ErrorMessage error={(new Error("invalid range"))} />
                               }
                             }}
                           />
@@ -587,24 +587,24 @@ export default function DifferentialGeneExpression() {
                           {!toggleFC ? (
                             <></>
                           ) : (
-                            data[data.gene].nearbyDEs.data.map((point, i: number) =>
-                              BarPoint(point, i, range, dimensions)
+                            data[data.gene].nearbyDEs.data.map(
+                              (point, i: number) => BarPoint(point, i, range, dimensions)
                               // <BarPoint point={point} i={i} range={range} dimensions={dimensions} />
                             )
                           )}
                           {!toggleccres ? (
                             <></>
                           ) : (
-                            data[data.gene].diffCREs.data.map((point, i: number) =>
-                              Point(point, i, range, dimensions)
+                            data[data.gene].diffCREs.data.map(
+                              (point, i: number) => Point(point, i, range, dimensions)
                               // <Point point={point} i={i} range={range} dimensions={dimensions} />
                             )
                           )}
                           {!toggleGenes ? (
                             <></>
                           ) : (
-                            data[data.gene].nearbyDEs.genes.map((point, i: number) =>
-                              GenePoint(point, i, range, dimensions, toggleGenes)
+                            data[data.gene].nearbyDEs.genes.map(
+                              (point, i: number) => GenePoint(point, i, range, dimensions, toggleGenes)
                               // <GenePoint point={point} i={i} range={range} dimensions={dimensions} toggleGenes={toggleGenes} />
                             )
                           )}
@@ -674,8 +674,8 @@ export default function DifferentialGeneExpression() {
                             </text>
                           </g>
                           <g className="data">
-                            {data[data.gene].nearbyDEs.genes.map((point, i: number) =>
-                              GenePoint(point, i, range, dimensions, false)
+                            {data[data.gene].nearbyDEs.genes.map(
+                              (point, i: number) => GenePoint(point, i, range, dimensions, false)
                               // <GenePoint point={point} i={i} range={range} dimensions={dimensions} toggleGenes={false} />
                             )}
                           </g>
