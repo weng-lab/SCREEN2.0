@@ -185,7 +185,7 @@ export function GeneExpression(props: {
                       edge="start"
                       color="inherit"
                       aria-label="open drawer"
-                      onClick={() => toggleDrawer(false)}
+                      onClick={toggleDrawer(true)}
                       sx={{
                         ...(open && { display: "none" }),
                       }}

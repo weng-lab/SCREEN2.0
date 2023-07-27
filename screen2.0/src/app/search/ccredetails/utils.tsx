@@ -176,9 +176,9 @@ export function PlotActivityProfiles(props: { data: any; range: Range2D; dimensi
             return (
               <Accordion
                 key={index}
-                expanded={collapse ? collapse[entry[0]] : true}
+                expanded={Object.keys(collapse).length !== 0 ? collapse[entry[0]] : true}
                 disableGutters={true}
-                sx={{ padding: 0, mr: 4 }}
+                sx={{ padding: 0, mr: 0 }}
               >
                 <AccordionSummary
                   expandIcon={<ExpandMoreIcon />}
@@ -190,7 +190,7 @@ export function PlotActivityProfiles(props: { data: any; range: Range2D; dimensi
                         if (collapse[entry[0]] === undefined || collapse[entry[0]]) tmp[entry[0]] = false
                         else tmp[entry[0]] = true
                       } else {
-                        tmp[x[0]] = (collapse[x[0]] !== undefined ? collapse[x[0]] : true)
+                        tmp[x[0]] = collapse[x[0]] !== undefined ? collapse[x[0]] : true
                       }
                     })
                     setCollapse(tmp)

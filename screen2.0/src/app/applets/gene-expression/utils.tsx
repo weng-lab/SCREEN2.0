@@ -115,7 +115,7 @@ export function PlotGeneExpression(props: {
             return (
               <Accordion
                 key={index}
-                expanded={collapse[entry[0]] ? collapse[entry[0]] : true}
+                expanded={Object.keys(collapse).length !== 0 ? collapse[entry[0]] : true}
                 disableGutters={true}
                 sx={{ padding: 0, ml: "2rem", mr: "2rem" }}
               >
@@ -129,7 +129,7 @@ export function PlotGeneExpression(props: {
                         if (collapse[entry[0]] === undefined || collapse[entry[0]]) tmp[entry[0]] = false
                         else tmp[entry[0]] = true
                       } else {
-                        tmp[x[0]] = (collapse[x[0]] !== undefined ? collapse[x[0]] : true)
+                        tmp[x[0]] = collapse[x[0]] !== undefined ? collapse[x[0]] : true
                       }
                     })
                     setCollapse(tmp)
