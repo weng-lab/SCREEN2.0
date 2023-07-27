@@ -167,7 +167,12 @@ export const NearByGenomicFeatures: React.FC<{
                       header: "Accession",
                       value: (row) => row.name,
                       render: (row) => (
-                        <Typography component="button" onClick={() => router.push(pathname + "?" + createQueryString("accession", row.name))} variant="body2" color="primary">
+                        <Typography
+                          component="button"
+                          onClick={() => router.push(pathname + "?" + createQueryString("accession", row.name))}
+                          variant="body2"
+                          color="primary"
+                        >
                           {row.name}
                         </Typography>
                       ),
