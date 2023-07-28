@@ -105,9 +105,21 @@ let COLUMNS = (rows) => {
           {`All: `}
         </Typography>
         <Typography variant="body2" color="primary" display="inline">
-          <a target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?gene=${row.linkedGenes.all[0].name}`}>{` ${row.linkedGenes.all[0].name}, `}</a>
-          <a target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?gene=${row.linkedGenes.all[1].name}`}>{`${row.linkedGenes.all[1].name}, `}</a>
-          <a target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?gene=${row.linkedGenes.all[2].name}`}>{`${row.linkedGenes.all[2].name}`}</a>
+          <a
+            target="_blank"
+            rel="noopener noreferrer"
+            href={`/applets/gene-expression?gene=${row.linkedGenes.all[0].name}`}
+          >{` ${row.linkedGenes.all[0].name}, `}</a>
+          <a
+            target="_blank"
+            rel="noopener noreferrer"
+            href={`/applets/gene-expression?gene=${row.linkedGenes.all[1].name}`}
+          >{`${row.linkedGenes.all[1].name}, `}</a>
+          <a
+            target="_blank"
+            rel="noopener noreferrer"
+            href={`/applets/gene-expression?gene=${row.linkedGenes.all[2].name}`}
+          >{`${row.linkedGenes.all[2].name}`}</a>
         </Typography>
       </Box>
     ),

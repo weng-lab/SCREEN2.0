@@ -61,7 +61,7 @@ export default function Rampage(props: { accession: string; assembly: string; ch
       .then((response) => {
         if (!response.ok) {
           setError(true)
-          return <ErrorMessage error={(new Error(response.statusText))} />
+          return <ErrorMessage error={new Error(response.statusText)} />
         }
         return response.json()
       })

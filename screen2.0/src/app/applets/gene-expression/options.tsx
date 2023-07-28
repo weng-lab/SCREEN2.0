@@ -28,14 +28,11 @@ const toggleList = (checkList: string[], option: string) => {
   }
   let toggleList: string[] = []
   Object.values(checkList).map((x: string) => toggleList.push(x))
-  
+
   return toggleList
 }
 
-export const OptionsBiosampleTypes = (props: { 
-    biosamples: string[], 
-    setBiosamples: React.Dispatch<React.SetStateAction<string[]>> 
-}) => {
+export const OptionsBiosampleTypes = (props: { biosamples: string[]; setBiosamples: React.Dispatch<React.SetStateAction<string[]>> }) => {
   let labels: string[] = ["cell line", "in vitro differentiated cells", "primary cell", "tissue"]
   return (
     <Accordion disableGutters={true}>
@@ -45,18 +42,17 @@ export const OptionsBiosampleTypes = (props: {
       <AccordionDetails>
         <FormGroup>
           {Object.values(labels).map((biosample: string) => (
-              <FormControlLabel
-                key={biosample}
-                label={biosample}
-                control={
-                  <Checkbox
-                    checked={props.biosamples.includes(biosample)}
-                    onClick={() => props.setBiosamples(toggleList(props.biosamples, biosample))}
-                  />
-                }
-              />
-            )
-          )}
+            <FormControlLabel
+              key={biosample}
+              label={biosample}
+              control={
+                <Checkbox
+                  checked={props.biosamples.includes(biosample)}
+                  onClick={() => props.setBiosamples(toggleList(props.biosamples, biosample))}
+                />
+              }
+            />
+          ))}
         </FormGroup>
       </AccordionDetails>
     </Accordion>
@@ -64,7 +60,7 @@ export const OptionsBiosampleTypes = (props: {
 }
 
 export const OptionsCellularComponents = (props: {
-  cell_components: string[],
+  cell_components: string[]
   setCellComponents: React.Dispatch<React.SetStateAction<string[]>>
 }) => {
   let labels: string[] = ["cell", "chromatin", "cytosol", "membrane", "nucleoplus", "nucleoplasm", "nucleus"]
@@ -76,25 +72,24 @@ export const OptionsCellularComponents = (props: {
       <AccordionDetails>
         <FormGroup>
           {Object.values(labels).map((comp: string) => (
-              <FormControlLabel
-                key={comp}
-                label={comp}
-                control={
-                  <Checkbox
-                    checked={props.cell_components.includes(comp)}
-                    onClick={() => props.setCellComponents(toggleList(props.cell_components, comp))}
-                  />
-                }
-              />
-            )
-          )}
+            <FormControlLabel
+              key={comp}
+              label={comp}
+              control={
+                <Checkbox
+                  checked={props.cell_components.includes(comp)}
+                  onClick={() => props.setCellComponents(toggleList(props.cell_components, comp))}
+                />
+              }
+            />
+          ))}
         </FormGroup>
       </AccordionDetails>
     </Accordion>
   )
 }
 
-export const OptionsGroupBy = (props: { group: string, setGroup: React.Dispatch<React.SetStateAction<string>> }) => {
+export const OptionsGroupBy = (props: { group: string; setGroup: React.Dispatch<React.SetStateAction<string>> }) => {
   return (
     <Accordion disableGutters={true}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -119,7 +114,7 @@ export const OptionsGroupBy = (props: { group: string, setGroup: React.Dispatch<
   )
 }
 
-export const OptionsRNAType = (props: { RNAtype: string, setRNAType: React.Dispatch<React.SetStateAction<string>> }) => {
+export const OptionsRNAType = (props: { RNAtype: string; setRNAType: React.Dispatch<React.SetStateAction<string>> }) => {
   return (
     <Accordion disableGutters={true}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -144,7 +139,7 @@ export const OptionsRNAType = (props: { RNAtype: string, setRNAType: React.Dispa
   )
 }
 
-export const OptionsScale = (props: { scale: string, setScale: React.Dispatch<React.SetStateAction<string>> }) => {
+export const OptionsScale = (props: { scale: string; setScale: React.Dispatch<React.SetStateAction<string>> }) => {
   return (
     <Accordion disableGutters={true}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -168,7 +163,7 @@ export const OptionsScale = (props: { scale: string, setScale: React.Dispatch<Re
   )
 }
 
-export const OptionsReplicates = (props: { replicates: string, setReplicates: React.Dispatch<React.SetStateAction<string>> }) => {
+export const OptionsReplicates = (props: { replicates: string; setReplicates: React.Dispatch<React.SetStateAction<string>> }) => {
   return (
     <Accordion disableGutters={true}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
