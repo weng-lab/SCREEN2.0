@@ -6,6 +6,7 @@ import {
   Tabs,
   Tab,
   Box,
+  Container,
 } from "@mui/material"
 
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
@@ -22,7 +23,7 @@ import { useMemo } from 'react';
 //   };
 // }
 
-export default function DownloadsPage(props: {biosamples: any}) {
+export default function DownloadsPage(props: { biosamples: any }) {
   const [value, setValue] = React.useState(0);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -30,17 +31,23 @@ export default function DownloadsPage(props: {biosamples: any}) {
   };
 
   return (
-      <Box sx={{ width: '100%' }}>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
-            <Tab label="Quick Start" /*{...a11yProps(0)}*/ />
-            <Tab label="Detailed Elements" /*{...a11yProps(1)}*/ />
-            <Tab label="Data Matrices" /*{...a11yProps(2)}*/ />
-          </Tabs>
-        </Box>
-        <QuickStart value={value} biosamples={props.biosamples}/>
-        <DetailedElements value={value} />
-        <DataMatrices value={value} />
-      </Box>
+    <Container>
+      <Grid2 container spacing={2}>
+        <Grid2 xs={12}>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
+              <Tab label="Quick Start" /*{...a11yProps(0)}*/ />
+              <Tab label="Detailed Elements" /*{...a11yProps(1)}*/ />
+              <Tab label="Data Matrices" /*{...a11yProps(2)}*/ />
+            </Tabs>
+          </Box>
+        </Grid2>
+        <Grid2 xs={12}>
+          <QuickStart value={value} biosamples={props.biosamples} />
+          <DetailedElements value={value} />
+          <DataMatrices value={value} />
+        </Grid2>
+      </Grid2>
+    </Container>
   )
 }
