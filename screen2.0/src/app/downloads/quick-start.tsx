@@ -6,10 +6,11 @@ import {
   InputAdornment,
   IconButton,
   Autocomplete,
-  TextField
+  TextField,
+  Tooltip
 } from "@mui/material";
 
-import SearchIcon from '@mui/icons-material/Search';
+import InfoIcon from '@mui/icons-material/Info';
 
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import Downloads from "./page";
@@ -24,6 +25,110 @@ interface TabPanelProps {
   biosamples: any;
 }
 
+const PROMOTER_MESSAGE =
+  "cCREs with promoter-like signatures have high DNase-seq signal, high H3K4me3 signal, and have centers within 200 bp of an annotated GENCODE TSS."
+const ENHANCER_MESSAGE =
+  "cCREs with enhancer-like signatures have high DNase-seq signal and high H3K27ac signal. These cCREs can either be TSS-proximal (within 2kb) or TSS-distal and do not include promoter annotations."
+const CTCF_MESSAGE = "cCREs with high CTCF-signal. These cCRE may also be classified as promoters, enhancer, or CTCF-only elements."
+const LINK_MESSAGE = "cCRE-gene links curated from Hi-C, ChIA-PET, CRISPR perturbations and eQTL data."
+
+
+function generateBiosampleURL(selected: Biosample): URL {
+  const r = [selected.dnase_signal, selected.h3k4me3_signal, selected.h3k27ac_signal, selected.ctcf_signal].filter((x) => !!x)
+  return new URL(`https://downloads.wenglab.org/Registry-V4/${r.join("_")}.bed`)
+}
+
+//So I don't forget, I think that using PascalCase is useful when defining JSX-returning functions since JSX elements are PascalCase
+function ComboBox(props: {options: Biosample[], label: string, mode: "H-promoter" | "H-enhancer" | "H-ctcf" | "M-promoter" | "M-enhancer" | "M-ctcf"}): JSX.Element {
+  const [toDownload, setToDownload] = useState<URL | null>(null)
+  const [selectedBiosample, setSelectedBiosample] = useState<Biosample | null>(null)
+
+  //Imported from old SCREEN
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob)
+    const downloadLink = document.createElement("a")
+    downloadLink.href = url
+    downloadLink.download = filename
+    document.body.appendChild(downloadLink)
+    downloadLink.click()
+    document.body.removeChild(downloadLink)
+  }
+
+  //Imported from old SCREEN
+  function downloadTSV(text, filename) {
+    downloadBlob(new Blob([text], { type: "text/plain" }), filename)
+  }
+
+  //Not sure if this is necessary to use useMemo. All I want is to prevent this switch case block from being executed for each line of the file
+  const stringToMatch: string = useMemo(() => {
+    switch (props.mode) {
+      case "H-promoter":
+        return "PLS"
+      case "M-promoter":
+        return "PLS"
+      case "H-enhancer":
+        return "ELS"
+      case "M-enhancer":
+        return "ELS"
+      case "H-ctcf":
+        return "CTCF"
+      case "M-ctcf":
+        return "CTCF"
+    }
+  }, [props.mode]
+  )
+
+  useEffect(() => {
+    toDownload &&
+      fetch(toDownload)
+        .then((x) => x.text())
+        .then((x) => {
+          downloadTSV(
+            x
+              .split("\n")
+              .filter((x) => x.includes(stringToMatch))
+              .join("\n"),
+            // `${result.name}.${props.title}.bed`
+            //Need to customize this file name
+            `${selectedBiosample.name}.${props.mode === "H-promoter" || props.mode === "M-promoter" ? "promoters" : props.mode === "H-enhancer" || props.mode === "M-enhancer" ? "enhancers" : "CTCF-bound cCREs"}.bed`
+          )
+          setToDownload(null)
+        })
+  }, [toDownload])
+
+  return (
+    <>
+    {/* As an important note, since all the biosample names are getting their underscores removed, you can't search with the original names with the underscores without customizing search function. Maybe we could look into being able to search for a tissue category also or group them */}
+      <Autocomplete
+        disablePortal
+        id="combo-box-demo"
+        options={props.options}
+        sx={{ width: 300 }}
+        //This spread is giving a warning. Code comes from MUI. Can't remove it though or doesn't work...
+        renderInput={(params) => <TextField {...params} label={props.label} />}
+        //Replace underlines with space using regex. Can the logic be simplified it's kinda gross looking with all the parentheses? If not make separate function. Yes! change to the logic used un the button template string
+        getOptionLabel={(biosample: Biosample) => biosample.name.replace(/_/g, " ") + " — Exp ID: " + (props.mode === "H-promoter" || props.mode === "M-promoter" ? biosample.h3k4me3 : props.mode === "H-enhancer" || props.mode === "M-enhancer" ? biosample.h3k27ac : biosample.ctcf)}
+        blurOnSelect
+        onChange={(event, value: any) => setSelectedBiosample(value)}
+      />
+      {selectedBiosample &&
+        <Button
+          sx={{textTransform: "none"}}
+          fullWidth
+          onClick={() => setToDownload(generateBiosampleURL(selectedBiosample))}
+          variant="contained"
+          color="primary"
+        >
+          {`Download ${props.mode === "H-promoter" || props.mode === "M-promoter" ? "promoters" : props.mode === "H-enhancer" || props.mode === "M-enhancer" ? "enhancers" : "CTCF-bound cCREs"} active in ${selectedBiosample.name.replace(/_/g, " ")}`}
+        </Button>
+      }
+      {toDownload &&
+        <Typography>Loading...</Typography>
+      }
+    </>
+  );
+}
+
 export function QuickStart(props: TabPanelProps) {
   const biosamples = props.biosamples.data
 
@@ -33,102 +138,6 @@ export function QuickStart(props: TabPanelProps) {
   const mousePromoters: Biosample[] = useMemo(() => ((biosamples && biosamples.mouse && biosamples.mouse.biosamples) || []).filter((x) => x.h3k4me3 !== null), [biosamples])
   const mouseEnhancers: Biosample[] = useMemo(() => ((biosamples && biosamples.mouse && biosamples.mouse.biosamples) || []).filter((x) => x.h3k27ac !== null), [biosamples])
   const mouseCTCF: Biosample[] = useMemo(() => ((biosamples && biosamples.mouse && biosamples.mouse.biosamples) || []).filter((x) => x.ctcf !== null), [biosamples])
-
-  function generateBiosampleURL(selected: Biosample): URL {
-    const r = [selected.dnase_signal, selected.h3k4me3_signal, selected.h3k27ac_signal, selected.ctcf_signal].filter((x) => !!x)
-    return new URL(`https://downloads.wenglab.org/Registry-V4/${r.join("_")}.bed`)
-  }
-
-  //So I don't forget, I think that using PascalCase is useful when defining JSX-returning functions since JSX elements are PascalCase
-  function ComboBox(options: Biosample[], label: string, mode: "H-promoter" | "H-enhancer" | "H-ctcf" | "M-promoter" | "M-enhancer" | "M-ctcf"): JSX.Element {
-    const [toDownload, setToDownload] = useState<URL | null>(null)
-    const [selectedBiosample, setSelectedBiosample] = useState<Biosample | null>(null)
-
-    //Imported from old SCREEN
-    function downloadBlob(blob, filename) {
-      const url = URL.createObjectURL(blob)
-      const downloadLink = document.createElement("a")
-      downloadLink.href = url
-      downloadLink.download = filename
-      document.body.appendChild(downloadLink)
-      downloadLink.click()
-      document.body.removeChild(downloadLink)
-    }
-
-    //Imported from old SCREEN
-    function downloadTSV(text, filename) {
-      downloadBlob(new Blob([text], { type: "text/plain" }), filename)
-    }
-
-    //Not sure if this is necessary. All I want is to prevent this switch case block from being executed for each line of the file
-    const stringToMatch: string = useMemo(() => {
-      switch (mode) {
-        case "H-promoter":
-          return "PLS"
-        case "M-promoter":
-          return "PLS"
-        case "H-enhancer":
-          return "ELS"
-        case "M-enhancer":
-          return "ELS"
-        case "H-ctcf":
-          return "CTCF"
-        case "M-ctcf":
-          return "CTCF"
-      }
-    }, [mode]
-    )
-
-    useEffect(() => {
-      toDownload &&
-        fetch(toDownload)
-          .then((x) => x.text())
-          .then((x) => {
-            downloadTSV(
-              x
-                .split("\n")
-                .filter((x) => x.includes(stringToMatch))
-                .join("\n"),
-              // `${result.name}.${props.title}.bed`
-              //Need to customize this file name
-              "testPromoter.bed"
-            )
-            setToDownload(null)
-          })
-    }, [toDownload])
-
-    return (
-      <>
-      {/* As an important note, since all the biosample names are getting their underscores removed, you can't search with the original names with the underscores without customizing search function. Maybe we could look into being able to search for a tissue category also or group them */}
-        <Autocomplete
-          disablePortal
-          id="combo-box-demo"
-          options={options}
-          sx={{ width: 300 }}
-          //This spread is giving a warning. Code comes from MUI. Can't remove it though or doesn't work...
-          renderInput={(params) => <TextField {...params} label={label} />}
-          //Replace underlines with space using regex. Can the logic be simplified it's kinda gross looking with all the parentheses? If not make separate function. Yes! change to the logic used un the button template string
-          getOptionLabel={(biosample: Biosample) => biosample.name.replace(/_/g, " ") + " — Exp ID: " + (mode === "H-promoter" || mode === "M-promoter" ? biosample.h3k4me3 : mode === "H-enhancer" || mode === "M-enhancer" ? biosample.h3k27ac : biosample.ctcf)}
-          blurOnSelect
-          onChange={(event, value: any) => setSelectedBiosample(value)}
-        />
-        {selectedBiosample &&
-          <Button
-            sx={{textTransform: "none"}}
-            fullWidth
-            onClick={() => setToDownload(generateBiosampleURL(selectedBiosample))}
-            variant="contained"
-            color="primary"
-          >
-            {`Download ${mode === "H-promoter" || mode === "M-promoter" ? "promoters" : mode === "H-enhancer" || mode === "M-enhancer" ? "enhancers" : "CTCF-bound cCREs"} active in ${selectedBiosample.name.replace(/_/g, " ")}`}
-          </Button>
-        }
-        {toDownload &&
-          <Typography>Loading...</Typography>
-        }
-      </>
-    );
-  }
 
   return (
     <div
@@ -148,6 +157,7 @@ export function QuickStart(props: TabPanelProps) {
           {/* All cCREs */}
           <Grid2 xs={2}>
             <Typography>All cCREs</Typography>
+            
           </Grid2>
           <Grid2 xs={5}>
             <Button fullWidth href={Config.Downloads.HumanCCREs} variant="contained" color="primary">Download All Human cCREs (hg38)</Button>
@@ -157,55 +167,83 @@ export function QuickStart(props: TabPanelProps) {
           </Grid2>
           {/* Promoters */}
           <Grid2 xs={2}>
-            <Typography>Candidate Promoters</Typography>
+            <Stack direction="row">
+              <Typography>Candidate Promoters</Typography>
+            <Tooltip title={PROMOTER_MESSAGE}>
+              <IconButton>
+                <InfoIcon />
+              </IconButton>
+            </Tooltip>
+            </Stack>
           </Grid2>
           <Grid2 xs={5}>
             <Stack spacing={2}>
               <Button fullWidth href={Config.Downloads.HumanPromoters} variant="contained" color="primary">Download Human Candidate Promoters (hg38)</Button>
-              {ComboBox(humanPromoters, "Search for a Biosample", "H-promoter")}
+              <ComboBox options={humanPromoters} label="Search for a Biosample" mode="H-promoter" />
             </Stack>
           </Grid2>
           <Grid2 xs={5}>
             <Stack spacing={2}>
               <Button fullWidth href={Config.Downloads.MousePromoters} variant="contained" color="primary">Download Mouse Candidate Promoters (hg38)</Button>
-              {ComboBox(mousePromoters, "Search for a Biosample", "M-promoter")}
+              <ComboBox options={mousePromoters}  label="Search for a Biosample" mode="M-promoter" />
             </Stack>
           </Grid2>
           {/* Enhancers */}
           <Grid2 xs={2}>
-            <Typography>Candidate Enhancers</Typography>
+            <Stack direction="row">
+              <Typography>Candidate Enhancers</Typography>
+            <Tooltip title={ENHANCER_MESSAGE}>
+              <IconButton>
+                <InfoIcon />
+              </IconButton>
+            </Tooltip>
+            </Stack>
           </Grid2>
           <Grid2 xs={5}>
             <Stack spacing={2}>
               <Button fullWidth href={Config.Downloads.HumanEnhancers} variant="contained" color="primary">Download Human Candidate Enhancers (hg38)</Button>
-              {ComboBox(humanEnhancers, "Search for a Biosample", "H-enhancer")}
+              <ComboBox options={humanEnhancers} label="Search for a Biosample" mode="H-enhancer" />
             </Stack>
           </Grid2>
           <Grid2 xs={5}>
             <Stack spacing={2}>
               <Button fullWidth href={Config.Downloads.MouseEnhancers} variant="contained" color="primary">Download Mouse Candidate Enhancers (hg38)</Button>
-              {ComboBox(mouseEnhancers, "Search for a Biosample", "M-enhancer")}
+              <ComboBox options={mouseEnhancers} label="Search for a Biosample" mode="M-enhancer" />
             </Stack>
           </Grid2>
           {/* CTCF-Bound */}
           <Grid2 xs={2}>
-            <Typography>CTCF-Bound</Typography>
+            <Stack direction="row">
+              <Typography>CTCF-Bound</Typography>
+            <Tooltip title={CTCF_MESSAGE}>
+              <IconButton>
+                <InfoIcon />
+              </IconButton>
+            </Tooltip>
+            </Stack>
           </Grid2>
           <Grid2 xs={5}>
             <Stack spacing={2}>
               <Button fullWidth href="https://downloads.wenglab.org/Registry-V4/GRCh38-CTCF.bed" variant="contained" color="primary">Download Human CTCF-Bound cCREs (hg38)</Button>
-              {ComboBox(humanCTCF, "Search for a Biosample", "H-ctcf")}
+              <ComboBox options={humanCTCF} label="Search for a Biosample" mode="H-ctcf" />
             </Stack>
           </Grid2>
           <Grid2 xs={5}>
             <Stack spacing={2}>
               <Button fullWidth href={Config.Downloads.MouseCTCF} variant="contained" color="primary">Download Mouse CTCF-Bound cCREs (hg38)</Button>
-              {ComboBox(mouseCTCF, "Search for a Biosample", "M-ctcf")}
+              <ComboBox options={mouseCTCF} label="Search for a Biosample" mode="M-ctcf" />
             </Stack>
           </Grid2>
           {/* Gene Links */}
           <Grid2 xs={2}>
-            <Typography>Gene Links</Typography>
+            <Stack direction="row">
+              <Typography>Gene Links</Typography>
+            <Tooltip title={LINK_MESSAGE}>
+              <IconButton>
+                <InfoIcon />
+              </IconButton>
+            </Tooltip>
+            </Stack>
           </Grid2>
           <Grid2 xs={5}>
             <Button fullWidth href={Config.Downloads.HumanGeneLinks} variant="contained" color="primary">Download Human cCRE-Gene Links (hg38)</Button>
