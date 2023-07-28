@@ -145,37 +145,33 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
               </Toolbar>
             </AppBar>
           </ThemeProvider>
-          <Grid2 xs={12} lg={12}>
-            <Grid2 container spacing={3} ml="1rem">
-              <Grid2 xs={12} lg={12} md={12}>
-                {value === 0 && <InSpecificBiosamples accession={accession} globals={globals} assembly={assembly} />}
-                {value === 1 && <LinkedGenes accession={accession} assembly={assembly} />}
-                {value === 2 && (
-                  <NearByGenomicFeatures
-                    accession={accession}
-                    assembly={assembly}
-                    coordinates={{
-                      chromosome: region.chrom,
-                      start: +region.start.toString().replace(/\D/g, ""),
-                      end: +region.end.toString().replace(/\D/g, ""),
-                    }}
-                  />
-                )}
-                {value === 3 && (
-                  <TfIntersection
-                    assembly={assembly}
-                    coordinates={{
-                      chromosome: region.chrom,
-                      start: +region.start.toString().replace(/\D/g, ""),
-                      end: +region.end.toString().replace(/\D/g, ""),
-                    }}
-                  />
-                )}
-                {value === 5 && <Ortholog accession={accession} assembly={assembly} />}
-                {value === 6 && <Rampage accession={accession} assembly={assembly} chromosome={region.chrom} />}
-                {value === 7 && <GeneExpression accession={accession} assembly={assembly} genes={genes} hamburger={open} />}
-              </Grid2>
-            </Grid2>
+          <Grid2 container xs={12} md={12} lg={12} sx={{ mt: 4, ml: 2, mr: 2, mb: 4 }}>
+            {value === 0 && <InSpecificBiosamples accession={accession} globals={globals} assembly={assembly} />}
+            {value === 1 && <LinkedGenes accession={accession} assembly={assembly} />}
+            {value === 2 && (
+              <NearByGenomicFeatures
+                accession={accession}
+                assembly={assembly}
+                coordinates={{
+                  chromosome: region.chrom,
+                  start: +region.start.toString().replace(/\D/g, ""),
+                  end: +region.end.toString().replace(/\D/g, ""),
+                }}
+              />
+            )}
+            {value === 3 && (
+              <TfIntersection
+                assembly={assembly}
+                coordinates={{
+                  chromosome: region.chrom,
+                  start: +region.start.toString().replace(/\D/g, ""),
+                  end: +region.end.toString().replace(/\D/g, ""),
+                }}
+              />
+            )}
+            {value === 5 && <Ortholog accession={accession} assembly={assembly} />}
+            {value === 6 && <Rampage accession={accession} assembly={assembly} chromosome={region.chrom} />}
+            {value === 7 && <GeneExpression accession={accession} assembly={assembly} genes={genes} hamburger={open} />}
           </Grid2>
         </Grid2>
       </Paper>

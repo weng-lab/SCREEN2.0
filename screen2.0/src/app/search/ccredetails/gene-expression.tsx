@@ -121,9 +121,9 @@ export function GeneExpression(props: {
 
   return (
     <main>
-      <Paper sx={{ ml: open ? `${drawerWidth}px` : 0 }} elevation={2}>
+      <Paper sx={{ ml: open ? `${drawerWidth + 20}px` : 0 }} elevation={2}>
         <ThemeProvider theme={defaultTheme}>
-          <Grid2 container spacing={3} sx={{ mt: "2rem", ml: "1.5rem", mr: "2rem" }}>
+          <Grid2 container spacing={3} sx={{ ml: 2, mr: 2 }}>
             <Grid2>
               <Box sx={{ display: "flex" }}>
                 <Drawer
@@ -134,13 +134,8 @@ export function GeneExpression(props: {
                     "& .MuiDrawer-paper": {
                       height: pathname.split("/").includes("search") ? drawerHeightTab : drawerHeight,
                       width: `${drawerWidth}px`,
-                      mt: pathname.split("/").includes("search") ? 47.5 : 12.6,
-                      ml:
-                        pathname.split("/").includes("search") && props.hamburger
-                          ? `${drawerWidth + 96}px`
-                          : pathname.split("/").includes("search")
-                          ? `${96}px`
-                          : 0,
+                      mt: 46,
+                      ml: props.hamburger ? `${drawerWidth + 94}px` : `${92}px`,
                     },
                   }}
                   PaperProps={{ sx: { mt: 0 }, elevation: 2 }}

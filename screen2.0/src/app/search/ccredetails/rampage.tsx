@@ -93,7 +93,7 @@ export default function Rampage(props: { accession: string; assembly: string; ch
   ) : (
     data &&
     data[payload.accession] && (
-      <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "2rem", mr: "2rem", width: `100%` }}>
+      <Grid2 container spacing={3}>
         <ThemeProvider theme={defaultTheme}>
           <AppBar position="static" color="secondary">
             <Toolbar style={{}}>

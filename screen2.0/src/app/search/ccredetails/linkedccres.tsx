@@ -42,35 +42,33 @@ export const Ortholog = ({ accession, assembly }) => {
   ) : error ? (
     <ErrorMessage error={error} />
   ) : (
-    <div>
-      <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "2rem" }}>
-        <Grid2 xs={12} lg={12}>
-          <DataTable
-            tableTitle={`Linked cCREs in ${assembly == "GRCh38" ? "mm10" : "GRCh38"}`}
-            columns={[
-              {
-                header: "Accession",
-                value: (row: orthologRow) => row.accession,
-              },
-              {
-                header: "Chromosome",
-                value: (row: orthologRow) => row.chrom,
-              },
-              {
-                header: "Start",
-                value: (row: orthologRow) => row.start,
-              },
-              {
-                header: "Stop",
-                value: (row: orthologRow) => row.stop,
-              },
-            ]}
-            rows={ortholog}
-            sortColumn={0}
-            itemsPerPage={5}
-          />
-        </Grid2>
+    <Grid2 container spacing={3} sx={{ mt: "0rem", mb: "2rem" }}>
+      <Grid2 xs={12} md={12} lg={12}>
+        <DataTable
+          tableTitle={`Linked cCREs in ${assembly == "GRCh38" ? "mm10" : "GRCh38"}`}
+          columns={[
+            {
+              header: "Accession",
+              value: (row: orthologRow) => row.accession,
+            },
+            {
+              header: "Chromosome",
+              value: (row: orthologRow) => row.chrom,
+            },
+            {
+              header: "Start",
+              value: (row: orthologRow) => row.start,
+            },
+            {
+              header: "Stop",
+              value: (row: orthologRow) => row.stop,
+            },
+          ]}
+          rows={ortholog}
+          sortColumn={0}
+          itemsPerPage={5}
+        />
       </Grid2>
-    </div>
+    </Grid2>
   )
 }
