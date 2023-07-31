@@ -5,7 +5,7 @@ import { ReadonlyURLSearchParams, useSearchParams, usePathname } from "next/navi
 import { LoadingMessage, ErrorMessage } from "../../../common/lib/utility"
 
 import { PlotGeneExpression } from "./utils"
-import { GeneExpressions } from "./types"
+import { GeneExpressions, gene } from "./types"
 import { Range2D } from "jubilant-carnival"
 
 import { Box, Button, Typography, IconButton, Drawer, Toolbar, AppBar, Stack, Paper, Switch } from "@mui/material"
@@ -40,7 +40,9 @@ export default function GeneExpression() {
   const [open, setState] = useState<boolean>(true)
 
   const [current_assembly, setAssembly] = useState<string>("GRCh38")
-  const [current_gene, setGene] = useState<string>(searchParams.get("gene") ? searchParams.get("gene") : "OR51AB1P")
+  const [current_gene, setGene] = useState<gene>(searchParams.get("gene") ? {
+    chrom: "", start: 0, end: 0, id: "", name: searchParams.get("gene")} : {
+    chrom: "", start: 0, end: 0, id: "", name: "OR51AB1P"})
 
   const [biosamples, setBiosamples] = useState<string[]>(["cell line", "in vitro differentiated cells", "primary cell", "tissue"])
   const [cell_components, setCellComponents] = useState<string[]>(["cell"])
@@ -72,7 +74,7 @@ export default function GeneExpression() {
         assembly: current_assembly,
         biosample_types_selected: biosamples,
         compartments_selected: cell_components,
-        gene: current_gene,
+        gene: current_gene.name,
       }),
     })
       .then((response) => {
@@ -184,7 +186,7 @@ export default function GeneExpression() {
                   <Grid2 xs={5} md={8} lg={9}>
                     <Box mt={0.5}>
                       <Typography variant="h4" sx={{ fontSize: 28, fontStyle: "italic", display: "inline" }}>
-                        {current_gene}
+                        {current_gene.name}
                       </Typography>
                       <Typography variant="h4" sx={{ fontSize: 28, display: "inline" }}>
                         {" "}
@@ -200,7 +202,7 @@ export default function GeneExpression() {
                   <Grid2 xs={1.5} sx={{ mt: 2, height: 100, width: 214 }}>
                     <Button
                       variant="contained"
-                      href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + current_gene}
+                      href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + current_gene.name}
                       color="secondary"
                     >
                       <Image src="https://geneanalytics.genecards.org/media/81632/gc.png" width={150} height={100} alt="gene-card-button" />
@@ -213,7 +215,7 @@ export default function GeneExpression() {
           </Grid2>
           <Grid2 container spacing={3}>
             <Grid2 xs={1} md={1} lg={1} sx={{ mt: 2, ml: 8 }}>
-              <GeneAutoComplete assembly={current_assembly} gene={current_gene} pathname={pathname} setGene={setGene} />
+              <GeneAutoComplete assembly={current_assembly} gene={current_gene.name} pathname={pathname} setGene={setGene} />
             </Grid2>
             {/* mouse switch - info? */}
             <Grid2 xs={1} md={1} lg={1} sx={{ mt: 2, ml: 12 }}>
@@ -222,7 +224,7 @@ export default function GeneExpression() {
                 onClick={() => {
                   if (current_assembly === "mm10") setAssembly("GRCh38")
                   else setAssembly("mm10")
-                  setGene("OR51AB1P")
+                  setGene({chrom: "", start: 0, end: 0, id: "", name: "OR51AB1P"})
                 }}
               />
               <Typography>mm10</Typography>

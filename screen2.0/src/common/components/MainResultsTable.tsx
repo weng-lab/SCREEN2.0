@@ -85,14 +85,10 @@ let COLUMNS = (rows) => {
           {`PC: `}
         </Typography>
         <Typography variant="body2" color="primary" display="inline">
-          {Object.values(row.linkedGenes.pc).map((gene: { name: string, __typename: string }, i: number) => (
-            <a
-            key={i}
-            target="_blank"
-            rel="noopener noreferrer" 
-            href={`/applets/gene-expression?gene=${gene.name}`}>
+          {Object.values(row.linkedGenes.pc).map((gene: { name: string; __typename: string }, i: number) => (
+            <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?gene=${gene.name}`}>
               {i < row.linkedGenes.all.length - 1 ? `\u00A0${gene.name}, ` : `\u00A0${gene.name}`}
-          </a>
+            </a>
           ))}
         </Typography>
         <Typography></Typography>
@@ -100,14 +96,10 @@ let COLUMNS = (rows) => {
           {`All: `}
         </Typography>
         <Typography variant="body2" color="primary" display="inline">
-        {Object.values(row.linkedGenes.all).map((gene: { name: string, __typename: string }, i: number) => (
-            <a
-            key={i}
-            target="_blank"
-            rel="noopener noreferrer" 
-            href={`/applets/gene-expression?gene=${gene.name}`}>
-              {i < row.linkedGenes.all.length - 1 ? `\u00A0${gene.name}, ` : `\u00A0${gene.name}` }
-          </a>
+          {Object.values(row.linkedGenes.all).map((gene: { name: string; __typename: string }, i: number) => (
+            <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?gene=${gene.name}`}>
+              {i < row.linkedGenes.all.length - 1 ? `\u00A0${gene.name}, ` : `\u00A0${gene.name}`}
+            </a>
           ))}
         </Typography>
       </Box>
