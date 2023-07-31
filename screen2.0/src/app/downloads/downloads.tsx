@@ -32,7 +32,7 @@ export default function DownloadsPage(props: { biosamples: any }) {
 
   return (
     <Container>
-      <Grid2 container spacing={2}>
+      <Grid2 mt={2} container spacing={2}>
         <Grid2 xs={12}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">

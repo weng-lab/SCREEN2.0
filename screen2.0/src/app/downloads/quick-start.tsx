@@ -1,23 +1,27 @@
 import {
   Typography,
   Button,
+  ButtonProps,
   Stack,
   OutlinedInput,
   InputAdornment,
   IconButton,
   Autocomplete,
   TextField,
-  Tooltip
+  Tooltip,
+  Modal
 } from "@mui/material";
 
 import InfoIcon from '@mui/icons-material/Info';
-
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import LoadingButton from '@mui/lab/LoadingButton'
+
 import Downloads from "./page";
 import Config from "../../config.json"
 import { useEffect, useMemo, useState } from "react";
 
 import { Biosample } from "../search/types";
+import React from "react";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -37,6 +41,21 @@ function generateBiosampleURL(selected: Biosample): URL {
   const r = [selected.dnase_signal, selected.h3k4me3_signal, selected.h3k27ac_signal, selected.ctcf_signal].filter((x) => !!x)
   return new URL(`https://downloads.wenglab.org/Registry-V4/${r.join("_")}.bed`)
 }
+
+const DownloadButton = (props: ButtonProps & { label: string }) => {
+  return (
+    <Button
+      sx={{ textTransform: "none" }}
+      fullWidth
+      variant="contained"
+      color="primary"
+      {...props}
+    >
+      {props.label}
+    </Button>
+  )
+}
+
 
 //So I don't forget, I think that using PascalCase is useful when defining JSX-returning functions since JSX elements are PascalCase
 function ComboBox(props: {options: Biosample[], label: string, mode: "H-promoter" | "H-enhancer" | "H-ctcf" | "M-promoter" | "M-enhancer" | "M-ctcf"}): JSX.Element {
@@ -97,7 +116,7 @@ function ComboBox(props: {options: Biosample[], label: string, mode: "H-promoter
   }, [toDownload])
 
   return (
-    <>
+    <React.Fragment>
     {/* As an important note, since all the biosample names are getting their underscores removed, you can't search with the original names with the underscores without customizing search function. Maybe we could look into being able to search for a tissue category also or group them */}
       <Autocomplete
         disablePortal
@@ -110,9 +129,12 @@ function ComboBox(props: {options: Biosample[], label: string, mode: "H-promoter
         getOptionLabel={(biosample: Biosample) => biosample.name.replace(/_/g, " ") + " — Exp ID: " + (props.mode === "H-promoter" || props.mode === "M-promoter" ? biosample.h3k4me3 : props.mode === "H-enhancer" || props.mode === "M-enhancer" ? biosample.h3k27ac : biosample.ctcf)}
         blurOnSelect
         onChange={(event, value: any) => setSelectedBiosample(value)}
+        size="small"
       />
       {selectedBiosample &&
-        <Button
+        <LoadingButton
+          loading={toDownload !== null}
+          loadingPosition="end"
           sx={{textTransform: "none"}}
           fullWidth
           onClick={() => setToDownload(generateBiosampleURL(selectedBiosample))}
@@ -120,12 +142,9 @@ function ComboBox(props: {options: Biosample[], label: string, mode: "H-promoter
           color="primary"
         >
           {`Download ${props.mode === "H-promoter" || props.mode === "M-promoter" ? "promoters" : props.mode === "H-enhancer" || props.mode === "M-enhancer" ? "enhancers" : "CTCF-bound cCREs"} active in ${selectedBiosample.name.replace(/_/g, " ")}`}
-        </Button>
+        </LoadingButton>
       }
-      {toDownload &&
-        <Typography>Loading...</Typography>
-      }
-    </>
+    </React.Fragment>
   );
 }
 
@@ -146,24 +165,23 @@ export function QuickStart(props: TabPanelProps) {
       aria-labelledby={`simple-tab-${0}`}
     >
       {props.value === 0 &&
-        <Grid2 container spacing={2}>
+        <Grid2 container spacing={3}>
           {/* Titles */}
           <Grid2 xsOffset={2} xs={5}>
-            <Typography>Human</Typography>
+            <Typography variant="h5">Human</Typography>
           </Grid2>
           <Grid2 xs={5}>
-            <Typography>Mouse</Typography>
+            <Typography variant="h5">Mouse</Typography>
           </Grid2>
           {/* All cCREs */}
           <Grid2 xs={2}>
             <Typography>All cCREs</Typography>
-            
           </Grid2>
           <Grid2 xs={5}>
-            <Button fullWidth href={Config.Downloads.HumanCCREs} variant="contained" color="primary">Download All Human cCREs (hg38)</Button>
+            <DownloadButton href={Config.Downloads.HumanCCREs} label="Download All Human cCREs (hg38)"/>
           </Grid2>
           <Grid2 xs={5}>
-            <Button fullWidth href={Config.Downloads.MouseCCREs} variant="contained" color="primary">Download All Mouse cCREs (hg38)</Button>
+            <DownloadButton href={Config.Downloads.MouseCCREs} label="Download All Mouse cCREs (hg38)"/>
           </Grid2>
           {/* Promoters */}
           <Grid2 xs={2}>
@@ -178,13 +196,13 @@ export function QuickStart(props: TabPanelProps) {
           </Grid2>
           <Grid2 xs={5}>
             <Stack spacing={2}>
-              <Button fullWidth href={Config.Downloads.HumanPromoters} variant="contained" color="primary">Download Human Candidate Promoters (hg38)</Button>
+              <DownloadButton fullWidth href={Config.Downloads.HumanPromoters} variant="contained" color="primary" label="Download Human Candidate Promoters (hg38)"/>
               <ComboBox options={humanPromoters} label="Search for a Biosample" mode="H-promoter" />
             </Stack>
           </Grid2>
           <Grid2 xs={5}>
             <Stack spacing={2}>
-              <Button fullWidth href={Config.Downloads.MousePromoters} variant="contained" color="primary">Download Mouse Candidate Promoters (hg38)</Button>
+              <DownloadButton href={Config.Downloads.MousePromoters} label="Download Mouse Candidate Promoters (hg38)"/>
               <ComboBox options={mousePromoters}  label="Search for a Biosample" mode="M-promoter" />
             </Stack>
           </Grid2>
@@ -201,13 +219,13 @@ export function QuickStart(props: TabPanelProps) {
           </Grid2>
           <Grid2 xs={5}>
             <Stack spacing={2}>
-              <Button fullWidth href={Config.Downloads.HumanEnhancers} variant="contained" color="primary">Download Human Candidate Enhancers (hg38)</Button>
+              <DownloadButton href={Config.Downloads.HumanEnhancers} label="Download Human Candidate Enhancers (hg38)"/>
               <ComboBox options={humanEnhancers} label="Search for a Biosample" mode="H-enhancer" />
             </Stack>
           </Grid2>
           <Grid2 xs={5}>
             <Stack spacing={2}>
-              <Button fullWidth href={Config.Downloads.MouseEnhancers} variant="contained" color="primary">Download Mouse Candidate Enhancers (hg38)</Button>
+              <DownloadButton href={Config.Downloads.MouseEnhancers} label="Download Mouse Candidate Enhancers (hg38)"/>
               <ComboBox options={mouseEnhancers} label="Search for a Biosample" mode="M-enhancer" />
             </Stack>
           </Grid2>
@@ -224,13 +242,13 @@ export function QuickStart(props: TabPanelProps) {
           </Grid2>
           <Grid2 xs={5}>
             <Stack spacing={2}>
-              <Button fullWidth href="https://downloads.wenglab.org/Registry-V4/GRCh38-CTCF.bed" variant="contained" color="primary">Download Human CTCF-Bound cCREs (hg38)</Button>
+              <DownloadButton href="https://downloads.wenglab.org/Registry-V4/GRCh38-CTCF.bed" label="Download Human CTCF-Bound cCREs (hg38)"/>
               <ComboBox options={humanCTCF} label="Search for a Biosample" mode="H-ctcf" />
             </Stack>
           </Grid2>
           <Grid2 xs={5}>
             <Stack spacing={2}>
-              <Button fullWidth href={Config.Downloads.MouseCTCF} variant="contained" color="primary">Download Mouse CTCF-Bound cCREs (hg38)</Button>
+              <DownloadButton href={Config.Downloads.MouseCTCF} label="Download Mouse CTCF-Bound cCREs (hg38)"/>
               <ComboBox options={mouseCTCF} label="Search for a Biosample" mode="M-ctcf" />
             </Stack>
           </Grid2>
@@ -246,7 +264,7 @@ export function QuickStart(props: TabPanelProps) {
             </Stack>
           </Grid2>
           <Grid2 xs={5}>
-            <Button fullWidth href={Config.Downloads.HumanGeneLinks} variant="contained" color="primary">Download Human cCRE-Gene Links (hg38)</Button>
+            <DownloadButton href={Config.Downloads.HumanGeneLinks} label="Download Human cCRE-Gene Links (hg38)"/>
           </Grid2>
         </Grid2>
       }
