@@ -5,6 +5,7 @@ import { DataTable, DataTableProps, DataTableColumn } from "@weng-lab/psychscree
 import React from "react"
 import { Box, Button, Typography } from "@mui/material"
 import Link from "next/link"
+import { ObjectFlags } from "typescript"
 
 let COLUMNS = (rows) => {
   // can prob just use link instead here
@@ -84,42 +85,30 @@ let COLUMNS = (rows) => {
           {`PC: `}
         </Typography>
         <Typography variant="body2" color="primary" display="inline">
-          {/* link to new tab - should use Link but won't nav after click without <a> */}
-          <a target="_blank" href={`/applets/gene-expression?gene=${row.linkedGenes.pc[0].name}`} rel="noopener noreferrer">
-            {` ${row.linkedGenes.pc[0].name}, `}
+          {Object.values(row.linkedGenes.pc).map((gene: { name: string, __typename: string }, i: number) => (
+            <a
+            key={i}
+            target="_blank"
+            rel="noopener noreferrer" 
+            href={`/applets/gene-expression?gene=${gene.name}`}>
+              {i < row.linkedGenes.all.length - 1 ? `\u00A0${gene.name}, ` : `\u00A0${gene.name}`}
           </a>
-          {/* with button for onClick */}
-          <a href={`/applets/gene-expression?gene=${row.linkedGenes.pc[1].name}`}>
-            <button
-              type="button"
-              onClick={() => {
-                router.push(pathname.split("/")[0] + "?" + createQueryString("gene", row.linkedGenes.pc[0].name))
-              }}
-            >{`${row.linkedGenes.pc[1].name}, `}</button>
-          </a>
-          {/* no button or link */}
-          <a href={`/applets/gene-expression?gene=${row.linkedGenes.pc[2].name}`}>{`${row.linkedGenes.pc[2].name}`}</a>
+          ))}
         </Typography>
         <Typography></Typography>
         <Typography variant="body2" display="inline">
           {`All: `}
         </Typography>
         <Typography variant="body2" color="primary" display="inline">
-          <a
+        {Object.values(row.linkedGenes.all).map((gene: { name: string, __typename: string }, i: number) => (
+            <a
+            key={i}
             target="_blank"
-            rel="noopener noreferrer"
-            href={`/applets/gene-expression?gene=${row.linkedGenes.all[0].name}`}
-          >{` ${row.linkedGenes.all[0].name}, `}</a>
-          <a
-            target="_blank"
-            rel="noopener noreferrer"
-            href={`/applets/gene-expression?gene=${row.linkedGenes.all[1].name}`}
-          >{`${row.linkedGenes.all[1].name}, `}</a>
-          <a
-            target="_blank"
-            rel="noopener noreferrer"
-            href={`/applets/gene-expression?gene=${row.linkedGenes.all[2].name}`}
-          >{`${row.linkedGenes.all[2].name}`}</a>
+            rel="noopener noreferrer" 
+            href={`/applets/gene-expression?gene=${gene.name}`}>
+              {i < row.linkedGenes.all.length - 1 ? `\u00A0${gene.name}, ` : `\u00A0${gene.name}` }
+          </a>
+          ))}
         </Typography>
       </Box>
     ),
@@ -142,6 +131,7 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
     },
     [searchParams]
   )
+  console.log(props.rows)
 
   return (
     <DataTable
