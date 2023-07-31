@@ -34,7 +34,7 @@ export default function GeneAutoComplete(props: {
   const [options, setOptions] = useState<string[]>([])
   const [geneDesc, setgeneDesc] = useState<{ name: string; desc: string }[]>()
   const [geneList, setGeneList] = useState<gene[]>([])
-  const [geneID, setGeneID] = useState<string>(props.gene ? props.gene : "OR51AB1P")
+  const [geneID, setGeneID] = useState<string>(props.gene ? props.gene : "OR52K1")
   const [assembly, setAssembly] = useState<string>(props.assembly)
   //   const [current_gene, setGene] = useState<string>(props.gene ? props.gene : "OR51AB1P")
 
@@ -131,6 +131,7 @@ export default function GeneAutoComplete(props: {
                 props.setGene(g.name)
                 // replace url if ge applet
                 if (props.pathname.split("/").includes("gene-expression")) router.replace(props.pathname + "?gene=" + g.name)
+                if (props.pathname.split("/").includes("differential-gene-expression")) router.replace(props.pathname + "?gene=" + g.name)
                 break
               }
             }
@@ -164,6 +165,7 @@ export default function GeneAutoComplete(props: {
               props.setGene(g.name)
               // replace url if ge applet
               if (props.pathname.split("/").includes("gene-expression")) router.replace(props.pathname + "?gene=" + g.name)
+              if (props.pathname.split("/").includes("differential-gene-expression")) router.replace(props.pathname + "?gene=" + g.name)
               break
             }
           }
