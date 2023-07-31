@@ -1,15 +1,19 @@
 "use client"
-import React, { useState, useEffect, cache, Fragment, useCallback } from "react"
+import React, { useState, useEffect, cache, useCallback } from "react"
+import { useRouter } from "next/navigation"
+import { ReadonlyURLSearchParams, useSearchParams, usePathname } from "next/navigation"
 
 import { fetchServer, LoadingMessage, ErrorMessage } from "../../../common/lib/utility"
 import { SetRange_x, SetRange_y, Point, BarPoint, GenePoint } from "./utils"
 
 import { gene, cellTypeInfoArr, QueryResponse } from "./types"
-import { GENE_AUTOCOMPLETE_QUERY, payload, initialChart, initialGeneList } from "./const"
+import { GENE_AUTOCOMPLETE_QUERY, payload, initialChart, initialGeneList, GENE_SEARCH_QUERY, ZSCORE_QUERY } from "./const"
 import { geneRed, geneBlue, promoterRed, enhancerYellow } from "../../../common/lib/colors"
 import { Range2D } from "jubilant-carnival"
+import { client } from "../../search/ccredetails/client"
 
 import { DataTable } from "@weng-lab/ts-ztable"
+import Divider from "@mui/material/Divider"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import {
   Autocomplete,
@@ -21,11 +25,23 @@ import {
   Switch,
   TextField,
   Typography,
+  IconButton,
   debounce,
+  Paper,
   Popover,
   Alert,
   AlertTitle,
+  Chip,
+  Drawer,
+  AppBar,
+  Toolbar,
 } from "@mui/material"
+import { ThemeProvider } from "@mui/material/styles"
+import { defaultTheme } from "../../../common/lib/themes"
+import MenuIcon from "@mui/icons-material/Menu"
+import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos"
+
+import { ApolloClient, InMemoryCache, useQuery } from "@apollo/client"
 
 /**
  * server fetch for list of cell types
@@ -44,14 +60,20 @@ const getCellInfo = cache(async () => {
 })
 
 export default function DifferentialGeneExpression() {
+  const searchParams: ReadonlyURLSearchParams = useSearchParams()!
+  const router = useRouter()
+  const pathname = usePathname()
+
+  if (!searchParams.get("assembly")) router.replace(pathname + "?assembly=GRCh38&chromosome=chr11")
+
   const [loading, setLoading] = useState<boolean>(true)
-  const [loadingChart, setLoadingChart] = useState<boolean>(true)
-  const [errorLoading, setError] = useState<boolean>(false)
-  const [data, setData] = useState(initialChart)
+  const [open, setState] = useState<boolean>(true)
 
   const [options, setOptions] = useState<string[]>([])
+  const [assembly, setAssembly] = useState<string>(searchParams.get("assembly") ? searchParams.get("assembly") : "GRCh38")
 
   const [cellTypes, setCellTypes] = useState<cellTypeInfoArr>()
+  const [chromosome, setChromosome] = useState<string>(searchParams.get("chromosome") ? searchParams.get("chromosome") : "chr11")
   const [ct1, setct1] = useState<string>("C57BL/6_limb_embryo_11.5_days")
   const [ct2, setct2] = useState<string>("C57BL/6_limb_embryo_15.5_days")
 
@@ -62,14 +84,14 @@ export default function DifferentialGeneExpression() {
   const [geneDesc, setgeneDesc] = useState<{ name: string; desc: string }[]>()
   const [geneList, setGeneList] = useState<gene[]>([])
 
-  const [dr1, setdr1] = useState<number>(0)
-  const [dr2, setdr2] = useState<number>(0)
-  const [min, setMin] = useState<number>(0)
-  const [max, setMax] = useState<number>(0)
+  const [dr1, setdr1] = useState<number>(4000000)
+  const [dr2, setdr2] = useState<number>(5000000)
+  const [min, setMin] = useState<number>(4000000)
+  const [max, setMax] = useState<number>(5000000)
 
   const [range, setRange] = useState<Range2D>({
     x: { start: dr1, end: dr2 },
-    y: { start: 0, end: 0 },
+    y: { start: -1, end: 1 },
   })
   const [dimensions, setDimensions] = useState<Range2D>({
     x: { start: 100, end: 900 },
@@ -83,11 +105,10 @@ export default function DifferentialGeneExpression() {
 
   // fetch list of cell types
   useEffect(() => {
-    fetch("https://storage.googleapis.com/gcp.wenglab.org/v3_mm10.json")
+    fetch("https://storage.googleapis.com/gcp.wenglab.org/newV4/" + assembly + ".json")
       .then((response) => {
         if (!response.ok) {
           // throw new Error(response.statusText)
-          setError(true)
           return <ErrorMessage error={new Error(response.statusText)} />
         }
         return response.json()
@@ -102,78 +123,60 @@ export default function DifferentialGeneExpression() {
         return <ErrorMessage error={error} />
       })
     setLoading(true)
-  }, [])
+  }, [assembly])
 
-  // fetch cell info
-  useEffect(() => {
-    fetch("https://screen-beta-api.wenglab.org/dews/search", {
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      method: "POST",
-      body: JSON.stringify({
-        assembly: "mm10",
-        gene: gene.name,
-        uuid: "62ba8f8c-8335-4404-8c48-b569cf401664",
-        ct1: ct1,
-        ct2: ct2,
-      }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          // throw new Error(response.statusText)
-          setError(true)
-          return <ErrorMessage error={new Error(response.statusText)} />
-        }
-        return response.json()
-      })
-      .then((data) => {
-        setData(data)
+  // gene search
+  const { loading: loading_genes, error: error_genes, data: data_genes } = useQuery(GENE_SEARCH_QUERY, {
+    variables: {
+      "assembly": assembly,
+      "chromosome": "chr11",
+      "start": min,
+      "end": max
+    },
+    fetchPolicy: "cache-and-network",
+    nextFetchPolicy: "cache-first",
+    client,
+  })
 
-        // set domain range
-        setdr1(data[data.gene].nearbyDEs.xdomain[0])
-        setdr2(data[data.gene].nearbyDEs.xdomain[1])
-
-        // round x1, x2
-        let min_x: number = Math.floor(data[data.gene].nearbyDEs.xdomain[0] / parseInt("100000")) * 100000
-        let max_x: number = Math.ceil(data[data.gene].nearbyDEs.xdomain[1] / parseInt("100000")) * 100000
-
-        // round y1, y2
-        let ymin: number = data[data.gene].nearbyDEs.ymin
-        let ymax: number = data[data.gene].nearbyDEs.ymax
-        let min_y: number = 0.0
-
-        if (ymin < 0) min_y = parseInt(ymin.toString()[0] + (ymin - 0.5).toString()[1]) - 0.5
-        else min_y = parseInt((ymin - 0.5).toString()[0]) - 0.5
-        let max_y: number = parseInt((ymax + 0.5).toString()[0]) + 0.5
-
-        if (max_y > 0.5 + ymax) max_y -= 0.5
-        if (min_y < ymin - 0.5) min_y += 0.5
-
-        setMin(min_x)
-        setMax(max_x)
-        setSlider([min_x, max_x])
-        setRange({
-          x: {
-            start: min_x,
-            end: max_x,
-          },
-          y: {
-            start: min_y,
-            end: max_y,
-          },
-        })
-
-        setLoadingChart(false)
-      })
-      .catch((error: Error) => {
-        // logging
-        // throw error
-        return <ErrorMessage error={error} />
-      })
-    setLoadingChart(true)
-  }, [ct1, ct2, gene])
+  // cell type 1
+  const { loading: loading_ct1, error: error_ct1, data: data_ct1 } = useQuery(ZSCORE_QUERY, {
+    variables: {
+      "assembly":assembly,
+      "coord_chrom":"chr11", "coord_start":min, "coord_end":max,
+      "cellType": ct1,
+      "gene_all_start": 0,
+      "gene_all_end": 5000000,
+      "gene_pc_start": 0,
+      "gene_pc_end": 5000000,
+      "rank_ctcf_end": 10.0,
+      "rank_ctcf_start": -10.0,"rank_dnase_end": 10.0,"rank_dnase_start":-10.0,
+      "rank_enhancer_end": 10.0,"rank_enhancer_start": -10.0,"rank_promoter_end": 10.0,
+      "rank_promoter_start": -10.0,"element_type": null, "limit":25000
+    },
+    fetchPolicy: "cache-and-network",
+    nextFetchPolicy: "cache-first",
+    client,
+  })
+  
+  // cell type 2
+  const { loading: loading_ct2, error: error_ct2, data: data_ct2 } = useQuery(ZSCORE_QUERY, {
+    variables: {
+      "assembly":assembly,
+      "coord_chrom":"chr11", "coord_start":min, "coord_end":max,
+      "cellType": ct2,
+      "gene_all_start": 0,
+      "gene_all_end": 5000000,
+      "gene_pc_start": 0,
+      "gene_pc_end": 5000000,
+      "rank_ctcf_end": 10.0,
+      "rank_ctcf_start": -10.0,"rank_dnase_end": 10.0,"rank_dnase_start":-10.0,
+      "rank_enhancer_end": 10.0,"rank_enhancer_start": -10.0,"rank_promoter_end": 10.0,
+      "rank_promoter_start": -10.0,"element_type": null, "limit":25000
+    },
+    fetchPolicy: "cache-and-network",
+    nextFetchPolicy: "cache-first",
+    client,
+  })
 
   // gene descriptions
   useEffect(() => {
@@ -242,19 +245,76 @@ export default function DifferentialGeneExpression() {
   // const cellInfo = await getCellInfo()
   // const cellTypes2 = await getCellTypes()
 
+  const toggleDrawer = (open) => (event) => {
+    if (event.type === "keydown" && (event.key === "Tab" || event.key === "Shift")) {
+      return
+    }
+    setState(open)
+  }
+
+  // set drawer height based on screen size
+  const drawerWidth: number = 550
+  let drawerHeight: number = window.screen.height
+  let drawerHeightTab: number = window.screen.height
+
+  // 1080
+  if (drawerHeight < 1200) {
+    drawerHeight *= 0.85
+    drawerHeightTab *= 0.6
+  } // 2k
+  else if (drawerHeight < 2000) {
+    drawerHeight *= 0.9
+    drawerHeightTab *= 0.7
+  } // 4k
+
   return loading ? (
     <LoadingMessage />
   ) : (
     <main>
+      <Paper sx={{ ml: open ? `${drawerWidth}px` : 0 }} elevation={2}>
+        <ThemeProvider theme={defaultTheme}>
       <Grid2 container spacing={3} sx={{ mt: "2rem" }}>
-        <Grid2 xs={3}>
+              <Drawer
+                sx={{
+                  // height: 600,
+                  width: `${drawerWidth}px`,
+                  display: "flex",
+                  flexShrink: 0,
+                  "& .MuiDrawer-paper": {
+                    height: drawerHeight,
+                    width: `${drawerWidth}px`,
+                    mt: 12,
+                  },
+                }}
+                PaperProps={{ sx: { mt: 0 }, elevation: 2 }}
+                anchor="left"
+                open={open}
+                onClose={toggleDrawer(false)}
+                variant="persistent"
+              >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      direction: "row",
+                      alignItems: "right",
+                      justifyContent: "right",
+                      mt: 8,
+                      mb: 8,
+                    }}
+                  >
+                    <IconButton onClick={toggleDrawer(false)}>
+                      <ArrowBackIosIcon />
+                    </IconButton>
+                  </Box>
+                  <Divider sx={{ mb: 2 }} />
+        <Grid2 xs={12} md={12} lg={12}>
           {loading ? (
             <></>
           ) : (
             cellTypes &&
             cellTypes["cellTypeInfoArr"] && (
               <Box>
-                <Box ml={0}>
+                <Box sx={{ width: 500 }}>
                   <DataTable
                     tableTitle="Cell 1"
                     rows={cellTypes["cellTypeInfoArr"]}
@@ -269,7 +329,7 @@ export default function DifferentialGeneExpression() {
                     searchable={true}
                   />
                 </Box>
-                <Box ml={0} mt={1}>
+                <Box sx={{ width: 500, mt: 1 }}>
                   <DataTable
                     tableTitle="Cell 2"
                     rows={cellTypes["cellTypeInfoArr"]}
@@ -279,6 +339,7 @@ export default function DifferentialGeneExpression() {
                     ]}
                     onRowClick={(row: any) => {
                       setct2(row.value)
+                      setRange({ x: { start: range.x.start, end: range.x.end }, y: { start: 0, end: 0 }})
                     }}
                     sortDescending={true}
                     searchable={true}
@@ -288,36 +349,47 @@ export default function DifferentialGeneExpression() {
             )
           )}
         </Grid2>
-        <Grid2 xs={9}>
-          <Box mb={1}>
-            {errorLoading ? (
+              </Drawer>
+        <Grid2 xs={12} md={12} lg={12} mb={2}>
+            {error_genes ? (
               <ErrorMessage error={new Error("Error loading")} />
-            ) : loadingChart ? (
+            ) : loading_genes ? (
               <LoadingMessage />
             ) : (
-              data &&
-              data.gene &&
-              data[data.gene] &&
-              data[data.gene].xdomain &&
-              data[data.gene].nearbyDEs.genes && (
-                <Fragment>
-                  <Grid2 container spacing={3} sx={{ mt: "2rem" }}>
-                    <Grid2 xs={3}>
-                      <Box sx={{ "& > :not(style)": { m: 1.5, width: "20ch" } }}>
-                        <Grid2 container spacing={3} sx={{ mt: "2rem" }}>
-                          <Grid2 xs={4}>
-                            <Typography variant="h6" display="inline" lineHeight={2.5}>
+              data_ct1 && data_ct2 &&
+              data_genes &&
+ (
+                <Paper elevation={2} sx={{ m: 2 }}>
+            <Grid2 container xs={12} md={12} lg={12}>
+                  <AppBar position="static" color="secondary">
+                    <Toolbar style={{  }}>
+                    <IconButton
+                      edge="start"
+                      color="inherit"
+                      aria-label="open drawer"
+                      onClick={toggleDrawer(true)}
+                      sx={{
+                        mr: 2,
+                        ...(open && { display: "none" }),
+                      }}
+                    >
+                      <MenuIcon />
+                    </IconButton>
+
+                    
+                  <Grid2 container spacing={3} sx={{ mt: "0rem" }}>
+                    <Grid2 container xs={3} md={3} lg={3} sx={{ alignItems: "center", justifyContent: "center", display: "flex" }}>
+                            <Typography variant="h6" display="inline" lineHeight={0} mr={2}>
                               Gene:
                             </Typography>
-                          </Grid2>
-                          <Grid2 xs={8}>
+                            <Box>
                             <Autocomplete
                               disablePortal
                               freeSolo={true}
                               id="gene-ids"
                               noOptionsText="e.g. Gm25142"
                               options={options}
-                              sx={{ width: 200 }}
+                              sx={{ width: 180 }}
                               ListboxProps={{
                                 style: {
                                   maxHeight: "180px",
@@ -398,14 +470,11 @@ export default function DifferentialGeneExpression() {
                             >
                               Search
                             </Button>
-                          </Grid2>
-                        </Grid2>
-                      </Box>
+                            </Box>
                     </Grid2>
-                    <Grid2 xs={7}>
-                      <Box sx={{ "& > :not(style)": { m: 1.0, width: "15ch", mt: 2.5 } }} ml={10}>
-                        <Typography variant="h6" display="inline" lineHeight={5}>
-                          Domain Range:
+                    <Grid2 container xs={7} md={7} lg={7} sx={{ "& > :not(style)": { m: 1.0 }, alignItems: "center", justifyContent: "center", display: "flex" }}>
+                        <Typography variant="h6" display="inline" lineHeight={0}>
+                          Coordinates:
                         </Typography>
                         <TextField
                           id="outlined-basic"
@@ -434,7 +503,7 @@ export default function DifferentialGeneExpression() {
                             }
                           }}
                         />
-                        <Typography display="inline" lineHeight={5}>
+                        <Typography display="inline" lineHeight={0}>
                           to
                         </Typography>
                         <TextField
@@ -464,18 +533,8 @@ export default function DifferentialGeneExpression() {
                             }
                           }}
                         />
-                      </Box>
                     </Grid2>
                     <Grid2 xs={2}>
-                      <Box alignContent="right">
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "right",
-                            alignItems: "right",
-                          }}
-                        >
-                          <Box mt={0}>
                             <FormGroup>
                               <FormControlLabel
                                 control={
@@ -514,12 +573,12 @@ export default function DifferentialGeneExpression() {
                                 label="genes"
                               />
                             </FormGroup>
-                          </Box>
-                        </div>
-                      </Box>
                     </Grid2>
                   </Grid2>
-                  <Box>
+                  </Toolbar>
+                  </AppBar>
+                  </Grid2>
+                  <Grid2 xs={12} md={12} lg={12} mt={2}>
                     <Box mb={3}>
                       <div
                         style={{
@@ -528,18 +587,24 @@ export default function DifferentialGeneExpression() {
                           alignItems: "center",
                         }}
                       >
+                        <Chip
+                          label={ct1.replace(/_/g, " ")}
+                          variant="outlined"
+                          sx={{ padding: 2.5, mr: 2, fontSize: 20 }}
+                          onDelete={() => setct1("")}
+                        />
                         <Typography variant="h5">
-                          {ct1.replace(/_/g, " ")} vs {ct2.replace(/_/g, " ")}
+                          vs
                         </Typography>
+                        <Chip
+                          label={ct2.replace(/_/g, " ")}
+                          variant="outlined"
+                          sx={{ padding: 2.5, ml: 2, fontSize: 20 }}
+                          onDelete={() => setct2("")}
+                        />
                       </div>
                     </Box>
                     <svg className="graph" aria-labelledby="title desc" role="img" viewBox="0 0 1000 550">
-                      {/* <title id="title"> */}
-                      {/* {ct1} vs {ct2} */}
-                      {/* </title> */}
-                      {/* <desc id="desc">
-                          {ct1} vs {ct2}
-                        </desc> */}
                       <g className="x-grid grid" id="xGrid">
                         <line x1="100" x2="900" y1="450" y2="450"></line>
                       </g>
@@ -556,7 +621,11 @@ export default function DifferentialGeneExpression() {
                           Promoter-like Signature
                         </text>
                         <text x="50" y="24" style={{ fontSize: 12, fontStyle: "italic" }}>
-                          {data[data.gene].nearbyDEs.names[1]}
+                          {/* {data[data.gene].nearbyDEs.names[1]} */}
+                          {chromosome}
+                        </text>
+                        <text x={400} y={525} style={{ fontSize: 15 }}>
+                          Coordinates (base pairs)
                         </text>
                       </g>
                       <g className="labels x-labels">
@@ -565,7 +634,7 @@ export default function DifferentialGeneExpression() {
                         <line x1="100" y1="450" x2="900" y2="450" stroke="black"></line>
                       </g>
                       <g className="labels y-labels">
-                        {SetRange_y(data[data.gene].nearbyDEs.ymin, data[data.gene].nearbyDEs.ymax, range, dimensions, ct1, ct2)}
+                        {SetRange_y(range, dimensions, ct1, ct2, data_ct1, data_ct2, setRange)}
                         {/* <SetRange_y ymin={data[data.gene].nearbyDEs.ymin} ymax={data[data.gene].nearbyDEs.ymax} range={range} dimensions={dimensions} ct1={ct1} ct2={ct2} /> */}
                         <line x1="100" y1="50" x2="100" y2="450" stroke="black"></line>
                         <line x1="900" y1="50" x2="900" y2="450" stroke="#549623"></line>
@@ -585,26 +654,26 @@ export default function DifferentialGeneExpression() {
                         )}
                       </g>
                       <g className="data" data-setname="de plot">
-                        {!toggleFC ? (
+                        {/* {!toggleFC ? (
                           <></>
                         ) : (
                           data[data.gene].nearbyDEs.data.map(
                             (point, i: number) => BarPoint(point, i, range, dimensions)
-                            // <BarPoint point={point} i={i} range={range} dimensions={dimensions} />
+                            <BarPoint point={point} i={i} range={range} dimensions={dimensions} />
                           )
-                        )}
+                        )} */}
                         {!toggleccres ? (
                           <></>
                         ) : (
-                          data[data.gene].diffCREs.data.map(
-                            (point, i: number) => Point(point, i, range, dimensions)
+                          data_ct1.cCRESCREENSearch.map(
+                            (point, i: number) => Point(point, i, range, dimensions, data_ct2, setRange, ct1, ct2)
                             // <Point point={point} i={i} range={range} dimensions={dimensions} />
                           )
                         )}
                         {!toggleGenes ? (
                           <></>
                         ) : (
-                          data[data.gene].nearbyDEs.genes.map(
+                          data_genes.gene.map(
                             (point, i: number) => GenePoint(point, i, range, dimensions, toggleGenes)
                             // <GenePoint point={point} i={i} range={range} dimensions={dimensions} toggleGenes={toggleGenes} />
                           )
@@ -660,8 +729,8 @@ export default function DifferentialGeneExpression() {
                         />
                       </Box>
                     </div>
-                    <Box mt={2}>
-                      <svg className="graph" aria-labelledby="title desc" role="img" viewBox="0 0 1000 1000">
+                    <Box>
+                      <svg className="graph" aria-labelledby="title desc" role="img" viewBox="0 0 1000 1500">
                         <title id="genes"></title>
                         <desc id="desc">genes</desc>
                         <g className="legend" transform="translate(0,0)">
@@ -675,20 +744,21 @@ export default function DifferentialGeneExpression() {
                           </text>
                         </g>
                         <g className="data">
-                          {data[data.gene].nearbyDEs.genes.map(
+                          {data_genes.gene.map(
                             (point, i: number) => GenePoint(point, i, range, dimensions, false)
                             // <GenePoint point={point} i={i} range={range} dimensions={dimensions} toggleGenes={false} />
                           )}
                         </g>
                       </svg>
                     </Box>
-                  </Box>
-                </Fragment>
+                    </Grid2>
+                </Paper>
               )
             )}
-          </Box>
         </Grid2>
       </Grid2>
+      </ThemeProvider>
+      </Paper>
     </main>
   )
 }

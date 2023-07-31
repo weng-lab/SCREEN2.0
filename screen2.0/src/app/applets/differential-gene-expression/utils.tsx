@@ -1,6 +1,7 @@
 import React, { Fragment } from "react"
 import { geneRed, geneBlue, promoterRed, enhancerYellow } from "../../../common/lib/colors"
 import { Point2D, Range2D, linearTransform2D } from "jubilant-carnival"
+import { ErrorMessage } from "../../../common/lib/utility"
 
 /**
  * Returns a circle data point colored red for proximal-like and red for enhancer-like
@@ -10,26 +11,50 @@ import { Point2D, Range2D, linearTransform2D } from "jubilant-carnival"
  * @param {Range2D} dimensions x and y range of svg
  * @returns data point
  */
-export const Point = (point: any, i: number, range: Range2D, dimensions: Range2D) => {
+export const Point = (point: any, i: number, range: Range2D, dimensions: Range2D, data_ct2: any, setRange: React.Dispatch<React.SetStateAction<Range2D>>, ct1: string, ct2: string) => {
   // export const Point = ({point, i, range, dimensions}) => {
-  const p: Point2D = { x: point.center, y: point.value }
-
-  // invalid range
-  if (p.x > range.x.end || p.x < range.x.start || p.y > range.y.end || p.y < range.y.start) return <></>
+  const ct2_genes: any = data_ct2.cCRESCREENSearch[i]
+  const x: number = point.start + point.len / 2
+  const h3k4me3: Point2D = { x: x, y: 0 }
+  const h3k27ac: Point2D = { x: x, y: 0 }
+  
+  // no cell types
+  if (ct1 === "" && ct2 === "") return <ErrorMessage error={new Error("no cell selected.")} />
+  else if (ct1 === ""){  // no cell 1
+    h3k4me3.y = ct2_genes.ctspecific.h3kme3_zscore
+    h3k27ac.y = ct2_genes.ctspecific.h3k27ac_zscore
+  }
+  else if (ct2 === ""){ // no cell 2
+    h3k4me3.y = point.ctspecific.h3kme3_zscore
+    h3k27ac.y = point.ctspecific.h3k27ac_zscore
+  } 
+  else if (ct1 === ct2){  // same cell types
+    h3k4me3.y = point.ctspecific.h3kme3_zscore
+    h3k27ac.y = point.ctspecific.h3k27ac_zscore
+  }
+  else {  // take difference
+    h3k4me3.y = (point.ctspecific.h3k4me3_zscore !== null ? point.ctspecific.h3k4me3_zscore : 0) - (ct2_genes.ctspecific.h3k4me3_zscore !== null ? ct2_genes.ctspecific.h3k4me3_zscore : 0)
+    h3k27ac.y = (point.ctspecific.h3k27ac_zscore !== null ? point.ctspecific.h3k27ac_zscore : 0) - (ct2_genes.ctspecific.h3k27ac_zscore !== null ? ct2_genes.ctspecific.h3k27ac_zscore : 0)
+  }
 
   // transform
-  const t = linearTransform2D(range, dimensions)(p)
-
-  // promotor or enhancer
-  let color: string = ""
-  if (point.typ[3] === "m") color = promoterRed
-  else color = enhancerYellow
+  const t_h3k4me3 = linearTransform2D(range, dimensions)(h3k4me3)
+  const t_h3k27ac = linearTransform2D(range, dimensions)(h3k27ac)
+  // console.log(h3k4me3)
+  // console.log(h3k27ac)
+  console.log(ct2_genes)
+  // console.log(point)
 
   return (
     <Fragment key={i}>
-      <circle cx={t.x} cy={t.y} r="4" fill={color}>
-        <title>{"coordinates: " + point.center.toLocaleString("en-US") + "\nz-score: " + point.value}</title>
-      </circle>
+      {h3k4me3.y === undefined || h3k4me3.x > range.x.end || h3k4me3.x < range.x.start || h3k4me3.y > range.y.end || h3k4me3.y < range.y.start ? <></> :
+      <circle cx={t_h3k4me3.x} cy={t_h3k4me3.y} r="4" fill={promoterRed}>
+        <title>{"pct: " + point.pct + "\nlength: " + point.len + "\nh3k4me3 z-score: " + h3k4me3.y + "\ncoordinates: " + x.toLocaleString("en-US")}</title>
+        </circle>}
+      {h3k27ac.y === undefined || h3k27ac.x > range.x.end || h3k27ac.x < range.x.start || h3k27ac.y > range.y.end || h3k27ac.y < range.y.start ? <></> :
+      <circle cx={t_h3k27ac.x} cy={t_h3k27ac.y} r="4" fill={enhancerYellow}>
+        <title>{"pct: " + point.pct + "\nlength: " + point.len + "\nh3k27ac z-score: " + h3k27ac.y + "\ncoordinates: " + x.toLocaleString("en-US")}</title>
+      </circle>}
     </Fragment>
   )
 }
@@ -46,13 +71,13 @@ export const BarPoint = (point: any, i: number, range: Range2D, dimensions: Rang
   // export const BarPoint = ({point, i, range, dimensions}) => {
   let p1: Point2D = { x: 0, y: 0 }
   let p2: Point2D = { x: 0, y: 0 }
-  let x1: number = point.start
-  let x2: number = point.stop
+  let x1: number = point.coordinates.start
+  let x2: number = point.coordinates.end
 
   // cut bars off at axis if out of range
-  if (point.start > range.x.end || point.stop < range.x.start) return <></>
-  else if (point.start < range.x.start) x1 = range.x.start
-  else if (point.stop > range.x.end) x2 = range.x.end
+  if (point.coordinates.start > range.x.end || point.coordinates.end < range.x.start) return <></>
+  else if (point.coordinates.start < range.x.start) x1 = range.x.start
+  else if (point.coordinates.end > range.x.end) x2 = range.x.end
 
   // transform
   if (point.fc >= 0) {
@@ -67,7 +92,7 @@ export const BarPoint = (point: any, i: number, range: Range2D, dimensions: Rang
     <Fragment key={i}>
       <rect x={p1.x} y={p1.y} width={p2.x - p1.x} height={p2.y - p1.y} fill="#549623" fillOpacity={0.5}>
         <title>
-          {"fc: " + point.fc + "\nstart: " + point.start.toLocaleString("en-US") + "\nstop: " + point.stop.toLocaleString("en-US")}
+          {"fc: " + point.fc + "\nstart: " + point.coordinates.start.toLocaleString("en-US") + "\nstop: " + point.coordinates.end.toLocaleString("en-US")}
         </title>
       </rect>
     </Fragment>
@@ -87,16 +112,16 @@ export const GenePoint = (point: any, i: number, range: Range2D, dimensions: Ran
   // export const GenePoint = ({ point, i, range, dimensions, toggleGenes}) => {
   let p1: Point2D = { x: 0, y: 0 }
   let p2: Point2D = { x: 0, y: 0 }
-  let x1: number = point.start
-  let x2: number = point.stop
+  let x1: number = point.coordinates.start
+  let x2: number = point.coordinates.end
   let size: number = 20
   let color: string = geneRed
   if (point.strand === "-") color = geneBlue
 
   // cut off lines if out of axis range
-  if (point.start > range.x.end || point.stop < range.x.start) return <></>
-  else if (point.start < range.x.start) x1 = range.x.start
-  else if (point.stop > range.x.end) x2 = range.x.end
+  if (point.coordinates.start > range.x.end || point.coordinates.end < range.x.start) return <></>
+  else if (point.coordinates.start < range.x.start) x1 = range.x.start
+  else if (point.coordinates.end > range.x.end) x2 = range.x.end
 
   // transform
   p1 = linearTransform2D(range, dimensions)({ x: x1, y: 0 })
@@ -111,7 +136,7 @@ export const GenePoint = (point: any, i: number, range: Range2D, dimensions: Ran
   const GeneTooltip = ({ point }) => {
     return (
       <title>
-        {"gene: " + point.gene + "\nstart: " + point.start.toLocaleString("en-US") + "\nstop: " + point.stop.toLocaleString("en-US")}
+        {"gene: " + point.name + "\nstart: " + point.coordinates.start.toLocaleString("en-US") + "\nstop: " + point.coordinates.end.toLocaleString("en-US")}
       </title>
     )
   }
@@ -123,7 +148,7 @@ export const GenePoint = (point: any, i: number, range: Range2D, dimensions: Ran
       </line>
       <text style={{ fontSize: 13, fontStyle: "italic" }} x={p2.x + size} y={(i + 4) * size + 5}>
         <GeneTooltip point={point} />
-        <a href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + point.gene}>{point.gene}</a>
+        <a href={"https://www.genecards.org/cgi-bin/carddish3k4me3.pl?gene=" + point.name}>{point.name}</a>
       </text>
       {x1 === range.x.start ? (
         <text x={p1.x - 15} y={(i + 4) * size + 6} style={{ fill: color }}>
@@ -205,28 +230,38 @@ export const SetRange_x = (range: Range2D, dimensions: Range2D) => {
 
 /**
  * Sets and labels the y-axis
- * @param {number} ymin min on y-axis
- * @param {number} ymax max of y-axis
+ * @param {number} range.y.start min on y-axis
+ * @param {number} range.y.end max of y-axis
  * @param {Range2D} range x and y range of chart
  * @param {Range2D} dimensions x and y range of svg
  * @param {string} ct1 cell type 1
  * @param {string} ct2 cell type 2
  * @returns list of labels along the y-axis
  */
-export const SetRange_y = (ymin: number, ymax: number, range: Range2D, dimensions: Range2D, ct1: string, ct2: string) => {
-  // export const SetRange_y = ({ymin, ymax, range, dimensions, ct1, ct2}) => {
+export const SetRange_y = (range: Range2D, dimensions: Range2D, ct1: string, ct2: string, data_ct1: any, data_ct2: any, setRange: React.Dispatch<React.SetStateAction<Range2D>>) => {
+  // export const SetRange_y = ({range.y.start, range.y.end, range, dimensions, ct1, ct2}) => {
   let range_y: number[] = []
-  let min_y: number = 0
-  if (ymin < 0) min_y = parseInt(ymin.toString()[0] + (ymin - 0.5).toString()[1]) - 0.5
-  else min_y = parseInt((ymin - 0.5).toString()[0]) - 0.5
-  let max_y: number = parseInt((ymax + 0.5).toString()[0]) + 0.5
+  let ymin: number = range.y.start
+  let ymax: number = range.y.end
 
-  if (max_y > 0.5 + ymax) max_y -= 0.5
-  if (min_y < ymin - 0.5) min_y += 0.5
+  for (let i in data_ct1.cCRESCREENSearch){
+    let h3kme3: number = data_ct1.cCRESCREENSearch[i].ctspecific.h3k4me3_zscore - data_ct2.cCRESCREENSearch[i].ctspecific.h3k4me3_zscore
+    let h3k27ac: number = data_ct1.cCRESCREENSearch[i].ctspecific.h3k27ac_zscore - data_ct2.cCRESCREENSearch[i].ctspecific.h3k27ac_zscore
+    if (h3kme3 > ymax) ymax = h3kme3
+    if (h3kme3 < ymin) ymin = h3kme3
+    if (h3k27ac > ymax) ymax = h3k27ac
+    if (h3k27ac < ymin) ymin = h3k27ac
+  }
 
-  while (min_y <= max_y) {
-    range_y.push(min_y)
-    min_y += 0.5
+  if (ymin < range.y.start || ymax > range.y.end) {
+    ymin = Math.floor(ymin)
+    ymax = Math.ceil(ymax)
+    setRange({ x: { start: range.x.start, end: range.x.end }, y: { start: ymin, end: ymax }})
+  }
+
+  while (ymin <= ymax) {
+    range_y.push(ymin)
+    ymin += 0.5
   }
 
   // transform and return labels of y axis
