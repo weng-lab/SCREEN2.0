@@ -122,4 +122,7 @@ export type Biosample = {
   h3k4me3: string | null
   h3k4me3_signal: string | null
   name: string | null
+  lifeStage: string
+  sampleType: string
+  displayname: string
 }

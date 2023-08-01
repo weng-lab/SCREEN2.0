@@ -4,6 +4,7 @@ import { Box } from "@mui/system";
 interface TabPanelProps {
   children?: React.ReactNode;
   value: number;
+  biosamples: any;
 }
 
 export function DataMatrices(props: TabPanelProps) {

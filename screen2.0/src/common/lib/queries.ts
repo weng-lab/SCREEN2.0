@@ -195,6 +195,9 @@ const BIOSAMPLE_QUERY = gql`
     human: ccREBiosampleQuery(assembly: "grch38") {
       biosamples {
         name
+        lifeStage
+        sampleType
+        displayname
         dnase: experimentAccession(assay: "DNase")
         h3k4me3: experimentAccession(assay: "H3K4me3")
         h3k27ac: experimentAccession(assay: "H3K27ac")
@@ -208,6 +211,9 @@ const BIOSAMPLE_QUERY = gql`
     mouse: ccREBiosampleQuery(assembly: "mm10") {
       biosamples {
         name
+        lifeStage
+        sampleType
+        displayname
         dnase: experimentAccession(assay: "DNase")
         h3k4me3: experimentAccession(assay: "H3K4me3")
         h3k27ac: experimentAccession(assay: "H3K27ac")

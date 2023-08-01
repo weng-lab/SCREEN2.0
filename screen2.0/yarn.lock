@@ -203,7 +203,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@emotion/react@npm:^11.10.5, @emotion/react@npm:^11.11.1":
+"@emotion/react@npm:^11.11.1":
   version: 11.11.1
   resolution: "@emotion/react@npm:11.11.1"
   dependencies:
@@ -244,7 +244,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@emotion/styled@npm:^11.10.5, @emotion/styled@npm:^11.11.0":
+"@emotion/styled@npm:^11.11.0":
   version: 11.11.0
   resolution: "@emotion/styled@npm:11.11.0"
   dependencies:
@@ -503,7 +503,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/icons-material@npm:^5.11.0, @mui/icons-material@npm:^5.11.16":
+"@mui/icons-material@npm:^5.11.16":
   version: 5.14.0
   resolution: "@mui/icons-material@npm:5.14.0"
   dependencies:
@@ -549,7 +549,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/material@npm:^5.11.7, @mui/material@npm:^5.13.6":
+"@mui/material@npm:^5.13.6":
   version: 5.14.0
   resolution: "@mui/material@npm:5.14.0"
   dependencies:
@@ -1273,22 +1273,6 @@ __metadata:
   peerDependencies:
     react: ">=16"
   checksum: 3eba99d5a40f2571c5a3dd8513824420882a63235feb3377c087ccbddc9d0d9c2398b3edad67854057664684a1283291726045f8d9683d619cba77ea7e188e0c
-  languageName: node
-  linkType: hard
-
-"@weng-lab/ts-ztable@npm:^4.0.1":
-  version: 4.0.1
-  resolution: "@weng-lab/ts-ztable@npm:4.0.1"
-  dependencies:
-    "@emotion/react": ^11.10.5
-    "@emotion/styled": ^11.10.5
-    "@mui/icons-material": ^5.11.0
-    "@mui/material": ^5.11.7
-    tslib: ^2.5.0
-  peerDependencies:
-    react: ">=17.0.0"
-    react-dom: ">17.0.0"
-  checksum: cdb4909eb96a36583ff31cc93900cbc2c924541a3e54d0b6c31730d740cebfae49eb6e6b42a45257a1d9ec49260934bf2a09277f024976a147df2e772fb0ac80
   languageName: node
   linkType: hard
 
@@ -6488,7 +6472,6 @@ __metadata:
     "@types/react": ^18.2.14
     "@types/react-dom": 18.2.6
     "@weng-lab/psychscreen-ui-components": ^0.7.6
-    "@weng-lab/ts-ztable": ^4.0.1
     autoprefixer: 10.4.14
     eslint: 8.44.0
     eslint-config-next: 13.4.10
