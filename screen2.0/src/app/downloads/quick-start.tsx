@@ -167,7 +167,7 @@ export function QuickStart(props: TabPanelProps) {
       aria-labelledby={`simple-tab-${0}`}
     >
       {props.value === 0 &&
-        <Grid2 container spacing={5} mt={1}>
+        <Grid2 container columnSpacing={6} rowSpacing={3} mt={1}>
           {/* Titles */}
           <Grid2 xsOffset={2} xs={5}>
             <Typography variant="h5">Human (GRCh38/hg38)</Typography>
@@ -223,13 +223,13 @@ export function QuickStart(props: TabPanelProps) {
           </Grid2>
           <Grid2 xs={5}>
             <Stack spacing={2}>
-              <DownloadButton href={Config.Downloads.HumanEnhancers} label="Download Human Candidate Enhancers"/>
+              <DownloadButton href={Config.Downloads.HumanProximalEnhancers} label="Download Human Candidate Enhancers"/>
               <ComboBox options={humanEnhancers} label="Search for a Biosample" mode="H-enhancer" />
             </Stack>
           </Grid2>
           <Grid2 xs={5}>
             <Stack spacing={2}>
-              <DownloadButton href={Config.Downloads.MouseEnhancers} label="Download Mouse Candidate Enhancers"/>
+              <DownloadButton href={Config.Downloads.MouseProximalEnhancers} label="Download Mouse Candidate Enhancers"/>
               <ComboBox options={mouseEnhancers} label="Search for a Biosample" mode="M-enhancer" />
             </Stack>
           </Grid2>
@@ -246,13 +246,13 @@ export function QuickStart(props: TabPanelProps) {
           </Grid2>
           <Grid2 xs={5}>
             <Stack spacing={2}>
-              <DownloadButton href="https://downloads.wenglab.org/Registry-V4/GRCh38-CTCF.bed" label="Download Human CTCF-Bound cCREs"/>
+              <DownloadButton href={Config.Downloads.HumanCA_CTCF} label="Download Human CTCF-Bound cCREs"/>
               <ComboBox options={humanCTCF} label="Search for a Biosample" mode="H-ctcf" />
             </Stack>
           </Grid2>
           <Grid2 xs={5}>
             <Stack spacing={2}>
-              <DownloadButton href={Config.Downloads.MouseCTCF} label="Download Mouse CTCF-Bound cCREs"/>
+              <DownloadButton href={Config.Downloads.MouseCA_CTCF} label="Download Mouse CTCF-Bound cCREs"/>
               <ComboBox options={mouseCTCF} label="Search for a Biosample" mode="M-ctcf" />
             </Stack>
           </Grid2>

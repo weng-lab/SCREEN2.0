@@ -1,4 +1,4 @@
-import { Button, ButtonProps, IconButton, Tooltip, Typography } from "@mui/material";
+import { Button, ButtonProps, IconButton, Paper, Tooltip, Typography, Modal } from "@mui/material";
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
 import { Box } from "@mui/system";
 import React from "react";
@@ -16,7 +16,7 @@ interface TabPanelProps {
 
 const InlineDownloadButton = (props: ButtonProps & { label: string, borderColor: string , search?: boolean}) => {
   return (
-    <Box borderTop={`0.25rem solid ${props.borderColor}`}>
+    <Paper sx={{ borderTop: `0.375rem solid ${props.borderColor}`, marginBottom: '1rem'}} elevation={2} >
       <Button
         sx={{ textTransform: "none", maxWidth: "9rem" }}
         variant="text"
@@ -26,7 +26,7 @@ const InlineDownloadButton = (props: ButtonProps & { label: string, borderColor:
       >
         {props.label}
       </Button>
-    </Box>
+    </Paper>
 
   )
 }
@@ -37,7 +37,7 @@ export function DetailedElements(props: TabPanelProps) {
   return (
     <React.Fragment>
       {value === 1 &&
-        <Grid2 container spacing={5} mt={1}>
+        <Grid2 container columnSpacing={6} rowSpacing={3} mt={1}>
           {/* Titles */}
           <Grid2 xs={6}>
             <Typography variant="h5">Human (GRCh38/hg38)</Typography>
@@ -54,25 +54,27 @@ export function DetailedElements(props: TabPanelProps) {
             <DownloadButton href={Config.Downloads.MouseCCREs} label="Download All Mouse cCREs" />
           </Grid2>
           <Grid2 display={"flex"} flexWrap={"wrap"} justifyContent={"space-between"} xs={6}>
-            <InlineDownloadButton href={Config.Downloads.HumanCCREs} label="Promoter-like (PLS) \n(47,532)" borderColor={PLS} />
-            <InlineDownloadButton href={Config.Downloads.HumanCCREs} label="Proximal enhancer-like (pELS) (249,464)" borderColor={pELS}/>
-            <InlineDownloadButton href={Config.Downloads.HumanCCREs} label="Distal enhancer-like (dELS) (1,469,205)" borderColor={dELS}/>
-            <InlineDownloadButton href={Config.Downloads.HumanCCREs} label="Chromatin Accessible with CTCF (126,034)" borderColor={CA_CTCF}/>
-            <InlineDownloadButton href={Config.Downloads.HumanCCREs} label="Chromatin Accessible with H3K4me3 (79,246)" borderColor={CA_H3K4me3}/>
-            <InlineDownloadButton href={Config.Downloads.HumanCCREs} label="Chromatin Accessible with TF (26,102)" borderColor={CA_TF}/>
-            <InlineDownloadButton href={Config.Downloads.HumanCCREs} label="Chromatin Accessible Only (245,985)" borderColor={CA_only}/>
-            <InlineDownloadButton href={Config.Downloads.HumanCCREs} label="TF Only (105,286)" borderColor={TF_only}/>
+            <InlineDownloadButton href={Config.Downloads.HumanPromoters} label="Promoter-like (PLS) (47,532)" borderColor={PLS} />
+            <InlineDownloadButton href={Config.Downloads.HumanProximalEnhancers} label="Proximal enhancer-like (pELS) (249,464)" borderColor={pELS}/>
+            <InlineDownloadButton href={Config.Downloads.HumanDistalEnhancers} label="Distal enhancer-like (dELS) (1,469,205)" borderColor={dELS}/>
+            <InlineDownloadButton href={Config.Downloads.HumanCA_CTCF} label="Chromatin Accessible with CTCF (126,034)" borderColor={CA_CTCF}/>
+            <InlineDownloadButton href={Config.Downloads.HumanCA_H3K4me3} label="Chromatin Accessible with H3K4me3 (79,246)" borderColor={CA_H3K4me3}/>
+            <InlineDownloadButton href={Config.Downloads.HumanCA_TF} label="Chromatin Accessible with TF (26,102)" borderColor={CA_TF}/>
+            <InlineDownloadButton href={Config.Downloads.HumanCA_only} label="Chromatin Accessible Only (245,985)" borderColor={CA_only}/>
+            <InlineDownloadButton href={Config.Downloads.HumanTF_only} label="TF Only (105,286)" borderColor={TF_only}/>
+            {/* Box added to align last row */}
             <Box width={"9rem"}></Box>
           </Grid2>
           <Grid2 display={"flex"} flexWrap={"wrap"} justifyContent={"space-between"} xs={6}>
-            <InlineDownloadButton href={Config.Downloads.HumanCCREs} label={`Promoter-like (PLS) (47,532)`} borderColor={PLS} />
-            <InlineDownloadButton href={Config.Downloads.HumanCCREs} label="Proximal enhancer-like (pELS) (249,464)" borderColor={pELS}/>
-            <InlineDownloadButton href={Config.Downloads.HumanCCREs} label="Distal enhancer-like (dELS) (1,469,205)" borderColor={dELS}/>
-            <InlineDownloadButton href={Config.Downloads.HumanCCREs} label="Chromatin Accessible with CTCF (126,034)" borderColor={CA_CTCF}/>
-            <InlineDownloadButton href={Config.Downloads.HumanCCREs} label="Chromatin Accessible with H3K4me3 (79,246)" borderColor={CA_H3K4me3}/>
-            <InlineDownloadButton href={Config.Downloads.HumanCCREs} label="Chromatin Accessible with TF (26,102)" borderColor={CA_TF}/>
-            <InlineDownloadButton href={Config.Downloads.HumanCCREs} label="Chromatin Accessible Only (245,985)" borderColor={CA_only}/>
-            <InlineDownloadButton href={Config.Downloads.HumanCCREs} label="TF Only (105,286)" borderColor={TF_only}/>
+            <InlineDownloadButton href={Config.Downloads.MousePromoters} label={`Promoter-like (PLS) (47,532)`} borderColor={PLS} />
+            <InlineDownloadButton href={Config.Downloads.MouseProximalEnhancers} label="Proximal enhancer-like (pELS) (249,464)" borderColor={pELS} />
+            <InlineDownloadButton href={Config.Downloads.MouseDistalEnhancers} label="Distal enhancer-like (dELS) (1,469,205)" borderColor={dELS} />
+            <InlineDownloadButton href={Config.Downloads.MouseCA_CTCF} label="Chromatin Accessible with CTCF (126,034)" borderColor={CA_CTCF} />
+            <InlineDownloadButton href={Config.Downloads.MouseCA_H3K4me3} label="Chromatin Accessible with H3K4me3 (79,246)" borderColor={CA_H3K4me3} />
+            <InlineDownloadButton href={Config.Downloads.MouseCA_TF} label="Chromatin Accessible with TF (26,102)" borderColor={CA_TF} />
+            <InlineDownloadButton href={Config.Downloads.MouseCA_only} label="Chromatin Accessible Only (245,985)" borderColor={CA_only} />
+            <InlineDownloadButton href={Config.Downloads.MouseTF_only} label="TF Only (105,286)" borderColor={TF_only} />
+            {/* Box added to align last row */}
             <Box width={"9rem"}></Box>
           </Grid2>
           <Grid2 xs={6}>
