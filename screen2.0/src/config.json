@@ -39,6 +39,7 @@
     "MouseCCREs": "https://downloads.wenglab.org/Registry-V4/mm10-cCREs.bed",
     "MousePromoters": "https://downloads.wenglab.org/Registry-V4/mm10-PLS.bed",
     "MouseEnhancers": "https://downloads.wenglab.org/Registry-V4/mm10-ELS.bed",
-    "MouseCTCF": "https://downloads.wenglab.org/Registry-V4/mm10-CTCF.bed"
+    "MouseCTCF": "https://downloads.wenglab.org/Registry-V4/mm10-CTCF.bed",
+    "Human_PLS": "https://downloads.wenglab.org/Registry-V4/GRCh38-cCREs.PLS.bed"
   }
 }
