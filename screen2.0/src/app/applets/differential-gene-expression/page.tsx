@@ -2,10 +2,10 @@
 import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ReadonlyURLSearchParams, useSearchParams, usePathname } from "next/navigation"
-import { LoadingMessage, ErrorMessage } from "../../../common/lib/utility"
+import { LoadingMessage, ErrorMessage, createLink } from "../../../common/lib/utility"
 import { client } from "../../search/ccredetails/client"
 
-import { DataTable } from "@weng-lab/ts-ztable"
+import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import Divider from "@mui/material/Divider"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import MenuIcon from "@mui/icons-material/Menu"
@@ -34,22 +34,6 @@ import { cellTypeInfoArr } from "./types"
 import { Range2D } from "jubilant-carnival"
 import { gene } from "../gene-expression/types"
 
-// /**
-//  * server fetch for list of cell types
-//  */
-// const getCellTypes = cache(async () => {
-//   const cellTypes = await fetch("https://storage.googleapis.com/gcp.wenglab.org/newV4/GRCh38.json")
-//   return cellTypes
-// })
-
-// /**
-//  * server fetch for cell info
-//  */
-// const getCellInfo = cache(async () => {
-//   const cellInfo = await fetchServer("https://screen-beta-api.wenglab.org/dews/search", payload)
-//   return cellInfo
-// })
-
 /**
  * This is the differential gene expression app.
  * It plots the difference in z-score of cres and gene expression (log2 fold change) between 2 cell types. 
@@ -72,6 +56,7 @@ export default function DifferentialGeneExpression() {
 
   const [ct1, setct1] = useState<string>("A172_ENCDO934VENA549_treated_with_0.02%_ethanol_for_1_hour_ENCDO000AAZ")
   const [ct2, setct2] = useState<string>("A673_ENCDO027VXA")
+  const [title, setTitle] = useState<{ct1: { name: string, expID: string }, ct2: { name: string, expID: string}}>({ ct1: { name: "", expID: ""}, ct2: { name: "", expID: ""} })
   const [cellTypes, setCellTypes] = useState<cellTypeInfoArr>()
 
   const [dr, setdr] = useState<number[]>([4000000, 5000000])
@@ -93,6 +78,14 @@ export default function DifferentialGeneExpression() {
     min: 4000000,
     max: 5000000,
   })
+
+  // const [Biosample, setBiosample] = useState<{
+  //   selected: boolean
+  //   biosample: string | null
+  //   tissue: string | null
+  //   summaryName: string | null
+  // }>(props.mainQueryParams.Biosample)
+  const [BiosampleHighlight, setBiosampleHighlight] = useState<{} | null>(null)
 
   // fetch list of cell types
   useEffect(() => {
@@ -264,7 +257,7 @@ export default function DifferentialGeneExpression() {
                 "& .MuiDrawer-paper": {
                   height: drawerHeight,
                   width: `${drawerWidth}px`,
-                  mt: 12,
+                  mt: 12.5,
                 },
               }}
               PaperProps={{ sx: { mt: 0 }, elevation: 2 }}
@@ -288,16 +281,17 @@ export default function DifferentialGeneExpression() {
                 </IconButton>
               </Box>
               <Divider sx={{ mb: 2 }} />
-              <Grid2 xs={12} md={12} lg={12}>
                 {loading ? (
                   <></>
                 ) : (
                   cellTypes &&
                   cellTypes["cellTypeInfoArr"] && (
-                    <Box>
+              <Grid2 xs={12} md={12} lg={12} ml={1.5}>
                       <Box sx={{ width: 500 }}>
                         <DataTable
-                          tableTitle="Cell 1"
+                          tableTitle="Cell type 1"
+                          highlighted={true}
+                          page={1}
                           rows={cellTypes["cellTypeInfoArr"]}
                           columns={[
                             { header: "Cell Type", value: (row: any) => row.biosample_summary },
@@ -305,14 +299,25 @@ export default function DifferentialGeneExpression() {
                           ]}
                           onRowClick={(row: any) => {
                             setct1(row.value)
+                            setTitle({
+                              ct1: {
+                                name: row.name,
+                                expID: row.expID
+                              },
+                              ct2: title.ct2
+                            })
+                            // setBiosample({ selected: true, biosample: row.queryValue, tissue: row.biosampleTissue, summaryName: row.summaryName })
+                    setBiosampleHighlight(row)
                           }}
                           sortDescending={true}
                           searchable={true}
                         />
                       </Box>
-                      <Box sx={{ width: 500, mt: 1 }}>
+                      <Box sx={{ width: 500, mt: 4 }}>
                         <DataTable
-                          tableTitle="Cell 2"
+                          tableTitle="Cell type 2"
+                          highlighted={BiosampleHighlight}
+                          page={1}
                           rows={cellTypes["cellTypeInfoArr"]}
                           columns={[
                             { header: "Cell Type", value: (row: any) => row.biosample_summary },
@@ -320,18 +325,22 @@ export default function DifferentialGeneExpression() {
                           ]}
                           onRowClick={(row: any) => {
                             setct2(row.value)
-                            setRange({ x: { start: range.x.start, end: range.x.end }, y: { start: 0, end: 0 } })
+                            setTitle({
+                              ct1: title.ct1,
+                              ct2: {
+                                name: row.name,
+                                expID: row.expID
+                              }
+                            })
                           }}
                           sortDescending={true}
                           searchable={true}
                         />
                       </Box>
-                    </Box>
+              </Grid2>
                   )
                 )}
-              </Grid2>
             </Drawer>
-            <Grid2 xs={12} md={12} lg={12} mb={2}>
               {error_genes ? (
                 <ErrorMessage error={new Error("Error loading")} />
               ) : loading_genes ? (
@@ -340,8 +349,9 @@ export default function DifferentialGeneExpression() {
                 data_ct1 &&
                 data_ct2 &&
                 data_genes && (
-                  <Paper elevation={2} sx={{ m: 2 }}>
-                    <Grid2 xs={12} md={12} lg={12}>
+            <Grid2 xs={12} md={12} lg={12} mb={2}>
+            {/* <Paper elevation={2} sx={{ m: 2 }}> */}
+                    <Grid2 xs={12} md={12} lg={12} sx={{ m: 2, ml: 4, mr: 4 }}>
                       <AppBar position="static" color="secondary">
                         <Toolbar style={{}}>
                           <IconButton
@@ -391,30 +401,37 @@ export default function DifferentialGeneExpression() {
                         </Toolbar>
                       </AppBar>
                     </Grid2>
-                    <Grid2 xs={12} md={12} lg={12} mt={2}>
+            <Paper elevation={2} sx={{ m: 4 }}>
+                    <Grid2 xs={12} md={12} lg={12} mt={0}>
                       <Box
                         sx={{
                           display: "flex",
                           justifyContent: "center",
                           alignItems: "center",
+                          mt: 3,
                           mb: 3,
                         }}
                       >
                         <Chip
-                          label={ct1.replace(/_/g, " ")}
-                          variant="outlined"
+                          label={createLink("https://www.encodeproject.org/experiments/", title.ct1.expID, title.ct1.name + " " + title.ct1.expID)}
+                          // label={ct1.replace(/_/g, " ")}
+                          variant="filled"
+                          // color="primary"
                           sx={{ padding: 2.5, mr: 2, fontSize: 20 }}
                           onDelete={() => setct1("")}
                         />
                         <Typography variant="h5">vs</Typography>
                         <Chip
-                          label={ct2.replace(/_/g, " ")}
-                          variant="outlined"
+                          label={createLink("https://www.encodeproject.org/experiments/", title.ct2.expID, title.ct2.name + " " + title.ct2.expID)}
+                          // label={ct2.replace(/_/g, " ")}
+                          variant="filled"
+                          // color="primary"
                           sx={{ padding: 2.5, ml: 2, fontSize: 20 }}
                           onDelete={() => setct2("")}
                         />
                       </Box>
                       <PlotDifferentialExpression
+                        title={title}
                         chromosome={chromosome}
                         range={range}
                         dimensions={dimensions}
@@ -445,7 +462,6 @@ export default function DifferentialGeneExpression() {
                           max={slider.max}
                           valueLabelDisplay="auto"
                           onChange={(event: Event, value: number | number[]) => {
-                            let n: number = 0
                             if (value[0] > value[1]) return <></>
                             if (value[0] !== slider.x1) {
                               setSlider({
@@ -492,9 +508,9 @@ export default function DifferentialGeneExpression() {
                       </Box>
                     </Grid2>
                   </Paper>
-                )
-              )}
             </Grid2>
+            )
+              )}
           </Grid2>
         </ThemeProvider>
       </Paper>

@@ -2,7 +2,8 @@ import React, { Fragment } from "react"
 import { geneRed, geneBlue, promoterRed, enhancerYellow, H3K4me3, H3K27ac } from "../../../common/lib/colors"
 import { Point2D, Range2D, linearTransform2D } from "jubilant-carnival"
 import { ErrorMessage } from "../../../common/lib/utility"
-import { Gene } from "./types"
+import { Gene, cCREZScore } from "./types"
+import { title } from "process"
 
 /**
  * Returns a circle data point colored red for proximal-like and red for enhancer-like
@@ -52,7 +53,7 @@ export const Point = (props: { point; i; range; dimensions; data_ct2; setRange; 
   // console.log(point)
 
   return (
-    <Fragment key={props.i}>
+    <g>
       {h3k4me3.y === undefined ||
       h3k4me3.x > props.range.x.end ||
       h3k4me3.x < props.range.x.start ||
@@ -93,20 +94,20 @@ export const Point = (props: { point; i; range; dimensions; data_ct2; setRange; 
           </title>
         </circle>
       )}
-    </Fragment>
+    </g>
   )
 }
 
 /**
  * Returns a circle data point colored red for proximal-like and red for enhancer-like
- * @param {any} point data point for log2 gene expression fold change
+ * @param {Gene} point data point for log2 gene expression fold change
  * @param {number} i index
  * @param {Range2D} range x and y range of chart
  * @param {Range2D} dimensions x and y range of svg
  * @returns data point
  */
 // export const BarPoint = (point: any, i: number, range: Range2D, dimensions: Range2D) => {
-export const BarPoint = (props: { point; i; range; dimensions }) => {
+export const BarPoint = (props: { point: any, i: number, range: Range2D, dimensions: Range2D }) => {
   let p1: Point2D = { x: 0, y: 0 }
   let p2: Point2D = { x: 0, y: 0 }
   let x1: number = props.point.coordinates.start
@@ -127,7 +128,7 @@ export const BarPoint = (props: { point; i; range; dimensions }) => {
   }
 
   return (
-    <Fragment key={props.i}>
+    <g>
       <rect x={p1.x} y={p1.y} width={p2.x - p1.x} height={p2.y - p1.y} fill="#549623" fillOpacity={0.5}>
         <title>
           {"fc: " +
@@ -138,7 +139,7 @@ export const BarPoint = (props: { point; i; range; dimensions }) => {
             props.point.coordinates.end.toLocaleString("en-US")}
         </title>
       </rect>
-    </Fragment>
+    </g>
   )
 }
 
@@ -151,7 +152,6 @@ export const BarPoint = (props: { point; i; range; dimensions }) => {
  * @param {boolean} toggleGenes is switch for gene plot on
  * @returns data point
  */
-// export const GenePoint = (point: any, i: number, range: Range2D, dimensions: Range2D, toggleGenes: boolean) => {
 export const GenePoint = (props: { point: Gene, i: number, range: Range2D, dimensions: Range2D, toggleGenes: boolean, size: number }) => {
   let p1: Point2D = { x: 0, y: 0 }
   let p2: Point2D = { x: 0, y: 0 }
@@ -177,7 +177,7 @@ export const GenePoint = (props: { point: Gene, i: number, range: Range2D, dimen
   // tooltip for mouseover
   const GeneTooltip = () => {
     return (
-      <title>
+      <title key={props.point.name}>
         {"gene: " +
           props.point.name +
           "\nstart: " +
@@ -190,7 +190,7 @@ export const GenePoint = (props: { point: Gene, i: number, range: Range2D, dimen
 
   let y: number = (props.i + (props.toggleGenes ? 7 : 1.5)) * (props.toggleGenes ? props.size : 20)
   return (
-    <Fragment key={props.i}>
+    <g >
       <line x1={p1.x} x2={p2.x} y1={y} y2={y} stroke={color}>
         <GeneTooltip />
       </line>
@@ -207,7 +207,7 @@ export const GenePoint = (props: { point: Gene, i: number, range: Range2D, dimen
           ►
         </text>
       ) : <></>}
-    </Fragment>
+    </g>
   )
 }
 
@@ -279,7 +279,7 @@ export const SetRange_x = (props: { range: Range2D; dimensions: Range2D }) => {
  * @returns list of labels along the y-axis
  */
 // export const SetRange_y = (range: Range2D, dimensions: Range2D, ct1: string, ct2: string, data_ct1: any, data_ct2: any, setRange: React.Dispatch<React.SetStateAction<Range2D>>) => {
-export const SetRange_y = (props: { range; dimensions; ct1; ct2; data_ct1; data_ct2; setRange }) => {
+export const SetRange_y = (props: { title: {ct1: { name: string, expID: string }, ct2: { name: string, expID: string}}, range: Range2D, dimensions: Range2D, ct1: string, ct2: string, data_ct1: any, data_ct2: any, setRange: React.Dispatch<React.SetStateAction<Range2D>> }) => {
   let range_y: number[] = []
   let ymin: number = props.range.y.start
   let ymax: number = props.range.y.end
@@ -313,7 +313,7 @@ export const SetRange_y = (props: { range; dimensions; ct1; ct2; data_ct1; data_
     let r: number = range_y[range_y.length - 1] // last label in list
     let cellTypeLabel: string[] = [
       "translate(39," + t.y.toString() + ") rotate(-90)",
-      "translate(39," + (t.y + 180).toString() + ") rotate(-90)",
+      "translate(39," + (t.y + props.title.ct1.name.length*10).toString() + ") rotate(-90)",
     ]
 
     // next y-axis label
@@ -334,26 +334,26 @@ export const SetRange_y = (props: { range; dimensions; ct1; ct2; data_ct1; data_
           <line x1={41} x2={50} y1={t.y} y2={t.y} stroke="black"></line>
           <g transform={cellTypeLabel[1]}>
             <text x={10} y={10} style={{ fontSize: 10 }}>
-              ◄ {ct1.replace(/_/g, " ")}
+              ◄ {props.title.ct1.name}
             </text>
           </g>
           <g transform={cellTypeLabel[0]}>
             <text x={10} y={10} style={{ fontSize: 10 }}>
-              {ct2.replace(/_/g, " ")} ►
+              {props.title.ct2.name} ►
             </text>
           </g>
         </Fragment>
       )
     else
       return (
-        <Fragment key={y}>
+        <Fragment>
           <text x={y < 0 ? 60 : 65} y={t.y+4} style={{ fontSize: 12, textAlign: "right" }}>
             {props.range.y.end - props.range.y.start < 8 && y.toString().split(".").length > 1 ? y : y.toString().split(".").length > 1 ? "" : y.toString() + ".0"}
           </text>
           <line x1={94} x2={100} y1={t.y} y2={t.y} stroke="black"></line>
           <line x1={900} x2={906} y1={t.y} y2={t.y} stroke="#549623"></line>
           <text x={y < 0 ? 920 : 925} y={t.y+4} style={{ fontSize: 12, fill: "#549623" }}>
-            {props.range.y.end + props.range.y.start < 8 ? "" : y.toString().split(".").length > 1 ? y : y.toString() + ".0"}
+            {props.range.y.end - props.range.y.start < 8 && y.toString().split(".").length > 1 ? y : y.toString().split(".").length > 1 ? "" : y.toString() + ".0"}
           </text>
         </Fragment>
       )

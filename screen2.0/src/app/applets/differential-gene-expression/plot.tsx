@@ -10,6 +10,7 @@ import { Gene, cCREZScore } from "./types"
  * @returns svg of plotted z-score of ccres and log2 fold change
  */
 export function PlotDifferentialExpression(props: {
+  title: {ct1: { name: string, expID: string }, ct2: { name: string, expID: string}}
   chromosome: string
   range: Range2D
   dimensions: Range2D
@@ -56,7 +57,8 @@ export function PlotDifferentialExpression(props: {
       </g>
       <g className="labels y-labels">
         <SetRange_y
-          range={props.range}
+              title={props.title}
+              range={props.range}
           dimensions={props.dimensions}
           ct1={props.ct1}
           ct2={props.ct2}
@@ -87,6 +89,7 @@ export function PlotDifferentialExpression(props: {
         {!props.toggleccres ? <></> : (
           props.data_ct1.cCRESCREENSearch.map((point: cCREZScore, i: number) => (
             <Point
+              key={i}
               point={point}
               i={i}
               range={props.range}
@@ -100,7 +103,7 @@ export function PlotDifferentialExpression(props: {
         )}
         {!props.toggleGenes ? <></> : (
           data.map((point: Gene, i: number) => (
-            <GenePoint point={point} i={i} range={props.range} dimensions={props.dimensions} toggleGenes={props.toggleGenes} size={tmp} />
+            <GenePoint key={i} point={point} i={i} range={props.range} dimensions={props.dimensions} toggleGenes={props.toggleGenes} size={tmp} />
           ))
         )}
       </g>
@@ -138,7 +141,7 @@ export function PlotGenes(props: { data_genes: { gene: Gene[] }, range: Range2D;
       </g>
       <g className="data">
         {data.map((point: Gene, i: number) => (
-          <GenePoint point={point} i={i} range={props.range} dimensions={props.dimensions} toggleGenes={false} size={tmp}/>
+          <GenePoint key={i} point={point} i={i} range={props.range} dimensions={props.dimensions} toggleGenes={false} size={tmp}/>
         ))}
       </g>
     </svg>

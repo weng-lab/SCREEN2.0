@@ -42,11 +42,12 @@ export async function fetchServer<T>(url: string, jq: BodyInit) {
  * @param id string to be pasted at the end of the url
  * @returns link anchor to url + id
  */
-export const createLink = (url: string, id: string) => {
+export const createLink = (url: string, id: string, label?: string) => {
   const link = url + id
   return (
     <Link href={link} rel="noopener noreferrer" target="_blank">
-      <button>{id}</button>
+      {label ? <button>{label}</button> : <button>{id}</button>}
+      {/* <button>{id}</button> */}
     </Link>
   )
 }
