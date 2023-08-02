@@ -10,33 +10,24 @@ import Divider from "@mui/material/Divider"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import MenuIcon from "@mui/icons-material/Menu"
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos"
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import { ThemeProvider } from "@mui/material/styles"
 import { defaultTheme } from "../../../common/lib/themes"
-import {
-  Box,
-  FormGroup,
-  Slider,
-  Typography,
-  IconButton,
-  Paper,
-  Chip,
-  Drawer,
-  AppBar,
-  Toolbar,
-} from "@mui/material"
+import { Box, FormGroup, Slider, Typography, IconButton, Paper, Chip, Drawer, AppBar, AccordionSummary, AccordionDetails, Accordion } from "@mui/material"
 
-import { ApolloClient, InMemoryCache, useQuery } from "@apollo/client"
+import { useQuery } from "@apollo/client"
 import { GENE_SEARCH_QUERY, ZSCORE_QUERY } from "./const"
 import GeneAutoComplete from "../gene-expression/gene-autocomplete"
-import { CoordinateRangeField, TogglePlot } from "./options"
+import { CoordinateRangeField, TogglePCT, TogglePlot } from "./options"
 import { PlotDifferentialExpression, PlotGenes } from "./plot"
 import { cellTypeInfoArr } from "./types"
 import { Range2D } from "jubilant-carnival"
 import { gene } from "../gene-expression/types"
+import { initialhighlight } from "./const"
 
 /**
  * This is the differential gene expression app.
- * It plots the difference in z-score of cres and gene expression (log2 fold change) between 2 cell types. 
+ * It plots the difference in z-score of cres and gene expression (log2 fold change) between 2 cell types.
  * Additionally, it plots the genes occupational coordinates and their strand.
  * @returns differential gene expression app
  */
@@ -56,7 +47,10 @@ export default function DifferentialGeneExpression() {
 
   const [ct1, setct1] = useState<string>("A172_ENCDO934VENA549_treated_with_0.02%_ethanol_for_1_hour_ENCDO000AAZ")
   const [ct2, setct2] = useState<string>("A673_ENCDO027VXA")
-  const [title, setTitle] = useState<{ct1: { name: string, expID: string }, ct2: { name: string, expID: string}}>({ ct1: { name: "", expID: ""}, ct2: { name: "", expID: ""} })
+  const [title, setTitle] = useState<{ ct1: { name: string; expID: string }; ct2: { name: string; expID: string } }>({
+    ct1: { name: "A549 (treated)", expID: "ENCSR000ASH" },
+    ct2: { name: "A673", expID: "ENCSR346JWH" },
+  })
   const [cellTypes, setCellTypes] = useState<cellTypeInfoArr>()
 
   const [dr, setdr] = useState<number[]>([4000000, 5000000])
@@ -69,23 +63,32 @@ export default function DifferentialGeneExpression() {
     y: { start: 450, end: 50 },
   })
 
+  const [rowHighlight, setRowHighlight] = useState<{}[]>(initialhighlight)
   const [toggleGenes, setToggleGenes] = useState<boolean>(false)
   const [toggleFC, setToggleFC] = useState<boolean>(true)
   const [toggleccres, setTogglecCREs] = useState<boolean>(true)
+  const [togglePCT, setPCT] = useState<{
+    TF: boolean
+    CA: boolean
+    "CA-CTCF": boolean
+    "CA-H3K4me3": boolean
+    dELS: boolean
+    pELS: boolean
+  }>({
+    TF: true,
+    CA: true,
+    "CA-CTCF": true,
+    "CA-H3K4me3": true,
+    dELS: true,
+    pELS: true,
+  })
+
   const [slider, setSlider] = useState<{ x1: number; x2: number; min: number; max: number }>({
     x1: 4000000,
     x2: 5000000,
     min: 4000000,
     max: 5000000,
   })
-
-  // const [Biosample, setBiosample] = useState<{
-  //   selected: boolean
-  //   biosample: string | null
-  //   tissue: string | null
-  //   summaryName: string | null
-  // }>(props.mainQueryParams.Biosample)
-  const [BiosampleHighlight, setBiosampleHighlight] = useState<{} | null>(null)
 
   // fetch list of cell types
   useEffect(() => {
@@ -217,303 +220,332 @@ export default function DifferentialGeneExpression() {
     drawerHeightTab *= 0.7
   } // 4k
 
+  // set range of gene
   useEffect(() => {
-    if(gene){
-    const start: number = Math.floor(gene.start / parseInt("1" + "00000")) * parseInt("1" + "00000")
-    const end: number = Math.ceil(gene.end / parseInt("1" + "00000")) * parseInt("1" + "00000")
-    setdr([gene.start, gene.end])
-    setRange({
-      x: {
-        start: start,
-        end: end,
-      },
-      y: {
-        start: range.y.start,
-        end: range.y.end,
-      },
-    })
-    setSlider({
-      x1: start,
-      x2: end,
-      min: start,
-      max: end,
-    })
-  }
+    if (gene) {
+      const start: number = Math.floor(gene.start / parseInt("1" + "00000")) * parseInt("1" + "00000")
+      const end: number = Math.ceil(gene.end / parseInt("1" + "00000")) * parseInt("1" + "00000")
+      setdr([gene.start, gene.end])
+      setRange({
+        x: {
+          start: start - (start > 20000 ? 20000 : 0),
+          end: end + 20000,
+        },
+        y: {
+          start: range.y.start,
+          end: range.y.end,
+        },
+      })
+      setSlider({
+        x1: start - (start > 20000 ? 20000 : 0),
+        x2: end + 20000,
+        min: start - (start > 20000 ? 20000 : 0),
+        max: end + 20000,
+      })
+    }
   }, [gene])
+
+  // chip title
+  const PlotTitle = () => {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          mt: 3,
+          mb: 3,
+        }}
+      >
+        <Chip
+          label={createLink("https://www.encodeproject.org/experiments/", title.ct1.expID, title.ct1.name + " " + title.ct1.expID)}
+          // label={ct1.replace(/_/g, " ")}
+          variant="filled"
+          // color="primary"
+          sx={{ padding: 2.5, mr: 2, fontSize: 20, display: "flex" }}
+          onDelete={() => {
+            setct1("")
+            setTitle({ ct1: { name: "", expID: "" }, ct2: title.ct2 })
+          }}
+        />
+        <Typography variant="h5">vs</Typography>
+        <Chip
+          label={createLink("https://www.encodeproject.org/experiments/", title.ct2.expID, title.ct2.name + " " + title.ct2.expID)}
+          // label={ct2.replace(/_/g, " ")}
+          variant="filled"
+          // color="primary"
+          sx={{ padding: 2.5, ml: 2, fontSize: 20, display: "flex" }}
+          onDelete={() => {
+            setct2("")
+            setTitle({ ct1: title.ct1, ct2: { name: "", expID: "" } })
+          }}
+        />
+      </Box>
+    )
+  }
 
   return loading ? (
     <LoadingMessage />
   ) : (
     <main>
-      <Paper sx={{ ml: open ? `${drawerWidth}px` : 0 }} elevation={2}>
-        <ThemeProvider theme={defaultTheme}>
-          <Grid2 container spacing={3} sx={{ mt: "2rem" }}>
-            <Drawer
-              sx={{
-                // height: 600,
-                width: `${drawerWidth}px`,
-                display: "flex",
-                flexShrink: 0,
-                "& .MuiDrawer-paper": {
-                  height: drawerHeight,
-                  width: `${drawerWidth}px`,
-                  mt: 12.5,
-                },
-              }}
-              PaperProps={{ sx: { mt: 0 }, elevation: 2 }}
-              anchor="left"
-              open={open}
-              onClose={toggleDrawer(false)}
-              variant="persistent"
-            >
-              <Box
-                sx={{
-                  display: "flex",
-                  direction: "row",
-                  alignItems: "right",
-                  justifyContent: "right",
-                  mt: 8,
-                  mb: 8,
-                }}
-              >
-                <IconButton onClick={toggleDrawer(false)}>
-                  <ArrowBackIosIcon />
+      <ThemeProvider theme={defaultTheme}>
+        <Paper sx={{ ml: open ? `${drawerWidth}px` : 0, mt: 4 }} elevation={2}>
+          <AppBar position="static" color="secondary" sx={{}}>
+            <Grid2 container>
+              <Grid2 xs={0.5} md={0.5} lg={0.5} sx={{ alignItems: "center", justifyContent: "center", display: "flex", ml: 2 }}>
+                <IconButton
+                  edge="start"
+                  color="inherit"
+                  aria-label="open drawer"
+                  onClick={toggleDrawer(true)}
+                  sx={{
+                    mr: 0,
+                    ...(open && { display: "none" }),
+                  }}
+                >
+                  <MenuIcon />
                 </IconButton>
-              </Box>
-              <Divider sx={{ mb: 2 }} />
-                {loading ? (
-                  <></>
-                ) : (
-                  cellTypes &&
-                  cellTypes["cellTypeInfoArr"] && (
-              <Grid2 xs={12} md={12} lg={12} ml={1.5}>
-                      <Box sx={{ width: 500 }}>
-                        <DataTable
-                          tableTitle="Cell type 1"
-                          highlighted={true}
-                          page={1}
-                          rows={cellTypes["cellTypeInfoArr"]}
-                          columns={[
-                            { header: "Cell Type", value: (row: any) => row.biosample_summary },
-                            { header: "Tissue", value: (row: any) => row.tissue },
-                          ]}
-                          onRowClick={(row: any) => {
-                            setct1(row.value)
-                            setTitle({
-                              ct1: {
-                                name: row.name,
-                                expID: row.expID
-                              },
-                              ct2: title.ct2
-                            })
-                            // setBiosample({ selected: true, biosample: row.queryValue, tissue: row.biosampleTissue, summaryName: row.summaryName })
-                    setBiosampleHighlight(row)
-                          }}
-                          sortDescending={true}
-                          searchable={true}
-                        />
-                      </Box>
-                      <Box sx={{ width: 500, mt: 4 }}>
-                        <DataTable
-                          tableTitle="Cell type 2"
-                          highlighted={BiosampleHighlight}
-                          page={1}
-                          rows={cellTypes["cellTypeInfoArr"]}
-                          columns={[
-                            { header: "Cell Type", value: (row: any) => row.biosample_summary },
-                            { header: "Tissue", value: (row: any) => row.tissue },
-                          ]}
-                          onRowClick={(row: any) => {
-                            setct2(row.value)
-                            setTitle({
-                              ct1: title.ct1,
-                              ct2: {
-                                name: row.name,
-                                expID: row.expID
-                              }
-                            })
-                          }}
-                          sortDescending={true}
-                          searchable={true}
-                        />
-                      </Box>
               </Grid2>
-                  )
-                )}
-            </Drawer>
-              {error_genes ? (
-                <ErrorMessage error={new Error("Error loading")} />
-              ) : loading_genes ? (
-                <LoadingMessage />
-              ) : (
-                data_ct1 &&
-                data_ct2 &&
-                data_genes && (
-            <Grid2 xs={12} md={12} lg={12} mb={2}>
-            {/* <Paper elevation={2} sx={{ m: 2 }}> */}
-                    <Grid2 xs={12} md={12} lg={12} sx={{ m: 2, ml: 4, mr: 4 }}>
-                      <AppBar position="static" color="secondary">
-                        <Toolbar style={{}}>
-                          <IconButton
-                            edge="start"
-                            color="inherit"
-                            aria-label="open drawer"
-                            onClick={toggleDrawer(true)}
-                            sx={{
-                              mr: 2,
-                              ...(open && { display: "none" }),
-                            }}
-                          >
-                            <MenuIcon />
-                          </IconButton>
-                          <Grid2 container spacing={2}>
-                            <Grid2 xs={1} md={1} lg={1} sx={{ alignItems: "center", justifyContent: "center", display: "flex" }}>
-                              <Typography variant="h6" display="inline">
-                                Gene:
-                              </Typography>
-                            </Grid2>
-                            <Grid2 xs={2} md={2} lg={2} sx={{ alignItems: "center", justifyContent: "center", display: "flex", mt: 5 }}>
-                              <GeneAutoComplete
-                                assembly={assembly}
-                                gene={gene ? gene.name : ""}
-                                pathname={pathname + "?assembly=" + assembly + "&chromosome=" + chromosome}
-                                setGene={setGene}
-                              />
-                            </Grid2>
-                            <Grid2 xs={7} md={7} lg={7} sx={{ alignItems: "center", justifyContent: "center", display: "flex" }}>
-                              <CoordinateRangeField
-                                dr={dr}
-                                range={range}
-                                slider={slider}
-                                setdr={setdr}
-                                setRange={setRange}
-                                setSlider={setSlider}
-                              />
-                            </Grid2>
-                            <Grid2 xs={2}>
-                              <FormGroup>
-                                <TogglePlot label="cCREs" toggle={toggleccres} setToggle={setTogglecCREs} />
-                                <TogglePlot label="log2 fold change" toggle={toggleFC} setToggle={setToggleFC} />
-                                <TogglePlot label="genes" toggle={toggleGenes} setToggle={setToggleGenes} />
-                              </FormGroup>
-                            </Grid2>
-                          </Grid2>
-                        </Toolbar>
-                      </AppBar>
-                    </Grid2>
-            <Paper elevation={2} sx={{ m: 4 }}>
-                    <Grid2 xs={12} md={12} lg={12} mt={0}>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "center",
-                          alignItems: "center",
-                          mt: 3,
-                          mb: 3,
-                        }}
-                      >
-                        <Chip
-                          label={createLink("https://www.encodeproject.org/experiments/", title.ct1.expID, title.ct1.name + " " + title.ct1.expID)}
-                          // label={ct1.replace(/_/g, " ")}
-                          variant="filled"
-                          // color="primary"
-                          sx={{ padding: 2.5, mr: 2, fontSize: 20 }}
-                          onDelete={() => setct1("")}
-                        />
-                        <Typography variant="h5">vs</Typography>
-                        <Chip
-                          label={createLink("https://www.encodeproject.org/experiments/", title.ct2.expID, title.ct2.name + " " + title.ct2.expID)}
-                          // label={ct2.replace(/_/g, " ")}
-                          variant="filled"
-                          // color="primary"
-                          sx={{ padding: 2.5, ml: 2, fontSize: 20 }}
-                          onDelete={() => setct2("")}
-                        />
-                      </Box>
-                      <PlotDifferentialExpression
-                        title={title}
-                        chromosome={chromosome}
-                        range={range}
-                        dimensions={dimensions}
-                        ct1={ct1}
-                        ct2={ct2}
-                        data_ct1={data_ct1}
-                        data_ct2={data_ct2}
-                        data_genes={data_genes}
-                        toggleFC={toggleFC}
-                        toggleccres={toggleccres}
-                        toggleGenes={toggleGenes}
-                        setRange={setRange}
-                      />
-                      <Box
-                        sx={{
-                          display: "flex",
-                          justifyContent: "center",
-                          alignItems: "center",
-                          mb: 1,
-                          width: 400
-                        }}
-                      >
-                        <Slider
-                          value={[slider.x1, slider.x2]}
-                          step={100000}
-                          marks
-                          min={slider.min}
-                          max={slider.max}
-                          valueLabelDisplay="auto"
-                          onChange={(event: Event, value: number | number[]) => {
-                            if (value[0] > value[1]) return <></>
-                            if (value[0] !== slider.x1) {
-                              setSlider({
-                                x1: value[0],
-                                x2: slider.x2,
-                                min: slider.min,
-                                max: slider.max,
-                              })
-                              setdr([value[0], dr[1]])
-                              setRange({
-                                x: {
-                                  start: value[0],
-                                  end: range.x.end,
-                                },
-                                y: {
-                                  start: range.y.start,
-                                  end: range.y.end,
-                                },
-                              })
-                            } else {
-                              setSlider({
-                                x1: slider.x1,
-                                x2: value[1],
-                                min: slider.min,
-                                max: slider.max,
-                              })
-                              setdr([dr[0], value[1]])
-                              setRange({
-                                x: {
-                                  start: range.x.start,
-                                  end: value[1],
-                                },
-                                y: {
-                                  start: range.y.start,
-                                  end: range.y.end,
-                                },
-                              })
-                            }
-                          }}
-                        />
-                      </Box>
-                      <Box>
-                        <PlotGenes data_genes={data_genes} range={range} dimensions={dimensions} />
-                      </Box>
-                    </Grid2>
-                  </Paper>
+              <Grid2 xs={0.5} md={0.5} lg={0.5} sx={{ alignItems: "center", justifyContent: "center", display: "flex", mr: 1 }}>
+                <Typography variant="h6" display="inline">
+                  Gene:
+                </Typography>
+              </Grid2>
+              <Grid2 xs={3} md={3} lg={3} sx={{ display: "flex", mt: 5 }}>
+                <GeneAutoComplete
+                  assembly={assembly}
+                  gene={gene ? gene.name : ""}
+                  pathname={pathname + "?assembly=" + assembly + "&chromosome=" + chromosome}
+                  setGene={setGene}
+                />
+              </Grid2>
+              <Grid2 xs={7} md={7} lg={7} sx={{ alignItems: "right", justifyContent: "right", display: "flex" }}>
+                <CoordinateRangeField dr={dr} range={range} slider={slider} setdr={setdr} setRange={setRange} setSlider={setSlider} />
+              </Grid2>
             </Grid2>
+          </AppBar>
+          {error_ct1 || error_ct2 || error_genes ? (
+            <ErrorMessage error={new Error("Error loading")} />
+          ) : loading_ct1 || loading_ct2 || loading_genes ? (
+            <LoadingMessage />
+          ) : (
+            data_ct1 &&
+            data_ct2 &&
+            data_genes && (
+              <Grid2 container spacing={3} sx={{ alignItems: "center", justifyContent: "center", display: "flex" }}>
+                <Paper elevation={0} sx={{ m: 4, width: open ? "100%" : "75%" }}>
+                  <PlotTitle />
+                  <PlotDifferentialExpression
+                    title={title}
+                    chromosome={chromosome}
+                    range={range}
+                    dimensions={dimensions}
+                    ct1={ct1}
+                    ct2={ct2}
+                    data_ct1={data_ct1}
+                    data_ct2={data_ct2}
+                    data_genes={data_genes}
+                    toggleFC={toggleFC}
+                    toggleccres={toggleccres}
+                    toggleGenes={toggleGenes}
+                    togglePCT={togglePCT}
+                    setRange={setRange}
+                  />
+                  <PlotGenes data_genes={data_genes} range={range} dimensions={dimensions} />
+                </Paper>
+              </Grid2>
             )
-              )}
-          </Grid2>
-        </ThemeProvider>
-      </Paper>
+          )}
+        </Paper>
+        <Drawer
+          sx={{
+            width: `${drawerWidth}px`,
+            display: "flex",
+            flexShrink: 0,
+            "& .MuiDrawer-paper": {
+              height: drawerHeight,
+              width: `${drawerWidth}px`,
+              mt: 12.5,
+            },
+          }}
+          PaperProps={{ sx: { mt: 0 }, elevation: 2 }}
+          anchor="left"
+          open={open}
+          onClose={toggleDrawer(false)}
+          variant="persistent"
+        >
+          <Box
+            sx={{
+              display: "flex",
+              direction: "row",
+              alignItems: "right",
+              justifyContent: "right",
+              mt: 5,
+              mb: 5,
+            }}
+          >
+            <IconButton onClick={toggleDrawer(false)}>
+              <ArrowBackIosIcon />
+            </IconButton>
+          </Box>
+          <Divider sx={{ mb: 2 }} />
+          {loading ? (
+            <></>
+          ) : (
+            cellTypes &&
+            cellTypes["cellTypeInfoArr"] && (
+              <Grid2 container spacing={2}>
+                <Grid2 xs={12} md={12} lg={12} ml={1} mr={1}>
+                  <Box sx={{  }}>
+                    <Accordion defaultExpanded={true}>
+                      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography variant="h5">Cell Type 1</Typography>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                      <DataTable
+                      // tableTitle="Cell type 1"
+                      highlighted={rowHighlight ? rowHighlight[0] : false}
+                      page={1}
+                      rows={cellTypes["cellTypeInfoArr"]}
+                      columns={[
+                        { header: "Cell Type", value: (row: any) => row.biosample_summary },
+                        { header: "Experiment", value: (row: any) => row.expID, render: (row: any) => createLink("https://encodeproject.org/experiments/", row.expID)},
+                        { header: "Tissue", value: (row: any) => row.tissue },
+                      ]}
+                      onRowClick={(row: any) => {
+                        setct1(row.value)
+                        setTitle({
+                          ct1: {
+                            name: row.name,
+                            expID: row.expID,
+                          },
+                          ct2: title.ct2,
+                        })
+                        if (rowHighlight) setRowHighlight([row, rowHighlight[1]])
+                        else setRowHighlight([row])
+                      }}
+                      sortDescending={true}
+                      searchable={true}
+                    />
+                      </AccordionDetails>
+                    </Accordion>
+                    
+                  </Box>
+                  <Divider sx={{ mb: 2, mt: 2 }} />
+                  <Box sx={{  }}>
+                    <Accordion defaultExpanded={true}>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography variant="h5">Cell Type 2</Typography>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <DataTable
+                      // tableTitle="Cell type 2"
+                      highlighted={rowHighlight ? rowHighlight[1] : false}
+                      page={1}
+                      rows={cellTypes["cellTypeInfoArr"]}
+                      columns={[
+                        { header: "Cell Type", value: (row: any) => row.biosample_summary },
+                        { header: "Experiment", value: (row: any) => row.expID, render: (row: any) => createLink("https://encodeproject.org/experiments/", row.expID)},
+                        { header: "Tissue", value: (row: any) => row.tissue },
+                      ]}
+                      onRowClick={(row: any) => {
+                        setct2(row.value)
+                        setTitle({
+                          ct1: title.ct1,
+                          ct2: {
+                            name: row.name,
+                            expID: row.expID,
+                          },
+                        })
+                        if (rowHighlight) setRowHighlight([rowHighlight[0], row])
+                        else setRowHighlight([row])
+                      }}
+                      sortDescending={true}
+                      searchable={true}
+                    />
+                      </AccordionDetails>
+                    </Accordion>
+                    
+                  </Box>
+                  <Divider sx={{ mb: 2, mt: 2 }} />
+                  <Grid2 xs={12} md={12} lg={12} ml={1} mr={1}>
+                  <Typography>Filters</Typography>
+                  <Divider sx={{ mb: 2, mt: 2 }} />
+                  <FormGroup>
+                    <TogglePlot label="cCREs" toggle={toggleccres} setToggle={setTogglecCREs} />
+                    <TogglePlot label="log2 fold change" toggle={toggleFC} setToggle={setToggleFC} />
+                    <TogglePlot label="genes" toggle={toggleGenes} setToggle={setToggleGenes} />
+                  </FormGroup>
+                  <Divider sx={{ mb: 2, mt: 2 }} />
+                  <Divider sx={{ mb: 2, mt: 2 }} />
+                  <FormGroup>
+                    <TogglePCT togglePCT={togglePCT} setPCT={setPCT} />
+                  </FormGroup>
+                  <Divider sx={{ mb: 2, mt: 2 }} />
+                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Typography display="inline">Coordinate Range:</Typography>
+                    <Slider
+                      sx={{
+                        mr: 8,
+                        ml: 4,
+                        width: 275,
+                      }}
+                      value={[slider.x1, slider.x2]}
+                      step={100000}
+                      marks
+                      min={slider.min}
+                      max={slider.max}
+                      valueLabelDisplay="auto"
+                      onChange={(event: Event, value: number | number[]) => {
+                        if (value[0] > value[1]) return <></>
+                        if (value[0] !== slider.x1) {
+                          setSlider({
+                            x1: value[0],
+                            x2: slider.x2,
+                            min: slider.min,
+                            max: slider.max,
+                          })
+                          setdr([value[0], dr[1]])
+                          setRange({
+                            x: {
+                              start: value[0],
+                              end: range.x.end,
+                            },
+                            y: {
+                              start: range.y.start,
+                              end: range.y.end,
+                            },
+                          })
+                        } else {
+                          setSlider({
+                            x1: slider.x1,
+                            x2: value[1],
+                            min: slider.min,
+                            max: slider.max,
+                          })
+                          setdr([dr[0], value[1]])
+                          setRange({
+                            x: {
+                              start: range.x.start,
+                              end: value[1],
+                            },
+                            y: {
+                              start: range.y.start,
+                              end: range.y.end,
+                            },
+                          })
+                        }
+                      }}
+                    />
+                  </Box>
+                  <Divider sx={{ mb: 2, mt: 2 }} />
+                </Grid2>
+                </Grid2>
+              </Grid2>
+            )
+          )}
+        </Drawer>
+      </ThemeProvider>
     </main>
   )
 }
