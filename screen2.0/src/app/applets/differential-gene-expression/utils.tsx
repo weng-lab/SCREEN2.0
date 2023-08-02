@@ -1,20 +1,32 @@
-import React, { Fragment } from "react"
+import React, { Fragment, useState } from "react"
 import { geneRed, geneBlue, promoterRed, enhancerYellow, H3K4me3, H3K27ac } from "../../../common/lib/colors"
 import { Point2D, Range2D, linearTransform2D } from "jubilant-carnival"
-import { ErrorMessage } from "../../../common/lib/utility"
+import { ErrorMessage, createLink } from "../../../common/lib/utility"
 import { Gene, cCREZScore } from "./types"
 import { title } from "process"
 
 /**
  * Returns a circle data point colored red for proximal-like and red for enhancer-like
- * @param {any} point data point for ccre
+ * @param {cCREZScore} point data point for ccre
  * @param {number} i index
  * @param {Range2D} range x and y range of chart
  * @param {Range2D} dimensions x and y range of svg
  * @returns data point
  */
-// export const Point = (point: any, i: number, range: Range2D, dimensions: Range2D, data_ct2: any, setRange: React.Dispatch<React.SetStateAction<Range2D>>, ct1: string, ct2: string) => {
-export const Point = (props: { point; i; range; dimensions; data_ct2; setRange; ct1; ct2 }) => {
+export const Point = (props: {
+  point: cCREZScore
+  i: number
+  range: Range2D
+  dimensions: Range2D
+  data_ct2: any
+  setRange: React.Dispatch<React.SetStateAction<Range2D>>
+  ct1: string
+  ct2: string
+  togglePCT: { TF: boolean; CA: boolean; "CA-CTCF": boolean; "CA-H3K4me3": boolean; dELS: boolean; pELS: boolean }
+}) => {
+  const [highlighted, setHighlighted] = useState<cCREZScore>(null)
+  const [option, setOption] = useState<string>("")
+  const [highlightpct, setHighlightpct] = useState<string>("")
   const ct2_genes: any = props.data_ct2.cCRESCREENSearch[props.i]
   const x: number = props.point.start + props.point.len / 2
   const h3k4me3: Point2D = { x: x, y: 0 }
@@ -24,15 +36,15 @@ export const Point = (props: { point; i; range; dimensions; data_ct2; setRange; 
   if (props.ct1 === "" && props.ct2 === "") return <ErrorMessage error={new Error("no cell selected.")} />
   else if (props.ct1 === "") {
     // no cell 1
-    h3k4me3.y = ct2_genes.ctspecific.h3kme3_zscore
+    h3k4me3.y = ct2_genes.ctspecific.h3k4me3_zscore
     h3k27ac.y = ct2_genes.ctspecific.h3k27ac_zscore
   } else if (props.ct2 === "") {
     // no cell 2
-    h3k4me3.y = props.point.ctspecific.h3kme3_zscore
+    h3k4me3.y = props.point.ctspecific.h3k4me3_zscore
     h3k27ac.y = props.point.ctspecific.h3k27ac_zscore
   } else if (props.ct1 === props.ct2) {
     // same cell types
-    h3k4me3.y = props.point.ctspecific.h3kme3_zscore
+    h3k4me3.y = props.point.ctspecific.h3k4me3_zscore
     h3k27ac.y = props.point.ctspecific.h3k27ac_zscore
   } else {
     // take difference
@@ -47,21 +59,66 @@ export const Point = (props: { point; i; range; dimensions; data_ct2; setRange; 
   // transform
   const t_h3k4me3 = linearTransform2D(props.range, props.dimensions)(h3k4me3)
   const t_h3k27ac = linearTransform2D(props.range, props.dimensions)(h3k27ac)
-  // console.log(h3k4me3)
-  // console.log(h3k27ac)
-  // console.log(ct2_genes)
-  // console.log(point)
 
   return (
-    <g>
+    <g key={props.i}>
+      {highlighted === props.point && option === "h3k4me3" ? (
+        <circle cx={t_h3k4me3.x} cy={t_h3k4me3.y} r="5" fill="black" opacity="100%">
+          <title>
+          {"pct: " +
+            props.point.pct +
+            "\nlength: " +
+            props.point.len +
+            "\nh3k4me3 z-score: " +
+            h3k4me3.y +
+            "\ncoordinates: " +
+            x.toLocaleString("en-US")}
+          </title>
+        </circle>
+        ) : <></>
+        }
+        {highlighted === props.point && option === "h3k27ac" ? (
+        <circle cx={t_h3k27ac.x} cy={t_h3k27ac.y} r="5" fill="black" opacity="100%">
+          <title>
+          {"pct: " +
+            props.point.pct +
+            "\nlength: " +
+            props.point.len +
+            "\nh3k27ac z-score: " +
+            h3k27ac.y +
+            "\ncoordinates: " +
+            x.toLocaleString("en-US")}
+          </title>
+        </circle>
+        ) : <></>
+        }
+        {option === "h3k4me2" && props.point.pct === highlightpct ? <circle cx={t_h3k4me3.x} cy={t_h3k4me3.y} r="5" fill="black" opacity="100%" /> : <></>}
+        {option === "h3k27ac" && props.point.pct === highlightpct ? <circle cx={t_h3k27ac.x} cy={t_h3k27ac.y} r="5" fill="black" opacity="100%" /> : <></>}
       {h3k4me3.y === undefined ||
       h3k4me3.x > props.range.x.end ||
       h3k4me3.x < props.range.x.start ||
       h3k4me3.y > props.range.y.end ||
-      h3k4me3.y < props.range.y.start ? (
+      h3k4me3.y < props.range.y.start ||
+      !props.togglePCT[props.point.pct] ? (
         <></>
       ) : (
-        <circle cx={t_h3k4me3.x} cy={t_h3k4me3.y} r="4" fill={H3K4me3}>
+        <circle cx={t_h3k4me3.x} cy={t_h3k4me3.y} r="4" fill={H3K4me3} 
+        onMouseEnter={() => {
+          setHighlighted(props.point)
+          setOption("h3k4me3")
+        }}
+        onMouseOut={() => {
+          setHighlighted(null)
+        }}
+        onMouseOver={() => {
+          setHighlighted(props.point)
+          setOption("h3k4me3")
+        }}
+        onClick={() => {
+          if (highlightpct === props.point.pct) setHighlightpct("")
+          else setHighlightpct(props.point.pct)
+        }}
+        >
           <title>
             {"pct: " +
               props.point.pct +
@@ -78,10 +135,26 @@ export const Point = (props: { point; i; range; dimensions; data_ct2; setRange; 
       h3k27ac.x > props.range.x.end ||
       h3k27ac.x < props.range.x.start ||
       h3k27ac.y > props.range.y.end ||
-      h3k27ac.y < props.range.y.start ? (
+      h3k27ac.y < props.range.y.start ||
+      !props.togglePCT[props.point.pct] ? (
         <></>
       ) : (
-        <circle cx={t_h3k27ac.x} cy={t_h3k27ac.y} r="4" fill={H3K27ac}>
+        <circle cx={t_h3k27ac.x} cy={t_h3k27ac.y} r="4" fill={H3K27ac}
+        onMouseEnter={() => {
+          setHighlighted(props.point)
+          setOption("h3k27ac")
+        }}
+        onMouseOut={() => {
+          setHighlighted(null)
+        }}
+        onMouseOver={() => {
+          setHighlighted(props.point)
+          setOption("h3k27ac")
+        }}
+        onClick={() => {
+          if (highlightpct === props.point.pct) setHighlightpct("")
+          else setHighlightpct(props.point.pct)
+        }}>
           <title>
             {"pct: " +
               props.point.pct +
@@ -94,6 +167,7 @@ export const Point = (props: { point; i; range; dimensions; data_ct2; setRange; 
           </title>
         </circle>
       )}
+
     </g>
   )
 }
@@ -106,8 +180,7 @@ export const Point = (props: { point; i; range; dimensions; data_ct2; setRange; 
  * @param {Range2D} dimensions x and y range of svg
  * @returns data point
  */
-// export const BarPoint = (point: any, i: number, range: Range2D, dimensions: Range2D) => {
-export const BarPoint = (props: { point: any, i: number, range: Range2D, dimensions: Range2D }) => {
+export const BarPoint = (props: { point: any; i: number; range: Range2D; dimensions: Range2D }) => {
   let p1: Point2D = { x: 0, y: 0 }
   let p2: Point2D = { x: 0, y: 0 }
   let x1: number = props.point.coordinates.start
@@ -152,7 +225,7 @@ export const BarPoint = (props: { point: any, i: number, range: Range2D, dimensi
  * @param {boolean} toggleGenes is switch for gene plot on
  * @returns data point
  */
-export const GenePoint = (props: { point: Gene, i: number, range: Range2D, dimensions: Range2D, toggleGenes: boolean, size: number }) => {
+export const GenePoint = (props: { point: Gene; i: number; range: Range2D; dimensions: Range2D; toggleGenes: boolean; size: number }) => {
   let p1: Point2D = { x: 0, y: 0 }
   let p2: Point2D = { x: 0, y: 0 }
   let x1: number = props.point.coordinates.start
@@ -190,11 +263,15 @@ export const GenePoint = (props: { point: Gene, i: number, range: Range2D, dimen
 
   let y: number = (props.i + (props.toggleGenes ? 7 : 1.5)) * (props.toggleGenes ? props.size : 20)
   return (
-    <g >
+    <g>
       <line x1={p1.x} x2={p2.x} y1={y} y2={y} stroke={color}>
         <GeneTooltip />
       </line>
-      <text style={{ fontSize: props.toggleGenes ? 8 : 13, fontStyle: "italic" }} x={p2.x + (props.toggleGenes ? props.size : 20)} y={y + (props.toggleGenes ? 2.5 : 5)}>
+      <text
+        style={{ fontSize: props.toggleGenes ? 8 : 13, fontStyle: "italic" }}
+        x={p2.x + (props.toggleGenes ? props.size : 20)}
+        y={y + (props.toggleGenes ? 2.5 : 5)}
+      >
         <GeneTooltip />
         <a href={"https://www.genecards.org/cgi-bin/carddish3k4me3.pl?gene=" + props.point.name}>{props.point.name}</a>
       </text>
@@ -206,7 +283,9 @@ export const GenePoint = (props: { point: Gene, i: number, range: Range2D, dimen
         <text x={p2.x - 3} y={y + 6} style={{ fill: color }}>
           ►
         </text>
-      ) : <></>}
+      ) : (
+        <></>
+      )}
     </g>
   )
 }
@@ -217,7 +296,6 @@ export const GenePoint = (props: { point: Gene, i: number, range: Range2D, dimen
  * @param {Range2D} dimensions x and y range of svg
  * @returns list of labels along the x-axis
  */
-// export const SetRange_x = (range: Range2D, dimensions: Range2D) => {
 export const SetRange_x = (props: { range: Range2D; dimensions: Range2D }) => {
   let range_x: number[] = []
   let zeros: string = "00000"
@@ -278,8 +356,16 @@ export const SetRange_x = (props: { range: Range2D; dimensions: Range2D }) => {
  * @param {string} ct2 cell type 2
  * @returns list of labels along the y-axis
  */
-// export const SetRange_y = (range: Range2D, dimensions: Range2D, ct1: string, ct2: string, data_ct1: any, data_ct2: any, setRange: React.Dispatch<React.SetStateAction<Range2D>>) => {
-export const SetRange_y = (props: { title: {ct1: { name: string, expID: string }, ct2: { name: string, expID: string}}, range: Range2D, dimensions: Range2D, ct1: string, ct2: string, data_ct1: any, data_ct2: any, setRange: React.Dispatch<React.SetStateAction<Range2D>> }) => {
+export const SetRange_y = (props: {
+  title: { ct1: { name: string; expID: string }; ct2: { name: string; expID: string } }
+  range: Range2D
+  dimensions: Range2D
+  ct1: string
+  ct2: string
+  data_ct1: any
+  data_ct2: any
+  setRange: React.Dispatch<React.SetStateAction<Range2D>>
+}) => {
   let range_y: number[] = []
   let ymin: number = props.range.y.start
   let ymax: number = props.range.y.end
@@ -313,7 +399,9 @@ export const SetRange_y = (props: { title: {ct1: { name: string, expID: string }
     let r: number = range_y[range_y.length - 1] // last label in list
     let cellTypeLabel: string[] = [
       "translate(39," + t.y.toString() + ") rotate(-90)",
-      "translate(39," + (t.y + props.title.ct1.name.length*10).toString() + ") rotate(-90)",
+      "translate(39," +
+        (t.y + (props.title.ct1.expID.length === 0 ? 32.5 : props.title.ct1.expID.length * 9.7)).toString() +
+        ") rotate(-90)",
     ]
 
     // next y-axis label
@@ -322,24 +410,28 @@ export const SetRange_y = (props: { title: {ct1: { name: string, expID: string }
     if (y === 0.0)
       return (
         <Fragment key={y}>
-          <text x={65} y={t.y+4} style={{ fontSize: 12 }}>
+          <line x1={100} x2={900} y1={t.y} y2={t.y} stroke="black"></line>
+          <line x1={900} x2={906} y1={t.y} y2={t.y} stroke="#549623"></line>
+          <text x={65} y={t.y + 4} style={{ fontSize: 12 }}>
             {"0.0"}
           </text>
           <line x1={94} x2={100} y1={t.y} y2={t.y} stroke="black"></line>
-          <line x1={100} x2={900} y1={t.y} y2={t.y} stroke="black"></line>
-          <line x1={900} x2={906} y1={t.y} y2={t.y} stroke="#549623"></line>
-          <text x={925} y={t.y+4} style={{ fontSize: 12, fill: "#549623" }}>
+          <text x={925} y={t.y + 4} style={{ fontSize: 12, fill: "#549623" }}>
             {"0.0"}
           </text>
           <line x1={41} x2={50} y1={t.y} y2={t.y} stroke="black"></line>
           <g transform={cellTypeLabel[1]}>
             <text x={10} y={10} style={{ fontSize: 10 }}>
-              ◄ {props.title.ct1.name}
+              <a target="_blank" rel="noopener noreferrer" href={"https://www.encodeproject.org/experiments/" + props.title.ct1.expID}>
+                ◄ {props.title.ct1.expID}
+              </a>
             </text>
           </g>
           <g transform={cellTypeLabel[0]}>
             <text x={10} y={10} style={{ fontSize: 10 }}>
-              {props.title.ct2.name} ►
+              <a target="_blank" rel="noopener noreferrer" href={"https://www.encodeproject.org/experiments/" + props.title.ct1.expID}>
+                {props.title.ct2.expID} ►
+              </a>
             </text>
           </g>
         </Fragment>
@@ -347,13 +439,21 @@ export const SetRange_y = (props: { title: {ct1: { name: string, expID: string }
     else
       return (
         <Fragment>
-          <text x={y < 0 ? 60 : 65} y={t.y+4} style={{ fontSize: 12, textAlign: "right" }}>
-            {props.range.y.end - props.range.y.start < 8 && y.toString().split(".").length > 1 ? y : y.toString().split(".").length > 1 ? "" : y.toString() + ".0"}
+          <text x={y < 0 ? 60 : 65} y={t.y + 4} style={{ fontSize: 12, textAlign: "right" }}>
+            {props.range.y.end - props.range.y.start < 8 && y.toString().split(".").length > 1
+              ? y
+              : y.toString().split(".").length > 1
+              ? ""
+              : y.toString() + ".0"}
           </text>
           <line x1={94} x2={100} y1={t.y} y2={t.y} stroke="black"></line>
           <line x1={900} x2={906} y1={t.y} y2={t.y} stroke="#549623"></line>
-          <text x={y < 0 ? 920 : 925} y={t.y+4} style={{ fontSize: 12, fill: "#549623" }}>
-            {props.range.y.end - props.range.y.start < 8 && y.toString().split(".").length > 1 ? y : y.toString().split(".").length > 1 ? "" : y.toString() + ".0"}
+          <text x={y < 0 ? 920 : 925} y={t.y + 4} style={{ fontSize: 12, fill: "#549623" }}>
+            {props.range.y.end - props.range.y.start < 8 && y.toString().split(".").length > 1
+              ? y
+              : y.toString().split(".").length > 1
+              ? ""
+              : y.toString() + ".0"}
           </text>
         </Fragment>
       )
