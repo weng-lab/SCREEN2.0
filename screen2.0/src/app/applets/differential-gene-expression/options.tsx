@@ -1,4 +1,4 @@
-import { Box, FormControlLabel, Switch, TextField, Typography } from "@mui/material"
+import { Box, Checkbox, FormControlLabel, Switch, TextField, Typography } from "@mui/material"
 import { Range2D } from "../../../../../../jubilant-carnival/src/utilities/types"
 import { ErrorMessage } from "../../../common/lib/utility"
 
@@ -77,9 +77,7 @@ export function CoordinateRangeField(props: {
     )
   }
   return (
-    <Box sx={{ "& > :not(style)": { ml: 1.0, mr: 1.0 }, alignItems: "center",
-    justifyContent: "center",
-    display: "flex", }}>
+    <Box sx={{ "& > :not(style)": { ml: 1.0, mr: 1.0 }, alignItems: "center", justifyContent: "center", display: "flex" }}>
       <Typography variant="h6" display="inline">
         Coordinates:
       </Typography>
@@ -95,8 +93,41 @@ export function CoordinateRangeField(props: {
 export const TogglePlot = (props: { label: string; toggle: boolean; setToggle: React.Dispatch<React.SetStateAction<boolean>> }) => {
   return (
     <FormControlLabel
-      control={<Switch checked={props.toggle} onChange={() => props.setToggle(props.toggle ? false : true)} />}
+      control={<Checkbox checked={props.toggle} onChange={() => props.setToggle(props.toggle ? false : true)} />}
       label={props.label}
     />
   )
+}
+
+export const TogglePCT = (props: {
+  togglePCT: { TF: boolean; CA: boolean; "CA-CTCF": boolean; "CA-H3K4me3": boolean; dELS: boolean; pELS: boolean }
+  setPCT: React.Dispatch<
+    React.SetStateAction<{ TF: boolean; CA: boolean; "CA-CTCF": boolean; "CA-H3K4me3": boolean; dELS: boolean; pELS: boolean }>
+  >
+}) => {
+  return Object.entries(props.togglePCT).map((entry) => {
+    return (
+      <FormControlLabel
+        key={entry[0]}
+        control={
+          <Checkbox
+            checked={props.togglePCT[entry[0]]}
+            onChange={() => {
+              const tmp: any = {
+                TF: props.togglePCT.TF,
+                CA: props.togglePCT.CA,
+                "CA-CTCF": props.togglePCT["CA-CTCF"],
+                "CA-H3K4me3": props.togglePCT["CA-H3K4me3"],
+                dELS: props.togglePCT.dELS,
+                pELS: props.togglePCT.pELS,
+              }
+              tmp[entry[0]] = tmp[entry[0]] ? false : true
+              props.setPCT(tmp)
+            }}
+          />
+        }
+        label={entry[0]}
+      />
+    )
+  })
 }
