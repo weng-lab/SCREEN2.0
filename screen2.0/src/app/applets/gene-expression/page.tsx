@@ -8,7 +8,7 @@ import { PlotGeneExpression } from "./utils"
 import { GeneExpressions, gene } from "./types"
 import { Range2D } from "jubilant-carnival"
 
-import { Box, Button, Typography, IconButton, Drawer, Toolbar, AppBar, Stack, Paper, Switch } from "@mui/material"
+import { Box, Button, Typography, IconButton, Drawer, Toolbar, AppBar, Stack, Paper, Switch, Tooltip } from "@mui/material"
 
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import Divider from "@mui/material/Divider"
@@ -16,6 +16,7 @@ import { ThemeProvider } from "@mui/material/styles"
 import { defaultTheme } from "../../../common/lib/themes"
 import MenuIcon from "@mui/icons-material/Menu"
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos"
+import InfoIcon from '@mui/icons-material/Info';
 
 import Image from "next/image"
 import GeneAutoComplete from "./gene-autocomplete"
@@ -27,6 +28,7 @@ import {
   OptionsReplicates,
   OptionsScale,
 } from "./options"
+import { GeneExpressionInfoTooltip } from "./const"
 
 export default function GeneExpression() {
   const searchParams: ReadonlyURLSearchParams = useSearchParams()!
@@ -40,9 +42,23 @@ export default function GeneExpression() {
   const [open, setState] = useState<boolean>(true)
 
   const [current_assembly, setAssembly] = useState<string>("GRCh38")
-  const [current_gene, setGene] = useState<gene>(searchParams.get("gene") ? {
-    chrom: "", start: 0, end: 0, id: "", name: searchParams.get("gene")} : {
-    chrom: "", start: 0, end: 0, id: "", name: "OR51AB1P"})
+  const [current_gene, setGene] = useState<gene>(
+    searchParams.get("gene")
+      ? {
+          chrom: "",
+          start: 0,
+          end: 0,
+          id: "",
+          name: searchParams.get("gene"),
+        }
+      : {
+          chrom: "",
+          start: 0,
+          end: 0,
+          id: "",
+          name: "OR51AB1P",
+        }
+  )
 
   const [biosamples, setBiosamples] = useState<string[]>(["cell line", "in vitro differentiated cells", "primary cell", "tissue"])
   const [cell_components, setCellComponents] = useState<string[]>(["cell"])
@@ -192,6 +208,11 @@ export default function GeneExpression() {
                         {" "}
                         Gene Expression Profiles by RNA-seq
                       </Typography>
+                      <Tooltip title={GeneExpressionInfoTooltip()}>
+                        <IconButton>
+                          <InfoIcon />
+                        </IconButton>
+                      </Tooltip>
                     </Box>
                   </Grid2>
                   <Grid2 xs={1.5} sx={{ mt: 2, height: 100, width: 190 }}>
@@ -224,7 +245,7 @@ export default function GeneExpression() {
                 onClick={() => {
                   if (current_assembly === "mm10") setAssembly("GRCh38")
                   else setAssembly("mm10")
-                  setGene({chrom: "", start: 0, end: 0, id: "", name: "OR51AB1P"})
+                  setGene({ chrom: "", start: 0, end: 0, id: "", name: "OR51AB1P" })
                 }}
               />
               <Typography>mm10</Typography>
