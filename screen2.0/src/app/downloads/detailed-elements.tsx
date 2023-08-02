@@ -2,13 +2,12 @@ import { Button, ButtonProps, IconButton, Paper, Tooltip, Typography, Modal, Con
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
 import { Box } from "@mui/system";
 import React, { useMemo } from "react";
-import InfoIcon from '@mui/icons-material/Info';
 import Config from "../../config.json"
-import { DownloadButton } from "./quick-start";
+import { DownloadButton, downloadTSV } from "./quick-start";
 import DownloadIcon from '@mui/icons-material/Download';
 import SearchIcon from '@mui/icons-material/Search';
 import { CA_CTCF, CA_H3K4me3, CA_TF, CA_only, PLS, TF_only, dELS, pELS } from "../../common/lib/colors";
-import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components";
+import { DataTable, DataTableColumn, DataTableProps } from "@weng-lab/psychscreen-ui-components";
 import { Biosample } from "../search/types";
 
 interface TabPanelProps {
@@ -43,6 +42,58 @@ const style = {
   boxShadow: 24,
 };
 
+function bioTableColsRender(row: Biosample, x: "dnase" | "h3k4me3" | "h3k27ac" | "ctcf"){
+  if (row[x]) {
+    let url: string;
+    switch (x) {
+      case "dnase":
+        url = `https://downloads.wenglab.org/Registry-V4/Signal-Files/${row.dnase}-${row.dnase_signal}.txt`
+        break
+      case "h3k4me3":
+        url = `https://downloads.wenglab.org/Registry-V4/Signal-Files/${row.h3k4me3}-${row.h3k4me3_signal}.txt`
+        break
+      case "h3k27ac":
+        url = `https://downloads.wenglab.org/Registry-V4/Signal-Files/${row.h3k27ac}-${row.h3k27ac_signal}.txt`
+        break
+      case "ctcf":
+        url = `https://downloads.wenglab.org/Registry-V4/Signal-Files/${row.ctcf}-${row.ctcf_signal}.txt`
+        break
+    }
+
+    const handleDL = () =>
+      fetch(url)
+        .then((x) => x.text())
+        .then((x) => {
+          downloadTSV(
+            x,
+            `what file convention should be used.txt`
+          )
+        })
+    
+    return (
+      <IconButton onClick={handleDL}>
+        <DownloadIcon />
+      </IconButton>
+    )
+  }
+  else return null
+}
+
+function BiosampleModals(props: { rows: Biosample[]; open: boolean; tableTitle: string, handleClose: (event: {}, reason: "backdropClick" | "escapeKeyDown") => void; }): React.JSX.Element {
+  return (
+    <Modal
+      open={props.open}
+      onClose={props.handleClose}
+      aria-labelledby="modal-modal-title"
+      aria-describedby="modal-modal-description"
+    >
+      <Box sx={style}>
+        <DataTable searchable tableTitle={`${props.tableTitle}`} columns={bioTableCols} rows={props.rows} />
+      </Box>
+    </Modal>
+  );
+}
+
 const bioTableCols: DataTableColumn<Biosample>[] = [
   {
     header: "Tissue",
@@ -50,30 +101,54 @@ const bioTableCols: DataTableColumn<Biosample>[] = [
   },
   {
     header: "Cell Type",
-    value: (row: Biosample) => row.name,
+    value: (row: Biosample) => row.name.replace(/_/g, " "),
   },
   {
     header: "DNase",
-    value: (row: Biosample) => "X",
+    value: (row: Biosample) => row.dnase ?? "",
+    render: (row: Biosample) => bioTableColsRender(row, "dnase")
   },
   {
     header: "H3K4me3",
-    value: (row: Biosample) => "X",
+    value: (row: Biosample) => row.h3k4me3 ?? "",
+    render: (row: Biosample) => bioTableColsRender(row, "h3k4me3")
   },
   {
     header: "H3K27ac",
-    value: (row: Biosample) => "X",
+    value: (row: Biosample) => row.h3k27ac ?? "",
+    render: (row: Biosample) => bioTableColsRender(row, "h3k27ac")
   },
   {
     header: "CTCF",
-    value: (row: Biosample) => "X",
+    value: (row: Biosample) => row.ctcf ?? "",
+    render: (row: Biosample) => bioTableColsRender(row, "ctcf")
   }
 ]
 
 export function DetailedElements(props: TabPanelProps) {
-  const [open, setOpen] = React.useState(false);
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
+  const [open0, setOpen0] = React.useState(false);
+  const handleOpen0 = () => setOpen0(true);
+  const handleClose0 = () => setOpen0(false);
+
+  const [open1, setOpen1] = React.useState(false);
+  const handleOpen1 = () => setOpen1(true);
+  const handleClose1 = () => setOpen1(false);
+
+  const [open2, setOpen2] = React.useState(false);
+  const handleOpen2 = () => setOpen2(true);
+  const handleClose2 = () => setOpen2(false);
+  
+  const [open3, setOpen3] = React.useState(false);
+  const handleOpen3 = () => setOpen3(true);
+  const handleClose3 = () => setOpen3(false);
+
+  const [open4, setOpen4] = React.useState(false);
+  const handleOpen4 = () => setOpen4(true);
+  const handleClose4 = () => setOpen4(false);
+
+  const [open5, setOpen5] = React.useState(false);
+  const handleOpen5 = () => setOpen5(true);
+  const handleClose5 = () => setOpen5(false);
 
   const biosamples = props.biosamples.data
 
@@ -136,26 +211,22 @@ export function DetailedElements(props: TabPanelProps) {
               <Typography variant="h6">Mouse cCREs by Cell Type</Typography>
             </Grid2>
             <Grid2 display={"flex"} flexWrap={"wrap"} justifyContent={"space-between"} xs={6}>
-              <InlineDownloadButton search onClick={handleOpen} label="Cell Lines (206 Cell Types)" borderColor={"#333333"} />
-              <InlineDownloadButton search href={Config.Downloads.HumanCCREs} label="Adult Primary Cells and Tissues (1093 cell types)" borderColor={"#333333"} />
-              <InlineDownloadButton search href={Config.Downloads.HumanCCREs} label="Embryonic Tissues (379 cell types)" borderColor={"#333333"} />
+              <InlineDownloadButton search onClick={handleOpen0} label="Cell Lines (206 Cell Types)" borderColor={"#333333"} />
+              <InlineDownloadButton search onClick={handleOpen1} label="Adult Primary Cells and Tissues (1093 cell types)" borderColor={"#333333"} />
+              <InlineDownloadButton search onClick={handleOpen2} label="Embryonic Tissues (379 cell types)" borderColor={"#333333"} />
             </Grid2>
             <Grid2 display={"flex"} flexWrap={"wrap"} justifyContent={"space-between"} xs={6}>
-              <InlineDownloadButton search href={Config.Downloads.HumanCCREs} label="Cell Lines (27 Cell Types)" borderColor={"#333333"} />
-              <InlineDownloadButton search href={Config.Downloads.HumanCCREs} label="Adult Primary Cells and Tissues (244 cell types)" borderColor={"#333333"} />
-              <InlineDownloadButton search href={Config.Downloads.HumanCCREs} label="Embryonic Tissues (96 cell types)" borderColor={"#333333"} />
+              <InlineDownloadButton search onClick={handleOpen3} label="Cell Lines (27 Cell Types)" borderColor={"#333333"} />
+              <InlineDownloadButton search onClick={handleOpen4} label="Adult Primary Cells and Tissues (244 cell types)" borderColor={"#333333"} />
+              <InlineDownloadButton search onClick={handleOpen5} label="Embryonic Tissues (96 cell types)" borderColor={"#333333"} />
             </Grid2>
           </Grid2>
-          <Modal
-            open={open}
-            onClose={handleClose}
-            aria-labelledby="modal-modal-title"
-            aria-describedby="modal-modal-description"
-          >
-            <Box sx={style}>
-              <DataTable searchable tableTitle="Table Title Here" columns={bioTableCols} rows={humanCellLines} />
-            </Box>
-          </Modal>
+          <BiosampleModals tableTitle="Download cCREs active in human immortalized cell lines" rows={humanCellLines} open={open0} handleClose={handleClose0} />
+          <BiosampleModals tableTitle="Download cCREs active in human primary cells and tissues" rows={humanAdult} open={open1} handleClose={handleClose1} />
+          <BiosampleModals tableTitle="Download cCREs active in human embryonic tissues" rows={humanEmbryo} open={open2} handleClose={handleClose2} />
+          <BiosampleModals tableTitle="Download cCREs active in mouse immortalized cell lines" rows={mouseCellLines} open={open3} handleClose={handleClose3} />
+          <BiosampleModals tableTitle="Download cCREs active in mouse primary cells and tissues" rows={mouseAdult} open={open4} handleClose={handleClose4} />
+          <BiosampleModals tableTitle="Download cCREs active in mouse embryonic tissues" rows={mouseEmbryo} open={open5} handleClose={handleClose5} />
         </div>
       }
     </React.Fragment>

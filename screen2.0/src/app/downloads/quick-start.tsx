@@ -59,27 +59,28 @@ export const DownloadButton = (props: ButtonProps & { label: string }) => {
   )
 }
 
+  //Imported from old SCREEN
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob)
+  const downloadLink = document.createElement("a")
+  downloadLink.href = url
+  downloadLink.download = filename
+  document.body.appendChild(downloadLink)
+  downloadLink.click()
+  document.body.removeChild(downloadLink)
+}
+
+//Imported from old SCREEN
+//Move to utils
+export function downloadTSV(text, filename) {
+  downloadBlob(new Blob([text], { type: "text/plain" }), filename)
+}
+
 
 //So I don't forget, I think that using PascalCase is useful when defining JSX-returning functions since JSX elements are PascalCase
 function ComboBox(props: {options: Biosample[], label: string, mode: "H-promoter" | "H-enhancer" | "H-ctcf" | "M-promoter" | "M-enhancer" | "M-ctcf"}): JSX.Element {
   const [toDownload, setToDownload] = useState<URL | null>(null)
   const [selectedBiosample, setSelectedBiosample] = useState<Biosample | null>(null)
-
-  //Imported from old SCREEN
-  function downloadBlob(blob, filename) {
-    const url = URL.createObjectURL(blob)
-    const downloadLink = document.createElement("a")
-    downloadLink.href = url
-    downloadLink.download = filename
-    document.body.appendChild(downloadLink)
-    downloadLink.click()
-    document.body.removeChild(downloadLink)
-  }
-
-  //Imported from old SCREEN
-  function downloadTSV(text, filename) {
-    downloadBlob(new Blob([text], { type: "text/plain" }), filename)
-  }
 
   //Not sure if this is necessary to use useMemo. All I want is to prevent this switch case block from being executed for each line of the file
   const stringToMatch: string = useMemo(() => {
