@@ -6,8 +6,8 @@ export type cCREZScore = {
   len: number
   pct: string
   ctspecific: {
-    h3k4me3_zscore: string
-    h3k27ac: string
+    h3k4me3_zscore: number
+    h3k27ac_zscore: number
   }
 }
 
