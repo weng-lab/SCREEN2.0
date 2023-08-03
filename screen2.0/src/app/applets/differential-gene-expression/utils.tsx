@@ -65,35 +65,45 @@ export const Point = (props: {
       {highlighted === props.point && option === "h3k4me3" ? (
         <circle cx={t_h3k4me3.x} cy={t_h3k4me3.y} r="5" fill="black" opacity="100%">
           <title>
-          {"pct: " +
-            props.point.pct +
-            "\nlength: " +
-            props.point.len +
-            "\nh3k4me3 z-score: " +
-            h3k4me3.y +
-            "\ncoordinates: " +
-            x.toLocaleString("en-US")}
+            {"pct: " +
+              props.point.pct +
+              "\nlength: " +
+              props.point.len +
+              "\nh3k4me3 z-score: " +
+              h3k4me3.y +
+              "\ncoordinates: " +
+              x.toLocaleString("en-US")}
           </title>
         </circle>
-        ) : <></>
-        }
-        {highlighted === props.point && option === "h3k27ac" ? (
+      ) : (
+        <></>
+      )}
+      {highlighted === props.point && option === "h3k27ac" ? (
         <circle cx={t_h3k27ac.x} cy={t_h3k27ac.y} r="5" fill="black" opacity="100%">
           <title>
-          {"pct: " +
-            props.point.pct +
-            "\nlength: " +
-            props.point.len +
-            "\nh3k27ac z-score: " +
-            h3k27ac.y +
-            "\ncoordinates: " +
-            x.toLocaleString("en-US")}
+            {"pct: " +
+              props.point.pct +
+              "\nlength: " +
+              props.point.len +
+              "\nh3k27ac z-score: " +
+              h3k27ac.y +
+              "\ncoordinates: " +
+              x.toLocaleString("en-US")}
           </title>
         </circle>
-        ) : <></>
-        }
-        {option === "h3k4me2" && props.point.pct === highlightpct ? <circle cx={t_h3k4me3.x} cy={t_h3k4me3.y} r="5" fill="black" opacity="100%" /> : <></>}
-        {option === "h3k27ac" && props.point.pct === highlightpct ? <circle cx={t_h3k27ac.x} cy={t_h3k27ac.y} r="5" fill="black" opacity="100%" /> : <></>}
+      ) : (
+        <></>
+      )}
+      {option === "h3k4me2" && props.point.pct === highlightpct ? (
+        <circle cx={t_h3k4me3.x} cy={t_h3k4me3.y} r="5" fill="black" opacity="100%" />
+      ) : (
+        <></>
+      )}
+      {option === "h3k27ac" && props.point.pct === highlightpct ? (
+        <circle cx={t_h3k27ac.x} cy={t_h3k27ac.y} r="5" fill="black" opacity="100%" />
+      ) : (
+        <></>
+      )}
       {h3k4me3.y === undefined ||
       h3k4me3.x > props.range.x.end ||
       h3k4me3.x < props.range.x.start ||
@@ -102,22 +112,26 @@ export const Point = (props: {
       !props.togglePCT[props.point.pct] ? (
         <></>
       ) : (
-        <circle cx={t_h3k4me3.x} cy={t_h3k4me3.y} r="4" fill={H3K4me3} 
-        onMouseEnter={() => {
-          setHighlighted(props.point)
-          setOption("h3k4me3")
-        }}
-        onMouseOut={() => {
-          setHighlighted(null)
-        }}
-        onMouseOver={() => {
-          setHighlighted(props.point)
-          setOption("h3k4me3")
-        }}
-        onClick={() => {
-          if (highlightpct === props.point.pct) setHighlightpct("")
-          else setHighlightpct(props.point.pct)
-        }}
+        <circle
+          cx={t_h3k4me3.x}
+          cy={t_h3k4me3.y}
+          r="4"
+          fill={H3K4me3}
+          onMouseEnter={() => {
+            setHighlighted(props.point)
+            setOption("h3k4me3")
+          }}
+          onMouseOut={() => {
+            setHighlighted(null)
+          }}
+          onMouseOver={() => {
+            setHighlighted(props.point)
+            setOption("h3k4me3")
+          }}
+          onClick={() => {
+            if (highlightpct === props.point.pct) setHighlightpct("")
+            else setHighlightpct(props.point.pct)
+          }}
         >
           <title>
             {"pct: " +
@@ -139,22 +153,27 @@ export const Point = (props: {
       !props.togglePCT[props.point.pct] ? (
         <></>
       ) : (
-        <circle cx={t_h3k27ac.x} cy={t_h3k27ac.y} r="4" fill={H3K27ac}
-        onMouseEnter={() => {
-          setHighlighted(props.point)
-          setOption("h3k27ac")
-        }}
-        onMouseOut={() => {
-          setHighlighted(null)
-        }}
-        onMouseOver={() => {
-          setHighlighted(props.point)
-          setOption("h3k27ac")
-        }}
-        onClick={() => {
-          if (highlightpct === props.point.pct) setHighlightpct("")
-          else setHighlightpct(props.point.pct)
-        }}>
+        <circle
+          cx={t_h3k27ac.x}
+          cy={t_h3k27ac.y}
+          r="4"
+          fill={H3K27ac}
+          onMouseEnter={() => {
+            setHighlighted(props.point)
+            setOption("h3k27ac")
+          }}
+          onMouseOut={() => {
+            setHighlighted(null)
+          }}
+          onMouseOver={() => {
+            setHighlighted(props.point)
+            setOption("h3k27ac")
+          }}
+          onClick={() => {
+            if (highlightpct === props.point.pct) setHighlightpct("")
+            else setHighlightpct(props.point.pct)
+          }}
+        >
           <title>
             {"pct: " +
               props.point.pct +
@@ -167,7 +186,6 @@ export const Point = (props: {
           </title>
         </circle>
       )}
-
     </g>
   )
 }
@@ -413,11 +431,11 @@ export const SetRange_y = (props: {
           <line x1={100} x2={900} y1={t.y} y2={t.y} stroke="black"></line>
           <line x1={900} x2={906} y1={t.y} y2={t.y} stroke="#549623"></line>
           <text x={65} y={t.y + 4} style={{ fontSize: 12 }}>
-            {"0.0"}
+            {props.range.y.end - props.range.y.start < 8 ? "0.0" : "0"}
           </text>
           <line x1={94} x2={100} y1={t.y} y2={t.y} stroke="black"></line>
           <text x={925} y={t.y + 4} style={{ fontSize: 12, fill: "#549623" }}>
-            {"0.0"}
+            {props.range.y.end - props.range.y.start < 8 ? "0.0" : "0"}
           </text>
           <line x1={41} x2={50} y1={t.y} y2={t.y} stroke="black"></line>
           <g transform={cellTypeLabel[1]}>
@@ -444,7 +462,9 @@ export const SetRange_y = (props: {
               ? y
               : y.toString().split(".").length > 1
               ? ""
-              : y.toString() + ".0"}
+              : props.range.y.end - props.range.y.start < 10 && y % 2 !== 0
+              ? ""
+              : y.toString()}
           </text>
           <line x1={94} x2={100} y1={t.y} y2={t.y} stroke="black"></line>
           <line x1={900} x2={906} y1={t.y} y2={t.y} stroke="#549623"></line>
@@ -453,7 +473,9 @@ export const SetRange_y = (props: {
               ? y
               : y.toString().split(".").length > 1
               ? ""
-              : y.toString() + ".0"}
+              : props.range.y.end - props.range.y.start < 10 && y % 2 !== 0
+              ? ""
+              : y.toString()}
           </text>
         </Fragment>
       )

@@ -7,12 +7,14 @@ import {
   Box,
   Button,
   FormControl,
+  IconButton,
   InputLabel,
   MenuItem,
   Select,
   SelectChangeEvent,
   ThemeProvider,
   Toolbar,
+  Tooltip,
   Typography,
   createTheme,
 } from "@mui/material"
@@ -21,6 +23,8 @@ import { Range2D } from "jubilant-carnival"
 import { PlotActivityProfiles } from "./utils"
 import Image from "next/image"
 import { defaultTheme } from "../../../common/lib/themes"
+import InfoIcon from "@mui/icons-material/Info"
+import { RampageToolTipInfo } from "./const"
 
 export default function Rampage(props: { accession: string; assembly: string; chromosome: string }) {
   const [loading, setLoading] = useState<boolean>(true)
@@ -102,6 +106,11 @@ export default function Rampage(props: { accession: string; assembly: string; ch
                   <Typography variant="h5" fontSize={30}>
                     TSS Activity Profiles by RAMPAGE
                   </Typography>
+                  <Tooltip title={RampageToolTipInfo()}>
+                    <IconButton>
+                      <InfoIcon />
+                    </IconButton>
+                  </Tooltip>
                 </Box>
                 <Box mt={2} ml={0.5}>
                   <Typography variant="h5">{data[payload.accession]["gene"]["name"]}</Typography>

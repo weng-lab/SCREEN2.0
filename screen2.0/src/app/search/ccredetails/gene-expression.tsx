@@ -8,7 +8,7 @@ import { PlotGeneExpression } from "../../applets/gene-expression/utils"
 import { GeneExpressions } from "../../applets/gene-expression/types"
 import { Range2D } from "jubilant-carnival"
 
-import { Box, Button, Typography, IconButton, Drawer, Toolbar, AppBar, Stack, Paper, TextField, MenuItem } from "@mui/material"
+import { Box, Button, Typography, IconButton, Drawer, Toolbar, AppBar, Stack, Paper, TextField, MenuItem, Tooltip } from "@mui/material"
 
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import Divider from "@mui/material/Divider"
@@ -16,6 +16,7 @@ import { ThemeProvider } from "@mui/material/styles"
 import { defaultTheme } from "../../../common/lib/themes"
 import MenuIcon from "@mui/icons-material/Menu"
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos"
+import InfoIcon from "@mui/icons-material/Info"
 
 import Image from "next/image"
 import {
@@ -26,6 +27,7 @@ import {
   OptionsReplicates,
   OptionsScale,
 } from "../../applets/gene-expression/options"
+import { GeneExpressionInfoTooltip } from "../../applets/gene-expression/const"
 
 export function GeneExpression(props: {
   accession: string
@@ -197,6 +199,11 @@ export function GeneExpression(props: {
                         {" "}
                         Gene Expression Profiles by RNA-seq
                       </Typography>
+                      <Tooltip title={GeneExpressionInfoTooltip()}>
+                        <IconButton>
+                          <InfoIcon />
+                        </IconButton>
+                      </Tooltip>
                     </Box>
                   </Grid2>
                   <Grid2 xs={1.5} sx={{ mt: 2, height: 100, width: 190 }}>
