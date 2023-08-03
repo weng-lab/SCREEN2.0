@@ -9,6 +9,9 @@ import SearchIcon from '@mui/icons-material/Search';
 import { CA_CTCF, CA_H3K4me3, CA_TF, CA_only, PLS, TF_only, dELS, pELS } from "../../common/lib/colors";
 import { DataTable, DataTableColumn, DataTableProps } from "@weng-lab/psychscreen-ui-components";
 import { Biosample } from "../search/types";
+import Image from "next/image";
+import Human from "../../../public/Human2.png"
+import Mouse from "../../../public/Mouse2.png"
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -88,7 +91,7 @@ function BiosampleModals(props: { rows: Biosample[]; open: boolean; tableTitle: 
       aria-describedby="modal-modal-description"
     >
       <Box sx={style}>
-        <DataTable searchable tableTitle={`${props.tableTitle}`} columns={bioTableCols} rows={props.rows} />
+        <DataTable sortDescending searchable tableTitle={`${props.tableTitle}`} columns={bioTableCols} rows={props.rows} itemsPerPage={7} />
       </Box>
     </Modal>
   );
@@ -97,7 +100,7 @@ function BiosampleModals(props: { rows: Biosample[]; open: boolean; tableTitle: 
 const bioTableCols: DataTableColumn<Biosample>[] = [
   {
     header: "Tissue",
-    value: (row: Biosample) => "Need Data from Query",
+    value: (row: Biosample) => row.ontology,
   },
   {
     header: "Cell Type",
@@ -166,13 +169,19 @@ export function DetailedElements(props: TabPanelProps) {
         <div>
           <Grid2 container columnSpacing={6} rowSpacing={3} mt={1}>
             {/* Titles */}
-            <Grid2 xs={6}>
-              <Typography variant="h5">Human (GRCh38/hg38)</Typography>
+            <Grid2 display="flex" alignItems="flex-start" flexDirection="column" xs={4}>
+              <Typography mt="auto" variant="h5">Human (GRCh38/hg38)</Typography>
               <Typography variant="subtitle1">2,348,854 cCREs • 1,678 cell types</Typography>
             </Grid2>
-            <Grid2 xs={6}>
+            <Grid2 display="flex" justifyContent="flex-end" xs={2}>
+              <Image src={Human} alt={"Human Icon"} height={75} />
+            </Grid2>
+            <Grid2 display="flex" alignItems="flex-start" flexDirection="column" xs={4}>
               <Typography variant="h5">Mouse (GRCm38/mm10)</Typography>
               <Typography variant="subtitle1">926,843 cCREs • 366 cell types</Typography>
+            </Grid2>
+            <Grid2 display="flex" justifyContent="flex-end" xs={2}>
+              <Image src={Mouse} alt={"Mouse Icon"} height={75} />
             </Grid2>
             <Grid2 xs={6}>
               <DownloadButton href={Config.Downloads.HumanCCREs} label="Download All Human cCREs" />

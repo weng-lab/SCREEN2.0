@@ -9,7 +9,7 @@ import { GENE_AUTOCOMPLETE_QUERY, payload, initialChart, initialGeneList } from 
 import { geneRed, geneBlue, promoterRed, enhancerYellow } from "../../../common/lib/colors"
 import { Range2D } from "jubilant-carnival"
 
-import { DataTable } from "@weng-lab/ts-ztable"
+import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import {
   Autocomplete,

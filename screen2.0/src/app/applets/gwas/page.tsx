@@ -2,7 +2,7 @@
 import { Typography } from "@mui/material"
 
 import React, { useEffect, useState } from "react"
-import { DataTable } from "@weng-lab/ts-ztable"
+import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { createLink, ErrorMessage, LoadingMessage } from "../../../common/lib/utility"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { Box } from "@mui/material"

@@ -18,11 +18,16 @@ import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import LoadingButton from '@mui/lab/LoadingButton'
 import DownloadIcon from '@mui/icons-material/Download';
 
+import Human from "../../../public/Human2.png"
+import Mouse from "../../../public/Mouse2.png"
+
 import Config from "../../config.json"
 import { useEffect, useMemo, useState } from "react";
 
 import { Biosample } from "../search/types";
 import React from "react";
+
+import Image from "next/image";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -171,14 +176,20 @@ export function QuickStart(props: TabPanelProps) {
       {props.value === 0 &&
         <Grid2 container columnSpacing={6} rowSpacing={3} mt={1}>
           {/* Titles */}
-          <Grid2 xsOffset={2} xs={5}>
-            <Typography variant="h5">Human (GRCh38/hg38)</Typography>
-            <Typography variant="subtitle1">2,348,854 cCREs • 1,678 cell types</Typography>
-          </Grid2>
-          <Grid2 xs={5}>
-            <Typography variant="h5">Mouse (GRCm38/mm10)</Typography>
-            <Typography variant="subtitle1">926,843 cCREs • 366 cell types</Typography>
-          </Grid2>
+          <Grid2 display="flex" alignItems="flex-start" flexDirection="column" xsOffset={2} xs={4}>
+              <Typography mt="auto" variant="h5">Human (GRCh38/hg38)</Typography>
+              <Typography variant="subtitle1">2,348,854 cCREs • 1,678 cell types</Typography>
+            </Grid2>
+            <Grid2 display="flex" justifyContent="flex-end" xs={1}>
+              <Image src={Human} alt={"Human Icon"} height={75} />
+            </Grid2>
+            <Grid2 display="flex" alignItems="flex-start" flexDirection="column" xs={4}>
+              <Typography variant="h5">Mouse (GRCm38/mm10)</Typography>
+              <Typography variant="subtitle1">926,843 cCREs • 366 cell types</Typography>
+            </Grid2>
+            <Grid2 display="flex" justifyContent="flex-end" xs={1}>
+              <Image src={Mouse} alt={"Mouse Icon"} height={75} />
+            </Grid2>
           {/* All cCREs */}
           <Grid2 xs={2}  borderLeft={"0.375rem solid #06DA93"}>
             <Typography>All cCREs</Typography>

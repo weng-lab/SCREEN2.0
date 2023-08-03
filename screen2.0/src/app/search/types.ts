@@ -111,7 +111,7 @@ export type FilteredBiosampleData = [
   }[]
 ][]
 
-//What is a good name for this?
+//This needs to be moved to avoid confusion probably
 export type Biosample = {
   ctcf: string | null
   ctcf_signal: string | null
@@ -124,5 +124,6 @@ export type Biosample = {
   name: string | null
   lifeStage: string
   sampleType: string
+  ontology: string
   displayname: string
 }

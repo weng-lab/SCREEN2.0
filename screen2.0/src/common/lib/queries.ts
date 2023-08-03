@@ -195,6 +195,7 @@ const BIOSAMPLE_QUERY = gql`
     human: ccREBiosampleQuery(assembly: "grch38") {
       biosamples {
         name
+        ontology
         lifeStage
         sampleType
         displayname
@@ -211,6 +212,7 @@ const BIOSAMPLE_QUERY = gql`
     mouse: ccREBiosampleQuery(assembly: "mm10") {
       biosamples {
         name
+        ontology
         lifeStage
         sampleType
         displayname

@@ -7,6 +7,7 @@ import {
   Tab,
   Box,
   Container,
+  ThemeProvider,
 } from "@mui/material"
 
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
@@ -15,6 +16,7 @@ import { QuickStart } from './quick-start';
 import { DetailedElements } from './detailed-elements';
 import { DataMatrices } from './data-matrices';
 import { useMemo } from 'react';
+import { defaultTheme } from '../../common/lib/themes';
 
 function a11yProps(index: number) {
   return {
@@ -31,23 +33,25 @@ export default function DownloadsPage(props: { biosamples: any }) {
   };
 
   return (
-    <Container>
-      <Grid2 mt={2} container spacing={2}>
-        <Grid2 xs={12}>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
-              <Tab label="Quick Start" {...a11yProps(0)} />
-              <Tab label="Detailed Elements" {...a11yProps(1)} />
-              <Tab label="Data Matrices" {...a11yProps(2)} />
-            </Tabs>
-          </Box>
+    <ThemeProvider theme={defaultTheme}>
+      <Container>
+        <Grid2 mt={2} container spacing={2}>
+          <Grid2 xs={12}>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+              <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
+                <Tab label="Quick Start" {...a11yProps(0)} />
+                <Tab label="Detailed Elements" {...a11yProps(1)} />
+                <Tab label="Data Matrices" {...a11yProps(2)} />
+              </Tabs>
+            </Box>
+          </Grid2>
+          <Grid2 xs={12}>
+            <QuickStart value={value} biosamples={props.biosamples} />
+            <DetailedElements value={value} biosamples={props.biosamples} />
+            <DataMatrices value={value} biosamples={props.biosamples} />
+          </Grid2>
         </Grid2>
-        <Grid2 xs={12}>
-          <QuickStart value={value} biosamples={props.biosamples} />
-          <DetailedElements value={value} biosamples={props.biosamples} />
-          <DataMatrices value={value} biosamples={props.biosamples}/>
-        </Grid2>
-      </Grid2>
-    </Container>
+      </Container>
+    </ThemeProvider>
   )
 }
