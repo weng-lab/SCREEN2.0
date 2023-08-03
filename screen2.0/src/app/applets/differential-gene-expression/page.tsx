@@ -5,7 +5,8 @@ import { ReadonlyURLSearchParams, useSearchParams, usePathname } from "next/navi
 import { LoadingMessage, ErrorMessage, createLink } from "../../../common/lib/utility"
 import { client } from "../../search/ccredetails/client"
 
-import { DataTable } from "@weng-lab/psychscreen-ui-components"
+import { DataTable } from "@weng-lab/ts-ztable"
+// import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import Divider from "@mui/material/Divider"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import MenuIcon from "@mui/icons-material/Menu"
@@ -404,7 +405,7 @@ export default function DifferentialGeneExpression() {
                       <AccordionDetails>
                       <DataTable
                       // tableTitle="Cell type 1"
-                      highlighted={rowHighlight ? rowHighlight[0] : false}
+                      // highlighted={rowHighlight ? rowHighlight[0] : false}
                       page={1}
                       rows={cellTypes["cellTypeInfoArr"]}
                       columns={[
@@ -421,8 +422,8 @@ export default function DifferentialGeneExpression() {
                           },
                           ct2: title.ct2,
                         })
-                        if (rowHighlight) setRowHighlight([row, rowHighlight[1]])
-                        else setRowHighlight([row])
+                        // if (rowHighlight) setRowHighlight([row, rowHighlight[1]])
+                        // else setRowHighlight([row])
                       }}
                       sortDescending={true}
                       searchable={true}
@@ -440,7 +441,7 @@ export default function DifferentialGeneExpression() {
                       <AccordionDetails>
                         <DataTable
                       // tableTitle="Cell type 2"
-                      highlighted={rowHighlight ? rowHighlight[1] : false}
+                      // highlighted={rowHighlight ? rowHighlight[1] : false}
                       page={1}
                       rows={cellTypes["cellTypeInfoArr"]}
                       columns={[
@@ -457,8 +458,8 @@ export default function DifferentialGeneExpression() {
                             expID: row.expID,
                           },
                         })
-                        if (rowHighlight) setRowHighlight([rowHighlight[0], row])
-                        else setRowHighlight([row])
+                        // if (rowHighlight) setRowHighlight([rowHighlight[0], row])
+                        // else setRowHighlight([row])
                       }}
                       sortDescending={true}
                       searchable={true}
