@@ -1,5 +1,5 @@
 import { Box, Checkbox, FormControlLabel, Switch, TextField, Typography } from "@mui/material"
-import { Range2D } from "../../../../../../jubilant-carnival/src/utilities/types"
+import { Range2D } from "jubilant-carnival"
 import { ErrorMessage } from "../../../common/lib/utility"
 
 type SliderInfo = {
