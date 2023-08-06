@@ -19,15 +19,15 @@ interface TabPanelProps {
   biosamples: any;
 }
 
-const InlineDownloadButton = (props: ButtonProps & { label: string, borderColor: string, search?: boolean }) => {
+const InlineDownloadButton = (props: ButtonProps & { label: string, bordercolor: string, mode: "download" | "search" }) => {
   return (
-    <Paper sx={{ borderTop: `0.375rem solid ${props.borderColor}`, marginBottom: '1rem' }} elevation={2} >
+    <Paper sx={{ borderTop: `0.375rem solid ${props.bordercolor}`, marginBottom: '1rem' }} elevation={2} >
       <Button
         sx={{ textTransform: "none", maxWidth: "9rem" }}
         variant="text"
         color="primary"
         {...props}
-        endIcon={props.search ? <SearchIcon /> : <DownloadIcon />}
+        endIcon={(props.mode === "search") ? <SearchIcon /> : <DownloadIcon />}
       >
         {props.label}
       </Button>
@@ -91,7 +91,7 @@ function BiosampleModals(props: { rows: Biosample[]; open: boolean; tableTitle: 
       aria-describedby="modal-modal-description"
     >
       <Box sx={style}>
-        <DataTable sortDescending searchable tableTitle={`${props.tableTitle}`} columns={bioTableCols} rows={props.rows} itemsPerPage={7} />
+        <DataTable sortDescending searchable tableTitle={"test"} columns={bioTableCols} rows={props.rows} itemsPerPage={7} />
       </Box>
     </Modal>
   );
@@ -126,6 +126,13 @@ const bioTableCols: DataTableColumn<Biosample>[] = [
     value: (row: Biosample) => row.ctcf ?? "",
     render: (row: Biosample) => bioTableColsRender(row, "ctcf")
   }
+]
+
+const bioTableCols1: DataTableColumn<Biosample>[] = [
+  {
+    header: "Tissue",
+    value: (row: Biosample) => "x",
+  },
 ]
 
 export function DetailedElements(props: TabPanelProps) {
@@ -164,7 +171,7 @@ export function DetailedElements(props: TabPanelProps) {
   const mouseEmbryo: Biosample[] = useMemo(() => ((biosamples && biosamples.mouse && biosamples.mouse.biosamples) || []).filter((x: Biosample) => (x.sampleType !== "cell line") && (x.lifeStage === "embryonic")), [biosamples])
 
   return (
-    <React.Fragment>
+    <>
       {props.value === 1 &&
         <div>
           <Grid2 container columnSpacing={6} rowSpacing={3} mt={1}>
@@ -190,26 +197,26 @@ export function DetailedElements(props: TabPanelProps) {
               <DownloadButton href={Config.Downloads.MouseCCREs} label="Download All Mouse cCREs" />
             </Grid2>
             <Grid2 display={"flex"} flexWrap={"wrap"} justifyContent={"space-between"} xs={6}>
-              <InlineDownloadButton href={Config.Downloads.HumanPromoters} label="Promoter-like (PLS) (47,532)" borderColor={PLS} />
-              <InlineDownloadButton href={Config.Downloads.HumanProximalEnhancers} label="Proximal enhancer-like (pELS) (249,464)" borderColor={pELS} />
-              <InlineDownloadButton href={Config.Downloads.HumanDistalEnhancers} label="Distal enhancer-like (dELS) (1,469,205)" borderColor={dELS} />
-              <InlineDownloadButton href={Config.Downloads.HumanCA_CTCF} label="Chromatin Accessible with CTCF (126,034)" borderColor={CA_CTCF} />
-              <InlineDownloadButton href={Config.Downloads.HumanCA_H3K4me3} label="Chromatin Accessible with H3K4me3 (79,246)" borderColor={CA_H3K4me3} />
-              <InlineDownloadButton href={Config.Downloads.HumanCA_TF} label="Chromatin Accessible with TF (26,102)" borderColor={CA_TF} />
-              <InlineDownloadButton href={Config.Downloads.HumanCA_only} label="Chromatin Accessible Only (245,985)" borderColor={CA_only} />
-              <InlineDownloadButton href={Config.Downloads.HumanTF_only} label="TF Only (105,286)" borderColor={TF_only} />
+              <InlineDownloadButton mode="download" href={Config.Downloads.HumanPromoters} label="Promoter-like (PLS) (47,532)" bordercolor={PLS} />
+              <InlineDownloadButton mode="download" href={Config.Downloads.HumanProximalEnhancers} label="Proximal enhancer-like (pELS) (249,464)" bordercolor={pELS} />
+              <InlineDownloadButton mode="download" href={Config.Downloads.HumanDistalEnhancers} label="Distal enhancer-like (dELS) (1,469,205)" bordercolor={dELS} />
+              <InlineDownloadButton mode="download" href={Config.Downloads.HumanCA_CTCF} label="Chromatin Accessible with CTCF (126,034)" bordercolor={CA_CTCF} />
+              <InlineDownloadButton mode="download" href={Config.Downloads.HumanCA_H3K4me3} label="Chromatin Accessible with H3K4me3 (79,246)" bordercolor={CA_H3K4me3} />
+              <InlineDownloadButton mode="download" href={Config.Downloads.HumanCA_TF} label="Chromatin Accessible with TF (26,102)" bordercolor={CA_TF} />
+              <InlineDownloadButton mode="download" href={Config.Downloads.HumanCA_only} label="Chromatin Accessible Only (245,985)" bordercolor={CA_only} />
+              <InlineDownloadButton mode="download" href={Config.Downloads.HumanTF_only} label="TF Only (105,286)" bordercolor={TF_only} />
               {/* Box added to align last row */}
               <Box width={"9rem"}></Box>
             </Grid2>
             <Grid2 display={"flex"} flexWrap={"wrap"} justifyContent={"space-between"} xs={6}>
-              <InlineDownloadButton href={Config.Downloads.MousePromoters} label={`Promoter-like (PLS) (47,532)`} borderColor={PLS} />
-              <InlineDownloadButton href={Config.Downloads.MouseProximalEnhancers} label="Proximal enhancer-like (pELS) (249,464)" borderColor={pELS} />
-              <InlineDownloadButton href={Config.Downloads.MouseDistalEnhancers} label="Distal enhancer-like (dELS) (1,469,205)" borderColor={dELS} />
-              <InlineDownloadButton href={Config.Downloads.MouseCA_CTCF} label="Chromatin Accessible with CTCF (126,034)" borderColor={CA_CTCF} />
-              <InlineDownloadButton href={Config.Downloads.MouseCA_H3K4me3} label="Chromatin Accessible with H3K4me3 (79,246)" borderColor={CA_H3K4me3} />
-              <InlineDownloadButton href={Config.Downloads.MouseCA_TF} label="Chromatin Accessible with TF (26,102)" borderColor={CA_TF} />
-              <InlineDownloadButton href={Config.Downloads.MouseCA_only} label="Chromatin Accessible Only (245,985)" borderColor={CA_only} />
-              <InlineDownloadButton href={Config.Downloads.MouseTF_only} label="TF Only (105,286)" borderColor={TF_only} />
+              <InlineDownloadButton mode="download" href={Config.Downloads.MousePromoters} label={`Promoter-like (PLS) (47,532)`} bordercolor={PLS} />
+              <InlineDownloadButton mode="download" href={Config.Downloads.MouseProximalEnhancers} label="Proximal enhancer-like (pELS) (249,464)" bordercolor={pELS} />
+              <InlineDownloadButton mode="download" href={Config.Downloads.MouseDistalEnhancers} label="Distal enhancer-like (dELS) (1,469,205)" bordercolor={dELS} />
+              <InlineDownloadButton mode="download" href={Config.Downloads.MouseCA_CTCF} label="Chromatin Accessible with CTCF (126,034)" bordercolor={CA_CTCF} />
+              <InlineDownloadButton mode="download" href={Config.Downloads.MouseCA_H3K4me3} label="Chromatin Accessible with H3K4me3 (79,246)" bordercolor={CA_H3K4me3} />
+              <InlineDownloadButton mode="download" href={Config.Downloads.MouseCA_TF} label="Chromatin Accessible with TF (26,102)" bordercolor={CA_TF} />
+              <InlineDownloadButton mode="download" href={Config.Downloads.MouseCA_only} label="Chromatin Accessible Only (245,985)" bordercolor={CA_only} />
+              <InlineDownloadButton mode="download" href={Config.Downloads.MouseTF_only} label="TF Only (105,286)" bordercolor={TF_only} />
               {/* Box added to align last row */}
               <Box width={"9rem"}></Box>
             </Grid2>
@@ -220,14 +227,14 @@ export function DetailedElements(props: TabPanelProps) {
               <Typography variant="h6">Mouse cCREs by Cell Type</Typography>
             </Grid2>
             <Grid2 display={"flex"} flexWrap={"wrap"} justifyContent={"space-between"} xs={6}>
-              <InlineDownloadButton search onClick={handleOpen0} label="Cell Lines (206 Cell Types)" borderColor={"#333333"} />
-              <InlineDownloadButton search onClick={handleOpen1} label="Adult Primary Cells and Tissues (1093 cell types)" borderColor={"#333333"} />
-              <InlineDownloadButton search onClick={handleOpen2} label="Embryonic Tissues (379 cell types)" borderColor={"#333333"} />
+              <InlineDownloadButton mode="search" onClick={handleOpen0} label="Cell Lines (206 Cell Types)" bordercolor={"#333333"} />
+              <InlineDownloadButton mode="search" onClick={handleOpen1} label="Adult Primary Cells and Tissues (1093 cell types)" bordercolor={"#333333"} />
+              <InlineDownloadButton mode="search" onClick={handleOpen2} label="Embryonic Tissues (379 cell types)" bordercolor={"#333333"} />
             </Grid2>
             <Grid2 display={"flex"} flexWrap={"wrap"} justifyContent={"space-between"} xs={6}>
-              <InlineDownloadButton search onClick={handleOpen3} label="Cell Lines (27 Cell Types)" borderColor={"#333333"} />
-              <InlineDownloadButton search onClick={handleOpen4} label="Adult Primary Cells and Tissues (244 cell types)" borderColor={"#333333"} />
-              <InlineDownloadButton search onClick={handleOpen5} label="Embryonic Tissues (96 cell types)" borderColor={"#333333"} />
+              <InlineDownloadButton mode="search" onClick={handleOpen3} label="Cell Lines (27 Cell Types)" bordercolor={"#333333"} />
+              <InlineDownloadButton mode="search" onClick={handleOpen4} label="Adult Primary Cells and Tissues (244 cell types)" bordercolor={"#333333"} />
+              <InlineDownloadButton mode="search" onClick={handleOpen5} label="Embryonic Tissues (96 cell types)" bordercolor={"#333333"} />
             </Grid2>
           </Grid2>
           <BiosampleModals tableTitle="Download cCREs active in human immortalized cell lines" rows={humanCellLines} open={open0} handleClose={handleClose0} />
@@ -238,6 +245,6 @@ export function DetailedElements(props: TabPanelProps) {
           <BiosampleModals tableTitle="Download cCREs active in mouse embryonic tissues" rows={mouseEmbryo} open={open5} handleClose={handleClose5} />
         </div>
       }
-    </React.Fragment>
+    </>
   );
 }

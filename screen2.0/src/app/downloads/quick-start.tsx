@@ -176,18 +176,18 @@ export function QuickStart(props: TabPanelProps) {
       {props.value === 0 &&
         <Grid2 container columnSpacing={6} rowSpacing={3} mt={1}>
           {/* Titles */}
-          <Grid2 display="flex" alignItems="flex-start" flexDirection="column" xsOffset={2} xs={4}>
+          <Grid2 display="flex" alignItems="flex-start" flexDirection="column" xsOffset={2} xs={3.75}>
               <Typography mt="auto" variant="h5">Human (GRCh38/hg38)</Typography>
               <Typography variant="subtitle1">2,348,854 cCREs • 1,678 cell types</Typography>
             </Grid2>
-            <Grid2 display="flex" justifyContent="flex-end" xs={1}>
+            <Grid2 display="flex" justifyContent="flex-end" xs={1.25}>
               <Image src={Human} alt={"Human Icon"} height={75} />
             </Grid2>
-            <Grid2 display="flex" alignItems="flex-start" flexDirection="column" xs={4}>
+            <Grid2 display="flex" alignItems="flex-start" flexDirection="column" xs={3.75}>
               <Typography variant="h5">Mouse (GRCm38/mm10)</Typography>
               <Typography variant="subtitle1">926,843 cCREs • 366 cell types</Typography>
             </Grid2>
-            <Grid2 display="flex" justifyContent="flex-end" xs={1}>
+            <Grid2 display="flex" justifyContent="flex-end" xs={1.25}>
               <Image src={Mouse} alt={"Mouse Icon"} height={75} />
             </Grid2>
           {/* All cCREs */}
