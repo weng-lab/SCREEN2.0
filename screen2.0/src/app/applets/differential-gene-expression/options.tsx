@@ -26,9 +26,15 @@ export function CoordinateRangeField(props: {
         size="small"
         sx={{ mb: 1.5 }}
         onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+          let value: string = ""
+          if (event.target.value.split(".").length > 0) {
+            for (let c of event.target.value.split(",")){
+              value += c
+            }
+          } else value = event.target.value
           variant === "min"
-            ? props.setdr([parseInt(event.target.value), props.dr[1]])
-            : props.setdr([props.dr[0], parseInt(event.target.value)])
+            ? props.setdr([parseInt(value), props.dr[1]])
+            : props.setdr([props.dr[0], parseInt(value)])
         }}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
