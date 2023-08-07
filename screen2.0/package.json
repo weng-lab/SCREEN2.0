@@ -39,7 +39,7 @@
     "@apollo/experimental-nextjs-app-support": "^0.3.1",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
-    "@mui/icons-material": "^5.14.1",
+    "@mui/icons-material": "^5.14.3",
     "@mui/material": "^5.14.2",
     "@types/node": "^20.4.4",
     "@types/react": "^18.2.14",
