@@ -1,4 +1,4 @@
-import { Box, Checkbox, FormControlLabel, Switch, TextField, Typography } from "@mui/material"
+import { Box, Button, Checkbox, FormControlLabel, Switch, TextField, Typography } from "@mui/material"
 import { Range2D } from "jubilant-carnival"
 import { ErrorMessage } from "../../../common/lib/utility"
 
@@ -52,9 +52,9 @@ export function CoordinateRangeField(props: {
                 })
                 props.setSlider({
                   x1: props.dr[0],
-                  x2: props.range.x.end + 1200000,
+                  x2: props.range.x.end,
                   min: props.dr[0],
-                  max: props.slider.max,
+                  max: props.range.x.end,
                 })
               } else return <ErrorMessage error={new Error("invalid range")} />
             } else {
@@ -70,9 +70,9 @@ export function CoordinateRangeField(props: {
                   },
                 })
                 props.setSlider({
-                  x1: props.range.x.start - 1200000,
+                  x1: props.range.x.start,
                   x2: props.dr[1],
-                  min: props.slider.min,
+                  min: props.range.x.start,
                   max: props.dr[1],
                 })
               } else return <ErrorMessage error={new Error("invalid range")} />
@@ -92,6 +92,28 @@ export function CoordinateRangeField(props: {
         to
       </Typography>
       {CoordinateTextBox("max")}
+      <Button
+        onClick={() => {
+          if (props.dr[1] - props.dr[0] > 0) {
+            props.setRange({
+              x: {
+                start: props.dr[0],
+                end: props.dr[1],
+              },
+              y: {
+                start: props.range.y.start,
+                end: props.range.y.end,
+              },
+            })
+            props.setSlider({
+              x1: props.dr[0],
+              x2: props.dr[1],
+              min: props.dr[0],
+              max: props.dr[1],
+            })
+          }
+        }}
+        >Set</Button>
     </Box>
   )
 }
