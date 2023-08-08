@@ -1,4 +1,4 @@
-import { Button, ButtonProps, IconButton, Paper, Tooltip, Typography, Modal, Container } from "@mui/material";
+import { Button, ButtonProps, IconButton, Paper, Tooltip, Typography, Modal, Container, Divider } from "@mui/material";
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
 import { Box } from "@mui/system";
 import React, { useMemo } from "react";
@@ -178,6 +178,8 @@ export function DetailedElements(props: TabPanelProps) {
             {/* Titles */}
             <Grid2 display="flex" alignItems="flex-start" flexDirection="column" xs={4}>
               <Typography mt="auto" variant="h5">Human (GRCh38/hg38)</Typography>
+              {/* These are not showing up because of the flex container */}
+              <Divider />
               <Typography variant="subtitle1">2,348,854 cCREs • 1,678 cell types</Typography>
             </Grid2>
             <Grid2 display="flex" justifyContent="flex-end" xs={2}>
@@ -185,6 +187,7 @@ export function DetailedElements(props: TabPanelProps) {
             </Grid2>
             <Grid2 display="flex" alignItems="flex-start" flexDirection="column" xs={4}>
               <Typography variant="h5">Mouse (GRCm38/mm10)</Typography>
+              <Divider />
               <Typography variant="subtitle1">926,843 cCREs • 366 cell types</Typography>
             </Grid2>
             <Grid2 display="flex" justifyContent="flex-end" xs={2}>

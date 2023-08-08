@@ -10,7 +10,8 @@ import {
   TextField,
   Tooltip,
   Modal,
-  Box
+  Box,
+  Divider
 } from "@mui/material";
 
 import InfoIcon from '@mui/icons-material/Info';
@@ -64,7 +65,7 @@ export const DownloadButton = (props: ButtonProps & { label: string }) => {
   )
 }
 
-  //Imported from old SCREEN
+//Imported from old SCREEN
 function downloadBlob(blob, filename) {
   const url = URL.createObjectURL(blob)
   const downloadLink = document.createElement("a")
@@ -83,7 +84,7 @@ export function downloadTSV(text, filename) {
 
 
 //So I don't forget, I think that using PascalCase is useful when defining JSX-returning functions since JSX elements are PascalCase
-function ComboBox(props: {options: Biosample[], label: string, mode: "H-promoter" | "H-enhancer" | "H-ctcf" | "M-promoter" | "M-enhancer" | "M-ctcf"}): JSX.Element {
+function ComboBox(props: { options: Biosample[], label: string, mode: "H-promoter" | "H-enhancer" | "H-ctcf" | "M-promoter" | "M-enhancer" | "M-ctcf" }): JSX.Element {
   const [toDownload, setToDownload] = useState<URL | null>(null)
   const [selectedBiosample, setSelectedBiosample] = useState<Biosample | null>(null)
 
@@ -124,7 +125,7 @@ function ComboBox(props: {options: Biosample[], label: string, mode: "H-promoter
 
   return (
     <React.Fragment>
-    {/* As an important note, since all the biosample names are getting their underscores removed, you can't search with the original names with the underscores without customizing search function. Maybe we could look into being able to search for a tissue category also or group them */}
+      {/* As an important note, since all the biosample names are getting their underscores removed, you can't search with the original names with the underscores without customizing search function. Maybe we could look into being able to search for a tissue category also or group them */}
       <Autocomplete
         disablePortal
         id="combo-box-demo"
@@ -142,7 +143,7 @@ function ComboBox(props: {options: Biosample[], label: string, mode: "H-promoter
         <LoadingButton
           loading={toDownload !== null}
           loadingPosition="end"
-          sx={{textTransform: "none"}}
+          sx={{ textTransform: "none" }}
           fullWidth
           onClick={() => setToDownload(generateBiosampleURL(selectedBiosample))}
           variant="contained"
@@ -177,28 +178,31 @@ export function QuickStart(props: TabPanelProps) {
         <Grid2 container columnSpacing={6} rowSpacing={3} mt={1}>
           {/* Titles */}
           <Grid2 display="flex" alignItems="flex-start" flexDirection="column" xsOffset={2} xs={3.75}>
-              <Typography mt="auto" variant="h5">Human (GRCh38/hg38)</Typography>
-              <Typography variant="subtitle1">2,348,854 cCREs • 1,678 cell types</Typography>
-            </Grid2>
-            <Grid2 display="flex" justifyContent="flex-end" xs={1.25}>
-              <Image src={Human} alt={"Human Icon"} height={75} />
-            </Grid2>
-            <Grid2 display="flex" alignItems="flex-start" flexDirection="column" xs={3.75}>
-              <Typography variant="h5">Mouse (GRCm38/mm10)</Typography>
-              <Typography variant="subtitle1">926,843 cCREs • 366 cell types</Typography>
-            </Grid2>
-            <Grid2 display="flex" justifyContent="flex-end" xs={1.25}>
-              <Image src={Mouse} alt={"Mouse Icon"} height={75} />
-            </Grid2>
+            <Typography mt="auto" variant="h5">Human (GRCh38/hg38)</Typography>
+            {/* These are not showing up because of the flex container */}
+            <Divider variant="fullWidth" />
+            <Typography variant="subtitle1">2,348,854 cCREs • 1,678 cell types</Typography>
+          </Grid2>
+          <Grid2 display="flex" justifyContent="flex-end" xs={1.25}>
+            <Image src={Human} alt={"Human Icon"} height={75} />
+          </Grid2>
+          <Grid2 display="flex" alignItems="flex-start" flexDirection="column" xs={3.75}>
+            <Typography variant="h5">Mouse (GRCm38/mm10)</Typography>
+            <Divider />
+            <Typography variant="subtitle1">926,843 cCREs • 366 cell types</Typography>
+          </Grid2>
+          <Grid2 display="flex" justifyContent="flex-end" xs={1.25}>
+            <Image src={Mouse} alt={"Mouse Icon"} height={75} />
+          </Grid2>
           {/* All cCREs */}
-          <Grid2 xs={2}  borderLeft={"0.375rem solid #06DA93"}>
+          <Grid2 xs={2} borderLeft={"0.375rem solid #06DA93"}>
             <Typography>All cCREs</Typography>
           </Grid2>
           <Grid2 xs={5}>
-            <DownloadButton href={Config.Downloads.HumanCCREs} label="Download All Human cCREs"/>
+            <DownloadButton href={Config.Downloads.HumanCCREs} label="Download All Human cCREs" />
           </Grid2>
           <Grid2 xs={5}>
-            <DownloadButton href={Config.Downloads.MouseCCREs} label="Download All Mouse cCREs"/>
+            <DownloadButton href={Config.Downloads.MouseCCREs} label="Download All Mouse cCREs" />
           </Grid2>
           {/* Promoters */}
           <Grid2 xs={2} borderLeft={"0.375rem solid #FF0000"} >
@@ -213,36 +217,36 @@ export function QuickStart(props: TabPanelProps) {
           </Grid2>
           <Grid2 xs={5}>
             <Stack spacing={2}>
-              <DownloadButton href={Config.Downloads.HumanPromoters} label="Download Human Candidate Promoters"/>
+              <DownloadButton href={Config.Downloads.HumanPromoters} label="Download Human Candidate Promoters" />
               <ComboBox options={humanPromoters} label="Search for a Biosample" mode="H-promoter" />
             </Stack>
           </Grid2>
           <Grid2 xs={5}>
             <Stack spacing={2}>
-              <DownloadButton href={Config.Downloads.MousePromoters} label="Download Mouse Candidate Promoters"/>
-              <ComboBox options={mousePromoters}  label="Search for a Biosample" mode="M-promoter" />
+              <DownloadButton href={Config.Downloads.MousePromoters} label="Download Mouse Candidate Promoters" />
+              <ComboBox options={mousePromoters} label="Search for a Biosample" mode="M-promoter" />
             </Stack>
           </Grid2>
           {/* Enhancers */}
           <Grid2 xs={2} borderLeft={"0.375rem solid #FFCD00"}>
             <span>
               <Typography display={"inline"}>Candidate Enhancers</Typography>
-            <Tooltip title={ENHANCER_MESSAGE}>
-              <IconButton>
-                <InfoIcon />
-              </IconButton>
-            </Tooltip>
+              <Tooltip title={ENHANCER_MESSAGE}>
+                <IconButton>
+                  <InfoIcon />
+                </IconButton>
+              </Tooltip>
             </span>
           </Grid2>
           <Grid2 xs={5}>
             <Stack spacing={2}>
-              <DownloadButton href={Config.Downloads.HumanProximalEnhancers} label="Download Human Candidate Enhancers"/>
+              <DownloadButton href={Config.Downloads.HumanProximalEnhancers} label="Download Human Candidate Enhancers" />
               <ComboBox options={humanEnhancers} label="Search for a Biosample" mode="H-enhancer" />
             </Stack>
           </Grid2>
           <Grid2 xs={5}>
             <Stack spacing={2}>
-              <DownloadButton href={Config.Downloads.MouseProximalEnhancers} label="Download Mouse Candidate Enhancers"/>
+              <DownloadButton href={Config.Downloads.MouseProximalEnhancers} label="Download Mouse Candidate Enhancers" />
               <ComboBox options={mouseEnhancers} label="Search for a Biosample" mode="M-enhancer" />
             </Stack>
           </Grid2>
@@ -250,22 +254,22 @@ export function QuickStart(props: TabPanelProps) {
           <Grid2 xs={2} borderLeft={"0.375rem solid #00B0F0"}>
             <span>
               <Typography display={"inline"}>CTCF-Bound</Typography>
-            <Tooltip title={CTCF_MESSAGE}>
-              <IconButton>
-                <InfoIcon />
-              </IconButton>
-            </Tooltip>
+              <Tooltip title={CTCF_MESSAGE}>
+                <IconButton>
+                  <InfoIcon />
+                </IconButton>
+              </Tooltip>
             </span>
           </Grid2>
           <Grid2 xs={5}>
             <Stack spacing={2}>
-              <DownloadButton href={Config.Downloads.HumanCA_CTCF} label="Download Human CTCF-Bound cCREs"/>
+              <DownloadButton href={Config.Downloads.HumanCA_CTCF} label="Download Human CTCF-Bound cCREs" />
               <ComboBox options={humanCTCF} label="Search for a Biosample" mode="H-ctcf" />
             </Stack>
           </Grid2>
           <Grid2 xs={5}>
             <Stack spacing={2}>
-              <DownloadButton href={Config.Downloads.MouseCA_CTCF} label="Download Mouse CTCF-Bound cCREs"/>
+              <DownloadButton href={Config.Downloads.MouseCA_CTCF} label="Download Mouse CTCF-Bound cCREs" />
               <ComboBox options={mouseCTCF} label="Search for a Biosample" mode="M-ctcf" />
             </Stack>
           </Grid2>
@@ -273,15 +277,15 @@ export function QuickStart(props: TabPanelProps) {
           <Grid2 xs={2} borderLeft={"0.375rem solid #A872E5"}>
             <span>
               <Typography display={"inline"}>Gene Links</Typography>
-            <Tooltip title={LINK_MESSAGE}>
-              <IconButton>
-                <InfoIcon />
-              </IconButton>
-            </Tooltip>
+              <Tooltip title={LINK_MESSAGE}>
+                <IconButton>
+                  <InfoIcon />
+                </IconButton>
+              </Tooltip>
             </span>
           </Grid2>
           <Grid2 xs={5}>
-            <DownloadButton href={Config.Downloads.HumanGeneLinks} label="Download Human cCRE-Gene Links"/>
+            <DownloadButton href={Config.Downloads.HumanGeneLinks} label="Download Human cCRE-Gene Links" />
           </Grid2>
         </Grid2>
       }
