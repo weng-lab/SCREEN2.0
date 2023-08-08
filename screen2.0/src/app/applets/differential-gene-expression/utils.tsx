@@ -70,7 +70,7 @@ export const Point = (props: {
               "\nlength: " +
               props.point.len +
               "\nh3k4me3 z-score: " +
-              h3k4me3.y +
+              h3k4me3.y.toFixed(2) +
               "\ncoordinates: " +
               x.toLocaleString("en-US")}
           </title>
@@ -86,7 +86,7 @@ export const Point = (props: {
               "\nlength: " +
               props.point.len +
               "\nh3k27ac z-score: " +
-              h3k27ac.y +
+              h3k27ac.y.toFixed(2) +
               "\ncoordinates: " +
               x.toLocaleString("en-US")}
           </title>
@@ -139,7 +139,7 @@ export const Point = (props: {
               "\nlength: " +
               props.point.len +
               "\nH3K4me3 z-score: " +
-              h3k4me3.y +
+              h3k4me3.y.toFixed(2) +
               "\ncoordinates: " +
               x.toLocaleString("en-US")}
           </title>
@@ -180,7 +180,7 @@ export const Point = (props: {
               "\nlength: " +
               props.point.len +
               "\nH3K27ac z-score: " +
-              h3k27ac.y +
+              h3k27ac.y.toFixed(2) +
               "\ncoordinates: " +
               x.toLocaleString("en-US")}
           </title>

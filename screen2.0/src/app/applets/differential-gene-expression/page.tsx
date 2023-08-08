@@ -488,7 +488,6 @@ export default function DifferentialGeneExpression() {
                       sx={{
                         mr: 8,
                         ml: 4,
-                        width: 275,
                       }}
                       value={[slider.x1, slider.x2]}
                       step={100000}
