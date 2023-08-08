@@ -7,11 +7,12 @@ import Mouse from "../../../public/Mouse2.png"
 import { useState } from "react";
 
 import { ArrowForward, Clear, Download } from "@mui/icons-material";
+import { useRouter } from "next/navigation";
 
 interface TabPanelProps {
   children?: React.ReactNode;
   value: number;
-  biosamples: any;
+  matrices: any;
 }
 
 type Selected = {
@@ -22,14 +23,24 @@ type Selected = {
 export function DataMatrices(props: TabPanelProps) {
   const [selected, setSelected] = useState<null | Selected>(null)
 
+  const router = useRouter()
+
   const selectorButton = (variant: Selected) => {
     return (
       <Button
         variant="contained"
         fullWidth
-        onClick={() => { (selected && selected.assembly === variant.assembly && selected.assay === variant.assay) ? setSelected(null) : setSelected(variant) }}
+        onClick={() => {
+          if (selected && selected.assembly === variant.assembly && selected.assay === variant.assay){
+            router.push(`./downloads?tab=2`)
+            setSelected(null)
+          } else {
+            router.push(`./downloads?tab=2&assembly=${variant.assembly}&assay=${variant.assay}`)
+            setSelected(variant)
+          }
+        }}
         endIcon={(selected && selected.assembly === variant.assembly && selected.assay === variant.assay) ? <Clear /> : <ArrowForward />}
-        sx={{mb: 1}}
+        sx={{ mb: 1 }}
       >
         {`${variant.assay}`}
       </Button>
@@ -81,6 +92,7 @@ export function DataMatrices(props: TabPanelProps) {
               <>
                 <Grid2 xs={12}>
                   <Typography>{`UMAP Embedding: ${selected.assay} in ${selected.assembly}`}</Typography>
+                  <Typography>{props.matrices.data.ccREBiosampleQuery.biosamples[0].name}</Typography>
                 </Grid2>
                 <Grid2 xs={4}>
                   <TextField size="small" label="Search for a Biosample..." fullWidth sx={{mb: 3}}/>

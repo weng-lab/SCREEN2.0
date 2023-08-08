@@ -15,8 +15,10 @@ import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { QuickStart } from './quick-start';
 import { DetailedElements } from './detailed-elements';
 import { DataMatrices } from './data-matrices';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { defaultTheme } from '../../common/lib/themes';
+import { useRouter } from 'next/navigation';
+import { ApolloQueryResult } from '@apollo/client';
 
 function a11yProps(index: number) {
   return {
@@ -25,11 +27,31 @@ function a11yProps(index: number) {
   };
 }
 
-export default function DownloadsPage(props: { biosamples: any }) {
-  const [value, setValue] = React.useState(0);
+export default function DownloadsPage(props: { 
+  biosamples: -1 | ApolloQueryResult<any>, 
+  matrices: -1 | ApolloQueryResult<any>, 
+  searchParams: { [key: string]: string | string[] | undefined } 
+}) {
+  const [page, setPage] = useState(props.searchParams.tab ? Number(props.searchParams.tab) : 0);
+  const [matricesState, setMatricesState] = useState<{assembly: "Human" | "Mouse", assay: "DNase" | "H3K4me3" | "H3K27ac" | "CTCF"} | null>(null)
 
+  const router = useRouter()
+
+  //This works as I want except mouse DNase is always flashed for the tiniest bit?
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
-    setValue(newValue);
+    if (
+      (props.searchParams.assembly === "Human" || props.searchParams.assembly === "Mouse")
+      &&
+      (props.searchParams.assay === "DNase" || props.searchParams.assay === "H3K4me3" || props.searchParams.assay === "H3K27ac" || props.searchParams.assay === "CTCF")
+    ) {
+      setMatricesState({ assembly: props.searchParams.assembly, assay: props.searchParams.assay })
+    }
+    if (newValue === 2 && matricesState !== null) {
+      router.push(`/downloads?tab=${newValue}&assembly=${matricesState.assembly}&assay=${matricesState.assay}`)
+    } else {
+      router.push(`/downloads?tab=${newValue}`)
+    }
+    setPage(newValue);
   };
 
   return (
@@ -38,7 +60,7 @@ export default function DownloadsPage(props: { biosamples: any }) {
         <Grid2 mt={2} container spacing={2}>
           <Grid2 xs={12}>
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-              <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
+              <Tabs value={page} onChange={handleChange} aria-label="basic tabs example">
                 <Tab label="Quick Start" {...a11yProps(0)} />
                 <Tab label="Detailed Elements" {...a11yProps(1)} />
                 <Tab label="Data Matrices" {...a11yProps(2)} />
@@ -46,9 +68,9 @@ export default function DownloadsPage(props: { biosamples: any }) {
             </Box>
           </Grid2>
           <Grid2 xs={12}>
-            <QuickStart value={value} biosamples={props.biosamples} />
-            <DetailedElements value={value} biosamples={props.biosamples} />
-            <DataMatrices value={value} biosamples={props.biosamples} />
+            <QuickStart value={page} biosamples={props.biosamples} />
+            <DetailedElements value={page} biosamples={props.biosamples} />
+            <DataMatrices value={page} matrices={props.matrices} />
           </Grid2>
         </Grid2>
       </Container>

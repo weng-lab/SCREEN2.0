@@ -229,6 +229,49 @@ const BIOSAMPLE_QUERY = gql`
   }
 `
 
+const UMAP_QUERY = gql`
+  query q($assembly: String!, $assay: [String!], $a: String!) {
+    ccREBiosampleQuery(assay: $assay, assembly: $assembly) {
+      biosamples {
+          name
+          ontology
+          sampleType
+          lifeStage
+          umap_coordinates(assay: $a)
+          experimentAccession(assay: $a)
+      }
+    }
+  }
+`
+
+export const TOP_TISSUES = gql`
+  query q($accession: [String!], $assembly: String!) {
+    ccREBiosampleQuery(assembly: $assembly) {
+      biosamples {
+        sampleType
+        cCREZScores(accession: $accession) {
+          score
+          assay
+          experiment_accession
+        }
+        name
+        ontology
+      }
+    }
+    cCREQuery(assembly: $assembly, accession: $accession) {
+      accession
+      group
+      zScores {
+        score
+        experiment
+      }
+      dnase: maxZ(assay: "DNase")
+      h3k4me3: maxZ(assay: "H3K4me3")
+      h3k27ac: maxZ(assay: "H3K27ac")
+      ctcf: maxZ(assay: "CTCF")
+    }
+  }
+`
 
 function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: number, end: number, biosample?: string) {
   return {
@@ -282,7 +325,6 @@ export async function MainQuery(assembly: string, chromosome: string, start: num
 }
 
 export async function biosampleQuery() {
-
   var data: ApolloQueryResult<any> | -1
   try {
     data = await getClient().query({
@@ -296,34 +338,29 @@ export async function biosampleQuery() {
   }
 }
 
-export const TOP_TISSUES = gql`
-  query q($accession: [String!], $assembly: String!) {
-    ccREBiosampleQuery(assembly: $assembly) {
-      biosamples {
-        sampleType
-        cCREZScores(accession: $accession) {
-          score
-          assay
-          experiment_accession
-        }
-        name
-        ontology
+export async function UMAPQuery(
+  assembly: "grch38" | "mm10",
+  assay: "DNase" | "H3K4me3" | "H3K27ac" | "CTCF"
+) {
+  var data: ApolloQueryResult<any> | -1
+  try {
+    data = await getClient().query({
+      query: UMAP_QUERY,
+      variables: {
+        assembly: assembly,
+        assay: assay,
+        a: assay.toLocaleLowerCase()
       }
-    }
-    cCREQuery(assembly: $assembly, accession: $accession) {
-      accession
-      group
-      zScores {
-        score
-        experiment
-      }
-      dnase: maxZ(assay: "DNase")
-      h3k4me3: maxZ(assay: "H3K4me3")
-      h3k27ac: maxZ(assay: "H3K27ac")
-      ctcf: maxZ(assay: "CTCF")
-    }
+    })
+  } catch (error) {
+    console.log(error)
+    data = -1
+  } finally {
+    return data
   }
-`
+}
+
+
 /**
  *
  * @returns the shortened byCellType file from https://downloads.wenglab.org/databyct.json
