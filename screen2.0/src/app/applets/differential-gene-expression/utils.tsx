@@ -138,7 +138,7 @@ export const Point = (props: {
               props.point.pct +
               "\nlength: " +
               props.point.len +
-              "\nh3k4me3 z-score: " +
+              "\nH3K4me3 z-score: " +
               h3k4me3.y +
               "\ncoordinates: " +
               x.toLocaleString("en-US")}
@@ -179,7 +179,7 @@ export const Point = (props: {
               props.point.pct +
               "\nlength: " +
               props.point.len +
-              "\nh3k27ac z-score: " +
+              "\nH3K27ac z-score: " +
               h3k27ac.y +
               "\ncoordinates: " +
               x.toLocaleString("en-US")}
@@ -250,6 +250,7 @@ export const GenePoint = (props: { point: Gene; i: number; range: Range2D; dimen
   let x2: number = props.point.coordinates.end
   let size: number = 20
   let color: string = props.point.strand === "-" ? geneBlue : geneRed
+  let y: number = (props.i + (props.toggleGenes ? 7 : 1.5)) * (props.toggleGenes ? props.size : 20)
 
   // cut off lines if out of axis range
   if (props.point.coordinates.start > props.range.x.end || props.point.coordinates.end < props.range.x.start) return <></>
@@ -257,13 +258,19 @@ export const GenePoint = (props: { point: Gene; i: number; range: Range2D; dimen
   else if (props.point.coordinates.end > props.range.x.end) x2 = props.range.x.end
 
   // transform
-  p1 = linearTransform2D(props.range, props.dimensions)({ x: x1, y: props.i })
-  p2 = linearTransform2D(props.range, props.dimensions)({ x: x2, y: props.i })
+  // p1 = linearTransform2D(props.range, props.dimensions)({ x: x1, y: props.i })
+  // p2 = linearTransform2D(props.range, props.dimensions)({ x: x2, y: props.i })
 
   // reduce size for overlay
   if (props.toggleGenes) {
-    size = 8
+    size = 7
   }
+  let tmp: number = (props.range.y.end - props.range.y.start) / props.size
+  console.log(tmp)
+
+  // transform
+  p1 = linearTransform2D(props.range, props.dimensions)({ x: x1, y: (props.i+props.range.y.start)*tmp })
+  p2 = linearTransform2D(props.range, props.dimensions)({ x: x2, y: (props.i+props.range.y.start)*tmp })
 
   // tooltip for mouseover
   const GeneTooltip = () => {
@@ -279,26 +286,26 @@ export const GenePoint = (props: { point: Gene; i: number; range: Range2D; dimen
     )
   }
 
-  let y: number = (props.i + (props.toggleGenes ? 7 : 1.5)) * (props.toggleGenes ? props.size : 20)
+  // let y: number = (props.i + (props.toggleGenes ? 7 : 1.5)) * (props.toggleGenes ? props.size : 20)
   return (
     <g>
-      <line x1={p1.x} x2={p2.x} y1={y} y2={y} stroke={color}>
+      <line x1={p1.x} x2={p2.x} y1={props.toggleGenes ? p1.y : y} y2={props.toggleGenes ? p1.y : y} stroke={color}>
         <GeneTooltip />
       </line>
       <text
         style={{ fontSize: props.toggleGenes ? 8 : 13, fontStyle: "italic" }}
-        x={p2.x + (props.toggleGenes ? props.size : 20)}
-        y={y + (props.toggleGenes ? 2.5 : 5)}
+        x={p2.x + (props.toggleGenes ? size : 20)}
+        y={props.toggleGenes ? p2.y + 2.5 : y + (props.toggleGenes ? 2.5 : 5)}
       >
         <GeneTooltip />
-        <a href={"https://www.genecards.org/cgi-bin/carddish3k4me3.pl?gene=" + props.point.name}>{props.point.name}</a>
+        <a href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + props.point.name}>{props.point.name}</a>
       </text>
       {x1 === props.range.x.start ? (
-        <text x={p1.x - 15} y={y + 6} style={{ fill: color }}>
+        <text x={p1.x - 15} y={props.toggleGenes ? p1.y + 5 : y + 6} style={{ fill: color }}>
           ◄
         </text>
       ) : x2 === props.range.x.end ? (
-        <text x={p2.x - 3} y={y + 6} style={{ fill: color }}>
+        <text x={p2.x - 3} y={props.toggleGenes ? p2.y + 5 : y + 6} style={{ fill: color }}>
           ►
         </text>
       ) : (
@@ -418,12 +425,23 @@ export const SetRange_y = (props: {
     let cellTypeLabel: string[] = [
       "translate(39," + t.y.toString() + ") rotate(-90)",
       "translate(39," +
-        (t.y + (props.title.ct1.expID.length === 0 ? 32.5 : props.title.ct1.expID.length * 9.7)).toString() +
+        (t.y + (props.title.ct1.expID.length === 0 ? 32.5 : 32.5)).toString() +
         ") rotate(-90)",
     ]
+    // console.log(props.title.ct1.name.length)
+    // console.log(document.getElementById(props.title.ct1.name).clientWidth)
 
     // next y-axis label
     if (range_y[i + 1]) r = linearTransform2D(props.range, props.dimensions)({ x: props.range.x.start, y: range_y[i + 1] }).y
+
+    const getName = (name: string) => {
+      let cellname: string = ""
+      for (let c of name){
+        if (c === "(") break
+        else cellname += c
+      }
+      return cellname += " "
+    }
 
     if (y === 0.0)
       return (
@@ -439,16 +457,16 @@ export const SetRange_y = (props: {
           </text>
           <line x1={41} x2={50} y1={t.y} y2={t.y} stroke="black"></line>
           <g transform={cellTypeLabel[1]}>
-            <text x={10} y={10} style={{ fontSize: 10 }}>
+            <text x={"-" + (getName(props.title.ct1.name).length*4.0 + 5).toString() + "px"} y={10} style={{ fontSize: 10 }}>
               <a target="_blank" rel="noopener noreferrer" href={"https://www.encodeproject.org/experiments/" + props.title.ct1.expID}>
-                ◄ {props.title.ct1.expID}
+                ◄ {getName(props.title.ct1.name)}
               </a>
             </text>
           </g>
           <g transform={cellTypeLabel[0]}>
             <text x={10} y={10} style={{ fontSize: 10 }}>
               <a target="_blank" rel="noopener noreferrer" href={"https://www.encodeproject.org/experiments/" + props.title.ct1.expID}>
-                {props.title.ct2.expID} ►
+                {props.title.ct2.name} ►
               </a>
             </text>
           </g>
@@ -456,13 +474,13 @@ export const SetRange_y = (props: {
       )
     else
       return (
-        <Fragment>
+        <Fragment key={y}>
           <text x={y < 0 ? 60 : 65} y={t.y + 4} style={{ fontSize: 12, textAlign: "right" }}>
             {props.range.y.end - props.range.y.start < 8 && y.toString().split(".").length > 1
               ? y
               : y.toString().split(".").length > 1
               ? ""
-              : props.range.y.end - props.range.y.start < 10 && y % 2 !== 0
+              : y % 2 !== 0
               ? ""
               : y.toString()}
           </text>
@@ -473,7 +491,7 @@ export const SetRange_y = (props: {
               ? y
               : y.toString().split(".").length > 1
               ? ""
-              : props.range.y.end - props.range.y.start < 10 && y % 2 !== 0
+              : y % 2 !== 0
               ? ""
               : y.toString()}
           </text>

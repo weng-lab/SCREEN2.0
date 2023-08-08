@@ -39,7 +39,7 @@ export function CoordinateRangeField(props: {
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             if (variant === "min") {
-              if (props.range.x.end - props.dr[0] > 100000) {
+              if (props.range.x.end - props.dr[0] > 0 && props.range.x.end - props.dr[0] <= 500000) {
                 props.setRange({
                   x: {
                     start: props.dr[0],
@@ -58,7 +58,7 @@ export function CoordinateRangeField(props: {
                 })
               } else return <ErrorMessage error={new Error("invalid range")} />
             } else {
-              if (props.dr[1] - props.range.x.start >= 100000) {
+              if (props.dr[1] - props.range.x.start > 0 && props.dr[1] - props.range.x.start <= 500000) {
                 props.setRange({
                   x: {
                     start: props.range.x.start,
@@ -94,7 +94,7 @@ export function CoordinateRangeField(props: {
       {CoordinateTextBox("max")}
       <Button
         onClick={() => {
-          if (props.dr[1] - props.dr[0] > 0) {
+          if (props.dr[1] - props.dr[0] > 0 && props.dr[1] - props.dr[0] <= 500000) {
             props.setRange({
               x: {
                 start: props.dr[0],
@@ -111,7 +111,7 @@ export function CoordinateRangeField(props: {
               min: props.dr[0],
               max: props.dr[1],
             })
-          }
+          } else return <ErrorMessage error={new Error("invalid range")} />
         }}
         >Set</Button>
     </Box>

@@ -5,8 +5,7 @@ import { ReadonlyURLSearchParams, useSearchParams, usePathname } from "next/navi
 import { LoadingMessage, ErrorMessage, createLink } from "../../../common/lib/utility"
 import { client } from "../../search/ccredetails/client"
 
-import { DataTable } from "@weng-lab/ts-ztable"
-// import { DataTable } from "@weng-lab/psychscreen-ui-components"
+import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import Divider from "@mui/material/Divider"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import MenuIcon from "@mui/icons-material/Menu"
@@ -54,7 +53,7 @@ export default function DifferentialGeneExpression() {
   })
   const [cellTypes, setCellTypes] = useState<cellTypeInfoArr>()
 
-  const [dr, setdr] = useState<number[]>([4000000, 5000000])
+  const [dr, setdr] = useState<number[]>([2500000, 3000000])
   const [range, setRange] = useState<Range2D>({
     x: { start: dr[0], end: dr[1] },
     y: { start: -1, end: 1 },
@@ -85,10 +84,10 @@ export default function DifferentialGeneExpression() {
   })
 
   const [slider, setSlider] = useState<{ x1: number; x2: number; min: number; max: number }>({
-    x1: 4000000,
-    x2: 5000000,
-    min: 4000000,
-    max: 5000000,
+    x1: 2500000,
+    x2: 3000000,
+    min: 2500000,
+    max: 3000000,
   })
 
   // fetch list of cell types
@@ -121,7 +120,7 @@ export default function DifferentialGeneExpression() {
   } = useQuery(GENE_SEARCH_QUERY, {
     variables: {
       assembly: assembly,
-      chromosome: "chr11",
+      chromosome: chromosome,
       start: slider.min,
       end: slider.max,
     },
@@ -138,7 +137,7 @@ export default function DifferentialGeneExpression() {
   } = useQuery(ZSCORE_QUERY, {
     variables: {
       assembly: assembly,
-      coord_chrom: "chr11",
+      coord_chrom: chromosome,
       coord_start: slider.min,
       coord_end: slider.max,
       cellType: ct1,
@@ -170,7 +169,7 @@ export default function DifferentialGeneExpression() {
   } = useQuery(ZSCORE_QUERY, {
     variables: {
       assembly: assembly,
-      coord_chrom: "chr11",
+      coord_chrom: chromosome,
       coord_start: slider.min,
       coord_end: slider.max,
       cellType: ct2,
@@ -405,7 +404,7 @@ export default function DifferentialGeneExpression() {
                       <AccordionDetails>
                       <DataTable
                       // tableTitle="Cell type 1"
-                      // highlighted={rowHighlight ? rowHighlight[0] : false}
+                      highlighted={rowHighlight ? rowHighlight[0] : false}
                       page={1}
                       rows={cellTypes["cellTypeInfoArr"]}
                       columns={[
@@ -422,8 +421,8 @@ export default function DifferentialGeneExpression() {
                           },
                           ct2: title.ct2,
                         })
-                        // if (rowHighlight) setRowHighlight([row, rowHighlight[1]])
-                        // else setRowHighlight([row])
+                        if (rowHighlight) setRowHighlight([row, rowHighlight[1]])
+                        else setRowHighlight([row])
                       }}
                       sortDescending={true}
                       searchable={true}
@@ -441,7 +440,7 @@ export default function DifferentialGeneExpression() {
                       <AccordionDetails>
                         <DataTable
                       // tableTitle="Cell type 2"
-                      // highlighted={rowHighlight ? rowHighlight[1] : false}
+                      highlighted={rowHighlight ? rowHighlight[1] : false}
                       page={1}
                       rows={cellTypes["cellTypeInfoArr"]}
                       columns={[
@@ -458,8 +457,8 @@ export default function DifferentialGeneExpression() {
                             expID: row.expID,
                           },
                         })
-                        // if (rowHighlight) setRowHighlight([rowHighlight[0], row])
-                        // else setRowHighlight([row])
+                        if (rowHighlight) setRowHighlight([rowHighlight[0], row])
+                        else setRowHighlight([row])
                       }}
                       sortDescending={true}
                       searchable={true}
