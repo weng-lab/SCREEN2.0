@@ -16,7 +16,7 @@ import { defaultTheme } from "../../../common/lib/themes"
 import { Box, FormGroup, Slider, Typography, IconButton, Paper, Chip, Drawer, AppBar, AccordionSummary, AccordionDetails, Accordion } from "@mui/material"
 
 import { useQuery } from "@apollo/client"
-import { GENE_SEARCH_QUERY, ZSCORE_QUERY } from "./const"
+import { GENE_SEARCH_QUERY, ZSCORE_QUERY } from "../../../common/lib/queries"
 import GeneAutoComplete from "../gene-expression/gene-autocomplete"
 import { CoordinateRangeField, TogglePCT, TogglePlot } from "./options"
 import { PlotDifferentialExpression, PlotGenes } from "./plot"
@@ -396,7 +396,7 @@ export default function DifferentialGeneExpression() {
             cellTypes["cellTypeInfoArr"] && (
               <Grid2 container spacing={2}>
                 <Grid2 xs={12} md={12} lg={12} ml={1} mr={1}>
-                  <Box sx={{  }}>
+                  <Box>
                     <Accordion defaultExpanded={true}>
                       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                         <Typography variant="h5">Cell Type 1</Typography>
@@ -426,13 +426,13 @@ export default function DifferentialGeneExpression() {
                       }}
                       sortDescending={true}
                       searchable={true}
+                      dense={true}
                     />
                       </AccordionDetails>
                     </Accordion>
-                    
                   </Box>
                   <Divider sx={{ mb: 2, mt: 2 }} />
-                  <Box sx={{  }}>
+                  <Box>
                     <Accordion defaultExpanded={true}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                         <Typography variant="h5">Cell Type 2</Typography>
@@ -462,10 +462,10 @@ export default function DifferentialGeneExpression() {
                       }}
                       sortDescending={true}
                       searchable={true}
+                      dense={true}
                     />
                       </AccordionDetails>
                     </Accordion>
-                    
                   </Box>
                   <Divider sx={{ mb: 2, mt: 2 }} />
                   <Grid2 xs={12} md={12} lg={12} ml={1} mr={1}>

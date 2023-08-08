@@ -145,7 +145,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
               </Toolbar>
             </AppBar>
           </ThemeProvider>
-          <Grid2 container xs={12} md={12} lg={12} sx={{ mt: 4, ml: 2, mr: 2, mb: 4 }}>
+          <Grid2 container xs={12} sx={{ mt: 4, ml: 2, mr: 2, mb: 4 }}>
             {value === 0 && <InSpecificBiosamples accession={accession} globals={globals} assembly={assembly} />}
             {value === 1 && <LinkedGenes accession={accession} assembly={assembly} />}
             {value === 2 && (
