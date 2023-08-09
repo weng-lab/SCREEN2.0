@@ -27,14 +27,14 @@ export default function GeneAutoComplete(props: {
   assembly: string
   gene: string
   pathname: string
-  setGene: Dispatch<SetStateAction<string>>
+  setGene: Dispatch<SetStateAction<gene>>
 }) {
   const router = useRouter()
 
   const [options, setOptions] = useState<string[]>([])
   const [geneDesc, setgeneDesc] = useState<{ name: string; desc: string }[]>()
   const [geneList, setGeneList] = useState<gene[]>([])
-  const [geneID, setGeneID] = useState<string>(props.gene ? props.gene : "OR51AB1P")
+  const [geneID, setGeneID] = useState<string>(props.gene ? props.gene : "OR52K1")
   const [assembly, setAssembly] = useState<string>(props.assembly)
   //   const [current_gene, setGene] = useState<string>(props.gene ? props.gene : "OR51AB1P")
 
@@ -128,9 +128,10 @@ export default function GeneAutoComplete(props: {
           if (e.key == "Enter") {
             for (let g of geneList) {
               if (g.name === geneID && g.end - g.start > 0) {
-                props.setGene(g.name)
+                props.setGene(g)
                 // replace url if ge applet
-                if (props.pathname.split("/").includes("gene-expression")) router.replace(props.pathname + "?gene=" + g.name)
+                // if (props.pathname.includes("gene-expression")) router.replace(props.pathname + "?gene=" + g.name)
+                // if (props.pathname.includes("differential-gene-expression")) router.push(props.pathname + "?gene=" + g.name)
                 break
               }
             }
@@ -161,9 +162,10 @@ export default function GeneAutoComplete(props: {
         onClick={() => {
           for (let g of geneList) {
             if (g.name === geneID && g.end - g.start > 0) {
-              props.setGene(g.name)
+              props.setGene(g)
               // replace url if ge applet
-              if (props.pathname.split("/").includes("gene-expression")) router.replace(props.pathname + "?gene=" + g.name)
+              // if (props.pathname.split("/").includes("gene-expression")) router.replace(props.pathname + "?gene=" + g.name)
+              // if (props.pathname.split("/").includes("differential-gene-expression")) router.replace(props.pathname + "?gene=" + g.name)
               break
             }
           }

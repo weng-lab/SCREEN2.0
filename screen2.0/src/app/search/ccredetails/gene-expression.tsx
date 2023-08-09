@@ -8,7 +8,7 @@ import { PlotGeneExpression } from "../../applets/gene-expression/utils"
 import { GeneExpressions } from "../../applets/gene-expression/types"
 import { Range2D } from "jubilant-carnival"
 
-import { Box, Button, Typography, IconButton, Drawer, Toolbar, AppBar, Stack, Paper, TextField, MenuItem } from "@mui/material"
+import { Box, Button, Typography, IconButton, Drawer, Toolbar, AppBar, Stack, Paper, TextField, MenuItem, Tooltip } from "@mui/material"
 
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import Divider from "@mui/material/Divider"
@@ -16,6 +16,7 @@ import { ThemeProvider } from "@mui/material/styles"
 import { defaultTheme } from "../../../common/lib/themes"
 import MenuIcon from "@mui/icons-material/Menu"
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos"
+import InfoIcon from "@mui/icons-material/Info"
 
 import Image from "next/image"
 import {
@@ -26,6 +27,7 @@ import {
   OptionsReplicates,
   OptionsScale,
 } from "../../applets/gene-expression/options"
+import { GeneExpressionInfoTooltip } from "../../applets/gene-expression/const"
 
 export function GeneExpression(props: {
   accession: string
@@ -121,9 +123,9 @@ export function GeneExpression(props: {
 
   return (
     <main>
-      <Paper sx={{ ml: open ? `${drawerWidth}px` : 0 }} elevation={2}>
+      <Paper sx={{ ml: open ? `${drawerWidth + 20}px` : 0 }} elevation={2}>
         <ThemeProvider theme={defaultTheme}>
-          <Grid2 container spacing={3} sx={{ mt: "2rem", ml: "1.5rem", mr: "2rem" }}>
+          <Grid2 container spacing={3} sx={{ ml: 2, mr: 2 }}>
             <Grid2>
               <Box sx={{ display: "flex" }}>
                 <Drawer
@@ -134,13 +136,8 @@ export function GeneExpression(props: {
                     "& .MuiDrawer-paper": {
                       height: pathname.split("/").includes("search") ? drawerHeightTab : drawerHeight,
                       width: `${drawerWidth}px`,
-                      mt: pathname.split("/").includes("search") ? 47.5 : 12.6,
-                      ml:
-                        pathname.split("/").includes("search") && props.hamburger
-                          ? `${drawerWidth + 96}px`
-                          : pathname.split("/").includes("search")
-                          ? `${96}px`
-                          : 0,
+                      mt: 46,
+                      ml: props.hamburger ? `${drawerWidth + 94}px` : `${92}px`,
                     },
                   }}
                   PaperProps={{ sx: { mt: 0 }, elevation: 2 }}
@@ -185,7 +182,7 @@ export function GeneExpression(props: {
                       edge="start"
                       color="inherit"
                       aria-label="open drawer"
-                      onClick={() => toggleDrawer(false)}
+                      onClick={toggleDrawer(true)}
                       sx={{
                         ...(open && { display: "none" }),
                       }}
@@ -202,6 +199,11 @@ export function GeneExpression(props: {
                         {" "}
                         Gene Expression Profiles by RNA-seq
                       </Typography>
+                      <Tooltip title={GeneExpressionInfoTooltip}>
+                        <IconButton>
+                          <InfoIcon />
+                        </IconButton>
+                      </Tooltip>
                     </Box>
                   </Grid2>
                   <Grid2 xs={1.5} sx={{ mt: 2, height: 100, width: 190 }}>

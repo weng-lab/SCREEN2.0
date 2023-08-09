@@ -6,7 +6,7 @@ import { NEARBY_GENOMIC_FEATURES_QUERY, NEARBY_GENOMIC_FEATURES_NOSNPS_QUERY } f
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { CircularProgress, Typography } from "@mui/material"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
-import { createLink } from "../../../common/lib/utility"
+import { LoadingMessage, createLink } from "../../../common/lib/utility"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 
 const genesDistance = (
@@ -128,11 +128,7 @@ export const NearByGenomicFeatures: React.FC<{
   return (
     <>
       {loading || !data ? (
-        <Grid2 container spacing={3} sx={{ mt: "2rem", mb: "2rem" }}>
-          <Grid2 xs={12} lg={12}>
-            <CircularProgress />
-          </Grid2>
-        </Grid2>
+        <LoadingMessage />
       ) : (
         <>
           <Grid2 container spacing={5}>

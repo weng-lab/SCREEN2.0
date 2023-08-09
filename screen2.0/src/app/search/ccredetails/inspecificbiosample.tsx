@@ -7,6 +7,7 @@ import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { z_score, ctgroup } from "./utils"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { CircularProgress } from "@mui/material"
+import { LoadingMessage } from "../../../common/lib/utility"
 
 type cCRERow = {
   ct?: string
@@ -225,15 +226,15 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
   return (
     <>
       {loading_toptissues || error_toptissues ? (
-        <Grid2 container spacing={3} sx={{ mt: "2rem", mb: "2rem" }}>
-          <Grid2 xs={12} lg={12}>
-            <CircularProgress />
+        <Grid2 container spacing={3} sx={{ mt: "0rem", mb: "0rem" }}>
+          <Grid2 xs={12} md={12} lg={12}>
+            <LoadingMessage />
           </Grid2>
         </Grid2>
       ) : (
         <>
-          <Grid2 container spacing={3} sx={{ mt: "2rem", mb: "2rem" }}>
-            <Grid2 xs={12} lg={12}>
+          <Grid2 container spacing={3} sx={{ mt: "0rem", mb: "0rem" }}>
+            <Grid2 xs={12} md={12} lg={12}>
               {data_toptissues && (
                 <DataTable
                   rows={[{ ...data_toptissues.cCREQuery[0] }]}
@@ -243,9 +244,7 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
                 />
               )}
             </Grid2>
-          </Grid2>
-          <Grid2 container spacing={3} sx={{ mt: "2rem", mb: "2rem" }}>
-            <Grid2 xs={12} lg={12}>
+            <Grid2 xs={12} md={12} lg={12}>
               {withdnase && (
                 <DataTable
                   columns={tableCols(globals)}
@@ -256,10 +255,7 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
                 />
               )}
             </Grid2>
-          </Grid2>
-
-          <Grid2 container spacing={3} sx={{ mt: "2rem", mb: "2rem" }}>
-            <Grid2 xs={6} lg={6}>
+            <Grid2 xs={6} md={6} lg={6}>
               {typea && (
                 <DataTable
                   columns={tableCols(globals)}
@@ -270,7 +266,7 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
                 />
               )}
             </Grid2>
-            <Grid2 xs={6} lg={6}>
+            <Grid2 xs={6} md={6} lg={6}>
               {typec && (
                 <DataTable
                   columns={tableCols(globals, false)}

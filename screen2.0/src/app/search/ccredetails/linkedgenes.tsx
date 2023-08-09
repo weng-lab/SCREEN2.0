@@ -6,7 +6,7 @@ import { LINKED_GENES, GENE_NAME } from "./queries"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { CircularProgress } from "@mui/material"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
-import { createLink } from "../../../common/lib/utility"
+import { LoadingMessage, createLink } from "../../../common/lib/utility"
 
 type geneRow = {
   gene: string
@@ -65,15 +65,15 @@ export const LinkedGenes: React.FC<{ accession: string; assembly: string }> = ({
   return (
     <>
       {loading_genes || loading_linked || !linked_genes ? (
-        <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "2rem" }}>
-          <Grid2 xs={12} lg={12}>
-            <CircularProgress />
+        <Grid2 container spacing={3} sx={{ mt: "0rem", mb: "2rem" }}>
+          <Grid2 xs={12} md={12} lg={12}>
+            <LoadingMessage />
           </Grid2>
         </Grid2>
       ) : (
         <>
-          <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "2rem" }}>
-            <Grid2 xs={12} lg={12}>
+          <Grid2 container spacing={3} sx={{ mt: "0rem", mb: "2rem" }}>
+            <Grid2 xs={12} md={12} lg={12}>
               <DataTable
                 columns={[
                   {

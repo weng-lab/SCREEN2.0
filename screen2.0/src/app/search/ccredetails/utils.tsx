@@ -98,8 +98,8 @@ export function PlotActivityProfiles(props: { data: any; range: Range2D; dimensi
 
   let y: number = 0
   return (
-    <>
-      <Grid2 xs={8} md={8} lg={8} sx={{ ml: 6, mt: 2, display: "flex" }}>
+    <Box>
+      <Grid2 xs={7} sx={{ ml: 6, mt: 2, display: "flex" }}>
         <Box>
           <FormControl key={sort}>
             <InputLabel id="sort-by-label" sx={{ mb: 10 }}>
@@ -122,7 +122,7 @@ export function PlotActivityProfiles(props: { data: any; range: Range2D; dimensi
           </FormControl>
         </Box>
       </Grid2>
-      <Grid2 xs={3} sx={{ alignItems: "right", justifyContent: "right", display: "flex", ml: 8, mr: 0, mt: 2 }}>
+      <Grid2 xs={3} sx={{ alignItems: "right", justifyContent: "right", display: "flex", ml: 0, mr: 0, mt: 2 }}>
         <Box>
           <Button
             onClick={() => {
@@ -167,8 +167,8 @@ export function PlotActivityProfiles(props: { data: any; range: Range2D; dimensi
         </Box>
       </Grid2>
       {/* rampage plot */}
-      <Grid2 xs={12} lg={12} md={12}>
-        <Box sx={{ width: `1500px` }}>
+      <Grid2 xs={12}>
+        <Box>
           {Object.entries(tissues).map((entry, index: number) => {
             let info: any = entry[1]
             y += info.values.length * 20 + 20 + 25
@@ -176,9 +176,9 @@ export function PlotActivityProfiles(props: { data: any; range: Range2D; dimensi
             return (
               <Accordion
                 key={index}
-                expanded={collapse ? collapse[entry[0]] : true}
+                expanded={Object.keys(collapse).length !== 0 ? collapse[entry[0]] : true}
                 disableGutters={true}
-                sx={{ padding: 0, mr: 4 }}
+                sx={{ padding: 0, mr: 0 }}
               >
                 <AccordionSummary
                   expandIcon={<ExpandMoreIcon />}
@@ -190,7 +190,7 @@ export function PlotActivityProfiles(props: { data: any; range: Range2D; dimensi
                         if (collapse[entry[0]] === undefined || collapse[entry[0]]) tmp[entry[0]] = false
                         else tmp[entry[0]] = true
                       } else {
-                        tmp[x[0]] = (collapse[x[0]] !== undefined ? collapse[x[0]] : true)
+                        tmp[x[0]] = collapse[x[0]] !== undefined ? collapse[x[0]] : true
                       }
                     })
                     setCollapse(tmp)
@@ -211,7 +211,7 @@ export function PlotActivityProfiles(props: { data: any; range: Range2D; dimensi
           })}
         </Box>
       </Grid2>
-    </>
+    </Box>
   )
 }
 
