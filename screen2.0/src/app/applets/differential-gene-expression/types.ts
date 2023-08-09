@@ -1,22 +1,27 @@
 export type QueryResponse = [number, string[], any, [string, string, string, string, string, string][], string[]]
 
-export type ccre = {
-  accession: string
-  center: number
-  len: number
-  start: number
-  stop: number
-  typ: string
-  value: number
-  width: number
-}
-
-export type gene = {
+export type cCREZScore = {
   chrom: string
   start: number
-  end: number
-  id: string
+  len: number
+  pct: string
+  ctspecific: {
+    h3k4me3_zscore: number
+    h3k27ac_zscore: number
+  }
+}
+
+export type Gene = {
   name: string
+  id: string
+  strand: string
+  coordinates: {
+    chromosome: string
+    start: number
+    end: number
+    __typename: string
+  }
+  __typename: string
 }
 
 /**
