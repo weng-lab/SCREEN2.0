@@ -106,7 +106,7 @@ export default function Rampage(props: { accession: string; assembly: string; ch
                   <Typography variant="h5" fontSize={30}>
                     TSS Activity Profiles by RAMPAGE
                   </Typography>
-                  <Tooltip title={RampageToolTipInfo()}>
+                  <Tooltip title={RampageToolTipInfo}>
                     <IconButton>
                       <InfoIcon />
                     </IconButton>
