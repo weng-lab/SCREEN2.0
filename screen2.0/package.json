@@ -47,7 +47,7 @@
     "@weng-lab/psychscreen-ui-components": "^0.7.6",
     "@weng-lab/ts-ztable": "^4.0.1",
     "autoprefixer": "10.4.14",
-    "eslint": "8.45.0",
+    "eslint": "8.46.0",
     "eslint-config-next": "13.4.10",
     "graphql": "^16.7.1",
     "jubilant-carnival": "^0.6.0",
