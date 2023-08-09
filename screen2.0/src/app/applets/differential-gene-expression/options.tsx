@@ -1,4 +1,4 @@
-import { Box, Button, Checkbox, FormControlLabel, Switch, TextField, Typography } from "@mui/material"
+import { Box, Button, Checkbox, FormControlLabel, TextField, Typography } from "@mui/material"
 import { Range2D } from "jubilant-carnival"
 import { ErrorMessage } from "../../../common/lib/utility"
 
@@ -17,28 +17,40 @@ export function CoordinateRangeField(props: {
   setRange: React.Dispatch<React.SetStateAction<Range2D>>
   setSlider: React.Dispatch<React.SetStateAction<SliderInfo>>
 }) {
-  const CoordinateTextBox = (variant: string) => {
+  const CoordinateTextBox = () => {
     return (
       <TextField
         id="outlined-basic"
-        label={variant === "min" ? props.dr[0].toLocaleString("en-US") : props.dr[1].toLocaleString("en-US")}
+        label={"Coordinates"}
         variant="standard"
         size="small"
         sx={{ mb: 1.5 }}
         onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-          let value: string = ""
-          if (event.target.value.split(".").length > 0) {
-            for (let c of event.target.value.split(",")){
-              value += c
+          let value: string[] = event.target.value.split(":")[1].split("-")
+          console.log(value)
+          if (value[0].split(",").length > 0) {
+            let j: string = ""
+            for (let c of value[0].split(",")){
+              j += c
             }
-          } else value = event.target.value
-          variant === "min"
-            ? props.setdr([parseInt(value), props.dr[1]])
-            : props.setdr([props.dr[0], parseInt(value)])
+            value[0] = j
+          } 
+          if (value[1].split(",").length > 0) {
+            let j: string = ""
+            for (let c of value[1].split(",")){
+              j += c
+            }
+            value[1] = j
+          } 
+          console.log(value)
+          if (parseInt(value[1]) - parseInt(value[0]) <= 500000 && parseInt(value[1]) - parseInt(value[0]) > 0)
+            props.setdr([parseInt(value[0]), parseInt(value[1])])
+            // variant === "min"
+            // ? props.setdr([parseInt(value[0]), props.dr[1]])
+            // : props.setdr([props.dr[0], parseInt(value[1])])
         }}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
-            if (variant === "min") {
               if (props.range.x.end - props.dr[0] > 0 && props.range.x.end - props.dr[0] <= 500000) {
                 props.setRange({
                   x: {
@@ -57,7 +69,6 @@ export function CoordinateRangeField(props: {
                   max: props.range.x.end,
                 })
               } else return <ErrorMessage error={new Error("invalid range")} />
-            } else {
               if (props.dr[1] - props.range.x.start > 0 && props.dr[1] - props.range.x.start <= 500000) {
                 props.setRange({
                   x: {
@@ -76,7 +87,6 @@ export function CoordinateRangeField(props: {
                   max: props.dr[1],
                 })
               } else return <ErrorMessage error={new Error("invalid range")} />
-            }
           }
         }}
       />
@@ -87,11 +97,7 @@ export function CoordinateRangeField(props: {
       <Typography variant="h6" display="inline">
         Coordinates:
       </Typography>
-      {CoordinateTextBox("min")}
-      <Typography variant="h6" display="inline">
-        to
-      </Typography>
-      {CoordinateTextBox("max")}
+      {CoordinateTextBox()}
       <Button
         onClick={() => {
           if (props.dr[1] - props.dr[0] > 0 && props.dr[1] - props.dr[0] <= 500000) {

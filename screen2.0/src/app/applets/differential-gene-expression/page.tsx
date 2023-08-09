@@ -16,7 +16,7 @@ import { defaultTheme } from "../../../common/lib/themes"
 import { Box, FormGroup, Slider, Typography, IconButton, Paper, Chip, Drawer, AppBar, AccordionSummary, AccordionDetails, Accordion } from "@mui/material"
 
 import { useQuery } from "@apollo/client"
-import { GENE_SEARCH_QUERY, ZSCORE_QUERY } from "../../../common/lib/queries"
+import { GENE_SEARCH_QUERY, ZSCORE_QUERY } from "./queries"
 import GeneAutoComplete from "../gene-expression/gene-autocomplete"
 import { CoordinateRangeField, TogglePCT, TogglePlot } from "./options"
 import { PlotDifferentialExpression, PlotGenes } from "./plot"
