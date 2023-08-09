@@ -403,7 +403,6 @@ export default function DifferentialGeneExpression() {
                       </AccordionSummary>
                       <AccordionDetails>
                       <DataTable
-                      // tableTitle="Cell type 1"
                       highlighted={rowHighlight ? rowHighlight[0] : false}
                       page={1}
                       rows={cellTypes["cellTypeInfoArr"]}
@@ -439,7 +438,6 @@ export default function DifferentialGeneExpression() {
                       </AccordionSummary>
                       <AccordionDetails>
                         <DataTable
-                      // tableTitle="Cell type 2"
                       highlighted={rowHighlight ? rowHighlight[1] : false}
                       page={1}
                       rows={cellTypes["cellTypeInfoArr"]}

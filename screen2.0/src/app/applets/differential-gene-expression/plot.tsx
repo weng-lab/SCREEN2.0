@@ -1,7 +1,7 @@
 import { Range2D } from "jubilant-carnival"
 import { H3K27ac, H3K4me3, geneBlue, geneRed } from "../../../common/lib/colors"
 import React from "react"
-import { SetRange_x, SetRange_y, Point, BarPoint, GenePoint } from "./utils"
+import { SetRange_x, SetRange_y, Point, GenePoint } from "./utils"
 import { Gene, cCREZScore } from "./types"
 
 /**

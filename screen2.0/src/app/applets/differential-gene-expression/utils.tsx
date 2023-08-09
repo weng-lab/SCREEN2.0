@@ -1,9 +1,8 @@
 import React, { Fragment, useState } from "react"
-import { geneRed, geneBlue, promoterRed, enhancerYellow, H3K4me3, H3K27ac } from "../../../common/lib/colors"
+import { geneRed, geneBlue, H3K4me3, H3K27ac } from "../../../common/lib/colors"
 import { Point2D, Range2D, linearTransform2D } from "jubilant-carnival"
-import { ErrorMessage, createLink } from "../../../common/lib/utility"
+import { ErrorMessage } from "../../../common/lib/utility"
 import { Gene, cCREZScore } from "./types"
-import { title } from "process"
 
 /**
  * Returns a circle data point colored red for proximal-like and red for enhancer-like

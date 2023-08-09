@@ -208,7 +208,7 @@ export default function GeneExpression() {
                         {" "}
                         Gene Expression Profiles by RNA-seq
                       </Typography>
-                      <Tooltip title={GeneExpressionInfoTooltip()}>
+                      <Tooltip title={GeneExpressionInfoTooltip}>
                         <IconButton>
                           <InfoIcon />
                         </IconButton>
