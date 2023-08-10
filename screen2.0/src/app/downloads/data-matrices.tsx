@@ -4,7 +4,7 @@ import { Box } from "@mui/system";
 import Image from "next/image";
 import Human from "../../../public/Human2.png"
 import Mouse from "../../../public/Mouse2.png"
-import { useEffect, useMemo, useState } from "react";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
 
 import { ArrowForward, Clear, Download } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
@@ -72,7 +72,7 @@ export function DataMatrices(props: TabPanelProps) {
   // Direct copy
   const [bounds, setBounds] = useState(undefined)
   // Direct copy, put any since typing was lacking in js file
-  const [data, setData] = useState<any>(props.matrices ?? {})
+  const [data, setData] = useState<any>(props.matrices.data ?? {})
   const [lifeStage, setLifeStage] = useState("all")
   const [colorBy, setColorBy] = useState("sampleType")
   const [tSelected, setTSelected] = useState(new Set([]))
@@ -84,7 +84,7 @@ export function DataMatrices(props: TabPanelProps) {
   const router = useRouter()
 
   //Update data state variable whenever the data changes
-  useEffect(() => setData(props.matrices), [props.matrices])
+  useEffect(() => setData(props.matrices.data), [props.matrices])
 
   // Direct Copy
   const [scMap, scc] = useMemo(
@@ -106,15 +106,21 @@ export function DataMatrices(props: TabPanelProps) {
     [data]
   )
 
-  // Direct Copy
+  // fData is not being updated properly
+
+  // Direct Copy, FilterData?
   const fData = useMemo(
-    () =>
-      data &&
-      data.ccREBiosampleQuery &&
-      data.ccREBiosampleQuery.biosamples
-        .filter((x) => x.umap_coordinates)
-        .filter((x) => (lifeStage === "all" || lifeStage === x.lifeStage) && (tSelected.size === 0 || tSelected.has(x[colorBy]))),
-    [data, lifeStage, colorBy, tSelected, selectedAssay]
+    () => {
+      return (
+        data &&
+        data.ccREBiosampleQuery &&
+        data.ccREBiosampleQuery.biosamples
+          .filter((x) => x.umap_coordinates)
+        .filter((x) => (lifeStage === "all" || lifeStage === x.lifeStage) && (tSelected.size === 0 || tSelected.has(x[colorBy])))
+      )
+    }
+    ,
+    [data, lifeStage, colorBy, tSelected, selectedAssay, props.matrices]
   )
 
   // Direct Copy
@@ -136,10 +142,6 @@ export function DataMatrices(props: TabPanelProps) {
       [],
     [fData, scMap, colorBy, searched, oMap]
   )
-
-  
-
-  console.log(scatterData)
 
   // Direct copy
   const xMin = useMemo(
@@ -226,7 +228,7 @@ export function DataMatrices(props: TabPanelProps) {
               <>
                 <Grid2 xs={12}>
                   <Typography>{`UMAP Embedding: ${selectedAssay.assay} in ${selectedAssay.assembly}`}</Typography>
-                  <Typography>{data.data.ccREBiosampleQuery.biosamples[0].name}</Typography>
+                  <Typography>{data.ccREBiosampleQuery.biosamples[0].name}</Typography>
                 </Grid2>
                 <Grid2 xs={4}>
                   <TextField size="small" label="Search for a Biosample..." fullWidth sx={{ mb: 3 }} />
@@ -234,11 +236,12 @@ export function DataMatrices(props: TabPanelProps) {
                     <FormLabel id="demo-radio-buttons-group-label">Color By:</FormLabel>
                     <RadioGroup
                       aria-labelledby="demo-radio-buttons-group-label"
-                      defaultValue="sample type"
+                      defaultValue="sampleType"
                       name="radio-buttons-group"
                       sx={{ mb: 2 }}
+                      onChange={(event: ChangeEvent<HTMLInputElement>, value: string) => setColorBy(value)}
                     >
-                      <FormControlLabel value="sample type" control={<Radio />} label="Sample Type" />
+                      <FormControlLabel value="sampleType" control={<Radio />} label="Sample Type" />
                       <FormControlLabel value="ontology" control={<Radio />} label="Ontology" />
                     </RadioGroup>
                   </FormControl>
@@ -249,23 +252,26 @@ export function DataMatrices(props: TabPanelProps) {
                       defaultValue="all"
                       name="radio-buttons-group"
                       sx={{ mb: 2 }}
+                      onChange={(event: ChangeEvent<HTMLInputElement>, value: string) => setLifeStage(value)}
                     >
                       <FormControlLabel value="all" control={<Radio />} label="All" />
                       <FormControlLabel value="adult" control={<Radio />} label="Adult" />
-                      <FormControlLabel value="embronic" control={<Radio />} label="Embyronic" />
+                      <FormControlLabel value="embryonic" control={<Radio />} label="Embyronic" />
                     </RadioGroup>
                   </FormControl>
                   <FormControl>
                     <FormLabel id="demo-radio-buttons-group-label">Hold shift, click, and draw a selection to:</FormLabel>
                     <RadioGroup
                       aria-labelledby="demo-radio-buttons-group-label"
-                      defaultValue="select experiments"
+                      defaultValue="select"
                       name="radio-buttons-group"
+                      onChange={(event: ChangeEvent<HTMLInputElement>, value: string) => setSelectMode(value)}
                     >
-                      <FormControlLabel value="select experiments" control={<Radio />} label="Select Experiments" />
-                      <FormControlLabel value="zoom in" control={<Radio />} label="Zoom In" />
+                      <FormControlLabel value="select" control={<Radio />} label="Select Experiments" />
+                      <FormControlLabel value="zoom" control={<Radio />} label="Zoom In" />
                     </RadioGroup>
                   </FormControl>
+                  {bounds && <Button onClick={() => setBounds(undefined)}>Reset Zoom</Button>}
                   <Button
                     variant="outlined"
                     fullWidth
