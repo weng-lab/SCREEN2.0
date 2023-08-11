@@ -234,6 +234,7 @@ const UMAP_QUERY = gql`
     ccREBiosampleQuery(assay: $assay, assembly: $assembly) {
       biosamples {
           name
+          displayname
           ontology
           sampleType
           lifeStage

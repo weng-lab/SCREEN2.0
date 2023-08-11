@@ -22,11 +22,11 @@ export const defaultTheme = createTheme({
     //   }
   },
   components: {
-    MuiAccordion: {
-      defaultProps: {
-        elevation: 0, // outline
-      },
-    },
+    // MuiAccordion: {
+    //   defaultProps: {
+    //     elevation: 0, // outline
+    //   },
+    // },
   },
   transitions: {
     easing: {

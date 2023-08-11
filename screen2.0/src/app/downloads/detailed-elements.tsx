@@ -91,7 +91,7 @@ function BiosampleModals(props: { rows: Biosample[]; open: boolean; tableTitle: 
       aria-describedby="modal-modal-description"
     >
       <Box sx={style}>
-        <DataTable sortDescending searchable tableTitle={"test"} columns={bioTableCols} rows={props.rows} itemsPerPage={7} />
+        <DataTable sortDescending searchable tableTitle={props.tableTitle} columns={bioTableCols} rows={props.rows} itemsPerPage={7} />
       </Box>
     </Modal>
   );
