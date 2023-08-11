@@ -50,6 +50,26 @@
     "MouseCA_H3K4me3": "https://downloads.wenglab.org/Registry-V4/mm10-cCREs.CA-H3K4me3.bed",
     "MouseCA_TF": "https://downloads.wenglab.org/Registry-V4/mm10-cCREs.CA-TF.bed",
     "MouseCA_only": "https://downloads.wenglab.org/Registry-V4/mm10-cCREs.CA.bed",
-    "MouseTF_only": "https://downloads.wenglab.org/Registry-V4/mm10-cCREs.TF.bed"
+    "MouseTF_only": "https://downloads.wenglab.org/Registry-V4/mm10-cCREs.TF.bed",
+
+    "HumanDNaseSignalMatrix": "https://www.encodeproject.org/files/ENCFF434ORT/@@download/ENCFF434ORT.txt.gz",
+    "HumanPromoterSignalMatrix": "https://www.encodeproject.org/files/ENCFF015SIE/@@download/ENCFF015SIE.txt.gz",
+    "HumanEnhancerSignalMatrix": "https://www.encodeproject.org/files/ENCFF701TDA/@@download/ENCFF701TDA.txt.gz",
+    "HumanCTCFSignalMatrix": "https://www.encodeproject.org/files/ENCFF590RSL/@@download/ENCFF590RSL.txt.gz",
+
+    "HumanDNaseZScoreMatrix": "https://www.encodeproject.org/files/ENCFF833CSA/@@download/ENCFF833CSA.txt.gz",
+    "HumanPromoterZScoreMatrix": "https://www.encodeproject.org/files/ENCFF508PCP/@@download/ENCFF508PCP.txt.gz",
+    "HumanEnhancerZScoreMatrix": "https://www.encodeproject.org/files/ENCFF560UZM/@@download/ENCFF560UZM.txt.gz",
+    "HumanCTCFZScoreMatrix": "https://www.encodeproject.org/files/ENCFF392IXG/@@download/ENCFF392IXG.txt.gz",
+
+    "MouseDNaseSignalMatrix": "https://www.encodeproject.org/files/ENCFF313KGL/@@download/ENCFF313KGL.txt.gz",
+    "MousePromoterSignalMatrix": "https://www.encodeproject.org/files/ENCFF129EIW/@@download/ENCFF129EIW.txt.gz",
+    "MouseEnhancerSignalMatrix": "https://www.encodeproject.org/files/ENCFF745TSW/@@download/ENCFF745TSW.txt.gz",
+    "MouseCTCFSignalMatrix": "https://www.encodeproject.org/files/ENCFF784AEB/@@download/ENCFF784AEB.txt.gz",
+
+    "MouseDNaseZScoreMatrix": "https://www.encodeproject.org/files/ENCFF397LSK/@@download/ENCFF397LSK.txt.gz",
+    "MousePromoterZScoreMatrix": "https://www.encodeproject.org/files/ENCFF754PUU/@@download/ENCFF754PUU.txt.gz",
+    "MouseEnhancerZScoreMatrix": "https://www.encodeproject.org/files/ENCFF816ISW/@@download/ENCFF816ISW.txt.gz",
+    "MouseCTCFZScoreMatrix": "https://www.encodeproject.org/files/ENCFF101BYE/@@download/ENCFF101BYE.txt.gz"
   }
 }

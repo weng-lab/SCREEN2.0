@@ -70,7 +70,8 @@ export default function DownloadsPage(props: {
           <Grid2 xs={12}>
             <QuickStart value={page} biosamples={props.biosamples} />
             <DetailedElements value={page} biosamples={props.biosamples} />
-            <DataMatrices value={page} matrices={props.matrices} />
+            {/* Matrices being fed biosamples might be redundant */}
+            <DataMatrices value={page} biosamples={props.biosamples} matrices={props.matrices} />
           </Grid2>
         </Grid2>
       </Container>
