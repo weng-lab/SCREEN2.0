@@ -6,14 +6,19 @@ import Human from "../../../public/Human2.png"
 import Mouse from "../../../public/Mouse2.png"
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
 
-import { ArrowForward, Clear, Download, ExpandMore } from "@mui/icons-material";
+import { ArrowForward, Clear, Download, ExpandMore, Visibility } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 
 import { Chart, Scatter, Legend, Annotation } from "jubilant-carnival"
 
 import Config from "../../config.json"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components";
-import { Biosample, BiosampleUMAP } from "../search/types";
+import { Biosample, BiosampleUMAP } from "./types";
+
+import { DNase_seq } from "../../common/lib/colors";
+import { H3K4me3 } from "../../common/lib/colors";
+import { H3K27ac } from "../../common/lib/colors";
+import { CA_CTCF } from "../../common/lib/colors";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -85,8 +90,8 @@ export function DataMatrices(props: TabPanelProps) {
   const [selectedAssay, setSelectedAssay] = useState<Selected>({ assembly: "Human", assay: "DNase" })
   // Direct copy
   const [bounds, setBounds] = useState(undefined)
-  // Direct copy, put any since typing was lacking in js file
-  const [data, setData] = useState<any>(props.matrices.data ?? {})
+  // This typing is not clear due to the structure of the code I copied
+  const [data, setData] = useState<{ ccREBiosampleQuery: { biosamples: BiosampleUMAP[] } }>(props.matrices.data ?? {})
   const [lifeStage, setLifeStage] = useState("all")
   const [colorBy, setColorBy] = useState("sampleType")
   const [tSelected, setTSelected] = useState(new Set([]))
@@ -96,7 +101,7 @@ export function DataMatrices(props: TabPanelProps) {
   const [tooltip, setTooltip] = useState(-1)
 
   const [open, setOpen] = useState(false);
-  const handleOpenModal = () => {biosamples.length !== 0 && setOpen(true)};
+  const handleOpenModal = () => { biosamples.length !== 0 && setOpen(true) };
   const handleCloseModal = () => setOpen(false);
 
   const router = useRouter()
@@ -139,26 +144,6 @@ export function DataMatrices(props: TabPanelProps) {
     [data, lifeStage, colorBy, tSelected, selectedAssay, props.matrices]
   )
 
-  // Direct Copy
-  const scatterData = useMemo(
-    () =>
-      (fData &&
-        fData.map((x) => ({
-          x: x.umap_coordinates[0],
-          y: x.umap_coordinates[1],
-          svgProps: {
-            r: searched && x.experimentAccession === searched.experimentAccession ? 10 : 3,
-            fill:
-              searched === null || x.experimentAccession === searched.experimentAccession
-                ? (colorBy === "sampleType" ? scMap : oMap)[x[colorBy]]
-                : "#aaaaaa",
-            fillOpacity: searched === null || x.experimentAccession === searched.experimentAccession ? 1 : 0.2,
-          },
-        }))) ||
-      [],
-    [fData, scMap, colorBy, searched, oMap]
-  )
-
   // Direct copy
   const xMin = useMemo(
     () => (bounds ? Math.floor(bounds.x.start) : nearest5(Math.min(...((fData && fData.map((x) => x.umap_coordinates[0])) || [0])), true)),
@@ -177,6 +162,26 @@ export function DataMatrices(props: TabPanelProps) {
     [fData, bounds]
   )
 
+  const scatterData = useMemo(
+    () =>
+      (fData && fData
+        .filter((x) => (xMin <= x.umap_coordinates[0] && x.umap_coordinates[0] <= xMax) && (yMin <= x.umap_coordinates[1] && x.umap_coordinates[1] <= yMax))
+        .map((x) => ({
+          x: x.umap_coordinates[0],
+          y: x.umap_coordinates[1],
+          svgProps: {
+            r: searched && x.experimentAccession === searched.experimentAccession ? 10 : 3,
+            fill:
+              searched === null || x.experimentAccession === searched.experimentAccession
+                ? (colorBy === "sampleType" ? scMap : oMap)[x[colorBy]]
+                : "#aaaaaa",
+            fillOpacity: searched === null || x.experimentAccession === searched.experimentAccession ? 1 : 0.2,
+          },
+        }))) ||
+      [],
+    [fData, scMap, colorBy, searched, oMap, bounds]
+  )
+
   // Direct Copy, this does not update properly when filtering by lifeStage
   const [legendEntries, height] = useMemo(() => {
     const g = colorBy === "sampleType" ? scMap : oMap
@@ -184,10 +189,23 @@ export function DataMatrices(props: TabPanelProps) {
     return [Object.keys(g).map((x) => ({ label: x, color: g[x], value: `${gc[x]} experiments` })), Object.keys(g).length * 50]
   }, [scMap, oMap, colorBy, occ, scc])
 
+  function borderColor(assay: Selected["assay"]){
+    switch (assay) {
+      case ("DNase"):
+        return DNase_seq
+      case ("H3K4me3"):
+        return H3K4me3
+      case ("H3K27ac"):
+        return H3K27ac
+      case ("CTCF"):
+        return CA_CTCF
+    }
+  }
+
   const selectorButton = (variant: Selected) => {
     return (
       <Button
-        variant="contained"
+        variant="outlined"
         fullWidth
         onClick={() => {
           if (selectedAssay && selectedAssay.assembly !== variant.assembly || selectedAssay.assay !== variant.assay) {
@@ -196,7 +214,7 @@ export function DataMatrices(props: TabPanelProps) {
           }
         }}
         endIcon={(selectedAssay && selectedAssay.assembly === variant.assembly && selectedAssay.assay === variant.assay) ? <ArrowForward /> : null}
-        sx={{ mb: 1, textTransform: "none" }}
+        sx={{ mb: 1, textTransform: "none", borderLeft: `0.75rem solid ${borderColor(variant.assay)}`, '&:hover': { borderLeft: `1.5rem solid ${borderColor(variant.assay)}`} }}
       >
         {`${variant.assay}`}
       </Button>
@@ -262,7 +280,7 @@ export function DataMatrices(props: TabPanelProps) {
           aria-labelledby={`simple-tab-${2}`}
         >
           <Grid2 container spacing={3} columnSpacing={5}>
-            <Grid2 container spacing={1} xs={2.5}>
+            <Grid2 container justifyContent="flex-start" alignContent="flex-start" spacing={2} xs={2.5}>
               <Grid2 xs={8}>
                 <Typography mt="auto" variant="h5">Human</Typography>
                 <Divider />
@@ -296,8 +314,25 @@ export function DataMatrices(props: TabPanelProps) {
             </Grid2>
             <Grid2 container xs={9.5}>
               <Grid2 xs={4}>
-                {/* Search box is being fed fData, the data used to populate the table */}
-                <Typography>{`UMAP Embedding: ${selectedAssay.assay} in ${selectedAssay.assembly}`}</Typography>
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  onClick={() => null}
+                  endIcon={<Download />}
+                  sx={{ mr: 1, mb: 1, mt: 3, textTransform: "none" }}
+                  href={matrixDownloadURL(selectedAssay, "signal")}
+                >
+                  {`${selectedAssay.assay === "DNase" ? "Read-Depth Normalized Signal Matrix" : "Fold-Change Signal Matrix"}`}
+                </Button>
+                <Button
+                  variant="outlined"
+                  fullWidth
+                  endIcon={<Download />}
+                  sx={{ textTransform: "none", mb: 1 }}
+                  href={matrixDownloadURL(selectedAssay, "zScore")}
+                >
+                  Z-Score Matrix
+                </Button>
                 <Autocomplete
                   sx={{ mb: 3 }}
                   disablePortal
@@ -349,32 +384,13 @@ export function DataMatrices(props: TabPanelProps) {
                   </RadioGroup>
                 </FormControl>
                 {bounds && <Button onClick={() => setBounds(undefined)}>Reset Zoom</Button>}
-                <Button
-                  variant="outlined"
-                  fullWidth
-                  onClick={() => null}
-                  endIcon={<Download />}
-                  sx={{ mb: 1, mt: 3 }}
-                  href={matrixDownloadURL(selectedAssay, "signal")}
-                >
-                  {`${selectedAssay.assay === "DNase" ? "Read-Depth Normalized Signal Matrix" : "Fold-Change Signal Matrix"}`}
-                </Button>
-                <Button
-                  variant="outlined"
-                  fullWidth
-                  endIcon={<Download />}
-                  href={matrixDownloadURL(selectedAssay, "zScore")}
-                >
-                  Z-Score Matrix
-                </Button>
               </Grid2>
               <Grid2 xs={8}>
-                {/* Direct copy */}
-                <Button endIcon={<Download />} onClick={handleOpenModal}>
+                <Button fullWidth endIcon={biosamples.length !== 0 && <Visibility />} onClick={handleOpenModal}>
                   {`${biosamples.length} Experiments Selected`}
                 </Button>
                 {biosamples.length !== 0 &&
-                  <Button onClick={() => setBiosamples([])}>
+                  <Button fullWidth onClick={() => setBiosamples([])}>
                     Clear
                   </Button>
                 }

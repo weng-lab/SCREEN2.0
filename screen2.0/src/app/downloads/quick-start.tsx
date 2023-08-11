@@ -25,7 +25,7 @@ import Mouse from "../../../public/Mouse2.png"
 import Config from "../../config.json"
 import { useEffect, useMemo, useState } from "react";
 
-import { Biosample } from "../search/types";
+import { Biosample } from "./types";
 import React from "react";
 
 import Image from "next/image";

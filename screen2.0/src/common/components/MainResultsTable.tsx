@@ -123,7 +123,6 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
     },
     [searchParams]
   )
-  console.log(props.rows)
 
   return (
     <DataTable

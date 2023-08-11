@@ -8,7 +8,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import SearchIcon from '@mui/icons-material/Search';
 import { CA_CTCF, CA_H3K4me3, CA_TF, CA_only, PLS, TF_only, dELS, pELS } from "../../common/lib/colors";
 import { DataTable, DataTableColumn, DataTableProps } from "@weng-lab/psychscreen-ui-components";
-import { Biosample } from "../search/types";
+import { Biosample } from "./types";
 import Image from "next/image";
 import Human from "../../../public/Human2.png"
 import Mouse from "../../../public/Mouse2.png"
