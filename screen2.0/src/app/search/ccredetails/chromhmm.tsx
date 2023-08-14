@@ -20,6 +20,7 @@ import {
 } from "@mui/material"
 import { gql, useQuery } from "@apollo/client"
 import { client } from "./client"
+import { ErrorMessage, LoadingMessage } from "../../../common/lib/utility"
 
 const CYTOBANDS_QUERY = gql`
   query cytobands($assembly: String!, $chromosome: String) {
@@ -69,7 +70,7 @@ const GENE_QUERY = gql`
 export const ChromHMM = (props: {assembly: string, accession: string}) => {
   const { loading, error, data } = useQuery(GENE_QUERY, {
     variables: {
-      assembly: props.assembly === "GRCh38" ? "grch38" : "mm10",
+      assembly: props.assembly === "GRCh38" ? "GRCh38" : "mm10",
       accession: props.accession,
     },
     fetchPolicy: "cache-and-network",
@@ -77,10 +78,13 @@ export const ChromHMM = (props: {assembly: string, accession: string}) => {
     client,
   })
 
-  return (
+
+
+  return props.assembly === "GRCh38" ? <></> : loading ? <LoadingMessage /> : error ? <ErrorMessage error={error}/> : (
     <Box>
       <DataTable
         tableTitle={`Linked cCREs in ${props.assembly == "GRCh38" ? "mm10" : "GRCh38"}`}
+        rows={data}
         columns={[
           {
             header: "Tissue",
