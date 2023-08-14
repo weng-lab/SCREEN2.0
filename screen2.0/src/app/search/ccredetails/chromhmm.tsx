@@ -67,15 +67,22 @@ const GENE_QUERY = gql`
   }
 `
 
-export const ChromHMM = (props: {assembly: string, accession: string}) => {
+export const ChromHMM = (props: {assembly: string, accession: string, chromosome: string}) => {
   const { loading, error, data } = useQuery(GENE_QUERY, {
     variables: {
-      assembly: props.assembly === "GRCh38" ? "GRCh38" : "mm10",
+      assembly: props.assembly === "GRCh38",
       accession: props.accession,
     },
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
     client,
+  })
+
+  const { loading: loading_cyto, error: error_cyto, data: data_cyto } = useQuery(CYTOBANDS_QUERY, {
+    variables: {
+      assembly: props.assembly === "GRCh38" ? "hg38" : "mm10",
+      chromosome: props.chromosome
+    }
   })
 
 
