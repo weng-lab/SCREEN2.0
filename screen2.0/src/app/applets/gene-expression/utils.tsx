@@ -1,4 +1,5 @@
 import React, { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Stack, ToggleButton, Typography } from "@mui/material"
 import { styled } from "@mui/material/styles"
 import { RIDItemList, GeneExpEntry, GeneExpressions, BiosampleList, CellComponents } from "./types"
@@ -23,7 +24,9 @@ export function PlotGeneExpression(props: {
   scale: string
   replicates: string
 }) {
+  const router = useRouter()
   const [collapse, setCollapse] = useState<{ [id: string]: boolean }>({})
+  const[highlighted, setHighlighted] = useState<string>("")
 
   let itemsRID: RIDItemList = props.data[props.RNAtype]["itemsByRID"]
   let tissues: { [id: string]: { sum: number; values: GeneExpEntry[] } } = {} // dict of ftissues
@@ -60,17 +63,27 @@ export function PlotGeneExpression(props: {
     return Object.values(info.values).map((item: GeneExpEntry, i: number) => {
       p1 = linearTransform2D(props.range, props.dimensions)({ x: item.value, y: 0 })
       return (
-        <Fragment key={i}>
-          <rect x={125} width={p1.x + 125} y={y + i * 20} height="18px" fill={item["color"]}>
-            <title>{item.value}</title>
+        <g key={i}>
+          <rect x={125} width={p1.x + 125} y={y + i * 20} height="18px" fill={item["color"]} onClick={() => router.push("https://encodeproject.org/experiments/" + item.expID)} 
+          onMouseEnter={() => {
+            setHighlighted(item.expID)
+          }}
+          onMouseOut={() => {
+            setHighlighted("")
+          }}
+          onMouseOver={() => {
+            setHighlighted(item.expID)
+          }}>
+            <title>{item.cellType + "\n" + item.value}</title>
           </rect>
+          {highlighted === item.expID ? <rect x={125} width={p1.x + 125} y={y + i * 20} height="18px" fill="white" opacity="25%"/> : <></>}
           <text x={p1.x + 125 + 150} y={y + i * 20 + 12.5} style={{ fontSize: 12 }}>
             {Number(item.value.toFixed(3)) + " "}
             <a href={"https://www.encodeproject.org/experiments/" + item.expID}>{item.expID}</a>
             {" " + item.cellType}
           </text>
           <line x1={125} x2={125} y1={y + i * 20} y2={y + (i * 20 + 18)} stroke="black" />
-        </Fragment>
+        </g>
       )
     })
   }
