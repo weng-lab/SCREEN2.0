@@ -1,30 +1,28 @@
-import { Accordion, AccordionDetails, AccordionSummary, Autocomplete, Button, Divider, FormControl, FormControlLabel, FormLabel, Grid, Modal, Radio, RadioGroup, Select, TextField, Typography } from "@mui/material";
+import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { Accordion, AccordionDetails, AccordionSummary, Autocomplete, Button, Divider, FormControl, FormControlLabel, FormLabel, Grid, Modal, Radio, RadioGroup, Select, TextField, Typography, Box, Stack } from "@mui/material";
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
-import { Box } from "@mui/system";
+import { ArrowForward, Clear, Download, ExpandMore, Visibility } from "@mui/icons-material";
 import Image from "next/image";
 import Human from "../../../public/Human2.png"
 import Mouse from "../../../public/Mouse2.png"
-import { ChangeEvent, useEffect, useMemo, useState } from "react";
-
-import { ArrowForward, Clear, Download, ExpandMore, Visibility } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
-
-import { Chart, Scatter, Legend, Annotation } from "jubilant-carnival"
-
-import Config from "../../config.json"
+import { Chart, Scatter, Legend, Annotation, Range2D } from "jubilant-carnival"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components";
-import { Biosample, BiosampleUMAP } from "./types";
-
+import Config from "../../config.json"
+import { BiosampleUMAP } from "./types";
 import { DNase_seq } from "../../common/lib/colors";
 import { H3K4me3 } from "../../common/lib/colors";
 import { H3K27ac } from "../../common/lib/colors";
 import { CA_CTCF } from "../../common/lib/colors";
+import { ApolloQueryResult } from "@apollo/client";
 
+//Need to type these
 interface TabPanelProps {
   children?: React.ReactNode;
   value: number;
-  biosamples: any;
-  matrices: any;
+  biosamples: -1 | ApolloQueryResult<any>,
+  matrices: -1 | ApolloQueryResult<any>,
+  searchParams: { [key: string]: string | string[] | undefined }
 }
 
 type Selected = {
@@ -32,36 +30,41 @@ type Selected = {
   assay: "DNase" | "H3K4me3" | "H3K27ac" | "CTCF"
 }
 
-// Direct Copy but changed low to be optional since it gives error otherwise
+// Direct copy from old SCREEN but changed low to be optional
 function nearest5(x, low?) {
   if (low) return Math.floor(x) - (x > 0 ? Math.floor(x) % 5 : 5 + (Math.floor(x) % 5))
   return Math.ceil(x) + (x > 0 ? Math.ceil(x) % 5 : 5 + (Math.ceil(x) % 5))
 }
 
+// Direct copy from old SCREEN
 function fiveRange(min, max) {
   const r = []
   for (let i = min; i <= max; i += 5) r.push(i)
   return r
 }
 
+// Direct copy from old SCREEN
 function tenRange(min, max) {
   const r = []
   for (let i = min; i <= max; i += 10) r.push(i)
   return r
 }
 
+// Direct copy from old SCREEN
 function oneRange(min, max) {
   const r = []
   for (let i = min; i <= max; ++i) r.push(i)
   return r
 }
 
+// Direct copy from old SCREEN
 function spacedColors(n) {
   const r = []
   for (let i = 0; i < 360; i += 360 / n) r.push(`hsl(${i},50%,40%)`)
   return r
 }
 
+// Direct copy from old SCREEN
 function colorMap(strings) {
   const c = {}
   strings.forEach((x) => (c[x] = c[x] ? c[x] + 1 : 1))
@@ -74,6 +77,7 @@ function colorMap(strings) {
   return [r, c]
 }
 
+// Styling for selected biosamples modal
 const style = {
   position: 'absolute' as 'absolute',
   top: '50%',
@@ -83,21 +87,24 @@ const style = {
   boxShadow: 24,
 };
 
-//When the buttons are clicked, slected is updated but data is not. The URL params change, but it seems like there is no refresh in the query. Why?
-// props.matrices is getting updated, but since data is only initialized with it once, it never receives the change
-
 export function DataMatrices(props: TabPanelProps) {
-  const [selectedAssay, setSelectedAssay] = useState<Selected>({ assembly: "Human", assay: "DNase" })
-  // Direct copy
+  const [selectedAssay, setSelectedAssay] = useState<Selected>(() => {
+    if ((props.searchParams.assembly === "Human" || props.searchParams.assembly === "Mouse")
+      && (props.searchParams.assay === "DNase" || props.searchParams.assay === "H3K4me3" || props.searchParams.assay === "H3K27ac" || props.searchParams.assay === "CTCF")) {
+      return { assembly: props.searchParams.assembly, assay: props.searchParams.assay }
+    }
+    else {
+      return { assembly: "Human", assay: "DNase" }
+    }
+  })
   const [bounds, setBounds] = useState(undefined)
-  // This typing is not clear due to the structure of the code I copied
-  const [data, setData] = useState<{ ccREBiosampleQuery: { biosamples: BiosampleUMAP[] } }>(props.matrices.data ?? {})
+  const [data, setData] = useState<{ ccREBiosampleQuery: { biosamples: BiosampleUMAP[] } }>(props.matrices != -1 ? props.matrices.data : {})
   const [lifeStage, setLifeStage] = useState("all")
   const [colorBy, setColorBy] = useState("sampleType")
   const [tSelected, setTSelected] = useState(new Set([]))
-  const [searched, setSearched] = useState(null)
-  const [biosamples, setBiosamples] = useState([])
-  const [selectMode, setSelectMode] = useState("select")
+  const [searched, setSearched] = useState<BiosampleUMAP>(null)
+  const [biosamples, setBiosamples] = useState<BiosampleUMAP[]>([])
+  const [selectMode, setSelectMode] = useState<"select" | "zoom">("select")
   const [tooltip, setTooltip] = useState(-1)
 
   const [open, setOpen] = useState(false);
@@ -107,9 +114,9 @@ export function DataMatrices(props: TabPanelProps) {
   const router = useRouter()
 
   //Update data state variable whenever the data changes
-  useEffect(() => setData(props.matrices.data), [props.matrices])
+  useEffect(() => setData(props.matrices != -1 ? props.matrices.data : {}), [props.matrices])
 
-  // Direct Copy
+  // Direct copy from old SCREEN
   const [scMap, scc] = useMemo(
     () =>
       colorMap(
@@ -128,8 +135,6 @@ export function DataMatrices(props: TabPanelProps) {
       ),
     [data]
   )
-
-  // Direct Copy, FilterData?
   const fData = useMemo(
     () => {
       return (
@@ -143,14 +148,12 @@ export function DataMatrices(props: TabPanelProps) {
     ,
     [data, lifeStage, colorBy, tSelected, selectedAssay, props.matrices]
   )
-
-  // Direct copy
   const xMin = useMemo(
     () => (bounds ? Math.floor(bounds.x.start) : nearest5(Math.min(...((fData && fData.map((x) => x.umap_coordinates[0])) || [0])), true)),
     [fData, bounds]
   )
   const yMin = useMemo(
-    () => (bounds ? Math.ceil(bounds.y.end) : nearest5(Math.min(...((fData && fData.map((x) => x.umap_coordinates[1])) || [0])), true)),
+    () => (bounds ? Math.floor(bounds.y.start) : nearest5(Math.min(...((fData && fData.map((x) => x.umap_coordinates[1])) || [0])), true)),
     [fData, bounds]
   )
   const xMax = useMemo(
@@ -158,10 +161,9 @@ export function DataMatrices(props: TabPanelProps) {
     [fData, bounds]
   )
   const yMax = useMemo(
-    () => (bounds ? Math.floor(bounds.y.start) : nearest5(Math.max(...((fData && fData.map((x) => x.umap_coordinates[1])) || [0])))),
+    () => (bounds ? Math.ceil(bounds.y.end) : nearest5(Math.max(...((fData && fData.map((x) => x.umap_coordinates[1])) || [0])))),
     [fData, bounds]
   )
-
   const scatterData = useMemo(
     () =>
       (fData && fData
@@ -182,14 +184,37 @@ export function DataMatrices(props: TabPanelProps) {
     [fData, scMap, colorBy, searched, oMap, bounds]
   )
 
-  // Direct Copy, this does not update properly when filtering by lifeStage
+  // Direct copy from old SCREEN
   const [legendEntries, height] = useMemo(() => {
     const g = colorBy === "sampleType" ? scMap : oMap
     const gc = colorBy === "sampleType" ? scc : occ
     return [Object.keys(g).map((x) => ({ label: x, color: g[x], value: `${gc[x]} experiments` })), Object.keys(g).length * 50]
   }, [scMap, oMap, colorBy, occ, scc])
 
-  function borderColor(assay: Selected["assay"]){
+  /**
+   * Checks and reverses the order of coordinates provided by Jubilant Carnival selection if needed, then calls setBounds()
+   * @param bounds a Range2D object to check
+   */
+  function handleSetBounds(bounds: Range2D) {
+    if (bounds.x.start > bounds.x.end) {
+      const tempX = bounds.x.start;
+      bounds.x.start = bounds.x.end;
+      bounds.x.end = tempX;
+    }
+    if (bounds.y.start > bounds.y.end) {
+      const tempY = bounds.y.start;
+      bounds.y.start = bounds.y.end;
+      bounds.y.end = tempY;
+    }
+    console.log(bounds)
+    setBounds(bounds)
+  }
+
+  /**
+   * @param assay an assay
+   * @returns the corresponding color for the given assay
+   */
+  function borderColor(assay: Selected["assay"]) {
     switch (assay) {
       case ("DNase"):
         return DNase_seq
@@ -202,6 +227,7 @@ export function DataMatrices(props: TabPanelProps) {
     }
   }
 
+  // Assay selectors
   const selectorButton = (variant: Selected) => {
     return (
       <Button
@@ -214,13 +240,19 @@ export function DataMatrices(props: TabPanelProps) {
           }
         }}
         endIcon={(selectedAssay && selectedAssay.assembly === variant.assembly && selectedAssay.assay === variant.assay) ? <ArrowForward /> : null}
-        sx={{ mb: 1, textTransform: "none", borderLeft: `0.75rem solid ${borderColor(variant.assay)}`, '&:hover': { borderLeft: `1.5rem solid ${borderColor(variant.assay)}`} }}
+        sx={{ mb: 1, textTransform: "none", borderLeft: `${(selectedAssay && selectedAssay.assembly === variant.assembly && selectedAssay.assay === variant.assay) ? "1.5rem" : "0.75rem"} solid ${borderColor(variant.assay)}`, '&:hover': { borderLeft: `1.5rem solid ${borderColor(variant.assay)}` } }}
       >
         {`${variant.assay}`}
       </Button>
     )
   }
 
+  /**
+   * 
+   * @param selectedAssay The selected assembly & assay
+   * @param variant "signal" or "zScore"
+   * @returns The corresponding download URL
+   */
   const matrixDownloadURL = (selectedAssay: Selected, variant: "signal" | "zScore") => {
     const matrices = {
       Human: {
@@ -252,10 +284,10 @@ export function DataMatrices(props: TabPanelProps) {
         },
       },
     };
-
     return matrices[selectedAssay.assembly][variant][selectedAssay.assay];
   };
 
+  // Columns for selected biosample modal
   const modalCols: DataTableColumn<BiosampleUMAP>[] = [
     {
       header: "Experimental Accession",
@@ -377,7 +409,7 @@ export function DataMatrices(props: TabPanelProps) {
                     aria-labelledby="demo-radio-buttons-group-label"
                     defaultValue="select"
                     name="radio-buttons-group"
-                    onChange={(event: ChangeEvent<HTMLInputElement>, value: string) => setSelectMode(value)}
+                    onChange={(event: ChangeEvent<HTMLInputElement>, value: "select" | "zoom") => setSelectMode(value)}
                   >
                     <FormControlLabel value="select" control={<Radio />} label="Select Experiments" />
                     <FormControlLabel value="zoom" control={<Radio />} label="Zoom In" />
@@ -386,14 +418,6 @@ export function DataMatrices(props: TabPanelProps) {
                 {bounds && <Button onClick={() => setBounds(undefined)}>Reset Zoom</Button>}
               </Grid2>
               <Grid2 xs={8}>
-                <Button fullWidth endIcon={biosamples.length !== 0 && <Visibility />} onClick={handleOpenModal}>
-                  {`${biosamples.length} Experiments Selected`}
-                </Button>
-                {biosamples.length !== 0 &&
-                  <Button fullWidth onClick={() => setBiosamples([])}>
-                    Clear
-                  </Button>
-                }
                 <Chart
                   domain={{ x: { start: xMin, end: xMax }, y: { start: yMin, end: yMax } }}
                   innerSize={{ width: 1000, height: 1000 }}
@@ -402,7 +426,7 @@ export function DataMatrices(props: TabPanelProps) {
                   scatterData={[scatterData]}
                   plotAreaProps={{
                     onFreeformSelectionEnd: (_, c) => setBiosamples(c[0].map((x) => fData[x])),
-                    onSelectionEnd: (x) => setBounds(x),
+                    onSelectionEnd: (x) => handleSetBounds(x),
                     freeformSelection: selectMode === "select",
                   }}
                 >
@@ -414,7 +438,7 @@ export function DataMatrices(props: TabPanelProps) {
                     onPointClick={(i) => setBiosamples([fData[i]])}
                   />
                   {tooltip !== -1 && (
-                    //X and Y attributes added due to error. What should these be?
+                    //X and Y attributes added due to error. Not sure if setting to zero has unintended consequences
                     <Annotation notScaled notTranslated x={0} y={0}>
                       <rect x={35} y={100} width={740} height={120} strokeWidth={2} stroke="#000000" fill="#ffffffdd" />
                       <rect x={55} y={120} width={740 * 0.04} height={740 * 0.04} strokeWidth={1} stroke="#000000" fill="#00b0d0" />
@@ -423,11 +447,21 @@ export function DataMatrices(props: TabPanelProps) {
                         {fData[tooltip].name.length > 45 ? "..." : ""}
                       </text>
                       <text x={55} y={185} fontSize="24px">
-                        {fData[tooltip].experimentAccession} · click for associated downloads
+                        {fData[tooltip].experimentAccession}
                       </text>
                     </Annotation>
                   )}
                 </Chart>
+                {biosamples.length !== 0 &&
+                  <Stack direction="row" justifyContent="space-between" mb={1}>
+                    <Button endIcon={biosamples.length !== 0 && <Visibility />} onClick={handleOpenModal}>
+                      {`${biosamples.length} Experiments Selected`}
+                    </Button>
+                    <Button onClick={() => setBiosamples([])}>
+                      Clear
+                    </Button>
+                  </Stack>
+                }
                 <Accordion>
                   <AccordionSummary expandIcon={<ExpandMore />}>
                     Legend

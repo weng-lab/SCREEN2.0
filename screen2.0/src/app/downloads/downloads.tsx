@@ -37,7 +37,6 @@ export default function DownloadsPage(props: {
 
   const router = useRouter()
 
-  //This works as I want except mouse DNase is always flashed for the tiniest bit?
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     if (
       (props.searchParams.assembly === "Human" || props.searchParams.assembly === "Mouse")
@@ -61,9 +60,9 @@ export default function DownloadsPage(props: {
           <Grid2 xs={12}>
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
               <Tabs value={page} onChange={handleChange} aria-label="basic tabs example">
-                <Tab label="Quick Start" {...a11yProps(0)} />
-                <Tab label="Detailed Elements" {...a11yProps(1)} />
-                <Tab label="Data Matrices" {...a11yProps(2)} />
+                <Tab label="Quick Start" sx={{textTransform: "none"}} {...a11yProps(0)} />
+                <Tab label="Detailed Elements" sx={{textTransform: "none"}} {...a11yProps(1)} />
+                <Tab label="Data Matrices" sx={{textTransform: "none"}} {...a11yProps(2)} />
               </Tabs>
             </Box>
           </Grid2>
@@ -71,7 +70,7 @@ export default function DownloadsPage(props: {
             <QuickStart value={page} biosamples={props.biosamples} />
             <DetailedElements value={page} biosamples={props.biosamples} />
             {/* Matrices being fed biosamples might be redundant */}
-            <DataMatrices value={page} biosamples={props.biosamples} matrices={props.matrices} />
+            <DataMatrices value={page} biosamples={props.biosamples} matrices={props.matrices} searchParams={props.searchParams}/>
           </Grid2>
         </Grid2>
       </Container>
