@@ -7,6 +7,7 @@ import { TF_INTERSECTION_QUERY, CRE_TF_DCC_QUERY } from "./queries"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { CircularProgress } from "@mui/material"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
+import { LoadingMessage } from "../../../common/lib/utility"
 
 export const TfIntersection: React.FC<{ assembly: string; coordinates: { chromosome: string; start: number; end: number } }> = ({
   assembly,
@@ -80,14 +81,14 @@ export const TfIntersection: React.FC<{ assembly: string; coordinates: { chromos
   return (
     <>
       {loading || !data ? (
-        <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "2rem" }}>
-          <Grid2 xs={12} lg={12}>
-            <CircularProgress />
+        <Grid2 container spacing={3} sx={{ mt: "0rem", mb: "2rem" }}>
+          <Grid2 xs={12} md={12} lg={12}>
+            <LoadingMessage />
           </Grid2>
         </Grid2>
       ) : (
         <>
-          <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "2rem" }}>
+          <Grid2 container spacing={3} sx={{ mt: "0rem", mb: "2rem" }}>
             <Grid2 xs={factor != "" ? 6 : 12} lg={factor != "" ? 6 : 12}>
               <DataTable
                 columns={[
