@@ -13,27 +13,24 @@ import {
   Box,
   Divider
 } from "@mui/material";
-
 import InfoIcon from '@mui/icons-material/Info';
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import LoadingButton from '@mui/lab/LoadingButton'
 import DownloadIcon from '@mui/icons-material/Download';
-
 import Human from "../../../public/Human2.png"
 import Mouse from "../../../public/Mouse2.png"
-
 import Config from "../../config.json"
 import { useEffect, useMemo, useState } from "react";
-
 import { Biosample } from "./types";
 import React from "react";
-
 import Image from "next/image";
+import { ApolloQueryResult } from "@apollo/client";
+import { downloadTSV } from "./utils";
 
 interface TabPanelProps {
   children?: React.ReactNode;
   value: number;
-  biosamples: any;
+  biosamples:  -1 | ApolloQueryResult<any>;
 }
 
 const PROMOTER_MESSAGE =
@@ -43,14 +40,17 @@ const ENHANCER_MESSAGE =
 const CTCF_MESSAGE = "cCREs with high CTCF-signal. These cCRE may also be classified as promoters, enhancer, or CTCF-only elements."
 const LINK_MESSAGE = "cCRE-gene links curated from Hi-C, ChIA-PET, CRISPR perturbations and eQTL data."
 
-
+/**
+ * 
+ * @param selected The selected biosample
+ * @returns The link to download biosample-specific cCREs
+ */
 function generateBiosampleURL(selected: Biosample): URL {
   const r = [selected.dnase_signal, selected.h3k4me3_signal, selected.h3k27ac_signal, selected.ctcf_signal].filter((x) => !!x)
   return new URL(`https://downloads.wenglab.org/Registry-V4/${r.join("_")}.bed`)
 }
 
-// This needs to be moved and imports
-export const DownloadButton = (props: ButtonProps & { label: string }) => {
+const DownloadButton = (props: ButtonProps & { label: string }) => {
   return (
     <Button
       sx={{ textTransform: "none" }}
@@ -65,30 +65,11 @@ export const DownloadButton = (props: ButtonProps & { label: string }) => {
   )
 }
 
-//Imported from old SCREEN
-function downloadBlob(blob, filename) {
-  const url = URL.createObjectURL(blob)
-  const downloadLink = document.createElement("a")
-  downloadLink.href = url
-  downloadLink.download = filename
-  document.body.appendChild(downloadLink)
-  downloadLink.click()
-  document.body.removeChild(downloadLink)
-}
-
-//Imported from old SCREEN
-//Move to utils
-export function downloadTSV(text, filename) {
-  downloadBlob(new Blob([text], { type: "text/plain" }), filename)
-}
-
-
-//So I don't forget, I think that using PascalCase is useful when defining JSX-returning functions since JSX elements are PascalCase
 function ComboBox(props: { options: Biosample[], label: string, mode: "H-promoter" | "H-enhancer" | "H-ctcf" | "M-promoter" | "M-enhancer" | "M-ctcf" }): JSX.Element {
   const [toDownload, setToDownload] = useState<URL | null>(null)
   const [selectedBiosample, setSelectedBiosample] = useState<Biosample | null>(null)
 
-  //Not sure if this is necessary to use useMemo. All I want is to prevent this switch case block from being executed for each line of the file
+  //Not sure if this is strictly necessary to use useMemo
   const stringToMatch: string = useMemo(() => {
     switch (props.mode) {
       case "H-promoter":
@@ -121,7 +102,7 @@ function ComboBox(props: { options: Biosample[], label: string, mode: "H-promote
           )
           setToDownload(null)
         })
-  }, [toDownload])
+  }, [toDownload, props.mode, selectedBiosample, stringToMatch])
 
   return (
     <React.Fragment>
@@ -133,7 +114,6 @@ function ComboBox(props: { options: Biosample[], label: string, mode: "H-promote
         sx={{ width: 300 }}
         //This spread is giving a warning. Code comes from MUI. Can't remove it though or doesn't work...
         renderInput={(params) => <TextField {...params} label={props.label} />}
-        //Replace underlines with space using regex. Can the logic be simplified it's kinda gross looking with all the parentheses? If not make separate function. Yes! change to the logic used un the button template string
         getOptionLabel={(biosample: Biosample) => biosample.name.replace(/_/g, " ") + " — Exp ID: " + (props.mode === "H-promoter" || props.mode === "M-promoter" ? biosample.h3k4me3 : props.mode === "H-enhancer" || props.mode === "M-enhancer" ? biosample.h3k27ac : biosample.ctcf)}
         blurOnSelect
         onChange={(event, value: any) => setSelectedBiosample(value)}
@@ -158,7 +138,7 @@ function ComboBox(props: { options: Biosample[], label: string, mode: "H-promote
 }
 
 export function QuickStart(props: TabPanelProps) {
-  const biosamples = props.biosamples.data
+  const biosamples = props.biosamples !== -1 && props.biosamples.data
 
   //Filter query return
   const humanPromoters: Biosample[] = useMemo(() => ((biosamples && biosamples.human && biosamples.human.biosamples) || []).filter((x: Biosample) => x.h3k4me3 !== null), [biosamples])
@@ -175,7 +155,7 @@ export function QuickStart(props: TabPanelProps) {
       aria-labelledby={`simple-tab-${0}`}
     >
       {props.value === 0 &&
-        <Grid2 container columnSpacing={6} rowSpacing={3} mt={1}>
+        <Grid2 container columnSpacing={{xs: 4, md: 6}} rowSpacing={3} mt={1}>
           {/* Titles */}
           <Grid2 display="flex" alignItems="flex-start" flexDirection="column" xsOffset={2} xs={3.75}>
             <Typography mt="auto" variant="h5">Human (GRCh38/hg38)</Typography>
@@ -183,7 +163,7 @@ export function QuickStart(props: TabPanelProps) {
             <Divider variant="fullWidth" />
             <Typography variant="subtitle1">2,348,854 cCREs • 1,678 cell types</Typography>
           </Grid2>
-          <Grid2 display="flex" justifyContent="flex-end" xs={1.25}>
+          <Grid2 justifyContent="flex-end" xs={1.25}>
             <Image src={Human} alt={"Human Icon"} height={75} />
           </Grid2>
           <Grid2 display="flex" alignItems="flex-start" flexDirection="column" xs={3.75}>
@@ -191,7 +171,7 @@ export function QuickStart(props: TabPanelProps) {
             <Divider />
             <Typography variant="subtitle1">926,843 cCREs • 366 cell types</Typography>
           </Grid2>
-          <Grid2 display="flex" justifyContent="flex-end" xs={1.25}>
+          <Grid2 justifyContent="flex-end" xs={1.25}>
             <Image src={Mouse} alt={"Mouse Icon"} height={75} />
           </Grid2>
           {/* All cCREs */}

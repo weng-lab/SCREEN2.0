@@ -146,7 +146,7 @@ export function DataMatrices(props: TabPanelProps) {
       )
     }
     ,
-    [data, lifeStage, colorBy, tSelected, selectedAssay, props.matrices]
+    [data, lifeStage, colorBy, tSelected]
   )
   const xMin = useMemo(
     () => (bounds ? Math.floor(bounds.x.start) : nearest5(Math.min(...((fData && fData.map((x) => x.umap_coordinates[0])) || [0])), true)),
@@ -181,7 +181,7 @@ export function DataMatrices(props: TabPanelProps) {
           },
         }))) ||
       [],
-    [fData, scMap, colorBy, searched, oMap, bounds]
+    [fData, scMap, colorBy, searched, oMap, xMin, xMax, yMin, yMax]
   )
 
   // Direct copy from old SCREEN
@@ -240,7 +240,7 @@ export function DataMatrices(props: TabPanelProps) {
           }
         }}
         endIcon={(selectedAssay && selectedAssay.assembly === variant.assembly && selectedAssay.assay === variant.assay) ? <ArrowForward /> : null}
-        sx={{ mb: 1, textTransform: "none", borderLeft: `${(selectedAssay && selectedAssay.assembly === variant.assembly && selectedAssay.assay === variant.assay) ? "1.5rem" : "0.75rem"} solid ${borderColor(variant.assay)}`, '&:hover': { borderLeft: `1.5rem solid ${borderColor(variant.assay)}` } }}
+        sx={{ mb: 1, textTransform: "none", borderLeft: `${(selectedAssay && selectedAssay.assembly === variant.assembly && selectedAssay.assay === variant.assay) ? "1.5rem" : "0.40rem"} solid ${borderColor(variant.assay)}`, '&:hover': { borderLeft: `1.5rem solid ${borderColor(variant.assay)}` } }}
       >
         {`${variant.assay}`}
       </Button>
