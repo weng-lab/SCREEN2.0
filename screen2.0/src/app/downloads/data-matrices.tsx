@@ -462,7 +462,7 @@ export function DataMatrices(props: TabPanelProps) {
                     </Button>
                   </Stack>
                 }
-                <Accordion>
+                <Accordion elevation={2}>
                   <AccordionSummary expandIcon={<ExpandMore />}>
                     Legend
                   </AccordionSummary>
