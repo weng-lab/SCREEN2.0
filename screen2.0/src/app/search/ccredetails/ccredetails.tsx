@@ -16,6 +16,7 @@ import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos"
 import Divider from "@mui/material/Divider"
 import { GeneExpression } from "./gene-expression"
 import { defaultTheme } from "../../../common/lib/themes"
+import { ConfigureGenomeBrowser } from "./genomebrowser"
 
 type CcreDetailsProps = {
   accession: string
@@ -99,6 +100,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
                       <StyledTab label="Linked cCREs in other Assemblies" sx={{ alignSelf: "start" }} />
                       <StyledTab label="Associated RAMPAGE Signal" sx={{ alignSelf: "start" }} />
                       <StyledTab label="Associated Gene Expression" sx={{ alignSelf: "start" }} />
+                      <StyledTab label="Congifure Genome Browser" sx={{ alignSelf: "start" }} />
                     </Tabs>
                   </Box>
                 </Box>
@@ -172,6 +174,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
             {value === 5 && <Ortholog accession={accession} assembly={assembly} />}
             {value === 6 && <Rampage accession={accession} assembly={assembly} chromosome={region.chrom} />}
             {value === 7 && <GeneExpression accession={accession} assembly={assembly} genes={genes} hamburger={open} />}
+            {value === 8 && <ConfigureGenomeBrowser assembly={assembly} />}
           </Grid2>
         </Grid2>
       </Paper>
