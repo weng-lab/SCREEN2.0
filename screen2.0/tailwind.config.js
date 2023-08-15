@@ -11,8 +11,4 @@ module.exports = {
     },
   },
   plugins: [require("prettier-plugin-tailwindcss")],
-  // corePlugins: {
-  //   preflight: false,
-  // },
-  // important: '#root',
 }
