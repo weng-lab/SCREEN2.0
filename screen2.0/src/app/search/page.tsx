@@ -2,7 +2,7 @@
 import { CcreSearch } from "./ccresearch"
 import MainQuery, { getGlobals } from "../../common/lib/queries"
 import { ApolloQueryResult } from "@apollo/client"
-import { cCREData, CellTypeData, MainQueryParams } from "./types"
+import { cCREData, CellTypeData, MainQueryParams, MainResultTableRows } from "./types"
 import { checkTrueFalse, passesCriteria } from "../../common/lib/filter-helpers"
 
 export default async function Search({
@@ -72,25 +72,14 @@ export default async function Search({
    * @param QueryResult Result from Main Query
    * @returns rows usable by the DataTable component
    */
-  const generateRows = (QueryResult: ApolloQueryResult<any>, biosample: string | null) => {
-    const rows: {
-      //atac will need to be changed from string to number when that data is available
-      accession: string
-      class: string
-      chromosome: string
-      start: string
-      end: string
-      dnase?: number
-      atac: string
-      h3k4me3?: number
-      h3k27ac?: number
-      ctcf?: number
-      linkedGenes: { pc: { name: string }[]; all: { name: string }[] }
-    }[] = []
+  function generateRows(QueryResult: ApolloQueryResult<any>, biosample: string | null): MainResultTableRows {
+    const rows: MainResultTableRows = []
     const cCRE_data: cCREData[] = QueryResult.data.cCRESCREENSearch
     let offset = 0
+    // I think I need to add the queries right here as it has easy access to the accession which is needed for the first linked genes query, and the result can be tacked on to the rest of the data
     cCRE_data.forEach((currentElement, index) => {
       if (passesCriteria(currentElement, biosample, mainQueryParams)) {
+        // add accession to the array
         rows[index - offset] = {
           accession: currentElement.info.accession,
           class: currentElement.pct,
@@ -103,15 +92,22 @@ export default async function Search({
           h3k4me3: biosample ? currentElement.ctspecific.h3k4me3_zscore : currentElement.promoter_zscore,
           h3k27ac: biosample ? currentElement.ctspecific.h3k27ac_zscore : currentElement.enhancer_zscore,
           ctcf: biosample ? currentElement.ctspecific.ctcf_zscore : currentElement.ctcf_zscore,
-          linkedGenes: { pc: currentElement.genesallpc.pc.intersecting_genes, all: currentElement.genesallpc.all.intersecting_genes },
+          linkedGenes: { distancePC: currentElement.genesallpc.pc.intersecting_genes, distanceAll: currentElement.genesallpc.all.intersecting_genes, CTCF_ChIAPET: [], RNAPII_ChIAPET: [] },
         }
       }
+
       // Offset incremented to account for missing rows which do not meet filter criteria
       else {
         offset += 1
       }
     })
 
+    //Call query 1 with array
+    //Create new array from result
+    //Create blank array for genes
+    //iterate over the new array, and add gene IDS to the blank array
+    // Want an array of object that are {Accession}
+    //Eventually, will need to iterate over the rows and add the gene name (query 2) and linking method (query 1) to each accession
     return rows
   }
 

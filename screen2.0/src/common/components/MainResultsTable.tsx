@@ -6,8 +6,9 @@ import React from "react"
 import { Box, Button, Typography } from "@mui/material"
 import Link from "next/link"
 import { ObjectFlags } from "typescript"
+import { MainResultTableRow, MainResultTableRows } from "../../app/search/types"
 
-let COLUMNS = (rows) => {
+let COLUMNS = (rows: MainResultTableRows) => {
   // can prob just use link instead here
   const router = useRouter()
   const pathname = usePathname()
@@ -23,7 +24,7 @@ let COLUMNS = (rows) => {
     [searchParams]
   )
 
-  let col: DataTableColumn<any>[] = [
+  let col: DataTableColumn<MainResultTableRow>[] = [
     {
       header: "Accession",
       value: (row: { accession: string }) => row.accession,
@@ -38,15 +39,16 @@ let COLUMNS = (rows) => {
     },
     {
       header: "Start",
-      value: (row: { start: number }) => row.start,
+      value: (row: { start: string }) => row.start,
     },
     {
       header: "End",
-      value: (row: { end: number }) => row.end,
+      value: (row: { end: string }) => row.end,
     },
     {
       header: "ATAC",
-      value: (row: { atac: number }) => row.atac,
+      //Atac is a string because the data does not exist and is "TBD" for now
+      value: (row: { atac: string }) => row.atac,
     },
   ]
 
@@ -82,23 +84,23 @@ let COLUMNS = (rows) => {
     render: (row) => (
       <Box>
         <Typography variant="body2" display="inline">
-          {`PC: `}
+          {`PC:\u00A0`}
         </Typography>
         <Typography variant="body2" color="primary" display="inline">
-          {Object.values(row.linkedGenes.pc).map((gene: { name: string; __typename: string }, i: number) => (
+          {Object.values(row.linkedGenes.distancePC).map((gene: { name: string; __typename: string }, i: number) => (
             <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?gene=${gene.name}`}>
-              {i < row.linkedGenes.all.length - 1 ? `\u00A0${gene.name}, ` : `\u00A0${gene.name}`}
+              {i < row.linkedGenes.distanceAll.length - 1 ? `\u00A0${gene.name},\u00A0` : `\u00A0${gene.name}`}
             </a>
           ))}
         </Typography>
         <Typography></Typography>
         <Typography variant="body2" display="inline">
-          {`All: `}
+          {`All:\u00A0`}
         </Typography>
         <Typography variant="body2" color="primary" display="inline">
-          {Object.values(row.linkedGenes.all).map((gene: { name: string; __typename: string }, i: number) => (
+          {Object.values(row.linkedGenes.distanceAll).map((gene: { name: string; __typename: string }, i: number) => (
             <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?gene=${gene.name}`}>
-              {i < row.linkedGenes.all.length - 1 ? `\u00A0${gene.name}, ` : `\u00A0${gene.name}`}
+              {i < row.linkedGenes.distanceAll.length - 1 ? `\u00A0${gene.name},\u00A0` : `\u00A0${gene.name}`}
             </a>
           ))}
         </Typography>

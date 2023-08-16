@@ -1,7 +1,7 @@
 export type GenomicRegion = {
   chrom: string
-  start: number
-  end: number
+  start: string
+  end: string
 }
 
 export type cCREData = {
@@ -110,3 +110,27 @@ export type FilteredBiosampleData = [
     }
   }[]
 ][]
+
+export type MainResultTableRows = MainResultTableRow[]
+
+export type MainResultTableRow = {
+  //atac will need to be changed from string to number when that data is available
+  accession: string
+  class: string
+  chromosome: string
+  start: string
+  end: string
+  dnase?: number
+  atac: string
+  h3k4me3?: number
+  h3k27ac?: number
+  ctcf?: number
+  linkedGenes: LinkedGenesData
+}
+
+export type LinkedGenesData = {
+  distancePC: { name: string }[],
+  distanceAll: { name: string }[],
+  CTCF_ChIAPET: { name: string }[],
+  RNAPII_ChIAPET: { name: string }[]
+}
