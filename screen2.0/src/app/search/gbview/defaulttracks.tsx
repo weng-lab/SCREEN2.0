@@ -1,0 +1,366 @@
+import { gql, useQuery } from "@apollo/client";
+import { associateBy } from "queryz"
+import { BigWigData, BigBedData, BigZoomData } from "bigwig-reader";
+import React, { RefObject, useEffect, useMemo, useState } from "react";
+import { DenseBigBed, EmptyTrack, FullBigWig } from "umms-gb";
+import {
+  BigRequest,
+  RequestError,
+} from "umms-gb/dist/components/tracks/trackset/types";
+import { ValuedPoint } from "umms-gb/dist/utils/types";
+import { client } from "../ccredetails/client"
+import CCRETooltip from "./ccretooltip"
+/*
+export const DEFAULT_TRACKS = (
+  assembly: string
+): Map<string, { url: string }> => {
+    console.log
+return assembly.toLowerCase() === "mm10"
+    ? new Map([
+        ["All cCREs colored by group", { url: `gs://gcp.wenglab.org/${assembly}-cCREs.bigBed` }],
+        ["Aggregated DNase-seq signal, all Registry biosamples", { url: `gs://gcp.wenglab.org/dnase.${assembly}.sum.bigWig` }],
+      ]) :
+  new Map([
+    [
+      "All cCREs colored by group",
+      {
+        url: "gs://gcp.wenglab.org/GRCh38-cCREs.bigBed",
+      },
+    ],
+    [
+      "Aggregated DNase-seq signal, all Registry biosamples",
+      {
+        url: "gs://gcp.wenglab.org/dnase.GRCh38.sum.bigWig",
+      },
+    ],
+    [
+      "Aggregated H3K4me3 ChIP-seq signal, all Registry biosamples",
+      {
+        url: "gs://gcp.wenglab.org/h3k4me3.hg38.sum.bigWig",
+      },
+    ]
+    ,
+    [
+      "Aggregated H3K27ac ChIP-seq signal, all Registry biosamples",
+      {
+        url: "gs://gcp.wenglab.org/h3k27ac.hg38.sum.bigWig",
+      },
+    ],
+    [
+      "Aggregated CTCF ChIP-seq signal, all Registry biosamples",
+      {
+        url: "gs://gcp.wenglab.org/ctcf.hg38.sum.bigWig",
+      },
+    ]
+
+  ]);
+}
+
+export const TRACK_ORDER = (assembly) => {return assembly.toLowerCase() === "mm10" ?  [  "All cCREs colored by group",
+"Aggregated DNase-seq signal, all Registry biosamples"]
+:[
+    "All cCREs colored by group",
+    "Aggregated DNase-seq signal, all Registry biosamples",
+    "Aggregated H3K4me3 ChIP-seq signal, all Registry biosamples",
+    "Aggregated H3K27ac ChIP-seq signal, all Registry biosamples",
+    "Aggregated CTCF ChIP-seq signal, all Registry biosamples"
+  
+]};
+
+export const tracks = (assembly: string, pos: GenomicRange) =>
+  TRACK_ORDER(assembly).map((x) => ({
+    chr1: pos.chromosome!,
+    start: pos.start,
+    end: pos.end,
+    ...DEFAULT_TRACKS(assembly).get(x)!,
+    preRenderedWidth: 1400,
+  }));
+*/
+export const BIG_QUERY = gql`
+  query BigRequests($bigRequests: [BigRequest!]!) {
+    bigRequests(requests: $bigRequests) {
+      data
+      error {
+        errortype
+        message
+      }
+    }
+  }
+`;
+
+export const COLOR_MAP : Map<string, string> =
+    new Map([
+        [
+            "Aggregated DNase-seq signal, all Registry biosamples",
+            "#06da93"
+            
+          ],
+          [
+            "Aggregated H3K4me3 ChIP-seq signal, all Registry biosamples",
+            "#ff0000"
+            
+          ]
+          ,
+          [
+            "Aggregated H3K27ac ChIP-seq signal, all Registry biosamples",
+            "#ffcd00"
+            
+          ],
+          [
+            "Aggregated CTCF ChIP-seq signal, all Registry biosamples",
+            "#00b0d0"
+            
+          ]
+    ]);
+
+type GenomicRange = {
+  chromosome?: string;
+  start: number;
+  end: number;
+};
+
+export type BigResponseData =
+  | BigWigData[]
+  | BigBedData[]
+  | BigZoomData[]
+  | ValuedPoint[];
+
+export type BigResponse = {
+  data: BigResponseData;
+  error: RequestError
+};
+
+export type BigQueryResponse = {
+  bigRequests: BigResponse[];
+};
+
+type DefaultTracksProps = {
+  //tracks: BigRequest[];
+  domain: GenomicRange;
+  onHeightChanged?: (i: number) => void;
+  cCREHighlight?: GenomicRange;
+  cCREHighlights?: Set<string>;
+  svgRef?: RefObject<SVGSVGElement>;
+  assembly: string;
+  oncCREClicked?: (accession: string) => void;
+  oncCREMousedOver?: (coordinates?: GenomicRange) => void;
+  oncCREMousedOut?: () => void;
+  onSettingsClick?: () => void;
+};
+
+export const TitledTrack: React.FC<{
+  data: BigResponseData;
+  assembly: string;
+  url: string;
+  title: string;
+  color?: string;
+  height: number;
+  transform?: string;
+  onHeightChanged?: (height: number) => void;
+  domain: GenomicRange;
+  svgRef?: React.RefObject<SVGSVGElement>;
+  oncCREMousedOver?: (coordinates?: GenomicRange) => void;
+  oncCREMousedOut?: () => void;
+  cCRECoordinateMap?: any;
+  biosample?: string
+}> = ({
+  data,
+  assembly,
+  url,
+  title,
+  height,
+  domain,
+  transform,
+  onHeightChanged,
+  svgRef,
+  color,
+  oncCREMousedOver,
+  oncCREMousedOut,
+  cCRECoordinateMap,
+  biosample
+}) => {
+  useEffect(
+    () => onHeightChanged && onHeightChanged(height + 40),
+    [height, onHeightChanged]
+  );
+  console.log(color,title)
+  return (
+    <g transform={transform}>
+      <EmptyTrack
+        height={40}
+        width={1400}
+        transform="translate(0,8)"
+        id=""
+        text={title}
+      />
+      {(url.endsWith(".bigBed") || url.endsWith(".bigbed")) ? (
+        <DenseBigBed
+          width={1400}
+          height={height}
+          domain={domain}
+          id={url}
+          transform="translate(0,40)"
+          data={data as BigBedData[]}
+          svgRef={svgRef}
+          tooltipContent={(rect) => <CCRETooltip {...rect} assembly={assembly.toLowerCase()} biosample={biosample} />}
+          onMouseOver={(x) => oncCREMousedOver && x.name && oncCREMousedOver(cCRECoordinateMap.get(x.name))}
+            onMouseOut={oncCREMousedOut}
+        />
+      ) : (
+        <FullBigWig
+          transform="translate(0,40)"
+          width={1400}
+          height={height}
+          domain={domain}
+          id={url}
+          color={color}
+          data={data as BigWigData[]}
+          noTransparency
+        />
+      )}
+    </g>
+  );
+};
+
+const DefaultTracks: React.FC<DefaultTracksProps> = (props) => {
+    
+  const [cTracks, setTracks] = useState<[string, string][]>( props.assembly.toLowerCase()==='mm10' ? [
+    [
+        "All cCREs colored by group",
+         "gs://gcp.wenglab.org/mm10-cCREs.bigBed",
+        
+      ],
+      [
+        "Aggregated DNase-seq signal, all Registry biosamples",
+       "gs://gcp.wenglab.org/dnase.mm10.sum.bigWig",
+       
+        
+      ],
+  ] :  [
+    [
+        "All cCREs colored by group",
+         "gs://gcp.wenglab.org/GRCh38-cCREs.bigBed",
+        
+      ],
+      [
+        "Aggregated DNase-seq signal, all Registry biosamples",
+       "gs://gcp.wenglab.org/dnase.GRCh38.sum.bigWig",
+        
+      ],
+      [
+        "Aggregated H3K4me3 ChIP-seq signal, all Registry biosamples",
+         "gs://gcp.wenglab.org/h3k4me3.hg38.sum.bigWig",
+        
+      ]
+      ,
+      [
+        "Aggregated H3K27ac ChIP-seq signal, all Registry biosamples",
+        "gs://gcp.wenglab.org/h3k27ac.hg38.sum.bigWig",
+        
+      ],
+      [
+        "Aggregated CTCF ChIP-seq signal, all Registry biosamples",
+         "gs://gcp.wenglab.org/ctcf.hg38.sum.bigWig",
+        
+      ]
+  ]);
+  const height = useMemo(() => cTracks.length * 80, [cTracks]);
+  const bigRequests = useMemo(
+    () =>
+      cTracks.map((x) => ({
+        chr1: props.domain.chromosome!,
+        start: props.domain.start,
+        end: props.domain.end,
+        preRenderedWidth: 1400,
+        url: x[1],
+      })),
+    [cTracks, props]
+  );
+  const { data, loading } = useQuery<BigQueryResponse>(BIG_QUERY, {
+    variables: { bigRequests },
+    client
+  });
+  const cCRECoordinateMap = useMemo(
+    () =>
+      associateBy(
+        (data && data.bigRequests && data.bigRequests[0].data) || [],
+        (x) => x.name,
+        (x) => ({ chromosome: x.chr, start: x.start, end: x.end })
+      ),
+    [data]
+  )
+  useEffect(() => {
+    props.onHeightChanged && props.onHeightChanged(height);
+  }, [props.onHeightChanged, height, props]);
+
+  const [settingsMousedOver, setSettingsMousedOver] = useState(false);
+  const [settingsModalShown, setSettingsModalShown] = useState(false);
+
+  return loading || (data?.bigRequests.length || 0) < 2 ? (
+    <EmptyTrack width={1400} height={40} transform="" id="" text="Loading..." />
+  ) : (
+    <>
+      <g className="encode-fetal-brain">
+        <rect y={10} height={55} fill="none" width={1400} />
+      </g>
+      {(data?.bigRequests || []).map((data, i) => (
+        <TitledTrack
+        assembly={props.assembly}
+        oncCREMousedOut={props.oncCREMousedOut}
+        oncCREMousedOver={props.oncCREMousedOver}
+          height={40}
+          biosample={undefined}
+          url={cTracks[i][1]}
+          domain={props.domain}
+          title={cTracks[i][0]}
+          svgRef={props.svgRef}
+          data={data.data}
+          color={COLOR_MAP.get(cTracks[i][0])}
+          transform={`translate(0,${i * 70})`}
+          cCRECoordinateMap={cCRECoordinateMap}
+        />
+      ))}
+      <g className="tf-motifs">
+        <rect y={110} height={55} fill="none" width={1400} />
+      </g>
+      {settingsMousedOver && (
+        <rect
+          width={1400}
+          height={height}
+          transform="translate(0,-0)"
+          fill="#4c1f8f"
+          fillOpacity={0.1}
+        />
+      )}
+      <rect
+        transform="translate(0,0)"
+        height={height}
+        width={40}
+        fill="#ffffff"
+      />
+      <rect
+        height={height}
+        width={15}
+        fill="#4c1f8f"
+        stroke="#000000"
+        fillOpacity={settingsMousedOver ? 1 : 0.6}
+        onMouseOver={() => setSettingsMousedOver(true)}
+        onMouseOut={() => setSettingsMousedOver(false)}
+        strokeWidth={1}
+        transform="translate(20,0)"
+        onClick={() => {
+          props.onSettingsClick && props.onSettingsClick();
+          setSettingsModalShown(true);
+        }}
+      />
+      <text
+        transform={`rotate(270) translate(-${height / 2},12)`}
+        textAnchor="middle"
+        fill="#4c1f8f"
+      >
+        Aggregated signal Tracks
+      </text>
+    </>
+  );
+};
+export default DefaultTracks;

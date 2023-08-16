@@ -1,23 +1,31 @@
 "use client"
-import * as React from "react"
-
+import React, {useState} from "react"
+import Grid from "@mui/material/Grid";
 import { InputBase, Switch, Stack, Typography, TextField, FormHelperText, IconButton, InputAdornment, InputBaseProps } from "@mui/material"
-
 import SearchIcon from "@mui/icons-material/Search"
-
 import GenomeSwitch from "./GenomeSwitch"
-
 import { useRouter } from "next/navigation"
-
+import MenuItem from "@mui/material/MenuItem";
+import FormControl from "@mui/material/FormControl";
+import Select, { SelectChangeEvent } from "@mui/material/Select";
+import { CcreAutoComplete } from "./CcreAutocomplete";
+import { GeneAutoComplete } from "./GeneAutocomplete";
+import { SnpAutoComplete} from "./SnpAutocomplete";
+import { CelltypeAutocomplete } from "./CelltypeAutocomplete"
 export type MainSearchProps = InputBaseProps & {
   //false for human, true for mouse
   initialChecked?: boolean
 }
 
 const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) => {
-  const [value, setValue] = React.useState("")
-  const [checked, setChecked] = React.useState(props.initialChecked || false)
-
+  const [value, setValue] = useState("")
+  const [checked, setChecked] = useState(props.initialChecked || false)
+  const [selectedSearch, setSelectedSearch] = useState<string>("Genomic Region");
+  const assembly = checked ? "mm10" : "GRCh38"
+  const handleSearchChange = (event: SelectChangeEvent) => {
+    
+    setSelectedSearch(event.target.value);
+  };
   const router = useRouter()
 
   const handleChange = (event: { target: { value: React.SetStateAction<string> } }) => {
@@ -41,12 +49,30 @@ const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) => {
 
   return (
     <Stack direction={"row"} sx={{ mt: "1em", display: "flex", flexGrow: 1 }}>
-      <TextField
-        fullWidth
+       <Grid container>
+        <Grid item>
+       <FormControl variant="standard">
+            <Select
+            fullWidth
+              id="select-search"
+              value={selectedSearch}
+              onChange={handleSearchChange}
+            >
+              <MenuItem value={"Genomic Region"}>Genomic Region</MenuItem>
+              <MenuItem value={"cCRE Accession"}>cCRE Accession</MenuItem>
+              <MenuItem value={"SNP rsID"}>SNP rsID</MenuItem>
+              <MenuItem value={"Gene Name"}>Gene Name</MenuItem>
+              <MenuItem value={"Cell Type"}>Cell Type</MenuItem>
+            </Select>
+          </FormControl>
+          </Grid>
+          <Grid item>
+      {selectedSearch==="Genomic Region" ? <TextField
+        
         variant="outlined"
         InputLabelProps={{ shrink: true }}
-        label="Enter a gene name or alias, a genomic region in the form chr:start-end, a SNP rsID, or a cCRE accession."
-        placeholder='"K562”, “chr11:5205263-5381894", "rs4846913", "EH38E1613479"'
+        label="Enter a genomic region in form chr:start-end."
+        placeholder='chr11:5205263-5381894'
         // helperText='You may also enter a cell type name to filter results.'
         value={value}
         onChange={handleChange}
@@ -64,13 +90,17 @@ const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) => {
             </InputAdornment>
           ),
         }}
-        sx={{ mr: "1em" }}
-      />
+        sx={{ mr: "1em", ml:"1em" }}
+      /> : selectedSearch==="Gene Name" ? <GeneAutoComplete assembly={assembly}/> : selectedSearch==="SNP rsID" ? <SnpAutoComplete assembly={assembly}/> : selectedSearch==="Cell Type"? <CelltypeAutocomplete assembly={assembly}/> : <CcreAutoComplete assembly={assembly}  />}
+      </Grid>
+      <Grid>
       <GenomeSwitch
         initialChecked={props.initialChecked && props.initialChecked}
         checked={checked}
         onSwitchChange={(checked) => setChecked(checked)}
       />
+      </Grid>
+      </Grid>
     </Stack>
   )
 }

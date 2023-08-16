@@ -14,6 +14,7 @@ export default async function Search({
   //Get search parameters and define defaults.
   const mainQueryParams: MainQueryParams = {
     assembly: searchParams.assembly === "GRCh38" || searchParams.assembly === "mm10" ? searchParams.assembly : "GRCh38",
+    gene: searchParams.gene,
     chromosome: searchParams.chromosome ? searchParams.chromosome : "chr11",
     start: searchParams.start ? Number(searchParams.start) : 5205263,
     end: searchParams.end ? Number(searchParams.end) : 5381894,

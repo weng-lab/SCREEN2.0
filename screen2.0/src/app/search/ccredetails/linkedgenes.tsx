@@ -27,7 +27,7 @@ export const LinkedGenes: React.FC<{ accession: string; assembly: string }> = ({
   const { loading: loading_linked, data: data_linked } = useQuery(LINKED_GENES, {
     variables: {
       assembly,
-      accession,
+      accession: [accession],
     },
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
