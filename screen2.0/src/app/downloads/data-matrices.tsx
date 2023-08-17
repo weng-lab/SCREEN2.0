@@ -235,7 +235,7 @@ export function DataMatrices(props: TabPanelProps) {
         fullWidth
         onClick={() => {
           if (selectedAssay && selectedAssay.assembly !== variant.assembly || selectedAssay.assay !== variant.assay) {
-            router.push(`./downloads?tab=2&assembly=${variant.assembly}&assay=${variant.assay}`)
+            router.push(`/downloads?tab=2&assembly=${variant.assembly}&assay=${variant.assay}`)
             setSelectedAssay(variant)
           }
         }}
@@ -373,7 +373,7 @@ export function DataMatrices(props: TabPanelProps) {
                   renderInput={(params) => <TextField {...params} label={"Search for a Biosample"} />}
                   getOptionLabel={(biosample: BiosampleUMAP) => biosample.displayname + " — Exp ID: " + biosample.experimentAccession}
                   blurOnSelect
-                  onChange={(event, value: any) => setSearched(value)}
+                  onChange={(_, value: any) => setSearched(value)}
                   size="small"
                 />
                 <FormControl>
