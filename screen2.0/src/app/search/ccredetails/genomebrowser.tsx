@@ -1,6 +1,5 @@
 import React, { useEffect } from "react"
-import { Button } from "@mui/base"
-import { Box, Checkbox, FormControlLabel, FormGroup, Paper, Typography } from "@mui/material"
+import { Box, Button, Checkbox, FormControlLabel, FormGroup, Paper, Typography } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { ErrorMessage, createLink } from "../../../common/lib/utility"
@@ -9,11 +8,13 @@ import { cellTypeInfoArr } from "../../applets/differential-gene-expression/type
 import CheckIcon from '@mui/icons-material/Check'
 import { GenomeBrowserTooltip } from './const'
 import { enhancerYellow } from "../../../common/lib/colors"
+import { useRouter } from "next/navigation"
 
 export const ConfigureGenomeBrowser = (props: {assembly: string, chromosome: string}) => {
+    const router = useRouter
     const [loading, setLoading] = useState<boolean>(true)
     const [cellTypes, setCellTypes] = useState<cellTypeInfoArr>()
-    const [checked, setChecked] = useState<{[id: string]: boolean}>()
+    const [checked, setChecked] = useState<{[id: string]: boolean}>({})
     const [range, setRange] = useState<number[]>([0, 100000])
 
     // fetch list of cell types
@@ -118,6 +119,8 @@ export const ConfigureGenomeBrowser = (props: {assembly: string, chromosome: str
                         { header: "RNA-seq", value: (row: any) => row.rnaseq, render: (row: any) => <CheckIcon /> }
                       ]}
                       onRowClick={(row: any) => {
+                        checked[row.biosample_summary] = checked[row.biosample_summary] ? false : true
+                        setChecked(checked)
                         // if (rowHighlight) setRowHighlight([rowHighlight[0], row])
                         // else setRowHighlight([row])
                       }}
@@ -175,6 +178,15 @@ export const ConfigureGenomeBrowser = (props: {assembly: string, chromosome: str
         <Paper>
             <Grid2 container spacing={3}>
               <Grid2 xs={12} m={1}>
+                <Button
+                  sx={{ m: 1 }}
+                  variant="contained"
+                  onClick={() => {
+                    // router.push("")
+                  }}
+                >
+                  Open in UCSC
+                </Button>
                 <Paper>
                   <Typography>Selected Biosamples</Typography>
                   <Typography>
