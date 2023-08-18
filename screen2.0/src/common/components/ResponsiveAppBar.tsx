@@ -42,11 +42,9 @@ import nextConfig from "../../../next.config"
 import screenIcon from "../../../public/screenIcon.png"
 import { defaultTheme } from "../lib/themes"
 
-// CLICKING ON LINKS ONCE THE POPUP IS OPEN IS BROKEN!!!
-
 /*  
   Links for the AppBar. If adding another page with subpages, you need to add another 
-  useState() hook for positionong, and add extra if case in open/close handlers 
+  useState() hook for positioning, and add extra if case in open/close handlers 
 */
 const pageLinks = [
   {
@@ -85,10 +83,10 @@ const pageLinks = [
 
 function ResponsiveAppBar() {
   const [open, setState] = React.useState<boolean>(false)
-  // Hamburger Menu, deals with setting it's position
+  // Hamburger Menu, deals with setting its position
   const [anchorElNav_Hamburger, setAnchorElNav_Hamburger] = React.useState<null | HTMLElement>(null)
 
-  // Hover dropdowns, deals with setting it's position
+  // Hover dropdowns, deals with setting its position
   const [anchorElNav_Dropdown0, setAnchorElNav_Dropdown0] = React.useState<null | HTMLElement>(null)
   const [anchorElNav_Dropdown1, setAnchorElNav_Dropdown1] = React.useState<null | HTMLElement>(null)
 
@@ -120,12 +118,12 @@ function ResponsiveAppBar() {
     }
   }
 
-  const toggleDrawer = (open) => (event) => {
-    if (event.type === "keydown" && (event.key === "Tab" || event.key === "Shift")) {
-      return
-    }
-    setState(open)
-  }
+  // const toggleDrawer = (open) => (event) => {
+  //   if (event.type === "keydown" && (event.key === "Tab" || event.key === "Shift")) {
+  //     return
+  //   }
+  //   setState(open)
+  // }
 
   return (
     <ThemeProvider theme={defaultTheme}>
@@ -279,7 +277,7 @@ function ResponsiveAppBar() {
               <HeaderSearch />
             </Box>
             {/* Settings */}
-            <Box sx={{ ml: 3, flexGrow: 0 }}>
+            {/* <Box sx={{ ml: 3, flexGrow: 0 }}>
               <IconButton
                 edge="start"
                 color="inherit"
@@ -305,7 +303,7 @@ function ResponsiveAppBar() {
                   <Typography variant="h6">Settings</Typography>
                 </Box>
               </Box>
-            </Drawer>
+            </Drawer> */}
           </Toolbar>
         </Container>
       </AppBar>
