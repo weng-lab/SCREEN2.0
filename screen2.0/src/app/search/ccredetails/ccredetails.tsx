@@ -176,7 +176,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
                 {value === 5 && <Ortholog accession={accession} assembly={assembly} />}
                 {value === 6 && <Rampage accession={accession} assembly={assembly} chromosome={region.chrom} />}
                 {value === 7 && <GeneExpression accession={accession} assembly={assembly} genes={genes} hamburger={open} />}
-                {value === 8 && <ChromHMM />}
+                {value === 8 && <ChromHMM accession={accession} assembly={assembly} chromosome={region.chrom} />}
               </Grid2>
             </Grid2>
           </Grid2>
