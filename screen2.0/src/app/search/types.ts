@@ -131,6 +131,6 @@ export type MainResultTableRow = {
 export type LinkedGenesData = {
   distancePC: { name: string }[],
   distanceAll: { name: string }[],
-  CTCF_ChIAPET: { name: string }[],
-  RNAPII_ChIAPET: { name: string }[]
+  CTCF_ChIAPET: { name: string, biosample: string }[],
+  RNAPII_ChIAPET: { name: string, biosample: string }[]
 }
