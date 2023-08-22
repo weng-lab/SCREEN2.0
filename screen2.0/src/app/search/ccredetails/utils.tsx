@@ -27,7 +27,13 @@ import { tissueColors } from "../../../common/lib/colors"
  * @param {Range2D} dimensions size of window to plot on
  * @returns plot of RAMPAGE signals
  */
-export function PlotActivityProfiles(props: { data: any; range: Range2D; dimensions: Range2D, transcriptID: string, transcripts: string[] }) {
+export function PlotActivityProfiles(props: {
+  data: any
+  range: Range2D
+  dimensions: Range2D
+  transcriptID: string
+  transcripts: string[]
+}) {
   const [sort, setSort] = useState<string>("byValue")
   const [zeros, setZeros] = useState<boolean>(false)
   const [collapse, setCollapse] = useState<{ [id: string]: boolean }>({})
@@ -37,22 +43,22 @@ export function PlotActivityProfiles(props: { data: any; range: Range2D; dimensi
   let max: number = 0
 
   Object.values(props.data).map((biosample) => {
-      if (!zeros && biosample["value"] === 0) return
-      else if (biosample["transcriptId"] === props.transcriptID){
-        if (!tissues[biosample["tissue"]]) tissues[biosample["tissue"]] = { sum: 0, values: [] }
-        tissues[biosample["tissue"]].sum += biosample["value"]
-        tissues[biosample["tissue"]].values.push({
-          value: biosample["value"],
-          biosample_term: biosample["name"],
-          expID: biosample["expAccession"],
-          tissue: biosample["tissue"],
-          strand: biosample["strand"],
-          color: tissueColors[biosample["tissue"]] ? tissueColors[biosample["tissue"]] : "#77AABB",
-        })
+    if (!zeros && biosample["value"] === 0) return
+    else if (biosample["transcriptId"] === props.transcriptID) {
+      if (!tissues[biosample["tissue"]]) tissues[biosample["tissue"]] = { sum: 0, values: [] }
+      tissues[biosample["tissue"]].sum += biosample["value"]
+      tissues[biosample["tissue"]].values.push({
+        value: biosample["value"],
+        biosample_term: biosample["name"],
+        expID: biosample["expAccession"],
+        tissue: biosample["tissue"],
+        strand: biosample["strand"],
+        color: tissueColors[biosample["tissue"]] ? tissueColors[biosample["tissue"]] : "#77AABB",
+      })
 
-        if (sort === "byTissueMax" && tissues[biosample["tissue"]].sum > max) max = tissues[biosample["tissue"]].sum
-        else if (biosample["value"] > max) max = biosample["value"]
-      }
+      if (sort === "byTissueMax" && tissues[biosample["tissue"]].sum > max) max = tissues[biosample["tissue"]].sum
+      else if (biosample["value"] > max) max = biosample["value"]
+    }
   })
 
   props.range.x.end = max
@@ -74,7 +80,7 @@ export function PlotActivityProfiles(props: { data: any; range: Range2D; dimensi
             fill={item["color"]}
             onMouseOver={() => {
               {
-                <rect x={125} width={p1.x + 125} y={y + i * 20} height={18} fill="white" />
+                ;<rect x={125} width={p1.x + 125} y={y + i * 20} height={18} fill="white" />
               }
             }}
           >
@@ -122,30 +128,30 @@ export function PlotActivityProfiles(props: { data: any; range: Range2D; dimensi
         </Box>
       </Grid2>
       <Grid2 xs={3} sx={{ alignItems: "right", justifyContent: "right", display: "flex", ml: 0, mr: 0, mt: 2 }}>
-          <Button
-            onClick={() => {
-              let c: { [id: string]: boolean } = {}
-              let uncollapse: boolean = true
-              if (Object.keys(collapse).length !== 0) {
-                Object.keys(collapse).map((b: string) => {
-                  if (collapse[b]) uncollapse = false
-                  c[b] = false
-                })
+        <Button
+          onClick={() => {
+            let c: { [id: string]: boolean } = {}
+            let uncollapse: boolean = true
+            if (Object.keys(collapse).length !== 0) {
+              Object.keys(collapse).map((b: string) => {
+                if (collapse[b]) uncollapse = false
+                c[b] = false
+              })
 
-                if (uncollapse) {
-                  Object.keys(collapse).map((b: string) => {
-                    c[b] = true
-                  })
-                }
-              } else
-                Object.keys(tissues).map((b: string) => {
-                  c[b] = false
+              if (uncollapse) {
+                Object.keys(collapse).map((b: string) => {
+                  c[b] = true
                 })
-              setCollapse(c)
-            }}
-          >
-            Collapse All
-          </Button>
+              }
+            } else
+              Object.keys(tissues).map((b: string) => {
+                c[b] = false
+              })
+            setCollapse(c)
+          }}
+        >
+          Collapse All
+        </Button>
         <Box ml={5}>
           <FormControl key={sort}>
             <FormControlLabel

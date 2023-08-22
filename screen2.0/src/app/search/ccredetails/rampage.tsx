@@ -28,28 +28,24 @@ import { gql, useQuery } from "@apollo/client"
 import { client } from "./client"
 
 const RAMPAGE_QUERY = gql`
-  query rampageQuery(
-    $transcript_ids: [String!]
-  ){
-  rampageQuery(
-    transcript_ids: $transcript_ids
-  ){
-    value
-    type
-    geneId
-    transcriptId
-    biosampleType
-    name
-    lifeStage
-    expAccession
-    fileAccession
-    start
-    organ
-    strand
-    tissue
+  query rampageQuery($transcript_ids: [String!]) {
+    rampageQuery(transcript_ids: $transcript_ids) {
+      value
+      type
+      geneId
+      transcriptId
+      biosampleType
+      name
+      lifeStage
+      expAccession
+      fileAccession
+      start
+      organ
+      strand
+      tissue
+    }
   }
-}`
-
+`
 
 export default function Rampage(props: { accession: string; assembly: string; chromosome: string }) {
   const [loading, setLoading] = useState<boolean>(true)
@@ -107,13 +103,17 @@ export default function Rampage(props: { accession: string; assembly: string; ch
     setLoading(true)
   }, [payload])
 
-  const {loading: loading_rampage, error: error_rampage, data: data_rampage} = useQuery(RAMPAGE_QUERY, {
+  const {
+    loading: loading_rampage,
+    error: error_rampage,
+    data: data_rampage,
+  } = useQuery(RAMPAGE_QUERY, {
     variables: {
-      transcript_ids: transcripts
+      transcript_ids: transcripts,
     },
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
-    client
+    client,
   })
 
   function transcriptItems(transcripts: string[]) {
@@ -126,13 +126,13 @@ export default function Rampage(props: { accession: string; assembly: string; ch
     })
   }
 
-  return error  || error_rampage ? (
+  return error || error_rampage ? (
     <ErrorMessage error={new Error("Error loading data")} />
   ) : loading || loading_rampage ? (
     <LoadingMessage />
   ) : (
     data &&
-    data[payload.accession] && 
+    data[payload.accession] &&
     data_rampage && (
       <Grid2 container spacing={3}>
         <ThemeProvider theme={defaultTheme}>
@@ -143,7 +143,7 @@ export default function Rampage(props: { accession: string; assembly: string; ch
                   <Typography variant="h5" fontSize={30} display="inline">
                     TSS Activity Profiles by RAMPAGE
                   </Typography>
-                  <Tooltip title={RampageToolTipInfo} sx={{ mb: 2, ml: 2}}>
+                  <Tooltip title={RampageToolTipInfo} sx={{ mb: 2, ml: 2 }}>
                     <IconButton>
                       <InfoIcon />
                     </IconButton>
@@ -205,13 +205,13 @@ export default function Rampage(props: { accession: string; assembly: string; ch
             </Toolbar>
           </AppBar>
           <Grid2 xs={12}>
-            <PlotActivityProfiles 
-            data={data_rampage["rampageQuery"]} 
-            range={range} 
-            dimensions={dimensions} 
-            transcriptID={transcript} 
-            transcripts={transcripts}
-          />
+            <PlotActivityProfiles
+              data={data_rampage["rampageQuery"]}
+              range={range}
+              dimensions={dimensions}
+              transcriptID={transcript}
+              transcripts={transcripts}
+            />
           </Grid2>
           {/* <PlotActivityProfiles data={data[payload.accession]} range={range} dimensions={dimensions} /> */}
         </ThemeProvider>

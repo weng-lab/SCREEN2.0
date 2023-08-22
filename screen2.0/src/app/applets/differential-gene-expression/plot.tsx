@@ -73,9 +73,7 @@ export function PlotDifferentialExpression(props: {
           <></>
         ) : (
           <g transform="translate(890,240) rotate(-90)">
-            <text style={{ fontSize: 12, fill: "#549623" }}>
-              log2 gene expression fold change
-            </text>
+            <text style={{ fontSize: 12, fill: "#549623" }}>log2 gene expression fold change</text>
           </g>
         )}
         {!props.toggleccres ? (
