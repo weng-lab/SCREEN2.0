@@ -16,7 +16,6 @@ import {
   Toolbar,
   Tooltip,
   Typography,
-  createTheme,
 } from "@mui/material"
 
 import { Range2D } from "jubilant-carnival"
@@ -25,12 +24,39 @@ import Image from "next/image"
 import { defaultTheme } from "../../../common/lib/themes"
 import InfoIcon from "@mui/icons-material/Info"
 import { RampageToolTipInfo } from "./const"
+import { gql, useQuery } from "@apollo/client"
+import { client } from "./client"
+
+const RAMPAGE_QUERY = gql`
+  query rampageQuery(
+    $transcript_ids: [String!]
+  ){
+  rampageQuery(
+    transcript_ids: $transcript_ids
+  ){
+    value
+    type
+    geneId
+    transcriptId
+    biosampleType
+    name
+    lifeStage
+    expAccession
+    fileAccession
+    start
+    organ
+    strand
+    tissue
+  }
+}`
+
 
 export default function Rampage(props: { accession: string; assembly: string; chromosome: string }) {
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<boolean>(false)
   const [data, setData] = useState()
   const [transcript, setTranscript] = useState<string>("")
+  const [transcripts, setTranscripts] = useState<string[]>([""])
 
   const [payload, setPayload] = useState<{ accession: string; assembly: string; chromosome: string }>({
     accession: props.accession,
@@ -72,6 +98,7 @@ export default function Rampage(props: { accession: string; assembly: string; ch
       .then((data) => {
         setData(data)
         setTranscript(data[payload.accession]["sortedTranscripts"][0])
+        setTranscripts(data[payload.accession]["sortedTranscripts"])
         setLoading(false)
       })
       .catch((error: Error) => {
@@ -79,6 +106,15 @@ export default function Rampage(props: { accession: string; assembly: string; ch
       })
     setLoading(true)
   }, [payload])
+
+  const {loading: loading_rampage, error: error_rampage, data: data_rampage} = useQuery(RAMPAGE_QUERY, {
+    variables: {
+      transcript_ids: transcripts
+    },
+    fetchPolicy: "cache-and-network",
+    nextFetchPolicy: "cache-first",
+    client
+  })
 
   function transcriptItems(transcripts: string[]) {
     return Object.values(transcripts).map((t: string) => {
@@ -90,23 +126,24 @@ export default function Rampage(props: { accession: string; assembly: string; ch
     })
   }
 
-  return error ? (
+  return error  || error_rampage ? (
     <ErrorMessage error={new Error("Error loading data")} />
-  ) : loading ? (
+  ) : loading || loading_rampage ? (
     <LoadingMessage />
   ) : (
     data &&
-    data[payload.accession] && (
+    data[payload.accession] && 
+    data_rampage && (
       <Grid2 container spacing={3}>
         <ThemeProvider theme={defaultTheme}>
           <AppBar position="static" color="secondary">
-            <Toolbar style={{}}>
+            <Toolbar>
               <Grid2 xs={9} md={9} lg={9}>
                 <Box sx={{ mt: 0.5 }}>
-                  <Typography variant="h5" fontSize={30}>
+                  <Typography variant="h5" fontSize={30} display="inline">
                     TSS Activity Profiles by RAMPAGE
                   </Typography>
-                  <Tooltip title={RampageToolTipInfo}>
+                  <Tooltip title={RampageToolTipInfo} sx={{ mb: 2, ml: 2}}>
                     <IconButton>
                       <InfoIcon />
                     </IconButton>
@@ -167,7 +204,16 @@ export default function Rampage(props: { accession: string; assembly: string; ch
               </Grid2>
             </Toolbar>
           </AppBar>
-          <PlotActivityProfiles data={data[payload.accession]} range={range} dimensions={dimensions} />
+          <Grid2 xs={12}>
+            <PlotActivityProfiles 
+            data={data_rampage["rampageQuery"]} 
+            range={range} 
+            dimensions={dimensions} 
+            transcriptID={transcript} 
+            transcripts={transcripts}
+          />
+          </Grid2>
+          {/* <PlotActivityProfiles data={data[payload.accession]} range={range} dimensions={dimensions} /> */}
         </ThemeProvider>
       </Grid2>
     )

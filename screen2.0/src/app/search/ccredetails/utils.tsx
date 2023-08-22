@@ -17,7 +17,8 @@ import { Point2D, Range2D, linearTransform2D } from "jubilant-carnival"
 import { Fragment } from "react"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
-import { RIDItemList, GeneExpEntry } from "../../applets/gene-expression/types"
+import { GeneExpEntry } from "../../applets/gene-expression/types"
+import { tissueColors } from "../../../common/lib/colors"
 
 /**
  * Plots associated RAMPAGE signals
@@ -26,34 +27,32 @@ import { RIDItemList, GeneExpEntry } from "../../applets/gene-expression/types"
  * @param {Range2D} dimensions size of window to plot on
  * @returns plot of RAMPAGE signals
  */
-export function PlotActivityProfiles(props: { data: any; range: Range2D; dimensions: Range2D }) {
+export function PlotActivityProfiles(props: { data: any; range: Range2D; dimensions: Range2D, transcriptID: string, transcripts: string[] }) {
   const [sort, setSort] = useState<string>("byValue")
   const [zeros, setZeros] = useState<boolean>(false)
   const [collapse, setCollapse] = useState<{ [id: string]: boolean }>({})
 
-  let transcripts: string[] = props.data["sortedTranscripts"]
-  let itemsRID: RIDItemList = props.data["tsss"][transcripts[0]]["itemsByID"]
   let tissues: { [id: string]: { sum: number; values: GeneExpEntry[] } } = {} // dict of ftissues
   let p1: Point2D = { x: 0, y: 0 }
   let max: number = 0
 
-  Object.values(props.data["tsss"][transcripts[0]]["itemsGrouped"][sort]).map((biosample) => {
-    Object.values(biosample["items"]).map((id: string) => {
-      if (!zeros && itemsRID[id]["counts"] === 0) return
-      if (!tissues[biosample["tissue"]]) tissues[biosample["tissue"]] = { sum: 0, values: [] }
-      tissues[biosample["tissue"]].sum += itemsRID[id]["counts"]
-      tissues[biosample["tissue"]].values.push({
-        value: itemsRID[id]["counts"],
-        biosample_term: itemsRID[id]["biosample_term_name"],
-        expID: itemsRID[id]["expid"],
-        tissue: biosample["tissue"],
-        strand: itemsRID[id]["strand"],
-        color: biosample["color"],
-      })
+  Object.values(props.data).map((biosample) => {
+      if (!zeros && biosample["value"] === 0) return
+      else if (biosample["transcriptId"] === props.transcriptID){
+        if (!tissues[biosample["tissue"]]) tissues[biosample["tissue"]] = { sum: 0, values: [] }
+        tissues[biosample["tissue"]].sum += biosample["value"]
+        tissues[biosample["tissue"]].values.push({
+          value: biosample["value"],
+          biosample_term: biosample["name"],
+          expID: biosample["expAccession"],
+          tissue: biosample["tissue"],
+          strand: biosample["strand"],
+          color: tissueColors[biosample["tissue"]] ? tissueColors[biosample["tissue"]] : "#77AABB",
+        })
 
-      if (sort === "byTissueMax" && tissues[biosample["tissue"]].sum > max) max = tissues[biosample["tissue"]].sum
-      else if (itemsRID[id]["counts"] > max) max = itemsRID[id]["counts"]
-    })
+        if (sort === "byTissueMax" && tissues[biosample["tissue"]].sum > max) max = tissues[biosample["tissue"]].sum
+        else if (biosample["value"] > max) max = biosample["value"]
+      }
   })
 
   props.range.x.end = max
@@ -75,7 +74,7 @@ export function PlotActivityProfiles(props: { data: any; range: Range2D; dimensi
             fill={item["color"]}
             onMouseOver={() => {
               {
-                ;<rect x={125} width={p1.x + 125} y={y + i * 20} height={18} fill="white" />
+                <rect x={125} width={p1.x + 125} y={y + i * 20} height={18} fill="white" />
               }
             }}
           >
@@ -87,7 +86,7 @@ export function PlotActivityProfiles(props: { data: any; range: Range2D; dimensi
           <text x={p1.x + 125 + 150} y={y + i * 20 + 12.5} style={{ fontSize: 12 }}>
             {Number(item.value.toFixed(3)) + " "}
             <a href={"https://www.encodeproject.org/experiments/" + item.expID}>{item.expID}</a>
-            {" " + item.biosample_term}
+            {/* {" " + item.biosample_term} */}
             {" (" + item.strand + ")"}
           </text>
           <line x1={125} x2={125} y1={y + i * 20} y2={y + (i * 20 + 18)} stroke="black" />
@@ -99,7 +98,7 @@ export function PlotActivityProfiles(props: { data: any; range: Range2D; dimensi
   let y: number = 0
   return (
     <Box>
-      <Grid2 xs={7} sx={{ ml: 6, mt: 2, display: "flex" }}>
+      <Grid2 xs={1} sx={{ ml: 0, mt: 2, display: "flex" }}>
         <Box>
           <FormControl key={sort}>
             <InputLabel id="sort-by-label" sx={{ mb: 10 }}>
@@ -123,7 +122,6 @@ export function PlotActivityProfiles(props: { data: any; range: Range2D; dimensi
         </Box>
       </Grid2>
       <Grid2 xs={3} sx={{ alignItems: "right", justifyContent: "right", display: "flex", ml: 0, mr: 0, mt: 2 }}>
-        <Box>
           <Button
             onClick={() => {
               let c: { [id: string]: boolean } = {}
@@ -148,7 +146,6 @@ export function PlotActivityProfiles(props: { data: any; range: Range2D; dimensi
           >
             Collapse All
           </Button>
-        </Box>
         <Box ml={5}>
           <FormControl key={sort}>
             <FormControlLabel
