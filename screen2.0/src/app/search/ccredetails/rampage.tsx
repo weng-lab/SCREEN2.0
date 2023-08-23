@@ -213,7 +213,6 @@ export default function Rampage(props: { accession: string; assembly: string; ch
               transcripts={transcripts}
             />
           </Grid2>
-          {/* <PlotActivityProfiles data={data[payload.accession]} range={range} dimensions={dimensions} /> */}
         </ThemeProvider>
       </Grid2>
     )
