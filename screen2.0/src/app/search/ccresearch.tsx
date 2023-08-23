@@ -28,7 +28,7 @@ export const CcreSearch = (props: { mainQueryParams, ccrerows: MainResultTableRo
   //Need meaningful variable names please, is showing that this is undefined and throwing an error when using back button on details page since accession is undefined
   let f = props.ccrerows.find((c) => c.accession === searchParams.get("accession"))
   const region = { start: f?.start, chrom: f?.chromosome, end: f?.end }
-  console.log(f)
+  // console.log(f)
 
   return (
     <>
