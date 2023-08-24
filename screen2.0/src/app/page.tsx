@@ -2,15 +2,13 @@
 
 "use client"
 import { Typography } from "@mui/material"
-
 import MainSearch from "../common/components/MainSearch"
 
 // Grid v2 isn't declared stable yet, but using it now as it's what MUI is currently developing out
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
-
 import homeImage from "../../public/homeImage.png"
-
 import Image from "next/image"
+import BedUpload from "../common/components/BedUpload"
 
 export default function Home() {
   return (
@@ -24,6 +22,8 @@ export default function Home() {
         <Grid2 xs={12} lg={6}>
           <Typography variant="h4">Search</Typography>
           <MainSearch />
+          <Typography variant="h6" mt={2}>Find Intersecting cCREs from BED file</Typography>
+          <BedUpload />
           <Typography variant="h5" mt="3rem">
             What is SCREEN?
           </Typography>

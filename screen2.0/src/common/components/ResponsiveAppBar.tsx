@@ -194,7 +194,7 @@ function ResponsiveAppBar() {
                   <MenuItem key={page.pageName} onClick={handleCloseNavMenu_Hamburger}>
                     {/* Wrap in next/link to enable dyanic link changing from basePath in next.config.js */}
                     <Link href={page.link}>
-                      <Typography textAlign="center">{page.pageName}</Typography>
+                      <Typography textAlign="center" textTransform="none">{page.pageName}</Typography>
                     </Link>
                   </MenuItem>
                 ))}

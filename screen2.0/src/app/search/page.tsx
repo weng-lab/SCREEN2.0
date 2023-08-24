@@ -97,11 +97,7 @@ export default async function Search({
         accessions.push(currentElement.info.accession)
       }
     })
-
     const otherLinked = await linkedGenesQuery(mainQueryParams.assembly, accessions)
-    console.log(otherLinked.EH38E4028463)
-
-    
     //Need to add in biosample information for the hover
     rows.forEach((row: MainResultTableRow) => {
       const accession = row.accession

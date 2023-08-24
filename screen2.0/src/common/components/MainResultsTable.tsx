@@ -1,4 +1,5 @@
 "use client"
+// import { DataTable, DataTableProps, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { DataTable, DataTableProps, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import React, { useCallback, useEffect, useState } from "react"
 import { Box, Typography, Menu, Checkbox, Stack, MenuItem, Container, FormControlLabel, FormGroup } from "@mui/material"
@@ -10,6 +11,12 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
   const [distance, setDistance] = useState(true)
   const [CTCF_ChIAPET, setCTCF_ChIAPET] = useState(false)
   const [RNAPII_ChIAPET, setRNAPII_ChIAPET] = useState(false)
+
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(() => {
+    console.log("initialization performed")
+    return null})
+
+  var open = Boolean(anchorEl);
 
   const [columns, setColumns] = useState<DataTableColumn<MainResultTableRow>[]>(
     [{
@@ -85,26 +92,24 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
       })
     }
 
-    //Is there a good way to sort linked genes? Set to "" because I'm not sure
-    //Need to import types I set for the linked genes data
-    //Is this being rerendered and thus the anchor is being wiped?
-    //I think the table is always behind the checkboxes, since the main state values are not updated when the code is executed
+    //Whenever the state of the checkboxes conflicts with the state of the main component, it triggers a rerender
     cols.push({
       header: "Linked\u00A0Genes\u00A0(Distance)",
       value: () => "",
       headerRender: () => {
-        const [distanceChecked, setDistanceChecked] = useState(distance)
-        const [CTCF_ChIAPETChecked, setCTCF_ChIAPETChecked] = useState(CTCF_ChIAPET)
-        const [RNAPII_ChIAPETChecked, setRNAPII_ChIAPETChecked] = useState(RNAPII_ChIAPET)
-        const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(() => {
-          console.log("initialization performed")
-          return null})
-        const open = Boolean(anchorEl);
+        //IMPORTANT: I CANNOT DECLARE HOOKS HERE UNLESS I CHANGE headerRender to be a custom hook "useHeaderRender"
+        // const [distanceChecked, setDistanceChecked] = useState(distance)
+        // const [CTCF_ChIAPETChecked, setCTCF_ChIAPETChecked] = useState(CTCF_ChIAPET)
+        // const [RNAPII_ChIAPETChecked, setRNAPII_ChIAPETChecked] = useState(RNAPII_ChIAPET)
+        // const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(() => {
+        //   console.log("initialization performed")
+        //   return null})
+
 
         const handleClose = () => {
-          setDistance(distanceChecked)
-          setCTCF_ChIAPET(CTCF_ChIAPETChecked)
-          setRNAPII_ChIAPET(RNAPII_ChIAPETChecked)
+          // setDistance(distanceChecked)
+          // setCTCF_ChIAPET(CTCF_ChIAPETChecked)
+          // setRNAPII_ChIAPET(RNAPII_ChIAPETChecked)
           console.log("menu closed, state of checkboxes pushed to main state")
           setAnchorEl(null);
         };
@@ -118,27 +123,21 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
           switch (value) {
             case 0:
               setDistance(event.target.checked)
-              setDistanceChecked(event.target.checked)
+              // setDistanceChecked(event.target.checked)
               break
             case 1:
               setCTCF_ChIAPET(event.target.checked)
-              setCTCF_ChIAPETChecked(event.target.checked)
+              // setCTCF_ChIAPETChecked(event.target.checked)
               break
             case 2:
               setRNAPII_ChIAPET(event.target.checked)
-              setRNAPII_ChIAPETChecked(event.target.checked)
+              // setRNAPII_ChIAPETChecked(event.target.checked)
               break
           }
         };
 
-        // useEffect(() => {
-        //   setDistanceChecked(distance)
-        //   setCTCF_ChIAPETChecked(CTCF_ChIAPET)
-        //   setRNAPII_ChIAPETChecked(RNAPII_ChIAPET)
-        // }, [])
-
         return (
-          <>
+          <Box>
             <Stack direction="row" alignItems="flex-start" component="button" onClick={handleClick}>
               <ArrowRightIcon />
               <Typography variant="body2">Linked Genes</Typography>
@@ -154,17 +153,17 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
             >
               <FormGroup>
                 <MenuItem>
-                  <FormControlLabel control={<Checkbox checked={distanceChecked} onChange={(event) => handleCheckboxChange(event, 0)} />} label={`Distance`} />
+                  <FormControlLabel control={<Checkbox checked={distance} onChange={(event) => handleCheckboxChange(event, 0)} />} label={`Distance`} />
                 </MenuItem>
                 <MenuItem>
-                  <FormControlLabel control={<Checkbox checked={CTCF_ChIAPETChecked} onChange={(event) => handleCheckboxChange(event, 1)} />} label={`CTCF-ChIAPET`} />
+                  <FormControlLabel control={<Checkbox checked={CTCF_ChIAPET} onChange={(event) => handleCheckboxChange(event, 1)} />} label={`CTCF-ChIAPET`} />
                 </MenuItem>
                 <MenuItem>
-                  <FormControlLabel control={<Checkbox checked={RNAPII_ChIAPETChecked} onChange={(event) => handleCheckboxChange(event, 2)} />} label={`RNAPII-ChIAPET`} />
+                  <FormControlLabel control={<Checkbox checked={RNAPII_ChIAPET} onChange={(event) => handleCheckboxChange(event, 2)} />} label={`RNAPII-ChIAPET`} />
                 </MenuItem>
               </FormGroup>
             </Menu>
-          </>
+          </Box>
 
         )
       },
@@ -243,7 +242,7 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
         //The columns in the DataTable are being stored in an object. It might be that a change in props here doesn't replace the columns on the state variable, but rather modifies the columns attribute, which the React Docs say is bad.
         //Internally, when the columns are changed (by the modal), the columns are reset properly(?) using the spread operator.
         //Does a function passed to DataTable have access to the state of the parent function?
-        key={props.rows[0] && props.rows[0].dnase + props.rows[0].ctcf + props.rows[0].h3k27ac + props.rows[0].h3k4me3 + columns.toString() + distance.toString() + CTCF_ChIAPET.toString() + RNAPII_ChIAPET.toString()}
+        key={props.rows[0] && props.rows[0].dnase + props.rows[0].ctcf + props.rows[0].h3k27ac + props.rows[0].h3k4me3 + columns.toString() + distance + CTCF_ChIAPET + RNAPII_ChIAPET}
         rows={props.rows}
         columns={columns}
         itemsPerPage={props.itemsPerPage}
