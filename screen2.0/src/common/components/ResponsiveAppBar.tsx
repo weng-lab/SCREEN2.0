@@ -1,46 +1,18 @@
 "use client"
 import * as React from "react"
-
 import { AppBar, Box, Toolbar, IconButton, Typography, Menu, Container, Button, MenuItem } from "@mui/material"
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown"
 import MenuIcon from "@mui/icons-material/Menu"
-
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
-import {
-  Autocomplete,
-  TextField,
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  debounce,
-  ButtonBase,
-  Checkbox,
-  FormControlLabel,
-  FormGroup,
-  ToggleButton,
-  ToggleButtonGroup,
-  Drawer,
-} from "@mui/material"
+import { Drawer } from "@mui/material"
 import CloseIcon from "@mui/icons-material/Close"
 import Divider from "@mui/material/Divider"
-import ListItemButton from "@mui/material/ListItemButton"
-import ListItemIcon from "@mui/material/ListItemIcon"
-import ListItemText from "@mui/material/ListItemText"
-import FolderIcon from "@mui/icons-material/Folder"
-import ImageIcon from "@mui/icons-material/Image"
-import DescriptionIcon from "@mui/icons-material/Description"
-import InputBase from "@mui/material/InputBase"
-import SearchIcon from "@mui/icons-material/Search"
-import { ThemeProvider, createTheme } from "@mui/material/styles"
-
+import { ThemeProvider } from "@mui/material/styles"
 import Link from "next/link"
 import Image from "next/image"
-
-import HeaderSearch from "./HeaderSearch"
-
 import nextConfig from "../../../next.config"
 import screenIcon from "../../../public/screenIcon.png"
 import { defaultTheme } from "../lib/themes"
+import MainSearch from "./mainsearch/MainSearch"
 
 // CLICKING ON LINKS ONCE THE POPUP IS OPEN IS BROKEN!!!
 
@@ -276,7 +248,7 @@ function ResponsiveAppBar() {
             </Box>
             {/* TODO onSubmit for search box */}
             <Box sx={{ flexGrow: 0 }}>
-              <HeaderSearch />
+              <MainSearch textColor={"white"}  />
             </Box>
             {/* Settings */}
             <Box sx={{ ml: 3, flexGrow: 0 }}>

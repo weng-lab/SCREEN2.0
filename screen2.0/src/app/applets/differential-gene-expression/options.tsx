@@ -30,63 +30,63 @@ export function CoordinateRangeField(props: {
           console.log(value)
           if (value[0].split(",").length > 0) {
             let j: string = ""
-            for (let c of value[0].split(",")){
+            for (let c of value[0].split(",")) {
               j += c
             }
             value[0] = j
-          } 
+          }
           if (value[1].split(",").length > 0) {
             let j: string = ""
-            for (let c of value[1].split(",")){
+            for (let c of value[1].split(",")) {
               j += c
             }
             value[1] = j
-          } 
+          }
           console.log(value)
           if (parseInt(value[1]) - parseInt(value[0]) <= 500000 && parseInt(value[1]) - parseInt(value[0]) > 0)
             props.setdr([parseInt(value[0]), parseInt(value[1])])
-            // variant === "min"
-            // ? props.setdr([parseInt(value[0]), props.dr[1]])
-            // : props.setdr([props.dr[0], parseInt(value[1])])
+          // variant === "min"
+          // ? props.setdr([parseInt(value[0]), props.dr[1]])
+          // : props.setdr([props.dr[0], parseInt(value[1])])
         }}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
-              if (props.range.x.end - props.dr[0] > 0 && props.range.x.end - props.dr[0] <= 500000) {
-                props.setRange({
-                  x: {
-                    start: props.dr[0],
-                    end: props.range.x.end,
-                  },
-                  y: {
-                    start: props.range.y.start,
-                    end: props.range.y.end,
-                  },
-                })
-                props.setSlider({
-                  x1: props.dr[0],
-                  x2: props.range.x.end,
-                  min: props.dr[0],
-                  max: props.range.x.end,
-                })
-              } else return <ErrorMessage error={new Error("invalid range")} />
-              if (props.dr[1] - props.range.x.start > 0 && props.dr[1] - props.range.x.start <= 500000) {
-                props.setRange({
-                  x: {
-                    start: props.range.x.start,
-                    end: props.dr[1],
-                  },
-                  y: {
-                    start: props.range.y.start,
-                    end: props.range.y.end,
-                  },
-                })
-                props.setSlider({
-                  x1: props.range.x.start,
-                  x2: props.dr[1],
-                  min: props.range.x.start,
-                  max: props.dr[1],
-                })
-              } else return <ErrorMessage error={new Error("invalid range")} />
+            if (props.range.x.end - props.dr[0] > 0 && props.range.x.end - props.dr[0] <= 500000) {
+              props.setRange({
+                x: {
+                  start: props.dr[0],
+                  end: props.range.x.end,
+                },
+                y: {
+                  start: props.range.y.start,
+                  end: props.range.y.end,
+                },
+              })
+              props.setSlider({
+                x1: props.dr[0],
+                x2: props.range.x.end,
+                min: props.dr[0],
+                max: props.range.x.end,
+              })
+            } else return <ErrorMessage error={new Error("invalid range")} />
+            if (props.dr[1] - props.range.x.start > 0 && props.dr[1] - props.range.x.start <= 500000) {
+              props.setRange({
+                x: {
+                  start: props.range.x.start,
+                  end: props.dr[1],
+                },
+                y: {
+                  start: props.range.y.start,
+                  end: props.range.y.end,
+                },
+              })
+              props.setSlider({
+                x1: props.range.x.start,
+                x2: props.dr[1],
+                min: props.range.x.start,
+                max: props.dr[1],
+              })
+            } else return <ErrorMessage error={new Error("invalid range")} />
           }
         }}
       />
@@ -119,7 +119,9 @@ export function CoordinateRangeField(props: {
             })
           } else return <ErrorMessage error={new Error("invalid range")} />
         }}
-        >Set</Button>
+      >
+        Set
+      </Button>
     </Box>
   )
 }

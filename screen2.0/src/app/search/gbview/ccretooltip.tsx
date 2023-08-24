@@ -50,7 +50,7 @@ const marks = (x) => [x.dnase, x.h3k4me3, x.h3k27ac, x.ctcf].map((x, i) => x && 
 
 const CCRETooltip = (props) => {
   const experiments = useMemo(
-    () => (props.biosample ?  biosampleExperiments(props.biosample)  : ["dnase", "h3k4me3", "h3k27ac", "ctcf"]),
+    () => (props.biosample ? biosampleExperiments(props.biosample) : ["dnase", "h3k4me3", "h3k27ac", "ctcf"]),
     [props]
   )
   const { data, loading } = useQuery(props.biosample ? QUERY : MAXZ_QUERY, {
@@ -59,12 +59,12 @@ const CCRETooltip = (props) => {
       accession: props.name,
       experiments,
     },
-    client
+    client,
   })
   return (
     <div style={{ border: "1px solid", padding: "0.75em", background: "#ffffff" }}>
       {loading || !data.cCREQuery[0] ? (
-        <CircularProgress/>
+        <CircularProgress />
       ) : (
         <>
           <svg height={18}>

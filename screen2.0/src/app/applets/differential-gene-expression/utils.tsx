@@ -268,8 +268,8 @@ export const GenePoint = (props: { point: Gene; i: number; range: Range2D; dimen
   console.log(tmp)
 
   // transform
-  p1 = linearTransform2D(props.range, props.dimensions)({ x: x1, y: (props.i+props.range.y.start)*tmp })
-  p2 = linearTransform2D(props.range, props.dimensions)({ x: x2, y: (props.i+props.range.y.start)*tmp })
+  p1 = linearTransform2D(props.range, props.dimensions)({ x: x1, y: (props.i + props.range.y.start) * tmp })
+  p2 = linearTransform2D(props.range, props.dimensions)({ x: x2, y: (props.i + props.range.y.start) * tmp })
 
   // tooltip for mouseover
   const GeneTooltip = () => {
@@ -423,9 +423,7 @@ export const SetRange_y = (props: {
     let r: number = range_y[range_y.length - 1] // last label in list
     let cellTypeLabel: string[] = [
       "translate(39," + t.y.toString() + ") rotate(-90)",
-      "translate(39," +
-        (t.y + (props.title.ct1.expID.length === 0 ? 32.5 : 32.5)).toString() +
-        ") rotate(-90)",
+      "translate(39," + (t.y + (props.title.ct1.expID.length === 0 ? 32.5 : 32.5)).toString() + ") rotate(-90)",
     ]
     // console.log(props.title.ct1.name.length)
     // console.log(document.getElementById(props.title.ct1.name).clientWidth)
@@ -435,11 +433,11 @@ export const SetRange_y = (props: {
 
     const getName = (name: string) => {
       let cellname: string = ""
-      for (let c of name){
+      for (let c of name) {
         if (c === "(") break
         else cellname += c
       }
-      return cellname += " "
+      return (cellname += " ")
     }
 
     if (y === 0.0)
@@ -456,7 +454,7 @@ export const SetRange_y = (props: {
           </text>
           <line x1={41} x2={50} y1={t.y} y2={t.y} stroke="black"></line>
           <g transform={cellTypeLabel[1]}>
-            <text x={"-" + (getName(props.title.ct1.name).length*4.0 + 5).toString() + "px"} y={10} style={{ fontSize: 10 }}>
+            <text x={"-" + (getName(props.title.ct1.name).length * 4.0 + 5).toString() + "px"} y={10} style={{ fontSize: 10 }}>
               <a target="_blank" rel="noopener noreferrer" href={"https://www.encodeproject.org/experiments/" + props.title.ct1.expID}>
                 ◄ {getName(props.title.ct1.name)}
               </a>

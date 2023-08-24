@@ -37,7 +37,6 @@ export const CcreSearch = ({ mainQueryParams, ccrerows, globals, assembly }) => 
       <Grid2 container spacing={3} sx={{ mt: "2rem", mb: "2rem" }}>
         <Grid2 xs={12} lg={12}>
           <Tabs aria-label="basic tabs example" value={value} onChange={handleChange}>
-            
             <StyledTab label="cCRE Search Results" />
             {searchParams.get("accession") && <StyledTab label="cCRE Details" />}
           </Tabs>
@@ -49,18 +48,27 @@ export const CcreSearch = ({ mainQueryParams, ccrerows, globals, assembly }) => 
             <MainResultsFilters mainQueryParams={mainQueryParams} byCellType={globals} />
           </Grid2>
           <Grid2 xs={12} lg={9}>
-            <Tabs aria-label="basic tabs example" value={tabIndex} onChange={(_,val)=>setTabIndex(val)}>
+            <Tabs aria-label="basic tabs example" value={tabIndex} onChange={(_, val) => setTabIndex(val)}>
               <StyledTab label="Genome Browser View" />
-              <StyledTab label="Table View" />              
+              <StyledTab label="Table View" />
             </Tabs>
-            {tabIndex===0 && <GenomeBrowserView gene={mainQueryParams.gene} biosample={mainQueryParams.Biosample.biosample}  assembly={mainQueryParams.assembly} coordinates={{start: +mainQueryParams.start, end: +mainQueryParams.end, chromosome: mainQueryParams.chromosome}}/>}
-            {tabIndex===1 && <MainResultsTable
-              rows={ccrerows}
-              tableTitle={`Searching ${mainQueryParams.chromosome} in ${
-                mainQueryParams.assembly
-              } from ${mainQueryParams.start.toLocaleString("en-US")} to ${mainQueryParams.end.toLocaleString("en-US")}`}
-              itemsPerPage={10}
-            />}
+            {tabIndex === 0 && (
+              <GenomeBrowserView
+                gene={mainQueryParams.gene}
+                biosample={mainQueryParams.Biosample.biosample}
+                assembly={mainQueryParams.assembly}
+                coordinates={{ start: +mainQueryParams.start, end: +mainQueryParams.end, chromosome: mainQueryParams.chromosome }}
+              />
+            )}
+            {tabIndex === 1 && (
+              <MainResultsTable
+                rows={ccrerows}
+                tableTitle={`Searching ${mainQueryParams.chromosome} in ${
+                  mainQueryParams.assembly
+                } from ${mainQueryParams.start.toLocaleString("en-US")} to ${mainQueryParams.end.toLocaleString("en-US")}`}
+                itemsPerPage={10}
+              />
+            )}
           </Grid2>
         </Grid2>
       )}

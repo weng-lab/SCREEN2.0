@@ -3,26 +3,11 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation"
 
 import { DataTable, DataTableProps, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import React from "react"
-import { Box, Button, Typography } from "@mui/material"
-import Link from "next/link"
-import { ObjectFlags } from "typescript"
+import { Box, Typography } from "@mui/material"
 
 let COLUMNS = (rows) => {
   // can prob just use link instead here
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams: any = useSearchParams()!
-
-  const createQueryString = React.useCallback(
-    (name: string, value: string) => {
-      const params = new URLSearchParams(searchParams)
-      params.set(name, value)
-
-      return params.toString()
-    },
-    [searchParams]
-  )
-
+ 
   let col: DataTableColumn<any>[] = [
     {
       header: "Accession",
@@ -123,8 +108,7 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
     },
     [searchParams]
   )
-  console.log(props.rows)
-
+  
   return (
     <DataTable
       key={props.rows[0] && props.rows[0].dnase + props.rows[0].ctcf + props.rows[0].h3k27ac + props.rows[0].h3k4me3}

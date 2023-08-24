@@ -26,7 +26,7 @@ export function PlotGeneExpression(props: {
 }) {
   const router = useRouter()
   const [collapse, setCollapse] = useState<{ [id: string]: boolean }>({})
-  const[highlighted, setHighlighted] = useState<string>("")
+  const [highlighted, setHighlighted] = useState<string>("")
 
   let itemsRID: RIDItemList = props.data[props.RNAtype]["itemsByRID"]
   let tissues: { [id: string]: { sum: number; values: GeneExpEntry[] } } = {} // dict of ftissues
@@ -64,19 +64,26 @@ export function PlotGeneExpression(props: {
       p1 = linearTransform2D(props.range, props.dimensions)({ x: item.value, y: 0 })
       return (
         <g key={i}>
-          <rect x={125} width={p1.x + 125} y={y + i * 20} height="18px" fill={item["color"]} onClick={() => router.push("https://encodeproject.org/experiments/" + item.expID)} 
-          onMouseEnter={() => {
-            setHighlighted(item.expID)
-          }}
-          onMouseOut={() => {
-            setHighlighted("")
-          }}
-          onMouseOver={() => {
-            setHighlighted(item.expID)
-          }}>
+          <rect
+            x={125}
+            width={p1.x + 125}
+            y={y + i * 20}
+            height="18px"
+            fill={item["color"]}
+            onClick={() => router.push("https://encodeproject.org/experiments/" + item.expID)}
+            onMouseEnter={() => {
+              setHighlighted(item.expID)
+            }}
+            onMouseOut={() => {
+              setHighlighted("")
+            }}
+            onMouseOver={() => {
+              setHighlighted(item.expID)
+            }}
+          >
             <title>{item.cellType + "\n" + item.value}</title>
           </rect>
-          {highlighted === item.expID ? <rect x={125} width={p1.x + 125} y={y + i * 20} height="18px" fill="white" opacity="25%"/> : <></>}
+          {highlighted === item.expID ? <rect x={125} width={p1.x + 125} y={y + i * 20} height="18px" fill="white" opacity="25%" /> : <></>}
           <text x={p1.x + 125 + 150} y={y + i * 20 + 12.5} style={{ fontSize: 12 }}>
             {Number(item.value.toFixed(3)) + " "}
             <a href={"https://www.encodeproject.org/experiments/" + item.expID}>{item.expID}</a>
