@@ -29,7 +29,7 @@ export const TOP_TISSUES = gql`
   }
 `
 export const LINKED_GENES = gql`
-  query ($assembly: String!, $accession: String!) {
+  query ($assembly: String!, $accession: [String]!) {
     linkedGenesQuery(assembly: $assembly, accession: $accession) {
       assembly
       accession
