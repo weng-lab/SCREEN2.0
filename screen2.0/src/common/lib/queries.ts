@@ -319,7 +319,7 @@ const GENE_QUERY = gql`
   }
 `
 
-export async function linkedGenesQuery(assembly: string, accession: string[]) {
+export async function linkedGenesQuery(assembly: "GRCh38" | "mm10", accession: string[]) {
   let returnData: {[key: string]: {genes: {geneName: string, linkedBy: "CTCF-ChIAPET" | "RNAPII-ChIAPET", biosample: string}[]}} = {}
   let geneIDs: string[] = []
   let linkedGenes: ApolloQueryResult<any>

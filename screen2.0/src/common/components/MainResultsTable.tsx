@@ -88,6 +88,7 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
     //Is there a good way to sort linked genes? Set to "" because I'm not sure
     //Need to import types I set for the linked genes data
     //Is this being rerendered and thus the anchor is being wiped?
+    //I think the table is always behind the checkboxes, since the main state values are not updated when the code is executed
     cols.push({
       header: "Linked\u00A0Genes\u00A0(Distance)",
       value: () => "",
@@ -224,7 +225,7 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
     })
     console.log("columns recalculated")
     handleSetColumns(cols)
-  }, [props.rows])
+  }, [props.rows, CTCF_ChIAPET, RNAPII_ChIAPET, distance])
 
   function handleSetColumns(newColumns: DataTableColumn<MainResultTableRow>[]) {
     console.log("new columns set")
