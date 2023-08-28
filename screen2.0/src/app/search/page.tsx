@@ -1,6 +1,6 @@
 // Search Results Page
 import { CcreSearch } from "./ccresearch"
-import MainQuery, { getGlobals } from "../../common/lib/queries"
+import { getGlobals, MainQuery } from "../../common/lib/queries"
 import { ApolloQueryResult } from "@apollo/client"
 import { cCREData, CellTypeData, MainQueryParams } from "./types"
 import { checkTrueFalse, passesCriteria } from "../../common/lib/filter-helpers"

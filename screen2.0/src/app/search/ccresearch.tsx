@@ -30,7 +30,6 @@ export const CcreSearch = ({ mainQueryParams, ccrerows, globals, assembly }) => 
   //Need meaningful variable names please
   let f = ccrerows.find((c) => c.accession === searchParams.get("accession"))
   const region = { start: f?.start, chrom: f?.chromosome, end: f?.end }
-  console.log(f)
 
   return (
     <>
