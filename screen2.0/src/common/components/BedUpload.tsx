@@ -25,7 +25,7 @@ const BedUpload = () => {
           <section>
             <div {...getRootProps()}>
               <input {...getInputProps()} />
-              <p>Drag 'n' drop some files here, or click to select files</p>
+              <Typography>Drag and drop some files here, or click to select files</Typography>
             </div>
           </section>
         )}
