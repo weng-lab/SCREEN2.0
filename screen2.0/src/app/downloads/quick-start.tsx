@@ -11,26 +11,26 @@ import {
   Tooltip,
   Modal,
   Box,
-  Divider
-} from "@mui/material";
-import InfoIcon from '@mui/icons-material/Info';
+  Divider,
+} from "@mui/material"
+import InfoIcon from "@mui/icons-material/Info"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
-import LoadingButton from '@mui/lab/LoadingButton'
-import DownloadIcon from '@mui/icons-material/Download';
+import LoadingButton from "@mui/lab/LoadingButton"
+import DownloadIcon from "@mui/icons-material/Download"
 import Human from "../../../public/Human2.png"
 import Mouse from "../../../public/Mouse2.png"
 import Config from "../../config.json"
-import { useEffect, useMemo, useState } from "react";
-import { Biosample } from "./types";
-import React from "react";
-import Image from "next/image";
-import { ApolloQueryResult } from "@apollo/client";
-import { downloadTSV } from "./utils";
+import { useEffect, useMemo, useState } from "react"
+import { Biosample } from "./types"
+import React from "react"
+import Image from "next/image"
+import { ApolloQueryResult } from "@apollo/client"
+import { downloadTSV } from "./utils"
 
 interface TabPanelProps {
-  children?: React.ReactNode;
-  value: number;
-  biosamples:  -1 | ApolloQueryResult<any>;
+  children?: React.ReactNode
+  value: number
+  biosamples: -1 | ApolloQueryResult<any>
 }
 
 const PROMOTER_MESSAGE =
@@ -41,7 +41,7 @@ const CTCF_MESSAGE = "cCREs with high CTCF-signal. These cCRE may also be classi
 const LINK_MESSAGE = "cCRE-gene links curated from Hi-C, ChIA-PET, CRISPR perturbations and eQTL data."
 
 /**
- * 
+ *
  * @param selected The selected biosample
  * @returns The link to download biosample-specific cCREs
  */
@@ -52,20 +52,17 @@ function generateBiosampleURL(selected: Biosample): URL {
 
 const DownloadButton = (props: ButtonProps & { label: string }) => {
   return (
-    <Button
-      sx={{ textTransform: "none" }}
-      fullWidth
-      variant="contained"
-      color="primary"
-      {...props}
-      endIcon={<DownloadIcon />}
-    >
+    <Button sx={{ textTransform: "none" }} fullWidth variant="contained" color="primary" {...props} endIcon={<DownloadIcon />}>
       {props.label}
     </Button>
   )
 }
 
-function ComboBox(props: { options: Biosample[], label: string, mode: "H-promoter" | "H-enhancer" | "H-ctcf" | "M-promoter" | "M-enhancer" | "M-ctcf" }): JSX.Element {
+function ComboBox(props: {
+  options: Biosample[]
+  label: string
+  mode: "H-promoter" | "H-enhancer" | "H-ctcf" | "M-promoter" | "M-enhancer" | "M-ctcf"
+}): JSX.Element {
   const [toDownload, setToDownload] = useState<URL | null>(null)
   const [selectedBiosample, setSelectedBiosample] = useState<Biosample | null>(null)
 
@@ -85,8 +82,7 @@ function ComboBox(props: { options: Biosample[], label: string, mode: "H-promote
       case "M-ctcf":
         return "CTCF"
     }
-  }, [props.mode]
-  )
+  }, [props.mode])
 
   useEffect(() => {
     toDownload &&
@@ -98,7 +94,13 @@ function ComboBox(props: { options: Biosample[], label: string, mode: "H-promote
               .split("\n")
               .filter((x) => x.includes(stringToMatch))
               .join("\n"),
-            `${selectedBiosample.name}.${props.mode === "H-promoter" || props.mode === "M-promoter" ? "promoters" : props.mode === "H-enhancer" || props.mode === "M-enhancer" ? "enhancers" : "CTCF-bound cCREs"}.bed`
+            `${selectedBiosample.name}.${
+              props.mode === "H-promoter" || props.mode === "M-promoter"
+                ? "promoters"
+                : props.mode === "H-enhancer" || props.mode === "M-enhancer"
+                ? "enhancers"
+                : "CTCF-bound cCREs"
+            }.bed`
           )
           setToDownload(null)
         })
@@ -114,12 +116,20 @@ function ComboBox(props: { options: Biosample[], label: string, mode: "H-promote
         sx={{ width: 300 }}
         //This spread is giving a warning. Code comes from MUI. Can't remove it though or doesn't work...
         renderInput={(params) => <TextField {...params} label={props.label} />}
-        getOptionLabel={(biosample: Biosample) => biosample.name.replace(/_/g, " ") + " — Exp ID: " + (props.mode === "H-promoter" || props.mode === "M-promoter" ? biosample.h3k4me3 : props.mode === "H-enhancer" || props.mode === "M-enhancer" ? biosample.h3k27ac : biosample.ctcf)}
+        getOptionLabel={(biosample: Biosample) =>
+          biosample.name.replace(/_/g, " ") +
+          " — Exp ID: " +
+          (props.mode === "H-promoter" || props.mode === "M-promoter"
+            ? biosample.h3k4me3
+            : props.mode === "H-enhancer" || props.mode === "M-enhancer"
+            ? biosample.h3k27ac
+            : biosample.ctcf)
+        }
         blurOnSelect
         onChange={(event, value: any) => setSelectedBiosample(value)}
         size="small"
       />
-      {selectedBiosample &&
+      {selectedBiosample && (
         <LoadingButton
           loading={toDownload !== null}
           loadingPosition="end"
@@ -130,35 +140,57 @@ function ComboBox(props: { options: Biosample[], label: string, mode: "H-promote
           color="primary"
           endIcon={<DownloadIcon />}
         >
-          {`Download ${props.mode === "H-promoter" || props.mode === "M-promoter" ? "promoters" : props.mode === "H-enhancer" || props.mode === "M-enhancer" ? "enhancers" : "CTCF-bound cCREs"} active in ${selectedBiosample.name.replace(/_/g, " ")}`}
+          {`Download ${
+            props.mode === "H-promoter" || props.mode === "M-promoter"
+              ? "promoters"
+              : props.mode === "H-enhancer" || props.mode === "M-enhancer"
+              ? "enhancers"
+              : "CTCF-bound cCREs"
+          } active in ${selectedBiosample.name.replace(/_/g, " ")}`}
         </LoadingButton>
-      }
+      )}
     </React.Fragment>
-  );
+  )
 }
 
 export function QuickStart(props: TabPanelProps) {
   const biosamples = props.biosamples !== -1 && props.biosamples.data
 
   //Filter query return
-  const humanPromoters: Biosample[] = useMemo(() => ((biosamples && biosamples.human && biosamples.human.biosamples) || []).filter((x: Biosample) => x.h3k4me3 !== null), [biosamples])
-  const humanEnhancers: Biosample[] = useMemo(() => ((biosamples && biosamples.human && biosamples.human.biosamples) || []).filter((x: Biosample) => x.h3k27ac !== null), [biosamples])
-  const humanCTCF: Biosample[] = useMemo(() => ((biosamples && biosamples.human && biosamples.human.biosamples) || []).filter((x: Biosample) => x.ctcf !== null), [biosamples])
-  const mousePromoters: Biosample[] = useMemo(() => ((biosamples && biosamples.mouse && biosamples.mouse.biosamples) || []).filter((x: Biosample) => x.h3k4me3 !== null), [biosamples])
-  const mouseEnhancers: Biosample[] = useMemo(() => ((biosamples && biosamples.mouse && biosamples.mouse.biosamples) || []).filter((x: Biosample) => x.h3k27ac !== null), [biosamples])
-  const mouseCTCF: Biosample[] = useMemo(() => ((biosamples && biosamples.mouse && biosamples.mouse.biosamples) || []).filter((x: Biosample) => x.ctcf !== null), [biosamples])
+  const humanPromoters: Biosample[] = useMemo(
+    () => ((biosamples && biosamples.human && biosamples.human.biosamples) || []).filter((x: Biosample) => x.h3k4me3 !== null),
+    [biosamples]
+  )
+  const humanEnhancers: Biosample[] = useMemo(
+    () => ((biosamples && biosamples.human && biosamples.human.biosamples) || []).filter((x: Biosample) => x.h3k27ac !== null),
+    [biosamples]
+  )
+  const humanCTCF: Biosample[] = useMemo(
+    () => ((biosamples && biosamples.human && biosamples.human.biosamples) || []).filter((x: Biosample) => x.ctcf !== null),
+    [biosamples]
+  )
+  const mousePromoters: Biosample[] = useMemo(
+    () => ((biosamples && biosamples.mouse && biosamples.mouse.biosamples) || []).filter((x: Biosample) => x.h3k4me3 !== null),
+    [biosamples]
+  )
+  const mouseEnhancers: Biosample[] = useMemo(
+    () => ((biosamples && biosamples.mouse && biosamples.mouse.biosamples) || []).filter((x: Biosample) => x.h3k27ac !== null),
+    [biosamples]
+  )
+  const mouseCTCF: Biosample[] = useMemo(
+    () => ((biosamples && biosamples.mouse && biosamples.mouse.biosamples) || []).filter((x: Biosample) => x.ctcf !== null),
+    [biosamples]
+  )
 
   return (
-    <div
-      role="tabpanel"
-      id={`simple-tabpanel-${0}`}
-      aria-labelledby={`simple-tab-${0}`}
-    >
-      {props.value === 0 &&
-        <Grid2 container columnSpacing={{xs: 4, md: 6}} rowSpacing={3} mt={1}>
+    <div role="tabpanel" id={`simple-tabpanel-${0}`} aria-labelledby={`simple-tab-${0}`}>
+      {props.value === 0 && (
+        <Grid2 container columnSpacing={{ xs: 4, md: 6 }} rowSpacing={3} mt={1}>
           {/* Titles */}
           <Grid2 display="flex" alignItems="flex-start" flexDirection="column" xsOffset={2} xs={3.75}>
-            <Typography mt="auto" variant="h5">Human (GRCh38/hg38)</Typography>
+            <Typography mt="auto" variant="h5">
+              Human (GRCh38/hg38)
+            </Typography>
             {/* These are not showing up because of the flex container */}
             <Divider variant="fullWidth" />
             <Typography variant="subtitle1">2,348,854 cCREs • 1,678 cell types</Typography>
@@ -185,7 +217,7 @@ export function QuickStart(props: TabPanelProps) {
             <DownloadButton href={Config.Downloads.MouseCCREs} label="Download All Mouse cCREs" />
           </Grid2>
           {/* Promoters */}
-          <Grid2 xs={2} borderLeft={"0.375rem solid #FF0000"} >
+          <Grid2 xs={2} borderLeft={"0.375rem solid #FF0000"}>
             <span>
               <Typography display={"inline"}>Candidate Promoters</Typography>
               <Tooltip title={PROMOTER_MESSAGE}>
@@ -268,7 +300,7 @@ export function QuickStart(props: TabPanelProps) {
             <DownloadButton href={Config.Downloads.HumanGeneLinks} label="Download Human cCRE-Gene Links" />
           </Grid2>
         </Grid2>
-      }
+      )}
     </div>
-  );
+  )
 }

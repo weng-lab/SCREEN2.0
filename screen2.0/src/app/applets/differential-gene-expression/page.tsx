@@ -13,7 +13,20 @@ import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import { ThemeProvider } from "@mui/material/styles"
 import { defaultTheme } from "../../../common/lib/themes"
-import { Box, FormGroup, Slider, Typography, IconButton, Paper, Chip, Drawer, AppBar, AccordionSummary, AccordionDetails, Accordion } from "@mui/material"
+import {
+  Box,
+  FormGroup,
+  Slider,
+  Typography,
+  IconButton,
+  Paper,
+  Chip,
+  Drawer,
+  AppBar,
+  AccordionSummary,
+  AccordionDetails,
+  Accordion,
+} from "@mui/material"
 
 import { useQuery } from "@apollo/client"
 import { GENE_SEARCH_QUERY, ZSCORE_QUERY } from "./queries"
@@ -402,141 +415,149 @@ export default function DifferentialGeneExpression() {
                         <Typography variant="h5">Cell Type 1</Typography>
                       </AccordionSummary>
                       <AccordionDetails>
-                      <DataTable
-                      highlighted={rowHighlight ? rowHighlight[0] : false}
-                      page={1}
-                      rows={cellTypes["cellTypeInfoArr"]}
-                      columns={[
-                        { header: "Cell Type", value: (row: any) => row.biosample_summary },
-                        { header: "Experiment", value: (row: any) => row.expID, render: (row: any) => createLink("https://encodeproject.org/experiments/", row.expID)},
-                        { header: "Tissue", value: (row: any) => row.tissue },
-                      ]}
-                      onRowClick={(row: any) => {
-                        setct1(row.value)
-                        setTitle({
-                          ct1: {
-                            name: row.name,
-                            expID: row.expID,
-                          },
-                          ct2: title.ct2,
-                        })
-                        if (rowHighlight) setRowHighlight([row, rowHighlight[1]])
-                        else setRowHighlight([row])
-                      }}
-                      sortDescending={true}
-                      searchable={true}
-                      dense={true}
-                    />
+                        <DataTable
+                          highlighted={rowHighlight ? rowHighlight[0] : false}
+                          page={1}
+                          rows={cellTypes["cellTypeInfoArr"]}
+                          columns={[
+                            { header: "Cell Type", value: (row: any) => row.biosample_summary },
+                            {
+                              header: "Experiment",
+                              value: (row: any) => row.expID,
+                              render: (row: any) => createLink("https://encodeproject.org/experiments/", row.expID),
+                            },
+                            { header: "Tissue", value: (row: any) => row.tissue },
+                          ]}
+                          onRowClick={(row: any) => {
+                            setct1(row.value)
+                            setTitle({
+                              ct1: {
+                                name: row.name,
+                                expID: row.expID,
+                              },
+                              ct2: title.ct2,
+                            })
+                            if (rowHighlight) setRowHighlight([row, rowHighlight[1]])
+                            else setRowHighlight([row])
+                          }}
+                          sortDescending={true}
+                          searchable={true}
+                          dense={true}
+                        />
                       </AccordionDetails>
                     </Accordion>
                   </Box>
                   <Divider sx={{ mb: 2, mt: 2 }} />
                   <Box>
                     <Accordion defaultExpanded={true}>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                         <Typography variant="h5">Cell Type 2</Typography>
                       </AccordionSummary>
                       <AccordionDetails>
                         <DataTable
-                      highlighted={rowHighlight ? rowHighlight[1] : false}
-                      page={1}
-                      rows={cellTypes["cellTypeInfoArr"]}
-                      columns={[
-                        { header: "Cell Type", value: (row: any) => row.biosample_summary },
-                        { header: "Experiment", value: (row: any) => row.expID, render: (row: any) => createLink("https://encodeproject.org/experiments/", row.expID)},
-                        { header: "Tissue", value: (row: any) => row.tissue },
-                      ]}
-                      onRowClick={(row: any) => {
-                        setct2(row.value)
-                        setTitle({
-                          ct1: title.ct1,
-                          ct2: {
-                            name: row.name,
-                            expID: row.expID,
-                          },
-                        })
-                        if (rowHighlight) setRowHighlight([rowHighlight[0], row])
-                        else setRowHighlight([row])
-                      }}
-                      sortDescending={true}
-                      searchable={true}
-                      dense={true}
-                    />
+                          highlighted={rowHighlight ? rowHighlight[1] : false}
+                          page={1}
+                          rows={cellTypes["cellTypeInfoArr"]}
+                          columns={[
+                            { header: "Cell Type", value: (row: any) => row.biosample_summary },
+                            {
+                              header: "Experiment",
+                              value: (row: any) => row.expID,
+                              render: (row: any) => createLink("https://encodeproject.org/experiments/", row.expID),
+                            },
+                            { header: "Tissue", value: (row: any) => row.tissue },
+                          ]}
+                          onRowClick={(row: any) => {
+                            setct2(row.value)
+                            setTitle({
+                              ct1: title.ct1,
+                              ct2: {
+                                name: row.name,
+                                expID: row.expID,
+                              },
+                            })
+                            if (rowHighlight) setRowHighlight([rowHighlight[0], row])
+                            else setRowHighlight([row])
+                          }}
+                          sortDescending={true}
+                          searchable={true}
+                          dense={true}
+                        />
                       </AccordionDetails>
                     </Accordion>
                   </Box>
                   <Divider sx={{ mb: 2, mt: 2 }} />
                   <Grid2 xs={12} md={12} lg={12} ml={1} mr={1}>
-                  <Typography>Filters</Typography>
-                  <Divider sx={{ mb: 2, mt: 2 }} />
-                  <FormGroup>
-                    <TogglePlot label="cCREs" toggle={toggleccres} setToggle={setTogglecCREs} />
-                    <TogglePlot label="log2 fold change" toggle={toggleFC} setToggle={setToggleFC} />
-                    <TogglePlot label="genes" toggle={toggleGenes} setToggle={setToggleGenes} />
-                  </FormGroup>
-                  <Divider sx={{ mb: 2, mt: 2 }} />
-                  <Divider sx={{ mb: 2, mt: 2 }} />
-                  <FormGroup>
-                    <TogglePCT togglePCT={togglePCT} setPCT={setPCT} />
-                  </FormGroup>
-                  <Divider sx={{ mb: 2, mt: 2 }} />
-                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Typography display="inline">Coordinate Range:</Typography>
-                    <Slider
-                      sx={{
-                        mr: 8,
-                        ml: 4,
-                      }}
-                      value={[slider.x1, slider.x2]}
-                      step={100000}
-                      marks
-                      min={slider.min}
-                      max={slider.max}
-                      valueLabelDisplay="auto"
-                      onChange={(event: Event, value: number | number[]) => {
-                        if (value[0] > value[1]) return <></>
-                        if (value[0] !== slider.x1) {
-                          setSlider({
-                            x1: value[0],
-                            x2: slider.x2,
-                            min: slider.min,
-                            max: slider.max,
-                          })
-                          setdr([value[0], dr[1]])
-                          setRange({
-                            x: {
-                              start: value[0],
-                              end: range.x.end,
-                            },
-                            y: {
-                              start: range.y.start,
-                              end: range.y.end,
-                            },
-                          })
-                        } else {
-                          setSlider({
-                            x1: slider.x1,
-                            x2: value[1],
-                            min: slider.min,
-                            max: slider.max,
-                          })
-                          setdr([dr[0], value[1]])
-                          setRange({
-                            x: {
-                              start: range.x.start,
-                              end: value[1],
-                            },
-                            y: {
-                              start: range.y.start,
-                              end: range.y.end,
-                            },
-                          })
-                        }
-                      }}
-                    />
-                  </Box>
-                  <Divider sx={{ mb: 2, mt: 2 }} />
-                </Grid2>
+                    <Typography>Filters</Typography>
+                    <Divider sx={{ mb: 2, mt: 2 }} />
+                    <FormGroup>
+                      <TogglePlot label="cCREs" toggle={toggleccres} setToggle={setTogglecCREs} />
+                      <TogglePlot label="log2 fold change" toggle={toggleFC} setToggle={setToggleFC} />
+                      <TogglePlot label="genes" toggle={toggleGenes} setToggle={setToggleGenes} />
+                    </FormGroup>
+                    <Divider sx={{ mb: 2, mt: 2 }} />
+                    <Divider sx={{ mb: 2, mt: 2 }} />
+                    <FormGroup>
+                      <TogglePCT togglePCT={togglePCT} setPCT={setPCT} />
+                    </FormGroup>
+                    <Divider sx={{ mb: 2, mt: 2 }} />
+                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Typography display="inline">Coordinate Range:</Typography>
+                      <Slider
+                        sx={{
+                          mr: 8,
+                          ml: 4,
+                        }}
+                        value={[slider.x1, slider.x2]}
+                        step={100000}
+                        marks
+                        min={slider.min}
+                        max={slider.max}
+                        valueLabelDisplay="auto"
+                        onChange={(event: Event, value: number | number[]) => {
+                          if (value[0] > value[1]) return <></>
+                          if (value[0] !== slider.x1) {
+                            setSlider({
+                              x1: value[0],
+                              x2: slider.x2,
+                              min: slider.min,
+                              max: slider.max,
+                            })
+                            setdr([value[0], dr[1]])
+                            setRange({
+                              x: {
+                                start: value[0],
+                                end: range.x.end,
+                              },
+                              y: {
+                                start: range.y.start,
+                                end: range.y.end,
+                              },
+                            })
+                          } else {
+                            setSlider({
+                              x1: slider.x1,
+                              x2: value[1],
+                              min: slider.min,
+                              max: slider.max,
+                            })
+                            setdr([dr[0], value[1]])
+                            setRange({
+                              x: {
+                                start: range.x.start,
+                                end: value[1],
+                              },
+                              y: {
+                                start: range.y.start,
+                                end: range.y.end,
+                              },
+                            })
+                          }
+                        }}
+                      />
+                    </Box>
+                    <Divider sx={{ mb: 2, mt: 2 }} />
+                  </Grid2>
                 </Grid2>
               </Grid2>
             )

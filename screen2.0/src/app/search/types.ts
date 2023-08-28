@@ -108,5 +108,5 @@ export type FilteredBiosampleData = [
       h3k27ac: boolean
       h3k4me3: boolean
     }
-  }[]
+  }[],
 ][]

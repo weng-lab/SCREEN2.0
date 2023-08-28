@@ -1,27 +1,46 @@
-import { ChangeEvent, useEffect, useMemo, useState } from "react";
-import { Accordion, AccordionDetails, AccordionSummary, Autocomplete, Button, Divider, FormControl, FormControlLabel, FormLabel, Grid, Modal, Radio, RadioGroup, Select, TextField, Typography, Box, Stack } from "@mui/material";
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2";
-import { ArrowForward, Clear, Download, ExpandMore, Visibility } from "@mui/icons-material";
-import Image from "next/image";
+import { ChangeEvent, useEffect, useMemo, useState } from "react"
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Autocomplete,
+  Button,
+  Divider,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  Grid,
+  Modal,
+  Radio,
+  RadioGroup,
+  Select,
+  TextField,
+  Typography,
+  Box,
+  Stack,
+} from "@mui/material"
+import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import { ArrowForward, Clear, Download, ExpandMore, Visibility } from "@mui/icons-material"
+import Image from "next/image"
 import Human from "../../../public/Human2.png"
 import Mouse from "../../../public/Mouse2.png"
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/navigation"
 import { Chart, Scatter, Legend, Annotation, Range2D } from "jubilant-carnival"
-import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components";
+import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import Config from "../../config.json"
-import { BiosampleUMAP } from "./types";
-import { DNase_seq } from "../../common/lib/colors";
-import { H3K4me3 } from "../../common/lib/colors";
-import { H3K27ac } from "../../common/lib/colors";
-import { CA_CTCF } from "../../common/lib/colors";
-import { ApolloQueryResult } from "@apollo/client";
+import { BiosampleUMAP } from "./types"
+import { DNase_seq } from "../../common/lib/colors"
+import { H3K4me3 } from "../../common/lib/colors"
+import { H3K27ac } from "../../common/lib/colors"
+import { CA_CTCF } from "../../common/lib/colors"
+import { ApolloQueryResult } from "@apollo/client"
 
 //Need to type these
 interface TabPanelProps {
-  children?: React.ReactNode;
-  value: number;
-  biosamples: -1 | ApolloQueryResult<any>,
-  matrices: -1 | ApolloQueryResult<any>,
+  children?: React.ReactNode
+  value: number
+  biosamples: -1 | ApolloQueryResult<any>
+  matrices: -1 | ApolloQueryResult<any>
   searchParams: { [key: string]: string | string[] | undefined }
 }
 
@@ -79,21 +98,25 @@ function colorMap(strings) {
 
 // Styling for selected biosamples modal
 const style = {
-  position: 'absolute' as 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: '80%',
+  position: "absolute" as "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: "80%",
   boxShadow: 24,
-};
+}
 
 export function DataMatrices(props: TabPanelProps) {
   const [selectedAssay, setSelectedAssay] = useState<Selected>(() => {
-    if ((props.searchParams.assembly === "Human" || props.searchParams.assembly === "Mouse")
-      && (props.searchParams.assay === "DNase" || props.searchParams.assay === "H3K4me3" || props.searchParams.assay === "H3K27ac" || props.searchParams.assay === "CTCF")) {
+    if (
+      (props.searchParams.assembly === "Human" || props.searchParams.assembly === "Mouse") &&
+      (props.searchParams.assay === "DNase" ||
+        props.searchParams.assay === "H3K4me3" ||
+        props.searchParams.assay === "H3K27ac" ||
+        props.searchParams.assay === "CTCF")
+    ) {
       return { assembly: props.searchParams.assembly, assay: props.searchParams.assay }
-    }
-    else {
+    } else {
       return { assembly: "Human", assay: "DNase" }
     }
   })
@@ -107,9 +130,11 @@ export function DataMatrices(props: TabPanelProps) {
   const [selectMode, setSelectMode] = useState<"select" | "zoom">("select")
   const [tooltip, setTooltip] = useState(-1)
 
-  const [open, setOpen] = useState(false);
-  const handleOpenModal = () => { biosamples.length !== 0 && setOpen(true) };
-  const handleCloseModal = () => setOpen(false);
+  const [open, setOpen] = useState(false)
+  const handleOpenModal = () => {
+    biosamples.length !== 0 && setOpen(true)
+  }
+  const handleCloseModal = () => setOpen(false)
 
   const router = useRouter()
 
@@ -123,7 +148,7 @@ export function DataMatrices(props: TabPanelProps) {
         (data &&
           data.ccREBiosampleQuery &&
           data.ccREBiosampleQuery.biosamples.filter((x) => x.umap_coordinates).map((x) => x.sampleType)) ||
-        []
+          []
       ),
     [data]
   )
@@ -131,23 +156,19 @@ export function DataMatrices(props: TabPanelProps) {
     () =>
       colorMap(
         (data && data.ccREBiosampleQuery && data.ccREBiosampleQuery.biosamples.filter((x) => x.umap_coordinates).map((x) => x.ontology)) ||
-        []
+          []
       ),
     [data]
   )
-  const fData = useMemo(
-    () => {
-      return (
-        data &&
-        data.ccREBiosampleQuery &&
-        data.ccREBiosampleQuery.biosamples
-          .filter((x) => x.umap_coordinates)
-          .filter((x) => (lifeStage === "all" || lifeStage === x.lifeStage) && (tSelected.size === 0 || tSelected.has(x[colorBy])))
-      )
-    }
-    ,
-    [data, lifeStage, colorBy, tSelected]
-  )
+  const fData = useMemo(() => {
+    return (
+      data &&
+      data.ccREBiosampleQuery &&
+      data.ccREBiosampleQuery.biosamples
+        .filter((x) => x.umap_coordinates)
+        .filter((x) => (lifeStage === "all" || lifeStage === x.lifeStage) && (tSelected.size === 0 || tSelected.has(x[colorBy])))
+    )
+  }, [data, lifeStage, colorBy, tSelected])
   const xMin = useMemo(
     () => (bounds ? Math.floor(bounds.x.start) : nearest5(Math.min(...((fData && fData.map((x) => x.umap_coordinates[0])) || [0])), true)),
     [fData, bounds]
@@ -166,20 +187,27 @@ export function DataMatrices(props: TabPanelProps) {
   )
   const scatterData = useMemo(
     () =>
-      (fData && fData
-        .filter((x) => (xMin <= x.umap_coordinates[0] && x.umap_coordinates[0] <= xMax) && (yMin <= x.umap_coordinates[1] && x.umap_coordinates[1] <= yMax))
-        .map((x) => ({
-          x: x.umap_coordinates[0],
-          y: x.umap_coordinates[1],
-          svgProps: {
-            r: searched && x.experimentAccession === searched.experimentAccession ? 10 : 3,
-            fill:
-              searched === null || x.experimentAccession === searched.experimentAccession
-                ? (colorBy === "sampleType" ? scMap : oMap)[x[colorBy]]
-                : "#aaaaaa",
-            fillOpacity: searched === null || x.experimentAccession === searched.experimentAccession ? 1 : 0.2,
-          },
-        }))) ||
+      (fData &&
+        fData
+          .filter(
+            (x) =>
+              xMin <= x.umap_coordinates[0] &&
+              x.umap_coordinates[0] <= xMax &&
+              yMin <= x.umap_coordinates[1] &&
+              x.umap_coordinates[1] <= yMax
+          )
+          .map((x) => ({
+            x: x.umap_coordinates[0],
+            y: x.umap_coordinates[1],
+            svgProps: {
+              r: searched && x.experimentAccession === searched.experimentAccession ? 10 : 3,
+              fill:
+                searched === null || x.experimentAccession === searched.experimentAccession
+                  ? (colorBy === "sampleType" ? scMap : oMap)[x[colorBy]]
+                  : "#aaaaaa",
+              fillOpacity: searched === null || x.experimentAccession === searched.experimentAccession ? 1 : 0.2,
+            },
+          }))) ||
       [],
     [fData, scMap, colorBy, searched, oMap, xMin, xMax, yMin, yMax]
   )
@@ -197,14 +225,14 @@ export function DataMatrices(props: TabPanelProps) {
    */
   function handleSetBounds(bounds: Range2D) {
     if (bounds.x.start > bounds.x.end) {
-      const tempX = bounds.x.start;
-      bounds.x.start = bounds.x.end;
-      bounds.x.end = tempX;
+      const tempX = bounds.x.start
+      bounds.x.start = bounds.x.end
+      bounds.x.end = tempX
     }
     if (bounds.y.start > bounds.y.end) {
-      const tempY = bounds.y.start;
-      bounds.y.start = bounds.y.end;
-      bounds.y.end = tempY;
+      const tempY = bounds.y.start
+      bounds.y.start = bounds.y.end
+      bounds.y.end = tempY
     }
     console.log(bounds)
     setBounds(bounds)
@@ -216,13 +244,13 @@ export function DataMatrices(props: TabPanelProps) {
    */
   function borderColor(assay: Selected["assay"]) {
     switch (assay) {
-      case ("DNase"):
+      case "DNase":
         return DNase_seq
-      case ("H3K4me3"):
+      case "H3K4me3":
         return H3K4me3
-      case ("H3K27ac"):
+      case "H3K27ac":
         return H3K27ac
-      case ("CTCF"):
+      case "CTCF":
         return CA_CTCF
     }
   }
@@ -234,13 +262,22 @@ export function DataMatrices(props: TabPanelProps) {
         variant="outlined"
         fullWidth
         onClick={() => {
-          if (selectedAssay && selectedAssay.assembly !== variant.assembly || selectedAssay.assay !== variant.assay) {
+          if ((selectedAssay && selectedAssay.assembly !== variant.assembly) || selectedAssay.assay !== variant.assay) {
             router.push(`/downloads?tab=2&assembly=${variant.assembly}&assay=${variant.assay}`)
             setSelectedAssay(variant)
           }
         }}
-        endIcon={(selectedAssay && selectedAssay.assembly === variant.assembly && selectedAssay.assay === variant.assay) ? <ArrowForward /> : null}
-        sx={{ mb: 1, textTransform: "none", borderLeft: `${(selectedAssay && selectedAssay.assembly === variant.assembly && selectedAssay.assay === variant.assay) ? "1.5rem" : "0.40rem"} solid ${borderColor(variant.assay)}`, '&:hover': { borderLeft: `1.5rem solid ${borderColor(variant.assay)}` } }}
+        endIcon={
+          selectedAssay && selectedAssay.assembly === variant.assembly && selectedAssay.assay === variant.assay ? <ArrowForward /> : null
+        }
+        sx={{
+          mb: 1,
+          textTransform: "none",
+          borderLeft: `${
+            selectedAssay && selectedAssay.assembly === variant.assembly && selectedAssay.assay === variant.assay ? "1.5rem" : "0.40rem"
+          } solid ${borderColor(variant.assay)}`,
+          "&:hover": { borderLeft: `1.5rem solid ${borderColor(variant.assay)}` },
+        }}
       >
         {`${variant.assay}`}
       </Button>
@@ -248,7 +285,7 @@ export function DataMatrices(props: TabPanelProps) {
   }
 
   /**
-   * 
+   *
    * @param selectedAssay The selected assembly & assay
    * @param variant "signal" or "zScore"
    * @returns The corresponding download URL
@@ -283,9 +320,9 @@ export function DataMatrices(props: TabPanelProps) {
           CTCF: Config.Downloads.MouseCTCFZScoreMatrix,
         },
       },
-    };
-    return matrices[selectedAssay.assembly][variant][selectedAssay.assay];
-  };
+    }
+    return matrices[selectedAssay.assembly][variant][selectedAssay.assay]
+  }
 
   // Columns for selected biosample modal
   const modalCols: DataTableColumn<BiosampleUMAP>[] = [
@@ -299,22 +336,20 @@ export function DataMatrices(props: TabPanelProps) {
     },
     {
       header: "Tissue",
-      value: (row: BiosampleUMAP) => row.ontology ?? ""
-    }
+      value: (row: BiosampleUMAP) => row.ontology ?? "",
+    },
   ]
 
   return (
     <>
-      {props.value === 2 &&
-        <div
-          role="tabpanel"
-          id={`simple-tabpanel-${2}`}
-          aria-labelledby={`simple-tab-${2}`}
-        >
+      {props.value === 2 && (
+        <div role="tabpanel" id={`simple-tabpanel-${2}`} aria-labelledby={`simple-tab-${2}`}>
           <Grid2 container spacing={3} columnSpacing={5}>
             <Grid2 container justifyContent="flex-start" alignContent="flex-start" spacing={2} xs={2.5}>
               <Grid2 xs={8}>
-                <Typography mt="auto" variant="h5">Human</Typography>
+                <Typography mt="auto" variant="h5">
+                  Human
+                </Typography>
                 <Divider />
                 <Typography variant="subtitle2">2,348,854 cCREs</Typography>
                 <Typography variant="subtitle2">1,678 cell types</Typography>
@@ -452,20 +487,16 @@ export function DataMatrices(props: TabPanelProps) {
                     </Annotation>
                   )}
                 </Chart>
-                {biosamples.length !== 0 &&
+                {biosamples.length !== 0 && (
                   <Stack direction="row" justifyContent="space-between" mb={1}>
                     <Button endIcon={biosamples.length !== 0 && <Visibility />} onClick={handleOpenModal}>
                       {`${biosamples.length} Experiments Selected`}
                     </Button>
-                    <Button onClick={() => setBiosamples([])}>
-                      Clear
-                    </Button>
+                    <Button onClick={() => setBiosamples([])}>Clear</Button>
                   </Stack>
-                }
+                )}
                 <Accordion elevation={2}>
-                  <AccordionSummary expandIcon={<ExpandMore />}>
-                    Legend
-                  </AccordionSummary>
+                  <AccordionSummary expandIcon={<ExpandMore />}>Legend</AccordionSummary>
                   <AccordionDetails>
                     {legendEntries.map((element, index) => {
                       return (
@@ -473,25 +504,26 @@ export function DataMatrices(props: TabPanelProps) {
                           {`${element.label}: ${element.value}`}
                         </Typography>
                       )
-                    })
-                    }
+                    })}
                   </AccordionDetails>
                 </Accordion>
               </Grid2>
             </Grid2>
           </Grid2>
-          <Modal
-            open={open}
-            onClose={handleCloseModal}
-            aria-labelledby="modal-modal-title"
-            aria-describedby="modal-modal-description"
-          >
+          <Modal open={open} onClose={handleCloseModal} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
             <Box sx={style}>
-              <DataTable sortDescending searchable tableTitle={"Selected Biosamples"} columns={modalCols} rows={biosamples} itemsPerPage={7} />
+              <DataTable
+                sortDescending
+                searchable
+                tableTitle={"Selected Biosamples"}
+                columns={modalCols}
+                rows={biosamples}
+                itemsPerPage={7}
+              />
             </Box>
           </Modal>
         </div>
-      }
+      )}
     </>
-  );
+  )
 }
