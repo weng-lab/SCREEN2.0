@@ -13,6 +13,7 @@ import nextConfig from "../../../next.config"
 import screenIcon from "../../../public/screenIcon.png"
 import { defaultTheme } from "../lib/themes"
 import MainSearch from "./mainsearch/MainSearch"
+import HeaderSearch from "./HeaderSearch"
 
 // CLICKING ON LINKS ONCE THE POPUP IS OPEN IS BROKEN!!!
 
@@ -247,9 +248,11 @@ function ResponsiveAppBar() {
               ))}
             </Box>
             {/* TODO onSubmit for search box */}
+            
             <Box sx={{ flexGrow: 0 }}>
-              <MainSearch textColor={"white"}  />
+              <HeaderSearch />
             </Box>
+            
             {/* Settings */}
             <Box sx={{ ml: 3, flexGrow: 0 }}>
               <IconButton
