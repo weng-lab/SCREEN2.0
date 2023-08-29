@@ -1,7 +1,7 @@
 "use client"
 import React from "react"
 import { Tabs, Typography, Paper, ThemeProvider, AppBar, Toolbar, IconButton, Drawer, Box } from "@mui/material"
-import { GenomicRegion } from "../types"
+import { GenomicRegion, LinkedGenesData } from "../types"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { StyledTab } from "../ccresearch"
 import { InSpecificBiosamples } from "./inspecificbiosample"
@@ -22,16 +22,7 @@ type CcreDetailsProps = {
   assembly: string
   region: GenomicRegion
   globals: any
-  genes: {
-    pc: {
-      name: string
-      __typename: string
-    }[]
-    all: {
-      name: string
-      __typename: string
-    }[]
-  }
+  genes: LinkedGenesData
 }
 
 export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, globals, assembly, genes }) => {
@@ -154,8 +145,8 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
                 assembly={assembly}
                 coordinates={{
                   chromosome: region.chrom,
-                  start: +region.start.toString().replace(/\D/g, ""),
-                  end: +region.end.toString().replace(/\D/g, ""),
+                  start: +region.start.replace(/\D/g, ""),
+                  end: +region.end.replace(/\D/g, ""),
                 }}
               />
             )}

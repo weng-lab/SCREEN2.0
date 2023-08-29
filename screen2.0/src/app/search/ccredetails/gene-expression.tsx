@@ -28,11 +28,12 @@ import {
   OptionsScale,
 } from "../../applets/gene-expression/options"
 import { GeneExpressionInfoTooltip } from "../../applets/gene-expression/const"
+import { LinkedGenesData } from "../types"
 
 export function GeneExpression(props: {
   accession: string
   assembly: string
-  genes: { pc: { name: string; __typename: string }[]; all: { name: string; __typename: string }[] }
+  genes: LinkedGenesData
   hamburger: boolean
 }) {
   const pathname = usePathname()
@@ -43,7 +44,7 @@ export function GeneExpression(props: {
   const [open, setState] = useState<boolean>(true)
 
   const [current_assembly, setAssembly] = useState<string>(props.assembly ? props.assembly : "GRCh38")
-  const [current_gene, setGene] = useState<string>(props.genes.pc[0].name)
+  const [current_gene, setGene] = useState<string>(props.genes.distancePC[0].name)
 
   const [biosamples, setBiosamples] = useState<string[]>(["cell line", "in vitro differentiated cells", "primary cell", "tissue"])
   const [cell_components, setCellComponents] = useState<string[]>(["cell"])
@@ -88,8 +89,8 @@ export function GeneExpression(props: {
       .then((data) => {
         setData(data)
         let geneList: string[] = []
-        for (let g of props.genes.pc) if (!geneList.includes(g.name)) geneList.push(g.name)
-        for (let g of props.genes.all) if (!geneList.includes(g.name)) geneList.push(g.name)
+        for (let g of props.genes.distancePC) if (!geneList.includes(g.name)) geneList.push(g.name)
+        for (let g of props.genes.distanceAll) if (!geneList.includes(g.name)) geneList.push(g.name)
         setOptions(geneList)
         setLoading(false)
       })

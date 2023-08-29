@@ -1,9 +1,10 @@
 // Search Results Page
 import { CcreSearch } from "./ccresearch"
-import { getGlobals, MainQuery } from "../../common/lib/queries"
+import { MainQuery, getGlobals, linkedGenesQuery } from "../../common/lib/queries"
 import { ApolloQueryResult } from "@apollo/client"
-import { cCREData, CellTypeData, MainQueryParams } from "./types"
+import { cCREData, CellTypeData, MainQueryParams, MainResultTableRow, MainResultTableRows } from "./types"
 import { checkTrueFalse, passesCriteria } from "../../common/lib/filter-helpers"
+import { LinkedGenes } from "./ccredetails/linkedgenes"
 
 export default async function Search({
   // Object from URL, see https://nextjs.org/docs/app/api-reference/file-conventions/page#searchparams-optional
@@ -26,11 +27,11 @@ export default async function Search({
     InVitro: searchParams.InVitro ? checkTrueFalse(searchParams.InVitro) : true,
     Biosample: searchParams.Biosample
       ? {
-          selected: true,
-          biosample: searchParams.Biosample,
-          tissue: searchParams.BiosampleTissue,
-          summaryName: searchParams.BiosampleSummary,
-        }
+        selected: true,
+        biosample: searchParams.Biosample,
+        tissue: searchParams.BiosampleTissue,
+        summaryName: searchParams.BiosampleSummary,
+      }
       : { selected: false, biosample: null, tissue: null, summaryName: null },
     // Chromatin Filters
     // "[...]_s" = start, "[...]_e" = end.
@@ -55,8 +56,8 @@ export default async function Search({
     TF: searchParams.TF ? checkTrueFalse(searchParams.TF) : true,
   }
 
-  //Main query. Returns -1 if query returns an error
-  const mainQueryResult: ApolloQueryResult<any> | -1 = await MainQuery(
+  //Main query
+  const mainQueryResult: ApolloQueryResult<any> = await MainQuery(
     mainQueryParams.assembly,
     mainQueryParams.chromosome,
     mainQueryParams.start,
@@ -72,26 +73,14 @@ export default async function Search({
    * @param QueryResult Result from Main Query
    * @returns rows usable by the DataTable component
    */
-  const generateRows = (QueryResult: ApolloQueryResult<any>, biosample: string | null) => {
-    const rows: {
-      //atac will need to be changed from string to number when that data is available
-      accession: string
-      class: string
-      chromosome: string
-      start: string
-      end: string
-      dnase?: number
-      atac: string
-      h3k4me3?: number
-      h3k27ac?: number
-      ctcf?: number
-      linkedGenes: { pc: { name: string }[]; all: { name: string }[] }
-    }[] = []
+  async function generateRows(QueryResult: ApolloQueryResult<any>, biosample: string | null) {
     const cCRE_data: cCREData[] = QueryResult.data.cCRESCREENSearch
-    let offset = 0
-    cCRE_data.forEach((currentElement, index) => {
+    const rows: MainResultTableRows = []
+    // Used for Linked Gene Query
+    const accessions: string[] = []
+    cCRE_data.forEach((currentElement) => {
       if (passesCriteria(currentElement, biosample, mainQueryParams)) {
-        rows[index - offset] = {
+        rows.push({
           accession: currentElement.info.accession,
           class: currentElement.pct,
           chromosome: currentElement.chrom,
@@ -103,13 +92,26 @@ export default async function Search({
           h3k4me3: biosample ? currentElement.ctspecific.h3k4me3_zscore : currentElement.promoter_zscore,
           h3k27ac: biosample ? currentElement.ctspecific.h3k27ac_zscore : currentElement.enhancer_zscore,
           ctcf: biosample ? currentElement.ctspecific.ctcf_zscore : currentElement.ctcf_zscore,
-          linkedGenes: { pc: currentElement.genesallpc.pc.intersecting_genes, all: currentElement.genesallpc.all.intersecting_genes },
+          linkedGenes: { distancePC: currentElement.genesallpc.pc.intersecting_genes, distanceAll: currentElement.genesallpc.all.intersecting_genes, CTCF_ChIAPET: [], RNAPII_ChIAPET: [] },
+        })
+        accessions.push(currentElement.info.accession)
+      }
+    })
+    const otherLinked = await linkedGenesQuery(mainQueryParams.assembly, accessions)
+    //Need to add in biosample information for the hover
+    rows.forEach((row: MainResultTableRow) => {
+      const accession = row.accession
+      const genesToAdd = otherLinked[accession] ?? null
+
+      genesToAdd && genesToAdd.genes.forEach(gene => {
+        if (gene.linkedBy === "CTCF-ChIAPET") {
+          row.linkedGenes.CTCF_ChIAPET.push({name: gene.geneName, biosample: gene.biosample})
         }
-      }
-      // Offset incremented to account for missing rows which do not meet filter criteria
-      else {
-        offset += 1
-      }
+        else if (gene.linkedBy === "RNAPII-ChIAPET"){
+          row.linkedGenes.RNAPII_ChIAPET.push({name: gene.geneName, biosample: gene.biosample})
+        }
+      });
+
     })
 
     return rows
@@ -120,7 +122,7 @@ export default async function Search({
       <CcreSearch
         mainQueryParams={mainQueryParams}
         globals={globals}
-        ccrerows={mainQueryResult === -1 ? [] : generateRows(mainQueryResult, mainQueryParams.Biosample.biosample)}
+        ccrerows={(mainQueryResult.error || mainQueryResult.loading) ? [] : await generateRows(mainQueryResult, mainQueryParams.Biosample.biosample)}
         assembly={mainQueryParams.assembly}
       />
     </main>

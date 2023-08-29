@@ -7,10 +7,11 @@ import { CcreDetails } from "./ccredetails/ccredetails"
 import Grid2 from "../../common/mui-client-wrappers/Grid2"
 import { ReadonlyURLSearchParams, useSearchParams } from "next/navigation"
 import styled from "@emotion/styled"
+import { MainResultTableRows } from "./types"
 export const StyledTab = styled(Tab)(() => ({
   textTransform: "none",
 }))
-export const CcreSearch = ({ mainQueryParams, ccrerows, globals, assembly }) => {
+export const CcreSearch = (props: { mainQueryParams, ccrerows: MainResultTableRows, globals, assembly }) => {
   const searchParams: ReadonlyURLSearchParams = useSearchParams()!
   const [value, setValue] = React.useState(searchParams.get("accession") ? 1 : 0)
 
@@ -18,15 +19,14 @@ export const CcreSearch = ({ mainQueryParams, ccrerows, globals, assembly }) => 
     setValue(newValue)
   }
 
-  //This needs to be changed, this will switch to the details tab anytime filter is updated
   useEffect(() => {
     if (searchParams.get("accession")) {
       setValue(1)
     }
   }, [searchParams])
 
-  //Need meaningful variable names please
-  let f = ccrerows.find((c) => c.accession === searchParams.get("accession"))
+  //Need meaningful variable names please, is showing that this is undefined and throwing an error when using back button on details page since accession is undefined
+  let f = props.ccrerows.find((c) => c.accession === searchParams.get("accession"))
   const region = { start: f?.start, chrom: f?.chromosome, end: f?.end }
 
   return (
@@ -42,14 +42,14 @@ export const CcreSearch = ({ mainQueryParams, ccrerows, globals, assembly }) => 
       {value === 0 && (
         <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "1rem" }}>
           <Grid2 xs={12} lg={3}>
-            <MainResultsFilters mainQueryParams={mainQueryParams} byCellType={globals} />
+            <MainResultsFilters mainQueryParams={props.mainQueryParams} byCellType={props.globals} />
           </Grid2>
           <Grid2 xs={12} lg={9}>
             <MainResultsTable
-              rows={ccrerows}
-              tableTitle={`Searching ${mainQueryParams.chromosome} in ${
-                mainQueryParams.assembly
-              } from ${mainQueryParams.start.toLocaleString("en-US")} to ${mainQueryParams.end.toLocaleString("en-US")}`}
+              rows={props.ccrerows}
+              tableTitle={`Searching ${props.mainQueryParams.chromosome} in ${
+                props.mainQueryParams.assembly
+              } from ${props.mainQueryParams.start.toLocaleString("en-US")} to ${props.mainQueryParams.end.toLocaleString("en-US")}`}
               itemsPerPage={10}
             />
           </Grid2>
@@ -61,8 +61,8 @@ export const CcreSearch = ({ mainQueryParams, ccrerows, globals, assembly }) => 
             <CcreDetails
               accession={searchParams.get("accession")}
               region={region}
-              globals={globals}
-              assembly={assembly}
+              globals={props.globals}
+              assembly={props.assembly}
               genes={f.linkedGenes}
             />
           </Grid2>
