@@ -81,6 +81,7 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
     cols.push({
       header: "Linked\u00A0Genes\u00A0(Distance)",
       value: () => "",
+      unsortable: true,
       HeaderRender: () => {
         const [checkedState, setCheckedState] = useState([distance, CTCF_ChIAPET, RNAPII_ChIAPET])
         const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
