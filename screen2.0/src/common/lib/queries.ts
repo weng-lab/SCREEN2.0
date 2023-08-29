@@ -233,13 +233,13 @@ const UMAP_QUERY = gql`
   query q($assembly: String!, $assay: [String!], $a: String!) {
     ccREBiosampleQuery(assay: $assay, assembly: $assembly) {
       biosamples {
-          name
-          displayname
-          ontology
-          sampleType
-          lifeStage
-          umap_coordinates(assay: $a)
-          experimentAccession(assay: $a)
+        name
+        displayname
+        ontology
+        sampleType
+        lifeStage
+        umap_coordinates(assay: $a)
+        experimentAccession(assay: $a)
       }
     }
   }
@@ -390,7 +390,7 @@ export async function biosampleQuery() {
   var data: ApolloQueryResult<any> | -1
   try {
     data = await getClient().query({
-      query: BIOSAMPLE_QUERY
+      query: BIOSAMPLE_QUERY,
     })
   } catch (error) {
     console.log(error)
@@ -399,10 +399,7 @@ export async function biosampleQuery() {
   }
 }
 
-export async function UMAPQuery(
-  assembly: "grch38" | "mm10",
-  assay: "DNase" | "H3K4me3" | "H3K27ac" | "CTCF"
-) {
+export async function UMAPQuery(assembly: "grch38" | "mm10", assay: "DNase" | "H3K4me3" | "H3K27ac" | "CTCF") {
   var data: ApolloQueryResult<any> | -1
   try {
     data = await getClient().query({
@@ -410,8 +407,8 @@ export async function UMAPQuery(
       variables: {
         assembly: assembly,
         assay: assay,
-        a: assay.toLocaleLowerCase()
-      }
+        a: assay.toLocaleLowerCase(),
+      },
     })
   } catch (error) {
     console.log(error)
