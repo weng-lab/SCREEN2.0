@@ -216,8 +216,10 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
         router.push(pathname + "?" + createQueryString("accession", r.accession))
       }}
       tableTitle={props.tableTitle}
-      sortColumn={0}
-      sortDescending
+      sortColumn={6}
+      showMoreColumns
+      defaultColumnsToShow={["Accession", "Class", "Chr", "Start", "DNase", "CTCF", "H3K27ac", "H3K4me3", "Linked\u00A0Genes\u00A0(Distance)"]}
+      noOfDefaultColumns={9}
     />
   )
 }
