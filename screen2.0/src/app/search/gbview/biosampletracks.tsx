@@ -116,9 +116,9 @@ export const BiosampleTracks: React.FC<BiosampleTracksProps> = (props) => {
   const cCRECoordinateMap = useMemo(
     () =>
       associateBy(
-        (data && data.bigRequests && data.bigRequests[0].data) || [],
-        (x) => x.name,
-        (x) => ({ chromosome: x.chr, start: x.start, end: x.end })
+        (data && data.bigRequests && data.bigRequests[0].data as any) || [],
+        (x: any) => x.name,
+        (x: any) => ({ chromosome: x.chr, start: x.start, end: x.end })
       ),
     [data]
   )

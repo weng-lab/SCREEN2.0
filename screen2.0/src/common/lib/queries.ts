@@ -299,6 +299,69 @@ function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: numbe
   }
 }
 
+const LINKED_GENES_QUERY = gql`
+  query ($assembly: String!, $accession: [String]!) {
+    linkedGenesQuery(assembly: $assembly, accession: $accession) {
+      assay
+      accession
+      celltype
+      gene
+    }
+  }
+`
+
+const GENE_QUERY = gql`
+  query($assembly: String!, $name_prefix: [String!]) {
+    gene(assembly: $assembly, name_prefix: $name_prefix) {
+      name
+      id
+    }
+  }
+`
+
+export async function linkedGenesQuery(assembly: "GRCh38" | "mm10", accession: string[]) {
+  let returnData: {[key: string]: {genes: {geneName: string, linkedBy: "CTCF-ChIAPET" | "RNAPII-ChIAPET", biosample: string}[]}} = {}
+  let geneIDs: string[] = []
+  let linkedGenes: ApolloQueryResult<any>
+  let geneNames: ApolloQueryResult<any>
+  //Attempt first linked genes query
+  try {
+    linkedGenes = await getClient().query({
+      query: LINKED_GENES_QUERY,
+      variables: { assembly, accession },
+    })
+    linkedGenes.data.linkedGenesQuery.forEach((entry) => {
+      !geneIDs.includes(entry.gene.split(".")[0]) && geneIDs.push(entry.gene.split(".")[0])
+    })
+    //Attempt to lookup gene names
+    try {
+      geneNames = await getClient().query({
+        query: GENE_QUERY,
+        variables: { assembly: assembly, name_prefix: geneIDs },
+      })
+      //If both queries are successful, go through each of linkedGenes.data.linkedGenesQuery, find the accession and (if doesnt exist) add to linkedGenesData along with any gene names matching the ID in queryRes2
+      linkedGenes.data.linkedGenesQuery.forEach((entry) => {
+        // if returnData does not have an entry for that accession, and if there is a gene in query2 with an id that matches
+        if (geneNames.data && (!Object.hasOwn(returnData, entry.accession)) && (geneNames.data.gene.find((x) => x.id === entry.gene)!== undefined)){
+          Object.defineProperty(returnData, entry.accession, {value: {genes: [{geneName: geneNames.data.gene.find((x) => x.id === entry.gene).name, linkedBy: entry.assay, biosample: entry.celltype}]}, writable: true, enumerable: true, configurable: true})
+        } 
+        // if returnData does already have a linked gene for that accession, add the linked gene to the existing data
+        else if (geneNames.data && (Object.hasOwn(returnData, entry.accession)) && (geneNames.data.gene.find((x) => x.id === entry.gene)!== undefined)){
+          Object.defineProperty(returnData[entry.accession], "genes", {value: [...returnData[entry.accession].genes, {geneName: geneNames.data.gene.find((x) => x.id === entry.gene).name, linkedBy: entry.assay, biosample: entry.celltype}], writable: true, enumerable: true, configurable: true})
+        }
+      })
+    } catch (error) {
+      console.log("Gene Name Lookup Failed")
+      console.log(error)
+    }
+  } catch (error) {
+    console.log(error)
+  }
+  //for some reason, the formatting of the data (newlines) aren't consistent. Don't think this has any effect though
+  return returnData
+}
+
+
 /**
  *
  * @param assembly string, "GRCh38" or "mm10"
@@ -309,9 +372,8 @@ function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: numbe
  * @returns cCREs matching the search
  */
 export async function MainQuery(assembly: string, chromosome: string, start: number, end: number, biosample: string = null) {
-  console.log("queried with: " + assembly, chromosome, start, end, biosample)
-
-  var data: ApolloQueryResult<any> | -1
+  // console.log("queried with: " + assembly, chromosome, start, end, biosample)
+  let data: ApolloQueryResult<any>
   try {
     data = await getClient().query({
       query: biosample ? cCRE_QUERY_WITH_BIOSAMPLES : cCRE_QUERY,
@@ -319,7 +381,6 @@ export async function MainQuery(assembly: string, chromosome: string, start: num
     })
   } catch (error) {
     console.log(error)
-    data = -1
   } finally {
     return data
   }
@@ -333,7 +394,6 @@ export async function biosampleQuery() {
     })
   } catch (error) {
     console.log(error)
-    data = -1
   } finally {
     return data
   }
@@ -363,8 +423,8 @@ export async function UMAPQuery(assembly: "grch38" | "mm10", assay: "DNase" | "H
  * @returns the shortened byCellType file from https://downloads.wenglab.org/databyct.json
  */
 export const getGlobals = async (assembly: "GRCh38" | "mm10") => {
-  console.log(assembly)
-  var res: Response
+  // console.log(assembly)
+  let res: Response
   if (assembly === "GRCh38") {
     res = await fetch("https://downloads.wenglab.org/databyct.json")
   } else if (assembly === "mm10") {

@@ -6,7 +6,6 @@ import Autocomplete from "@mui/material/Autocomplete"
 import Grid from "@mui/material/Grid"
 import Typography from "@mui/material/Typography"
 import { debounce } from "@mui/material/utils"
-import { Button } from "@weng-lab/psychscreen-ui-components"
 import { useRouter } from "next/navigation"
 
 ///search?assembly=GRCh38&chromosome=chr11&start=5205263&end=5381894&accession=EH38E1516972
@@ -82,15 +81,15 @@ export const CcreAutoComplete = (props) => {
               event.defaultPrevented = true
 
               if (value) {
-                let chrom = ccreAccessions.find((g) => g.ccreaccession === value)?.chrom
-                let start = ccreAccessions.find((g) => g.ccreaccession === value)?.start
-                let end = ccreAccessions.find((g) => g.ccreaccession === value)?.end
+                let chrom = (ccreAccessions.find((g: any) => g.ccreaccession === value) as any)?.chrom
+                let start = (ccreAccessions.find((g: any) => g.ccreaccession === value) as any)?.start
+                let end = (ccreAccessions.find((g: any) => g.ccreaccession === value) as any)?.end
                 router.push(`search?assembly=${props.assembly}&chromosome=${chrom}&start=${start}&end=${end}&accession=${value}`)
               }
             }
           }}
           value={value}
-          onChange={(_: any, newValue: string | null) => {
+          onChange={(_: any, newValue: any) => {
             setValue(newValue)
           }}
           inputValue={inputValue}
@@ -135,11 +134,11 @@ export const CcreAutoComplete = (props) => {
                     <Box component="span" sx={{ fontWeight: "regular" }}>
                       {option}
                     </Box>
-                    {ccreAccessions && ccreAccessions.find((g) => g.ccreaccession === option) && (
+                    {ccreAccessions && ccreAccessions.find((g: any) => g.ccreaccession === option) && (
                       <Typography variant="body2" color="text.secondary">
-                        {`${ccreAccessions.find((g) => g.ccreaccession === option)?.chrom}:${
-                          ccreAccessions.find((g) => g.ccreaccession === option)?.start
-                        }:${ccreAccessions.find((g) => g.ccreaccession === option)?.end}`}
+                        {`${(ccreAccessions.find((g: any) => g.ccreaccession === option) as any)?.chrom}:${
+                          (ccreAccessions.find((g: any) => g.ccreaccession === option) as any)?.start
+                        }:${(ccreAccessions.find((g: any) => g.ccreaccession === option) as any)?.end}`}
                       </Typography>
                     )}
                   </Grid>

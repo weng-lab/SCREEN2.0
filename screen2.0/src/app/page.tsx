@@ -7,10 +7,9 @@ import MainSearch from "../common/components/mainsearch/MainSearch"
 
 // Grid v2 isn't declared stable yet, but using it now as it's what MUI is currently developing out
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
-
 import homeImage from "../../public/homeImage.png"
-
 import Image from "next/image"
+import BedUpload from "../common/components/BedUpload"
 
 export default function Home() {
   return (
