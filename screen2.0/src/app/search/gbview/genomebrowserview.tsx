@@ -176,7 +176,7 @@ export const GenomeBrowserView: React.FC<GenomeBrowserViewProps> = (props) => {
         ])
       setTracks(tracks)
     }
-  }, [bdata, props.biosample])
+  }, [bdata, props.biosample,props.assembly])
   return (
     <>
       <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "1rem" }}>

@@ -137,6 +137,7 @@ export const BiosampleTracks: React.FC<BiosampleTracksProps> = (props) => {
       </g>
       {(data?.bigRequests || []).map((data, i) => (
         <TitledTrack
+          key={i}
           assembly={props.assembly}
           oncCREMousedOut={props.oncCREMousedOut}
           oncCREMousedOver={props.oncCREMousedOver}
