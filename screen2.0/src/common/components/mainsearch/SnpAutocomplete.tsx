@@ -20,13 +20,13 @@ query snpAutocompleteQuery($snpid: String!, $assembly: String!) {
 }
 `
 export const SnpAutoComplete = (props) => {
-  const [value, setValue] = React.useState<any>(null)
+  const [value, setValue] = React.useState(null)
   const [inputValue, setInputValue] = React.useState("")
-  const [options, setOptions] = React.useState<any[]>([])
-  const [snpids, setSnpIds] = React.useState<any[]>([])
+  const [options, setOptions] = React.useState([])
+  const [snpids, setSnpIds] = React.useState([])
   const router = useRouter()
 
-  const onSearchChange = async (value: any) => {
+  const onSearchChange = async (value: string) => {
     setOptions([])
     const response = await fetch("https://ga.staging.wenglab.org/graphql", {
       method: "POST",
@@ -41,8 +41,8 @@ export const SnpAutoComplete = (props) => {
     })
     const snpSuggestion = (await response.json()).data?.snpAutocompleteQuery
     if (snpSuggestion && snpSuggestion.length > 0) {
-      const r = snpSuggestion.map((g: any) => g.id)
-      const snp = snpSuggestion.map((g: any) => {
+      const r = snpSuggestion.map((g: {id: string}) => g.id)
+      const snp = snpSuggestion.map((g: {id: string, coordinates: {chromosome:string, start: number, end: number} }) => {
         return {
           chrom: g.coordinates.chromosome,
           start: g.coordinates.start,
@@ -56,7 +56,7 @@ export const SnpAutoComplete = (props) => {
       setOptions([])
       setSnpIds([])
     }
-    //setgeneCards([]);
+    
   }
 
   const debounceFn = React.useCallback(debounce(onSearchChange, 500), [])
@@ -88,11 +88,11 @@ export const SnpAutoComplete = (props) => {
             }
           }}
           value={value}
-          onChange={(_: any, newValue: string | null) => {
+          onChange={(_, newValue: string | null) => {
             setValue(newValue)
           }}
           inputValue={inputValue}
-          onInputChange={(event, newInputValue) => {
+          onInputChange={(_, newInputValue) => {
             if (newInputValue != "") {
               debounceFn(newInputValue)
             }
@@ -104,8 +104,7 @@ export const SnpAutoComplete = (props) => {
             <TextField
               {...params}
               label="Enter a snp rsId"
-              InputLabelProps={{ shrink: true, style: { color: props.textColor || "black" } }}
-             // InputProps={{ style: { color: props.textColor || "black" } }}
+              InputLabelProps={{ shrink: true, style: { color: props.textColor || "black" } }}             
               placeholder="e.g. rs11669173"
               fullWidth
               sx={{ fieldset: { borderColor: props.textColor || "black"}, '& .MuiInput-underline:after': {

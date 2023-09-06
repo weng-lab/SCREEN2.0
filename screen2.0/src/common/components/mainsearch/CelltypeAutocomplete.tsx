@@ -9,10 +9,10 @@ import { useRouter } from "next/navigation"
 import { gql, useQuery } from "@apollo/client"
 
 export const CelltypeAutocomplete = (props) => {
-  const [value, setValue] = useState<any>(null)
+  const [value, setValue] = useState(null)
   const [inputValue, setInputValue] = useState("")
-  const [options, setOptions] = useState<any[]>([])
-  const [cellTypes, setCelltypes] = useState<any[]>([])
+  const [options, setOptions] = useState([])
+  const [cellTypes, setCelltypes] = useState([])
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
@@ -22,7 +22,7 @@ export const CelltypeAutocomplete = (props) => {
         return response.json()
       })
       .then((data) => {
-        //setCellTypes(data)
+        
         let byCt = Object.keys(data.byCellType).map((ct) => {
           return {
             value: ct,
@@ -35,8 +35,7 @@ export const CelltypeAutocomplete = (props) => {
         setLoading(false)
       })
       .catch((error: Error) => {
-        // logging
-        // throw error
+        console.log(error)
       })
     setLoading(true)
   }, [props.assembly])
@@ -56,7 +55,6 @@ export const CelltypeAutocomplete = (props) => {
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               event.defaultPrevented = true
-
               if (value) {
                 let tissue = cellTypes.find((g) => g.biosample_summary === value)?.tissue
                 let biosample = cellTypes.find((g) => g.biosample_summary === value)?.value
@@ -74,15 +72,11 @@ export const CelltypeAutocomplete = (props) => {
             }
           }}
           value={value}
-          onChange={(_: any, newValue: string | null) => {
+          onChange={(_, newValue: string | null) => {
             setValue(newValue)
           }}
           inputValue={inputValue}
           onInputChange={(event, newInputValue) => {
-            if (newInputValue != "") {
-              //debounceFn(newInputValue);
-            }
-
             setInputValue(newInputValue)
           }}
           noOptionsText="e.g. LNCAP"
@@ -90,8 +84,7 @@ export const CelltypeAutocomplete = (props) => {
             <TextField
               {...params}
               label="Enter a celltype"
-              InputLabelProps={{ shrink: true, style: { color: props.textColor || "black" } }}
-             // InputProps={{ style: { color: props.textColor || "black" } }}
+              InputLabelProps={{ shrink: true, style: { color: props.textColor || "black" } }}             
               placeholder="e.g. LNCAP"
               fullWidth
               sx={{ fieldset: { borderColor: props.textColor || "black"}, '& .MuiInput-underline:after': {

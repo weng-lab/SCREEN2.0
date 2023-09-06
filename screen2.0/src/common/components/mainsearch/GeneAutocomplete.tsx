@@ -6,8 +6,6 @@ import Grid from "@mui/material/Grid"
 import Typography from "@mui/material/Typography"
 import { debounce } from "@mui/material/utils"
 import { useRouter } from "next/navigation"
-import SearchIcon from "@mui/icons-material/Search"
-import { IconButton, InputAdornment, InputBaseProps, createTheme } from "@mui/material"
 export type QueryResponse = [number, string[], any, [string, string, string, string, string, string][], string[]]
 
 const GENE_AUTOCOMPLETE_QUERY = `
@@ -25,7 +23,7 @@ query ($assembly: String!, $name_prefix: [String!], $limit: Int) {
  `
 
 export const GeneAutoComplete = (props) => {
-  const [value, setValue] = React.useState<any>(null)
+  const [value, setValue] = React.useState(null)
   const [inputValue, setInputValue] = React.useState("")
   const [options, setOptions] = React.useState<string[]>([])
   const [geneids, setGeneIds] = React.useState<{ chrom: string; start: number; end: number; id: string; name: string }[]>([])
@@ -132,7 +130,7 @@ export const GeneAutoComplete = (props) => {
             }
           }}
           value={value}
-          onChange={(_: any, newValue: string | null) => {
+          onChange={(_, newValue: string | null) => {
             setValue(newValue)
           }}
           inputValue={inputValue}

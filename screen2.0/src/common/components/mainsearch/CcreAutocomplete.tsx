@@ -29,7 +29,7 @@ export const CcreAutoComplete = (props) => {
   const [ccreAccessions, setCcreAccessions] = React.useState([])
 
   const router = useRouter()
-  const onSearchChange = async (value: any) => {
+  const onSearchChange = async (value: string) => {
     setOptions([])
     const response = await fetch("https://factorbook.api.wenglab.org/graphql", {
       method: "POST",
@@ -45,8 +45,8 @@ export const CcreAutoComplete = (props) => {
     })
     const ccreSuggestion = (await response.json()).data?.cCREQuery
     if (ccreSuggestion && ccreSuggestion.length > 0) {
-      const r = ccreSuggestion.map((g: any) => g.accession)
-      const ccres = ccreSuggestion.map((g: any) => {
+      const r = ccreSuggestion.map((g: { accession: string}) => g.accession)
+      const ccres = ccreSuggestion.map((g: { accession: string, coordinates: { start: number, end: number, chromosome: string }}) => {
         return {
           chrom: g.coordinates.chromosome,
           start: g.coordinates.start,
@@ -81,15 +81,15 @@ export const CcreAutoComplete = (props) => {
               event.defaultPrevented = true
 
               if (value) {
-                let chrom = (ccreAccessions.find((g: any) => g.ccreaccession === value) as any)?.chrom
-                let start = (ccreAccessions.find((g: any) => g.ccreaccession === value) as any)?.start
-                let end = (ccreAccessions.find((g: any) => g.ccreaccession === value) as any)?.end
+                let chrom = (ccreAccessions.find((g: {ccreaccession: string}) => g.ccreaccession === value))?.chrom
+                let start = (ccreAccessions.find((g: {ccreaccession: string}) => g.ccreaccession === value))?.start
+                let end = (ccreAccessions.find((g: {ccreaccession: string}) => g.ccreaccession === value))?.end
                 router.push(`search?assembly=${props.assembly}&chromosome=${chrom}&start=${start}&end=${end}&accession=${value}`)
               }
             }
           }}
           value={value}
-          onChange={(_: any, newValue: any) => {
+          onChange={(_, newValue: string | null) => {
             setValue(newValue)
           }}
           inputValue={inputValue}
@@ -106,7 +106,7 @@ export const CcreAutoComplete = (props) => {
               {...params}
               label="Enter a cCRE accession"
               InputLabelProps={{ shrink: true, style: { color: props.textColor || "black" } }}
-            //  InputProps={{ style: { color: props.textColor || "black" } }}
+            
               placeholder="e.g. EH38E0001314"
               fullWidth
               sx={{ fieldset: { borderColor: props.textColor || "black"}, '& .MuiInput-underline:after': {
@@ -134,11 +134,11 @@ export const CcreAutoComplete = (props) => {
                     <Box component="span" sx={{ fontWeight: "regular" }}>
                       {option}
                     </Box>
-                    {ccreAccessions && ccreAccessions.find((g: any) => g.ccreaccession === option) && (
+                    {ccreAccessions && ccreAccessions.find((g: {ccreaccession: string }) => g.ccreaccession === option) && (
                       <Typography variant="body2" color="text.secondary">
-                        {`${(ccreAccessions.find((g: any) => g.ccreaccession === option) as any)?.chrom}:${
-                          (ccreAccessions.find((g: any) => g.ccreaccession === option) as any)?.start
-                        }:${(ccreAccessions.find((g: any) => g.ccreaccession === option) as any)?.end}`}
+                        {`${(ccreAccessions.find((g: {ccreaccession: string }) => g.ccreaccession === option))?.chrom}:${
+                          (ccreAccessions.find((g: {ccreaccession: string }) => g.ccreaccession === option))?.start
+                        }:${(ccreAccessions.find((g: {ccreaccession: string }) => g.ccreaccession === option))?.end}`}
                       </Typography>
                     )}
                   </Grid>
