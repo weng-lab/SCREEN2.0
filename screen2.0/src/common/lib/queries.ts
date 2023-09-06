@@ -4,6 +4,7 @@
 
 import { getClient } from "../lib/client"
 import { ApolloQueryResult, gql } from "@apollo/client"
+import Config from "../../config.json"
 
 const cCRE_QUERY = gql`
   query ccreSearchQuery(
@@ -426,9 +427,9 @@ export const getGlobals = async (assembly: "GRCh38" | "mm10") => {
   // console.log(assembly)
   let res: Response
   if (assembly === "GRCh38") {
-    res = await fetch("https://downloads.wenglab.org/databyct.json")
+    res = await fetch(Config.API.HumanGlobals)
   } else if (assembly === "mm10") {
-    res = await fetch("https://downloads.wenglab.org/mm10_byct.json")
+    res = await fetch(Config.API.MouseGlobals)
   }
   return res.json()
 }

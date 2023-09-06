@@ -4,7 +4,6 @@ import { MainQuery, getGlobals, linkedGenesQuery } from "../../common/lib/querie
 import { ApolloQueryResult } from "@apollo/client"
 import { cCREData, CellTypeData, MainQueryParams, MainResultTableRow, MainResultTableRows } from "./types"
 import { checkTrueFalse, passesCriteria } from "../../common/lib/filter-helpers"
-import { LinkedGenes } from "./ccredetails/linkedgenes"
 
 export default async function Search({
   // Object from URL, see https://nextjs.org/docs/app/api-reference/file-conventions/page#searchparams-optional
@@ -15,6 +14,7 @@ export default async function Search({
   //Get search parameters and define defaults.
   const mainQueryParams: MainQueryParams = {
     assembly: searchParams.assembly === "GRCh38" || searchParams.assembly === "mm10" ? searchParams.assembly : "GRCh38",
+    gene: searchParams.gene,
     chromosome: searchParams.chromosome ? searchParams.chromosome : "chr11",
     start: searchParams.start ? Number(searchParams.start) : 5205263,
     end: searchParams.end ? Number(searchParams.end) : 5381894,

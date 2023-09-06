@@ -37,6 +37,7 @@ export type MainQueryParams = {
   chromosome: string
   start: number
   end: number
+  gene?: string
   CellLine?: boolean
   PrimaryCell?: boolean
   Tissue?: boolean

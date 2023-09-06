@@ -1,7 +1,7 @@
 "use client"
 import { DataTable, DataTableProps, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
-import React, { useCallback, useEffect, useState } from "react"
-import { Box, Typography, Menu, Checkbox, Stack, MenuItem, Container, FormControlLabel, FormGroup } from "@mui/material"
+import React, { useCallback, useState } from "react"
+import { Box, Typography, Menu, Checkbox, Stack, MenuItem, FormControlLabel, FormGroup } from "@mui/material"
 import { MainResultTableRow } from "../../app/search/types"
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
@@ -35,7 +35,7 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
       },
       {
         header: "Chr",
-        value: (row: { chromosome: any }) => row.chromosome,
+        value: (row: { chromosome: string }) => row.chromosome,
       },
       {
         header: "Start",

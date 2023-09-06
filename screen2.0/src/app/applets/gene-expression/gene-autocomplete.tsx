@@ -8,7 +8,7 @@ import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { gene } from "./types"
 import { QueryResponse } from "../../../../types/types"
 import { Dispatch, SetStateAction } from "react"
-
+import Config from "../../../config.json"
 const GENE_AUTOCOMPLETE_QUERY = `
   query ($assembly: String!, $name_prefix: [String!], $limit: Int) {
     gene(assembly: $assembly, name_prefix: $name_prefix, limit: $limit) {
@@ -66,7 +66,7 @@ export default function GeneAutoComplete(props: {
   // gene list
   const onSearchChange = async (value: string) => {
     setOptions([])
-    const response = await fetch("https://ga.staging.wenglab.org/graphql", {
+    const response = await fetch(Config.API.GraphqlAPI, {
       method: "POST",
       body: JSON.stringify({
         query: GENE_AUTOCOMPLETE_QUERY,

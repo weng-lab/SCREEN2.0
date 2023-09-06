@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect } from "react"
+import React, { useEffect, useState } from "react"
 import { Tab, Tabs, Typography } from "@mui/material"
 import MainResultsTable from "../../common/components/MainResultsTable"
 import MainResultsFilters from "../../common/components/MainResultsFilters"
@@ -7,14 +7,15 @@ import { CcreDetails } from "./ccredetails/ccredetails"
 import Grid2 from "../../common/mui-client-wrappers/Grid2"
 import { ReadonlyURLSearchParams, useSearchParams } from "next/navigation"
 import styled from "@emotion/styled"
+import { GenomeBrowserView } from "./gbview/genomebrowserview"
 import { MainResultTableRows } from "./types"
 export const StyledTab = styled(Tab)(() => ({
   textTransform: "none",
 }))
 export const CcreSearch = (props: { mainQueryParams, ccrerows: MainResultTableRows, globals, assembly }) => {
   const searchParams: ReadonlyURLSearchParams = useSearchParams()!
-  const [value, setValue] = React.useState(searchParams.get("accession") ? 1 : 0)
-
+  const [value, setValue] = useState(searchParams.get("accession") ? 1 : 0)
+  const [tabIndex, setTabIndex] = useState(0)
   const handleChange = (_, newValue: number) => {
     setValue(newValue)
   }
@@ -45,13 +46,28 @@ export const CcreSearch = (props: { mainQueryParams, ccrerows: MainResultTableRo
             <MainResultsFilters mainQueryParams={props.mainQueryParams} byCellType={props.globals} />
           </Grid2>
           <Grid2 xs={12} lg={9}>
-            <MainResultsTable
-              rows={props.ccrerows}
-              tableTitle={`Searching ${props.mainQueryParams.chromosome} in ${
-                props.mainQueryParams.assembly
-              } from ${props.mainQueryParams.start.toLocaleString("en-US")} to ${props.mainQueryParams.end.toLocaleString("en-US")}`}
-              itemsPerPage={10}
-            />
+            <Tabs aria-label="basic tabs example" value={tabIndex} onChange={(_, val) => setTabIndex(val)}>
+              <StyledTab label="Table View" />
+              <StyledTab label="Genome Browser View" />
+              
+            </Tabs>
+            {tabIndex === 1 && (
+              <GenomeBrowserView
+                gene={props.mainQueryParams.gene}
+                biosample={props.mainQueryParams.Biosample.biosample}
+                assembly={props.mainQueryParams.assembly}
+                coordinates={{ start: +props.mainQueryParams.start, end: +props.mainQueryParams.end, chromosome: props.mainQueryParams.chromosome }}
+              />
+            )}
+            {tabIndex === 0 && (
+              <MainResultsTable
+                rows={props.ccrerows}
+                tableTitle={`Searching ${props.mainQueryParams.chromosome} in ${
+                  props.mainQueryParams.assembly
+                } from ${props.mainQueryParams.start.toLocaleString("en-US")} to ${props.mainQueryParams.end.toLocaleString("en-US")}`}
+                itemsPerPage={10}
+              />
+            )}
           </Grid2>
         </Grid2>
       )}
