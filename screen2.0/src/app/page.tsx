@@ -22,6 +22,8 @@ export default function Home() {
         <Grid2 xs={12} lg={6}>
           <Typography variant="h4">Search</Typography>
           <MainSearch />
+          <Typography variant="h6" mt={2}>Find Intersecting cCREs from BED file</Typography>
+          <BedUpload />
           <Typography variant="h5" mt="3rem">
             What is SCREEN?
           </Typography>

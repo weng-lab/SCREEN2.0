@@ -70,6 +70,7 @@ const BedUpload = () => {
           //Success
           (r) => {
             console.log(r)
+            //Then replace query main search
           },
           //Error
           (msg) => {

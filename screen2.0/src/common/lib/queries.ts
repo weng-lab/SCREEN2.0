@@ -6,188 +6,93 @@ import { getClient } from "../lib/client"
 import { ApolloQueryResult, gql } from "@apollo/client"
 
 const cCRE_QUERY = gql`
-  query ccreSearchQuery(
-    $accessions: [String!]
-    $assembly: String!
-    $cellType: String
-    $coord_chrom: String
-    $coord_end: Int
-    $coord_start: Int
-    $element_type: String
-    $gene_all_start: Int
-    $gene_all_end: Int
-    $gene_pc_start: Int
-    $gene_pc_end: Int
-    $rank_ctcf_end: Float!
-    $rank_ctcf_start: Float!
-    $rank_dnase_end: Float!
-    $rank_dnase_start: Float!
-    $rank_enhancer_end: Float!
-    $rank_enhancer_start: Float!
-    $rank_promoter_end: Float!
-    $rank_promoter_start: Float!
-    $uuid: String
-    $limit: Int
+query ccreSearchQuery(
+  $accessions: [String!]
+  $assembly: String!
+  $cellType: String
+  $coord_chrom: String
+  $coord_end: Int
+  $coord_start: Int
+  $element_type: String
+  $gene_all_start: Int
+  $gene_all_end: Int
+  $gene_pc_start: Int
+  $gene_pc_end: Int
+  $rank_ctcf_end: Float!
+  $rank_ctcf_start: Float!
+  $rank_dnase_end: Float!
+  $rank_dnase_start: Float!
+  $rank_enhancer_end: Float!
+  $rank_enhancer_start: Float!
+  $rank_promoter_end: Float!
+  $rank_promoter_start: Float!
+  $uuid: String
+  $limit: Int
+) {
+  cCRESCREENSearch(
+    assembly: $assembly
+    accessions: $accessions
+    cellType: $cellType
+    coord_chrom: $coord_chrom
+    coord_end: $coord_end
+    coord_start: $coord_start
+    element_type: $element_type
+    gene_all_start: $gene_all_start
+    gene_all_end: $gene_all_end
+    gene_pc_start: $gene_pc_start
+    gene_pc_end: $gene_pc_end
+    rank_ctcf_end: $rank_ctcf_end
+    rank_ctcf_start: $rank_ctcf_start
+    rank_dnase_end: $rank_dnase_end
+    rank_dnase_start: $rank_dnase_start
+    rank_enhancer_end: $rank_enhancer_end
+    rank_enhancer_start: $rank_enhancer_start
+    rank_promoter_end: $rank_promoter_end
+    rank_promoter_start: $rank_promoter_start
+    uuid: $uuid
+    limit: $limit
   ) {
-    cCRESCREENSearch(
-      assembly: $assembly
-      accessions: $accessions
-      cellType: $cellType
-      coord_chrom: $coord_chrom
-      coord_end: $coord_end
-      coord_start: $coord_start
-      element_type: $element_type
-      gene_all_start: $gene_all_start
-      gene_all_end: $gene_all_end
-      gene_pc_start: $gene_pc_start
-      gene_pc_end: $gene_pc_end
-      rank_ctcf_end: $rank_ctcf_end
-      rank_ctcf_start: $rank_ctcf_start
-      rank_dnase_end: $rank_dnase_end
-      rank_dnase_start: $rank_dnase_start
-      rank_enhancer_end: $rank_enhancer_end
-      rank_enhancer_start: $rank_enhancer_start
-      rank_promoter_end: $rank_promoter_end
-      rank_promoter_start: $rank_promoter_start
-      uuid: $uuid
-      limit: $limit
-    ) {
-      chrom
-      start
-      len
-      pct
-      ctcf_zscore
+    chrom
+    start
+    len
+    pct
+    ctcf_zscore
+    dnase_zscore
+    enhancer_zscore
+    promoter_zscore
+    ctspecific {
+      ct
       dnase_zscore
-      enhancer_zscore
-      promoter_zscore
-      vistaids
-      sct
-      pct
-      maxz
-      rfacets
-      in_cart
-      info {
-        accession
-        isproximal
-        concordant
-      }
-      genesallpc {
-        accession
-        all {
-          end
-          start
-          chromosome
-          assembly
-          intersecting_genes {
-            name
-          }
+      h3k4me3_zscore
+      h3k27ac_zscore
+      ctcf_zscore
+    }
+    info {
+      accession
+    }
+    genesallpc {
+      accession
+      all {
+        end
+        start
+        chromosome
+        assembly
+        intersecting_genes {
+          name
         }
-        pc {
-          end
-          assembly
-          chromosome
-          start
-          intersecting_genes {
-            name
-          }
+      }
+      pc {
+        end
+        assembly
+        chromosome
+        start
+        intersecting_genes {
+          name
         }
       }
     }
   }
-`
-
-const cCRE_QUERY_WITH_BIOSAMPLES = gql`
-  query ccreSearchQuery(
-    $accessions: [String!]
-    $assembly: String!
-    $cellType: String
-    $coord_chrom: String
-    $coord_end: Int
-    $coord_start: Int
-    $element_type: String
-    $gene_all_start: Int
-    $gene_all_end: Int
-    $gene_pc_start: Int
-    $gene_pc_end: Int
-    $rank_ctcf_end: Float!
-    $rank_ctcf_start: Float!
-    $rank_dnase_end: Float!
-    $rank_dnase_start: Float!
-    $rank_enhancer_end: Float!
-    $rank_enhancer_start: Float!
-    $rank_promoter_end: Float!
-    $rank_promoter_start: Float!
-    $uuid: String
-    $limit: Int
-  ) {
-    cCRESCREENSearch(
-      assembly: $assembly
-      accessions: $accessions
-      cellType: $cellType
-      coord_chrom: $coord_chrom
-      coord_end: $coord_end
-      coord_start: $coord_start
-      element_type: $element_type
-      gene_all_start: $gene_all_start
-      gene_all_end: $gene_all_end
-      gene_pc_start: $gene_pc_start
-      gene_pc_end: $gene_pc_end
-      rank_ctcf_end: $rank_ctcf_end
-      rank_ctcf_start: $rank_ctcf_start
-      rank_dnase_end: $rank_dnase_end
-      rank_dnase_start: $rank_dnase_start
-      rank_enhancer_end: $rank_enhancer_end
-      rank_enhancer_start: $rank_enhancer_start
-      rank_promoter_end: $rank_promoter_end
-      rank_promoter_start: $rank_promoter_start
-      uuid: $uuid
-      limit: $limit
-    ) {
-      chrom
-      start
-      len
-      pct
-      vistaids
-      sct
-      pct
-      maxz
-      rfacets
-      in_cart
-      ctspecific {
-        ct
-        dnase_zscore
-        h3k4me3_zscore
-        h3k27ac_zscore
-        ctcf_zscore
-      }
-      info {
-        accession
-        isproximal
-        concordant
-      }
-      genesallpc {
-        accession
-        all {
-          end
-          start
-          chromosome
-          assembly
-          intersecting_genes {
-            name
-          }
-        }
-        pc {
-          end
-          assembly
-          chromosome
-          start
-          intersecting_genes {
-            name
-          }
-        }
-      }
-    }
-  }
+}
 `
 
 const BIOSAMPLE_QUERY = gql`
@@ -371,12 +276,12 @@ export async function linkedGenesQuery(assembly: "GRCh38" | "mm10", accession: s
  * @param biosample optional - a biosample selection. If not specified or "undefined", will be marked as "null" in gql query
  * @returns cCREs matching the search
  */
-export async function MainQuery(assembly: string, chromosome: string, start: number, end: number, biosample: string = null) {
+export async function MainQuery(assembly: string = null, chromosome: string = null, start: number = null, end: number = null, biosample: string = null) {
   // console.log("queried with: " + assembly, chromosome, start, end, biosample)
   let data: ApolloQueryResult<any>
   try {
     data = await getClient().query({
-      query: biosample ? cCRE_QUERY_WITH_BIOSAMPLES : cCRE_QUERY,
+      query: cCRE_QUERY,
       variables: cCRE_QUERY_VARIABLES(assembly, chromosome, start, end, biosample),
     })
   } catch (error) {

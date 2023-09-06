@@ -57,6 +57,7 @@ export default async function Search({
   }
 
   //Main query
+  //THIS IS WHERE I NEED TO FEED IN THE BED INTERSECT RESULTS  
   const mainQueryResult: ApolloQueryResult<any> = await MainQuery(
     mainQueryParams.assembly,
     mainQueryParams.chromosome,
@@ -64,6 +65,13 @@ export default async function Search({
     mainQueryParams.end,
     mainQueryParams.Biosample.biosample
   )
+
+  /**
+   * If intersecting by bed
+   *    Use one set of variables
+   * Else
+   *    Use the other set of variables
+   */
 
   //Contains cell type data of the specified assembly
   const globals: CellTypeData = await getGlobals(mainQueryParams.assembly)
@@ -111,7 +119,6 @@ export default async function Search({
           row.linkedGenes.RNAPII_ChIAPET.push({name: gene.geneName, biosample: gene.biosample})
         }
       });
-
     })
 
     return rows
