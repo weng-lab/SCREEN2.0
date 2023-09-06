@@ -40,11 +40,11 @@ export const TfMotifTrack = (props) => {
         data={props.data}
         transform="translate(0,40)"
         tooltipContent={(rect: any) => {
-          console.log(rect, ":recg")
+          
           return <MotifTooltip {...rect} />
         }}
         onClick={(x: any) => {
-          //return window.open(`${x}`)
+          
           return window.open(
             `https://factorbook.org/tf/${props.assembly === "GRCh38" ? "human" : "mouse"}/${x.rectname.split("$")[2]}/motif`,
             "_blank"

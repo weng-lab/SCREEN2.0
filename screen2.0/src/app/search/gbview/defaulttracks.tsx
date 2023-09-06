@@ -157,7 +157,7 @@ const DefaultTracks: React.FC<DefaultTracksProps> = (props) => {
     () =>
       associateBy(
         (data && data.bigRequests && data.bigRequests[0].data) || [],
-        (x: any) => x.name,
+        (x: { name: string}) => x.name,
         (x: any) => ({ chromosome: x.chr, start: x.start, end: x.end })
       ),
     [data]

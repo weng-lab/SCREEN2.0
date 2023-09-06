@@ -1,5 +1,5 @@
 "use client"
-import * as React from "react"
+import React, {useState, useCallback} from "react"
 import Box from "@mui/material/Box"
 import TextField from "@mui/material/TextField"
 import Autocomplete from "@mui/material/Autocomplete"
@@ -23,10 +23,10 @@ query cCREQuery($accession_prefix: [String!], $limit: Int, $assembly: String!) {
 }
 `
 export const CcreAutoComplete = (props) => {
-  const [value, setValue] = React.useState(null)
-  const [inputValue, setInputValue] = React.useState("")
-  const [options, setOptions] = React.useState([])
-  const [ccreAccessions, setCcreAccessions] = React.useState([])
+  const [value, setValue] = useState(null)
+  const [inputValue, setInputValue] = useState("")
+  const [options, setOptions] = useState([])
+  const [ccreAccessions, setCcreAccessions] = useState([])
 
   const router = useRouter()
   const onSearchChange = async (value: string) => {
@@ -62,7 +62,7 @@ export const CcreAutoComplete = (props) => {
     }
   }
 
-  const debounceFn = React.useCallback(debounce(onSearchChange, 500), [])
+  const debounceFn = useCallback(debounce(onSearchChange, 500), [])
 
   return (
     <Grid container sx={{ mr: "1em", ml: "1em" }}>

@@ -1,4 +1,4 @@
-import * as React from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import Box from "@mui/material/Box"
 import TextField from "@mui/material/TextField"
 import Autocomplete from "@mui/material/Autocomplete"
@@ -23,15 +23,15 @@ query ($assembly: String!, $name_prefix: [String!], $limit: Int) {
  `
 
 export const GeneAutoComplete = (props) => {
-  const [value, setValue] = React.useState(null)
-  const [inputValue, setInputValue] = React.useState("")
-  const [options, setOptions] = React.useState<string[]>([])
-  const [geneids, setGeneIds] = React.useState<{ chrom: string; start: number; end: number; id: string; name: string }[]>([])
+  const [value, setValue] = useState(null)
+  const [inputValue, setInputValue] = useState("")
+  const [options, setOptions] = useState<string[]>([])
+  const [geneids, setGeneIds] = useState<{ chrom: string; start: number; end: number; id: string; name: string }[]>([])
 
   const router = useRouter()
-  const [geneDesc, setgeneDesc] = React.useState<{ name: string; desc: string }[]>()
+  const [geneDesc, setgeneDesc] = useState<{ name: string; desc: string }[]>()
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchData = async () => {
       let f = await Promise.all(
         options.map((gene) =>
@@ -89,7 +89,7 @@ export const GeneAutoComplete = (props) => {
     }
   }
 
-  const debounceFn = React.useCallback(debounce(onSearchChange, 500), [])
+  const debounceFn = useCallback(debounce(onSearchChange, 500), [])
   const gridsize = props.gridsize || 5.5
   return (
     <Grid container sx={{ mr: "1em", ml: "1em" }}>

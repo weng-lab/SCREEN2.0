@@ -35,7 +35,7 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
       },
       {
         header: "Chr",
-        value: (row: { chromosome: any }) => row.chromosome,
+        value: (row: { chromosome: string }) => row.chromosome,
       },
       {
         header: "Start",
