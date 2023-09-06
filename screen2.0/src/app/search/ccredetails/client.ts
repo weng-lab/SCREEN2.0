@@ -1,5 +1,6 @@
 import { ApolloClient, InMemoryCache } from "@apollo/client"
+import Config from "../../../config.json"
 export const client = new ApolloClient({
-  uri: "https://factorbook.api.wenglab.org/graphql",
+  uri: Config.API.CcreAPI,
   cache: new InMemoryCache(),
 })

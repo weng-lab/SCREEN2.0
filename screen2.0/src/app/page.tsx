@@ -2,7 +2,8 @@
 
 "use client"
 import { Typography } from "@mui/material"
-import MainSearch from "../common/components/MainSearch"
+
+import MainSearch from "../common/components/mainsearch/MainSearch"
 
 // Grid v2 isn't declared stable yet, but using it now as it's what MUI is currently developing out
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
