@@ -1,18 +1,13 @@
-import { gql, useQuery } from "@apollo/client"
+import { useQuery } from "@apollo/client"
 import { associateBy } from "queryz"
-import { BigWigData, BigBedData, BigZoomData } from "bigwig-reader"
+
 import React, { RefObject, useEffect, useMemo, useState } from "react"
 import { EmptyTrack } from "umms-gb"
-import { RequestError } from "umms-gb/dist/components/tracks/trackset/types"
-import { ValuedPoint } from "umms-gb/dist/utils/types"
 import { client } from "../ccredetails/client"
 import { TitledTrack } from "./defaulttracks"
+import { BIOSAMPLE_QUERY, BIG_QUERY } from "./queries"
+import { GenomicRange, BigQueryResponse } from "./types"
 
-type GenomicRange = {
-  chromosome?: string
-  start: number
-  end: number
-}
 
 type BiosampleTracksProps = {
   tracks: [string, string, string][]
@@ -29,28 +24,6 @@ type BiosampleTracksProps = {
   onSettingsClick?: () => void
 }
 
-export type BigResponseData = BigWigData[] | BigBedData[] | BigZoomData[] | ValuedPoint[]
-
-export type BigResponse = {
-  data: BigResponseData
-  error: RequestError
-}
-
-export type BigQueryResponse = {
-  bigRequests: BigResponse[]
-}
-export const BIG_QUERY = gql`
-  query BigRequests($bigRequests: [BigRequest!]!) {
-    bigRequests(requests: $bigRequests) {
-      data
-      error {
-        errortype
-        message
-      }
-    }
-  }
-`
-
 export const COLOR_MAP: Map<string, string> = new Map([
   ["DNase", "#06da93"],
   ["H3K4me3", "#ff0000"],
@@ -58,23 +31,6 @@ export const COLOR_MAP: Map<string, string> = new Map([
   ["CTCF", "#00b0d0"],
 ])
 
-export const BIOSAMPLE_QUERY = gql`
-  query q($assembly: String!) {
-    ccREBiosampleQuery(assembly: $assembly) {
-      biosamples {
-        name
-        dnase: experimentAccession(assay: "DNase")
-        h3k4me3: experimentAccession(assay: "H3K4me3")
-        h3k27ac: experimentAccession(assay: "H3K27ac")
-        ctcf: experimentAccession(assay: "CTCF")
-        dnase_signal: fileAccession(assay: "DNase")
-        h3k4me3_signal: fileAccession(assay: "H3K4me3")
-        h3k27ac_signal: fileAccession(assay: "H3K27ac")
-        ctcf_signal: fileAccession(assay: "CTCF")
-      }
-    }
-  }
-`
 export const BiosampleTracks: React.FC<BiosampleTracksProps> = (props) => {
   const [cTracks, setTracks] = useState<[string, string, string][]>(props.tracks)
 

@@ -4,25 +4,23 @@ import TextField from "@mui/material/TextField"
 import Autocomplete from "@mui/material/Autocomplete"
 import Grid from "@mui/material/Grid"
 import Typography from "@mui/material/Typography"
-import { debounce } from "@mui/material/utils"
 import { useRouter } from "next/navigation"
-import { gql, useQuery } from "@apollo/client"
+import Config from "../../../config.json"
 
-export const CelltypeAutocomplete = (props) => {
+export const CelltypeAutocomplete: React.FC<{assembly: string, textColor: string }> = (props) => {
   const [value, setValue] = useState(null)
   const [inputValue, setInputValue] = useState("")
   const [options, setOptions] = useState([])
   const [cellTypes, setCelltypes] = useState([])
-  const [loading, setLoading] = useState(false)
+  
   const router = useRouter()
-
+  
   useEffect(() => {
-    fetch("https://downloads.wenglab.org/databyct.json")
+    fetch(props.assembly.toLowerCase()==="grch38" ? Config.API.HumanGlobals : Config.API.MouseGlobals)
       .then((response) => {
         return response.json()
       })
-      .then((data) => {
-        
+      .then((data) => {        
         let byCt = Object.keys(data.byCellType).map((ct) => {
           return {
             value: ct,
@@ -31,19 +29,19 @@ export const CelltypeAutocomplete = (props) => {
           }
         })
         setOptions(byCt.map((ct) => ct.biosample_summary))
-        setCelltypes(byCt)
-        setLoading(false)
+        setCelltypes(byCt)        
       })
       .catch((error: Error) => {
         console.log(error)
       })
-    setLoading(true)
+    
   }, [props.assembly])
 
   return (
     <Grid container sx={{ mr: "1em", ml: "1em" }}>
       <Grid item sm={5.5} md={5.5} lg={5.5} xl={5.5}>
         <Autocomplete
+          freeSolo
           id="celltype-autocomplete"
           sx={{ width: 300, paper: { height: 200 } }}
           options={options}
@@ -56,6 +54,7 @@ export const CelltypeAutocomplete = (props) => {
             if (event.key === "Enter") {
               event.defaultPrevented = true
               if (value) {
+                console.log(value,"ct")
                 let tissue = cellTypes.find((g) => g.biosample_summary === value)?.tissue
                 let biosample = cellTypes.find((g) => g.biosample_summary === value)?.value
                 let biosample_summary = value.split(":")[0]
@@ -76,16 +75,17 @@ export const CelltypeAutocomplete = (props) => {
             setValue(newValue)
           }}
           inputValue={inputValue}
-          onInputChange={(event, newInputValue) => {
+          onInputChange={(_, newInputValue) => {
+            setValue(newInputValue)
             setInputValue(newInputValue)
           }}
-          noOptionsText="e.g. LNCAP"
+          noOptionsText={props.assembly==="mm10" ? "strain B6NCrl cortical plate tissue male adult (8 weeks)" :"e.g. LNCAP"}
           renderInput={(params) => (
             <TextField
               {...params}
               label="Enter a celltype"
               InputLabelProps={{ shrink: true, style: { color: props.textColor || "black" } }}             
-              placeholder="e.g. LNCAP"
+              placeholder={props.assembly==="mm10" ? "strain B6NCrl cortical plate tissue male adult (8 weeks)" :"e.g. LNCAP"}
               fullWidth
               sx={{ fieldset: { borderColor: props.textColor || "black"}, '& .MuiInput-underline:after': {
                 borderBottomColor: props.textColor || "black",

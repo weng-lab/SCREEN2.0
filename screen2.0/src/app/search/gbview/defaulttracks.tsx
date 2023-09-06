@@ -1,24 +1,13 @@
-import { gql, useQuery } from "@apollo/client"
+import {  useQuery } from "@apollo/client"
 import { associateBy } from "queryz"
-import { BigWigData, BigBedData, BigZoomData } from "bigwig-reader"
+import { BigWigData, BigBedData } from "bigwig-reader"
 import React, { RefObject, useEffect, useMemo, useState } from "react"
 import { DenseBigBed, EmptyTrack, FullBigWig } from "umms-gb"
-import { RequestError } from "umms-gb/dist/components/tracks/trackset/types"
-import { ValuedPoint } from "umms-gb/dist/utils/types"
 import { client } from "../ccredetails/client"
 import CCRETooltip from "./ccretooltip"
+import { BIG_QUERY } from "./queries"
+import { GenomicRange, BigQueryResponse, BigResponseData } from "./types"
 
-export const BIG_QUERY = gql`
-  query BigRequests($bigRequests: [BigRequest!]!) {
-    bigRequests(requests: $bigRequests) {
-      data
-      error {
-        errortype
-        message
-      }
-    }
-  }
-`
 
 export const COLOR_MAP: Map<string, string> = new Map([
   ["Aggregated DNase-seq signal, all Registry biosamples", "#06da93"],
@@ -26,23 +15,6 @@ export const COLOR_MAP: Map<string, string> = new Map([
   ["Aggregated H3K27ac ChIP-seq signal, all Registry biosamples", "#ffcd00"],
   ["Aggregated CTCF ChIP-seq signal, all Registry biosamples", "#00b0d0"],
 ])
-
-type GenomicRange = {
-  chromosome?: string
-  start: number
-  end: number
-}
-
-export type BigResponseData = BigWigData[] | BigBedData[] | BigZoomData[] | ValuedPoint[]
-
-export type BigResponse = {
-  data: BigResponseData
-  error: RequestError
-}
-
-export type BigQueryResponse = {
-  bigRequests: BigResponse[]
-}
 
 type DefaultTracksProps = {
   domain: GenomicRange

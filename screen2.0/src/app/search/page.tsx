@@ -4,7 +4,6 @@ import { MainQuery, getGlobals, linkedGenesQuery } from "../../common/lib/querie
 import { ApolloQueryResult } from "@apollo/client"
 import { cCREData, CellTypeData, MainQueryParams, MainResultTableRow, MainResultTableRows } from "./types"
 import { checkTrueFalse, passesCriteria } from "../../common/lib/filter-helpers"
-import { LinkedGenes } from "./ccredetails/linkedgenes"
 
 export default async function Search({
   // Object from URL, see https://nextjs.org/docs/app/api-reference/file-conventions/page#searchparams-optional

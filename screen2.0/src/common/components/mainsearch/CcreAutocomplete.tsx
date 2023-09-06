@@ -7,22 +7,10 @@ import Grid from "@mui/material/Grid"
 import Typography from "@mui/material/Typography"
 import { debounce } from "@mui/material/utils"
 import { useRouter } from "next/navigation"
+import { CCRE_AUTOCOMPLETE_QUERY } from "./queries"
+import Config from "../../../config.json"
 
-///search?assembly=GRCh38&chromosome=chr11&start=5205263&end=5381894&accession=EH38E1516972
-
-const CCRE_AUTOCOMPLETE_QUERY = `
-query cCREQuery($accession_prefix: [String!], $limit: Int, $assembly: String!) {
-    cCREQuery(accession_prefix: $accession_prefix, assembly: $assembly, limit: $limit) {
-        accession
-      coordinates {
-        start
-        end
-        chromosome
-      }
-    }
-}
-`
-export const CcreAutoComplete = (props) => {
+export const CcreAutoComplete: React.FC<{assembly: string, textColor: string }>  = (props) => {
   const [value, setValue] = useState(null)
   const [inputValue, setInputValue] = useState("")
   const [options, setOptions] = useState([])
@@ -31,14 +19,14 @@ export const CcreAutoComplete = (props) => {
   const router = useRouter()
   const onSearchChange = async (value: string) => {
     setOptions([])
-    const response = await fetch("https://factorbook.api.wenglab.org/graphql", {
+    const response = await fetch(Config.API.CcreAPI, {
       method: "POST",
       body: JSON.stringify({
         query: CCRE_AUTOCOMPLETE_QUERY,
         variables: {
           assembly: props.assembly,
           accession_prefix: [value],
-          limit: 100,
+          limit: 100
         },
       }),
       headers: { "Content-Type": "application/json" },
@@ -100,7 +88,7 @@ export const CcreAutoComplete = (props) => {
 
             setInputValue(newInputValue)
           }}
-          noOptionsText="e.g. EH38E0001314"
+          noOptionsText={props.assembly==="mm10"? "e.g EM10E0000207": "e.g. EH38E0001314"}
           renderInput={(params) => (
             <TextField
               {...params}

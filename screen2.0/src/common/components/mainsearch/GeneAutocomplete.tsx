@@ -6,23 +6,11 @@ import Grid from "@mui/material/Grid"
 import Typography from "@mui/material/Typography"
 import { debounce } from "@mui/material/utils"
 import { useRouter } from "next/navigation"
-export type QueryResponse = [number, string[], any, [string, string, string, string, string, string][], string[]]
+import { GENE_AUTOCOMPLETE_QUERY } from "./queries"
+import Config from "../../../config.json"
+type QueryResponse = [number, string[], any, [string, string, string, string, string, string][], string[]]
 
-const GENE_AUTOCOMPLETE_QUERY = `
-query ($assembly: String!, $name_prefix: [String!], $limit: Int) {
-    gene(assembly: $assembly, name_prefix: $name_prefix, limit: $limit) {
-      name
-      id
-      coordinates {
-        start
-        chromosome
-        end
-      }
-    }
-  }  
- `
-
-export const GeneAutoComplete = (props) => {
+export const GeneAutoComplete: React.FC<{assembly: string, textColor: string }>  = (props) => {
   const [value, setValue] = useState(null)
   const [inputValue, setInputValue] = useState("")
   const [options, setOptions] = useState<string[]>([])
@@ -57,14 +45,14 @@ export const GeneAutoComplete = (props) => {
 
   const onSearchChange = async (value: string) => {
     setOptions([])
-    const response = await fetch("https://ga.staging.wenglab.org/graphql", {
+    const response = await fetch(Config.API.GraphqlAPI, {
       method: "POST",
       body: JSON.stringify({
         query: GENE_AUTOCOMPLETE_QUERY,
         variables: {
-          assembly: "GRCh38",
+          assembly: props.assembly.toLowerCase(),
           name_prefix: value,
-          limit: 1000,
+          limit: 1000
         },
       }),
       headers: { "Content-Type": "application/json" },
@@ -90,15 +78,9 @@ export const GeneAutoComplete = (props) => {
   }
 
   const debounceFn = useCallback(debounce(onSearchChange, 500), [])
-  const gridsize = props.gridsize || 5.5
+  const gridsize = 5.5
   return (
-    <Grid container sx={{ mr: "1em", ml: "1em" }}>
-      {props.showTitle && (
-        <Grid item sm={12} md={12} lg={12} xl={12}>
-          <Typography>Search gene:</Typography>
-          <br />
-        </Grid>
-      )}
+    <Grid container sx={{ mr: "1em", ml: "1em" }}>      
       <Grid item sm={gridsize} md={gridsize} lg={gridsize} xl={gridsize}>
         <Autocomplete
           id="gene-autocomplete"
@@ -113,14 +95,7 @@ export const GeneAutoComplete = (props) => {
             if (event.key === "Enter") {
               event.defaultPrevented = true
               
-              value &&
-                props.onSelected &&
-                props.onSelected({
-                  geneid: geneids.find((g) => g.name === value)?.id.split(".")[0],
-                  chromosome: geneids.find((g) => g.name === value)?.chrom,
-                  start: geneids.find((g) => g.name === value)?.start,
-                  end: geneids.find((g) => g.name === value)?.end,
-                })
+              
               if (value) {
                 let chrom = geneids.find((g) => g.name === value)?.chrom
                 let start = geneids.find((g) => g.name === value)?.start
@@ -134,7 +109,7 @@ export const GeneAutoComplete = (props) => {
             setValue(newValue)
           }}
           inputValue={inputValue}
-          onInputChange={(event, newInputValue) => {
+          onInputChange={(_, newInputValue) => {
             if (newInputValue != "") {
               debounceFn(newInputValue)
             }
@@ -148,7 +123,7 @@ export const GeneAutoComplete = (props) => {
               label="Enter a gene name"
               InputLabelProps={{ shrink: true, style: { color: props.textColor || "black" } }}
  
-              placeholder="e.g sox4,gapdh"
+              placeholder={props.assembly==="mm10" ? "e.g Scml2,Dbt" : "e.g sox4,gapdh"}
               fullWidth
              sx={{ fieldset: { borderColor: props.textColor || "black"}, '& .MuiInput-underline:after': {
               borderBottomColor: props.textColor || "black",

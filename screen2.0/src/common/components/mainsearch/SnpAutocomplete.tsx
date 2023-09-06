@@ -6,20 +6,10 @@ import Grid from "@mui/material/Grid"
 import Typography from "@mui/material/Typography"
 import { debounce } from "@mui/material/utils"
 import { useRouter } from "next/navigation"
+import { SNP_AUTOCOMPLETE_QUERY } from "./queries"
+import Config from "../../../config.json"
 
-const SNP_AUTOCOMPLETE_QUERY = `
-query snpAutocompleteQuery($snpid: String!, $assembly: String!) {
-    snpAutocompleteQuery(snpid: $snpid, assembly: $assembly) {
-        id
-        coordinates {
-            chromosome
-            start
-            end
-        }
-    }
-}
-`
-export const SnpAutoComplete = (props) => {
+export const SnpAutoComplete: React.FC<{assembly: string, textColor: string }>  = (props) => {
   const [value, setValue] = React.useState(null)
   const [inputValue, setInputValue] = React.useState("")
   const [options, setOptions] = React.useState([])
@@ -28,12 +18,12 @@ export const SnpAutoComplete = (props) => {
 
   const onSearchChange = async (value: string) => {
     setOptions([])
-    const response = await fetch("https://ga.staging.wenglab.org/graphql", {
+    const response = await fetch(Config.API.GraphqlAPI, {
       method: "POST",
       body: JSON.stringify({
         query: SNP_AUTOCOMPLETE_QUERY,
         variables: {
-          assembly: "grch38",
+          assembly: props.assembly.toLowerCase(),
           snpid: value,
         },
       }),
