@@ -47,10 +47,11 @@ export const CcreSearch = (props: { mainQueryParams, ccrerows: MainResultTableRo
           </Grid2>
           <Grid2 xs={12} lg={9}>
             <Tabs aria-label="basic tabs example" value={tabIndex} onChange={(_, val) => setTabIndex(val)}>
-              <StyledTab label="Genome Browser View" />
               <StyledTab label="Table View" />
+              <StyledTab label="Genome Browser View" />
+              
             </Tabs>
-            {tabIndex === 0 && (
+            {tabIndex === 1 && (
               <GenomeBrowserView
                 gene={props.mainQueryParams.gene}
                 biosample={props.mainQueryParams.Biosample.biosample}
@@ -58,7 +59,7 @@ export const CcreSearch = (props: { mainQueryParams, ccrerows: MainResultTableRo
                 coordinates={{ start: +props.mainQueryParams.start, end: +props.mainQueryParams.end, chromosome: props.mainQueryParams.chromosome }}
               />
             )}
-            {tabIndex === 1 && (
+            {tabIndex === 0 && (
               <MainResultsTable
                 rows={props.ccrerows}
                 tableTitle={`Searching ${props.mainQueryParams.chromosome} in ${
