@@ -19,89 +19,128 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { GeneExpEntry } from "../../applets/gene-expression/types"
 import { tissueColors } from "../../../common/lib/colors"
+import { RampagePeak } from "./rampage"
 
+const stringToColour = (str: string) => {
+  let hash = 0;
+  str.split('').forEach(char => {
+    hash = char.charCodeAt(0) + ((hash << 5) - hash)
+  })
+  let colour = '#'
+  for (let i = 0; i < 3; i++) {
+    const value = (hash >> (i * 8)) & 0xff
+    colour += value.toString(16).padStart(2, '0')
+  }
+  return colour
+}
 /**
  * Plots associated RAMPAGE signals
- * @param {any} data signals to plot
+ * @param {RampagePeak[]} data signals to plot
  * @param {Range2D} range size of plot dimensions
  * @param {Range2D} dimensions size of window to plot on
  * @returns plot of RAMPAGE signals
  */
 export function PlotActivityProfiles(props: {
-  data: any
+  data: RampagePeak[]
   range: Range2D
   dimensions: Range2D
-  transcriptID: string
-  transcripts: string[]
+  peakID: string
 }) {
   const [sort, setSort] = useState<string>("byValue")
   const [zeros, setZeros] = useState<boolean>(false)
   const [collapse, setCollapse] = useState<{ [id: string]: boolean }>({})
 
   let tissues: { [id: string]: { sum: number; values: GeneExpEntry[] } } = {} // dict of ftissues
+  let byValueTissues: { [id: string]: { sum: number; values: GeneExpEntry[] } } = {} // dict of ftissues
+  let byTissueMaxTissues: { [id: string]: { sum: number; values: GeneExpEntry[] } } = {} // dict of ftissues
   let p1: Point2D = { x: 0, y: 0 }
   let max: number = 0
 
   Object.values(props.data).map((biosample) => {
     if (!zeros && biosample["value"] === 0) return
-    else if (biosample["transcriptId"] === props.transcriptID) {
+    else if (biosample["peakId"] === props.peakID) {
       if (!tissues[biosample["tissue"]]) tissues[biosample["tissue"]] = { sum: 0, values: [] }
       tissues[biosample["tissue"]].sum += biosample["value"]
       tissues[biosample["tissue"]].values.push({
         value: biosample["value"],
-        biosample_term: biosample["name"],
+        biosample_term: biosample["name"].replace("Homo sapiens",""),
         expID: biosample["expAccession"],
         tissue: biosample["tissue"],
         strand: biosample["strand"],
-        color: tissueColors[biosample["tissue"]] ? tissueColors[biosample["tissue"]] : "#77AABB",
+        color: tissueColors[biosample["tissue"]] ? tissueColors[biosample["tissue"]] : stringToColour(biosample["tissue"]),
       })
-
+      tissues[biosample["tissue"]].values.sort((a,b)=>b.value-a.value);
       if (sort === "byTissueMax" && tissues[biosample["tissue"]].sum > max) max = tissues[biosample["tissue"]].sum
       else if (biosample["value"] > max) max = biosample["value"]
     }
   })
 
+
+
   props.range.x.end = max
 
   // returns bar plot for a tissue
-  const plotGeneExp = (entry: any, index: number, y: number) => {
-    let tissue: string = entry[0]
-    let info: any = entry[1]
-
-    return Object.values(info.values).map((item: any, i: number) => {
+  const plotGeneExp = (entry,y) => {    
+    let info = entry[1]
+    let l =  Object.values(info.values)
+    return l.map((item: {biosample_term: string, value: number, expID: string, strand: string, color: string}, i: number) => {
+      
       p1 = linearTransform2D(props.range, props.dimensions)({ x: item.value, y: 0 })
       return (
         <Fragment key={i}>
           <rect
-            x={125}
-            width={p1.x + 125}
+            x={90}
+            width={p1.x + 90}
             y={y + i * 20}
             height={18}
-            fill={item["color"]}
+            fill={item.color}
             onMouseOver={() => {
               {
-                ;<rect x={125} width={p1.x + 125} y={y + i * 20} height={18} fill="white" />
+                ;<rect x={90} width={p1.x + 90} y={y + i * 20} height={18} fill="white" />
               }
             }}
           >
             <title>
-              <rect x={125} width={p1.x + 125} y={y + i * 20} height={18} fill="white" />
-              {item.value}
+              <rect x={90} width={p1.x + 90} y={y + i * 20} height={18} fill="white" />
+              {item.value.toFixed(2)} {" " + item.biosample_term} 
+            {" (" + item.strand + ")"}
             </title>
           </rect>
-          <text x={p1.x + 125 + 150} y={y + i * 20 + 12.5} style={{ fontSize: 12 }}>
-            {Number(item.value.toFixed(3)) + " "}
+          <text x={p1.x + 40 + 150} y={y + i * 20 + 12.5} style={{ fontSize: 12 }}>
+            {Number(item.value.toFixed(2)) + " "}
             <a href={"https://www.encodeproject.org/experiments/" + item.expID}>{item.expID}</a>
-            {/* {" " + item.biosample_term} */}
+             {" " + item.biosample_term} 
             {" (" + item.strand + ")"}
           </text>
-          <line x1={125} x2={125} y1={y + i * 20} y2={y + (i * 20 + 18)} stroke="black" />
+          <line x1={90} x2={90} y1={y + i * 20} y2={y + (i * 20 + 18)} stroke="black" />
         </Fragment>
       )
     })
   }
 
   let y: number = 0
+
+  let byValuesTissues = Object.entries(tissues).map((entry) =>{
+    let info = entry[1]
+    return info.values.map(r=>{
+      return {
+        ...r,
+        tissue: entry[0]
+      }
+    })
+  }).flat()
+  let byValTissues = (byValuesTissues.sort((a,b) => b.value - a.value))
+  byValTissues.forEach((b,i)=>{
+    byValueTissues[b.tissue+"-b"+i] = { sum: b.value, values: [b] }
+  })
+  
+  Object.keys(tissues).forEach((k)=>{
+    byTissueMaxTissues[k] = {
+      sum: tissues[k].values[0].value,
+      values : [tissues[k].values[0]]
+    }
+  })
+const tissueValues = sort==="byValue" ? byValueTissues: sort==="byTissueMax" ? byTissueMaxTissues : tissues;
   return (
     <Box>
       <Grid2 xs={1} sx={{ ml: 0, mt: 2, display: "flex" }}>
@@ -144,7 +183,7 @@ export function PlotActivityProfiles(props: {
                 })
               }
             } else
-              Object.keys(tissues).map((b: string) => {
+              Object.keys(tissueValues).map((b: string) => {
                 c[b] = false
               })
             setCollapse(c)
@@ -172,8 +211,8 @@ export function PlotActivityProfiles(props: {
       {/* rampage plot */}
       <Grid2 xs={12}>
         <Box>
-          {Object.entries(tissues).map((entry, index: number) => {
-            let info: any = entry[1]
+          {Object.entries(tissueValues).map((entry, index: number) => {
+            let info = entry[1]
             y += info.values.length * 20 + 20 + 25
             let view: string = "0 0 1200 " + (info.values.length * 20 + 20)
             return (
@@ -188,7 +227,7 @@ export function PlotActivityProfiles(props: {
                   sx={{ padding: 0, margin: 0 }}
                   onClick={() => {
                     let tmp: { [id: string]: boolean } = {}
-                    Object.entries(tissues).map((x) => {
+                    Object.entries(tissueValues).map((x) => {
                       if (x[0] === entry[0]) {
                         if (collapse[entry[0]] === undefined || collapse[entry[0]]) tmp[entry[0]] = false
                         else tmp[entry[0]] = true
@@ -199,13 +238,13 @@ export function PlotActivityProfiles(props: {
                     setCollapse(tmp)
                   }}
                 >
-                  <Typography variant="h5">{entry[0]}</Typography>
+                  <Typography variant="h5">{entry[0].split("-")[0]}</Typography>
                 </AccordionSummary>
                 <AccordionDetails sx={{ padding: 0 }}>
                   <svg className="graph" aria-labelledby="title desc" role="img" viewBox={view}>
                     <g className="data" data-setname="gene expression plot">
                       <line x1={0} x2={900} y1={1} y2={1} stroke="black" />
-                      {plotGeneExp(entry, index, 5)}
+                      {plotGeneExp(entry, 5)}
                     </g>
                   </svg>
                 </AccordionDetails>
@@ -218,7 +257,7 @@ export function PlotActivityProfiles(props: {
   )
 }
 
-export const z_score = (d: any) => (d === -11.0 || d === "--" || d === undefined ? "--" : d.toFixed(2))
+export const z_score = (d) => (d === -11.0 || d === "--" || d === undefined ? "--" : d.toFixed(2))
 
 export const ctgroup = (group: string) => {
   group = group.split(",")[0]

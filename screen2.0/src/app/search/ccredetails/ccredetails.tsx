@@ -9,6 +9,7 @@ import { NearByGenomicFeatures } from "./nearbygenomicfeatures"
 import { LinkedGenes } from "./linkedgenes"
 import { Ortholog } from "./linkedccres"
 import { TfIntersection } from "./tfintersection"
+import {FunctionData} from "./functionaldata"
 import Rampage from "./rampage"
 
 import MenuIcon from "@mui/icons-material/Menu"
@@ -90,6 +91,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
                       <StyledTab label="Linked cCREs in other Assemblies" sx={{ alignSelf: "start" }} />
                       <StyledTab label="Associated RAMPAGE Signal" sx={{ alignSelf: "start" }} />
                       <StyledTab label="Associated Gene Expression" sx={{ alignSelf: "start" }} />
+                      <StyledTab label="Functional Data" sx={{ alignSelf: "start" }} />
                     </Tabs>
                   </Box>
                 </Box>
@@ -161,8 +163,9 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
               />
             )}
             {value === 5 && <Ortholog accession={accession} assembly={assembly} />}
-            {value === 6 && <Rampage accession={accession} assembly={assembly} chromosome={region.chrom} />}
+            {value === 6 && <Rampage gene={genes.distancePC[0].name} />}
             {value === 7 && <GeneExpression accession={accession} assembly={assembly} genes={genes} hamburger={open} />}
+            {value === 8 && <FunctionData coordinates= {{chromosome: region.chrom, start: +region.start.toString().replace(/\D/g, ""),   end: +region.end.toString().replace(/\D/g, "")}} assembly={assembly} />}
           </Grid2>
         </Grid2>
       </Paper>
