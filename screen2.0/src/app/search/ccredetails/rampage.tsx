@@ -145,7 +145,7 @@ export default function Rampage(props: { gene: string; }) {
  
   return loading ? (
     <LoadingMessage />
-  ) :  data && data.length==0 ? (<>'No data available'</>):  (
+  ) :  data && data.length==0 ? (<>{'No data available'}</>):  (
     
     data && data.length>0 && (
       <Grid2 container spacing={3}>
