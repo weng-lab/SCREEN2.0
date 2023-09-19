@@ -2,7 +2,7 @@
 import { DataTable, DataTableProps, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import React, { useCallback, useState } from "react"
 import { Box, Typography, Menu, Checkbox, Stack, MenuItem, FormControlLabel, FormGroup } from "@mui/material"
-import { MainResultTableRow } from "../../app/search/types"
+import { MainResultTableRow, ConservationData } from "../../app/search/types"
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 
@@ -23,6 +23,8 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
       return params.toString()
     }, [searchParams])
 
+  //Start and End are strings since toLocaleString() is called on them to get commas in the numbers
+  //State variable setters are passed to columns so that linked genes modal is able to properly set table state
   const columns = (funcSetDistance: React.Dispatch<React.SetStateAction<boolean>>, funcSetCTCF_ChIAPET: React.Dispatch<React.SetStateAction<boolean>>, funcSetRNAPII_ChIAPET: React.Dispatch<React.SetStateAction<boolean>>) => {
     let cols: DataTableColumn<MainResultTableRow>[] = [
       {
@@ -196,6 +198,11 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
         )
       },
     })
+
+    cols.push({
+      header: "Conservation",
+      value: (row: { conservationData: ConservationData }) => `Primates:\u00A0${row.conservationData.primates.toFixed(2) ?? "unavailable"} Mammals:\u00A0${row.conservationData.mammals.toFixed(2) ?? "unavailable"} Vertebrates:\u00A0${row.conservationData.vertebrates.toFixed(2) ?? "unavailable"}` , 
+    })
     console.log("columns recalculated")
     return cols
   }
@@ -217,8 +224,9 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
       }}
       tableTitle={props.tableTitle}
       sortColumn={6}
-      // showMoreColumns
-      // noOfDefaultColumns={6}
+      showMoreColumns
+      noOfDefaultColumns={11}
+      titleHoverInfo={props.titleHoverInfo}
     />
   )
 }

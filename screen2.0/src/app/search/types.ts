@@ -15,6 +15,9 @@ export type cCREData = {
   promoter_zscore?: number
   enhancer_zscore?: number
   ctcf_zscore?: number
+  vertebrates: number,
+  mammals: number,
+  primates: number,
   ctspecific?: {
     ct?: string
     dnase_zscore?: number
@@ -33,10 +36,11 @@ export type cCREData = {
 }
 
 export type MainQueryParams = {
+  bed_intersect: boolean,
   assembly: "GRCh38" | "mm10"
-  chromosome: string
-  start: number
-  end: number
+  chromosome: string | null
+  start: number | null
+  end: number | null
   gene?: string
   CellLine?: boolean
   PrimaryCell?: boolean
@@ -55,6 +59,12 @@ export type MainQueryParams = {
   h3k4me3_e?: number
   h3k27ac_s?: number
   h3k27ac_e?: number
+  vert_s?: number
+  vert_e?: number
+  mamm_s?: number
+  mamm_e?: number
+  prim_s?: number
+  prim_e?: number
   ctcf_s?: number
   ctcf_e?: number
   CA?: boolean
@@ -127,6 +137,13 @@ export type MainResultTableRow = {
   h3k27ac?: number
   ctcf?: number
   linkedGenes: LinkedGenesData
+  conservationData: ConservationData
+}
+
+export type ConservationData = {
+  vertebrates: number,
+  mammals: number,
+  primates: number
 }
 
 export type LinkedGenesData = {
@@ -134,4 +151,43 @@ export type LinkedGenesData = {
   distanceAll: { name: string }[],
   CTCF_ChIAPET: { name: string, biosample: string }[],
   RNAPII_ChIAPET: { name: string, biosample: string }[]
+}
+
+/**
+ * Represents the state variables used by the filters and passed to the constructURL function to refresh results
+ */
+export type URLParams = {
+    Tissue: boolean
+    PrimaryCell: boolean
+    InVitro: boolean
+    Organoid: boolean
+    CellLine: boolean
+    Biosample: {
+      selected: boolean
+      biosample: string | null
+      tissue: string | null
+      summaryName: string | null
+    },
+    DNaseStart: number
+    DNaseEnd: number
+    H3K4me3Start: number
+    H3K4me3End: number
+    H3K27acStart: number
+    H3K27acEnd: number
+    CTCFStart: number
+    CTCFEnd: number
+    CA: boolean
+    CA_CTCF: boolean
+    CA_H3K4me3: boolean
+    CA_TF: boolean
+    dELS: boolean
+    pELS: boolean
+    PLS: boolean
+    TF: boolean
+    PrimateStart: number
+    PrimateEnd: number
+    MammalStart: number
+    MammalEnd: number
+    VertebrateStart: number
+    VertebrateEnd: number
 }

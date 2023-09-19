@@ -27,6 +27,12 @@ query ccreSearchQuery(
   $rank_enhancer_start: Float!
   $rank_promoter_end: Float!
   $rank_promoter_start: Float!
+  $mammals_min: Float
+  $mammals_max: Float
+  $vertebrates_min: Float
+  $vertebrates_max: Float
+  $primates_min: Float
+  $primates_max: Float
   $uuid: String
   $limit: Int
 ) {
@@ -50,6 +56,12 @@ query ccreSearchQuery(
     rank_enhancer_start: $rank_enhancer_start
     rank_promoter_end: $rank_promoter_end
     rank_promoter_start: $rank_promoter_start
+    mammals_min: $mammals_min
+    mammals_max: $mammals_max
+    vertebrates_min: $vertebrates_min
+    vertebrates_max: $vertebrates_max
+    primates_min: $primates_min
+    primates_max: $primates_max
     uuid: $uuid
     limit: $limit
   ) {
@@ -57,6 +69,9 @@ query ccreSearchQuery(
     start
     len
     pct
+    vertebrates
+    mammals
+    primates
     ctcf_zscore
     dnase_zscore
     enhancer_zscore
@@ -70,6 +85,8 @@ query ccreSearchQuery(
     }
     info {
       accession
+      isproximal
+      concordant
     }
     genesallpc {
       accession
@@ -94,6 +111,7 @@ query ccreSearchQuery(
     }
   }
 }
+
 `
 
 const BIOSAMPLE_QUERY = gql`
@@ -180,8 +198,8 @@ export const TOP_TISSUES = gql`
   }
 `
 
-function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: number, end: number, biosample?: string) {
-  return {
+function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: number, end: number, biosample: string, accessions: string[]) {
+  let vars = {
     uuid: null,
     assembly: assembly,
     coord_chrom: chromosome,
@@ -203,6 +221,11 @@ function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: numbe
     element_type: null,
     limit: 25000,
   }
+  if (accessions) {
+    vars["accessions"] = accessions
+  }
+
+  return vars
 }
 
 const LINKED_GENES_QUERY = gql`
@@ -267,23 +290,23 @@ export async function linkedGenesQuery(assembly: "GRCh38" | "mm10", accession: s
   return returnData
 }
 
-
 /**
  *
  * @param assembly string, "GRCh38" or "mm10"
  * @param chromosome string, ex: "chr11"
  * @param start number
  * @param end number
- * @param biosample optional - a biosample selection. If not specified or "undefined", will be marked as "null" in gql query
+ * @param biosample a biosample selection. If not specified or "undefined", will be marked as "null" in gql query
+ * @param accessions a list of accessions to fetch information on. Set chromosome, start, end to "undefined" if using so they're set to null
  * @returns cCREs matching the search
  */
-export async function MainQuery(assembly: string = null, chromosome: string = null, start: number = null, end: number = null, biosample: string = null) {
-  // console.log("queried with: " + assembly, chromosome, start, end, biosample)
+export async function MainQuery(assembly: string = null, chromosome: string = null, start: number = null, end: number = null, biosample: string = null, accessions: string[] = null) {
+  console.log("queried with: " + assembly, chromosome, start, end, biosample + `${accessions ? "with accessions" : "no accessions"}`)
   let data: ApolloQueryResult<any>
   try {
     data = await getClient().query({
       query: cCRE_QUERY,
-      variables: cCRE_QUERY_VARIABLES(assembly, chromosome, start, end, biosample),
+      variables: cCRE_QUERY_VARIABLES(assembly, chromosome, start, end, biosample, accessions),
     })
   } catch (error) {
     console.log(error)

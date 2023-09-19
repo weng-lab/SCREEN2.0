@@ -3,8 +3,11 @@
 import React, { useCallback, useState } from "react"
 import { Button, Typography, Box, Stack, Container, RadioGroup, FormControl, FormControlLabel, FormLabel, Radio } from "@mui/material"
 import { useDropzone } from "react-dropzone"
+import { useRouter } from 'next/navigation'
 
 import FileUploadIcon from '@mui/icons-material/FileUpload';
+
+const zlib = require('zlib')
 
 
 /**
@@ -14,7 +17,9 @@ import FileUploadIcon from '@mui/icons-material/FileUpload';
  * - Convert byte size to mb/gb
  * - Import necessary code from old SCREEN
  */
-const BedUpload = () => {
+const BedUpload = (props: {assembly: "mm10" | "GRCh38"}) => {
+  const router = useRouter()
+  
   const [files, setFiles] = useState<File[]>([])
   const [assembly, setAssembly] = useState("GRCh38")
 
@@ -49,7 +54,10 @@ const BedUpload = () => {
     // allLines holds a string of each line in each file
     console.log("submit files called")
     let allLines = []
+    let filenames: string = ''
+    let accessions: string[] = []
     files.forEach((f) => {
+      filenames += (' ' + f.name)
       const reader = new FileReader()
       reader.onload = (r) => {
         const contents = r.target.result
@@ -67,10 +75,14 @@ const BedUpload = () => {
         const jq = JSON.stringify(j)
         getIntersect(
           jq,
-          //Success
+          //Success, NOT HANDLING ERROR IN GETINTERSECT PROPERLY
           (r) => {
-            console.log(r)
-            //Then replace query main search
+            console.log('x')
+            console.log(r.accessions)
+            accessions = r.accessions
+            sessionStorage.setItem("filenames", filenames)
+            sessionStorage.setItem("bed intersect", accessions.join(' '))
+            router.push(`/search?intersect=t&assembly=${assembly}`)
           },
           //Error
           (msg) => {
@@ -80,9 +92,17 @@ const BedUpload = () => {
       }
       reader.readAsText(f)
     })
+    console.log(filenames)
+    console.log(accessions)
+    // sessionStorage.setItem("filenames", filenames)
+    // sessionStorage.setItem("bed intersect", accessions.join(' '))
+    // router.push(`/search?intersect=t&assembly=${assembly}`)
   }
 
   //How do I handle multiple files? Disallow? Current accepts multiple at once
+  //I can trigger a server action here, but how does this help me get the information to the main results table?
+  //In this server action, I can fetch the info needed to generate the rows... but idk if/how I can pass that info along
+  //What if I can make use of context, set it here with the list of accessions, and then access again in cCRE Search and fetch data in server action??
   return (
     <Box mt="1rem">
       <Container sx={{ border: `${isDragActive ? "2px dashed blue" : "2px dashed grey"}`, borderRadius: "10px", width: "30%", minWidth: "250px", pl: "0 !important", pr: "0 !important", color: `${isDragActive ? "text.secondary" : "text.primary"}` }}>
@@ -110,7 +130,7 @@ const BedUpload = () => {
         return <Typography key={index}>{file.name} - {file.size} bytes</Typography>
       })}
       {files.length > 0 && <Button onClick={() => setFiles([])}>Clear Files</Button>}
-      <FormControl>
+      {/* <FormControl>
         <FormLabel id="demo-controlled-radio-buttons-group">Assembly</FormLabel>
         <RadioGroup
           aria-labelledby="demo-controlled-radio-buttons-group"
@@ -121,7 +141,7 @@ const BedUpload = () => {
           <FormControlLabel value="GRCh38" control={<Radio />} label="GRCh38" />
           <FormControlLabel value="mm10" control={<Radio />} label="mm10" />
         </RadioGroup>
-      </FormControl>
+      </FormControl> */}
       {files.length > 0 && <Button onClick={submitFiles}>Find Intersecting cCREs</Button>}
     </Box>
   )

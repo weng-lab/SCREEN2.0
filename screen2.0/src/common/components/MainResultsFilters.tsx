@@ -27,8 +27,8 @@ import Link from "next/link"
 import { RangeSlider, DataTable } from "@weng-lab/psychscreen-ui-components"
 import { useState, useMemo, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import { CellTypeData, FilteredBiosampleData, MainQueryParams, UnfilteredBiosampleData } from "../../app/search/types"
-import { outputT_or_F, parseByCellType, filterBiosamples, assayHoverInfo, constructURL } from "../lib/filter-helpers"
+import { CellTypeData, FilteredBiosampleData, MainQueryParams, URLParams, UnfilteredBiosampleData } from "../../app/search/types"
+import { outputT_or_F, parseByCellType, filterBiosamples, assayHoverInfo, constructURL } from "../../app/search/search-helpers"
 
 //Need to go back and define the types in mainQueryParams object
 export default function MainResultsFilters(props: { mainQueryParams: MainQueryParams; byCellType: CellTypeData }) {
@@ -70,7 +70,15 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
   const [PLS, setPLS] = useState<boolean>(props.mainQueryParams.PLS)
   const [TF, setTF] = useState<boolean>(props.mainQueryParams.TF)
 
-  const urlParams = {
+  //Conservation Filter
+  const [PrimateStart, setPrimateStart] = useState<number>(props.mainQueryParams.prim_s)
+  const [PrimateEnd, setPrimateEnd] = useState<number>(props.mainQueryParams.prim_e)
+  const [MammalStart, setMammalStart] = useState<number>(props.mainQueryParams.mamm_s)
+  const [MammalEnd, setMammalEnd] = useState<number>(props.mainQueryParams.mamm_e)
+  const [VertebrateStart, setVertebrateStart] = useState<number>(props.mainQueryParams.vert_s)
+  const [VertebrateEnd, setVertebrateEnd] = useState<number>(props.mainQueryParams.vert_e)
+
+  const urlParams: URLParams = {
     Tissue,
     PrimaryCell,
     InVitro,
@@ -98,6 +106,12 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     pELS,
     PLS,
     TF,
+    PrimateStart,
+    PrimateEnd,
+    MammalStart,
+    MammalEnd,
+    VertebrateStart,
+    VertebrateEnd
   }
 
   const router = useRouter()
@@ -474,6 +488,65 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
           </Grid2>
         </AccordionDetails>
       </Accordion>
+      {/* Conservation */}
+      {props.mainQueryParams.assembly === "GRCh38" && <Accordion square disableGutters>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel6a-content" id="panel6a-header">
+          <Typography>Conservation</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Grid2 container spacing={3}>
+            <Grid2 xs={6} lg={12} xl={6}>
+              <RangeSlider
+                title="43-primate (phastCons)"
+                width="100%"
+                defaultStart={PrimateStart}
+                defaultEnd={PrimateEnd}
+                min={-2}
+                max={2}
+                minDistance={1}
+                step={0.1}
+                //These are not properly typed due to an issue in the component library. Type properly when fixed
+                onChange={(value: any) => {
+                  setPrimateStart(value[0])
+                  setPrimateEnd(value[1])
+                }}
+              />
+            </Grid2>
+            <Grid2 xs={6} lg={12} xl={6}>
+              <RangeSlider
+                title="240-mammal (phyloP)"
+                width="100%"
+                defaultStart={MammalStart}
+                defaultEnd={MammalEnd}
+                min={-4}
+                max={8}
+                minDistance={1}
+                step={0.1}
+                onChange={(value: any) => {
+                  setMammalStart(value[0])
+                  setMammalEnd(value[1])
+                }}
+              />
+            </Grid2>
+            <Grid2 xs={6} lg={12} xl={6}>
+              <RangeSlider
+                title="100-vertebrate (phyloP)"
+                width="100%"
+                defaultStart={VertebrateStart}
+                defaultEnd={VertebrateEnd}
+                min={-3}
+                max={8}
+                minDistance={1}
+                step={0.1}
+                onChange={(value: any) => {
+                  setVertebrateStart(value[0])
+                  setVertebrateEnd(value[1])
+                }}
+              />
+            </Grid2>
+          </Grid2>
+        </AccordionDetails>
+      </Accordion>}
       {/* Linked Genes */}
       <Accordion square disableGutters>
         <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel4a-content" id="panel4a-header">
@@ -489,17 +562,6 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
       <Accordion square disableGutters>
         <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel5a-content" id="panel5a-header">
           <Typography>Functional Characterization</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex, sit amet blandit leo lobortis eget.
-          </Typography>
-        </AccordionDetails>
-      </Accordion>
-      {/* Conservation */}
-      <Accordion square disableGutters>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel6a-content" id="panel6a-header">
-          <Typography>Conservation</Typography>
         </AccordionSummary>
         <AccordionDetails>
           <Typography>

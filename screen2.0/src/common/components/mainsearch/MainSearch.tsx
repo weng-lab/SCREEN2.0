@@ -12,6 +12,7 @@ import { CcreAutoComplete } from "./CcreAutocomplete"
 import { GeneAutoComplete } from "./GeneAutocomplete"
 import { SnpAutoComplete } from "./SnpAutocomplete"
 import { CelltypeAutocomplete } from "./CelltypeAutocomplete"
+import BedUpload from "./BedUpload"
 
 export type MainSearchProps = InputBaseProps & {
   //false for human, true for mouse
@@ -69,6 +70,7 @@ const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) => {
               <MenuItem value={"SNP rsID"}>SNP rsID</MenuItem>
               <MenuItem value={"Gene Name"}>Gene Name</MenuItem>
               <MenuItem value={"Cell Type"}>Cell Type</MenuItem>
+              <MenuItem value={".BED Intersect"}>.BED Intersect</MenuItem>
             </Select>
           </FormControl>
         </Grid2>
@@ -104,11 +106,15 @@ const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) => {
             <SnpAutoComplete textColor={props.textColor || "black"} assembly={assembly} />
           ) : selectedSearch === "Cell Type" ? (
             <CelltypeAutocomplete textColor={props.textColor || "black"} assembly={assembly} />
-          ) : (
+          ) : selectedSearch === "cCRE Accession" ? (
             <CcreAutoComplete textColor={props.textColor || "black"} assembly={assembly} />
-          )}
+          ) :
+          // Need to make this able to submit 
+          <BedUpload assembly={assembly}/>
+          }
         </Grid2>
         <Grid2>
+          {/* Need to make this use router to get to new page with bed stuff specified in the url */}
           <GenomeSwitch
             initialChecked={props.initialChecked && props.initialChecked}
             checked={checked}

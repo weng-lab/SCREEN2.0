@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useState } from "react"
+import React, { startTransition, useEffect, useState } from "react"
 import { Tab, Tabs, Typography } from "@mui/material"
 import MainResultsTable from "../../common/components/MainResultsTable"
 import MainResultsFilters from "../../common/components/MainResultsFilters"
@@ -8,14 +8,18 @@ import Grid2 from "../../common/mui-client-wrappers/Grid2"
 import { ReadonlyURLSearchParams, useSearchParams } from "next/navigation"
 import styled from "@emotion/styled"
 import { GenomeBrowserView } from "./gbview/genomebrowserview"
-import { MainResultTableRows } from "./types"
+import { MainQueryParams, MainResultTableRows } from "./types"
+import { fetchRows } from "./fetchRows"
+
 export const StyledTab = styled(Tab)(() => ({
   textTransform: "none",
 }))
-export const CcreSearch = (props: { mainQueryParams, ccrerows: MainResultTableRows, globals, assembly }) => {
+
+export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals }) => {
   const searchParams: ReadonlyURLSearchParams = useSearchParams()!
   const [value, setValue] = useState(searchParams.get("accession") ? 1 : 0)
   const [tabIndex, setTabIndex] = useState(0)
+  const [tableRows, setTableRows] = useState<MainResultTableRows>([])
   const handleChange = (_, newValue: number) => {
     setValue(newValue)
   }
@@ -26,9 +30,24 @@ export const CcreSearch = (props: { mainQueryParams, ccrerows: MainResultTableRo
     }
   }, [searchParams])
 
+  useEffect(() => {
+    console.log("query res:")
+    console.log(tableRows)
+  })
+
   //Need meaningful variable names please, is showing that this is undefined and throwing an error when using back button on details page since accession is undefined
-  let f = props.ccrerows.find((c) => c.accession === searchParams.get("accession"))
+  //IMPORTANT: MAKE SURE THIS STILL WORKS
+  let f = tableRows.find((c) => c.accession === searchParams.get("accession"))
   const region = { start: f?.start, chrom: f?.chromosome, end: f?.end }
+
+  //@ts-expect-error
+  //Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
+  useEffect(() => startTransition(async () => {
+    props.mainQueryParams.bed_intersect ?
+      setTableRows(await fetchRows(props.mainQueryParams, sessionStorage.getItem("bed intersect")?.split(' ')))
+      :
+      setTableRows(await fetchRows(props.mainQueryParams))
+  }), [props])
 
   return (
     <>
@@ -61,11 +80,12 @@ export const CcreSearch = (props: { mainQueryParams, ccrerows: MainResultTableRo
             )}
             {tabIndex === 0 && (
               <MainResultsTable
-                rows={props.ccrerows}
-                tableTitle={`Searching ${props.mainQueryParams.chromosome} in ${
+                rows={tableRows}
+                tableTitle={props.mainQueryParams.bed_intersect ? `Intersecting by uploaded .bed file${sessionStorage.getItem('filenames')?.length > 1 ? 's' : ''}` : `Searching ${props.mainQueryParams.chromosome} in ${
                   props.mainQueryParams.assembly
                 } from ${props.mainQueryParams.start.toLocaleString("en-US")} to ${props.mainQueryParams.end.toLocaleString("en-US")}`}
                 itemsPerPage={10}
+                titleHoverInfo={`${sessionStorage.getItem('filenames')}`}
               />
             )}
           </Grid2>
@@ -78,8 +98,8 @@ export const CcreSearch = (props: { mainQueryParams, ccrerows: MainResultTableRo
               accession={searchParams.get("accession")}
               region={region}
               globals={props.globals}
-              assembly={props.assembly}
-              genes={f.linkedGenes}
+              assembly={props.mainQueryParams.assembly}
+              genes={f?.linkedGenes}
             />
           </Grid2>
         </Grid2>

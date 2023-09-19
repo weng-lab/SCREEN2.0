@@ -3,7 +3,9 @@ import { CcreSearch } from "./ccresearch"
 import { MainQuery, getGlobals, linkedGenesQuery } from "../../common/lib/queries"
 import { ApolloQueryResult } from "@apollo/client"
 import { cCREData, CellTypeData, MainQueryParams, MainResultTableRow, MainResultTableRows } from "./types"
-import { checkTrueFalse, passesCriteria } from "../../common/lib/filter-helpers"
+import { checkTrueFalse } from "./search-helpers"
+import { generateRows } from "./fetchRows"
+
 
 export default async function Search({
   // Object from URL, see https://nextjs.org/docs/app/api-reference/file-conventions/page#searchparams-optional
@@ -13,11 +15,14 @@ export default async function Search({
 }) {
   //Get search parameters and define defaults.
   const mainQueryParams: MainQueryParams = {
+    //Flag that user-entered accessions are to be used
+    bed_intersect: searchParams.intersect ? checkTrueFalse(searchParams.intersect): false,
     assembly: searchParams.assembly === "GRCh38" || searchParams.assembly === "mm10" ? searchParams.assembly : "GRCh38",
     gene: searchParams.gene,
-    chromosome: searchParams.chromosome ? searchParams.chromosome : "chr11",
-    start: searchParams.start ? Number(searchParams.start) : 5205263,
-    end: searchParams.end ? Number(searchParams.end) : 5381894,
+    //If bed intersecting, set chr start end to null
+    chromosome: (searchParams.intersect && checkTrueFalse(searchParams.intersect)) ? null : searchParams.chromosome ? searchParams.chromosome : "chr11",
+    start: (searchParams.intersect && checkTrueFalse(searchParams.intersect)) ? null : searchParams.start ? Number(searchParams.start) : 5205263,
+    end: (searchParams.intersect && checkTrueFalse(searchParams.intersect)) ? null : searchParams.end ? Number(searchParams.end) : 5381894,
     // Biosample Filters
     // URL could probably be cut down by putting this into one long string where each letter is t/f or 0/1
     CellLine: searchParams.CellLine ? checkTrueFalse(searchParams.CellLine) : true,
@@ -54,83 +59,50 @@ export default async function Search({
     pELS: searchParams.pELS ? checkTrueFalse(searchParams.pELS) : true,
     PLS: searchParams.PLS ? checkTrueFalse(searchParams.PLS) : true,
     TF: searchParams.TF ? checkTrueFalse(searchParams.TF) : true,
+    //Conservation Filter
+    prim_s: searchParams.prim_s ? Number(searchParams.prim_s) : -2,
+    prim_e:searchParams.prim_e ? Number(searchParams.prim_e) : 2,
+    mamm_s: searchParams.mamm_s ? Number(searchParams.mamm_s) : -4,
+    mamm_e:searchParams.mamm_e ? Number(searchParams.mamm_e) : 8,
+    vert_s: searchParams.vert_s ? Number(searchParams.vert_s) : -3,
+    vert_e:searchParams.vert_e ? Number(searchParams.vert_e) : 8,
   }
 
+  //The suboptimal thing is that here would be the easy place to be able to pass the accession, but thats not possible
+
   //Main query
-  //THIS IS WHERE I NEED TO FEED IN THE BED INTERSECT RESULTS  
-  const mainQueryResult: ApolloQueryResult<any> = await MainQuery(
-    mainQueryParams.assembly,
-    mainQueryParams.chromosome,
-    mainQueryParams.start,
-    mainQueryParams.end,
-    mainQueryParams.Biosample.biosample
-  )
+  // const mainQueryResult: ApolloQueryResult<any> = await MainQuery(
+  //   mainQueryParams.assembly,
+  //   mainQueryParams.chromosome,
+  //   mainQueryParams.start,
+  //   mainQueryParams.end,
+  //   mainQueryParams.Biosample.biosample
+  // )
 
   /**
-   * If intersecting by bed
-   *    Use one set of variables
-   * Else
-   *    Use the other set of variables
+   * Case 1: Coordinate search
+   *  Normal URL params
+   * 
+   * Case 2: Coordinate search with biosample
+   *  Normal URL params
+   * 
+   * Case 3: Accession Search
+   *  No use for chr, start, end
+   * 
+   * Case 4: Accession Search with biosample 
+   *  No use for chr, start, end
    */
 
   //Contains cell type data of the specified assembly
   const globals: CellTypeData = await getGlobals(mainQueryParams.assembly)
-
-  /**
-   * This needs better input handling
-   * @param QueryResult Result from Main Query
-   * @returns rows usable by the DataTable component
-   */
-  async function generateRows(QueryResult: ApolloQueryResult<any>, biosample: string | null) {
-    const cCRE_data: cCREData[] = QueryResult.data.cCRESCREENSearch
-    const rows: MainResultTableRows = []
-    // Used for Linked Gene Query
-    const accessions: string[] = []
-    cCRE_data.forEach((currentElement) => {
-      if (passesCriteria(currentElement, biosample, mainQueryParams)) {
-        rows.push({
-          accession: currentElement.info.accession,
-          class: currentElement.pct,
-          chromosome: currentElement.chrom,
-          start: currentElement.start.toLocaleString("en-US"),
-          end: (currentElement.start + currentElement.len).toLocaleString("en-US"),
-          dnase: biosample ? currentElement.ctspecific.dnase_zscore : currentElement.dnase_zscore,
-          //Need to get this data still from somewhere
-          atac: "TBD",
-          h3k4me3: biosample ? currentElement.ctspecific.h3k4me3_zscore : currentElement.promoter_zscore,
-          h3k27ac: biosample ? currentElement.ctspecific.h3k27ac_zscore : currentElement.enhancer_zscore,
-          ctcf: biosample ? currentElement.ctspecific.ctcf_zscore : currentElement.ctcf_zscore,
-          linkedGenes: { distancePC: currentElement.genesallpc.pc.intersecting_genes, distanceAll: currentElement.genesallpc.all.intersecting_genes, CTCF_ChIAPET: [], RNAPII_ChIAPET: [] },
-        })
-        accessions.push(currentElement.info.accession)
-      }
-    })
-    const otherLinked = await linkedGenesQuery(mainQueryParams.assembly, accessions)
-    //Need to add in biosample information for the hover
-    rows.forEach((row: MainResultTableRow) => {
-      const accession = row.accession
-      const genesToAdd = otherLinked[accession] ?? null
-
-      genesToAdd && genesToAdd.genes.forEach(gene => {
-        if (gene.linkedBy === "CTCF-ChIAPET") {
-          row.linkedGenes.CTCF_ChIAPET.push({name: gene.geneName, biosample: gene.biosample})
-        }
-        else if (gene.linkedBy === "RNAPII-ChIAPET"){
-          row.linkedGenes.RNAPII_ChIAPET.push({name: gene.geneName, biosample: gene.biosample})
-        }
-      });
-    })
-
-    return rows
-  }
 
   return (
     <main>
       <CcreSearch
         mainQueryParams={mainQueryParams}
         globals={globals}
-        ccrerows={(mainQueryResult.error || mainQueryResult.loading) ? [] : await generateRows(mainQueryResult, mainQueryParams.Biosample.biosample)}
-        assembly={mainQueryParams.assembly}
+        // ccrerows={(mainQueryResult.error || mainQueryResult.loading) ? [] : await generateRows(mainQueryResult, mainQueryParams.Biosample.biosample, mainQueryParams)}
+        // assembly={mainQueryParams.assembly}
       />
     </main>
   )
