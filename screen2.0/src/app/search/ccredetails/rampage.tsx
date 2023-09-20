@@ -17,7 +17,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material"
-
+import Config from "../../../config.json"
 import { Range2D } from "jubilant-carnival"
 import { PlotActivityProfiles } from "./utils"
 import Image from "next/image"
@@ -27,113 +27,127 @@ import { RampageToolTipInfo } from "./const"
 import { gql, useQuery } from "@apollo/client"
 import { client } from "./client"
 
-const RAMPAGE_QUERY = gql`
-  query rampageQuery($transcript_ids: [String!]) {
-    rampageQuery(transcript_ids: $transcript_ids) {
-      value
-      type
-      geneId
-      transcriptId
-      biosampleType
-      name
-      lifeStage
-      expAccession
-      fileAccession
+const GENE_QUERY = gql`query ($assembly: String!, $name_prefix: [String!], $limit: Int) {
+  gene(assembly: $assembly, name_prefix: $name_prefix, limit: $limit) {
+    name
+    id
+    coordinates {
       start
-      organ
-      strand
-      tissue
+      chromosome
+      end
     }
   }
+} `
+const TSS_RAMPAGE_QUERY = `
+  query tssRampage($gene: String!) {
+  tssrampageQuery(genename: $gene) {
+    start
+    geneName
+    organ
+    locusType
+    strand
+    peakId
+    biosampleName
+    biosampleType
+    biosampleSummary
+    col1
+    col2
+    expAccession
+    value
+    start
+    end 
+    chrom 
+  }
+}
 `
-
-export default function Rampage(props: { accession: string; assembly: string; chromosome: string }) {
-  const [loading, setLoading] = useState<boolean>(true)
-  const [error, setError] = useState<boolean>(false)
-  const [data, setData] = useState()
-  const [transcript, setTranscript] = useState<string>("")
-  const [transcripts, setTranscripts] = useState<string[]>([""])
-
-  const [payload, setPayload] = useState<{ accession: string; assembly: string; chromosome: string }>({
-    accession: props.accession,
-    assembly: props.assembly,
-    chromosome: props.chromosome,
-  })
-
-  const [range, setRange] = useState<Range2D>({
-    x: { start: 0, end: 4 },
-    y: { start: 0, end: 0 },
-  })
-
-  const [dimensions, setDimensions] = useState<Range2D>({
-    x: { start: 125, end: 650 },
-    y: { start: 4900, end: 100 },
-  })
-
+export type RampagePeak ={
+  value: number,
+  peakId: string,
+  biosampleType: string,
+  name: string,         
+  locusType:  string,
+  expAccession: string,
+  start: string,
+  end: string,
+  chrom: string,
+  col1: string,
+  col2: string,
+  organ: string,
+  strand: string,
+  tissue: string
+}
+export default function Rampage(props: { gene: string; }) {
+  const [loading, setLoading] = useState<boolean>(true)  
+  const [data, setData] = useState<RampagePeak[]>([])
+  const [peak, setPeak] = useState<string>("")
+  const [peaks, setPeaks] = useState<string[]>([""])
   // fetch rampage data
   useEffect(() => {
-    fetch("https://screen-beta-api.wenglab.org/dataws/re_detail/rampage", {
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      method: "POST",
-      body: JSON.stringify({
-        accession: payload.accession,
-        assembly: payload.assembly,
-        chromosome: payload.chromosome,
-      }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          setError(true)
-          return <ErrorMessage error={new Error(response.statusText)} />
-        }
-        return response.json()
+    
+      fetch( Config.API.CcreAPI, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ query: TSS_RAMPAGE_QUERY, variables: {
+          gene: props.gene
+        } }),
       })
-      .then((data) => {
-        setData(data)
-        setTranscript(data[payload.accession]["sortedTranscripts"][0])
-        setTranscripts(data[payload.accession]["sortedTranscripts"])
-        setLoading(false)
-      })
-      .catch((error: Error) => {
-        return <ErrorMessage error={error} />
-      })
-    setLoading(true)
-  }, [payload])
+        .then((x) => x.json())
+        .then((x) => {        
+            if(x.data && x.data.tssrampageQuery.length>0)
+            {
+              const peaks =   x.data.tssrampageQuery.map(t=>t.peakId)
+              const uniquePeaks: string[] = [...new Set(peaks as string[])];
+              const d = x.data.tssrampageQuery.map(t=>{
+                return {
+                  value: t.value,
+                  peakId: t.peakId,
+                  biosampleType: t.biosampleType,
+                  name: t.biosampleName,         
+                  locusType:  t.locusType,
+                  expAccession: t.expAccession,
+                  start: t.start,
+                  end: t.end,
+                  chrom: t.chrom,
+                  col1: t.col1,
+                  col2: t.col2,
+                  organ: t.organ,
+                  strand: t.strand,
+                  tissue: t.organ
+                }
+              })
+              setPeak(uniquePeaks[0])
+              setPeaks(uniquePeaks)
+              setData(d)
+              setLoading(false)
+            } else if(x.data && x.data.tssrampageQuery.length==0){
+              setLoading(false)
+            }
+        })
+  }, [props.gene])
+
+  
 
   const {
-    loading: loading_rampage,
-    error: error_rampage,
-    data: data_rampage,
-  } = useQuery(RAMPAGE_QUERY, {
+    data: data_gene,
+  } = useQuery(GENE_QUERY, {
     variables: {
-      transcript_ids: transcripts,
+      assembly: "grch38",
+      name_prefix: [props.gene]
     },
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
     client,
   })
-
-  function transcriptItems(transcripts: string[]) {
-    return Object.values(transcripts).map((t: string) => {
-      return (
-        <MenuItem key={t} value={t}>
-          {t}
-        </MenuItem>
-      )
-    })
-  }
-
-  return error || error_rampage ? (
-    <ErrorMessage error={new Error("Error loading data")} />
-  ) : loading || loading_rampage ? (
+  const peakDetails = data && data?.find(d=>d.peakId===peak)
+ 
+  return loading ? (
     <LoadingMessage />
-  ) : (
-    data &&
-    data[payload.accession] &&
-    data_rampage && (
+  ) :  data && data.length==0 ? (<>{'No data available'}</>):  (
+    
+    data && data.length>0 && (
       <Grid2 container spacing={3}>
         <ThemeProvider theme={defaultTheme}>
           <AppBar position="static" color="secondary">
@@ -150,41 +164,39 @@ export default function Rampage(props: { accession: string; assembly: string; ch
                   </Tooltip>
                 </Box>
                 <Box mt={2} ml={0.5}>
-                  <Typography variant="h5">{data[payload.accession]["gene"]["name"]}</Typography>
-                  <Typography>
-                    {data[payload.accession]["gene"]["ensemblid_ver"] +
-                      " (" +
-                      parseInt(data[payload.accession]["gene"]["distance"]).toLocaleString("en-US") +
-                      " bases from cCRE)"}
-                  </Typography>
+                  <Typography variant="h5">{props.gene}</Typography>
+                  {<Typography>
+                    {data_gene && data_gene.gene[0].id+" ("+peakDetails.locusType+")"}
+                  </Typography>}
                 </Box>
                 <Box mt={2} ml={0.5}>
                   <Typography display="inline" lineHeight={2.5}>
-                    {"Transcript: "}{" "}
+                    {"Peaks: "}{" "}
                   </Typography>
                   <FormControl>
-                    <InputLabel id="transcription-select-label"></InputLabel>
+                    <InputLabel id="peaks-select-label"></InputLabel>
                     <Select
                       sx={{ height: 30, mt: 0.5 }}
-                      defaultValue={transcript}
-                      labelId="transcription-select-label"
-                      id="transcription-select"
-                      value={transcript}
+                      defaultValue={peak}
+                      labelId="peaks-select-label"
+                      id="peaks-select"
+                      value={peak}
                       size="small"
                       onChange={(event: SelectChangeEvent) => {
-                        setTranscript(event.target.value)
+                        setPeak(event.target.value)
                       }}
                     >
-                      {transcriptItems(data[payload.accession]["sortedTranscripts"])}
+                      {peaks.map((t: string) => {
+                        return (
+                          <MenuItem key={t} value={t}>
+                            {t}
+                          </MenuItem>
+                        )
+                      })}
                     </Select>
                   </FormControl>
                   <Typography>
-                    {payload.chromosome +
-                      ":" +
-                      parseInt(data[payload.accession]["gene"]["start"]).toLocaleString("en-US") +
-                      "-" +
-                      parseInt(data[payload.accession]["gene"]["stop"]).toLocaleString("en-US") +
-                      " unprocessed pseudogene"}
+                    { peakDetails.chrom+":"+peakDetails.start.toLocaleString()+"-"+peakDetails.end.toLocaleString()+" ("+peakDetails.col1+" "+peakDetails.col2+")"}
                   </Typography>
                 </Box>
               </Grid2>
@@ -196,7 +208,7 @@ export default function Rampage(props: { accession: string; assembly: string; ch
               <Grid2 xs={1.5} sx={{ mt: 2, height: 100, width: 214, mb: 18 }}>
                 <Button
                   variant="contained"
-                  href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + data[payload.accession]["gene"]["name"]}
+                  href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + props.gene}
                   color="secondary"
                 >
                   <Image src="https://geneanalytics.genecards.org/media/81632/gc.png" width={150} height={100} alt="gene-card-button" />
@@ -206,12 +218,17 @@ export default function Rampage(props: { accession: string; assembly: string; ch
           </AppBar>
           <Grid2 xs={12}>
             <PlotActivityProfiles
-              data={data_rampage["rampageQuery"]}
-              range={range}
-              dimensions={dimensions}
-              transcriptID={transcript}
-              transcripts={transcripts}
-            />
+              data={data}
+              range={{
+                x: { start: 0, end: 4 },
+                y: { start: 0, end: 0 },
+              }}
+              dimensions={{
+                x: { start: 125, end: 650 },
+                y: { start: 4900, end: 100 },
+              }}
+              peakID={peak}           
+              />
           </Grid2>
         </ThemeProvider>
       </Grid2>
