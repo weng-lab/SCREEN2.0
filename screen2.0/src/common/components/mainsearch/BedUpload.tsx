@@ -4,34 +4,18 @@ import React, { useCallback, useState } from "react"
 import { Button, Typography, Box, Stack, Container, RadioGroup, FormControl, FormControlLabel, FormLabel, Radio } from "@mui/material"
 import { useDropzone } from "react-dropzone"
 import { useRouter } from 'next/navigation'
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 
-import FileUploadIcon from '@mui/icons-material/FileUpload';
-
-const zlib = require('zlib')
-
-
-/**
- * TODO
- * - Prevent upload of non BED files from drag n drop
- * - Selectively Clearing files
- * - Convert byte size to mb/gb
- * - Import necessary code from old SCREEN
- */
 const BedUpload = (props: {assembly: "mm10" | "GRCh38"}) => {
   const router = useRouter()
   
   const [files, setFiles] = useState<File[]>([])
-  const [assembly, setAssembly] = useState("GRCh38")
 
   const onDrop = useCallback(acceptedFiles => {
     setFiles([...files, ...acceptedFiles])
   }, [])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setAssembly((event.target as HTMLInputElement).value);
-  };
 
   const getIntersect = (jq, successF, errF) => {
     //Need to put this url in config file
@@ -50,6 +34,8 @@ const BedUpload = (props: {assembly: "mm10" | "GRCh38"}) => {
       .catch(errF)
   }
 
+  //Warn based on file size
+  //Cap at 1
   const submitFiles = () => {
     // allLines holds a string of each line in each file
     console.log("submit files called")
@@ -71,7 +57,7 @@ const BedUpload = (props: {assembly: "mm10" | "GRCh38"}) => {
       reader.onerror = () => console.log("file reading has failed")
       reader.onloadend = (e) => {
         //uuid set to empty, assembly changed to state variable
-        const j = { uuid: "", assembly: assembly, allLines }
+        const j = { uuid: "", assembly: props.assembly, allLines }
         const jq = JSON.stringify(j)
         getIntersect(
           jq,
@@ -82,7 +68,7 @@ const BedUpload = (props: {assembly: "mm10" | "GRCh38"}) => {
             accessions = r.accessions
             sessionStorage.setItem("filenames", filenames)
             sessionStorage.setItem("bed intersect", accessions.join(' '))
-            router.push(`/search?intersect=t&assembly=${assembly}`)
+            router.push(`/search?intersect=t&assembly=${props.assembly}`)
           },
           //Error
           (msg) => {
@@ -109,7 +95,7 @@ const BedUpload = (props: {assembly: "mm10" | "GRCh38"}) => {
         <div {...getRootProps()} style={{ padding: "1rem" }}>
           <input {...getInputProps()} accept=".bed" />
           <Stack spacing={1} direction="column" alignItems={"center"}>
-            <FileUploadIcon />
+            <UploadFileIcon />
             <Typography>
               Drag file to upload
             </Typography>
@@ -127,7 +113,7 @@ const BedUpload = (props: {assembly: "mm10" | "GRCh38"}) => {
       </Container>
       <br />
       {files.map((file: File, index: number) => {
-        return <Typography key={index}>{file.name} - {file.size} bytes</Typography>
+        return <Typography key={index}>{file.name} - {(file.size / 1000000).toFixed(1)} mb</Typography>
       })}
       {files.length > 0 && <Button onClick={() => setFiles([])}>Clear Files</Button>}
       {/* <FormControl>

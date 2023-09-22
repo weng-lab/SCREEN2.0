@@ -19,7 +19,6 @@ export default function Home() {
           <Typography variant="h5">Search Candidate cis-Regulatory Elements by ENCODE</Typography>
         </Grid2>
         <Grid2 xs={12} lg={6}>
-          <Typography variant="h4">Search</Typography>
           <MainSearch />
           <Typography variant="h5" mt="3rem">
             What is SCREEN?

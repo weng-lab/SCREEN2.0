@@ -227,6 +227,7 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
       showMoreColumns
       noOfDefaultColumns={11}
       titleHoverInfo={props.titleHoverInfo}
+      dense
     />
   )
 }

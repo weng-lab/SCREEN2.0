@@ -30,11 +30,6 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
     }
   }, [searchParams])
 
-  useEffect(() => {
-    console.log("query res:")
-    console.log(tableRows)
-  })
-
   //Need meaningful variable names please, is showing that this is undefined and throwing an error when using back button on details page since accession is undefined
   //IMPORTANT: MAKE SURE THIS STILL WORKS
   let f = tableRows.find((c) => c.accession === searchParams.get("accession"))
