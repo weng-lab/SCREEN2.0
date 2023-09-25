@@ -46,18 +46,14 @@ const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) => {
       <Grid2 xs={12}>
         <Stack direction={"row"} >
           <Typography variant="h5" mr={1} alignSelf="center">Search by</Typography>
-          <FormControl variant="standard" size="small" sx={{'& .MuiInputBase-root': {fontSize: '1.5rem'}}}>
+          <FormControl variant="standard" size="medium" sx={{'& .MuiInputBase-root': {fontSize: '1.5rem'}}}>
             <Select
               fullWidth
-              sx={{
-                "&:before": { borderColor: props.textColor || "black" },
-                "&:after": { borderColor: props.textColor || "black" },
-                "& .MuiSelect-iconStandard": { color: props.textColor || "black" },
-                color: props.textColor || "black",
-              }}
               id="select-search"
               value={selectedSearch}
               onChange={handleSearchChange}
+              //Manually aligning like this isn't ideal
+              SelectDisplayProps={{style: {paddingBottom: '0px', paddingTop: '1px'}}}
             >
               <MenuItem value={"Genomic Region"}>Genomic Region</MenuItem>
               <MenuItem value={"cCRE Accession"}>cCRE Accession</MenuItem>
@@ -68,18 +64,13 @@ const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) => {
             </Select>
           </FormControl>
           <Typography variant="h5" ml={1} mr={1} alignSelf="center">in</Typography>
-          <FormControl variant="standard" size="small" sx={{'& .MuiInputBase-root': {fontSize: '1.5rem'}}}>
+          <FormControl variant="standard" size="medium" sx={{'& .MuiInputBase-root': {fontSize: '1.5rem'}}}>
             <Select
               fullWidth
-              sx={{
-                "&:before": { borderColor: props.textColor || "black" },
-                "&:after": { borderColor: props.textColor || "black" },
-                "& .MuiSelect-iconStandard": { color: props.textColor || "black" },
-                color: props.textColor || "black",
-              }}
               id="select-search"
               value={assembly}
               onChange={handleAssemblyChange}
+              SelectDisplayProps={{style: {paddingBottom: '0px', paddingTop: '1px'}}}
             >
               <MenuItem value={"GRCh38"}>GRCh38</MenuItem>
               <MenuItem value={"mm10"}>mm10</MenuItem>

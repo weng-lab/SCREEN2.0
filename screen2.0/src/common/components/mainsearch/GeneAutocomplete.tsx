@@ -80,7 +80,7 @@ export const GeneAutoComplete: React.FC<{assembly: string, textColor: string }> 
   const debounceFn = useCallback(debounce(onSearchChange, 500), [])
   const gridsize = 5.5
   return (
-    <Grid container sx={{ mr: "1em", ml: "1em" }}>      
+    <Grid sx={{ mr: "1em", ml: "1em" }}>      
       <Grid item sm={gridsize} md={gridsize} lg={gridsize} xl={gridsize}>
         <Autocomplete
           id="gene-autocomplete"

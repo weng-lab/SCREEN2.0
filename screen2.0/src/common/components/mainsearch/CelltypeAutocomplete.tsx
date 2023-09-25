@@ -38,7 +38,7 @@ export const CelltypeAutocomplete: React.FC<{assembly: string, textColor: string
   }, [props.assembly])
 
   return (
-    <Grid container sx={{ mr: "1em", ml: "1em" }}>
+    <Grid sx={{ mr: "1em", ml: "1em" }}>
       <Grid item sm={5.5} md={5.5} lg={5.5} xl={5.5}>
         <Autocomplete
           freeSolo
