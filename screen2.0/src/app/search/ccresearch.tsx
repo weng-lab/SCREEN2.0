@@ -80,7 +80,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
                   props.mainQueryParams.assembly
                 } from ${props.mainQueryParams.start.toLocaleString("en-US")} to ${props.mainQueryParams.end.toLocaleString("en-US")}`}
                 itemsPerPage={10}
-                titleHoverInfo={`${sessionStorage.getItem('filenames')}`}
+                titleHoverInfo={props.mainQueryParams.bed_intersect ? `${sessionStorage.getItem('filenames')}` : null}
               />
             )}
           </Grid2>

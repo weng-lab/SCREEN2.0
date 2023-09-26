@@ -201,7 +201,7 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
 
     cols.push({
       header: "Conservation",
-      value: (row: { conservationData: ConservationData }) => `Primates:\u00A0${row.conservationData.primates.toFixed(2) ?? "unavailable"} Mammals:\u00A0${row.conservationData.mammals.toFixed(2) ?? "unavailable"} Vertebrates:\u00A0${row.conservationData.vertebrates.toFixed(2) ?? "unavailable"}` , 
+      value: (row: { conservationData: ConservationData }) => `Primates:\u00A0${row.conservationData.primates?.toFixed(2) ?? "unavailable"} Mammals:\u00A0${row.conservationData.mammals?.toFixed(2) ?? "unavailable"} Vertebrates:\u00A0${row.conservationData.vertebrates?.toFixed(2) ?? "unavailable"}` , 
     })
     console.log("columns recalculated")
     return cols
@@ -209,11 +209,6 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
 
   return (
     <DataTable
-      //Using a key here to trigger rerender is hacky. There should be another way https://react.dev/reference/react/useState#updating-objects-and-arrays-in-state
-      //It actually might be an issue with how the DataTable handles it's state internally. Is it possible that a rerender is being triggered but it's internal state is not being updated with the new value?
-      //The columns in the DataTable are being stored in an object. It might be that a change in props here doesn't replace the columns on the state variable, but rather modifies the columns attribute, which the React Docs say is bad.
-      //Internally, when the columns are changed (by the modal), the columns are reset properly(?) using the spread operator.
-      //Does a function passed to DataTable have access to the state of the parent function?
       key={props.rows[0] && props.rows[0].dnase + props.rows[0].ctcf + props.rows[0].h3k27ac + props.rows[0].h3k4me3 + columns.toString() + distance + CTCF_ChIAPET + RNAPII_ChIAPET}
       rows={props.rows}
       columns={columns(setDistance, setCTCF_ChIAPET, setRNAPII_ChIAPET)}

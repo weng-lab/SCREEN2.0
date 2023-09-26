@@ -130,7 +130,7 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, textColor: strin
           )
         }}
       />
-      <IconButton aria-label="Search" type="submit" onClick={() => handleSubmit()} sx={{ color: "black" || "black", maxHeight: "100%" }}>
+      <IconButton aria-label="Search" type="submit" onClick={() => handleSubmit()} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
         <Search />
       </IconButton>
     </Stack>

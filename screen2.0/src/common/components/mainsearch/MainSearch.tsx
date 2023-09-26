@@ -1,7 +1,7 @@
 "use client"
 import React, { useState } from "react"
 import Grid2 from "../../mui-client-wrappers/Grid2"
-import { Stack, InputBaseProps, Typography } from "@mui/material"
+import { Stack, InputBaseProps, Typography, Box } from "@mui/material"
 
 import MenuItem from "@mui/material/MenuItem"
 import FormControl from "@mui/material/FormControl"
@@ -24,7 +24,7 @@ export type MainSearchProps = InputBaseProps & {
 const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) => {
   const [assembly, setAssembly] = useState<"GRCh38" | "mm10">("GRCh38")
   const [selectedSearch, setSelectedSearch] = useState<string>("Genomic Region")
-  
+
   const handleSearchChange = (event: SelectChangeEvent) => {
     setSelectedSearch(event.target.value)
   }
@@ -34,43 +34,59 @@ const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) => {
   }
 
   return (
-    <Grid2 container spacing={3}>
-      <Grid2 xs={12}>
-        <Stack direction={"row"} >
-          <Typography variant="h5" mr={1} alignSelf="center">Search by</Typography>
-          <FormControl variant="standard" size="medium" sx={{'& .MuiInputBase-root': {fontSize: '1.5rem'}}}>
-            <Select
-              fullWidth
-              id="select-search"
-              value={selectedSearch}
-              onChange={handleSearchChange}
-              //Manually aligning like this isn't ideal
-              SelectDisplayProps={{style: {paddingBottom: '0px', paddingTop: '1px'}}}
-            >
-              <MenuItem value={"Genomic Region"}>Genomic Region</MenuItem>
-              <MenuItem value={"cCRE Accession"}>cCRE Accession</MenuItem>
-              <MenuItem value={"SNP rsID"}>SNP rsID</MenuItem>
-              <MenuItem value={"Gene Name"}>Gene Name</MenuItem>
-              <MenuItem value={"Cell Type"}>Cell Type</MenuItem>
-              <MenuItem value={".BED Intersect"}>.BED Intersect</MenuItem>
-            </Select>
-          </FormControl>
-          <Typography variant="h5" ml={1} mr={1} alignSelf="center">in</Typography>
-          <FormControl variant="standard" size="medium" sx={{'& .MuiInputBase-root': {fontSize: '1.5rem'}}}>
-            <Select
-              fullWidth
-              id="select-search"
-              value={assembly}
-              onChange={handleAssemblyChange}
-              SelectDisplayProps={{style: {paddingBottom: '0px', paddingTop: '1px'}}}
-            >
-              <MenuItem value={"GRCh38"}>GRCh38</MenuItem>
-              <MenuItem value={"mm10"}>mm10</MenuItem>
-            </Select>
-          </FormControl>
-        </Stack>
-      </Grid2>
-      <Grid2 xs={12} display={"flex"} alignItems={"center"}>
+    <Stack direction={props.header ? "row" : "column"} spacing={3}>
+      <Stack direction={"row"} alignItems={"center"}>
+        <Typography variant={props.header ? "body1" : "h5"} mr={1} alignSelf="center">Search by</Typography>
+        <FormControl variant="standard" size="medium" sx={
+          props.header ?
+          { 
+            '& .MuiInputBase-root': { color: "white" }, 
+            '& .MuiInputBase-root::before': { borderColor: "white" }, 
+            '& .MuiInputBase-root::after': { borderColor: "white" },
+            '& .MuiSvgIcon-root': { fill: "white" } 
+          }
+          :
+          { '& .MuiInputBase-root': { fontSize: '1.5rem' } }}>
+          <Select
+            fullWidth
+            id="select-search"
+            value={selectedSearch}
+            onChange={handleSearchChange}
+            //Manually aligning like this isn't ideal
+            SelectDisplayProps={{ style: { paddingBottom: '0px', paddingTop: '1px' } }}
+          >
+            <MenuItem value={"Genomic Region"}>Genomic Region</MenuItem>
+            <MenuItem value={"cCRE Accession"}>cCRE Accession</MenuItem>
+            <MenuItem value={"SNP rsID"}>SNP rsID</MenuItem>
+            <MenuItem value={"Gene Name"}>Gene Name</MenuItem>
+            <MenuItem value={"Cell Type"}>Cell Type</MenuItem>
+            <MenuItem value={".BED Intersect"}>.BED Intersect</MenuItem>
+          </Select>
+        </FormControl>
+        <Typography variant={props.header ? "body1" : "h5"} ml={1} mr={1} alignSelf="center">in</Typography>
+        <FormControl variant="standard" size="medium" sx={
+          props.header ?
+          { 
+            '& .MuiInputBase-root': { color: "white" }, 
+            '& .MuiInputBase-root::before': { borderColor: "white" }, 
+            '& .MuiInputBase-root::after': { borderColor: "white" },
+            '& .MuiSvgIcon-root': { fill: "white" } 
+          }
+          :
+          { '& .MuiInputBase-root': { fontSize: '1.5rem' } }}>
+          <Select
+            fullWidth
+            id="select-search"
+            value={assembly}
+            onChange={handleAssemblyChange}
+            SelectDisplayProps={{ style: { paddingBottom: '0px', paddingTop: '1px' } }}
+          >
+            <MenuItem value={"GRCh38"}>GRCh38</MenuItem>
+            <MenuItem value={"mm10"}>mm10</MenuItem>
+          </Select>
+        </FormControl>
+      </Stack>
+      <Box>
         {selectedSearch === "Genomic Region" ? (
           <GenomicRegion assembly={assembly} header={props.header} />
         ) : selectedSearch === "Gene Name" ? (
@@ -85,11 +101,8 @@ const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) => {
           // Need to make this able to submit 
           <BedUpload assembly={assembly} header={props.header} />
         }
-        {/* <IconButton aria-label="Search" type="submit" onClick={() => setSubmit(true)} sx={{ color: "black" || "black", maxHeight: "100%" }}>
-          <SearchIcon />
-        </IconButton> */}
-      </Grid2>
-    </Grid2>
+      </Box>
+    </Stack>
   )
 }
 

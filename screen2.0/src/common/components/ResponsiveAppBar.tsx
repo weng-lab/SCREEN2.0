@@ -14,6 +14,7 @@ import screenIcon from "../../../public/screenIcon.png"
 import { defaultTheme } from "../lib/themes"
 
 import HeaderSearch from "./HeaderSearch"
+import MainSearch from "./mainsearch/MainSearch"
 
 /*  
   Links for the AppBar. If adding another page with subpages, you need to add another 
@@ -245,10 +246,8 @@ function ResponsiveAppBar() {
                 </Box>
               ))}
             </Box>
-            {/* TODO onSubmit for search box */}
-            
             <Box sx={{ flexGrow: 0 }}>
-              <HeaderSearch />
+              <MainSearch header />
             </Box>
             
             {/* Settings */}

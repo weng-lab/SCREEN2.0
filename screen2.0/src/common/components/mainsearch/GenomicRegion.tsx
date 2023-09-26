@@ -82,7 +82,6 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
           id="demo-simple-select-standard"
           value={chromosome}
           onChange={(event: SelectChangeEvent) => setChromosome(event.target.value)}
-          // size="small"
           label="Chromosome"
           sx={{ '& .MuiOutlinedInput-notchedOutline': { borderColor: 'black' } }}
           size={props.header ? "small" : "medium"}
@@ -150,7 +149,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
         sx={{ mr: "1em", ml: "1em", fieldset: { borderColor: "black" || "black" } }}
         size={props.header ? "small" : "medium"}
       />
-      <IconButton aria-label="Search" type="submit" onClick={() => handleSubmit()} sx={{ color: "black" || "black", maxHeight: "100%" }}>
+      <IconButton aria-label="Search" type="submit" onClick={() => handleSubmit()} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
         <Search />
       </IconButton>
     </Stack>
