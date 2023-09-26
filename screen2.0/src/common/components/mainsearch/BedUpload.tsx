@@ -98,42 +98,51 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
   return (
     <Grid2 container spacing={2}>
       <Grid2 xs={6}>
-        <Container sx={{ border: `${isDragActive ? "2px dashed blue" : "2px dashed grey"}`, borderRadius: "10px", minWidth: "250px", pl: "0 !important", pr: "0 !important", color: `${isDragActive ? "text.secondary" : "text.primary"}` }}>
+        {props.header ?
           <div {...getRootProps()} style={{ padding: "1rem" }}>
             <input {...getInputProps()} type="file" accept=".bed" />
-            <Stack spacing={1} direction="column" alignItems={"center"}>
-              <UploadFileIcon />
-              <Typography>
-                Drag and drop a .bed file
-              </Typography>
-              <Typography>
-                or
-              </Typography>
-              <Button variant="outlined" disabled={isDragActive} sx={{ textTransform: "none" }}>
-                Click to select a file
-              </Button>
-            </Stack>
+            <Button variant="contained">
+              Select a File
+            </Button>
           </div>
-        </Container>
+          :
+          <Container sx={{ border: `${isDragActive ? "2px dashed blue" : "2px dashed grey"}`, borderRadius: "10px", minWidth: "250px", pl: "0 !important", pr: "0 !important", color: `${isDragActive ? "text.secondary" : "text.primary"}` }}>
+            <div {...getRootProps()} style={{ padding: "1rem" }}>
+              <input {...getInputProps()} type="file" accept=".bed" />
+              <Stack spacing={1} direction="column" alignItems={"center"}>
+                <UploadFileIcon />
+                <Typography>
+                  Drag and drop a .bed file
+                </Typography>
+                <Typography>
+                  or
+                </Typography>
+                <Button variant="outlined" disabled={isDragActive} sx={{ textTransform: "none" }}>
+                  Click to select a file
+                </Button>
+              </Stack>
+            </div>
+          </Container>
+        }
       </Grid2>
       <Grid2 xs={6}>
         {files.map((file: File, index: number) => {
-        return (
-          <>
-            <Typography mb={1} variant="h5">Uploaded:</Typography>
-            <Stack direction="row" alignItems="center">
-              <Typography key={index}>{truncateFileName(file.name, 30)} - {(file.size / 1000000).toFixed(1)} mb</Typography>
-              <IconButton onClick={() => setFiles([])}>
-                <Cancel />
-              </IconButton>
-            </Stack>
-          </>
-        )
-      })}
-      {files.length > 0 &&
-        <Button sx={{mt:1}} endIcon={<Search />} variant="outlined" onClick={submitFiles}>
-          Find Intersecting cCREs
-        </Button>}
+          return (
+            <>
+              <Typography mb={1} variant="h5">Uploaded:</Typography>
+              <Stack direction="row" alignItems="center">
+                <Typography key={index}>{truncateFileName(file.name, 30)} - {(file.size / 1000000).toFixed(1)} mb</Typography>
+                <IconButton onClick={() => setFiles([])}>
+                  <Cancel />
+                </IconButton>
+              </Stack>
+            </>
+          )
+        })}
+        {files.length > 0 &&
+          <Button sx={{ mt: 1 }} endIcon={<Search />} variant="outlined" onClick={submitFiles}>
+            Find Intersecting cCREs
+          </Button>}
       </Grid2>
     </Grid2>
   )

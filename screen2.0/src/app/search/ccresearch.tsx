@@ -76,7 +76,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
             {tabIndex === 0 && (
               <MainResultsTable
                 rows={tableRows}
-                tableTitle={props.mainQueryParams.bed_intersect ? `Intersecting by uploaded .bed file${sessionStorage.getItem('filenames')?.length > 1 ? 's' : ''}` : `Searching ${props.mainQueryParams.chromosome} in ${
+                tableTitle={props.mainQueryParams.bed_intersect ? `Intersecting by uploaded .bed file` : `Searching ${props.mainQueryParams.chromosome} in ${
                   props.mainQueryParams.assembly
                 } from ${props.mainQueryParams.start.toLocaleString("en-US")} to ${props.mainQueryParams.end.toLocaleString("en-US")}`}
                 itemsPerPage={10}
