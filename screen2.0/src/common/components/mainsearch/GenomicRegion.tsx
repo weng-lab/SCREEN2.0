@@ -74,7 +74,6 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
   }
 
   return (
-
     <Stack direction="row" alignItems="center">
       <FormControl sx={{ minWidth: "6.25rem" }}>
         <InputLabel id="demo-simple-select-standard-label">Chromosome</InputLabel>
@@ -86,6 +85,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
           // size="small"
           label="Chromosome"
           sx={{ '& .MuiOutlinedInput-notchedOutline': { borderColor: 'black' } }}
+          size={props.header ? "small" : "medium"}
         >
             <MenuItem value={1}>1</MenuItem>
             <MenuItem value={2}>2</MenuItem>
@@ -128,6 +128,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
           }
         }}
         sx={{ mr: "1em", ml: "1em", fieldset: { borderColor: "black" || "black" } }}
+        size={props.header ? "small" : "medium"}
       />
       <Typography sx={{ justifySelf: "center" }}>
         –
@@ -147,7 +148,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
           }
         }}
         sx={{ mr: "1em", ml: "1em", fieldset: { borderColor: "black" || "black" } }}
-      // size="small"
+        size={props.header ? "small" : "medium"}
       />
       <IconButton aria-label="Search" type="submit" onClick={() => handleSubmit()} sx={{ color: "black" || "black", maxHeight: "100%" }}>
         <Search />

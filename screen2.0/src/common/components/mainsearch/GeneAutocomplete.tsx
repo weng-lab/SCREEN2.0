@@ -12,7 +12,7 @@ import { IconButton, Stack } from "@mui/material"
 import { Search } from "@mui/icons-material"
 type QueryResponse = [number, string[], any, [string, string, string, string, string, string][], string[]]
 
-export const GeneAutoComplete: React.FC<{ assembly: string, textColor: string }> = (props) => {
+export const GeneAutoComplete: React.FC<{ assembly: string, textColor: string, header?: boolean }> = (props) => {
   const [value, setValue] = useState(null)
   const [inputValue, setInputValue] = useState("")
   const [options, setOptions] = useState<string[]>([])
@@ -93,6 +93,7 @@ export const GeneAutoComplete: React.FC<{ assembly: string, textColor: string }>
   return (
     <Stack direction="row" spacing={2}>
       <Autocomplete
+        size={props.header ? "small" : "medium"}
         id="gene-autocomplete"
         sx={{ width: 300, paper: { height: 200 } }}
         options={options}

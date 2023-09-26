@@ -72,18 +72,18 @@ const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) => {
       </Grid2>
       <Grid2 xs={12} display={"flex"} alignItems={"center"}>
         {selectedSearch === "Genomic Region" ? (
-          <GenomicRegion assembly={assembly} />
+          <GenomicRegion assembly={assembly} header={props.header} />
         ) : selectedSearch === "Gene Name" ? (
-          <GeneAutoComplete textColor={props.textColor || "black"} assembly={assembly} />
+          <GeneAutoComplete textColor={props.textColor || "black"} assembly={assembly} header={props.header} />
         ) : selectedSearch === "SNP rsID" ? (
-          <SnpAutoComplete textColor={props.textColor || "black"} assembly={assembly} />
+          <SnpAutoComplete textColor={props.textColor || "black"} assembly={assembly} header={props.header} />
         ) : selectedSearch === "Cell Type" ? (
-          <CelltypeAutocomplete textColor={props.textColor || "black"} assembly={assembly} />
+          <CelltypeAutocomplete textColor={props.textColor || "black"} assembly={assembly} header={props.header} />
         ) : selectedSearch === "cCRE Accession" ? (
-          <CcreAutoComplete textColor={props.textColor || "black"} assembly={assembly} />
+          <CcreAutoComplete textColor={props.textColor || "black"} assembly={assembly} header={props.header} />
         ) :
           // Need to make this able to submit 
-          <BedUpload assembly={assembly} />
+          <BedUpload assembly={assembly} header={props.header} />
         }
         {/* <IconButton aria-label="Search" type="submit" onClick={() => setSubmit(true)} sx={{ color: "black" || "black", maxHeight: "100%" }}>
           <SearchIcon />

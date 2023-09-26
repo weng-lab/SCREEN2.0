@@ -11,7 +11,7 @@ import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { IconButton, Stack } from "@mui/material"
 import { Search } from "@mui/icons-material"
 
-export const SnpAutoComplete: React.FC<{ assembly: string, textColor: string }> = (props) => {
+export const SnpAutoComplete: React.FC<{ assembly: string, textColor: string, header?: boolean }> = (props) => {
   const [value, setValue] = React.useState(null)
   const [inputValue, setInputValue] = React.useState("")
   const [options, setOptions] = React.useState([])
@@ -67,6 +67,7 @@ export const SnpAutoComplete: React.FC<{ assembly: string, textColor: string }> 
   return (
     <Stack direction="row" spacing={2}>
       <Autocomplete
+        size={props.header ? "small" : "medium"}
         id="snp-autocomplete"
         sx={{ width: 300, paper: { height: 200 } }}
         options={options}

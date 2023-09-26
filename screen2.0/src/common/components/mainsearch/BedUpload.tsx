@@ -8,7 +8,7 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { Cancel, Search } from "@mui/icons-material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 
-const BedUpload = (props: { assembly: "mm10" | "GRCh38" }) => {
+const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => {
   const router = useRouter()
 
   const [files, setFiles] = useState<File[]>([])
