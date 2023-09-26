@@ -1,18 +1,22 @@
 "use client"
 
 import React, { useCallback, useState } from "react"
-import { Button, Typography, Box, Stack, Container, RadioGroup, FormControl, FormControlLabel, FormLabel, Radio } from "@mui/material"
+import { Button, Typography, Box, Stack, Container, RadioGroup, FormControl, FormControlLabel, FormLabel, Radio, IconButton } from "@mui/material"
 import { useDropzone } from "react-dropzone"
 import { useRouter } from 'next/navigation'
 import UploadFileIcon from '@mui/icons-material/UploadFile';
+import { Cancel, Search } from "@mui/icons-material"
+import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 
-const BedUpload = (props: {assembly: "mm10" | "GRCh38"}) => {
+const BedUpload = (props: { assembly: "mm10" | "GRCh38" }) => {
   const router = useRouter()
-  
+
   const [files, setFiles] = useState<File[]>([])
 
   const onDrop = useCallback(acceptedFiles => {
-    setFiles([...files, ...acceptedFiles])
+    // setFiles([...files, ...acceptedFiles])
+    // Currently only accepting 1 file
+    setFiles([acceptedFiles[0]])
   }, [])
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
@@ -34,8 +38,7 @@ const BedUpload = (props: {assembly: "mm10" | "GRCh38"}) => {
       .catch(errF)
   }
 
-  //Warn based on file size
-  //Cap at 1
+  //TODO Warn based on file size, support multiple files
   const submitFiles = () => {
     // allLines holds a string of each line in each file
     console.log("submit files called")
@@ -80,56 +83,59 @@ const BedUpload = (props: {assembly: "mm10" | "GRCh38"}) => {
     })
     console.log(filenames)
     console.log(accessions)
-    // sessionStorage.setItem("filenames", filenames)
-    // sessionStorage.setItem("bed intersect", accessions.join(' '))
-    // router.push(`/search?intersect=t&assembly=${assembly}`)
   }
 
-  //How do I handle multiple files? Disallow? Current accepts multiple at once
-  //I can trigger a server action here, but how does this help me get the information to the main results table?
-  //In this server action, I can fetch the info needed to generate the rows... but idk if/how I can pass that info along
-  //What if I can make use of context, set it here with the list of accessions, and then access again in cCRE Search and fetch data in server action??
+  //This is hacky, couldn't figure out how to make it use textOverflow properly
+  function truncateFileName(string, maxLength, ellipsis = "...") {
+    if (string.length <= maxLength) {
+      return string;
+    }
+
+    return string.substring(0, maxLength - ellipsis.length) + ellipsis;
+  }
+
+  //Disallowing opther file extensions with accept=".bed" isn't working as expected
   return (
-    <Box mt="1rem">
-      <Container sx={{ border: `${isDragActive ? "2px dashed blue" : "2px dashed grey"}`, borderRadius: "10px", width: "30%", minWidth: "250px", pl: "0 !important", pr: "0 !important", color: `${isDragActive ? "text.secondary" : "text.primary"}` }}>
-        <div {...getRootProps()} style={{ padding: "1rem" }}>
-          <input {...getInputProps()} accept=".bed" />
-          <Stack spacing={1} direction="column" alignItems={"center"}>
-            <UploadFileIcon />
-            <Typography>
-              Drag file to upload
-            </Typography>
-            <Typography>
-              or
-            </Typography>
-            <Button variant="outlined" disabled={isDragActive} sx={{ textTransform: "none" }}>
-              Click to select files
-            </Button>
-            <Typography>
-              Support file type: .BED
-            </Typography>
-          </Stack>
-        </div>
-      </Container>
-      <br />
-      {files.map((file: File, index: number) => {
-        return <Typography key={index}>{file.name} - {(file.size / 1000000).toFixed(1)} mb</Typography>
+    <Grid2 container spacing={2}>
+      <Grid2 xs={6}>
+        <Container sx={{ border: `${isDragActive ? "2px dashed blue" : "2px dashed grey"}`, borderRadius: "10px", minWidth: "250px", pl: "0 !important", pr: "0 !important", color: `${isDragActive ? "text.secondary" : "text.primary"}` }}>
+          <div {...getRootProps()} style={{ padding: "1rem" }}>
+            <input {...getInputProps()} type="file" accept=".bed" />
+            <Stack spacing={1} direction="column" alignItems={"center"}>
+              <UploadFileIcon />
+              <Typography>
+                Drag and drop a .bed file
+              </Typography>
+              <Typography>
+                or
+              </Typography>
+              <Button variant="outlined" disabled={isDragActive} sx={{ textTransform: "none" }}>
+                Click to select a file
+              </Button>
+            </Stack>
+          </div>
+        </Container>
+      </Grid2>
+      <Grid2 xs={6}>
+        {files.map((file: File, index: number) => {
+        return (
+          <>
+            <Typography mb={1} variant="h5">Uploaded:</Typography>
+            <Stack direction="row" alignItems="center">
+              <Typography key={index}>{truncateFileName(file.name, 30)} - {(file.size / 1000000).toFixed(1)} mb</Typography>
+              <IconButton onClick={() => setFiles([])}>
+                <Cancel />
+              </IconButton>
+            </Stack>
+          </>
+        )
       })}
-      {files.length > 0 && <Button onClick={() => setFiles([])}>Clear Files</Button>}
-      {/* <FormControl>
-        <FormLabel id="demo-controlled-radio-buttons-group">Assembly</FormLabel>
-        <RadioGroup
-          aria-labelledby="demo-controlled-radio-buttons-group"
-          name="controlled-radio-buttons-group"
-          value={assembly}
-          onChange={handleChange}
-        >
-          <FormControlLabel value="GRCh38" control={<Radio />} label="GRCh38" />
-          <FormControlLabel value="mm10" control={<Radio />} label="mm10" />
-        </RadioGroup>
-      </FormControl> */}
-      {files.length > 0 && <Button onClick={submitFiles}>Find Intersecting cCREs</Button>}
-    </Box>
+      {files.length > 0 &&
+        <Button sx={{mt:1}} endIcon={<Search />} variant="outlined" onClick={submitFiles}>
+          Find Intersecting cCREs
+        </Button>}
+      </Grid2>
+    </Grid2>
   )
 }
 

@@ -1,23 +1,26 @@
 import { TextField, InputAdornment, IconButton, Stack, Select, MenuItem, SelectChangeEvent, FormControl, InputLabel, Typography } from "@mui/material"
 import { useState } from "react"
-import SearchIcon from "@mui/icons-material/Search"
+import { Search } from "@mui/icons-material"
+import { useRouter } from "next/navigation"
 
 //https://mui.com/material-ui/react-text-field/#integration-with-3rd-party-input-libraries
 //For formatting the start/end as it's being entered.
 
-const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", onSubmit: (chromosome: string, start: string, end: string) => void, header?: boolean }) => {
-  const [chromosome, setChromosome] = useState('3')
-  const [startTemp, setStartTemp] = useState(null)
+const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => {
+  const [chromosome, setChromosome] = useState('11')
   const [start, setStart] = useState(null)
-  const [endTemp, setEndTemp] = useState(null)
   const [end, setEnd] = useState(null)
 
-  const handleSubmit = (chromosome: string, start: string, end: string) => {
-    props.onSubmit(chromosome, start, end)
-  }
+  const router = useRouter()
 
   const assembly = props.assembly
 
+  function handleSubmit(): void {
+    console.log("handleSubmit called")
+    router.push(`/search?assembly=${assembly}&chromosome=${"chr" + chromosome}&start=${start ?? "5205263"}&end=${end ?? "5381894"}`)
+  }
+
+  //TODO disallow entry of values outside of chromosome lengths and outside of a certain range (no searching whole chromosome)
   const chromosomeLengths = {
     human: {
       1: 248956422,
@@ -121,7 +124,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", onSubmit: (chromoso
         }}
         onKeyDown={(event) => {
           if (event.code === "Enter") {
-            handleSubmit(chromosome, start, end)
+            handleSubmit()
           }
         }}
         sx={{ mr: "1em", ml: "1em", fieldset: { borderColor: "black" || "black" } }}
@@ -140,12 +143,15 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", onSubmit: (chromoso
         }}
         onKeyDown={(event) => {
           if (event.code === "Enter") {
-            handleSubmit(chromosome, start, end)
+            handleSubmit()
           }
         }}
         sx={{ mr: "1em", ml: "1em", fieldset: { borderColor: "black" || "black" } }}
       // size="small"
       />
+      <IconButton aria-label="Search" type="submit" onClick={() => handleSubmit()} sx={{ color: "black" || "black", maxHeight: "100%" }}>
+        <Search />
+      </IconButton>
     </Stack>
   )
 }

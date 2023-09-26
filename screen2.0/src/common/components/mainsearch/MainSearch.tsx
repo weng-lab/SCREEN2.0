@@ -1,10 +1,8 @@
 "use client"
 import React, { useState } from "react"
 import Grid2 from "../../mui-client-wrappers/Grid2"
-import { Stack, TextField, IconButton, InputAdornment, InputBaseProps, createTheme, Typography } from "@mui/material"
-import SearchIcon from "@mui/icons-material/Search"
-import GenomeSwitch from "../GenomeSwitch"
-import { useRouter } from "next/navigation"
+import { Stack, InputBaseProps, Typography } from "@mui/material"
+
 import MenuItem from "@mui/material/MenuItem"
 import FormControl from "@mui/material/FormControl"
 import Select, { SelectChangeEvent } from "@mui/material/Select"
@@ -14,7 +12,8 @@ import { SnpAutoComplete } from "./SnpAutocomplete"
 import { CelltypeAutocomplete } from "./CelltypeAutocomplete"
 import BedUpload from "./BedUpload"
 import GenomicRegion from "./GenomicRegion"
-import { URLParams } from "../../../app/search/types"
+
+//Should the code for searching live here in one big handleSubmit, or should each search individually handle it, and just have the trigger sent to them?
 
 export type MainSearchProps = InputBaseProps & {
   //false for human, true for mouse
@@ -32,13 +31,6 @@ const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) => {
 
   const handleAssemblyChange = (event: SelectChangeEvent) => {
     ((event.target.value === "GRCh38") || (event.target.value === "mm10")) && setAssembly(event.target.value)
-  }
-
-  const router = useRouter()
-
-  function handleSubmit(chromosome: string, start: string, end: string): void {
-    console.log("handleSubmit called")
-    router.push(`/search?assembly=${assembly}&chromosome=${"chr" + chromosome}&start=${start}&end=${end}`)
   }
 
   return (
@@ -78,9 +70,9 @@ const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) => {
           </FormControl>
         </Stack>
       </Grid2>
-      <Grid2 xs={12} display={"inline-flex"}>
+      <Grid2 xs={12} display={"flex"} alignItems={"center"}>
         {selectedSearch === "Genomic Region" ? (
-          <GenomicRegion assembly={assembly} onSubmit={(chromosome: string, start: string, end: string) => handleSubmit(chromosome, start, end)} />
+          <GenomicRegion assembly={assembly} />
         ) : selectedSearch === "Gene Name" ? (
           <GeneAutoComplete textColor={props.textColor || "black"} assembly={assembly} />
         ) : selectedSearch === "SNP rsID" ? (
@@ -93,9 +85,9 @@ const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) => {
           // Need to make this able to submit 
           <BedUpload assembly={assembly} />
         }
-        <IconButton aria-label="Search" type="submit" onClick={null} sx={{ color: "black" || "black" }}>
+        {/* <IconButton aria-label="Search" type="submit" onClick={() => setSubmit(true)} sx={{ color: "black" || "black", maxHeight: "100%" }}>
           <SearchIcon />
-        </IconButton>
+        </IconButton> */}
       </Grid2>
     </Grid2>
   )
