@@ -125,26 +125,22 @@ export const GeneAutoComplete: React.FC<{ assembly: string, textColor: string, h
           <TextField
             {...params}
             label="Enter a gene name"
-            InputLabelProps={{ shrink: true, style: { color: props.textColor || "black" } }}
-
+            InputLabelProps={{ shrink: true, style: props.header ? {color: "white"} : { color: "black" } }}
             placeholder={props.assembly === "mm10" ? "e.g Scml2,Dbt" : "e.g sox4,gapdh"}
             fullWidth
             sx={{
-              fieldset: { borderColor: props.textColor || "black" }, '& .MuiInput-underline:after': {
-                borderBottomColor: props.textColor || "black",
-              },
+              //Border at rest
+              fieldset: props.header ? { borderColor: "white" } : { borderColor: "black" },
               '& .MuiOutlinedInput-root': {
-                '& fieldset': {
-                  borderColor: props.textColor || "black",
-                },
-                '&:hover fieldset': {
-                  borderColor: props.textColor || "black"
-
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: props.textColor || "black",
-                },
-              }
+                //hover border color
+                '&:hover fieldset': props.header ? { borderColor: "white" } : { borderColor: "black" },
+                //focused border color
+                '&.Mui-focused fieldset': props.header ? { borderColor: "white" } : { borderColor: "black" },
+              },
+              //Text
+              '& .MuiOutlinedInput-input': props.header && { color: "white" },
+              //Icon
+              '& .MuiSvgIcon-root': props.header && { fill: "white"}
             }}
           />
         )}

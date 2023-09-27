@@ -97,26 +97,22 @@ export const CcreAutoComplete: React.FC<{ assembly: string, textColor: string, h
             <TextField
               {...params}
               label="Enter a cCRE accession"
-              InputLabelProps={{ shrink: true, style: { color: props.textColor || "black" } }}
-
+              InputLabelProps={{ shrink: true, style: props.header ? {color: "white"} : { color: "black" } }}
               placeholder="e.g. EH38E0001314"
               fullWidth
               sx={{
-                fieldset: { borderColor: props.textColor || "black" }, '& .MuiInput-underline:after': {
-                  borderBottomColor: props.textColor || "black",
-                },
+                //Border at rest
+                fieldset: props.header ? { borderColor: "white" } : { borderColor: "black" },
                 '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    borderColor: props.textColor || "black",
-                  },
-                  '&:hover fieldset': {
-                    borderColor: props.textColor || "black"
-
-                  },
-                  '&.Mui-focused fieldset': {
-                    borderColor: props.textColor || "black",
-                  },
-                }
+                  //hover border color
+                  '&:hover fieldset': props.header ? { borderColor: "white" } : { borderColor: "black" },
+                  //focused border color
+                  '&.Mui-focused fieldset': props.header ? { borderColor: "white" } : { borderColor: "black" },
+                },
+                //Text
+                '& .MuiOutlinedInput-input': props.header && { color: "white" },
+                //Icon
+                '& .MuiSvgIcon-root': props.header && { fill: "white"}
               }}
             />
           )}

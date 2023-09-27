@@ -12,8 +12,15 @@ import { SnpAutoComplete } from "./SnpAutocomplete"
 import { CelltypeAutocomplete } from "./CelltypeAutocomplete"
 import BedUpload from "./BedUpload"
 import GenomicRegion from "./GenomicRegion"
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 //Should the code for searching live here in one big handleSubmit, or should each search individually handle it, and just have the trigger sent to them?
+
+// const darkTheme = createTheme({
+//   palette: {
+//     mode: 'dark',
+//   },
+// });
 
 export type MainSearchProps = InputBaseProps & {
   //false for human, true for mouse
@@ -21,6 +28,8 @@ export type MainSearchProps = InputBaseProps & {
   textColor?: string,
   header?: boolean
 }
+
+
 const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) => {
   const [assembly, setAssembly] = useState<"GRCh38" | "mm10">("GRCh38")
   const [selectedSearch, setSelectedSearch] = useState<string>("Genomic Region")
@@ -34,75 +43,77 @@ const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) => {
   }
 
   return (
-    <Stack direction={props.header ? "row" : "column"} spacing={3}>
-      <Stack direction={"row"} alignItems={"center"}>
-        <Typography variant={props.header ? "body1" : "h5"} mr={1} alignSelf="center">Search by</Typography>
-        <FormControl variant="standard" size="medium" sx={
-          props.header ?
-          { 
-            '& .MuiInputBase-root': { color: "white" }, 
-            '& .MuiInputBase-root::before': { borderColor: "white" }, 
-            '& .MuiInputBase-root::after': { borderColor: "white" },
-            '& .MuiSvgIcon-root': { fill: "white" } 
+    // <ThemeProvider theme={darkTheme}>
+      <Stack direction={props.header ? "row" : "column"} spacing={3}>
+        <Stack direction={"row"} alignItems={"center"}>
+          <Typography variant={props.header ? "body1" : "h5"} mr={1} alignSelf="center">Search by</Typography>
+          <FormControl variant="standard" size="medium" sx={
+            props.header ?
+              {
+                '& .MuiInputBase-root': { color: "white" },
+                '& .MuiInputBase-root::before': { borderColor: "white" },
+                '& .MuiInputBase-root::after': { borderColor: "white" },
+                '& .MuiSvgIcon-root': { fill: "white" }
+              }
+              :
+              { '& .MuiInputBase-root': { fontSize: '1.5rem' } }}>
+            <Select
+              fullWidth
+              id="select-search"
+              value={selectedSearch}
+              onChange={handleSearchChange}
+              //Manually aligning like this isn't ideal
+              SelectDisplayProps={{ style: { paddingBottom: '0px', paddingTop: '1px' } }}
+            >
+              <MenuItem value={"Genomic Region"}>Genomic Region</MenuItem>
+              <MenuItem value={"cCRE Accession"}>cCRE Accession</MenuItem>
+              <MenuItem value={"SNP rsID"}>SNP rsID</MenuItem>
+              <MenuItem value={"Gene Name"}>Gene Name</MenuItem>
+              <MenuItem value={"Cell Type"}>Cell Type</MenuItem>
+              <MenuItem value={".BED Intersect"}>.BED Intersect</MenuItem>
+            </Select>
+          </FormControl>
+          <Typography variant={props.header ? "body1" : "h5"} ml={1} mr={1} alignSelf="center">in</Typography>
+          <FormControl variant="standard" size="medium" sx={
+            props.header ?
+              {
+                '& .MuiInputBase-root': { color: "white" },
+                '& .MuiInputBase-root::before': { borderColor: "white" },
+                '& .MuiInputBase-root::after': { borderColor: "white" },
+                '& .MuiSvgIcon-root': { fill: "white" }
+              }
+              :
+              { '& .MuiInputBase-root': { fontSize: '1.5rem' } }}>
+            <Select
+              fullWidth
+              id="select-search"
+              value={assembly}
+              onChange={handleAssemblyChange}
+              SelectDisplayProps={{ style: { paddingBottom: '0px', paddingTop: '1px' } }}
+            >
+              <MenuItem value={"GRCh38"}>GRCh38</MenuItem>
+              <MenuItem value={"mm10"}>mm10</MenuItem>
+            </Select>
+          </FormControl>
+        </Stack>
+        <Box>
+          {selectedSearch === "Genomic Region" ? (
+            <GenomicRegion assembly={assembly} header={props.header} />
+          ) : selectedSearch === "Gene Name" ? (
+            <GeneAutoComplete textColor={props.textColor || "black"} assembly={assembly} header={props.header} />
+          ) : selectedSearch === "SNP rsID" ? (
+            <SnpAutoComplete textColor={props.textColor || "black"} assembly={assembly} header={props.header} />
+          ) : selectedSearch === "Cell Type" ? (
+            <CelltypeAutocomplete textColor={props.textColor || "black"} assembly={assembly} header={props.header} />
+          ) : selectedSearch === "cCRE Accession" ? (
+            <CcreAutoComplete textColor={props.textColor || "black"} assembly={assembly} header={props.header} />
+          ) :
+            // Need to make this able to submit 
+            <BedUpload assembly={assembly} header={props.header} />
           }
-          :
-          { '& .MuiInputBase-root': { fontSize: '1.5rem' } }}>
-          <Select
-            fullWidth
-            id="select-search"
-            value={selectedSearch}
-            onChange={handleSearchChange}
-            //Manually aligning like this isn't ideal
-            SelectDisplayProps={{ style: { paddingBottom: '0px', paddingTop: '1px' } }}
-          >
-            <MenuItem value={"Genomic Region"}>Genomic Region</MenuItem>
-            <MenuItem value={"cCRE Accession"}>cCRE Accession</MenuItem>
-            <MenuItem value={"SNP rsID"}>SNP rsID</MenuItem>
-            <MenuItem value={"Gene Name"}>Gene Name</MenuItem>
-            <MenuItem value={"Cell Type"}>Cell Type</MenuItem>
-            <MenuItem value={".BED Intersect"}>.BED Intersect</MenuItem>
-          </Select>
-        </FormControl>
-        <Typography variant={props.header ? "body1" : "h5"} ml={1} mr={1} alignSelf="center">in</Typography>
-        <FormControl variant="standard" size="medium" sx={
-          props.header ?
-          { 
-            '& .MuiInputBase-root': { color: "white" }, 
-            '& .MuiInputBase-root::before': { borderColor: "white" }, 
-            '& .MuiInputBase-root::after': { borderColor: "white" },
-            '& .MuiSvgIcon-root': { fill: "white" } 
-          }
-          :
-          { '& .MuiInputBase-root': { fontSize: '1.5rem' } }}>
-          <Select
-            fullWidth
-            id="select-search"
-            value={assembly}
-            onChange={handleAssemblyChange}
-            SelectDisplayProps={{ style: { paddingBottom: '0px', paddingTop: '1px' } }}
-          >
-            <MenuItem value={"GRCh38"}>GRCh38</MenuItem>
-            <MenuItem value={"mm10"}>mm10</MenuItem>
-          </Select>
-        </FormControl>
+        </Box>
       </Stack>
-      <Box>
-        {selectedSearch === "Genomic Region" ? (
-          <GenomicRegion assembly={assembly} header={props.header} />
-        ) : selectedSearch === "Gene Name" ? (
-          <GeneAutoComplete textColor={props.textColor || "black"} assembly={assembly} header={props.header} />
-        ) : selectedSearch === "SNP rsID" ? (
-          <SnpAutoComplete textColor={props.textColor || "black"} assembly={assembly} header={props.header} />
-        ) : selectedSearch === "Cell Type" ? (
-          <CelltypeAutocomplete textColor={props.textColor || "black"} assembly={assembly} header={props.header} />
-        ) : selectedSearch === "cCRE Accession" ? (
-          <CcreAutoComplete textColor={props.textColor || "black"} assembly={assembly} header={props.header} />
-        ) :
-          // Need to make this able to submit 
-          <BedUpload assembly={assembly} header={props.header} />
-        }
-      </Box>
-    </Stack>
+    // </ThemeProvider>
   )
 }
 

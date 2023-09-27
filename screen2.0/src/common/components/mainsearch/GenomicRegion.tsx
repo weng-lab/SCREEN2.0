@@ -22,6 +22,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
     setValue(event.target.value)
   }
 
+  //TODO: Better catch errors in input so that invalid values are not passed to api
   function handleSubmit(): void {
     if (inputType === "Separated") {
       router.push(`/search?assembly=${assembly}&chromosome=${"chr" + chromosome}&start=${start ?? "5205263"}&end=${end ?? "5381894"}`)
@@ -58,7 +59,6 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
     }
   }
 
-  //TODO disallow entry of values outside of chromosome lengths and outside of a certain range (no searching whole chromosome)
   const chromosomeLengths = {
     human: {
       1: 248956422,
@@ -113,7 +113,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
 
   return (
     <Grid2 container spacing={2}>
-      <Grid2 xs={12} pt={0}>
+      {!props.header && <Grid2 xs={12} pt={0}>
         <FormControl>
           {/* <FormLabel id="demo-row-radio-buttons-group-label">Input Format</FormLabel> */}
           <RadioGroup
@@ -124,10 +124,10 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
             onChange={(event) => setInputType(event.target.value)}
           >
             <FormControlLabel value="UCSC" control={<Radio />} label="chr:start-end" />
-            <FormControlLabel value="Separated" control={<Radio />} label="Individual Input" />
+            <FormControlLabel value="Separated" control={<Radio />} label="Individual Inputs" />
           </RadioGroup>
         </FormControl>
-      </Grid2>
+      </Grid2>}
       <Grid2 xs={12}>
         <Stack direction="row" alignItems="center">
           {inputType === "Separated" ?
@@ -175,7 +175,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
                   <MenuItem value={'Y'}>Y</MenuItem>
                 </Select>
               </FormControl>
-              <Typography sx={{ justifySelf: "center" }} ml="1rem">
+              <Typography sx={{ justifySelf: "center" }} ml="0.5rem">
                 :
               </Typography>
               <TextField
@@ -194,9 +194,9 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
                 }}
                 sx={
                   props.header ?
-                    { mr: "1rem", ml: "1rem", fieldset: { borderColor: "white" }, maxWidth: "7rem" }
+                    { mr: "0.5rem", ml: "0.5rem", fieldset: { borderColor: "white" }, maxWidth: "7rem" }
                     :
-                    { mr: "1rem", ml: "1rem", fieldset: { borderColor: "black" }, maxWidth: "7rem" }
+                    { mr: "0.5rem", ml: "0.5rem", fieldset: { borderColor: "black" }, maxWidth: "7rem" }
                 }
                 size={props.header ? "small" : "medium"}
               />
@@ -219,9 +219,9 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
                 }}
                 sx={
                   props.header ?
-                    { mr: "1rem", ml: "1rem", fieldset: { borderColor: "white" }, maxWidth: "7rem" }
+                    { mr: "1rem", ml: "0.5rem", fieldset: { borderColor: "white" }, maxWidth: "7rem" }
                     :
-                    { mr: "1rem", ml: "1rem", fieldset: { borderColor: "black" }, maxWidth: "7rem" }
+                    { mr: "1rem", ml: "0.5rem", fieldset: { borderColor: "black" }, maxWidth: "7rem" }
                 }
                 size={props.header ? "small" : "medium"}
               />
@@ -230,7 +230,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
             //UCSC Input
             <TextField
               variant="outlined"
-              InputLabelProps={{ shrink: true, style: { color: "black" } }}
+              InputLabelProps={{ shrink: true, style: props.header ? {color: "white"} : { color: "black" } }}
               label="Enter a genomic region"
               placeholder="chr11:5205263-5381894"
               value={value}
@@ -240,17 +240,20 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
                   handleSubmit()
                 }
               }}
-              // InputProps={{
-              //   endAdornment: (
-              //     <InputAdornment position="end" sx={{ color: props.textColor || "black" }}>
-              //       <IconButton aria-label="Search" type="submit" onClick={() => handleSubmit()} sx={{ color: props.textColor || "black" }}>
-              //         <SearchIcon />
-              //       </IconButton>
-              //     </InputAdornment>
-              //   ),
-              //   style: { color: props.textColor || "black" },
-              // }}
-              sx={{ mr: "1rem", minWidth: "16rem", fieldset: { borderColor: "black" } }}
+              InputProps={props.header ? { style: { color: "white" } } : {}}
+              sx={{
+                mr: "1rem",
+                minWidth: "16rem",
+                //Border at rest
+                fieldset: props.header ? { borderColor: "white" } : { borderColor: "black" },
+                '& .MuiOutlinedInput-root': {
+                  //hover border color
+                  '&:hover fieldset': props.header ? { borderColor: "white" } : { borderColor: "black" },
+                  //focused border color
+                  '&.Mui-focused fieldset': props.header ? { borderColor: "white" } : { borderColor: "black" },
+                },
+              }}
+              size={props.header ? "small" : "medium"}
             />
           }
           <IconButton aria-label="Search" type="submit" onClick={() => handleSubmit()} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
