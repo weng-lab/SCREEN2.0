@@ -246,7 +246,7 @@ function ResponsiveAppBar() {
                 </Box>
               ))}
             </Box>
-            <Box sx={{ flexGrow: 0 }}>
+            <Box>
               <MainSearch header />
               {/* <HeaderSearch /> */}
             </Box>

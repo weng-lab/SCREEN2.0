@@ -43,15 +43,15 @@ const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) => {
   }
 
   return (
-    // <ThemeProvider theme={darkTheme}>
       <Stack direction={props.header ? "row" : "column"} spacing={3}>
         <Stack direction={"row"} alignItems={"center"}>
-          <Typography variant={props.header ? "body1" : "h5"} mr={1} alignSelf="center">Search by</Typography>
+          {!props.header && <Typography variant={"h5"} mr={1} alignSelf="center">Search by</Typography>}
           <FormControl variant="standard" size="medium" sx={
             props.header ?
               {
                 '& .MuiInputBase-root': { color: "white" },
                 '& .MuiInputBase-root::before': { borderColor: "white" },
+                '&:hover .MuiInputBase-root::before': { borderColor: "white" },
                 '& .MuiInputBase-root::after': { borderColor: "white" },
                 '& .MuiSvgIcon-root': { fill: "white" }
               }
@@ -79,6 +79,7 @@ const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) => {
               {
                 '& .MuiInputBase-root': { color: "white" },
                 '& .MuiInputBase-root::before': { borderColor: "white" },
+                '&:hover .MuiInputBase-root::before': { borderColor: "white" },
                 '& .MuiInputBase-root::after': { borderColor: "white" },
                 '& .MuiSvgIcon-root': { fill: "white" }
               }
@@ -113,7 +114,6 @@ const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) => {
           }
         </Box>
       </Stack>
-    // </ThemeProvider>
   )
 }
 

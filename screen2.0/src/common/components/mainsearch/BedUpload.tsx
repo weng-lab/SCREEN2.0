@@ -5,7 +5,7 @@ import { Button, Typography, Box, Stack, Container, RadioGroup, FormControl, For
 import { useDropzone } from "react-dropzone"
 import { useRouter } from 'next/navigation'
 import UploadFileIcon from '@mui/icons-material/UploadFile';
-import { Cancel, Search } from "@mui/icons-material"
+import { Cancel, FileUpload, Search, UploadFile } from "@mui/icons-material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 
 const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => {
@@ -101,8 +101,17 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
         {props.header ?
           <div {...getRootProps()} style={{ padding: "1rem" }}>
             <input {...getInputProps()} type="file" accept=".bed" />
-            <Button variant="contained">
-              Select a File
+            <Button
+              variant="outlined"
+              startIcon={
+                <UploadFileIcon />
+              }
+              size="small"
+              sx={{minWidth: "10rem", textTransform: 'none'}}
+              //This is a shortcut for now to color all elements in these buttons. Secondary is defined as white in the theme (not ideal)
+              color="secondary"
+            >
+              Select File
             </Button>
           </div>
           :
@@ -140,7 +149,7 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
           )
         })}
         {files.length > 0 &&
-          <Button sx={{ mt: 1 }} endIcon={<Search />} variant="outlined" onClick={submitFiles}>
+          <Button sx={{ mt: 1, textTransform: 'none' }} endIcon={<Search />} variant="outlined" onClick={submitFiles} color={props.header ? "secondary" : "primary"}>
             Find Intersecting cCREs
           </Button>}
       </Grid2>
