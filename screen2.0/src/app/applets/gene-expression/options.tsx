@@ -131,7 +131,7 @@ export const OptionsRNAType = (props: { RNAtype: string; setRNAType: React.Dispa
           aria-label="Platform"
         >
           <ToggleButton value="total RNA-seq">Total RNA-seq</ToggleButton>
-          <ToggleButton value="polyA RNA-seq">PolyA RNA-seq</ToggleButton>
+          <ToggleButton value="polyA plus RNA-seq">polyA plus RNA-seq</ToggleButton>
           <ToggleButton value="all">Any</ToggleButton>
         </ToggleButtonGroup>
       </AccordionDetails>

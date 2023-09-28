@@ -6,7 +6,7 @@ import { LoadingMessage, ErrorMessage } from "../../../common/lib/utility"
 
 import { PlotGeneExpression } from "./utils"
 import { GeneExpressions, gene } from "./types"
-import { Range2D } from "jubilant-carnival"
+
 
 import { Box, Button, Typography, IconButton, Drawer, Toolbar, AppBar, Stack, Paper, Switch, Tooltip } from "@mui/material"
 
@@ -17,7 +17,7 @@ import { defaultTheme } from "../../../common/lib/themes"
 import MenuIcon from "@mui/icons-material/Menu"
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos"
 import InfoIcon from "@mui/icons-material/Info"
-
+import { client } from "../../search/ccredetails/client"
 import Image from "next/image"
 import GeneAutoComplete from "./gene-autocomplete"
 import {
@@ -28,7 +28,9 @@ import {
   OptionsReplicates,
   OptionsScale,
 } from "./options"
-import { GeneExpressionInfoTooltip } from "./const"
+import { GeneExpressionInfoTooltip, HUMAN_GENE_EXP, MOUSE_GENE_EXP } from "./const"
+import { useQuery } from "@apollo/client"
+import { GENE_EXP_QUERY, GENE_QUERY } from "./queries"
 
 export default function GeneExpression() {
   const searchParams: ReadonlyURLSearchParams = useSearchParams()!
@@ -36,29 +38,11 @@ export default function GeneExpression() {
   const pathname = usePathname()
 
   if (!pathname.split("/").includes("search") && !searchParams.get("gene")) router.push(pathname + "?gene=OR51AB1P")
-
-  const [loading, setLoading] = useState<boolean>(true)
-  const [data, setData] = useState<GeneExpressions>()
   const [open, setState] = useState<boolean>(true)
 
   const [current_assembly, setAssembly] = useState<string>("GRCh38")
-  const [current_gene, setGene] = useState<gene>(
-    searchParams.get("gene")
-      ? {
-          chrom: "",
-          start: 0,
-          end: 0,
-          id: "",
-          name: searchParams.get("gene"),
-        }
-      : {
-          chrom: "",
-          start: 0,
-          end: 0,
-          id: "",
-          name: "OR51AB1P",
-        }
-  )
+  const [current_gene, setGene] = useState<string>(searchParams.get("gene") || "OR51AB1P")
+  
 
   const [biosamples, setBiosamples] = useState<string[]>(["cell line", "in vitro differentiated cells", "primary cell", "tissue"])
   const [cell_components, setCellComponents] = useState<string[]>(["cell"])
@@ -68,47 +52,43 @@ export default function GeneExpression() {
   const [scale, setScale] = useState<string>("rawFPKM") // linear or log2
   const [replicates, setReplicates] = useState<string>("mean") // single or mean
 
-  const [range, setRange] = useState<Range2D>({
-    x: { start: 0, end: 4 },
-    y: { start: 0, end: 0 },
-  })
-
-  const [dimensions, setDimensions] = useState<Range2D>({
-    x: { start: 125, end: 650 },
-    y: { start: 250, end: 0 },
-  })
-
   // fetch gene expression data
-  useEffect(() => {
-    fetch("https://screen-beta-api.wenglab.org/gews/search", {
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      method: "POST",
-      body: JSON.stringify({
-        assembly: current_assembly,
-        biosample_types_selected: biosamples,
-        compartments_selected: cell_components,
-        gene: current_gene.name,
-      }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          return <ErrorMessage error={new Error(response.statusText)} />
-        }
-        return response.json()
-      })
-      .then((data) => {
-        setData(data)
-        setLoading(false)
-      })
-      .catch((error: Error) => {
-        return <ErrorMessage error={error} />
-      })
-    setLoading(true)
-  }, [current_assembly, current_gene, biosamples, cell_components])
+ 
+  const {
+    data: data_gene,
+    loading: gene_loading
+  } = useQuery(GENE_QUERY, {
+    variables: {
+      assembly: current_assembly.toLowerCase(),      
+      name: [ current_assembly==="mm10" ? current_gene  :current_gene.toUpperCase()]
+    },
+    fetchPolicy: "cache-and-network",
+    nextFetchPolicy: "cache-first",
+    client,
+  })
 
+  const {
+    data: data_geneexp,
+    loading: geneexp_loading
+  } = useQuery(GENE_EXP_QUERY, {
+    variables: {
+      assembly: current_assembly,
+      gene_id: data_gene && data_gene.gene.length> 0 &&data_gene.gene[0].id,
+      accessions: current_assembly.toLowerCase()==="grch38" ? HUMAN_GENE_EXP : MOUSE_GENE_EXP
+    },
+    skip: !data_gene || (data_gene && data_gene.gene.length===0),
+    fetchPolicy: "cache-and-network",
+    nextFetchPolicy: "cache-first",
+    client,
+  })
+
+useEffect(()=>{
+  if(current_assembly==="mm10") {
+    setGene("Emid1")
+  } else  { 
+    setGene("OR51AB1P")
+  }
+},[current_assembly])
   const toggleDrawer = (open) => (event) => {
     if (event.type === "keydown" && (event.key === "Tab" || event.key === "Shift")) {
       return
@@ -130,7 +110,8 @@ export default function GeneExpression() {
     drawerHeight *= 0.9
     drawerHeightTab *= 0.7
   } // 4k
-
+  let geneExpData = (data_geneexp && data_geneexp.gene_dataset.length>0) &&  (RNAtype==="all" ? data_geneexp.gene_dataset.filter(d=>biosamples.includes(d.biosample_type)) : data_geneexp.gene_dataset.filter(d=>biosamples.includes(d.biosample_type)).filter(r=>r.assay_term_name===RNAtype))
+  let gData  = geneExpData && geneExpData.map((g)=> g.cell_compartment===null ? {...g, cell_compartment:"cell"}: {...g}).filter(g=>cell_components.includes(g.cell_compartment))
   return (
     <main>
       <Paper sx={{ ml: open ? `${drawerWidth}px` : 0 }} elevation={2}>
@@ -202,7 +183,7 @@ export default function GeneExpression() {
                   <Grid2 xs={5} md={8} lg={9}>
                     <Box mt={0.5}>
                       <Typography variant="h4" sx={{ fontSize: 28, fontStyle: "italic", display: "inline" }}>
-                        {current_gene.name}
+                        {current_gene}
                       </Typography>
                       <Typography variant="h4" sx={{ fontSize: 28, display: "inline" }}>
                         {" "}
@@ -223,7 +204,7 @@ export default function GeneExpression() {
                   <Grid2 xs={1.5} sx={{ mt: 2, height: 100, width: 214 }}>
                     <Button
                       variant="contained"
-                      href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + current_gene.name}
+                      href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + current_gene}
                       color="secondary"
                     >
                       <Image src="https://geneanalytics.genecards.org/media/81632/gc.png" width={150} height={100} alt="gene-card-button" />
@@ -236,16 +217,21 @@ export default function GeneExpression() {
           </Grid2>
           <Grid2 container spacing={3}>
             <Grid2 xs={1} md={1} lg={1} sx={{ mt: 2, ml: 8 }}>
-              <GeneAutoComplete assembly={current_assembly} gene={current_gene.name} pathname={pathname} setGene={setGene} />
+              <GeneAutoComplete assembly={current_assembly} gene={ current_gene} pathname={pathname} setGene={setGene} />
             </Grid2>
             {/* mouse switch - info? */}
             <Grid2 xs={1} md={1} lg={1} sx={{ mt: 2, ml: 12 }}>
               <Switch
                 checked={current_assembly === "mm10" ? true : false}
                 onClick={() => {
-                  if (current_assembly === "mm10") setAssembly("GRCh38")
-                  else setAssembly("mm10")
-                  setGene({ chrom: "", start: 0, end: 0, id: "", name: "OR51AB1P" })
+                  if (current_assembly === "mm10") { 
+                    setAssembly("GRCh38");
+                    setGene("HBB");
+                  } else { 
+                    setAssembly("mm10");
+                     setGene("Emid1")
+                  }
+                  
                 }}
               />
               <Typography>mm10</Typography>
@@ -254,19 +240,23 @@ export default function GeneExpression() {
               <ErrorMessage error={new Error("No biosample type selected")} />
             ) : cell_components.length === 0 ? (
               <ErrorMessage error={new Error("No cellular compartment selected")} />
-            ) : loading ? (
+            ) : gene_loading || geneexp_loading ? (
               <Grid2 xs={12} md={12} lg={12}>
                 <LoadingMessage />
               </Grid2>
             ) : (
-              data &&
-              data["all"] &&
-              data["polyA RNA-seq"] &&
-              data["total RNA-seq"] && (
+              gData &&
+              (
                 <PlotGeneExpression
-                  data={data}
-                  range={range}
-                  dimensions={dimensions}
+                  data={gData}
+                  range={{
+                    x: { start: 0, end: 4 },
+                    y: { start: 0, end: 0 },
+                  }}
+                  dimensions={{
+                    x: { start: 125, end: 650 },
+                    y: { start: 250, end: 0 },
+                  }}
                   RNAtype={RNAtype}
                   group={group}
                   scale={scale}
