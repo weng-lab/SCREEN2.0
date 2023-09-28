@@ -94,11 +94,12 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
     return string.substring(0, maxLength - ellipsis.length) + ellipsis;
   }
 
-  //Disallowing opther file extensions with accept=".bed" isn't working as expected
+  //Disallowing other file extensions with accept=".bed" isn't working as expected
   return (
-    <Grid2 container spacing={2}>
-      <Grid2 xs={6}>
+      <Stack direction={props.header ? "row" : "column"}>
+        {/* Upload button, only shows when no files uploaded */}
         {props.header ?
+          files.length === 0 && 
           <div {...getRootProps()} style={{ padding: "1rem" }}>
             <input {...getInputProps()} type="file" accept=".bed" />
             <Button
@@ -107,7 +108,7 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
                 <UploadFileIcon />
               }
               size="small"
-              sx={{minWidth: "10rem", textTransform: 'none'}}
+              sx={{ minWidth: "10rem", textTransform: 'none' }}
               //This is a shortcut for now to color all elements in these buttons. Secondary is defined as white in the theme (not ideal)
               color="secondary"
             >
@@ -115,6 +116,7 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
             </Button>
           </div>
           :
+          files.length === 0 &&
           <Container sx={{ border: `${isDragActive ? "2px dashed blue" : "2px dashed grey"}`, borderRadius: "10px", minWidth: "250px", pl: "0 !important", pr: "0 !important", color: `${isDragActive ? "text.secondary" : "text.primary"}` }}>
             <div {...getRootProps()} style={{ padding: "1rem" }}>
               <input {...getInputProps()} type="file" accept=".bed" />
@@ -133,27 +135,22 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
             </div>
           </Container>
         }
-      </Grid2>
-      <Grid2 xs={6}>
-        {files.map((file: File, index: number) => {
-          return (
-            <>
-              <Typography mb={1} variant="h5">Uploaded:</Typography>
-              <Stack direction="row" alignItems="center">
-                <Typography key={index}>{truncateFileName(file.name, 30)} - {(file.size / 1000000).toFixed(1)} mb</Typography>
-                <IconButton onClick={() => setFiles([])}>
-                  <Cancel />
-                </IconButton>
-              </Stack>
-            </>
-          )
-        })}
+        {/* When a file is uploaded */}
         {files.length > 0 &&
-          <Button sx={{ mt: 1, textTransform: 'none' }} endIcon={<Search />} variant="outlined" onClick={submitFiles} color={props.header ? "secondary" : "primary"}>
-            Find Intersecting cCREs
-          </Button>}
-      </Grid2>
-    </Grid2>
+          <>
+            {!props.header && <Typography mb={1} variant="h5">Uploaded:</Typography>}
+            <Stack direction="row" alignItems="center">
+              <Typography>{`${props.header ? truncateFileName(files[0].name, 20) : truncateFileName(files[0].name, 40)}\u00A0-\u00A0${(files[0].size / 1000000).toFixed(1)}\u00A0mb`}</Typography>
+              <IconButton color={props.header ? "secondary" : "primary"} onClick={() => setFiles([])}>
+                <Cancel />
+              </IconButton>
+            </Stack>
+            <Button sx={{ mt: 1, textTransform: 'none', maxWidth: "18rem" }} endIcon={<Search />} variant="outlined" onClick={submitFiles} color={props.header ? "secondary" : "primary"}>
+              Find Intersecting cCREs
+            </Button>
+          </>
+        }
+      </Stack>
   )
 }
 
