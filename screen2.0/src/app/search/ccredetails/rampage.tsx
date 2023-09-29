@@ -27,7 +27,8 @@ import { RampageToolTipInfo } from "./const"
 import { gql, useQuery } from "@apollo/client"
 import { client } from "./client"
 
-const GENE_QUERY = gql`query ($assembly: String!, $name_prefix: [String!], $limit: Int) {
+const GENE_QUERY = gql`
+query ($assembly: String!, $name_prefix: [String!], $limit: Int) {
   gene(assembly: $assembly, name_prefix: $name_prefix, limit: $limit) {
     name
     id
@@ -166,7 +167,7 @@ export default function Rampage(props: { gene: string; }) {
                 <Box mt={2} ml={0.5}>
                   <Typography variant="h5">{props.gene}</Typography>
                   {<Typography>
-                    {data_gene && data_gene.gene[0].id+" ("+peakDetails.locusType+")"}
+                    {data_gene && data_gene.gene[0].id+" ("+peakDetails?.locusType+")"}
                   </Typography>}
                 </Box>
                 <Box mt={2} ml={0.5}>
@@ -196,7 +197,7 @@ export default function Rampage(props: { gene: string; }) {
                     </Select>
                   </FormControl>
                   <Typography>
-                    { peakDetails.chrom+":"+peakDetails.start.toLocaleString()+"-"+peakDetails.end.toLocaleString()+" ("+peakDetails.col1+" "+peakDetails.col2+")"}
+                    { peakDetails?.chrom+":"+peakDetails?.start.toLocaleString()+"-"+peakDetails?.end.toLocaleString()+" ("+peakDetails?.col1+" "+peakDetails?.col2+")"}
                   </Typography>
                 </Box>
               </Grid2>

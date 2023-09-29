@@ -1,12 +1,13 @@
-import React, { useState } from "react"
+import React from "react"
 import { useRouter } from "next/navigation"
-import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Stack, ToggleButton, Typography } from "@mui/material"
+import {  Stack, ToggleButton } from "@mui/material"
 import { styled } from "@mui/material/styles"
-import { RIDItemList, GeneExpEntry, GeneExpressions, BiosampleList, CellComponents } from "./types"
-import { Fragment } from "react"
+
 import { Range2D, Point2D, linearTransform2D } from "jubilant-carnival"
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import { tissueColors } from "../../../common/lib/colors"
+import { stringToColour } from "../../search/ccredetails/utils"
+
 
 export const ToggleButtonMean = styled(ToggleButton)(() => ({
   "&.Mui-selected, &.Mui-selected:hover": {
@@ -15,8 +16,28 @@ export const ToggleButtonMean = styled(ToggleButton)(() => ({
   },
 }))
 
+type QuantificationData ={
+  accession: string,    
+  assay_term_name: string,   
+  biosample: string,   
+  biosample_type: string,   
+  color: string, 
+  file_accession: string,   
+  fpkm: number,   
+  tpm: number,    
+  value: number    
+}[] 
+
 export function PlotGeneExpression(props: {
-  data: GeneExpressions
+  data: {
+    accession: string,
+    assay_term_name: string, 
+    biosample: string,   
+    biosample_type: string,   
+    cell_compartment: string,   
+    gene_quantification_files: {accession: string, quantifications: { file_accession: string, tpm: number, fpkm : number }[]}[],    
+    tissue: string
+   }[]
   range: Range2D
   dimensions: Range2D
   RNAtype: string
@@ -25,147 +46,168 @@ export function PlotGeneExpression(props: {
   replicates: string
 }) {
   const router = useRouter()
-  const [collapse, setCollapse] = useState<{ [id: string]: boolean }>({})
-  const [highlighted, setHighlighted] = useState<string>("")
 
-  let itemsRID: RIDItemList = props.data[props.RNAtype]["itemsByRID"]
-  let tissues: { [id: string]: { sum: number; values: GeneExpEntry[] } } = {} // dict of ftissues
+  let byTissue: { [id: string]: { 
+    values: QuantificationData
+  } } = {}
+  let byTissueMean: { [id: string]: { values: QuantificationData } } = {} 
+  let byValueTissues: { [id: string]: { values: QuantificationData } } = {} 
+  let byTissueMaxTissues: { [id: string]: { values: QuantificationData } } = {} 
   let p1: Point2D = { x: 0, y: 0 }
   let max: number = 0
+  
 
-  Object.values(props.data[props.RNAtype][props.replicates][props.group]).map((biosample) => {
-    Object.values(biosample["items"]).map((id: string) => {
-      if (!tissues[itemsRID[id]["tissue"]]) tissues[itemsRID[id]["tissue"]] = { sum: 0, values: [] }
-      if (tissues[itemsRID[id]["tissue"]]) {
-        tissues[itemsRID[id]["tissue"]].sum += itemsRID[id][props.scale]
-        tissues[itemsRID[id]["tissue"]].values.push({
-          value: itemsRID[id][props.scale],
-          cellType: itemsRID[id]["cellType"],
-          expID: itemsRID[id]["expID"],
-          rep: itemsRID[id]["rep"],
-          tissue: itemsRID[id]["tissue"],
-          color: biosample["color"],
-        })
-      }
+  props.data.filter(s=>s["tissue"]).map((biosample)=>{
+     
+      if (!byTissue[biosample["tissue"]]) byTissue[biosample["tissue"]] = { values: [] }
+      
+      biosample["gene_quantification_files"].forEach(d=>{
+        if(d.quantifications.length>0)
+        {
+          
+          d.quantifications.forEach(q=>{
+            let val = props.scale==="logFPKM" ?  Math.log2(q.fpkm) : q.fpkm
+            if(val>max)
+            {
+              max = val
+            }
+            if(q.fpkm>0)
+            {
+              byTissue[biosample["tissue"]].values.push({ 
+              biosample: biosample.biosample,            
+              biosample_type: biosample.biosample_type,
+              assay_term_name: biosample.assay_term_name, 
+              accession: biosample.accession, 
+              value: val, tpm: q.tpm,fpkm: q.fpkm, file_accession: q.file_accession, 
+              color: tissueColors[biosample["tissue"]] ? tissueColors[biosample["tissue"]] :
+              stringToColour(biosample["tissue"]) })
+            }
+          })
+          
+        } 
+      })
 
-      if (props.group === "byTissueMaxFPKM" && tissues[itemsRID[id]["tissue"]].sum > max) max = tissues[itemsRID[id]["tissue"]].sum
-      else if (itemsRID[id][props.scale] > max) max = itemsRID[id][props.scale]
-    })
+      byTissue[biosample["tissue"]].values.sort((a,b)=>b.value-a.value);
   })
+  
 
+  if(props.replicates==="mean")
+  {
+    Object.keys(byTissue).forEach(k=>{
+      if (!byTissueMean[k]) byTissueMean[k] = { values: [] }
+      let datasetAccessions =   [...new Set(byTissue[k].values.map(v=>v.accession))]; 
+      
+      datasetAccessions.forEach(da=>{
+        let r = byTissue[k].values.filter(v=>v.accession==da)
+        
+        
+        let sum = r.map(v=>v.value).reduce((partialSum, a) => partialSum + a, 0);
+        
+        byTissueMean[k].values.push(
+
+          { 
+            biosample: r[0].biosample,            
+            biosample_type: r[0].biosample_type,
+            assay_term_name: r[0].assay_term_name, 
+            accession: r[0].accession, 
+            value: sum/r.length, tpm: r[0].tpm,fpkm: r[0].fpkm, file_accession: r[0].file_accession, 
+            color: tissueColors[k] ? tissueColors[k] :
+            stringToColour(k)
+          }
+        )
+      })
+  
+    })
+    byTissue = byTissueMean
+  }
+
+  
+  
+
+  Object.keys(byTissue).forEach(k=>{
+    if(byTissue[k].values.length ===0 )
+    {
+      delete byTissue[k];
+    }
+  })
   props.range.x.end = max
 
   // returns bar plot for a tissue
-  const plotGeneExp = (entry: any, index: number, y: number) => {
-    let tissue: string = entry[0]
-    let info: any = entry[1]
+  const plotGeneExp = (entry, _, y) => {
+    
+    let info = entry[1]
 
-    return Object.values(info.values).map((item: GeneExpEntry, i: number) => {
+    return info.values.map((item: { color: string, biosample: string, file_accession: string, accession: string, value: number}, i: number) => {
       p1 = linearTransform2D(props.range, props.dimensions)({ x: item.value, y: 0 })
       return (
         <g key={i}>
           <rect
-            x={125}
-            width={p1.x + 125}
+            x={165}
+            width={p1.x + 165}
             y={y + i * 20}
             height="18px"
-            fill={item["color"]}
-            onClick={() => router.push("https://encodeproject.org/experiments/" + item.expID)}
-            onMouseEnter={() => {
-              setHighlighted(item.expID)
-            }}
-            onMouseOut={() => {
-              setHighlighted("")
-            }}
-            onMouseOver={() => {
-              setHighlighted(item.expID)
-            }}
+            fill={item.color}
+            onClick={() => router.push("https://encodeproject.org/experiments/" + item.accession)}
+            
           >
-            <title>{item.cellType + "\n" + item.value}</title>
+            <title>{item.biosample + "\n" + item.accession + "-" + item.file_accession}</title>
           </rect>
-          {highlighted === item.expID ? <rect x={125} width={p1.x + 125} y={y + i * 20} height="18px" fill="white" opacity="25%" /> : <></>}
-          <text x={p1.x + 125 + 150} y={y + i * 20 + 12.5} style={{ fontSize: 12 }}>
+          
+          <text x={p1.x + 165 + 170} y={y + i * 20 + 12.5} style={{ fontSize: 12 }}>
             {Number(item.value.toFixed(3)) + " "}
-            <a href={"https://www.encodeproject.org/experiments/" + item.expID}>{item.expID}</a>
-            {" " + item.cellType}
+            <a href={"https://www.encodeproject.org/experiments/" + item.accession}>{item.accession}</a>
+            {" " + item.file_accession+ " "+ item.biosample}
           </text>
-          <line x1={125} x2={125} y1={y + i * 20} y2={y + (i * 20 + 18)} stroke="black" />
+          {(props.group==='byTissueMaxFPKM' ||  props.group==='byExpressionFPKM')  &&  <text text-anchor="end" x={160} y={y + (i * 20+15)}>{entry[0].split("-")[0]}</text>}
+          {props.group==='byTissueFPKM' && i === Math.floor(Object.values(info.values).length/2)  && <text text-anchor="end" x={160} y={y + ((i) * 20+15)}>{entry[0].split("-")[0]}</text> }
+
+          <line x1={165} x2={165} y1={y + i * 20} y2={y + (i * 20 + 18)} stroke="black" />
         </g>
       )
     })
   }
 
+  
+
+  let byValuesTissues = Object.entries(byTissue).map((entry) =>{
+    let info = entry[1]
+    return info.values.map(r=>{
+      return {
+        ...r,
+        tissue: entry[0]
+      }
+    })
+  }).flat()
+  let byValTissues = (byValuesTissues.sort((a,b) => b.value - a.value))
+  
+  byValTissues.forEach((b,i)=>{
+    byValueTissues[b.tissue+"-b"+i] = {  values: [b] }
+  })
+
+  
+  Object.keys(byTissue).forEach((k)=>{
+    byTissueMaxTissues[k] = {      
+      values : [byTissue[k].values[0]]
+    }
+  })
+  let tissues: { [id: string]: { values: QuantificationData } } = props.group==="byExpressionFPKM" ?  byValueTissues : props.group==="byTissueMaxFPKM" ? byTissueMaxTissues :  byTissue // dict of ftissues
   let y: number = 0
   return (
     <>
-      <Grid2 xs={8} md={8} lg={8} sx={{ alignItems: "right", justifyContent: "right", display: "flex", mr: 4, mt: 2 }}>
-        <Box>
-          <Button
-            onClick={() => {
-              let c: { [id: string]: boolean } = {}
-              let uncollapse: boolean = true
-              if (Object.keys(collapse).length !== 0) {
-                Object.keys(collapse).map((b: string) => {
-                  if (collapse[b]) uncollapse = false
-                  c[b] = false
-                })
-
-                if (uncollapse) {
-                  Object.keys(collapse).map((b: string) => {
-                    c[b] = true
-                  })
-                }
-              } else
-                Object.keys(tissues).map((b: string) => {
-                  c[b] = false
-                })
-              setCollapse(c)
-            }}
-          >
-            Collapse All
-          </Button>
-        </Box>
-      </Grid2>
       <Grid2 xs={12} md={12} lg={12} mt={1} ml={2} mr={2}>
         <Stack>
-          {Object.entries(tissues).map((entry, index: number) => {
-            let info: any = entry[1]
+          { Object.entries(tissues).map((entry, index: number) => {
+            let info = entry[1]
             y = info.values.length + 20 + 10
-            let view: string = "0 0 1200 " + (info.values.length * 20 + 20)
+            let view: string = "0 0 1200 " + (info.values.length * (props.group==='byTissueFPKM' ? 20: 3) + 20)
             return (
-              <Accordion
-                key={index}
-                expanded={Object.keys(collapse).length !== 0 ? collapse[entry[0]] : true}
-                disableGutters={true}
-                sx={{ padding: 0, ml: "2rem", mr: "2rem" }}
-              >
-                <AccordionSummary
-                  expandIcon={<ExpandMoreIcon />}
-                  sx={{ padding: 0, margin: 0 }}
-                  onClick={() => {
-                    let tmp: { [id: string]: boolean } = {}
-                    Object.entries(tissues).map((x) => {
-                      if (x[0] === entry[0]) {
-                        if (collapse[entry[0]] === undefined || collapse[entry[0]]) tmp[entry[0]] = false
-                        else tmp[entry[0]] = true
-                      } else {
-                        tmp[x[0]] = collapse[x[0]] !== undefined ? collapse[x[0]] : true
-                      }
-                    })
-                    setCollapse(tmp)
-                  }}
-                >
-                  <Typography variant="h5">{entry[0]}</Typography>
-                </AccordionSummary>
-                <AccordionDetails sx={{ padding: 0 }}>
-                  <svg className="graph" aria-labelledby="title desc" role="img" viewBox={view}>
+              
+                  <svg className="graph" aria-labelledby="title desc" role="img" viewBox={view} key={index}>
                     <g className="data" data-setname="gene expression plot">
-                      <line x1={0} x2={900} y1={1} y2={1} stroke="black" />
+                      
                       {plotGeneExp(entry, index, 5)}
                     </g>
                   </svg>
-                </AccordionDetails>
-              </Accordion>
             )
           })}
         </Stack>
