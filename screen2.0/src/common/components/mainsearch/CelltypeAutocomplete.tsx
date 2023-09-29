@@ -8,9 +8,11 @@ import { useRouter } from "next/navigation"
 import Config from "../../../config.json"
 import { IconButton, Stack } from "@mui/material"
 import { Search } from "@mui/icons-material"
+import { parseGenomicRegion } from "./SearchHelpers"
 
 export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean }> = (props) => {
-  const [value, setValue] = useState(null)
+  const [valueCellType, setValueCellType] = useState(null)
+  const [valueRegion, setValueRegion] = useState(null)
   const [inputValue, setInputValue] = useState("")
   const [options, setOptions] = useState([])
   const [cellTypes, setCelltypes] = useState([])
@@ -28,9 +30,10 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
           return {
             value: ct,
             tissue: data.byCellType[ct][0].tissue,
-            biosample_summary: data.byCellType[ct][0].biosample_summary + ":chr11:5205263-5381894",
+            biosample_summary: data.byCellType[ct][0].biosample_summary,
           }
         })
+        console.log(byCt[0].biosample_summary)
         setOptions(byCt.map((ct) => ct.biosample_summary))
         setCelltypes(byCt)
       })
@@ -41,19 +44,18 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
   }, [props.assembly])
 
   const handleSubmit = () => {
-    if (value) {
-      console.log(value, "ct")
-      let tissue = cellTypes.find((g) => g.biosample_summary === value)?.tissue
-      let biosample = cellTypes.find((g) => g.biosample_summary === value)?.value
-      let biosample_summary = value.split(":")[0]
-      let chromosome = value.split(":")[1]
-      let start = value.split(":")[2].split("-")[0]
-      let end = value.split(":")[2].split("-")[1]
+    if (valueCellType) {
+      const tissue = cellTypes.find((g) => g.biosample_summary === valueCellType)?.tissue
+      const biosample = cellTypes.find((g) => g.biosample_summary === valueCellType)?.value
+      const biosample_summary = valueCellType
+      let region: {chromosome: string, start: string, end: string}
+      if (valueRegion){
+        region = parseGenomicRegion(valueRegion)
+      } else {
+        region = {chromosome: 'chr11', start: "5205263", end: "5381894"}
+      }
       router.push(
-        `search?assembly=${props.assembly}&chromosome=${chromosome}&start=${Math.max(
-          0,
-          start
-        )}&end=${end}&BiosampleTissue=${tissue}&BiosampleSummary=${biosample_summary}&Biosample=${biosample}`
+        `search?assembly=${props.assembly}&chromosome=${region.chromosome}&start=${Math.max(0, Number(region.start))}&end=${region.end}&BiosampleTissue=${tissue}&BiosampleSummary=${biosample_summary}&Biosample=${biosample}`
       )
     }
   }
@@ -66,24 +68,19 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
         id="celltype-autocomplete"
         sx={{ width: 300, paper: { height: 200 } }}
         options={options}
-        ListboxProps={{
-          style: {
-            maxHeight: "180px",
-          },
-        }}
         onKeyDown={(event) => {
           if (event.key === "Enter") {
             event.defaultPrevented = true
             handleSubmit()
           }
         }}
-        value={value}
+        value={valueCellType}
         onChange={(_, newValue: string | null) => {
-          setValue(newValue)
+          setValueCellType(newValue)
         }}
         inputValue={inputValue}
         onInputChange={(_, newInputValue) => {
-          setValue(newInputValue)
+          setValueCellType(newInputValue)
           setInputValue(newInputValue)
         }}
         noOptionsText={props.assembly === "mm10" ? "strain B6NCrl cortical plate tissue male adult (8 weeks)" : "e.g. LNCAP"}
@@ -91,7 +88,7 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
           <TextField
             {...params}
             label="Enter a celltype"
-            InputLabelProps={{ shrink: true, style: props.header ? {color: "white"} : { color: "black" } }}
+            InputLabelProps={{ shrink: true, style: props.header ? { color: "white" } : { color: "black" } }}
             placeholder={props.assembly === "mm10" ? "strain B6NCrl cortical plate tissue male adult (8 weeks)" : "e.g. LNCAP"}
             fullWidth
             sx={{
@@ -106,7 +103,7 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
               //Text
               '& .MuiOutlinedInput-input': props.header && { color: "white" },
               //Icon
-              '& .MuiSvgIcon-root': props.header && { fill: "white"}
+              '& .MuiSvgIcon-root': props.header && { fill: "white" }
             }}
           />
         )}
@@ -114,7 +111,7 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
           return (
             <li {...props} key={props.id}>
               <Grid2 container alignItems="center">
-                <Grid2 sx={{ width: "calc(100% - 44px)", wordWrap: "break-word" }}>
+                <Grid2 sx={{ width: "calc(100% - 44px)", wordWrap: "normal" }}>
                   <Box component="span" sx={{ fontWeight: "regular" }}>
                     {option}
                   </Box>
@@ -128,6 +125,37 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
             </li>
           )
         }}
+      />
+      {/* Ideally this and the other genomic region should share the same code */}
+      <TextField
+        variant="outlined"
+        InputLabelProps={{ shrink: true, style: props.header ? { color: "white" } : { color: "black" } }}
+        label="Enter a genomic region"
+        placeholder="chr11:5205263-5381894"
+        value={valueRegion}
+        onChange={(event: { target: { value: React.SetStateAction<string> } }) => {
+          setValueRegion(event.target.value)
+        }}
+        onKeyDown={(event) => {
+          if (event.code === "Enter") {
+            handleSubmit()
+          }
+          if (event.code === "Tab" && !valueRegion) {
+            setValueRegion("chr11:5205263-5381894")
+          }
+        }}
+        InputProps={props.header ? { style: { color: "white" } } : {}}
+        sx={{
+          //Border at rest
+          fieldset: props.header ? { borderColor: "white" } : { borderColor: "black" },
+          '& .MuiOutlinedInput-root': {
+            //hover border color
+            '&:hover fieldset': props.header ? { borderColor: "white" } : { borderColor: "black" },
+            //focused border color
+            '&.Mui-focused fieldset': props.header ? { borderColor: "white" } : { borderColor: "black" },
+          },
+        }}
+        size={props.header ? "small" : "medium"}
       />
       <IconButton aria-label="Search" type="submit" onClick={() => handleSubmit()} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
         <Search />

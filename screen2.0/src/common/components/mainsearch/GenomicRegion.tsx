@@ -3,12 +3,13 @@ import { useState } from "react"
 import { Search } from "@mui/icons-material"
 import { useRouter } from "next/navigation"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import { parseGenomicRegion } from "./SearchHelpers"
 
 //https://mui.com/material-ui/react-text-field/#integration-with-3rd-party-input-libraries
 //For formatting the start/end as it's being entered.
 
 const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => {
-  const [value, setValue] = useState("")
+  const [value, setValue] = useState(null)
   const [chromosome, setChromosome] = useState('11')
   const [start, setStart] = useState(null)
   const [end, setEnd] = useState(null)
@@ -27,33 +28,16 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
     if (inputType === "Separated") {
       router.push(`/search?assembly=${assembly}&chromosome=${"chr" + chromosome}&start=${start ?? "5205263"}&end=${end ?? "5381894"}`)
     } else {
-      if (value == "") {
+      if (!value) {
         router.push(`/search?assembly=${assembly}&chromosome=chr11&start=5205263&end=5381894`)
         return
       }
       try {
-        //This is the tab character
-        let input: string[]
-        let chromosome: string
-        let coordinates: string[]
-        let start: string
-        let end: string
-        if (value.includes("	")){
-          input = value.split("	")
-          chromosome = input[0]
-          start = input[1].replace(new RegExp(',', 'g'), "")
-          end = input[2].replace(new RegExp(',', 'g'), "")
-        } else {
-          input = value.split(":")
-          chromosome = input[0]
-          coordinates = input[1].split("-")
-          start = coordinates[0].replace(new RegExp(',', 'g'), "")
-          end = coordinates[1].replace(new RegExp(',', 'g'), "")
-        }
-        router.push(`/search?assembly=${assembly}&chromosome=${chromosome}&start=${start}&end=${end}`)
+        const region = parseGenomicRegion(value)
+        router.push(`/search?assembly=${assembly}&chromosome=${region.chromosome}&start=${region.start}&end=${region.end}`)
       }
       catch (msg) {
-        window.alert("Error in input format" + msg)
+        window.alert("Error in input format - " + msg)
         setValue("")
       }
     }
@@ -196,6 +180,9 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
                   if (event.code === "Enter") {
                     handleSubmit()
                   }
+                  if (event.code === "Tab" && !start) {
+                    setStart("5205263")
+                  }
                 }}
                 sx={
                   props.header ?
@@ -221,6 +208,9 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
                   if (event.code === "Enter") {
                     handleSubmit()
                   }
+                  if (event.code === "Tab" && !end) {
+                    setEnd("5381894")
+                  }
                 }}
                 sx={
                   props.header ?
@@ -243,6 +233,9 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
               onKeyDown={(event) => {
                 if (event.code === "Enter") {
                   handleSubmit()
+                }
+                if (event.code === "Tab" && !value) {
+                  setValue("chr11:5205263-5381894")
                 }
               }}
               InputProps={props.header ? { style: { color: "white" } } : {}}

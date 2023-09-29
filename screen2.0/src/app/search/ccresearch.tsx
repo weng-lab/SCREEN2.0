@@ -35,7 +35,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
   let f = tableRows.find((c) => c.accession === searchParams.get("accession"))
   const region = { start: f?.start, chrom: f?.chromosome, end: f?.end }
 
-  //@ts-expect-error
+  // @ts-expect-error
   //Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
   useEffect(() => startTransition(async () => {
     props.mainQueryParams.bed_intersect ?

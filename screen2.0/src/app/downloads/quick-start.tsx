@@ -140,13 +140,14 @@ function ComboBox(props: {
           color="primary"
           endIcon={<DownloadIcon />}
         >
-          {`Download ${
-            props.mode === "H-promoter" || props.mode === "M-promoter"
-              ? "promoters"
-              : props.mode === "H-enhancer" || props.mode === "M-enhancer"
-              ? "enhancers"
-              : "CTCF-bound cCREs"
-          } active in ${selectedBiosample.name.replace(/_/g, " ")}`}
+          <span>
+            {`Download ${props.mode === "H-promoter" || props.mode === "M-promoter"
+                ? "promoters"
+                : props.mode === "H-enhancer" || props.mode === "M-enhancer"
+                  ? "enhancers"
+                  : "CTCF-bound cCREs"
+              } active in ${selectedBiosample.name.replace(/_/g, " ")}`}
+          </span>
         </LoadingButton>
       )}
     </React.Fragment>
