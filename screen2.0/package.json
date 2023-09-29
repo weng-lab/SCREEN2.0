@@ -50,7 +50,7 @@
     "autoprefixer": "10.4.15",
     "eslint": "8.50.0",
     "eslint-config-next": "13.4.19",
-    "graphql": "^16.7.1",
+    "graphql": "^16.8.1",
     "jubilant-carnival": "^0.6.0",
     "next": "13.4.19",
     "normalize.css": "^8.0.1",
