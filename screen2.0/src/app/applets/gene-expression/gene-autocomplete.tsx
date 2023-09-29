@@ -27,14 +27,14 @@ export default function GeneAutoComplete(props: {
   assembly: string
   gene: string
   pathname: string
-  setGene: Dispatch<SetStateAction<gene>>
+  setGene: Dispatch<SetStateAction<any>>
 }) {
   const router = useRouter()
 
   const [options, setOptions] = useState<string[]>([])
   const [geneDesc, setgeneDesc] = useState<{ name: string; desc: string }[]>()
   const [geneList, setGeneList] = useState<gene[]>([])
-  const [geneID, setGeneID] = useState<string>(props.gene ? props.gene : "OR52K1")
+  const [geneID, setGeneID] = useState<string>(props.gene ?  props.gene : "OR52K1")
   const [assembly, setAssembly] = useState<string>(props.assembly)
   //   const [current_gene, setGene] = useState<string>(props.gene ? props.gene : "OR51AB1P")
 
@@ -64,14 +64,14 @@ export default function GeneAutoComplete(props: {
   }, [options])
 
   // gene list
-  const onSearchChange = async (value: string) => {
+  const onSearchChange = async (value: string, assembly: string) => {
     setOptions([])
     const response = await fetch(Config.API.GraphqlAPI, {
       method: "POST",
       body: JSON.stringify({
         query: GENE_AUTOCOMPLETE_QUERY,
         variables: {
-          assembly: props.assembly,
+          assembly: assembly,
           name_prefix: value,
           limit: 100,
         },
@@ -116,19 +116,19 @@ export default function GeneAutoComplete(props: {
             maxHeight: "120px",
           },
         }}
-        onChange={(event: React.ChangeEvent<HTMLInputElement>, value: string) => {
-          if (value != "") debounceFn(value)
-          setGeneID(value)
+        onChange={(_, value: string| null) => {
+          if (value && value != "") debounceFn(value, props.assembly)
+          value && setGeneID(value)
         }}
-        onInputChange={(event: React.ChangeEvent<HTMLInputElement>, value: string) => {
-          if (value != "") debounceFn(value)
+        onInputChange={(_, value: string) => {
+          if (value != "") debounceFn(value, props.assembly)
           setGeneID(value)
         }}
         onKeyDown={(e) => {
           if (e.key == "Enter") {
             for (let g of geneList) {
               if (g.name === geneID && g.end - g.start > 0) {
-                props.setGene(g)
+                props.setGene(g.name)
                 // replace url if ge applet
                 // if (props.pathname.includes("gene-expression")) router.replace(props.pathname + "?gene=" + g.name)
                 // if (props.pathname.includes("differential-gene-expression")) router.push(props.pathname + "?gene=" + g.name)
@@ -137,7 +137,7 @@ export default function GeneAutoComplete(props: {
             }
           }
         }}
-        renderInput={(props) => <TextField {...props} label={geneID} />}
+        renderInput={(tprops) => <TextField {...tprops} label={props.assembly==="mm10" ? "Emid1" : geneID} />}
         renderOption={(props, opt) => {
           return (
             <li {...props} key={props.id}>

@@ -21,7 +21,7 @@ import { GeneExpEntry } from "../../applets/gene-expression/types"
 import { tissueColors } from "../../../common/lib/colors"
 import { RampagePeak } from "./rampage"
 
-const stringToColour = (str: string) => {
+export const stringToColour = (str: string) => {
   let hash = 0;
   str.split('').forEach(char => {
     hash = char.charCodeAt(0) + ((hash << 5) - hash)
@@ -53,9 +53,11 @@ export function PlotActivityProfiles(props: {
   let tissues: { [id: string]: { sum: number; values: GeneExpEntry[] } } = {} // dict of ftissues
   let byValueTissues: { [id: string]: { sum: number; values: GeneExpEntry[] } } = {} // dict of ftissues
   let byTissueMaxTissues: { [id: string]: { sum: number; values: GeneExpEntry[] } } = {} // dict of ftissues
+  
   let p1: Point2D = { x: 0, y: 0 }
   let max: number = 0
 
+  
   Object.values(props.data).map((biosample) => {
     if (!zeros && biosample["value"] === 0) return
     else if (biosample["peakId"] === props.peakID) {
@@ -130,6 +132,7 @@ export function PlotActivityProfiles(props: {
     })
   }).flat()
   let byValTissues = (byValuesTissues.sort((a,b) => b.value - a.value))
+  
   byValTissues.forEach((b,i)=>{
     byValueTissues[b.tissue+"-b"+i] = { sum: b.value, values: [b] }
   })
