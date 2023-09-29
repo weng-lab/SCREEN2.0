@@ -1,13 +1,11 @@
 "use client"
 import React, { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+
 import { usePathname } from "next/navigation"
 import { LoadingMessage, ErrorMessage } from "../../../common/lib/utility"
 
 import { PlotGeneExpression } from "../../applets/gene-expression/utils"
-import { GeneExpressions } from "../../applets/gene-expression/types"
-import { Range2D } from "jubilant-carnival"
-
+import { useQuery } from "@apollo/client"
 import { Box, Button, Typography, IconButton, Drawer, Toolbar, AppBar, Stack, Paper, TextField, MenuItem, Tooltip } from "@mui/material"
 
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
@@ -19,6 +17,8 @@ import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos"
 import InfoIcon from "@mui/icons-material/Info"
 
 import Image from "next/image"
+
+import { client } from "./client"
 import {
   OptionsBiosampleTypes,
   OptionsCellularComponents,
@@ -27,8 +27,11 @@ import {
   OptionsReplicates,
   OptionsScale,
 } from "../../applets/gene-expression/options"
-import { GeneExpressionInfoTooltip } from "../../applets/gene-expression/const"
+import { GeneExpressionInfoTooltip, HUMAN_GENE_EXP, MOUSE_GENE_EXP } from "../../applets/gene-expression/const"
 import { LinkedGenesData } from "../types"
+import { GENE_EXP_QUERY, GENE_QUERY } from "../../applets/gene-expression/queries"
+
+
 
 export function GeneExpression(props: {
   accession: string
@@ -37,69 +40,53 @@ export function GeneExpression(props: {
   hamburger: boolean
 }) {
   const pathname = usePathname()
-  const [loading, setLoading] = useState<boolean>(true)
-  const [error, setError] = useState<boolean>(false)
-  const [data, setData] = useState<GeneExpressions>()
   const [options, setOptions] = useState<string[]>([])
   const [open, setState] = useState<boolean>(true)
-
-  const [current_assembly, setAssembly] = useState<string>(props.assembly ? props.assembly : "GRCh38")
   const [current_gene, setGene] = useState<string>(props.genes.distancePC[0].name)
 
   const [biosamples, setBiosamples] = useState<string[]>(["cell line", "in vitro differentiated cells", "primary cell", "tissue"])
   const [cell_components, setCellComponents] = useState<string[]>(["cell"])
 
   const [group, setGroup] = useState<string>("byTissueMaxFPKM") // experiment, tissue, tissue max
-  const [RNAtype, setRNAType] = useState<string>("all") // any, polyA RNA-seq, total RNA-seq
+  const [RNAtype, setRNAType] = useState<string>("all") // any, polyA plus RNA-seq, total RNA-seq
   const [scale, setScale] = useState<string>("rawFPKM") // linear or log2
   const [replicates, setReplicates] = useState<string>("mean") // single or mean
 
-  const [range, setRange] = useState<Range2D>({
-    x: { start: 0, end: 4 },
-    y: { start: 0, end: 0 },
+  const {
+    data: data_gene,
+    loading: gene_loading
+  } = useQuery(GENE_QUERY, {
+    variables: {
+      assembly: props.assembly.toLowerCase(),      
+      name: [ props.assembly==="mm10" ? current_gene  :current_gene.toUpperCase()]
+    },
+    fetchPolicy: "cache-and-network",
+    nextFetchPolicy: "cache-first",
+    client,
   })
 
-  const [dimensions, setDimensions] = useState<Range2D>({
-    x: { start: 125, end: 650 },
-    y: { start: 250, end: 0 },
+  const {
+    data: data_geneexp,
+    loading: geneexp_loading
+  } = useQuery(GENE_EXP_QUERY, {
+    variables: {
+      assembly: props.assembly,
+      gene_id: data_gene &&  data_gene.gene.length> 0 && data_gene.gene[0].id,
+      accessions: props.assembly.toLowerCase()==="grch38" ? HUMAN_GENE_EXP : MOUSE_GENE_EXP
+    },
+    skip: !data_gene || (data_gene && data_gene.gene.length===0),
+    fetchPolicy: "cache-and-network",
+    nextFetchPolicy: "cache-first",
+    client,
   })
 
-  // fetch gene expression data
-  useEffect(() => {
-    fetch("https://screen-beta-api.wenglab.org/gews/search", {
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      method: "POST",
-      body: JSON.stringify({
-        assembly: current_assembly,
-        biosample_types_selected: biosamples,
-        compartments_selected: cell_components,
-        gene: current_gene,
-      }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          setError(true)
-          return <ErrorMessage error={new Error(response.statusText)} />
-        }
-        return response.json()
-      })
-      .then((data) => {
-        setData(data)
-        let geneList: string[] = []
-        for (let g of props.genes.distancePC) if (!geneList.includes(g.name)) geneList.push(g.name)
-        for (let g of props.genes.distanceAll) if (!geneList.includes(g.name)) geneList.push(g.name)
-        setOptions(geneList)
-        setLoading(false)
-      })
-      .catch((error: Error) => {
-        return <ErrorMessage error={error} />
-      })
-    setLoading(true)
-  }, [current_assembly, current_gene, biosamples, cell_components])
 
+  useEffect(()=>{
+    let geneList: string[] = []
+    for (let g of props.genes.distancePC) if (!geneList.includes(g.name)) geneList.push(g.name)
+    for (let g of props.genes.distanceAll) if (!geneList.includes(g.name)) geneList.push(g.name)
+    setOptions(geneList)
+  },[props.genes])
   const toggleDrawer = (open) => (event) => {
     if (event.type === "keydown" && (event.key === "Tab" || event.key === "Shift")) {
       return
@@ -121,7 +108,9 @@ export function GeneExpression(props: {
     drawerHeight *= 0.9
     drawerHeightTab *= 0.7
   } // 4k
-
+  let geneExpData = (data_geneexp && data_geneexp.gene_dataset.length>0) &&  (RNAtype==="all" ? data_geneexp.gene_dataset.filter(d=>biosamples.includes(d.biosample_type)) : data_geneexp.gene_dataset.filter(d=>biosamples.includes(d.biosample_type)).filter(r=>r.assay_term_name===RNAtype))
+  let gData  = geneExpData && geneExpData.map((g)=> g.cell_compartment===null ? {...g, cell_compartment:"cell"}: {...g}).filter(g=>cell_components.includes(g.cell_compartment))
+  
   return (
     <main>
       <Paper sx={{ ml: open ? `${drawerWidth + 20}px` : 0 }} elevation={2}>
@@ -241,19 +230,23 @@ export function GeneExpression(props: {
               <ErrorMessage error={new Error("No biosample type selected")} />
             ) : cell_components.length === 0 ? (
               <ErrorMessage error={new Error("No cellular compartment selected")} />
-            ) : loading ? (
+            ) : geneexp_loading || gene_loading ? (
               <Grid2 xs={12} md={12} lg={12}>
                 <LoadingMessage />
               </Grid2>
             ) : (
-              data &&
-              data["all"] &&
-              data["polyA RNA-seq"] &&
-              data["total RNA-seq"] && (
+              gData &&
+              (
                 <PlotGeneExpression
-                  data={data}
-                  range={range}
-                  dimensions={dimensions}
+                  data={gData}
+                  range={{
+                    x: { start: 0, end: 4 },
+                    y: { start: 0, end: 0 },
+                  }}
+                  dimensions={{
+                    x: { start: 125, end: 650 },
+                    y: { start: 250, end: 0 },
+                  }}
                   RNAtype={RNAtype}
                   group={group}
                   scale={scale}
