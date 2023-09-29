@@ -41,6 +41,19 @@ export const LINKED_GENES = gql`
   }
 `
 
+export const FUNCTIONAL_DATA_QUERY= gql`
+query ($coordinates: [GenomicRangeInput!],$assembly: String!) {
+  functionalCharacterizationQuery(assembly: $assembly, coordinates: $coordinates) {
+    tissues
+    element_id
+    assay_result
+    chromosome
+    stop
+    start
+  }
+}
+
+`
 export const GENE_NAME = gql`
   query ($assembly: String!, $name_prefix: [String!]) {
     gene(assembly: $assembly, name_prefix: $name_prefix) {
