@@ -31,11 +31,12 @@
     tslib "^2.3.0"
     zen-observable-ts "^1.2.5"
 
-"@apollo/experimental-nextjs-app-support@^0.4.1":
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/@apollo/experimental-nextjs-app-support/-/experimental-nextjs-app-support-0.4.1.tgz#03662bb284ba2e677cb979c741d7783a55586e74"
-  integrity sha512-xW+RVxaeOboJvol4HUhgP6YZvwamIz8Gqba3II5Uviy1++kqsE0I/q2WT03laIEwTB8YBO25tY9EmQ1mImRWyw==
+"@apollo/experimental-nextjs-app-support@^0.4.3":
+  version "0.4.3"
+  resolved "https://registry.yarnpkg.com/@apollo/experimental-nextjs-app-support/-/experimental-nextjs-app-support-0.4.3.tgz#94966eacd3c908bd1b9bf8fc3c2b800c5c90f555"
+  integrity sha512-UrgLMUIW7SFmeJyLvqh0E8KRvo6Nd/zzbUFt0ENT3BRa7z7kGsCk7I+kZEZEAn13nqlTC3M4VPS6tOfvtLFhxQ==
   dependencies:
+    server-only "^0.0.1"
     superjson "^1.12.2"
     ts-invariant "^0.10.3"
 
@@ -4527,6 +4528,11 @@ serve-static@1.15.0:
     escape-html "~1.0.3"
     parseurl "~1.3.3"
     send "0.18.0"
+
+server-only@^0.0.1:
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/server-only/-/server-only-0.0.1.tgz#0f366bb6afb618c37c9255a314535dc412cd1c9e"
+  integrity sha512-qepMx2JxAa5jjfzxG79yPPq+8BuFToHd1hm7kI+Z4zAq1ftQiP7HcxMhDDItrbtwVeLg/cY2JnKnrcFkmiswNA==
 
 server@^1.0.38:
   version "1.0.38"
