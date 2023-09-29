@@ -9,7 +9,7 @@ import Config from "../../../config.json"
 import { IconButton, Stack } from "@mui/material"
 import { Search } from "@mui/icons-material"
 
-export const CelltypeAutocomplete: React.FC<{ assembly: string, textColor: string, header?: boolean }> = (props) => {
+export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean }> = (props) => {
   const [value, setValue] = useState(null)
   const [inputValue, setInputValue] = useState("")
   const [options, setOptions] = useState([])
@@ -17,6 +17,7 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, textColor: strin
 
   const router = useRouter()
 
+  //Fetch for the biosample options
   useEffect(() => {
     fetch(props.assembly.toLowerCase() === "grch38" ? Config.API.HumanGlobals : Config.API.MouseGlobals)
       .then((response) => {
@@ -61,7 +62,7 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, textColor: strin
     <Stack direction={"row"} spacing={2}>
       <Autocomplete
         size={props.header ? "small" : "medium"}
-        freeSolo
+        // freeSolo
         id="celltype-autocomplete"
         sx={{ width: 300, paper: { height: 200 } }}
         options={options}

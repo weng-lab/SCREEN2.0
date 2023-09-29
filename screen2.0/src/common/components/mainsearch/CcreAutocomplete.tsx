@@ -11,7 +11,7 @@ import Config from "../../../config.json"
 import { IconButton, Stack } from "@mui/material"
 import { Search } from "@mui/icons-material"
 
-export const CcreAutoComplete: React.FC<{ assembly: string, textColor: string, header?: boolean }> = (props) => {
+export const CcreAutoComplete: React.FC<{ assembly: string, header?: boolean }> = (props) => {
   const [value, setValue] = useState(null)
   const [inputValue, setInputValue] = useState("")
   const [options, setOptions] = useState([])
@@ -98,7 +98,7 @@ export const CcreAutoComplete: React.FC<{ assembly: string, textColor: string, h
               {...params}
               label="Enter a cCRE accession"
               InputLabelProps={{ shrink: true, style: props.header ? {color: "white"} : { color: "black" } }}
-              placeholder="e.g. EH38E0001314"
+              placeholder={props.assembly === "mm10" ? "e.g EM10E0000207" : "e.g. EH38E0001314"}
               fullWidth
               sx={{
                 //Border at rest

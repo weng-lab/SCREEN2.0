@@ -25,7 +25,6 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 export type MainSearchProps = InputBaseProps & {
   //false for human, true for mouse
   initialChecked?: boolean,
-  textColor?: string,
   header?: boolean
 }
 
@@ -101,13 +100,13 @@ const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) => {
           {selectedSearch === "Genomic Region" ? (
             <GenomicRegion assembly={assembly} header={props.header} />
           ) : selectedSearch === "Gene Name" ? (
-            <GeneAutoComplete textColor={props.textColor || "black"} assembly={assembly} header={props.header} />
+            <GeneAutoComplete assembly={assembly} header={props.header} />
           ) : selectedSearch === "SNP rsID" ? (
-            <SnpAutoComplete textColor={props.textColor || "black"} assembly={assembly} header={props.header} />
+            <SnpAutoComplete assembly={assembly} header={props.header} />
           ) : selectedSearch === "Cell Type" ? (
-            <CelltypeAutocomplete textColor={props.textColor || "black"} assembly={assembly} header={props.header} />
+            <CelltypeAutocomplete assembly={assembly} header={props.header} />
           ) : selectedSearch === "cCRE Accession" ? (
-            <CcreAutoComplete textColor={props.textColor || "black"} assembly={assembly} header={props.header} />
+            <CcreAutoComplete assembly={assembly} header={props.header} />
           ) :
             // Need to make this able to submit 
             <BedUpload assembly={assembly} header={props.header} />

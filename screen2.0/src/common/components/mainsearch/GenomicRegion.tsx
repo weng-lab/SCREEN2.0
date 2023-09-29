@@ -136,6 +136,11 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
               <FormControl>
                 <InputLabel id="demo-simple-select-standard-label">Chr</InputLabel>
                 <Select
+                  MenuProps={{
+                    sx: {
+                      maxHeight: "25rem",
+                    },
+                  }}
                   labelId="demo-simple-select-standard-label"
                   id="demo-simple-select-standard"
                   value={chromosome}
