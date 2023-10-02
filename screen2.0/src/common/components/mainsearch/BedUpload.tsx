@@ -51,7 +51,6 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
       const reader = new FileReader()
       reader.onload = (r) => {
         const contents = r.target.result
-        // const lines = contents.split("\n")
         const lines = contents.toString().split("\n")
         lines.forEach((e) => {
           allLines.push(e)
@@ -60,12 +59,10 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
       reader.onabort = () => console.log("file reading was aborted")
       reader.onerror = () => console.log("file reading has failed")
       reader.onloadend = (e) => {
-        //uuid set to empty, assembly changed to state variable
         const j = { uuid: "", assembly: props.assembly, allLines }
         const jq = JSON.stringify(j)
         getIntersect(
           jq,
-          //Success, NOT HANDLING ERROR IN GETINTERSECT PROPERLY
           (r) => {
             accessions = r.accessions
             sessionStorage.setItem("filenames", filenames)

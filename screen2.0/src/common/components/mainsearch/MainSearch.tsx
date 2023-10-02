@@ -1,8 +1,6 @@
 "use client"
 import React, { useState } from "react"
-import Grid2 from "../../mui-client-wrappers/Grid2"
 import { Stack, InputBaseProps, Typography, Box } from "@mui/material"
-
 import MenuItem from "@mui/material/MenuItem"
 import FormControl from "@mui/material/FormControl"
 import Select, { SelectChangeEvent } from "@mui/material/Select"
@@ -12,15 +10,6 @@ import { SnpAutoComplete } from "./SnpAutocomplete"
 import { CelltypeAutocomplete } from "./CelltypeAutocomplete"
 import BedUpload from "./BedUpload"
 import GenomicRegion from "./GenomicRegion"
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-
-//Should the code for searching live here in one big handleSubmit, or should each search individually handle it, and just have the trigger sent to them?
-
-// const darkTheme = createTheme({
-//   palette: {
-//     mode: 'dark',
-//   },
-// });
 
 export type MainSearchProps = InputBaseProps & {
   //false for human, true for mouse
