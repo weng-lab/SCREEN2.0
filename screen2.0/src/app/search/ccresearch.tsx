@@ -20,6 +20,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
   const [value, setValue] = useState(searchParams.get("accession") ? 1 : 0)
   const [tabIndex, setTabIndex] = useState(0)
   const [tableRows, setTableRows] = useState<MainResultTableRows>([])
+  const [loading, setLoading] = useState(false)
   const handleChange = (_, newValue: number) => {
     setValue(newValue)
   }
@@ -31,18 +32,22 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
   }, [searchParams])
 
   //Need meaningful variable names please, is showing that this is undefined and throwing an error when using back button on details page since accession is undefined
-  //IMPORTANT: MAKE SURE THIS STILL WORKS
   let f = tableRows.find((c) => c.accession === searchParams.get("accession"))
   const region = { start: f?.start, chrom: f?.chromosome, end: f?.end }
 
-  // @ts-expect-error
-  //Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
-  useEffect(() => startTransition(async () => {
-    props.mainQueryParams.bed_intersect ?
-      setTableRows(await fetchRows(props.mainQueryParams, sessionStorage.getItem("bed intersect")?.split(' ')))
-      :
-      setTableRows(await fetchRows(props.mainQueryParams))
-  }), [props])
+  useEffect(() => {
+    setLoading(true)
+    // @ts-expect-error
+    //Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
+    startTransition(async () => {
+      if (props.mainQueryParams.bed_intersect) {
+        setTableRows(await fetchRows(props.mainQueryParams, sessionStorage.getItem("bed intersect")?.split(' ')))
+      } else {
+        setTableRows(await fetchRows(props.mainQueryParams))
+      }
+      setLoading(false)
+    })
+  }, [props])
 
   return (
     <>
@@ -76,11 +81,12 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
             {tabIndex === 0 && (
               <MainResultsTable
                 rows={tableRows}
-                tableTitle={props.mainQueryParams.bed_intersect ? `Intersecting by uploaded .bed file` : `Searching ${props.mainQueryParams.chromosome} in ${
+                tableTitle={props.mainQueryParams.bed_intersect ? `Intersecting by uploaded .bed file in ${props.mainQueryParams.assembly}${sessionStorage.getItem("warning") === "true" ? " (Partial)" : ""}` : `Searching ${props.mainQueryParams.chromosome} in ${
                   props.mainQueryParams.assembly
                 } from ${props.mainQueryParams.start.toLocaleString("en-US")} to ${props.mainQueryParams.end.toLocaleString("en-US")}`}
                 itemsPerPage={10}
-                titleHoverInfo={props.mainQueryParams.bed_intersect ? `${sessionStorage.getItem('filenames')}` : null}
+                titleHoverInfo={props.mainQueryParams.bed_intersect ? `${sessionStorage.getItem("warning") === "true" ? "The file you uploaded, " + sessionStorage.getItem('filenames') + ", is too large to be completely intersected. Results are incomplete." : sessionStorage.getItem('filenames')}` : null}
+                loading={loading}
               />
             )}
           </Grid2>

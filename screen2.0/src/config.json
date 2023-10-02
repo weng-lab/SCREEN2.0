@@ -78,5 +78,8 @@
     "MousePromoterZScoreMatrix": "https://www.encodeproject.org/files/ENCFF754PUU/@@download/ENCFF754PUU.txt.gz",
     "MouseEnhancerZScoreMatrix": "https://www.encodeproject.org/files/ENCFF816ISW/@@download/ENCFF816ISW.txt.gz",
     "MouseCTCFZScoreMatrix": "https://www.encodeproject.org/files/ENCFF101BYE/@@download/ENCFF101BYE.txt.gz"
+  },
+  "BED_intersect":{
+    "url": "https://screen-beta-api.wenglab.org/postws/lines"
   }
 }

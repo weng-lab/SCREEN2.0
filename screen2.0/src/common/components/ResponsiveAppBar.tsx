@@ -47,10 +47,6 @@ const pageLinks = [
   },
 ]
 
-/**
- * @todo: This needs refactoring - a bit messy right now
- */
-
 function ResponsiveAppBar() {
   const [open, setState] = React.useState<boolean>(false)
   // Hamburger Menu, deals with setting its position

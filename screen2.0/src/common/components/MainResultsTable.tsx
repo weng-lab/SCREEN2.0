@@ -5,8 +5,13 @@ import { Box, Typography, Menu, Checkbox, Stack, MenuItem, FormControlLabel, For
 import { MainResultTableRow, ConservationData } from "../../app/search/types"
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { LoadingMessage } from "../lib/utility"
 
-function MainResultsTable(props: Partial<DataTableProps<any>>) {
+interface MainResultsTableProps extends Partial<DataTableProps<any>> {
+  loading?: boolean
+}
+
+function MainResultsTable(props: MainResultsTableProps) {
   const [distance, setDistance] = useState<boolean>(true)
   const [CTCF_ChIAPET, setCTCF_ChIAPET] = useState<boolean>(false)
   const [RNAPII_ChIAPET, setRNAPII_ChIAPET] = useState<boolean>(false)
@@ -208,21 +213,24 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
   }
 
   return (
-    <DataTable
-      key={props.rows[0] && props.rows[0].dnase + props.rows[0].ctcf + props.rows[0].h3k27ac + props.rows[0].h3k4me3 + columns.toString() + distance + CTCF_ChIAPET + RNAPII_ChIAPET}
-      rows={props.rows}
-      columns={columns(setDistance, setCTCF_ChIAPET, setRNAPII_ChIAPET)}
-      itemsPerPage={props.itemsPerPage}
-      searchable
-      onRowClick={(r) => {
-        router.push(pathname + "?" + createQueryString("accession", r.accession))
-      }}
-      tableTitle={props.tableTitle}
-      sortColumn={6}
-      showMoreColumns
-      noOfDefaultColumns={11}
-      titleHoverInfo={props.titleHoverInfo}
-    />
+    props.loading ?
+      <LoadingMessage />
+      :
+      <DataTable
+        key={props.rows[0] && props.rows[0].dnase + props.rows[0].ctcf + props.rows[0].h3k27ac + props.rows[0].h3k4me3 + columns.toString() + distance + CTCF_ChIAPET + RNAPII_ChIAPET}
+        rows={props.rows}
+        columns={columns(setDistance, setCTCF_ChIAPET, setRNAPII_ChIAPET)}
+        itemsPerPage={props.itemsPerPage}
+        searchable
+        onRowClick={(r) => {
+          router.push(pathname + "?" + createQueryString("accession", r.accession))
+        }}
+        tableTitle={props.tableTitle}
+        sortColumn={6}
+        showMoreColumns
+        noOfDefaultColumns={11}
+        titleHoverInfo={props.titleHoverInfo}
+      />
   )
 }
 

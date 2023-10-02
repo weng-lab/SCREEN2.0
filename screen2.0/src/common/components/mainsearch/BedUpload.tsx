@@ -5,10 +5,9 @@ import { Button, Typography, Box, Stack, Container, RadioGroup, FormControl, For
 import { useDropzone } from "react-dropzone"
 import { useRouter } from 'next/navigation'
 import UploadFileIcon from '@mui/icons-material/UploadFile';
-import { Cancel, FileUpload, Search, UploadFile } from "@mui/icons-material"
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
-import { LoadingMessage } from "../../lib/utility"
+import { Cancel, Search } from "@mui/icons-material"
 import { LoadingButton } from "@mui/lab"
+import config from "../../../config.json"
 
 const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => {
   const router = useRouter()
@@ -27,7 +26,7 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
   const getIntersect = (jq, successF, errF) => {
     //Need to put this url in config file
     console.log("getIntersect called")
-    const url = "https://screen-beta-api.wenglab.org/postws/lines"
+    const url = config.BED_intersect.url
     fetch(url, {
       headers: {
         Accept: "application/json",
@@ -71,6 +70,11 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
             accessions = r.accessions
             sessionStorage.setItem("filenames", filenames)
             sessionStorage.setItem("bed intersect", accessions.join(' '))
+            if (accessions.length === 1000){
+              sessionStorage.setItem("warning", "true")
+            } else {
+              sessionStorage.setItem("warning", "false")
+            }
             router.push(`/search?intersect=t&assembly=${props.assembly}`)
             setLoading(false)
           },

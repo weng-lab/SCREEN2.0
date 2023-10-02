@@ -1,10 +1,8 @@
 // Search Results Page
 import { CcreSearch } from "./ccresearch"
-import { MainQuery, getGlobals, linkedGenesQuery } from "../../common/lib/queries"
-import { ApolloQueryResult } from "@apollo/client"
-import { cCREData, CellTypeData, MainQueryParams, MainResultTableRow, MainResultTableRows } from "./types"
+import { getGlobals } from "../../common/lib/queries"
+import { CellTypeData, MainQueryParams } from "./types"
 import { checkTrueFalse } from "./search-helpers"
-import { generateRows } from "./fetchRows"
 
 
 export default async function Search({
@@ -68,31 +66,6 @@ export default async function Search({
     vert_e:searchParams.vert_e ? Number(searchParams.vert_e) : 8,
   }
 
-  //The suboptimal thing is that here would be the easy place to be able to pass the accession, but thats not possible
-
-  //Main query
-  // const mainQueryResult: ApolloQueryResult<any> = await MainQuery(
-  //   mainQueryParams.assembly,
-  //   mainQueryParams.chromosome,
-  //   mainQueryParams.start,
-  //   mainQueryParams.end,
-  //   mainQueryParams.Biosample.biosample
-  // )
-
-  /**
-   * Case 1: Coordinate search
-   *  Normal URL params
-   * 
-   * Case 2: Coordinate search with biosample
-   *  Normal URL params
-   * 
-   * Case 3: Accession Search
-   *  No use for chr, start, end
-   * 
-   * Case 4: Accession Search with biosample 
-   *  No use for chr, start, end
-   */
-
   //Contains cell type data of the specified assembly
   const globals: CellTypeData = await getGlobals(mainQueryParams.assembly)
 
@@ -101,8 +74,6 @@ export default async function Search({
       <CcreSearch
         mainQueryParams={mainQueryParams}
         globals={globals}
-        // ccrerows={(mainQueryResult.error || mainQueryResult.loading) ? [] : await generateRows(mainQueryResult, mainQueryParams.Biosample.biosample, mainQueryParams)}
-        // assembly={mainQueryParams.assembly}
       />
     </main>
   )
