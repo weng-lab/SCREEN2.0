@@ -71,7 +71,7 @@
     "file-loader": "^6.2.0",
     "lint-staged": "^14.0.1",
     "prettier": "^3.0.2",
-    "prettier-plugin-tailwindcss": "^0.4.1",
+    "prettier-plugin-tailwindcss": "^0.5.4",
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4"
   },
