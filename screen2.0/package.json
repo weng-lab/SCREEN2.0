@@ -47,7 +47,7 @@
     "@types/react-dom": "18.2.7",
     "@weng-lab/psychscreen-ui-components": "^0.8.0-a.2",
     "@weng-lab/ts-ztable": "^4.0.1",
-    "autoprefixer": "10.4.15",
+    "autoprefixer": "10.4.16",
     "eslint": "8.50.0",
     "eslint-config-next": "13.4.19",
     "graphql": "^16.8.1",
