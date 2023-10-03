@@ -67,8 +67,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
           <Grid2 xs={12} lg={9}>
             <Tabs aria-label="basic tabs example" value={tabIndex} onChange={(_, val) => setTabIndex(val)}>
               <StyledTab label="Table View" />
-              <StyledTab label="Genome Browser View" />
-              
+              {!props.mainQueryParams.bed_intersect && <StyledTab label="Genome Browser View" />}
             </Tabs>
             {tabIndex === 1 && (
               <GenomeBrowserView
