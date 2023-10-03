@@ -2,11 +2,11 @@
 	"compilerOptions": {
 		"target": "es6",
 		"lib": [
-		  "es5",
-		  "es6",
-		  "dom",
-		  "dom.iterable",
-		  "esnext"
+			"es5",
+			"es6",
+			"dom",
+			"dom.iterable",
+			"esnext"
 		],
 		"allowJs": true,
 		"skipLibCheck": true,
@@ -21,29 +21,32 @@
 		"noEmit": true,
 		"jsx": "preserve",
 		"typeRoots": [
-		  "./types",
-		  "./node_modules/@types"
+			"./types",
+			"./node_modules/@types"
 		],
 		"noFallthroughCasesInSwitch": true,
 		"incremental": true,
 		"noImplicitAny": false,
 		"plugins": [
-		  {
-			"name": "next"
-		  }
+			{
+				"name": "next"
+			}
 		],
-		"strict": false
-	  },
-	  "include": [
+		"strict": false,
+		"types": [
+			"react/experimental"
+		]
+	},
+	"include": [
 		"src",
 		".next/types/**/*.ts",
 		"./types"
-	  ],
-	  "exclude": [
+	],
+	"exclude": [
 		"node_modules",
 		"yarn.lock",
 		"yarn-error.log",
 		".cache",
 		"dist"
-	  ]
+	]
 }

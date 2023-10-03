@@ -1,4 +1,6 @@
-import { cCREData, MainQueryParams, CellTypeData, UnfilteredBiosampleData, FilteredBiosampleData } from "../../app/search/types"
+import { ApolloQueryResult } from "@apollo/client"
+import { cCREData, MainQueryParams, CellTypeData, UnfilteredBiosampleData, FilteredBiosampleData, URLParams, MainResultTableRows, MainResultTableRow } from "./types"
+import { linkedGenesQuery } from "../../common/lib/queries"
 
 /**
  *
@@ -27,12 +29,12 @@ export function outputT_or_F(input: boolean): "t" | "f" {
 /**
  *
  * @param currentElement the cCRE to check
- * @param biosample the selected b
+ * @param biosample the selected biosample
  * @param mainQueryParams
  * @returns
  */
 export function passesCriteria(currentElement: cCREData, biosample: string | null, mainQueryParams: MainQueryParams): boolean {
-  if (passesChromatinFilter(currentElement, biosample, mainQueryParams) && passesClassificationFilter(currentElement, mainQueryParams)) {
+  if (passesChromatinFilter(currentElement, biosample, mainQueryParams) && passesConservationFilter(currentElement, mainQueryParams) && passesClassificationFilter(currentElement, mainQueryParams)) {
     return true
   } else return false
 }
@@ -43,14 +45,30 @@ function passesChromatinFilter(currentElement: cCREData, biosample: string | nul
   const h3k27ac = biosample ? currentElement.ctspecific.h3k27ac_zscore : currentElement.enhancer_zscore
   const ctcf = biosample ? currentElement.ctspecific.ctcf_zscore : currentElement.ctcf_zscore
   if (
-    mainQueryParams.dnase_s < dnase &&
-    dnase < mainQueryParams.dnase_e &&
-    mainQueryParams.h3k4me3_s < h3k4me3 &&
-    h3k4me3 < mainQueryParams.h3k4me3_e &&
-    mainQueryParams.h3k27ac_s < h3k27ac &&
-    h3k27ac < mainQueryParams.h3k27ac_e &&
-    mainQueryParams.ctcf_s < ctcf &&
-    ctcf < mainQueryParams.ctcf_e
+    mainQueryParams.dnase_s <= dnase &&
+    dnase <= mainQueryParams.dnase_e &&
+    mainQueryParams.h3k4me3_s <= h3k4me3 &&
+    h3k4me3 <= mainQueryParams.h3k4me3_e &&
+    mainQueryParams.h3k27ac_s <= h3k27ac &&
+    h3k27ac <= mainQueryParams.h3k27ac_e &&
+    mainQueryParams.ctcf_s <= ctcf &&
+    ctcf <= mainQueryParams.ctcf_e
+  ) {
+    return true
+  } else return false
+}
+
+function passesConservationFilter(currentElement: cCREData, mainQueryParams: MainQueryParams) {
+  const primates = currentElement.primates
+  const mammals = currentElement.mammals
+  const vertebrates = currentElement.vertebrates
+  if (
+    mainQueryParams.prim_s <= primates &&
+    primates <= mainQueryParams.prim_e &&
+    mainQueryParams.mamm_s <= mammals &&
+    mammals <= mainQueryParams.mamm_e &&
+    mainQueryParams.vert_s <= vertebrates &&
+    vertebrates <= mainQueryParams.vert_e
   ) {
     return true
   } else return false
@@ -210,30 +228,7 @@ export function assayHoverInfo(assays: { dnase: boolean; h3k27ac: boolean; h3k4m
  */
 export function constructURL(
   mainQueryParams: MainQueryParams,
-  urlParams: {
-    Tissue: boolean
-    PrimaryCell: boolean
-    InVitro: boolean
-    Organoid: boolean
-    CellLine: boolean
-    Biosample: { selected: boolean; biosample: string | null; tissue: string | null; summaryName: string | null }
-    DNaseStart: number
-    DNaseEnd: number
-    H3K4me3Start: number
-    H3K4me3End: number
-    H3K27acStart: number
-    H3K27acEnd: number
-    CTCFStart: number
-    CTCFEnd: number
-    CA: boolean
-    CA_CTCF: boolean
-    CA_H3K4me3: boolean
-    CA_TF: boolean
-    dELS: boolean
-    pELS: boolean
-    PLS: boolean
-    TF: boolean
-  },
+  urlParams: URLParams,
   newBiosample?: {
     selected: boolean
     biosample: string
@@ -241,8 +236,15 @@ export function constructURL(
     summaryName: string
   }
 ) {
+  /**
+   * ! Important !
+   * 
+   * When adding to the url using template strings, be sure to match the string extactly with what search/page.tsx is expecting when
+   * it constructs the mainQueryParams object. There's no easy way type this to catch errors
+   */ 
+
   //Assembly, Chromosome, Start, End
-  const urlBasics = `search?assembly=${mainQueryParams.assembly}&chromosome=${mainQueryParams.chromosome}&start=${mainQueryParams.start}&end=${mainQueryParams.end}`
+  const urlBasics = mainQueryParams.bed_intersect ? `search?intersect=t&assembly=${mainQueryParams.assembly}` : `search?assembly=${mainQueryParams.assembly}&chromosome=${mainQueryParams.chromosome}&start=${mainQueryParams.start}&end=${mainQueryParams.end}`
 
   //Can probably get biosample down to one string, and extract other info when parsing byCellType
   const biosampleFilters = `&Tissue=${outputT_or_F(urlParams.Tissue)}&PrimaryCell=${outputT_or_F(
@@ -266,6 +268,8 @@ export function constructURL(
     urlParams.PLS
   )}&TF=${outputT_or_F(urlParams.TF)}`
 
-  const url = `${urlBasics}${biosampleFilters}${chromatinFilters}${classificationFilters}`
+  const conservationFilters = `&prim_s=${urlParams.PrimateStart}&prim_e=${urlParams.PrimateEnd}&mamm_s=${urlParams.MammalStart}&mamm_e=${urlParams.MammalEnd}&vert_s=${urlParams.VertebrateStart}&vert_e=${urlParams.VertebrateEnd}`
+
+  const url = `${urlBasics}${biosampleFilters}${chromatinFilters}${classificationFilters}${conservationFilters}`
   return url
 }

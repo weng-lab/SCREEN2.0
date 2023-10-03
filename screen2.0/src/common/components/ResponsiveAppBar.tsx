@@ -3,9 +3,6 @@ import * as React from "react"
 import { AppBar, Box, Toolbar, IconButton, Typography, Menu, Container, Button, MenuItem } from "@mui/material"
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown"
 import MenuIcon from "@mui/icons-material/Menu"
-import { Drawer } from "@mui/material"
-import CloseIcon from "@mui/icons-material/Close"
-import Divider from "@mui/material/Divider"
 import { ThemeProvider } from "@mui/material/styles"
 import Link from "next/link"
 import Image from "next/image"
@@ -13,7 +10,7 @@ import nextConfig from "../../../next.config"
 import screenIcon from "../../../public/screenIcon.png"
 import { defaultTheme } from "../lib/themes"
 
-import HeaderSearch from "./HeaderSearch"
+import MainSearch from "./mainsearch/MainSearch"
 
 /*  
   Links for the AppBar. If adding another page with subpages, you need to add another 
@@ -41,7 +38,6 @@ const pageLinks = [
       { pageName: "GWAS", link: "/applets/gwas" },
       { pageName: "Gene Expression", link: "/applets/gene-expression " },
       { pageName: "Differential Gene Expression", link: "/applets/differential-gene-expression" },
-      { pageName: "Multi-Region Search", link: "/applets/multi-region-search" },
     ],
   },
   {
@@ -49,10 +45,6 @@ const pageLinks = [
     link: "/downloads",
   },
 ]
-
-/**
- * @todo: Hamburger Menu, need to align optically without setting the margin to zero - it messes up interacting with the button
- */
 
 function ResponsiveAppBar() {
   const [open, setState] = React.useState<boolean>(false)
@@ -91,13 +83,6 @@ function ResponsiveAppBar() {
     }
   }
 
-  // const toggleDrawer = (open) => (event) => {
-  //   if (event.type === "keydown" && (event.key === "Tab" || event.key === "Shift")) {
-  //     return
-  //   }
-  //   setState(open)
-  // }
-
   return (
     <ThemeProvider theme={defaultTheme}>
       <AppBar position="static">
@@ -115,8 +100,9 @@ function ResponsiveAppBar() {
               sx={{
                 mr: 2,
                 ml: 1,
-                display: { xs: "none", md: "flex" },
+                display: { xs: "flex" },
                 // flexShrink: 0,
+                flexGrow: {xs: 1, md: 0},
                 fontFamily: "monospace",
                 fontWeight: 700,
                 letterSpacing: ".3rem",
@@ -126,9 +112,7 @@ function ResponsiveAppBar() {
             >
               SCREEN
             </Typography>
-            {/* Display Menu icon on left (and hide above icon and title) when <900px */}
             <Box sx={{ flexGrow: 0, display: { xs: "inline", md: "none" } }}>
-              {/* Hamburger Menu, open on click */}
               <IconButton
                 size="large"
                 aria-label="account of current user"
@@ -165,7 +149,6 @@ function ResponsiveAppBar() {
                 </MenuItem>
                 {pageLinks.map((page) => (
                   <MenuItem key={page.pageName} onClick={handleCloseNavMenu_Hamburger}>
-                    {/* Wrap in next/link to enable dyanic link changing from basePath in next.config.js */}
                     <Link href={page.link}>
                       <Typography textAlign="center" textTransform="none">{page.pageName}</Typography>
                     </Link>
@@ -173,24 +156,6 @@ function ResponsiveAppBar() {
                 ))}
               </Menu>
             </Box>
-            <Typography
-              variant="h5"
-              noWrap
-              component="a"
-              href={`${nextConfig.basePath}`}
-              sx={{
-                mr: 2,
-                display: { xs: "none", sm: "flex", md: "none" },
-                flexGrow: 1,
-                fontFamily: "monospace",
-                fontWeight: 700,
-                letterSpacing: ".3rem",
-                color: "inherit",
-                textDecoration: "none",
-              }}
-            >
-              SCREEN
-            </Typography>
             {/* Main navigation items for desktop */}
             <Box sx={{ flexGrow: 1, flexShrink: 1, display: { xs: "none", md: "flex" } }}>
               {pageLinks.map((page) => (
@@ -245,44 +210,14 @@ function ResponsiveAppBar() {
                 </Box>
               ))}
             </Box>
-            {/* TODO onSubmit for search box */}
-            
-            <Box sx={{ flexGrow: 0 }}>
-              <HeaderSearch />
+            <Box sx={{display: { xs: "none", lg: "flex" }}}>
+              <MainSearch header />
             </Box>
-            
-            {/* Settings */}
-            {/* <Box sx={{ ml: 3, flexGrow: 0 }}>
-              <IconButton
-                edge="start"
-                color="inherit"
-                aria-label="open drawer"
-                onClick={toggleDrawer(true)}
-                sx={{
-                  mr: 0,
-                  display: {
-                    xs: "block",
-                  },
-                }}
-              >
-                <MenuIcon />
-              </IconButton>
-            </Box>
-            <Drawer anchor="right" open={open} onClose={toggleDrawer(false)}>
-              <Box>
-                <IconButton onClick={toggleDrawer(false)}>
-                  <CloseIcon />
-                </IconButton>
-                <Divider sx={{ mb: 2 }} />
-                <Box margin={2}>
-                  <Typography variant="h6">Settings</Typography>
-                </Box>
-              </Box>
-            </Drawer> */}
           </Toolbar>
         </Container>
       </AppBar>
     </ThemeProvider>
   )
 }
+
 export default ResponsiveAppBar

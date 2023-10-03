@@ -2,11 +2,16 @@
 import { DataTable, DataTableProps, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import React, { useCallback, useState } from "react"
 import { Box, Typography, Menu, Checkbox, Stack, MenuItem, FormControlLabel, FormGroup } from "@mui/material"
-import { MainResultTableRow } from "../../app/search/types"
+import { MainResultTableRow, ConservationData } from "../../app/search/types"
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { LoadingMessage } from "../lib/utility"
 
-function MainResultsTable(props: Partial<DataTableProps<any>>) {
+interface MainResultsTableProps extends Partial<DataTableProps<any>> {
+  loading?: boolean
+}
+
+function MainResultsTable(props: MainResultsTableProps) {
   const [distance, setDistance] = useState<boolean>(true)
   const [CTCF_ChIAPET, setCTCF_ChIAPET] = useState<boolean>(false)
   const [RNAPII_ChIAPET, setRNAPII_ChIAPET] = useState<boolean>(false)
@@ -23,6 +28,8 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
       return params.toString()
     }, [searchParams])
 
+  //Start and End are strings since toLocaleString() is called on them to get commas in the numbers
+  //State variable setters are passed to columns so that linked genes modal is able to properly set table state
   const columns = (funcSetDistance: React.Dispatch<React.SetStateAction<boolean>>, funcSetCTCF_ChIAPET: React.Dispatch<React.SetStateAction<boolean>>, funcSetRNAPII_ChIAPET: React.Dispatch<React.SetStateAction<boolean>>) => {
     let cols: DataTableColumn<MainResultTableRow>[] = [
       {
@@ -196,29 +203,34 @@ function MainResultsTable(props: Partial<DataTableProps<any>>) {
         )
       },
     })
+
+    cols.push({
+      header: "Conservation",
+      value: (row: { conservationData: ConservationData }) => `Primates:\u00A0${row.conservationData.primates?.toFixed(2) ?? "unavailable"} Mammals:\u00A0${row.conservationData.mammals?.toFixed(2) ?? "unavailable"} Vertebrates:\u00A0${row.conservationData.vertebrates?.toFixed(2) ?? "unavailable"}` , 
+    })
     console.log("columns recalculated")
     return cols
   }
 
   return (
-    <DataTable
-      //Using a key here to trigger rerender is hacky. There should be another way https://react.dev/reference/react/useState#updating-objects-and-arrays-in-state
-      //It actually might be an issue with how the DataTable handles it's state internally. Is it possible that a rerender is being triggered but it's internal state is not being updated with the new value?
-      //The columns in the DataTable are being stored in an object. It might be that a change in props here doesn't replace the columns on the state variable, but rather modifies the columns attribute, which the React Docs say is bad.
-      //Internally, when the columns are changed (by the modal), the columns are reset properly(?) using the spread operator.
-      //Does a function passed to DataTable have access to the state of the parent function?
-      key={props.rows[0] && props.rows[0].dnase + props.rows[0].ctcf + props.rows[0].h3k27ac + props.rows[0].h3k4me3 + columns.toString() + distance + CTCF_ChIAPET + RNAPII_ChIAPET}
-      rows={props.rows}
-      columns={columns(setDistance, setCTCF_ChIAPET, setRNAPII_ChIAPET)}
-      itemsPerPage={props.itemsPerPage}
-      searchable
-      onRowClick={(r) => {
-        router.push(pathname + "?" + createQueryString("accession", r.accession))
-      }}
-      tableTitle={props.tableTitle}
-      sortColumn={0}
-      sortDescending
-    />
+    props.loading ?
+      <LoadingMessage />
+      :
+      <DataTable
+        key={props.rows[0] && props.rows[0].dnase + props.rows[0].ctcf + props.rows[0].h3k27ac + props.rows[0].h3k4me3 + columns.toString() + distance + CTCF_ChIAPET + RNAPII_ChIAPET}
+        rows={props.rows}
+        columns={columns(setDistance, setCTCF_ChIAPET, setRNAPII_ChIAPET)}
+        itemsPerPage={props.itemsPerPage}
+        searchable
+        onRowClick={(r) => {
+          router.push(pathname + "?" + createQueryString("accession", r.accession))
+        }}
+        tableTitle={props.tableTitle}
+        sortColumn={6}
+        showMoreColumns
+        noOfDefaultColumns={11}
+        titleHoverInfo={props.titleHoverInfo}
+      />
   )
 }
 

@@ -1,16 +1,17 @@
-"use client"
-import React, {useState, useCallback} from "react"
+import React, { useState, useCallback } from "react"
 import Box from "@mui/material/Box"
 import TextField from "@mui/material/TextField"
 import Autocomplete from "@mui/material/Autocomplete"
-import Grid from "@mui/material/Grid"
+import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import Typography from "@mui/material/Typography"
 import { debounce } from "@mui/material/utils"
 import { useRouter } from "next/navigation"
 import { CCRE_AUTOCOMPLETE_QUERY } from "./queries"
 import Config from "../../../config.json"
+import { IconButton, Stack } from "@mui/material"
+import { Search } from "@mui/icons-material"
 
-export const CcreAutoComplete: React.FC<{assembly: string, textColor: string }>  = (props) => {
+export const CcreAutoComplete: React.FC<{ assembly: string, header?: boolean }> = (props) => {
   const [value, setValue] = useState(null)
   const [inputValue, setInputValue] = useState("")
   const [options, setOptions] = useState([])
@@ -33,8 +34,8 @@ export const CcreAutoComplete: React.FC<{assembly: string, textColor: string }> 
     })
     const ccreSuggestion = (await response.json()).data?.cCREQuery
     if (ccreSuggestion && ccreSuggestion.length > 0) {
-      const r = ccreSuggestion.map((g: { accession: string}) => g.accession)
-      const ccres = ccreSuggestion.map((g: { accession: string, coordinates: { start: number, end: number, chromosome: string }}) => {
+      const r = ccreSuggestion.map((g: { accession: string }) => g.accession)
+      const ccres = ccreSuggestion.map((g: { accession: string, coordinates: { start: number, end: number, chromosome: string } }) => {
         return {
           chrom: g.coordinates.chromosome,
           start: g.coordinates.start,
@@ -52,10 +53,19 @@ export const CcreAutoComplete: React.FC<{assembly: string, textColor: string }> 
 
   const debounceFn = useCallback(debounce(onSearchChange, 500), [])
 
+  const handleSubmit = () => {
+    if (value) {
+      let chrom = (ccreAccessions.find((g: { ccreaccession: string }) => g.ccreaccession === value))?.chrom
+      let start = (ccreAccessions.find((g: { ccreaccession: string }) => g.ccreaccession === value))?.start
+      let end = (ccreAccessions.find((g: { ccreaccession: string }) => g.ccreaccession === value))?.end
+      router.push(`search?assembly=${props.assembly}&chromosome=${chrom}&start=${start}&end=${end}&accession=${value}`)
+    }
+  }
+
   return (
-    <Grid container sx={{ mr: "1em", ml: "1em" }}>
-      <Grid item sm={5.5} md={5.5} lg={5.5} xl={5.5}>
-        <Autocomplete
+    <Stack direction="row" spacing={2}>
+      <Autocomplete
+          size={props.header ? "small" : "medium"}
           id="ccre-autocomplete"
           sx={{ width: 300, paper: { height: 200 } }}
           options={options}
@@ -67,13 +77,7 @@ export const CcreAutoComplete: React.FC<{assembly: string, textColor: string }> 
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               event.defaultPrevented = true
-
-              if (value) {
-                let chrom = (ccreAccessions.find((g: {ccreaccession: string}) => g.ccreaccession === value))?.chrom
-                let start = (ccreAccessions.find((g: {ccreaccession: string}) => g.ccreaccession === value))?.start
-                let end = (ccreAccessions.find((g: {ccreaccession: string}) => g.ccreaccession === value))?.end
-                router.push(`search?assembly=${props.assembly}&chromosome=${chrom}&start=${start}&end=${end}&accession=${value}`)
-              }
+              handleSubmit()
             }
           }}
           value={value}
@@ -88,54 +92,53 @@ export const CcreAutoComplete: React.FC<{assembly: string, textColor: string }> 
 
             setInputValue(newInputValue)
           }}
-          noOptionsText={props.assembly==="mm10"? "e.g EM10E0000207": "e.g. EH38E0001314"}
+          noOptionsText={props.assembly === "mm10" ? "e.g EM10E0000207" : "e.g. EH38E0001314"}
           renderInput={(params) => (
             <TextField
               {...params}
               label="Enter a cCRE accession"
-              InputLabelProps={{ shrink: true, style: { color: props.textColor || "black" } }}
-            
-              placeholder="e.g. EH38E0001314"
+              InputLabelProps={{ shrink: true, style: props.header ? {color: "white"} : { color: "black" } }}
+              placeholder={props.assembly === "mm10" ? "e.g EM10E0000207" : "e.g. EH38E0001314"}
               fullWidth
-              sx={{ fieldset: { borderColor: props.textColor || "black"}, '& .MuiInput-underline:after': {
-                borderBottomColor: props.textColor || "black",
-              },
-              '& .MuiOutlinedInput-root': {
-                '& fieldset': {
-                  borderColor: props.textColor || "black",
+              sx={{
+                //Border at rest
+                fieldset: props.header ? { borderColor: "white" } : { borderColor: "black" },
+                '& .MuiOutlinedInput-root': {
+                  //hover border color
+                  '&:hover fieldset': props.header ? { borderColor: "white" } : { borderColor: "black" },
+                  //focused border color
+                  '&.Mui-focused fieldset': props.header ? { borderColor: "white" } : { borderColor: "black" },
                 },
-                '&:hover fieldset': {
-                  borderColor: props.textColor || "black"
-                  
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: props.textColor || "black",
-                },
-              }}}
+                //Text
+                '& .MuiOutlinedInput-input': props.header && { color: "white" },
+                //Icon
+                '& .MuiSvgIcon-root': props.header && { fill: "white"}
+              }}
             />
           )}
           renderOption={(props, option) => {
             return (
               <li {...props} key={props.id}>
-                <Grid container alignItems="center">
-                  <Grid item sx={{ width: "calc(100% - 44px)", wordWrap: "break-word" }}>
+                <Grid2 container alignItems="center">
+                  <Grid2 sx={{ width: "calc(100% - 44px)", wordWrap: "break-word" }}>
                     <Box component="span" sx={{ fontWeight: "regular" }}>
                       {option}
                     </Box>
-                    {ccreAccessions && ccreAccessions.find((g: {ccreaccession: string }) => g.ccreaccession === option) && (
+                    {ccreAccessions && ccreAccessions.find((g: { ccreaccession: string }) => g.ccreaccession === option) && (
                       <Typography variant="body2" color="text.secondary">
-                        {`${(ccreAccessions.find((g: {ccreaccession: string }) => g.ccreaccession === option))?.chrom}:${
-                          (ccreAccessions.find((g: {ccreaccession: string }) => g.ccreaccession === option))?.start
-                        }:${(ccreAccessions.find((g: {ccreaccession: string }) => g.ccreaccession === option))?.end}`}
+                        {`${(ccreAccessions.find((g: { ccreaccession: string }) => g.ccreaccession === option))?.chrom}:${(ccreAccessions.find((g: { ccreaccession: string }) => g.ccreaccession === option))?.start
+                          }:${(ccreAccessions.find((g: { ccreaccession: string }) => g.ccreaccession === option))?.end}`}
                       </Typography>
                     )}
-                  </Grid>
-                </Grid>
+                  </Grid2>
+                </Grid2>
               </li>
             )
           }}
-        />
-      </Grid>
-    </Grid>
+      />
+      <IconButton aria-label="Search" type="submit" onClick={() => handleSubmit()} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
+        <Search />
+      </IconButton>
+    </Stack>
   )
 }
