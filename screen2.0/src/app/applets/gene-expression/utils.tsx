@@ -192,10 +192,12 @@ export function PlotGeneExpression(props: {
   })
   let tissues: { [id: string]: { values: QuantificationData } } = props.group==="byExpressionFPKM" ?  byValueTissues : props.group==="byTissueMaxFPKM" ? byTissueMaxTissues :  byTissue // dict of ftissues
   let y: number = 0
+
+  console.log(Object.keys(tissues).length,"tissues")
   return (
     <>
       <Grid2 xs={12} md={12} lg={12} mt={1} ml={2} mr={2}>
-        <Stack>
+        {Object.keys(tissues).length===0 ? <span>{'No Data Available'}</span> : <Stack>
           { Object.entries(tissues).map((entry, index: number) => {
             let info = entry[1]
             y = info.values.length + 20 + 10
@@ -210,7 +212,7 @@ export function PlotGeneExpression(props: {
                   </svg>
             )
           })}
-        </Stack>
+        </Stack>}
       </Grid2>
     </>
   )

@@ -40,6 +40,61 @@ export const LINKED_GENES = gql`
     }
   }
 `
+export const MPRA_FUNCTIONAL_DATA_QUERY = gql `
+query ($coordinates: [GenomicRangeInput!]) {
+  mpraFccQuery(coordinates: $coordinates) {
+    celltype
+    chromosome
+    stop
+    start
+    assay_type
+    element_location
+    series
+    strand
+    log2fc
+    experiment    
+    barcode_location
+  }
+}
+`
+export const CAPRA_SOLO_FUNCTIONAL_DATA_QUERY = gql `
+query ($accession: [String]!) {
+  capraFccSoloQuery(accession: $accession) {
+    rdhs
+    log2fc
+    fdr
+    dna_rep1
+    rna_rep1
+    rna_rep2
+    rna_rep3
+    pvalue
+    experiment
+  }
+}
+`
+export const CAPRA_DOUBLE_FUNCTIONAL_DATA_QUERY = gql `
+query ($accession: [String]!) {
+  capraFccDoubleQuery(accession: $accession) {
+    rdhs_p1
+    rdhs_p2
+    log2fc
+    fdr
+    dna_rep1
+    rna_rep1
+    rna_rep2
+    rna_rep3
+    pvalue
+    experiment
+  }
+}
+`
+export const CCRE_RDHS_QUERY = gql`
+query ($rDHS: [String!],$assembly: String!) {
+  cCREQuery(assembly: $assembly, rDHS: $rDHS) {
+    accession
+  }
+}
+`
 
 export const FUNCTIONAL_DATA_QUERY= gql`
 query ($coordinates: [GenomicRangeInput!],$assembly: String!) {
