@@ -38,7 +38,6 @@ const pageLinks = [
       { pageName: "GWAS", link: "/applets/gwas" },
       { pageName: "Gene Expression", link: "/applets/gene-expression " },
       { pageName: "Differential Gene Expression", link: "/applets/differential-gene-expression" },
-      { pageName: "Multi-Region Search", link: "/applets/multi-region-search" },
     ],
   },
   {
