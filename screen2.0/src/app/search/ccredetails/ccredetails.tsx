@@ -165,7 +165,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
             {value === 5 && <Ortholog accession={accession} assembly={assembly} />}
             {value === 6 && <Rampage gene={genes.distancePC[0].name} />}
             {value === 7 && <GeneExpression accession={accession} assembly={assembly} genes={genes} hamburger={open} />}
-            {value === 8 && <FunctionData coordinates= {{chromosome: region.chrom, start: +region.start.toString().replace(/\D/g, ""),   end: +region.end.toString().replace(/\D/g, "")}} assembly={assembly} />}
+            {value === 8 && <FunctionData accession={accession} coordinates= {{chromosome: region.chrom, start: +region.start.toString().replace(/\D/g, ""),   end: +region.end.toString().replace(/\D/g, "")}} assembly={assembly} />}
           </Grid2>
         </Grid2>
       </Paper>
