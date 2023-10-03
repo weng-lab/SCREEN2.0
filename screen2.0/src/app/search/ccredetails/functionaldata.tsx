@@ -6,6 +6,7 @@ import { FUNCTIONAL_DATA_QUERY, CCRE_RDHS_QUERY, MPRA_FUNCTIONAL_DATA_QUERY, CAP
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { LoadingMessage, ErrorMessage } from "../../../common/lib/utility"
+import { Link } from "@mui/material"
 
 export const FunctionData = ({ coordinates , assembly, accession }) => {
   const { loading, error, data } = useQuery(FUNCTIONAL_DATA_QUERY, {
@@ -84,6 +85,12 @@ export const FunctionData = ({ coordinates , assembly, accession }) => {
             {
               header: "Element Id",
               value: (row) => row.element_id,
+              render: (row)=> {
+              const experiment_id =  assembly === "GRCh38" ? row.element_id.split("hs")[1] : row.element_id.split("mm")[1]
+              const organism_id = assembly === "GRCh38" ? 1: 2
+              return (<Link href={`https://enhancer.lbl.gov/cgi-bin/imagedb3.pl?form=presentation&show=1&experiment_id=${experiment_id}&organism_id=${organism_id}`} rel="noopener noreferrer" target="_blank">
+                    <button>{row.element_id}</button>
+               </Link>)}
             },
             {
               header: "Assay Result",
