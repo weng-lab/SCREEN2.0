@@ -1,7 +1,7 @@
 //Home Page
 
 "use client"
-import { Typography } from "@mui/material"
+import { CssBaseline, Typography } from "@mui/material"
 import MainSearch from "../common/components/mainsearch/MainSearch"
 
 // Grid v2 isn't declared stable yet, but using it now as it's what MUI is currently developing out
@@ -14,6 +14,7 @@ export default function Home() {
     <main>
       {/* May need to rethink where these margins are set. Which element should be setting content width? */}
       <Grid2 container spacing={6} sx={{ mr: "auto", ml: "auto", mt: "3rem" }}>
+        {/* <CssBaseline /> */}
         <Grid2 xs={12}>
           <Typography variant="h3">SCREEN</Typography>
           <Typography variant="h5">Search Candidate cis-Regulatory Elements by ENCODE</Typography>

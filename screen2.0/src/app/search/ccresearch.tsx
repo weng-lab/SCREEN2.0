@@ -1,6 +1,6 @@
 "use client"
 import React, { startTransition, useEffect, useState } from "react"
-import { Tab, Tabs, Typography } from "@mui/material"
+import { Tab, Tabs } from "@mui/material"
 import MainResultsTable from "../../common/components/MainResultsTable"
 import MainResultsFilters from "../../common/components/MainResultsFilters"
 import { CcreDetails } from "./ccredetails/ccredetails"
