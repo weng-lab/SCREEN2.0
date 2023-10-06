@@ -251,12 +251,12 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
 
   //Need to make this more responsive
   return (
-    <Paper elevation={4}>
-      <Box sx={{ minHeight: "64px", display: "flex", alignItems: "center" }}>
+    <Paper elevation={0}>
+      {/* <Box sx={{ minHeight: "64px", display: "flex", alignItems: "center" }}>
         <Typography variant="h5" sx={{ pl: "16px" }}>
           Refine Your Search
         </Typography>
-      </Box>
+      </Box> */}
       {/* Biosample Activity */}
       <Accordion square defaultExpanded disableGutters>
         <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
@@ -305,7 +305,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                 </Grid2>
               </Grid2>
             )}
-            <Grid2 xs={12} maxHeight={500} overflow={"auto"}>
+            <Grid2 xs={12} maxHeight={300} overflow={"auto"}>
               {biosampleTables}
             </Grid2>
             <Grid2 xs={12} sx={{ mt: 1 }}>

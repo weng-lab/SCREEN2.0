@@ -85,7 +85,7 @@ function ResponsiveAppBar() {
 
   return (
     <ThemeProvider theme={defaultTheme}>
-      <AppBar position="static">
+      <AppBar position="fixed">
         <Container maxWidth={false}>
           <Toolbar disableGutters sx={{ justifyContent: "space-between" }}>
             {/* Display Icon on left when >=900px */}
@@ -162,16 +162,20 @@ function ResponsiveAppBar() {
                 <Box key={page.pageName}>
                   <Button
                     sx={{
-                      my: 2,
                       color: "white",
                       display: "flex",
+                      textTransform: "none",
                       "& .MuiButton-endIcon": { ml: 0 },
                     }}
                     endIcon={page.subPages && <ArrowDropDownIcon />}
                     onMouseEnter={page.subPages ? (event) => handleOpenNavMenu_Dropdown(event, page.dropdownID) : undefined}
                   >
                     {/* Wrap in next/link to enable dyanic link changing from basePath in next.config.js */}
-                    <Link href={page.link}>{page.pageName}</Link>
+                    <Link href={page.link}>
+                      <Typography variant="body1">
+                        {page.pageName}
+                      </Typography>
+                    </Link>
                   </Button>
                   {/* Hover dropdowns, open on hover. Create new instance for each menu item */}
                   {page.subPages && (
@@ -216,6 +220,8 @@ function ResponsiveAppBar() {
           </Toolbar>
         </Container>
       </AppBar>
+      {/* This empty toolbar is placed here to bump content down with new fixed positioning. Suggested in MUI docs */}
+      <Toolbar />
     </ThemeProvider>
   )
 }
