@@ -24,9 +24,10 @@ type CcreDetailsProps = {
   region: GenomicRegion
   globals: any
   genes: LinkedGenesData
+  page: number
 }
 
-export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, globals, assembly, genes }) => {
+export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, globals, assembly, genes, page }) => {
   const [value, setValue] = React.useState(0)
   const [open, setState] = React.useState<boolean>(true)
 

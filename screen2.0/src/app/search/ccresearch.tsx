@@ -80,11 +80,8 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 
 export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals }) => {
   const searchParams: ReadonlyURLSearchParams = useSearchParams()!
-  //Maybe not necessary
-  const theme = useTheme()
   const [open, setOpen] = React.useState(true);
   const [value, setValue] = useState(searchParams.get("accession") ? 1 : 0)
-  // const [tabIndex, setTabIndex] = useState(0)
   const [tableRows, setTableRows] = useState<MainResultTableRows>([])
   const [loading, setLoading] = useState(false)
 
@@ -168,15 +165,20 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
         {/* Customized div to bump drawer content down */}
         <DrawerHeader>
           <Typography variant="h5" pl="0.4rem">
-            Refine Your Search
+            {`${value < 2 ? "Refine Your Search" : "cCRE Details"}`}
           </Typography>
           <IconButton onClick={handleDrawerClose}>
-            {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+            <ChevronLeftIcon />
           </IconButton>
         </DrawerHeader>
         <Divider />
-        <MainResultsFilters mainQueryParams={props.mainQueryParams} byCellType={props.globals} />
-        {/* Add sidebar nav for details, remove all but biosample for gbview */}
+        {value < 2 ?
+          //This is recalculating whenever the expression evaluates differently (bad)
+          <MainResultsFilters mainQueryParams={props.mainQueryParams} byCellType={props.globals} genomeBrowserView={value === 1} />
+          :
+          <></>
+        }
+        {/* Add sidebar nav for details*/}
       </Drawer>
       <Main id="Main Content" open={open}>
         {/* Bumps content below app bar */}
@@ -184,7 +186,6 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
         {value === 0 && (
           <Box>
             <MainResultsTable
-              
               rows={tableRows}
               tableTitle={props.mainQueryParams.bed_intersect ? `Intersecting by uploaded .bed file in ${props.mainQueryParams.assembly}${sessionStorage.getItem("warning") === "true" ? " (Partial)" : ""}` : `Searching ${props.mainQueryParams.chromosome} in ${props.mainQueryParams.assembly} from ${props.mainQueryParams.start.toLocaleString("en-US")} to ${props.mainQueryParams.end.toLocaleString("en-US")}`}
               itemsPerPage={10}
@@ -208,6 +209,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
             globals={props.globals}
             assembly={props.mainQueryParams.assembly}
             genes={f?.linkedGenes}
+            page={0}
           />
         )}
       </Main>
