@@ -20,7 +20,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
 const drawerWidth = 350;
 
-export const StyledTab = styled(Tab)(() => ({
+const StyledTab = styled(Tab)(() => ({
   textTransform: "none",
 }))
 
@@ -82,6 +82,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
   const searchParams: ReadonlyURLSearchParams = useSearchParams()!
   const [open, setOpen] = React.useState(true);
   const [value, setValue] = useState(searchParams.get("accession") ? 1 : 0)
+  const [detailsPage, setDetailsPage] = useState(0)
   const [tableRows, setTableRows] = useState<MainResultTableRows>([])
   const [loading, setLoading] = useState(false)
 
@@ -176,7 +177,17 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
           //This is recalculating whenever the expression evaluates differently (bad)
           <MainResultsFilters mainQueryParams={props.mainQueryParams} byCellType={props.globals} genomeBrowserView={value === 1} />
           :
-          <></>
+          <Tabs aria-label="details-tabs" value={detailsPage} onChange={(_, newValue: number) => {setDetailsPage(newValue)}} orientation="vertical" variant="fullWidth">
+            <StyledTab label="In Specific Biosamples" sx={{ alignSelf: "start" }} />
+            <StyledTab label="Linked Genes" sx={{ alignSelf: "start" }} />
+            <StyledTab label="Nearby Genomic Features" sx={{ alignSelf: "start" }} />
+            <StyledTab label="TF and His-mod Intersection" sx={{ alignSelf: "start" }} />
+            <StyledTab label="TF Motifs and Sequence Features" sx={{ alignSelf: "start" }} />
+            <StyledTab label="Linked cCREs in other Assemblies" sx={{ alignSelf: "start" }} />
+            <StyledTab label="Associated RAMPAGE Signal" sx={{ alignSelf: "start" }} />
+            <StyledTab label="Associated Gene Expression" sx={{ alignSelf: "start" }} />
+            <StyledTab label="Functional Data" sx={{ alignSelf: "start" }} />
+          </Tabs>
         }
         {/* Add sidebar nav for details*/}
       </Drawer>
@@ -209,7 +220,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
             globals={props.globals}
             assembly={props.mainQueryParams.assembly}
             genes={f?.linkedGenes}
-            page={0}
+            page={detailsPage}
           />
         )}
       </Main>
