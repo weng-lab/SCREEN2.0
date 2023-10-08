@@ -1,22 +1,19 @@
 "use client"
-import React, { startTransition, useEffect, useState } from "react"
-import { styled, useTheme } from '@mui/material/styles';
-import { Divider, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Stack, Tab, Tabs, Tooltip, Typography } from "@mui/material"
+import React, { startTransition, useCallback, useEffect, useState } from "react"
+import { styled } from '@mui/material/styles';
+import { Divider, IconButton, Tab, Tabs, Typography, Box } from "@mui/material"
 import MainResultsTable from "../../common/components/MainResultsTable"
 import MainResultsFilters from "../../common/components/MainResultsFilters"
 import { CcreDetails } from "./ccredetails/ccredetails"
-import Grid2 from "../../common/mui-client-wrappers/Grid2"
-import { ReadonlyURLSearchParams, useSearchParams } from "next/navigation"
+import { ReadonlyURLSearchParams, usePathname, useRouter, useSearchParams } from "next/navigation"
 import { GenomeBrowserView } from "./gbview/genomebrowserview"
-import { MainQueryParams, MainResultTableRows } from "./types"
+import { LinkedGenesData, MainQueryParams, MainResultTableRow, MainResultTableRows } from "./types"
 import { fetchRows } from "./fetchRows"
 import { Drawer } from "@mui/material"
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar'
-import Box, { BoxProps as MuiBoxProps } from '@mui/material/Box'
 import Toolbar from '@mui/material/Toolbar'
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
 const drawerWidth = 350;
 
@@ -78,37 +75,72 @@ const DrawerHeader = styled('div')(({ theme }) => ({
   justifyContent: 'space-between',
 }));
 
+//Need some way to hold a list of current open accessions
+
+//Need to make sure that list of accessions can be:
+//Set on initial load from URL params
+//Modified by user interaction (add from table and delete from tabs)
+
+//Need a way to switch the "current" cCRE open in details
+
+//Need to preserve the functionality of individual cCRE search
+
+//When a tab is added/subtracted, is that automatically reflected in URL? Probably not? Would trigger redraw?
+
+
+//It's honestly not great having mainQueryParams set in page and only the page number accessed here through searchParams.
+//Doesn't make that much sense to access the URL params in two different places if it all can be accessed and set in both locations.
+
+//The biggest thing I'm confused abotu is when I have a state variable synced and set with a URL param, how should I set the state/url variable properly for performance reasons?
 export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals }) => {
   const searchParams: ReadonlyURLSearchParams = useSearchParams()!
+  const router = useRouter()
+  const basePathname = usePathname()
+  //Drawer open/close
   const [open, setOpen] = React.useState(true);
-  const [value, setValue] = useState(searchParams.get("accession") ? 1 : 0)
+  const [page, setPage] = useState(searchParams.get("page") ? Number(searchParams.get("page")) : 0)
   const [detailsPage, setDetailsPage] = useState(0)
   const [tableRows, setTableRows] = useState<MainResultTableRows>([])
   const [loading, setLoading] = useState(false)
+  const [opencCREs, setOpencCREs] = useState<{ ID: string, region: { start: string, chrom: string, end: string }, linkedGenes: LinkedGenesData }[]>([])
 
-  const handleChange = (_, newValue: number) => {
-    setValue(newValue)
+  //I think this isn't working since the table rows are blank, and the blank rows are being searched. Maybe use useEffect that triggers on change of tableRows.
+
+  const handleDrawerOpen = () => {setOpen(true)}
+  const handleDrawerClose = () => {setOpen(false)}
+
+  const handleTableClick = (row: MainResultTableRow) => {
+    console.log(row)
+    const newcCRE = {ID: row.accession, region: { start: row.start, end: row.end, chrom: row.chromosome}, linkedGenes: row.linkedGenes}
+    //if accession(s) exist in url, and the clicked accession is not already selected
+    if (searchParams.get("accession") && !searchParams.get("accession").split(',').includes(row.accession)){
+      //append to existing list
+      router.push(basePathname + "?" + createQueryString("accession", `${searchParams.get("accession") + ',' + row.accession}`))
+      setOpencCREs([... opencCREs, newcCRE])
+    } else if (!searchParams.get("accession")) {
+      //create fresh param
+      router.push(basePathname + "?" + createQueryString("accession", row.accession))
+      setOpencCREs([newcCRE])
+    }
   }
 
-  const handleDrawerOpen = () => {
-    setOpen(true);
-  };
+  const handlePageChange = (_, newValue: number) => {
+    setPage(newValue)
+    //This is creating a flash in the table (frustrating). Is there a fix? This is slowing it all down a lot
+    router.push(basePathname + "?" + createQueryString("page", String(newValue)))
+  }
 
-  const handleDrawerClose = () => {
-    setOpen(false);
-  };
+  const createQueryString = useCallback(
+    (name: string, value: string) => {
+      const params = new URLSearchParams(searchParams)
+      params.set(name, value)
 
-  useEffect(() => {
-    if (searchParams.get("accession")) {
-      setValue(2)
-    }
-  }, [searchParams])
-
-  //Need meaningful variable names please, is showing that this is undefined and throwing an error when using back button on details page since accession is undefined
-  let f = tableRows.find((c) => c.accession === searchParams.get("accession"))
-  const region = { start: f?.start, chrom: f?.chromosome, end: f?.end }
+      return params.toString()
+    }, [searchParams]
+  )
 
   useEffect(() => {
+    console.log("useEffect table rows fetched")
     setLoading(true)
     // @ts-expect-error
     //Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
@@ -122,9 +154,34 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
     })
   }, [props])
 
+  //Necessary to force page change when searching for a cCRE. Otherwise doesn't refresh. Maybe slowing performance?
+  useEffect(() => {
+    console.log("useEffect page updated")
+    setPage(Number(searchParams.get("page")))
+  }, [searchParams.get("page")])
+
+  //Used to set the list of selected accessions on initial load. Can't initialize normally since tableRows isn't loaded yet.
+  useEffect(() => {
+    console.log("useEffect opencCREs initialized")
+    if (searchParams.get("accession")) {
+      setOpencCREs(
+        searchParams.get("accession").split(',').map((cCRE_ID) => {
+          const cCRE_info = tableRows.find((row) => row.accession === cCRE_ID)
+          if (!cCRE_info) {
+            return null
+          } else {
+            console.log("accession found")
+            const region = { start: cCRE_info?.start, chrom: cCRE_info?.chromosome, end: cCRE_info?.end }
+            return ({ ID: cCRE_ID, region: region, linkedGenes: cCRE_info.linkedGenes })
+          }
+        }).filter((x) => x != null)
+      )
+    }
+  }, [tableRows])
+
   return (
-    <Box id="Outer Box" sx={{ display: 'flex'}}>
-      <AppBar id="AppBar" position="fixed" open={open} elevation={1} sx={{bottom: "auto", top: "auto", backgroundColor: "white"}}>
+    <Box id="Outer Box" sx={{ display: 'flex' }}>
+      <AppBar id="AppBar" position="fixed" open={open} elevation={1} sx={{ bottom: "auto", top: "auto", backgroundColor: "white" }}>
         <Toolbar>
           <IconButton
             color="primary"
@@ -135,14 +192,18 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
           >
             <MenuIcon />
           </IconButton>
-          <Tabs aria-label="basic tabs example" value={value} onChange={handleChange} component="div">
+          <Tabs aria-label="navigation tabs" value={page} onChange={handlePageChange} component="div">
             <StyledTab value={0} label="Table View" />
+            {/* Hide genome browser on bed intersect */}
             {!props.mainQueryParams.bed_intersect &&
               <StyledTab value={1} label="Genome Browser View" />
             }
-            {searchParams.get("accession") &&
-              <StyledTab value={2} label="cCRE Details" />
-            }
+            {/* Map opencCREs to tabs */}
+            {opencCREs && opencCREs.map((cCRE, i) => {
+              return (
+                <StyledTab value={2 + i} label={cCRE.ID} />
+              )
+            })}
           </Tabs>
         </Toolbar>
       </AppBar>
@@ -166,18 +227,18 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
         {/* Customized div to bump drawer content down */}
         <DrawerHeader>
           <Typography variant="h5" pl="0.4rem">
-            {`${value < 2 ? "Refine Your Search" : "cCRE Details"}`}
+            {`${page < 2 ? "Refine Your Search" : "cCRE Details"}`}
           </Typography>
           <IconButton onClick={handleDrawerClose}>
             <ChevronLeftIcon />
           </IconButton>
         </DrawerHeader>
         <Divider />
-        {value < 2 ?
+        {page < 2 ?
           //This is recalculating whenever the expression evaluates differently (bad)
-          <MainResultsFilters mainQueryParams={props.mainQueryParams} byCellType={props.globals} genomeBrowserView={value === 1} />
+          <MainResultsFilters mainQueryParams={props.mainQueryParams} byCellType={props.globals} genomeBrowserView={page === 1} />
           :
-          <Tabs aria-label="details-tabs" value={detailsPage} onChange={(_, newValue: number) => {setDetailsPage(newValue)}} orientation="vertical" variant="fullWidth">
+          <Tabs aria-label="details-tabs" value={detailsPage} onChange={(_, newValue: number) => { setDetailsPage(newValue) }} orientation="vertical" variant="fullWidth">
             <StyledTab label="In Specific Biosamples" sx={{ alignSelf: "start" }} />
             <StyledTab label="Linked Genes" sx={{ alignSelf: "start" }} />
             <StyledTab label="Nearby Genomic Features" sx={{ alignSelf: "start" }} />
@@ -194,18 +255,27 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
       <Main id="Main Content" open={open}>
         {/* Bumps content below app bar */}
         <DrawerHeader id="DrawerHeader" />
-        {value === 0 && (
+        {page === 0 && (
           <Box>
             <MainResultsTable
               rows={tableRows}
-              tableTitle={props.mainQueryParams.bed_intersect ? `Intersecting by uploaded .bed file in ${props.mainQueryParams.assembly}${sessionStorage.getItem("warning") === "true" ? " (Partial)" : ""}` : `Searching ${props.mainQueryParams.chromosome} in ${props.mainQueryParams.assembly} from ${props.mainQueryParams.start.toLocaleString("en-US")} to ${props.mainQueryParams.end.toLocaleString("en-US")}`}
+              tableTitle={props.mainQueryParams.bed_intersect ?
+                `Intersecting by uploaded .bed file in ${props.mainQueryParams.assembly}${sessionStorage.getItem("warning") === "true" ? " (Partial)" : ""}`
+                :
+                `Searching ${props.mainQueryParams.chromosome} in ${props.mainQueryParams.assembly} from ${props.mainQueryParams.start.toLocaleString("en-US")} to ${props.mainQueryParams.end.toLocaleString("en-US")}`
+              }
+              titleHoverInfo={props.mainQueryParams.bed_intersect ?
+                `${sessionStorage.getItem("warning") === "true" ? "The file you uploaded, " + sessionStorage.getItem('filenames') + ", is too large to be completely intersected. Results are incomplete."
+                :
+                sessionStorage.getItem('filenames')}` : null
+              }
               itemsPerPage={10}
-              titleHoverInfo={props.mainQueryParams.bed_intersect ? `${sessionStorage.getItem("warning") === "true" ? "The file you uploaded, " + sessionStorage.getItem('filenames') + ", is too large to be completely intersected. Results are incomplete." : sessionStorage.getItem('filenames')}` : null}
-              loading={loading} />
+              loading={loading}
+              onRowClick={handleTableClick}
+            />
           </Box>
-          // <ColumnGroupingTable />
         )}
-        {value === 1 && (
+        {page === 1 && (
           <GenomeBrowserView
             gene={props.mainQueryParams.gene}
             biosample={props.mainQueryParams.Biosample.biosample}
@@ -213,13 +283,14 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
             coordinates={{ start: +props.mainQueryParams.start, end: +props.mainQueryParams.end, chromosome: props.mainQueryParams.chromosome }}
           />
         )}
-        {value === 2 && (
+        {/* Issue: on reload with page selected, it's attempting to access opencCREs when it's not populated as the table rows havent been fetched */}
+        {page >= 2 && opencCREs.length > 0 && (
           <CcreDetails
-            accession={searchParams.get("accession")}
-            region={region}
+            accession={opencCREs[page - 2].ID}
+            region={opencCREs[page - 2].region}
             globals={props.globals}
             assembly={props.mainQueryParams.assembly}
-            genes={f?.linkedGenes}
+            genes={opencCREs[page - 2].linkedGenes}
             page={detailsPage}
           />
         )}

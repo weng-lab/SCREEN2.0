@@ -33,7 +33,7 @@ export default function DownloadsPage(props: {
 
   const router = useRouter()
 
-  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+  const handleChange = (_, newValue: number) => {
     if (
       (props.searchParams.assembly === "Human" || props.searchParams.assembly === "Mouse") &&
       (props.searchParams.assay === "DNase" ||
