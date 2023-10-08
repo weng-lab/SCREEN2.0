@@ -200,7 +200,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
             {/* Map opencCREs to tabs */}
             {opencCREs && opencCREs.map((cCRE, i) => {
               return (
-                <StyledTab value={2 + i} label={cCRE.ID} icon={<IconButton onClick={() => handleClosecCRE(cCRE.ID)}><CloseIcon /></IconButton>} iconPosition="end"/>
+                <StyledTab key={i} value={2 + i} label={cCRE.ID} icon={<IconButton onClick={() => handleClosecCRE(cCRE.ID)}><CloseIcon /></IconButton>} iconPosition="end"/>
               )
             })}
           </Tabs>
