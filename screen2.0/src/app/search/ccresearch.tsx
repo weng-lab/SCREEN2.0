@@ -14,6 +14,7 @@ import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar'
 import Toolbar from '@mui/material/Toolbar'
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import CloseIcon from '@mui/icons-material/Close';
 
 const drawerWidth = 350;
 
@@ -75,19 +76,6 @@ const DrawerHeader = styled('div')(({ theme }) => ({
   justifyContent: 'space-between',
 }));
 
-//Need some way to hold a list of current open accessions
-
-//Need to make sure that list of accessions can be:
-//Set on initial load from URL params
-//Modified by user interaction (add from table and delete from tabs)
-
-//Need a way to switch the "current" cCRE open in details
-
-//Need to preserve the functionality of individual cCRE search
-
-//When a tab is added/subtracted, is that automatically reflected in URL? Probably not? Would trigger redraw?
-
-
 //It's honestly not great having mainQueryParams set in page and only the page number accessed here through searchParams.
 //Doesn't make that much sense to access the URL params in two different places if it all can be accessed and set in both locations.
 
@@ -115,13 +103,24 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
     //if accession(s) exist in url, and the clicked accession is not already selected
     if (searchParams.get("accession") && !searchParams.get("accession").split(',').includes(row.accession)){
       //append to existing list
+      const newcCREs = [... opencCREs, newcCRE]
+      setOpencCREs(newcCREs)
       router.push(basePathname + "?" + createQueryString("accession", `${searchParams.get("accession") + ',' + row.accession}`))
-      setOpencCREs([... opencCREs, newcCRE])
+      // handlePageChange(undefined, newcCREs.length + 1)
     } else if (!searchParams.get("accession")) {
       //create fresh param
-      router.push(basePathname + "?" + createQueryString("accession", row.accession))
       setOpencCREs([newcCRE])
+      router.push(basePathname + "?" + createQueryString("accession", row.accession))
+      // handlePageChange(undefined, 2)
     }
+  }
+
+  const handleClosecCRE = (closedcCRE: string) => {
+    //filter out cCRE from array and set state
+    const newcCREs = opencCREs.filter((cCRE) => cCRE.ID != closedcCRE)
+    setOpencCREs(newcCREs)
+    //TODO if closing the tab you're on, and there is no page that exists to the right, go to the left
+    router.push(basePathname + '?' + createQueryString("accession", newcCREs.map((cCRE_info) => cCRE_info.ID).join(',')))
   }
 
   const handlePageChange = (_, newValue: number) => {
@@ -201,7 +200,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
             {/* Map opencCREs to tabs */}
             {opencCREs && opencCREs.map((cCRE, i) => {
               return (
-                <StyledTab value={2 + i} label={cCRE.ID} />
+                <StyledTab value={2 + i} label={cCRE.ID} icon={<IconButton onClick={() => handleClosecCRE(cCRE.ID)}><CloseIcon /></IconButton>} iconPosition="end"/>
               )
             })}
           </Tabs>
