@@ -16,6 +16,15 @@ import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import CloseIcon from '@mui/icons-material/Close';
 
+
+/**
+ * @todo:
+ * - Make (x) on cCREs have onClick accessible without navigating to tab too
+ * - Fix issue with map
+ * - Impose some kind of limit on open cCREs
+ * - Have cmd click ("open new tab") functionality
+ */
+
 const drawerWidth = 350;
 
 const StyledTab = styled(Tab)(() => ({
@@ -76,70 +85,68 @@ const DrawerHeader = styled('div')(({ theme }) => ({
   justifyContent: 'space-between',
 }));
 
-//It's honestly not great having mainQueryParams set in page and only the page number accessed here through searchParams.
-//Doesn't make that much sense to access the URL params in two different places if it all can be accessed and set in both locations.
-
-//The biggest thing I'm confused abotu is when I have a state variable synced and set with a URL param, how should I set the state/url variable properly for performance reasons?
-
 //Issue: when the URL is refreshed it triggers a rerender, which really hurts performance
+// https://github.com/vercel/next.js/discussions/18072 relevant potential workaround
 export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals }) => {
   const searchParams: ReadonlyURLSearchParams = useSearchParams()!
   const router = useRouter()
   const basePathname = usePathname()
   //Drawer open/close
   const [open, setOpen] = React.useState(true);
-  const [page, setPage] = useState(searchParams.get("page") ? Number(searchParams.get("page")) : 0)
+  //Need to have logic here to switch to the correct accession if multiple are open
+  const [page, setPage] = useState(searchParams.get("accession") ? 2 : 0)
   const [detailsPage, setDetailsPage] = useState(0)
   const [tableRows, setTableRows] = useState<MainResultTableRows>([])
   const [loading, setLoading] = useState(false)
   const [opencCREs, setOpencCREs] = useState<{ ID: string, region: { start: string, chrom: string, end: string }, linkedGenes: LinkedGenesData }[]>([])
 
-  //I think this isn't working since the table rows are blank, and the blank rows are being searched. Maybe use useEffect that triggers on change of tableRows.
-
   const handleDrawerOpen = () => {setOpen(true)}
   const handleDrawerClose = () => {setOpen(false)}
 
   const handleTableClick = (row: MainResultTableRow) => {
-    console.log(row)
     const newcCRE = {ID: row.accession, region: { start: row.start, end: row.end, chrom: row.chromosome}, linkedGenes: row.linkedGenes}
-    //if accession(s) exist in url, and the clicked accession is not already selected
-    if (searchParams.get("accession") && !searchParams.get("accession").split(',').includes(row.accession)){
-      //append to existing list
-      const newcCREs = [... opencCREs, newcCRE]
-      setOpencCREs(newcCREs)
-      router.push(basePathname + "?" + createQueryString("accession", `${searchParams.get("accession") + ',' + row.accession}`))
-      // handlePageChange(undefined, newcCREs.length + 1)
-    } else if (!searchParams.get("accession")) {
-      //create fresh param
-      setOpencCREs([newcCRE])
+    //If cCRE isn't in open cCREs, add and push as current accession.
+    if (!opencCREs.find((x) => x.ID === newcCRE.ID)) {
+      setOpencCREs([... opencCREs, newcCRE])
+      setPage([... opencCREs, newcCRE].length + 1)
       router.push(basePathname + "?" + createQueryString("accession", row.accession))
-      // handlePageChange(undefined, 2)
+    } else {
+      setPage(findTabByID(newcCRE.ID))
     }
   }
 
-  const handleClosecCRE = (closedcCRE: string) => {
-    //filter out cCRE from array and set state
-    const newcCREs = opencCREs.filter((cCRE) => cCRE.ID != closedcCRE)
-    setOpencCREs(newcCREs)
-    //TODO if closing the tab you're on, and there is no page that exists to the right, go to the left
-    router.push(basePathname + '?' + createQueryString("accession", newcCREs.map((cCRE_info) => cCRE_info.ID).join(',')))
+  //This logic needs checking, esp edge cases it's convoluted.
+  //This has trouble closing the last open tab if you're not on the page since the onClick event is fired which switches the page to the now empty page
+  const handleClosecCRE = (closedID: string) => {
+    //Filter out cCRE
+    setOpencCREs(opencCREs.filter((cCRE) => cCRE.ID != closedID))
+    // If you're closing the tab all the way to the right the index of the closed cCRE is equal to it's length -1
+    // Important to note that opencCREs here is still the old value
+    if ((opencCREs.findIndex(x => x.ID === closedID) === (opencCREs.length - 1))) {
+      //Change the tab and either push the accession to the left, or if you're closing the last tab go back to page 0
+      //If you're closing the last tab, go to table view insead of the cCRE to the left
+      if (opencCREs.length === 1) {
+        setPage(0)
+        router.push(basePathname + '?' + createQueryString("accession", ""))
+      } else {
+        setPage(opencCREs.length)
+        router.push(basePathname + '?' + createQueryString("accession", opencCREs[opencCREs.findIndex(x => x.ID === closedID) -1].ID))
+      }
+    } 
+    else {
+      router.push(basePathname + '?' + createQueryString("accession", opencCREs[opencCREs.findIndex(x => x.ID === closedID) + 1].ID))
+    }
   }
 
   const handlePageChange = (_, newValue: number) => {
     setPage(newValue)
-    //This is creating a flash in the table (frustrating). Is there a fix? This is slowing it all down a lot
-    router.push(basePathname + "?" + createQueryString("page", String(newValue)))
+    //If switching to a cCRE, mirror in URL
+    if (newValue >= 2) {
+      router.push(basePathname + '?' + createQueryString("accession", opencCREs[newValue - 2].ID))
+    }
   }
 
-  const createQueryString = useCallback(
-    (name: string, value: string) => {
-      const params = new URLSearchParams(searchParams)
-      params.set(name, value)
-
-      return params.toString()
-    }, [searchParams]
-  )
-
+  //Fetch table rows
   useEffect(() => {
     console.log("useEffect table rows fetched")
     setLoading(true)
@@ -155,30 +162,36 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
     })
   }, [props])
 
-  //Necessary to force page change when searching for a cCRE. Otherwise doesn't refresh. Maybe slowing performance?
-  useEffect(() => {
-    console.log("useEffect page updated")
-    setPage(Number(searchParams.get("page")))
-  }, [searchParams.get("page")])
-
   //Used to set the list of selected accessions on initial load. Can't initialize normally since tableRows isn't loaded yet.
   useEffect(() => {
     console.log("useEffect opencCREs initialized")
-    if (searchParams.get("accession")) {
-      setOpencCREs(
-        searchParams.get("accession").split(',').map((cCRE_ID) => {
-          const cCRE_info = tableRows.find((row) => row.accession === cCRE_ID)
-          if (!cCRE_info) {
-            return null
-          } else {
-            console.log("accession found")
-            const region = { start: cCRE_info?.start, chrom: cCRE_info?.chromosome, end: cCRE_info?.end }
-            return ({ ID: cCRE_ID, region: region, linkedGenes: cCRE_info.linkedGenes })
-          }
-        }).filter((x) => x != null)
-      )
+    const accession = searchParams.get("accession")
+    if (accession && searchParams.get("noWipe") !== "t") {
+      const cCRE_info = tableRows.find((row) => row.accession === accession)
+      if (cCRE_info) {
+        const region = { start: cCRE_info?.start, chrom: cCRE_info?.chromosome, end: cCRE_info?.end }
+        setOpencCREs([{ ID: cCRE_info.accession, region: region, linkedGenes: cCRE_info.linkedGenes }])
+        //Is there a better way to flag this? If I don't, it will always reset open cCREs.
+        //This is not a good solution, sharing the url of a loaded search will then not initialize.
+        router.push(basePathname + "?" + createQueryString("noWipe", "t"))
+      } else {
+        console.log(`Couldn't find ${accession} in the table`)
+      }
     }
   }, [tableRows])
+
+  const createQueryString = useCallback(
+    (name: string, value: string) => {
+      const params = new URLSearchParams(searchParams)
+      params.set(name, value)
+
+      return params.toString()
+    }, [searchParams]
+  )
+
+  const findTabByID = (id: string) => {
+    return(opencCREs.findIndex((x) => x.ID === id) + 2)
+  }
 
   return (
     <Box id="Outer Box" sx={{ display: 'flex' }}>
@@ -285,8 +298,12 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
           />
         )}
         {/* Issue: on reload with page selected, it's attempting to access opencCREs when it's not populated as the table rows havent been fetched */}
-        {/* I think I need to map opencCREs to a component instead of changing the info passed to it */}
-        {page >= 2 && opencCREs.length > 0 && (
+        {/* I think I need to map opencCREs to a component instead of changing the info passed to it
+          How do I do this?
+         */}
+         {/* Should the details pages share the same sidebar state? */}
+         {/* Do the elements need display: none? */}
+        {/* {page >= 2 && opencCREs.length > 0 && (
           <CcreDetails
             accession={opencCREs[page - 2].ID}
             region={opencCREs[page - 2].region}
@@ -295,7 +312,21 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
             genes={opencCREs[page - 2].linkedGenes}
             page={detailsPage}
           />
-        )}
+        )} */}
+        {opencCREs?.map((cCRE, i) => {
+          return (
+            <Box display={page === (i + 2) ? "block" : "none"}>
+              <CcreDetails
+                accession={cCRE.ID}
+                region={cCRE.region}
+                globals={props.globals}
+                assembly={props.mainQueryParams.assembly}
+                genes={cCRE.linkedGenes}
+                page={detailsPage}
+              />
+            </Box> 
+          )
+        })}
       </Main>
     </Box>
   )

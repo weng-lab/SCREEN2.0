@@ -23,11 +23,11 @@ type CcreDetailsProps = {
 export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, globals, assembly, genes, page }) => {
   return (
     <>
-      <Stack direction="column" justifyContent="space-between" mb={3}>
+      <Stack direction="row" justifyContent={"space-between"} alignItems={"baseline"}>
         <Typography variant="h4">{accession}</Typography>
-        <Typography>{`${region.chrom}:${region.start}-${region.end}`}</Typography>
-        <Divider />
+        <Typography variant="h5">{`${region.chrom}:${region.start}-${region.end}`}</Typography>
       </Stack>
+      <Divider/>
       {page === 0 && <InSpecificBiosamples accession={accession} globals={globals} assembly={assembly} />}
       {page === 1 && <LinkedGenes accession={accession} assembly={assembly} />}
       {page === 2 && (
