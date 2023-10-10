@@ -80,6 +80,8 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 //Doesn't make that much sense to access the URL params in two different places if it all can be accessed and set in both locations.
 
 //The biggest thing I'm confused abotu is when I have a state variable synced and set with a URL param, how should I set the state/url variable properly for performance reasons?
+
+//Issue: when the URL is refreshed it triggers a rerender, which really hurts performance
 export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals }) => {
   const searchParams: ReadonlyURLSearchParams = useSearchParams()!
   const router = useRouter()
@@ -283,6 +285,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
           />
         )}
         {/* Issue: on reload with page selected, it's attempting to access opencCREs when it's not populated as the table rows havent been fetched */}
+        {/* I think I need to map opencCREs to a component instead of changing the info passed to it */}
         {page >= 2 && opencCREs.length > 0 && (
           <CcreDetails
             accession={opencCREs[page - 2].ID}
