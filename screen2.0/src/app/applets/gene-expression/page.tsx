@@ -73,7 +73,7 @@ export default function GeneExpression() {
   } = useQuery(GENE_EXP_QUERY, {
     variables: {
       assembly: current_assembly,
-      gene_id: data_gene && data_gene.gene.length> 0 &&data_gene.gene[0].id,
+      gene_id: data_gene && data_gene.gene.length> 0 &&data_gene.gene[0].id.split(".")[0],
       accessions: current_assembly.toLowerCase()==="grch38" ? HUMAN_GENE_EXP : MOUSE_GENE_EXP
     },
     skip: !data_gene || (data_gene && data_gene.gene.length===0),
