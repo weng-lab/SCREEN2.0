@@ -18,8 +18,30 @@ type cCRERow = {
   group: any
 }
 
-const tableCols = (globals, showGroup = true) => {
-  let cols = [
+
+const tableCols = (globals, typeC = false) => {
+  let cols = typeC ? [
+    {
+      header: "Cell Type",
+      value: (row: cCRERow) =>
+        globals.byCellType[row.ct] && globals.byCellType[row.ct][0] ? globals.byCellType[row.ct][0]["biosample_summary"] : "",
+    },   
+    {
+      header: "H3K4me3 Z-score",
+      value: (row: cCRERow) => row.h3k4me3,
+      render: (row: cCRERow) => z_score(row.h3k4me3),
+    },
+    {
+      header: "H3K27ac Z-score",
+      value: (row: cCRERow) => row.h3k27ac,
+      render: (row: cCRERow) => z_score(row.h3k27ac),
+    },
+    {
+      header: "CTCF Z-score",
+      value: (row: cCRERow) => row.ctcf,
+      render: (row: cCRERow) => z_score(row.ctcf),
+    },
+  ]: [
     {
       header: "Cell Type",
       value: (row: cCRERow) =>
@@ -45,15 +67,12 @@ const tableCols = (globals, showGroup = true) => {
       value: (row: cCRERow) => row.ctcf,
       render: (row: cCRERow) => z_score(row.ctcf),
     },
-  ]
-  if (showGroup) {
-    cols.push({
+    {
       header: "Group",
       value: (row: cCRERow) => row.group,
       render: (row: cCRERow) => ctgroup(row.group),
-    })
-  }
-
+    }
+  ]
   return cols
 }
 
@@ -100,7 +119,7 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
     nextFetchPolicy: "cache-first",
     client,
   })
-  let withdnase, typea, typec
+  let withdnase, typea, typec;
   if (data_toptissues) {
     let r = data_toptissues.ccREBiosampleQuery.biosamples
     let ctcfdata = r.map((rs) => {
@@ -222,6 +241,7 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
     withdnase = ccreCts.filter((c) => c.type === "withdnase")
     typea = ccreCts.filter((c) => c.type === "typea")
     typec = ccreCts.filter((c) => c.type === "typec")
+    
   }
   return (
     <>
@@ -267,12 +287,12 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
               )}
             </Grid2>
             <Grid2 xs={6} md={6} lg={6}>
-              {typec && (
+              {typec  && (
                 <DataTable
-                  columns={tableCols(globals, false)}
+                  columns={tableCols(globals, true)}
                   tableTitle="Classification in Type C biosamples (DNase-seq not available)"
-                  rows={withdnase}
-                  sortColumn={4}
+                  rows={typec}
+                  sortColumn={1}
                   itemsPerPage={5}
                 />
               )}
