@@ -1,7 +1,7 @@
 "use client"
 import React, { startTransition, useCallback, useEffect, useState } from "react"
 import { styled } from '@mui/material/styles';
-import { Divider, IconButton, Tab, Tabs, Typography, Box } from "@mui/material"
+import { Divider, IconButton, Tab, Tabs, Typography, Box, Stack } from "@mui/material"
 import MainResultsTable from "../../common/components/MainResultsTable"
 import MainResultsFilters from "../../common/components/MainResultsFilters"
 import { CcreDetails } from "./ccredetails/ccredetails"
@@ -139,12 +139,22 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
   }
 
   const handlePageChange = (_, newValue: number) => {
+    console.log("page changed")
     setPage(newValue)
     //If switching to a cCRE, mirror in URL
     if (newValue >= 2) {
       router.push(basePathname + '?' + createQueryString("accession", opencCREs[newValue - 2].ID))
     }
   }
+
+  const createQueryString = useCallback(
+    (name: string, value: string) => {
+      const params = new URLSearchParams(searchParams)
+      params.set(name, value)
+
+      return params.toString()
+    }, [searchParams]
+  )
 
   //Fetch table rows
   useEffect(() => {
@@ -163,10 +173,11 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
   }, [props])
 
   //Used to set the list of selected accessions on initial load. Can't initialize normally since tableRows isn't loaded yet.
+  //Why is this running again when noWipe is already true? It's running immediately before it fails
   useEffect(() => {
-    console.log("useEffect opencCREs initialized")
     const accession = searchParams.get("accession")
     if (accession && searchParams.get("noWipe") !== "t") {
+      console.log("useEffect opencCREs initialized")
       const cCRE_info = tableRows.find((row) => row.accession === accession)
       if (cCRE_info) {
         const region = { start: cCRE_info?.start, chrom: cCRE_info?.chromosome, end: cCRE_info?.end }
@@ -178,16 +189,9 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
         console.log(`Couldn't find ${accession} in the table`)
       }
     }
-  }, [tableRows])
+  }, [tableRows, basePathname, router, searchParams, createQueryString])
 
-  const createQueryString = useCallback(
-    (name: string, value: string) => {
-      const params = new URLSearchParams(searchParams)
-      params.set(name, value)
 
-      return params.toString()
-    }, [searchParams]
-  )
 
   const findTabByID = (id: string) => {
     return(opencCREs.findIndex((x) => x.ID === id) + 2)
@@ -213,9 +217,9 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
               <StyledTab value={1} label="Genome Browser View" />
             }
             {/* Map opencCREs to tabs */}
-            {opencCREs && opencCREs.map((cCRE, i) => {
+            {opencCREs.length > 0 && opencCREs.map((cCRE, i) => {
               return (
-                <StyledTab key={i} value={2 + i} label={cCRE.ID} icon={<IconButton onClick={() => handleClosecCRE(cCRE.ID)}><CloseIcon /></IconButton>} iconPosition="end"/>
+                <StyledTab onClick={(event) => event.preventDefault} key={i} value={2 + i} label={cCRE.ID} icon={<IconButton onClick={(event) => {event.stopPropagation(); handleClosecCRE(cCRE.ID)}}><CloseIcon /></IconButton>} iconPosition="end"/>
               )
             })}
           </Tabs>
@@ -297,13 +301,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
             coordinates={{ start: +props.mainQueryParams.start, end: +props.mainQueryParams.end, chromosome: props.mainQueryParams.chromosome }}
           />
         )}
-        {/* Issue: on reload with page selected, it's attempting to access opencCREs when it's not populated as the table rows havent been fetched */}
-        {/* I think I need to map opencCREs to a component instead of changing the info passed to it
-          How do I do this?
-         */}
-         {/* Should the details pages share the same sidebar state? */}
-         {/* Do the elements need display: none? */}
-        {/* {page >= 2 && opencCREs.length > 0 && (
+        {page >= 2 && opencCREs.length > 0 && (
           <CcreDetails
             accession={opencCREs[page - 2].ID}
             region={opencCREs[page - 2].region}
@@ -312,10 +310,10 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
             genes={opencCREs[page - 2].linkedGenes}
             page={detailsPage}
           />
-        )} */}
-        {opencCREs?.map((cCRE, i) => {
+        )}
+        {/* {opencCREs.length != 0 && opencCREs.map((cCRE, i) => {
           return (
-            <Box display={page === (i + 2) ? "block" : "none"}>
+            <Box key={cCRE.ID + i} display={page === (i + 2) ? "block" : "none"}>
               <CcreDetails
                 accession={cCRE.ID}
                 region={cCRE.region}
@@ -326,7 +324,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
               />
             </Box> 
           )
-        })}
+        })} */}
       </Main>
     </Box>
   )

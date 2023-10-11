@@ -105,7 +105,11 @@ const ctAgnosticColumns = () => [
   },
 ]
 
+//This should maybe be moved to server fetch?
+//Why is the cache not working?
+//Is there something weird happening with the interaction between apollo cache and next.js cache?
 export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
+  
   const {
     loading: loading_toptissues,
     error: error_toptissues,
@@ -115,13 +119,17 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
       assembly: assembly.toLowerCase(),
       accession: [accession],
     },
-    fetchPolicy: "cache-and-network",
-    nextFetchPolicy: "cache-first",
+    fetchPolicy: "cache-first",
+    nextFetchPolicy: "cache-only",
     client,
   })
   let withdnase, typea, typec;
-  if (data_toptissues) {
+  //This is a super hacky way to get rid of error. Only most recent cCRE gets the correct info?
+  console.log(accession)
+  console.log(data_toptissues?.ccREBiosampleQuery.biosamples[0])
+  if (data_toptissues?.ccREBiosampleQuery?.biosamples[0]?.cCREZScores) {
     let r = data_toptissues.ccREBiosampleQuery.biosamples
+    //When opening up a new cCRE, it's info is fetched correctly, but the other ones have incomplete data?
     let ctcfdata = r.map((rs) => {
       return rs.cCREZScores
         .filter((d) => d.assay.toLowerCase() === "ctcf")
