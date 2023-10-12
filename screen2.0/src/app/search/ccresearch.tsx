@@ -115,26 +115,47 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
     }
   }
 
-  //This logic needs checking, esp edge cases it's convoluted.
-  //This has trouble closing the last open tab if you're not on the page since the onClick event is fired which switches the page to the now empty page
   const handleClosecCRE = (closedID: string) => {
     //Filter out cCRE
-    setOpencCREs(opencCREs.filter((cCRE) => cCRE.ID != closedID))
-    // If you're closing the tab all the way to the right the index of the closed cCRE is equal to it's length -1
+    const newOpencCREs = opencCREs.filter((cCRE) => cCRE.ID != closedID)
+    setOpencCREs(newOpencCREs)
+
+    const closedIndex = opencCREs.findIndex(x => x.ID === closedID)
     // Important to note that opencCREs here is still the old value
-    if ((opencCREs.findIndex(x => x.ID === closedID) === (opencCREs.length - 1))) {
-      //Change the tab and either push the accession to the left, or if you're closing the last tab go back to page 0
-      //If you're closing the last tab, go to table view insead of the cCRE to the left
+
+    // If you're closing a tab to the right of what you're on:
+    if (closedIndex > (page - 2)) {
+       // No action needed
+    }
+    // If you're closing the tab you're on:
+    if (closedIndex === (page - 2)) {
+      // If it is the last open:
       if (opencCREs.length === 1) {
+        // Set to page 0
         setPage(0)
+        setDetailsPage(0)
+        // Change URL to ???
         router.push(basePathname + '?' + createQueryString("accession", ""))
-      } else {
-        setPage(opencCREs.length)
-        router.push(basePathname + '?' + createQueryString("accession", opencCREs[opencCREs.findIndex(x => x.ID === closedID) -1].ID))
       }
-    } 
-    else {
-      router.push(basePathname + '?' + createQueryString("accession", opencCREs[opencCREs.findIndex(x => x.ID === closedID) + 1].ID))
+      // If it's the tab at the far right
+      else if (page === (opencCREs.length + 1)) {
+        // Page - 1
+        setPage(page - 1)
+        // URL to accession on the left
+        router.push(basePathname + '?' + createQueryString("accession", opencCREs[closedIndex - 1].ID))
+      }
+      // Else it's not at the end or the last open:
+      else {
+        // Keep page position
+        // Change URL to cCRE to the right
+        router.push(basePathname + '?' + createQueryString("accession", opencCREs[closedIndex + 1].ID))
+      }
+    }
+    // If you're closing a tab to the left of what you're on: 
+    if (closedIndex < (page - 2)) {
+      // Page count -= 1 to keep tab position
+      setPage(page - 1)
+      // Keep URL
     }
   }
 
@@ -301,7 +322,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
             coordinates={{ start: +props.mainQueryParams.start, end: +props.mainQueryParams.end, chromosome: props.mainQueryParams.chromosome }}
           />
         )}
-        {page >= 2 && opencCREs.length > 0 && (
+        {/* {page >= 2 && opencCREs.length > 0 && (
           <CcreDetails
             accession={opencCREs[page - 2].ID}
             region={opencCREs[page - 2].region}
@@ -310,11 +331,12 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
             genes={opencCREs[page - 2].linkedGenes}
             page={detailsPage}
           />
-        )}
-        {/* {opencCREs.length != 0 && opencCREs.map((cCRE, i) => {
+        )} */}
+        {page >= 2 && opencCREs.length > 0 && opencCREs.map((cCRE, i) => {
           return (
-            <Box key={cCRE.ID + i} display={page === (i + 2) ? "block" : "none"}>
+            <Box key={i} display={page === (i + 2) ? "block" : "none"}>
               <CcreDetails
+                key={cCRE.ID}
                 accession={cCRE.ID}
                 region={cCRE.region}
                 globals={props.globals}
@@ -324,7 +346,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
               />
             </Box> 
           )
-        })} */}
+        })}
       </Main>
     </Box>
   )

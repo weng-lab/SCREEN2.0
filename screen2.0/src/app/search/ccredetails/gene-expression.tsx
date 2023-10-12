@@ -1,13 +1,10 @@
 "use client"
 import React, { useState, useEffect } from "react"
-
 import { usePathname } from "next/navigation"
 import { LoadingMessage, ErrorMessage } from "../../../common/lib/utility"
-
 import { PlotGeneExpression } from "../../applets/gene-expression/utils"
 import { useQuery } from "@apollo/client"
 import { Box, Button, Typography, IconButton, Drawer, Toolbar, AppBar, Stack, Paper, TextField, MenuItem, Tooltip } from "@mui/material"
-
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import Divider from "@mui/material/Divider"
 import { ThemeProvider } from "@mui/material/styles"
@@ -15,9 +12,7 @@ import { defaultTheme } from "../../../common/lib/themes"
 import MenuIcon from "@mui/icons-material/Menu"
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos"
 import InfoIcon from "@mui/icons-material/Info"
-
 import Image from "next/image"
-
 import { client } from "./client"
 import {
   OptionsBiosampleTypes,
