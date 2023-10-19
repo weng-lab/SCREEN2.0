@@ -1,13 +1,14 @@
 "use client"
 import React from "react"
-import { client } from "./client"
-import { useQuery } from "@apollo/client"
+
+// import { useQuery } from "@apollo/client"
+import { useSuspenseQuery, useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import { TOP_TISSUES } from "./queries"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { z_score, ctgroup } from "./utils"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
-import { CircularProgress } from "@mui/material"
 import { LoadingMessage } from "../../../common/lib/utility"
+// import { client } from "./client"
 
 type cCRERow = {
   ct?: string
@@ -105,30 +106,51 @@ const ctAgnosticColumns = () => [
   },
 ]
 
-//This should maybe be moved to server fetch?
-//Why is the cache not working? 
+//Why is the cache not working? It works properly if there's just one cCRE, but more than that and it misses the cache?
 //Is there something weird happening with the interaction between apollo cache and next.js cache?
+
+//The query is being sent by all the tabs at the same time since their page prop is changing
+//Is open cCREs being soft reset?
 export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
   
-  const {
-    loading: loading_toptissues,
-    error: error_toptissues,
-    data: data_toptissues,
-  } = useQuery(TOP_TISSUES, {
-    variables: {
-      assembly: assembly.toLowerCase(),
-      accession: [accession],
-    },
-    fetchPolicy: "cache-first",
-    nextFetchPolicy: "cache-only",
-    client,
-  })
+  // const {
+  //   loading: loading_toptissues,
+  //   error: error_toptissues,
+  //   data: data_toptissues,
+  // } = useQuery(TOP_TISSUES, {
+  //   variables: {
+  //     assembly: assembly.toLowerCase(),
+  //     accession: [accession],
+  //   },
+  //   fetchPolicy: "cache-first",
+  //   // nextFetchPolicy: "cache-only",
+  // })
+
+  // const { data: data_toptissues  } = useSuspenseQuery(TOP_TISSUES,
+  //   {
+  //     variables: {
+  //       assembly: assembly.toLowerCase(),
+  //       accession: [accession],
+  //     },
+  //     fetchPolicy: "cache-first"
+  //   }
+  // )
+
+  const { data: data_toptissues, loading: loading_toptissues, error: error_toptissues  } = useQuery(TOP_TISSUES,
+    {
+      variables: {
+        assembly: assembly.toLowerCase(),
+        accession: [accession],
+      },
+      fetchPolicy: "cache-first"
+    }
+  )
+
   let withdnase, typea, typec;
   console.log(accession)
-  console.log(data_toptissues?.ccREBiosampleQuery.biosamples[0])
-  //This is a super hacky way to get rid of error. Only the fetch that finishes last gets the correct info? The only field missing is the one that differs between cCREs...
-  // if (data_toptissues) {
-  if (data_toptissues?.ccREBiosampleQuery?.biosamples[0]?.cCREZScores) {
+  console.log(data_toptissues?.ccREBiosampleQuery?.biosamples[0])
+  
+  if (data_toptissues) {
     let r = data_toptissues.ccREBiosampleQuery.biosamples
     let ctcfdata = r.map((rs) => {
       return rs.cCREZScores
@@ -306,7 +328,7 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
               )}
             </Grid2>
           </Grid2>
-        </>
+         </>
       )}
     </>
   )

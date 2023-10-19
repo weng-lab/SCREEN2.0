@@ -16,13 +16,11 @@ import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import CloseIcon from '@mui/icons-material/Close';
 
-
 /**
  * @todo:
- * - Make (x) on cCREs have onClick accessible without navigating to tab too
- * - Fix issue with map
  * - Impose some kind of limit on open cCREs
  * - Have cmd click ("open new tab") functionality
+ * 
  */
 
 const drawerWidth = 350;
@@ -91,10 +89,8 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
   const searchParams: ReadonlyURLSearchParams = useSearchParams()!
   const router = useRouter()
   const basePathname = usePathname()
-  //Drawer open/close
   const [open, setOpen] = React.useState(true);
-  //Need to have logic here to switch to the correct accession if multiple are open
-  const [page, setPage] = useState(searchParams.get("accession") ? 2 : 0)
+  const [page, setPage] = useState(searchParams.get("page") ? Number(searchParams.get("page")) : 0)
   const [detailsPage, setDetailsPage] = useState(0)
   const [tableRows, setTableRows] = useState<MainResultTableRows>([])
   const [loading, setLoading] = useState(false)
@@ -108,10 +104,12 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
     //If cCRE isn't in open cCREs, add and push as current accession.
     if (!opencCREs.find((x) => x.ID === newcCRE.ID)) {
       setOpencCREs([... opencCREs, newcCRE])
-      setPage([... opencCREs, newcCRE].length + 1)
-      router.push(basePathname + "?" + createQueryString("accession", row.accession))
+      setPage(opencCREs.length + 2)
+      router.push(basePathname + "?" + createQueryString("accession", [... opencCREs, newcCRE].map((x) => x.ID).join(','), "page", String(opencCREs.length + 2)))
     } else {
-      setPage(findTabByID(newcCRE.ID))
+      const newPage = findTabByID(newcCRE.ID)
+      setPage(newPage)
+      router.push(basePathname + "?" + createQueryString("page", String(newPage)))
     }
   }
 
@@ -135,88 +133,88 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
         setPage(0)
         setDetailsPage(0)
         // Change URL to ???
-        router.push(basePathname + '?' + createQueryString("accession", ""))
+        router.push(basePathname + '?' + createQueryString("accession", "", "page", "0"))
       }
       // If it's the tab at the far right
       else if (page === (opencCREs.length + 1)) {
         // Page - 1
         setPage(page - 1)
         // URL to accession on the left
-        router.push(basePathname + '?' + createQueryString("accession", opencCREs[closedIndex - 1].ID))
+        router.push(basePathname + '?' + createQueryString("accession", newOpencCREs.map((x) => x.ID).join(','), "page", String(page - 1)))
       }
       // Else it's not at the end or the last open:
       else {
         // Keep page position
         // Change URL to cCRE to the right
-        router.push(basePathname + '?' + createQueryString("accession", opencCREs[closedIndex + 1].ID))
+        router.push(basePathname + '?' + createQueryString("accession", newOpencCREs.map((x) => x.ID).join(',')))
       }
     }
     // If you're closing a tab to the left of what you're on: 
     if (closedIndex < (page - 2)) {
       // Page count -= 1 to keep tab position
       setPage(page - 1)
-      // Keep URL
+      router.push(basePathname + '?' + createQueryString("page", String(page - 1)))
     }
   }
 
   const handlePageChange = (_, newValue: number) => {
-    console.log("page changed")
     setPage(newValue)
-    //If switching to a cCRE, mirror in URL
-    if (newValue >= 2) {
-      router.push(basePathname + '?' + createQueryString("accession", opencCREs[newValue - 2].ID))
-    }
+    router.push(basePathname + '?' + createQueryString("page", String(newValue)))
   }
 
   const createQueryString = useCallback(
-    (name: string, value: string) => {
+    (name1: string, value1: string, name2?: string, value2?: string) => {
       const params = new URLSearchParams(searchParams)
-      params.set(name, value)
-
+      params.set(name1, value1)
+      if (name2 && value2){
+        params.set(name2, value2)
+      }
       return params.toString()
     }, [searchParams]
   )
 
-  //Fetch table rows
+  //Fetch table rows, initialize open cCREs
+  //Load when:
+  //  Initial load
+  //  Biosample selection -> force refresh?
   useEffect(() => {
     console.log("useEffect table rows fetched")
     setLoading(true)
     // @ts-expect-error
     //Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
     startTransition(async () => {
+      //fetch rows
+      let fetchedRows;
       if (props.mainQueryParams.bed_intersect) {
-        setTableRows(await fetchRows(props.mainQueryParams, sessionStorage.getItem("bed intersect")?.split(' ')))
+        fetchedRows = await fetchRows(props.mainQueryParams, sessionStorage.getItem("bed intersect")?.split(' '))
       } else {
-        setTableRows(await fetchRows(props.mainQueryParams))
+        fetchedRows = await fetchRows(props.mainQueryParams)
       }
+      setTableRows(fetchedRows)
+      //initialize open cCREs
+      const accessions = searchParams.get("accession")?.split(',')
+      accessions && setOpencCREs(accessions.map((id) => {
+        const cCRE_info = fetchedRows.find((row) => row.accession === id)
+        if (cCRE_info) {
+          const region = { start: cCRE_info?.start, chrom: cCRE_info?.chromosome, end: cCRE_info?.end }
+          return (
+            { ID: cCRE_info.accession, region: region, linkedGenes: cCRE_info.linkedGenes }
+          )
+        } else {
+          console.log(`Couldn't find ${id} in the table`)
+          return null
+        }
+      }).filter((x) => x != null))
       setLoading(false)
     })
-  }, [props])
-
-  //Used to set the list of selected accessions on initial load. Can't initialize normally since tableRows isn't loaded yet.
-  //Why is this running again when noWipe is already true? It's running immediately before it fails
-  useEffect(() => {
-    const accession = searchParams.get("accession")
-    if (accession && searchParams.get("noWipe") !== "t") {
-      console.log("useEffect opencCREs initialized")
-      const cCRE_info = tableRows.find((row) => row.accession === accession)
-      if (cCRE_info) {
-        const region = { start: cCRE_info?.start, chrom: cCRE_info?.chromosome, end: cCRE_info?.end }
-        setOpencCREs([{ ID: cCRE_info.accession, region: region, linkedGenes: cCRE_info.linkedGenes }])
-        //Is there a better way to flag this? If I don't, it will always reset open cCREs.
-        //This is not a good solution, sharing the url of a loaded search will then not initialize.
-        router.push(basePathname + "?" + createQueryString("noWipe", "t"))
-      } else {
-        console.log(`Couldn't find ${accession} in the table`)
-      }
-    }
-  }, [tableRows, basePathname, router, searchParams, createQueryString])
-
-
+    // This is bad practice. 
+  }, [props.mainQueryParams.bed_intersect, props.mainQueryParams.Biosample])
 
   const findTabByID = (id: string) => {
     return(opencCREs.findIndex((x) => x.ID === id) + 2)
   }
+
+  //This is not being rerendered when header biosample is given
 
   return (
     <Box id="Outer Box" sx={{ display: 'flex' }}>
@@ -274,8 +272,8 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
         </DrawerHeader>
         <Divider />
         {page < 2 ?
-          //This is recalculating whenever the expression evaluates differently (bad)
-          <MainResultsFilters mainQueryParams={props.mainQueryParams} byCellType={props.globals} genomeBrowserView={page === 1} />
+          //Should the filter component be refreshing the route? I think it should all be done here
+          <MainResultsFilters mainQueryParams={props.mainQueryParams} byCellType={props.globals} genomeBrowserView={page === 1} accessions={opencCREs.map((x) => x.ID).join(',')} page={page} />
           :
           <Tabs aria-label="details-tabs" value={detailsPage} onChange={(_, newValue: number) => { setDetailsPage(newValue) }} orientation="vertical" variant="fullWidth">
             <StyledTab label="In Specific Biosamples" sx={{ alignSelf: "start" }} />
@@ -289,7 +287,6 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
             <StyledTab label="Functional Data" sx={{ alignSelf: "start" }} />
           </Tabs>
         }
-        {/* Add sidebar nav for details*/}
       </Drawer>
       <Main id="Main Content" open={open}>
         {/* Bumps content below app bar */}
@@ -322,7 +319,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
             coordinates={{ start: +props.mainQueryParams.start, end: +props.mainQueryParams.end, chromosome: props.mainQueryParams.chromosome }}
           />
         )}
-        {/* {page >= 2 && opencCREs.length > 0 && (
+        {page >= 2 && opencCREs.length > 0 && (
           <CcreDetails
             accession={opencCREs[page - 2].ID}
             region={opencCREs[page - 2].region}
@@ -330,23 +327,9 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
             assembly={props.mainQueryParams.assembly}
             genes={opencCREs[page - 2].linkedGenes}
             page={detailsPage}
+            drawerOpen={open}
           />
-        )} */}
-        {page >= 2 && opencCREs.length > 0 && opencCREs.map((cCRE, i) => {
-          return (
-            <Box key={i} display={page === (i + 2) ? "block" : "none"}>
-              <CcreDetails
-                key={cCRE.ID}
-                accession={cCRE.ID}
-                region={cCRE.region}
-                globals={props.globals}
-                assembly={props.mainQueryParams.assembly}
-                genes={cCRE.linkedGenes}
-                page={detailsPage}
-              />
-            </Box> 
-          )
-        })}
+        )}
       </Main>
     </Box>
   )

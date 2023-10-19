@@ -25,13 +25,13 @@ import Grid2 from "@mui/material/Unstable_Grid2"
 import Link from "next/link"
 
 import { RangeSlider, DataTable } from "@weng-lab/psychscreen-ui-components"
-import { useState, useMemo, useCallback } from "react"
+import { useState, useMemo, useCallback, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { CellTypeData, FilteredBiosampleData, MainQueryParams, URLParams, UnfilteredBiosampleData } from "../../app/search/types"
 import { outputT_or_F, parseByCellType, filterBiosamples, assayHoverInfo, constructURL } from "../../app/search/search-helpers"
 
 //Need to go back and define the types in mainQueryParams object
-export default function MainResultsFilters(props: { mainQueryParams: MainQueryParams, byCellType: CellTypeData, genomeBrowserView: boolean }) {
+export default function MainResultsFilters(props: { mainQueryParams: MainQueryParams, byCellType: CellTypeData, genomeBrowserView: boolean, accessions: string, page: number }) {
   //No alternatives provided for default, as all these attributes should exist and are given a default value in Search's page.tsx
 
   //Biosample Filter
@@ -111,7 +111,9 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     MammalStart,
     MammalEnd,
     VertebrateStart,
-    VertebrateEnd
+    VertebrateEnd,
+    Accessions: props.accessions,
+    Page: props.page
   }
 
   const router = useRouter()
@@ -248,6 +250,10 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [CellLine, InVitro, Organoid, PrimaryCell, Tissue, BiosampleHighlight, SearchString, props.byCellType, props.mainQueryParams]
   )
+
+  useEffect(() => {
+    setBiosample(props.mainQueryParams.Biosample)
+  }, [props.mainQueryParams.Biosample])
 
   //Need to make this more responsive
   return (

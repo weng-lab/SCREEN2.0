@@ -1,6 +1,6 @@
 "use client"
 import React from "react"
-import { Typography, Paper, ThemeProvider, AppBar, Toolbar, IconButton, Box, Stack, Divider } from "@mui/material"
+import { Typography, Stack, Divider } from "@mui/material"
 import { GenomicRegion, LinkedGenesData } from "../types"
 import { InSpecificBiosamples } from "./inspecificbiosample"
 import { NearByGenomicFeatures } from "./nearbygenomicfeatures"
@@ -11,6 +11,7 @@ import { FunctionData } from "./functionaldata"
 import Rampage from "./rampage"
 import { GeneExpression } from "./gene-expression"
 
+//Passing these props through this file could be done with context to reduce drilling
 type CcreDetailsProps = {
   accession: string
   assembly: string
@@ -18,9 +19,11 @@ type CcreDetailsProps = {
   globals: any
   genes: LinkedGenesData
   page: number
+  drawerOpen: boolean
 }
 
-export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, globals, assembly, genes, page }) => {
+//Change to props instead of params?
+export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, globals, assembly, genes, page, drawerOpen }) => {
   return (
     <>
       <Stack direction="row" justifyContent={"space-between"} alignItems={"baseline"}>
@@ -53,7 +56,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
       )}
       {page === 5 && <Ortholog accession={accession} assembly={assembly} />}
       {page === 6 && <Rampage gene={genes.distancePC[0].name} />}
-      {page === 7 && <GeneExpression accession={accession} assembly={assembly} genes={genes} hamburger={false} />}
+      {page === 7 && <GeneExpression accession={accession} assembly={assembly} genes={genes} outerDrawerOpen={drawerOpen} />}
       {page === 8 && <FunctionData accession={accession} coordinates={{ chromosome: region.chrom, start: +region.start.toString().replace(/\D/g, ""), end: +region.end.toString().replace(/\D/g, "") }} assembly={assembly} />}
     </>
   )

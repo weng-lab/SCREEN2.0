@@ -190,4 +190,6 @@ export type URLParams = {
     MammalEnd: number
     VertebrateStart: number
     VertebrateEnd: number
+    Accessions: string
+    Page: number
 }

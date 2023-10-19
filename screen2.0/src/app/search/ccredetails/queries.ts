@@ -1,6 +1,17 @@
-import { gql } from "@apollo/client"
+import { TypedDocumentNode, gql } from "@apollo/client"
 
-export const TOP_TISSUES = gql`
+//Todo: Type this
+interface Data {
+  ccREBiosampleQuery: any,
+  cCREQuery: any
+}
+
+interface Variables {
+  assembly: "mm10" | "grch38",
+  accession: [string],
+}
+
+export const TOP_TISSUES: TypedDocumentNode<Data, Variables> = gql`
   query q($accession: [String!], $assembly: String!) {
     ccREBiosampleQuery(assembly: $assembly) {
       biosamples {
