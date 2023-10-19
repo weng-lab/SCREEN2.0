@@ -1,12 +1,33 @@
 import { TypedDocumentNode, gql } from "@apollo/client"
 
-//Todo: Type this
-interface Data {
-  ccREBiosampleQuery: any,
-  cCREQuery: any
+type Data = {
+  ccREBiosampleQuery: {
+    biosamples: {
+      sampleType: string;
+      cCREZScores: {
+        score: number;
+        assay: string;
+        experiment_accession: string;
+      }[];
+      name: string;
+      ontology: string;
+    }[]
+  },
+  cCREQuery: [{
+    accession: string,
+    group: string,
+    zScores: {
+      score: number,
+      experiment: string
+    }[],
+    dnase: number,
+    h3k4me3: number,
+    h3k27ac: number,
+    ctcf: number
+  }]
 }
 
-interface Variables {
+type Variables = {
   assembly: "mm10" | "grch38",
   accession: [string],
 }

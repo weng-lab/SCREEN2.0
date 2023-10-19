@@ -1,13 +1,11 @@
 "use client"
 import * as React from "react"
-
 import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
   Typography,
   Button,
-  Box,
   Paper,
   FormGroup,
   FormControlLabel,
@@ -15,22 +13,18 @@ import {
   TextField,
   Tooltip,
 } from "@mui/material/"
-
 import SendIcon from "@mui/icons-material/Send"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
-
 import Grid2 from "@mui/material/Unstable_Grid2"
-
 import Link from "next/link"
-
 import { RangeSlider, DataTable } from "@weng-lab/psychscreen-ui-components"
-import { useState, useMemo, useCallback, useEffect } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { CellTypeData, FilteredBiosampleData, MainQueryParams, URLParams, UnfilteredBiosampleData } from "../../app/search/types"
-import { outputT_or_F, parseByCellType, filterBiosamples, assayHoverInfo, constructURL } from "../../app/search/search-helpers"
+import { CellTypeData, FilteredBiosampleData, MainQueryParams, URLParams } from "../../app/search/types"
+import { parseByCellType, filterBiosamples, assayHoverInfo, constructURL } from "../../app/search/search-helpers"
 
-//Need to go back and define the types in mainQueryParams object
+
 export default function MainResultsFilters(props: { mainQueryParams: MainQueryParams, byCellType: CellTypeData, genomeBrowserView: boolean, accessions: string, page: number }) {
   //No alternatives provided for default, as all these attributes should exist and are given a default value in Search's page.tsx
 
@@ -255,7 +249,6 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     setBiosample(props.mainQueryParams.Biosample)
   }, [props.mainQueryParams.Biosample])
 
-  //Need to make this more responsive
   return (
     <Paper elevation={0}>
       {/* Biosample Activity */}

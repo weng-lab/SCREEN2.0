@@ -1,5 +1,5 @@
 "use client"
-import React, { startTransition, useCallback, useEffect, useState } from "react"
+import React, { startTransition, useCallback, useEffect, useLayoutEffect, useState } from "react"
 import { styled } from '@mui/material/styles';
 import { Divider, IconButton, Tab, Tabs, Typography, Box, Stack } from "@mui/material"
 import MainResultsTable from "../../common/components/MainResultsTable"
@@ -100,6 +100,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
   const handleDrawerClose = () => {setOpen(false)}
 
   const handleTableClick = (row: MainResultTableRow) => {
+    if (opencCREs.length > 6) { window.alert("Open cCRE limit reached! Please close cCREs to open more") }
     const newcCRE = {ID: row.accession, region: { start: row.start, end: row.end, chrom: row.chromosome}, linkedGenes: row.linkedGenes}
     //If cCRE isn't in open cCREs, add and push as current accession.
     if (!opencCREs.find((x) => x.ID === newcCRE.ID)) {
@@ -173,10 +174,12 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
     }, [searchParams]
   )
 
-  //Fetch table rows, initialize open cCREs
-  //Load when:
-  //  Initial load
-  //  Biosample selection -> force refresh?
+  //Initial load
+  //Biosample 
+
+
+  //Filter Changed
+
   useEffect(() => {
     console.log("useEffect table rows fetched")
     setLoading(true)
@@ -207,14 +210,19 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
       }).filter((x) => x != null))
       setLoading(false)
     })
-    // This is bad practice. 
-  }, [props.mainQueryParams.bed_intersect, props.mainQueryParams.Biosample])
+    /**
+     * This is bad practice, and causes a warning.It wants: props.mainQueryParams, searchParams
+     * Linter wants props.mainQueryParams and searchParams as dependencies.
+     * Adding them causes a fetch on switching tabs since object equality for mainQueryParams
+     * is false between rerenders.
+     * Likely solution would be to utilize useCallback() or useMemo() to wrap dependencies,
+     * Or refactor fetchRows and it's dependencies so that it doesn't need entire mainQueryParams object.
+     */
+  }, [props.mainQueryParams.bed_intersect, props.mainQueryParams.Biosample.selected, props.mainQueryParams.Biosample.biosample])
 
   const findTabByID = (id: string) => {
     return(opencCREs.findIndex((x) => x.ID === id) + 2)
   }
-
-  //This is not being rerendered when header biosample is given
 
   return (
     <Box id="Outer Box" sx={{ display: 'flex' }}>
@@ -229,7 +237,8 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
           >
             <MenuIcon />
           </IconButton>
-          <Tabs aria-label="navigation tabs" value={page} onChange={handlePageChange} component="div">
+          {/* Scroll buttons for tabs not showing up properly? */}
+          <Tabs sx={{'& .MuiTabs-scrollButtons.Mui-disabled': {opacity: 0.3}}} scrollButtons={true} allowScrollButtonsMobile aria-label="navigation tabs" value={page} onChange={handlePageChange}>
             <StyledTab value={0} label="Table View" />
             {/* Hide genome browser on bed intersect */}
             {!props.mainQueryParams.bed_intersect &&
@@ -272,7 +281,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
         </DrawerHeader>
         <Divider />
         {page < 2 ?
-          //Should the filter component be refreshing the route? I think it should all be done here
+          //Should the filter component be refreshing the route? I think it should probably all be controlled here
           <MainResultsFilters mainQueryParams={props.mainQueryParams} byCellType={props.globals} genomeBrowserView={page === 1} accessions={opencCREs.map((x) => x.ID).join(',')} page={page} />
           :
           <Tabs aria-label="details-tabs" value={detailsPage} onChange={(_, newValue: number) => { setDetailsPage(newValue) }} orientation="vertical" variant="fullWidth">

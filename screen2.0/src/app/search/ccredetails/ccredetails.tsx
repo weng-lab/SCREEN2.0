@@ -11,7 +11,7 @@ import { FunctionData } from "./functionaldata"
 import Rampage from "./rampage"
 import { GeneExpression } from "./gene-expression"
 
-//Passing these props through this file could be done with context to reduce drilling
+//Passing these props through this file could be done with context to reduce prop drilling
 type CcreDetailsProps = {
   accession: string
   assembly: string
@@ -22,7 +22,6 @@ type CcreDetailsProps = {
   drawerOpen: boolean
 }
 
-//Change to props instead of params?
 export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, globals, assembly, genes, page, drawerOpen }) => {
   return (
     <>

@@ -1,10 +1,7 @@
-//Home Page
-
 "use client"
-import { CssBaseline, Typography } from "@mui/material"
-import MainSearch from "../common/components/mainsearch/MainSearch"
 
-// Grid v2 isn't declared stable yet, but using it now as it's what MUI is currently developing out
+import { Typography } from "@mui/material"
+import MainSearch from "../common/components/mainsearch/MainSearch"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import homeImage from "../../public/homeImage.png"
 import Image from "next/image"
@@ -12,9 +9,7 @@ import Image from "next/image"
 export default function Home() {
   return (
     <main>
-      {/* May need to rethink where these margins are set. Which element should be setting content width? */}
-      <Grid2 container spacing={6} sx={{ mr: "auto", ml: "auto", mt: "3rem" }}>
-        {/* <CssBaseline /> */}
+      <Grid2 container spacing={6} sx={{ mr: "auto", ml: "auto", mt: "3rem", maxWidth: '95%' }}>
         <Grid2 xs={12}>
           <Typography variant="h3">SCREEN</Typography>
           <Typography variant="h5">Search Candidate cis-Regulatory Elements by ENCODE</Typography>
@@ -48,8 +43,6 @@ export default function Home() {
           </Typography>
         </Grid2>
         <Grid2 xs={12} lg={6}>
-          {/* What is a better alt text for this? */}
-          {/* This image sizing needs to be adjusted for large screens (>1920px), doesn't fill correctly with fill prop. Or just center contents leaving open margins? */}
           <Image src={homeImage} alt={"SCREEN home image"} />
         </Grid2>
       </Grid2>

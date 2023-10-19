@@ -21,13 +21,6 @@ export const defaultTheme = createTheme({
     //     default: "#fff"
     //   }
   },
-  // components: {
-  //   MuiAccordion: {
-  //     defaultProps: {
-  //       elevation: 0, // outline
-  //     },
-  //   },
-  // },
   transitions: {
     easing: {
       easeInOut: "cubic-bezier(0.4, 0, 0.2, 1)",
