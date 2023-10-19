@@ -1,6 +1,6 @@
 "use client";
 // ^ this file needs the "use client" pragma
-
+import React from "react";
 import { ApolloLink, HttpLink } from "@apollo/client";
 import {
   ApolloNextAppProvider,
@@ -10,6 +10,8 @@ import {
 } from "@apollo/experimental-nextjs-app-support/ssr";
 
 import config from "../../config.json"
+import { setVerbosity } from "ts-invariant";
+setVerbosity("debug");
 
 // have a function to create a client for you
 function makeClient() {
@@ -52,5 +54,3 @@ export function ApolloWrapper({ children }: React.PropsWithChildren) {
   );
 }
 
-import { setVerbosity } from "ts-invariant";
-setVerbosity("debug");
