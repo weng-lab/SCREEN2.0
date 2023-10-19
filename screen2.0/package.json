@@ -44,7 +44,7 @@
     "@mui/material": "^5.14.11",
     "@types/node": "^20.8.3",
     "@types/react": "^18.2.19",
-    "@types/react-dom": "18.2.11",
+    "@types/react-dom": "18.2.13",
     "@weng-lab/psychscreen-ui-components": "^0.8.0-a.2",
     "@weng-lab/ts-ztable": "^4.0.1",
     "autoprefixer": "10.4.16",
@@ -69,7 +69,7 @@
   },
   "devDependencies": {
     "file-loader": "^6.2.0",
-    "lint-staged": "^14.0.1",
+    "lint-staged": "^15.0.1",
     "prettier": "^3.0.2",
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4"
