@@ -16,17 +16,7 @@ function MainResultsTable(props: MainResultsTableProps) {
   const [CTCF_ChIAPET, setCTCF_ChIAPET] = useState<boolean>(false)
   const [RNAPII_ChIAPET, setRNAPII_ChIAPET] = useState<boolean>(false)
 
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams: any = useSearchParams()!
 
-  const createQueryString = useCallback(
-    (name: string, value: string) => {
-      const params = new URLSearchParams(searchParams)
-      params.set(name, value)
-
-      return params.toString()
-    }, [searchParams])
 
   //Start and End are strings since toLocaleString() is called on them to get commas in the numbers
   //State variable setters are passed to columns so that linked genes modal is able to properly set table state
@@ -222,9 +212,7 @@ function MainResultsTable(props: MainResultsTableProps) {
         columns={columns(setDistance, setCTCF_ChIAPET, setRNAPII_ChIAPET)}
         itemsPerPage={props.itemsPerPage}
         searchable
-        onRowClick={(r) => {
-          router.push(pathname + "?" + createQueryString("accession", r.accession))
-        }}
+        onRowClick={props.onRowClick}
         tableTitle={props.tableTitle}
         sortColumn={6}
         showMoreColumns

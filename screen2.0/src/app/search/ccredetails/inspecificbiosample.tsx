@@ -1,12 +1,10 @@
 "use client"
 import React from "react"
-import { client } from "./client"
-import { useQuery } from "@apollo/client"
+import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import { TOP_TISSUES } from "./queries"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { z_score, ctgroup } from "./utils"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
-import { CircularProgress } from "@mui/material"
 import { LoadingMessage } from "../../../common/lib/utility"
 
 type cCRERow = {
@@ -25,7 +23,7 @@ const tableCols = (globals, typeC = false) => {
       header: "Cell Type",
       value: (row: cCRERow) =>
         globals.byCellType[row.ct] && globals.byCellType[row.ct][0] ? globals.byCellType[row.ct][0]["biosample_summary"] : "",
-    },   
+    },
     {
       header: "H3K4me3 Z-score",
       value: (row: cCRERow) => row.h3k4me3,
@@ -41,7 +39,7 @@ const tableCols = (globals, typeC = false) => {
       value: (row: cCRERow) => row.ctcf,
       render: (row: cCRERow) => z_score(row.ctcf),
     },
-  ]: [
+  ] : [
     {
       header: "Cell Type",
       value: (row: cCRERow) =>
@@ -105,20 +103,19 @@ const ctAgnosticColumns = () => [
   },
 ]
 
+//Cache is not working as expected when switching between open cCREs
 export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
-  const {
-    loading: loading_toptissues,
-    error: error_toptissues,
-    data: data_toptissues,
-  } = useQuery(TOP_TISSUES, {
-    variables: {
-      assembly: assembly.toLowerCase(),
-      accession: [accession],
-    },
-    fetchPolicy: "cache-and-network",
-    nextFetchPolicy: "cache-first",
-    client,
-  })
+
+  const { data: data_toptissues, loading: loading_toptissues, error: error_toptissues } = useQuery(TOP_TISSUES,
+    {
+      variables: {
+        assembly: assembly.toLowerCase(),
+        accession: [accession],
+      },
+      fetchPolicy: "cache-first"
+    }
+  )
+
   let withdnase, typea, typec;
   if (data_toptissues) {
     let r = data_toptissues.ccREBiosampleQuery.biosamples
@@ -241,65 +238,61 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
     withdnase = ccreCts.filter((c) => c.type === "withdnase")
     typea = ccreCts.filter((c) => c.type === "typea")
     typec = ccreCts.filter((c) => c.type === "typec")
-    
+
   }
   return (
-    <>
-      {loading_toptissues || error_toptissues ? (
-        <Grid2 container spacing={3} sx={{ mt: "0rem", mb: "0rem" }}>
-          <Grid2 xs={12} md={12} lg={12}>
-            <LoadingMessage />
-          </Grid2>
+    loading_toptissues || error_toptissues ? (
+      <Grid2 container spacing={3} sx={{ mt: "0rem", mb: "0rem" }}>
+        <Grid2 xs={12} md={12} lg={12}>
+          <LoadingMessage />
         </Grid2>
-      ) : (
-        <>
-          <Grid2 container spacing={3} sx={{ mt: "0rem", mb: "0rem" }}>
-            <Grid2 xs={12} md={12} lg={12}>
-              {data_toptissues && (
-                <DataTable
-                  rows={[{ ...data_toptissues.cCREQuery[0] }]}
-                  tableTitle="Cell type agnostic classification"
-                  columns={ctAgnosticColumns()}
-                  sortColumn={1}
-                />
-              )}
-            </Grid2>
-            <Grid2 xs={12} md={12} lg={12}>
-              {withdnase && (
-                <DataTable
-                  columns={tableCols(globals)}
-                  sortColumn={1}
-                  tableTitle="Classification in Type B and D biosamples (DNase-seq available)"
-                  rows={withdnase}
-                  itemsPerPage={5}
-                />
-              )}
-            </Grid2>
-            <Grid2 xs={6} md={6} lg={6}>
-              {typea && (
-                <DataTable
-                  columns={tableCols(globals)}
-                  tableTitle="Classification in Type A biosamples (all four marks available)"
-                  rows={typea}
-                  sortColumn={1}
-                  itemsPerPage={5}
-                />
-              )}
-            </Grid2>
-            <Grid2 xs={6} md={6} lg={6}>
-              {typec  && (
-                <DataTable
-                  columns={tableCols(globals, true)}
-                  tableTitle="Classification in Type C biosamples (DNase-seq not available)"
-                  rows={typec}
-                  sortColumn={1}
-                  itemsPerPage={5}
-                />
-              )}
-            </Grid2>
-          </Grid2>
-        </>
-      )}
-    </>
+      </Grid2>
+    ) : (
+      <Grid2 container spacing={3} sx={{ mt: "0rem", mb: "0rem" }}>
+        <Grid2 xs={12} md={12} lg={12}>
+          {data_toptissues && (
+            <DataTable
+              rows={[{ ...data_toptissues.cCREQuery[0] }]}
+              tableTitle="Cell type agnostic classification"
+              columns={ctAgnosticColumns()}
+              sortColumn={1}
+            />
+          )}
+        </Grid2>
+        <Grid2 xs={12} md={12} lg={12}>
+          {withdnase && (
+            <DataTable
+              columns={tableCols(globals)}
+              sortColumn={1}
+              tableTitle="Classification in Type B and D biosamples (DNase-seq available)"
+              rows={withdnase}
+              itemsPerPage={5}
+            />
+          )}
+        </Grid2>
+        <Grid2 xs={6} md={6} lg={6}>
+          {typea && (
+            <DataTable
+              columns={tableCols(globals)}
+              tableTitle="Classification in Type A biosamples (all four marks available)"
+              rows={typea}
+              sortColumn={1}
+              itemsPerPage={5}
+            />
+          )}
+        </Grid2>
+        <Grid2 xs={6} md={6} lg={6}>
+          {typec && (
+            <DataTable
+              columns={tableCols(globals, true)}
+              tableTitle="Classification in Type C biosamples (DNase-seq not available)"
+              rows={typec}
+              sortColumn={1}
+              itemsPerPage={5}
+            />
+          )}
+        </Grid2>
+      </Grid2>
+    )
   )
 }

@@ -1,13 +1,11 @@
 "use client"
 import * as React from "react"
-
 import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
   Typography,
   Button,
-  Box,
   Paper,
   FormGroup,
   FormControlLabel,
@@ -15,23 +13,19 @@ import {
   TextField,
   Tooltip,
 } from "@mui/material/"
-
 import SendIcon from "@mui/icons-material/Send"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
-
 import Grid2 from "@mui/material/Unstable_Grid2"
-
 import Link from "next/link"
-
 import { RangeSlider, DataTable } from "@weng-lab/psychscreen-ui-components"
-import { useState, useMemo, useCallback } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { CellTypeData, FilteredBiosampleData, MainQueryParams, URLParams, UnfilteredBiosampleData } from "../../app/search/types"
-import { outputT_or_F, parseByCellType, filterBiosamples, assayHoverInfo, constructURL } from "../../app/search/search-helpers"
+import { CellTypeData, FilteredBiosampleData, MainQueryParams, URLParams } from "../../app/search/types"
+import { parseByCellType, filterBiosamples, assayHoverInfo, constructURL } from "../../app/search/search-helpers"
 
-//Need to go back and define the types in mainQueryParams object
-export default function MainResultsFilters(props: { mainQueryParams: MainQueryParams; byCellType: CellTypeData }) {
+
+export default function MainResultsFilters(props: { mainQueryParams: MainQueryParams, byCellType: CellTypeData, genomeBrowserView: boolean, accessions: string, page: number }) {
   //No alternatives provided for default, as all these attributes should exist and are given a default value in Search's page.tsx
 
   //Biosample Filter
@@ -111,7 +105,9 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     MammalStart,
     MammalEnd,
     VertebrateStart,
-    VertebrateEnd
+    VertebrateEnd,
+    Accessions: props.accessions,
+    Page: props.page
   }
 
   const router = useRouter()
@@ -249,14 +245,12 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     [CellLine, InVitro, Organoid, PrimaryCell, Tissue, BiosampleHighlight, SearchString, props.byCellType, props.mainQueryParams]
   )
 
-  //Need to make this more responsive
+  useEffect(() => {
+    setBiosample(props.mainQueryParams.Biosample)
+  }, [props.mainQueryParams.Biosample])
+
   return (
-    <Paper elevation={4}>
-      <Box sx={{ minHeight: "64px", display: "flex", alignItems: "center" }}>
-        <Typography variant="h5" sx={{ pl: "16px" }}>
-          Refine Your Search
-        </Typography>
-      </Box>
+    <Paper elevation={0}>
       {/* Biosample Activity */}
       <Accordion square defaultExpanded disableGutters>
         <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
@@ -305,7 +299,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                 </Grid2>
               </Grid2>
             )}
-            <Grid2 xs={12} maxHeight={500} overflow={"auto"}>
+            <Grid2 xs={12} maxHeight={300} overflow={"auto"}>
               {biosampleTables}
             </Grid2>
             <Grid2 xs={12} sx={{ mt: 1 }}>
@@ -346,229 +340,234 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
           </Grid2>
         </AccordionDetails>
       </Accordion>
-      {/* Chromatin Signals */}
-      <Accordion square disableGutters>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel2a-content" id="panel2a-header">
-          <Typography>Chromatin Signals (Z-Scores)</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Grid2 container spacing={3}>
-            <Grid2 xs={6} lg={12} xl={6}>
-              <RangeSlider
-                title="DNase"
-                width="100%"
-                defaultStart={DNaseStart}
-                defaultEnd={DNaseEnd}
-                min={-10}
-                max={10}
-                minDistance={1}
-                step={0.1}
-                //These are not properly typed due to an issue in the component library. Type properly when fixed
-                onChange={(value: any) => {
-                  setDNaseStart(value[0])
-                  setDNaseEnd(value[1])
-                }}
-              />
-            </Grid2>
-            <Grid2 xs={6} lg={12} xl={6}>
-              <RangeSlider
-                title="H3K4me3"
-                width="100%"
-                defaultStart={H3K4me3Start}
-                defaultEnd={H3K4me3End}
-                min={-10}
-                max={10}
-                minDistance={1}
-                step={0.1}
-                onChange={(value: any) => {
-                  setH3K4me3Start(value[0])
-                  setH3K4me3End(value[1])
-                }}
-              />
-            </Grid2>
-            <Grid2 xs={6} lg={12} xl={6}>
-              <RangeSlider
-                title="H3K27ac"
-                width="100%"
-                defaultStart={H3K27acStart}
-                defaultEnd={H3K27acEnd}
-                min={-10}
-                max={10}
-                minDistance={1}
-                step={0.1}
-                onChange={(value: any) => {
-                  setH3K27acStart(value[0])
-                  setH3K27acEnd(value[1])
-                }}
-              />
-            </Grid2>
-            <Grid2 xs={6} lg={12} xl={6}>
-              <RangeSlider
-                title="CTCF"
-                width="100%"
-                defaultStart={CTCFStart}
-                defaultEnd={CTCFEnd}
-                min={-10}
-                max={10}
-                minDistance={1}
-                step={0.1}
-                onChange={(value: any) => {
-                  setCTCFStart(value[0])
-                  setCTCFEnd(value[1])
-                }}
-              />
-            </Grid2>
-          </Grid2>
-        </AccordionDetails>
-      </Accordion>
-      {/* Classification */}
-      <Accordion square disableGutters>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel3a-content" id="panel3a-header">
-          <Typography>Classification</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>cCRE Classes</Typography>
-          <Grid2 container spacing={0}>
-            <Grid2 xs={6} sm={6} xl={6}>
-              <FormGroup>
-                <FormControlLabel
-                  checked={CA}
-                  onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setCA(checked)}
-                  control={<Checkbox />}
-                  label="CA"
-                />
-                <FormControlLabel
-                  checked={CA_CTCF}
-                  onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setCA_CTCF(checked)}
-                  control={<Checkbox />}
-                  label="CA-CTCF"
-                />
-                <FormControlLabel
-                  checked={CA_H3K4me3}
-                  onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setCA_H3K4me3(checked)}
-                  control={<Checkbox />}
-                  label="CA-H3K4me3"
-                />
-                <FormControlLabel
-                  checked={CA_TF}
-                  onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setCA_TF(checked)}
-                  control={<Checkbox />}
-                  label="CA-TF"
-                />
-              </FormGroup>
-            </Grid2>
-            <Grid2 xs={6} sm={6} xl={6}>
-              <FormGroup>
-                <FormControlLabel
-                  checked={dELS}
-                  onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setdELS(checked)}
-                  control={<Checkbox />}
-                  label="dELS"
-                />
-                <FormControlLabel
-                  checked={pELS}
-                  onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setpELS(checked)}
-                  control={<Checkbox />}
-                  label="pELS"
-                />
-                <FormControlLabel
-                  checked={PLS}
-                  onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setPLS(checked)}
-                  control={<Checkbox />}
-                  label="PLS"
-                />
-                <FormControlLabel
-                  checked={TF}
-                  onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setTF(checked)}
-                  control={<Checkbox />}
-                  label="TF"
-                />
-              </FormGroup>
-            </Grid2>
-          </Grid2>
-        </AccordionDetails>
-      </Accordion>
-      {/* Conservation */}
-      {props.mainQueryParams.assembly === "GRCh38" && <Accordion square disableGutters>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel6a-content" id="panel6a-header">
-          <Typography>Conservation</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Grid2 container spacing={3}>
-            <Grid2 xs={6} lg={12} xl={6}>
-              <RangeSlider
-                title="43-primate (phastCons)"
-                width="100%"
-                defaultStart={PrimateStart}
-                defaultEnd={PrimateEnd}
-                min={-2}
-                max={2}
-                minDistance={1}
-                step={0.1}
-                //These are not properly typed due to an issue in the component library. Type properly when fixed
-                onChange={(value: any) => {
-                  setPrimateStart(value[0])
-                  setPrimateEnd(value[1])
-                }}
-              />
-            </Grid2>
-            <Grid2 xs={6} lg={12} xl={6}>
-              <RangeSlider
-                title="240-mammal (phyloP)"
-                width="100%"
-                defaultStart={MammalStart}
-                defaultEnd={MammalEnd}
-                min={-4}
-                max={8}
-                minDistance={1}
-                step={0.1}
-                onChange={(value: any) => {
-                  setMammalStart(value[0])
-                  setMammalEnd(value[1])
-                }}
-              />
-            </Grid2>
-            <Grid2 xs={6} lg={12} xl={6}>
-              <RangeSlider
-                title="100-vertebrate (phyloP)"
-                width="100%"
-                defaultStart={VertebrateStart}
-                defaultEnd={VertebrateEnd}
-                min={-3}
-                max={8}
-                minDistance={1}
-                step={0.1}
-                onChange={(value: any) => {
-                  setVertebrateStart(value[0])
-                  setVertebrateEnd(value[1])
-                }}
-              />
-            </Grid2>
-          </Grid2>
-        </AccordionDetails>
-      </Accordion>}
-      {/* Linked Genes */}
-      <Accordion square disableGutters>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel4a-content" id="panel4a-header">
-          <Typography>Linked Genes</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex, sit amet blandit leo lobortis eget.
-          </Typography>
-        </AccordionDetails>
-      </Accordion>
-      {/* Functional Characterization */}
-      <Accordion square disableGutters>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel5a-content" id="panel5a-header">
-          <Typography>Functional Characterization</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Typography>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex, sit amet blandit leo lobortis eget.
-          </Typography>
-        </AccordionDetails>
-      </Accordion>
+      {/* Hide all other filters when on genome browser view */}
+      {!props.genomeBrowserView &&
+        <>
+          {/* Chromatin Signals */}
+          <Accordion square disableGutters>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel2a-content" id="panel2a-header">
+              <Typography>Chromatin Signals (Z-Scores)</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Grid2 container spacing={3}>
+                <Grid2 xs={6} lg={12} xl={6}>
+                  <RangeSlider
+                    title="DNase"
+                    width="100%"
+                    defaultStart={DNaseStart}
+                    defaultEnd={DNaseEnd}
+                    min={-10}
+                    max={10}
+                    minDistance={1}
+                    step={0.1}
+                    //These are not properly typed due to an issue in the component library. Type properly when fixed
+                    onChange={(value: any) => {
+                      setDNaseStart(value[0])
+                      setDNaseEnd(value[1])
+                    }}
+                  />
+                </Grid2>
+                <Grid2 xs={6} lg={12} xl={6}>
+                  <RangeSlider
+                    title="H3K4me3"
+                    width="100%"
+                    defaultStart={H3K4me3Start}
+                    defaultEnd={H3K4me3End}
+                    min={-10}
+                    max={10}
+                    minDistance={1}
+                    step={0.1}
+                    onChange={(value: any) => {
+                      setH3K4me3Start(value[0])
+                      setH3K4me3End(value[1])
+                    }}
+                  />
+                </Grid2>
+                <Grid2 xs={6} lg={12} xl={6}>
+                  <RangeSlider
+                    title="H3K27ac"
+                    width="100%"
+                    defaultStart={H3K27acStart}
+                    defaultEnd={H3K27acEnd}
+                    min={-10}
+                    max={10}
+                    minDistance={1}
+                    step={0.1}
+                    onChange={(value: any) => {
+                      setH3K27acStart(value[0])
+                      setH3K27acEnd(value[1])
+                    }}
+                  />
+                </Grid2>
+                <Grid2 xs={6} lg={12} xl={6}>
+                  <RangeSlider
+                    title="CTCF"
+                    width="100%"
+                    defaultStart={CTCFStart}
+                    defaultEnd={CTCFEnd}
+                    min={-10}
+                    max={10}
+                    minDistance={1}
+                    step={0.1}
+                    onChange={(value: any) => {
+                      setCTCFStart(value[0])
+                      setCTCFEnd(value[1])
+                    }}
+                  />
+                </Grid2>
+              </Grid2>
+            </AccordionDetails>
+          </Accordion>
+          {/* Classification */}
+          <Accordion square disableGutters>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel3a-content" id="panel3a-header">
+              <Typography>Classification</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography>cCRE Classes</Typography>
+              <Grid2 container spacing={0}>
+                <Grid2 xs={6} sm={6} xl={6}>
+                  <FormGroup>
+                    <FormControlLabel
+                      checked={CA}
+                      onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setCA(checked)}
+                      control={<Checkbox />}
+                      label="CA"
+                    />
+                    <FormControlLabel
+                      checked={CA_CTCF}
+                      onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setCA_CTCF(checked)}
+                      control={<Checkbox />}
+                      label="CA-CTCF"
+                    />
+                    <FormControlLabel
+                      checked={CA_H3K4me3}
+                      onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setCA_H3K4me3(checked)}
+                      control={<Checkbox />}
+                      label="CA-H3K4me3"
+                    />
+                    <FormControlLabel
+                      checked={CA_TF}
+                      onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setCA_TF(checked)}
+                      control={<Checkbox />}
+                      label="CA-TF"
+                    />
+                  </FormGroup>
+                </Grid2>
+                <Grid2 xs={6} sm={6} xl={6}>
+                  <FormGroup>
+                    <FormControlLabel
+                      checked={dELS}
+                      onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setdELS(checked)}
+                      control={<Checkbox />}
+                      label="dELS"
+                    />
+                    <FormControlLabel
+                      checked={pELS}
+                      onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setpELS(checked)}
+                      control={<Checkbox />}
+                      label="pELS"
+                    />
+                    <FormControlLabel
+                      checked={PLS}
+                      onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setPLS(checked)}
+                      control={<Checkbox />}
+                      label="PLS"
+                    />
+                    <FormControlLabel
+                      checked={TF}
+                      onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setTF(checked)}
+                      control={<Checkbox />}
+                      label="TF"
+                    />
+                  </FormGroup>
+                </Grid2>
+              </Grid2>
+            </AccordionDetails>
+          </Accordion>
+          {/* Conservation */}
+          {props.mainQueryParams.assembly === "GRCh38" && <Accordion square disableGutters>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel6a-content" id="panel6a-header">
+              <Typography>Conservation</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Grid2 container spacing={3}>
+                <Grid2 xs={6} lg={12} xl={6}>
+                  <RangeSlider
+                    title="43-primate (phastCons)"
+                    width="100%"
+                    defaultStart={PrimateStart}
+                    defaultEnd={PrimateEnd}
+                    min={-2}
+                    max={2}
+                    minDistance={1}
+                    step={0.1}
+                    //These are not properly typed due to an issue in the component library. Type properly when fixed
+                    onChange={(value: any) => {
+                      setPrimateStart(value[0])
+                      setPrimateEnd(value[1])
+                    }}
+                  />
+                </Grid2>
+                <Grid2 xs={6} lg={12} xl={6}>
+                  <RangeSlider
+                    title="240-mammal (phyloP)"
+                    width="100%"
+                    defaultStart={MammalStart}
+                    defaultEnd={MammalEnd}
+                    min={-4}
+                    max={8}
+                    minDistance={1}
+                    step={0.1}
+                    onChange={(value: any) => {
+                      setMammalStart(value[0])
+                      setMammalEnd(value[1])
+                    }}
+                  />
+                </Grid2>
+                <Grid2 xs={6} lg={12} xl={6}>
+                  <RangeSlider
+                    title="100-vertebrate (phyloP)"
+                    width="100%"
+                    defaultStart={VertebrateStart}
+                    defaultEnd={VertebrateEnd}
+                    min={-3}
+                    max={8}
+                    minDistance={1}
+                    step={0.1}
+                    onChange={(value: any) => {
+                      setVertebrateStart(value[0])
+                      setVertebrateEnd(value[1])
+                    }}
+                  />
+                </Grid2>
+              </Grid2>
+            </AccordionDetails>
+          </Accordion>}
+          {/* Linked Genes */}
+          <Accordion square disableGutters>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel4a-content" id="panel4a-header">
+              <Typography>Linked Genes</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex, sit amet blandit leo lobortis eget.
+              </Typography>
+            </AccordionDetails>
+          </Accordion>
+          {/* Functional Characterization */}
+          <Accordion square disableGutters>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel5a-content" id="panel5a-header">
+              <Typography>Functional Characterization</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex, sit amet blandit leo lobortis eget.
+              </Typography>
+            </AccordionDetails>
+          </Accordion>
+        </>
+      }
       <Link href={constructURL(props.mainQueryParams, urlParams)}>
         <Button variant="contained" endIcon={<SendIcon />} sx={{ mt: "16px", mb: "16px", ml: "16px", mr: "16px" }}>
           Filter Results

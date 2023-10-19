@@ -16,6 +16,9 @@ const nextConfig = {
   basePath: basePath,
   experimental: {
     serverActions: true,
+    logging: {
+      level: "verbose"
+    },
   },
   
   webpack: (config, { isServer }) => {

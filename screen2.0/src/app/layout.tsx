@@ -1,7 +1,9 @@
 import "./globals.css"
+import { ApolloWrapper } from "../common/lib/apollo-provider"
 import { Inter } from "next/font/google"
 import ResponsiveAppBar from "../common/components/ResponsiveAppBar"
 import Footer from "../common/components/Footer"
+import { CssBaseline } from "@mui/material"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -15,8 +17,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={inter.className} id="page-container">
         <div id="content-wrapper">
-          <ResponsiveAppBar />
-          <div id="body-wrapper">{children}</div>
+          <ApolloWrapper>
+            <ResponsiveAppBar />
+            <CssBaseline />
+            <div id="body-wrapper">{children}</div>
+          </ApolloWrapper>
         </div>
         <Footer />
       </body>

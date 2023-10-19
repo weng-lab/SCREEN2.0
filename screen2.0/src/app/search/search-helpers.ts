@@ -220,7 +220,6 @@ export function assayHoverInfo(assays: { dnase: boolean; h3k27ac: boolean; h3k4m
     }`
 }
 
-//IMPORTANT: This will wipe the current cCRE when Nishi puts it in. Need to talk to Nishi about deciding when/how to display the cCRE details
 /**
  *
  * @param newBiosample optional, use if setting Biosample State and then immediately triggering router before re-render when the new state is accessible
@@ -270,6 +269,8 @@ export function constructURL(
 
   const conservationFilters = `&prim_s=${urlParams.PrimateStart}&prim_e=${urlParams.PrimateEnd}&mamm_s=${urlParams.MammalStart}&mamm_e=${urlParams.MammalEnd}&vert_s=${urlParams.VertebrateStart}&vert_e=${urlParams.VertebrateEnd}`
 
-  const url = `${urlBasics}${biosampleFilters}${chromatinFilters}${classificationFilters}${conservationFilters}`
+  const accessionsAndPage = `&accession=${urlParams.Accessions}&page=${urlParams.Page}`
+
+  const url = `${urlBasics}${biosampleFilters}${chromatinFilters}${classificationFilters}${conservationFilters}${accessionsAndPage}`
   return url
 }

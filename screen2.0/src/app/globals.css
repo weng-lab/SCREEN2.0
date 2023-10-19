@@ -397,7 +397,6 @@ template {
 
 /* Limit the amount of space the content can take up so it doesn't run into edge */
 #body-wrapper {
-  max-width: 95%;
   margin-left: auto;
   margin-right: auto;
 }

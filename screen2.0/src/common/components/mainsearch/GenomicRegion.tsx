@@ -9,10 +9,10 @@ import { parseGenomicRegion } from "./SearchHelpers"
 //For formatting the start/end as it's being entered.
 
 const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => {
-  const [value, setValue] = useState(null)
+  const [value, setValue] = useState('')
   const [chromosome, setChromosome] = useState('11')
-  const [start, setStart] = useState(null)
-  const [end, setEnd] = useState(null)
+  const [start, setStart] = useState('')
+  const [end, setEnd] = useState('')
   const [inputType, setInputType] = useState("UCSC")
 
   const router = useRouter()
