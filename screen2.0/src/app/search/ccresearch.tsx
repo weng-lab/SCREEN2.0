@@ -238,16 +238,36 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
             <MenuIcon />
           </IconButton>
           {/* Scroll buttons for tabs not showing up properly? */}
-          <Tabs sx={{'& .MuiTabs-scrollButtons.Mui-disabled': {opacity: 0.3}}} scrollButtons={true} allowScrollButtonsMobile aria-label="navigation tabs" value={page} onChange={handlePageChange}>
-            <StyledTab value={0} label="Table View" />
-            {/* Hide genome browser on bed intersect */}
+          <Tabs
+            //Key needed to force scroll buttons to show up properly when child elements change
+            key={opencCREs.length}
+            sx={{ 
+              '& .MuiTabs-scrollButtons': { color: "black" },
+              '& .MuiTabs-scrollButtons.Mui-disabled': { opacity: 0.3 },
+            }}
+            allowScrollButtonsMobile
+            variant="scrollable"
+            aria-label="navigation tabs"
+            value={page}
+            onChange={handlePageChange}
+          >
+            {/* Hidden empty icon button to keep tab height consistent */}
+            <StyledTab iconPosition="end" icon={<IconButton sx={{display: 'none'}}/>} value={0} label="Table View" />
             {!props.mainQueryParams.bed_intersect &&
               <StyledTab value={1} label="Genome Browser View" />
             }
             {/* Map opencCREs to tabs */}
             {opencCREs.length > 0 && opencCREs.map((cCRE, i) => {
               return (
-                <StyledTab onClick={(event) => event.preventDefault} key={i} value={2 + i} label={cCRE.ID} icon={<IconButton onClick={(event) => {event.stopPropagation(); handleClosecCRE(cCRE.ID)}}><CloseIcon /></IconButton>} iconPosition="end"/>
+                <StyledTab
+                  onClick={(event) => event.preventDefault} key={i} value={2 + i}
+                  label={cCRE.ID}
+                  icon={
+                    <IconButton onClick={(event) => { event.stopPropagation(); handleClosecCRE(cCRE.ID) }}>
+                      <CloseIcon />
+                    </IconButton>
+                  }
+                  iconPosition="end" />
               )
             })}
           </Tabs>
