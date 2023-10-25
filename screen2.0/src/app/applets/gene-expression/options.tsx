@@ -15,6 +15,9 @@ import { ThemeProvider } from "@mui/material/styles"
 import { CheckBox, ExpandMore } from "@mui/icons-material"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 
+
+//TODO Don't forget to cleanup this file in PR
+
 // remove or add list of checked items
 const toggleList = (checkList: string[], option: string) => {
   if (checkList === undefined || checkList.length === 0) return [option]
