@@ -56,9 +56,9 @@ export function PlotGeneExpression(props: {
 
   //Filter Data to [...]
   props.data.filter(s => s["tissue"]).map((biosample) => {
-    
+
     //
-    if (!byTissue[biosample["tissue"]]) { 
+    if (!byTissue[biosample["tissue"]]) {
       byTissue[biosample["tissue"]] = { values: [] }
     }
 
@@ -83,7 +83,7 @@ export function PlotGeneExpression(props: {
         })
       }
     })
-    
+
     byTissue[biosample["tissue"]].values.sort((a, b) => b.value - a.value);
   })
 
@@ -127,44 +127,53 @@ export function PlotGeneExpression(props: {
     //Value here will be p1.x
     //So entry[1].values[x].value = width?
     return info.values.map((item: { color: string, biosample: string, file_accession: string, accession: string, value: number }, i: number) => {
-      console.log("range" + JSON.stringify(props.range))
-      console.log("dimenstion" + JSON.stringify(props.dimensions))
       //Shouldn't this just be LinearTransform? Why 2D?
       p1 = linearTransform2D(props.range, props.dimensions)({ x: item.value, y: 0 })
-      // console.log(p1)
-      // const x = linearTransform2D(props.range, props.dimensions)
-      // console.log(x)
       return (
         <g key={i}>
           {/* The color bar */}
-          <rect
-            //I think 165 is an arbitrary amount of space to bump each bar over by to leave room for the titles
-            x={165}
-            y={y + i * 20}
-            //The width of the bar
-            width={p1.x + 0}
-            height={18}
-            fill={item.color}
-            onClick={() => router.push("https://encodeproject.org/experiments/" + item.accession)}
-          >
-            <title>{item.biosample + "\n" + item.accession + "-" + item.file_accession}</title>
-          </rect>
-
+          <a href={"https://encodeproject.org/experiments/" + item.accession}>
+            <rect
+              x={165}
+              y={y + i * 20}
+              width={p1.x + 0}
+              height={18}
+              fill={item.color}
+            >
+              <title>{item.biosample + "\n" + item.accession + "-" + item.file_accession}</title>
+            </rect>
+          </a>
+          {/* The ccore and exp/biosample ID */}
           <text x={p1.x + 0 + 170} y={y + i * 20 + 12.5} style={{ fontSize: 12 }}>
             {Number(item.value.toFixed(3)) + " "}
             <a href={"https://www.encodeproject.org/experiments/" + item.accession}>{item.accession}</a>
             {" " + item.file_accession + " " + item.biosample}
           </text>
-          {(props.group === 'byTissueMaxTPM' || props.group === 'byExperimentTPM') && <text text-anchor="end" x={160} y={y + (i * 20 + 15)}>{entry[0].split("-")[0]}</text>}
-          {props.group === 'byTissueTPM' && i === Math.floor(Object.values(info.values).length / 2) && <text text-anchor="end" x={160} y={y + ((i) * 20 + 15)}>{entry[0].split("-")[0]}</text>}
-
+          {/* The biosample category */}
+          {(props.group === 'byTissueMaxTPM' || props.group === 'byExperimentTPM') &&
+            <text
+              text-anchor="end"
+              x={160}
+              y={y + (i * 20 + 15)}
+            >
+              {entry[0].split("-")[0]}
+            </text>
+          }
+          {props.group === 'byTissueTPM' && i === Math.floor(Object.values(info.values).length / 2) &&
+            <text
+              text-anchor="end"
+              x={160}
+              // If the tissue has an even number of values, bump up a little
+              y={y + (i * 20 + 15) - (((Object.values(info.values).length % 2) !== 0) ? 0 : 12)}
+            >
+              {entry[0].split("-")[0]}
+            </text>
+          }
           <line x1={165} x2={165} y1={y + i * 20} y2={y + (i * 20 + 18)} stroke="black" />
         </g>
       )
     })
   }
-
-
 
   let byValuesTissues = Object.entries(byTissue).map((entry) => {
     let info = entry[1]
@@ -202,7 +211,7 @@ export function PlotGeneExpression(props: {
             return (
               <svg className="graph" aria-labelledby="title desc" role="img" viewBox={view} key={index}>
                 <g className="data" data-setname="gene expression plot">
-
+                  {/* Why 5? */}
                   {plotGeneExp(entry, index, 5)}
                 </g>
               </svg>

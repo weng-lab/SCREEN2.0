@@ -17,20 +17,8 @@ import { OptionsGroupBy, OptionsRNAType, OptionsScale, OptionsReplicates } from 
 
 /**
  * @todo
- * Header
- * Mouse over "hand" thing for cursor over bars
- * Gene Name in Title
- * Label for switches
- * Default Values Total, tissue, Log, Average
  * Align tissue name with middle
  * Download
- * 
- * 
- * Big Data issues in Gene Expression
- * Discrepancy between new/old screen
- * 
- * Standup:
- * Sort Tissue Max in Descending Order?
  * 
  */
 
@@ -56,9 +44,9 @@ export function GeneExpression(props: {
   const [options, setOptions] = useState<string[]>([])
   const [current_gene, setGene] = useState<string>(props.genes.distancePC[0].name)
   const [biosamples, setBiosamples] = useState<string[]>(["cell line", "in vitro differentiated cells", "primary cell", "tissue"])
-  const [group, setGroup] = useState<"byTissueMaxTPM" | "byExperimentTPM" | "byTissueTPM">("byExperimentTPM") // experiment, tissue, tissue max
-  const [RNAtype, setRNAType] = useState<"all" | "polyA plus RNA-seq" | "total RNA-seq">("all") // any, polyA plus RNA-seq, total RNA-seq
-  const [scale, setScale] = useState<"linearTPM" | "logTPM">("linearTPM") // linear or log2
+  const [group, setGroup] = useState<"byTissueMaxTPM" | "byExperimentTPM" | "byTissueTPM">("byTissueTPM") // experiment, tissue, tissue max
+  const [RNAtype, setRNAType] = useState<"all" | "polyA plus RNA-seq" | "total RNA-seq">("total RNA-seq") // any, polyA plus RNA-seq, total RNA-seq
+  const [scale, setScale] = useState<"linearTPM" | "logTPM">("logTPM") // linear or log2
   const [replicates, setReplicates] = useState<"mean" | "all">("mean") // single or mean
 
   //Fetch Gene info to get ID
@@ -159,8 +147,8 @@ export function GeneExpression(props: {
   return (
     //Only reason that theme is used is to color buttons white
     <ThemeProvider theme={defaultTheme}>
-      <Stack mb={4} direction="row" justifyContent={"space-between"}>
-        <Typography variant="h5">Gene Expression Profiles by RNA-seq</Typography>
+      <Stack mb={3} direction="row" justifyContent={"space-between"}>
+        <Typography alignSelf={"flex-end"} variant="h5">{`${current_gene} Gene Expression Profiles by RNA-seq`}</Typography>
         <Stack direction="row" spacing={3}>
           <Button
             variant="contained"
@@ -222,9 +210,9 @@ export function GeneExpression(props: {
             size="medium"
             sx={{ m: 1 }}
           >
-            <ToggleButton sx={{ textTransform: "none" }} value="all">Any</ToggleButton>
             <ToggleButton sx={{ textTransform: "none" }} value="total RNA-seq">Total RNA-seq</ToggleButton>
             <ToggleButton sx={{ textTransform: "none" }} value="polyA plus RNA-seq">PolyA plus RNA-seq</ToggleButton>
+            <ToggleButton sx={{ textTransform: "none" }} value="all">All</ToggleButton>
           </ToggleButtonGroup>
         }
         {/* View By */}
@@ -237,9 +225,9 @@ export function GeneExpression(props: {
           size="medium"
           sx={{ m: 1 }}
         >
-          <ToggleButton sx={{ textTransform: "none" }} value="byExperimentTPM">Experiment</ToggleButton>
-          <ToggleButton sx={{ textTransform: "none" }} value="byTissueTPM">Tissue</ToggleButton>
-          <ToggleButton sx={{ textTransform: "none" }} value="byTissueMaxTPM">Tissue Max</ToggleButton>
+          <ToggleButton sx={{ textTransform: "none" }} value="byTissueTPM">By Tissue</ToggleButton>
+          <ToggleButton sx={{ textTransform: "none" }} value="byTissueMaxTPM">By Tissue Max</ToggleButton>
+          <ToggleButton sx={{ textTransform: "none" }} value="byExperimentTPM">By Experiment</ToggleButton>
         </ToggleButtonGroup>
         {/* Scale */}
         <ToggleButtonGroup
@@ -251,8 +239,8 @@ export function GeneExpression(props: {
           size="medium"
           sx={{ m: 1, textTransform: "none" }}
         >
-          <ToggleButton sx={{ textTransform: "none" }} value="linearTPM">Linear TPM</ToggleButton>
           <ToggleButton sx={{ textTransform: "none" }} value="logTPM">Log10(TPM + 1)</ToggleButton>
+          <ToggleButton sx={{ textTransform: "none" }} value="linearTPM">Linear TPM</ToggleButton>
         </ToggleButtonGroup>
         {/* Replicates */}
         <ToggleButtonGroup
@@ -264,8 +252,8 @@ export function GeneExpression(props: {
           size="medium"
           sx={{ m: 1 }}
         >
-          <ToggleButton sx={{ textTransform: "none" }} value="mean">Average</ToggleButton>
-          <ToggleButton sx={{ textTransform: "none" }} value="all">Show All</ToggleButton>
+          <ToggleButton sx={{ textTransform: "none" }} value="mean">Average Out Duplicates</ToggleButton>
+          <ToggleButton sx={{ textTransform: "none" }} value="all">Show Duplicates</ToggleButton>
         </ToggleButtonGroup>
         {geneexp_loading || gene_loading ? (
           <Grid2 xs={12} md={12} lg={12}>
