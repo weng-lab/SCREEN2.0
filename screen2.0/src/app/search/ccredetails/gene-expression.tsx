@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react"
 import { LoadingMessage, ErrorMessage } from "../../../common/lib/utility"
 import { PlotGeneExpression } from "../../applets/gene-expression/utils"
 import { useQuery } from "@apollo/client"
-import { Box, Button, Typography, IconButton, Drawer, Toolbar, AppBar, Stack, Paper, TextField, MenuItem, Tooltip, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup, SelectChangeEvent, Checkbox, InputLabel, ListItemText, OutlinedInput, Select } from "@mui/material"
+import { Box, Button, Typography, IconButton, Drawer, Toolbar, AppBar, Stack, Paper, TextField, MenuItem, Tooltip, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup, SelectChangeEvent, Checkbox, InputLabel, ListItemText, OutlinedInput, Select, ToggleButton, ToggleButtonGroup } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { ThemeProvider } from "@mui/material/styles"
 import { defaultTheme } from "../../../common/lib/themes"
@@ -13,17 +13,24 @@ import { client } from "./client"
 import { GeneExpressionInfoTooltip, HUMAN_GENE_EXP, MOUSE_GENE_EXP } from "../../applets/gene-expression/const"
 import { LinkedGenesData } from "../types"
 import { GENE_EXP_QUERY, GENE_QUERY } from "../../applets/gene-expression/queries"
+import { OptionsGroupBy, OptionsRNAType, OptionsScale, OptionsReplicates } from "../../applets/gene-expression/options"
 
 /**
  * @todo
- * Error when deselecting all options for checkboxes
- * Able to deselect radio button?
- * What should the behavior be. Is using toggle buttons, not radio?
- * Log2 scale is all messed up
+ * Header
+ * Mouse over "hand" thing for cursor over bars
+ * Gene Name in Title
+ * Label for switches
+ * Default Values Total, tissue, Log, Average
+ * Align tissue name with middle
+ * Download
  * 
  * 
  * Big Data issues in Gene Expression
  * Discrepancy between new/old screen
+ * 
+ * Standup:
+ * Sort Tissue Max in Descending Order?
  * 
  */
 
@@ -49,7 +56,7 @@ export function GeneExpression(props: {
   const [options, setOptions] = useState<string[]>([])
   const [current_gene, setGene] = useState<string>(props.genes.distancePC[0].name)
   const [biosamples, setBiosamples] = useState<string[]>(["cell line", "in vitro differentiated cells", "primary cell", "tissue"])
-  const [group, setGroup] = useState<"byTissueMaxTPM" | "byExperimentTPM" | "byTissueTPM">("byTissueTPM") // experiment, tissue, tissue max
+  const [group, setGroup] = useState<"byTissueMaxTPM" | "byExperimentTPM" | "byTissueTPM">("byExperimentTPM") // experiment, tissue, tissue max
   const [RNAtype, setRNAType] = useState<"all" | "polyA plus RNA-seq" | "total RNA-seq">("all") // any, polyA plus RNA-seq, total RNA-seq
   const [scale, setScale] = useState<"linearTPM" | "logTPM">("linearTPM") // linear or log2
   const [replicates, setReplicates] = useState<"mean" | "all">("mean") // single or mean
@@ -103,31 +110,39 @@ export function GeneExpression(props: {
         .filter(d => biosamples.includes(d.biosample_type))
         .filter(r => r.assay_term_name === RNAtype))
 
-  const handleGroupChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newVal = event.target.value
-    if ((newVal === "byTissueMaxTPM") || (newVal === "byExperimentTPM") || (newVal === "byTissueTPM")) {
-      setGroup(newVal)
+  const handleGroupChange = (
+    event: React.MouseEvent<HTMLElement>,
+    newView: string | null,
+  ) => {
+    if ((newView !== null) && ((newView === "byTissueMaxTPM") || (newView === "byExperimentTPM") || (newView === "byTissueTPM"))) {
+      setGroup(newView)
     }
   };
 
-  const handleScaleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newVal = event.target.value
-    if ((newVal === "linearTPM") || (newVal === "logTPM")) {
-      setScale(newVal)
+  const handleRNATypeChange = (
+    event: React.MouseEvent<HTMLElement>,
+    newRNA: string | null,
+  ) => {
+    if ((newRNA !== null) && ((newRNA === "all") || (newRNA === "polyA plus RNA-seq") || (newRNA === "total RNA-seq"))) {
+      setRNAType(newRNA)
     }
   };
 
-  const handleReplicatesChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newVal = event.target.value
-    if ((newVal === "mean") || (newVal === "all")) {
-      setReplicates(newVal)
+  const handleScaleChange = (
+    event: React.MouseEvent<HTMLElement>,
+    newScale: string | null,
+  ) => {
+    if ((newScale !== null) && ((newScale === "linearTPM") || (newScale === "logTPM"))) {
+      setScale(newScale)
     }
   };
 
-  const handleRNATypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newVal = event.target.value
-    if ((newVal === "all") || (newVal === "polyA plus RNA-seq") || (newVal === "total RNA-seq")) {
-      setRNAType(newVal)
+  const handleReplicatesChange = (
+    event: React.MouseEvent<HTMLElement>,
+    newReplicates: string | null,
+  ) => {
+    if ((newReplicates !== null) && ((newReplicates === "mean") || (newReplicates === "all"))) {
+      setReplicates(newReplicates)
     }
   };
 
@@ -142,48 +157,31 @@ export function GeneExpression(props: {
   };
 
   return (
-    //Only reaosn that theme is used is to color buttons white
+    //Only reason that theme is used is to color buttons white
     <ThemeProvider theme={defaultTheme}>
-      <Grid2 container spacing={3} sx={{ ml: 2, mr: 2 }}>
-        <Grid2 mb={2} xs={12} md={12} lg={12}>
-          <AppBar position="static" color="secondary">
-            <Toolbar style={{ height: "120px" }}>
-              <Grid2 xs={5} md={8} lg={9}>
-                <Box mt={0.5}>
-                  <Typography variant="h4" sx={{ fontSize: 28, fontStyle: "italic", display: "inline" }}>
-                    {current_gene}
-                  </Typography>
-                  <Typography variant="h4" sx={{ fontSize: 28, display: "inline" }}>
-                    {" "}
-                    Gene Expression Profiles by RNA-seq
-                  </Typography>
-                  <Tooltip title={GeneExpressionInfoTooltip}>
-                    <IconButton>
-                      <InfoIcon />
-                    </IconButton>
-                  </Tooltip>
-                </Box>
-              </Grid2>
-              <Grid2 xs={1.5} sx={{ mt: 2, height: 100, width: 190 }}>
-                <Button variant="contained" href={"https://genome.ucsc.edu/"} color="secondary">
-                  <Image src="https://genome-euro.ucsc.edu/images/ucscHelixLogo.png" width={150} height={100} alt="ucsc-button" />
-                </Button>
-              </Grid2>
-              <Grid2 xs={1.5} sx={{ mt: 2, height: 100, width: 214 }}>
-                <Button
-                  variant="contained"
-                  href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + current_gene}
-                  color="secondary"
-                >
-                  <Image src="https://geneanalytics.genecards.org/media/81632/gc.png" width={150} height={100} alt="gene-card-button" />
-                </Button>
-              </Grid2>
-            </Toolbar>
-          </AppBar>
-        </Grid2>
-      </Grid2>
+      <Stack mb={4} direction="row" justifyContent={"space-between"}>
+        <Typography variant="h5">Gene Expression Profiles by RNA-seq</Typography>
+        <Stack direction="row" spacing={3}>
+          <Button
+            variant="contained"
+            href={"https://genome.ucsc.edu/"}
+            color="secondary"
+            sx={{ minWidth: 125, minHeight: 50 }}
+          >
+            <Image style={{ objectFit: "contain" }} src="https://genome-euro.ucsc.edu/images/ucscHelixLogo.png" fill alt="ucsc-button" />
+          </Button>
+          <Button
+            variant="contained"
+            href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + current_gene}
+            color="secondary"
+            sx={{ minWidth: 125, minHeight: 50 }}
+          >
+            <Image style={{ objectFit: "contain" }} src="https://geneanalytics.genecards.org/media/81632/gc.png" fill alt="gene-card-button" />
+          </Button>
+        </Stack>
+      </Stack>
       <Grid2 container spacing={3}>
-        <TextField label="Gene" sx={{m:1}} select value={current_gene}>
+        <TextField label="Gene" sx={{ m: 1 }} select value={current_gene}>
           {options.map((option: string) => {
             return (
               <MenuItem key={option} value={option} onClick={() => setGene(option)}>
@@ -213,60 +211,62 @@ export function GeneExpression(props: {
             ))}
           </Select>
         </FormControl>
-        {/* Group By */}
-        <FormControl>
-          <FormLabel id="demo-radio-buttons-group-label">Group By</FormLabel>
-          <RadioGroup
-            aria-labelledby="demo-radio-buttons-group-label"
-            name="radio-buttons-group"
-            value={group}
-            onChange={handleGroupChange}
-          >
-            <FormControlLabel value="byExperimentTPM" control={<Radio />} label="Experiment" />
-            <FormControlLabel value="byTissueTPM" control={<Radio />} label="Tissue" />
-            <FormControlLabel value="byTissueMaxTPM" control={<Radio />} label="Tissue Max" />
-          </RadioGroup>
-        </FormControl>
         {/* RNA Type, hide for human as all data is total RNA-seq */}
-        {props.assembly === "mm10" && <FormControl>
-          <FormLabel id="demo-radio-buttons-group-label">RNA Type</FormLabel>
-          <RadioGroup
-            aria-labelledby="demo-radio-buttons-group-label"
-            name="radio-buttons-group"
+        {props.assembly === "mm10" &&
+          <ToggleButtonGroup
+            color="primary"
             value={RNAtype}
+            exclusive
             onChange={handleRNATypeChange}
+            aria-label="RNA Type"
+            size="medium"
+            sx={{ m: 1 }}
           >
-            <FormControlLabel value="total RNA-seq" control={<Radio />} label="Total RNA-seq" />
-            <FormControlLabel value="polyA plus RNA-seq" control={<Radio />} label="PolyA plus RNA-seq" />
-            <FormControlLabel value="all" control={<Radio />} label="Any" />
-          </RadioGroup>
-        </FormControl>}
+            <ToggleButton sx={{ textTransform: "none" }} value="all">Any</ToggleButton>
+            <ToggleButton sx={{ textTransform: "none" }} value="total RNA-seq">Total RNA-seq</ToggleButton>
+            <ToggleButton sx={{ textTransform: "none" }} value="polyA plus RNA-seq">PolyA plus RNA-seq</ToggleButton>
+          </ToggleButtonGroup>
+        }
+        {/* View By */}
+        <ToggleButtonGroup
+          color="primary"
+          value={group}
+          exclusive
+          onChange={handleGroupChange}
+          aria-label="View By"
+          size="medium"
+          sx={{ m: 1 }}
+        >
+          <ToggleButton sx={{ textTransform: "none" }} value="byExperimentTPM">Experiment</ToggleButton>
+          <ToggleButton sx={{ textTransform: "none" }} value="byTissueTPM">Tissue</ToggleButton>
+          <ToggleButton sx={{ textTransform: "none" }} value="byTissueMaxTPM">Tissue Max</ToggleButton>
+        </ToggleButtonGroup>
         {/* Scale */}
-        <FormControl>
-          <FormLabel id="demo-radio-buttons-group-label">Scale</FormLabel>
-          <RadioGroup
-            aria-labelledby="demo-radio-buttons-group-label"
-            name="radio-buttons-group"
-            value={scale}
-            onChange={handleScaleChange}
-          >
-            <FormControlLabel value="linearTPM" control={<Radio />} label="Linear TPM" />
-            <FormControlLabel value="logTPM" control={<Radio />} label="Log10(TPM + 1)" />
-          </RadioGroup>
-        </FormControl>
+        <ToggleButtonGroup
+          color="primary"
+          value={scale}
+          exclusive
+          onChange={handleScaleChange}
+          aria-label="Scale"
+          size="medium"
+          sx={{ m: 1, textTransform: "none" }}
+        >
+          <ToggleButton sx={{ textTransform: "none" }} value="linearTPM">Linear TPM</ToggleButton>
+          <ToggleButton sx={{ textTransform: "none" }} value="logTPM">Log10(TPM + 1)</ToggleButton>
+        </ToggleButtonGroup>
         {/* Replicates */}
-        <FormControl>
-          <FormLabel id="demo-radio-buttons-group-label">Replicates</FormLabel>
-          <RadioGroup
-            aria-labelledby="demo-radio-buttons-group-label"
-            name="radio-buttons-group"
-            value={replicates}
-            onChange={handleReplicatesChange}
-          >
-            <FormControlLabel value="mean" control={<Radio />} label="Average" />
-            <FormControlLabel value="all" control={<Radio />} label="Show All" />
-          </RadioGroup>
-        </FormControl>
+        <ToggleButtonGroup
+          color="primary"
+          value={replicates}
+          exclusive
+          onChange={handleReplicatesChange}
+          aria-label="Scale"
+          size="medium"
+          sx={{ m: 1 }}
+        >
+          <ToggleButton sx={{ textTransform: "none" }} value="mean">Average</ToggleButton>
+          <ToggleButton sx={{ textTransform: "none" }} value="all">Show All</ToggleButton>
+        </ToggleButtonGroup>
         {geneexp_loading || gene_loading ? (
           <Grid2 xs={12} md={12} lg={12}>
             <LoadingMessage />
