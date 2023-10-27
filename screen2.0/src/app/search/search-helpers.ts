@@ -46,16 +46,11 @@ function passesChromatinFilter(currentElement: cCREData, biosample: string | nul
   const ctcf = biosample ? currentElement.ctspecific.ctcf_zscore : currentElement.ctcf_zscore
   const atac = biosample ? currentElement.ctspecific.atac_zscore : currentElement.atac_zscore
   if (
-    mainQueryParams.dnase_s <= dnase &&
-    dnase <= mainQueryParams.dnase_e &&
-    mainQueryParams.h3k4me3_s <= h3k4me3 &&
-    h3k4me3 <= mainQueryParams.h3k4me3_e &&
-    mainQueryParams.h3k27ac_s <= h3k27ac &&
-    h3k27ac <= mainQueryParams.h3k27ac_e &&
-    mainQueryParams.ctcf_s <= ctcf &&
-    ctcf <= mainQueryParams.ctcf_e &&
-    mainQueryParams.atac_s <= atac &&
-    atac <= mainQueryParams.atac_e 
+    (dnase ? mainQueryParams.dnase_s <= dnase && dnase <= mainQueryParams.dnase_e : true) &&
+    (h3k4me3 ? mainQueryParams.h3k4me3_s <= h3k4me3 && h3k4me3 <= mainQueryParams.h3k4me3_e : true) &&
+    (h3k27ac ? mainQueryParams.h3k27ac_s <= h3k27ac && h3k27ac <= mainQueryParams.h3k27ac_e : true) &&
+    (ctcf ? mainQueryParams.ctcf_s <= ctcf && ctcf <= mainQueryParams.ctcf_e : true) &&
+    (atac ? mainQueryParams.atac_s <= atac && atac <= mainQueryParams.atac_e: true) 
   ) {
     return true
   } else return false

@@ -34,61 +34,6 @@ const MenuProps = {
 
 const biosampleTypes = ["cell line", "in vitro differentiated cells", "primary cell", "tissue"];
 
-function downloadBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob);
-  const downloadLink = document.createElement('a');
-  downloadLink.href = url;
-  downloadLink.download = filename;
-  document.body.appendChild(downloadLink);
-  downloadLink.click();
-  document.body.removeChild(downloadLink);
-}
-
-function svgData(svgNode: RefObject<SVGSVGElement>): string {
-  if (!svgNode.current) return '';
-  const svg = svgNode.current.cloneNode(true) as SVGSVGElement;
-  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-  const preface = '<?xml version="1.0" standalone="no"?>';
-  return preface + svg.outerHTML.replace(/\n/g, '').replace(/[ ]{8}/g, '');
-}
-
-function svgDataE(svgNode: SVGSVGElement[], translations: ([ number, number ] | undefined)[]): string {
-  const svgs = svgNode.map(x => x.cloneNode(true) as SVGSVGElement);
-  svgs[0].setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-  svgs.slice(1).forEach( (x, i) => {
-      Array.from(x.children).forEach(c => {
-          const cc = c.cloneNode(true) as SVGGElement;
-          if (translations[i]) {
-              const s = svgs[0].createSVGTransform();
-              s.setTranslate(...(translations[i] as [ number, number ]));
-              cc.transform.baseVal.appendItem(s);
-          }
-          svgs[0].getRootNode().appendChild(cc);
-      });
-  });
-  const preface = '<?xml version="1.0" standalone="no"?>';
-  return preface + svgs[0].outerHTML.replace(/\n/g, '').replace(/[ ]{8}/g, '');
-}
-
-function downloadSVG(svg: RefObject<SVGSVGElement>, filename: string) {
-  downloadBlob(new Blob([svgData(svg)], { type: 'image/svg+xml;charset=utf-8' }), filename);
-}
-
-// function download() {
-//   let svg = ReactDOM.findDOMNode(this.refs.svgroot)
-//   svg.setAttribute("xmlns", "http://www.w3.org/2000/svg")
-//   let svgData = svg.outerHTML.replace(/<\/svg>/g, "<text x='50' y='30' font-size='24'>Courtesy of ENCODE</text></svg>")
-//   let preface = '<?xml version="1.0" standalone="no"?>\r\n'
-//   let svgBlob = new Blob([preface, svgData], { type: "image/svg+xml;charset=utf-8" })
-//   let svgUrl = URL.createObjectURL(svgBlob)
-//   let downloadLink = document.createElement("a")
-//   downloadLink.href = svgUrl
-//   downloadLink.download = this.props.downloadfilename
-//   document.body.appendChild(downloadLink)
-//   downloadLink.click()
-//   document.body.removeChild(downloadLink)
-// }
-
 export function GeneExpression(props: {
   accession: string
   assembly: string

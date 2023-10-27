@@ -342,6 +342,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
         )}
         {page >= 2 && opencCREs.length > 0 && (
           <CcreDetails
+            key={opencCREs[page - 2].ID}
             accession={opencCREs[page - 2].ID}
             region={opencCREs[page - 2].region}
             globals={props.globals}
