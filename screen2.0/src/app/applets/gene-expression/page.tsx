@@ -257,7 +257,6 @@ useEffect(()=>{
                     x: { start: 125, end: 650 },
                     y: { start: 250, end: 0 },
                   }}
-                  RNAtype={RNAtype}
                   group={group}
                   scale={scale}
                   replicates={replicates}
