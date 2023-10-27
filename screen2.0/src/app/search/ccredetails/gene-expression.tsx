@@ -165,7 +165,7 @@ export function GeneExpression(props: {
           >
             <Image style={{ objectFit: "contain" }} src="https://geneanalytics.genecards.org/media/81632/gc.png" fill alt="gene-card-button" />
           </Button>
-          <Button 
+          {/* <Button 
             variant="contained"
             color="secondary"
             // onClick={() => downloadSVG(null, `${current_gene}_gene_expression.svg`)}
@@ -173,7 +173,7 @@ export function GeneExpression(props: {
             endIcon={<Download />}
           >
             Download Figure
-          </Button>
+          </Button> */}
         </Stack>
       </Stack>
       <Grid2 container spacing={3}>
