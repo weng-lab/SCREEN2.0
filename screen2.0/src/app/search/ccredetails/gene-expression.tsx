@@ -1,24 +1,23 @@
 "use client"
-import React, { useState, useEffect } from "react"
-import { LoadingMessage, ErrorMessage } from "../../../common/lib/utility"
+import React, { useState, useEffect, RefObject } from "react"
+import { LoadingMessage } from "../../../common/lib/utility"
 import { PlotGeneExpression } from "../../applets/gene-expression/utils"
 import { useQuery } from "@apollo/client"
-import { Box, Button, Typography, IconButton, Drawer, Toolbar, AppBar, Stack, Paper, TextField, MenuItem, Tooltip, FormControl, FormControlLabel, FormLabel, Radio, RadioGroup, SelectChangeEvent, Checkbox, InputLabel, ListItemText, OutlinedInput, Select, ToggleButton, ToggleButtonGroup } from "@mui/material"
+import { Button, Typography, Stack, TextField, MenuItem, FormControl, SelectChangeEvent, Checkbox, InputLabel, ListItemText, OutlinedInput, Select, ToggleButton, ToggleButtonGroup } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { ThemeProvider } from "@mui/material/styles"
 import { defaultTheme } from "../../../common/lib/themes"
-import InfoIcon from "@mui/icons-material/Info"
 import Image from "next/image"
 import { client } from "./client"
-import { GeneExpressionInfoTooltip, HUMAN_GENE_EXP, MOUSE_GENE_EXP } from "../../applets/gene-expression/const"
+import { HUMAN_GENE_EXP, MOUSE_GENE_EXP } from "../../applets/gene-expression/const"
 import { LinkedGenesData } from "../types"
 import { GENE_EXP_QUERY, GENE_QUERY } from "../../applets/gene-expression/queries"
-import { OptionsGroupBy, OptionsRNAType, OptionsScale, OptionsReplicates } from "../../applets/gene-expression/options"
+import { Download } from "@mui/icons-material"
 
 /**
  * @todo
- * Align tissue name with middle
  * Download
+ * Tooltip with correct info
  * 
  */
 
@@ -34,6 +33,61 @@ const MenuProps = {
 };
 
 const biosampleTypes = ["cell line", "in vitro differentiated cells", "primary cell", "tissue"];
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const downloadLink = document.createElement('a');
+  downloadLink.href = url;
+  downloadLink.download = filename;
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+}
+
+function svgData(svgNode: RefObject<SVGSVGElement>): string {
+  if (!svgNode.current) return '';
+  const svg = svgNode.current.cloneNode(true) as SVGSVGElement;
+  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  const preface = '<?xml version="1.0" standalone="no"?>';
+  return preface + svg.outerHTML.replace(/\n/g, '').replace(/[ ]{8}/g, '');
+}
+
+function svgDataE(svgNode: SVGSVGElement[], translations: ([ number, number ] | undefined)[]): string {
+  const svgs = svgNode.map(x => x.cloneNode(true) as SVGSVGElement);
+  svgs[0].setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  svgs.slice(1).forEach( (x, i) => {
+      Array.from(x.children).forEach(c => {
+          const cc = c.cloneNode(true) as SVGGElement;
+          if (translations[i]) {
+              const s = svgs[0].createSVGTransform();
+              s.setTranslate(...(translations[i] as [ number, number ]));
+              cc.transform.baseVal.appendItem(s);
+          }
+          svgs[0].getRootNode().appendChild(cc);
+      });
+  });
+  const preface = '<?xml version="1.0" standalone="no"?>';
+  return preface + svgs[0].outerHTML.replace(/\n/g, '').replace(/[ ]{8}/g, '');
+}
+
+function downloadSVG(svg: RefObject<SVGSVGElement>, filename: string) {
+  downloadBlob(new Blob([svgData(svg)], { type: 'image/svg+xml;charset=utf-8' }), filename);
+}
+
+// function download() {
+//   let svg = ReactDOM.findDOMNode(this.refs.svgroot)
+//   svg.setAttribute("xmlns", "http://www.w3.org/2000/svg")
+//   let svgData = svg.outerHTML.replace(/<\/svg>/g, "<text x='50' y='30' font-size='24'>Courtesy of ENCODE</text></svg>")
+//   let preface = '<?xml version="1.0" standalone="no"?>\r\n'
+//   let svgBlob = new Blob([preface, svgData], { type: "image/svg+xml;charset=utf-8" })
+//   let svgUrl = URL.createObjectURL(svgBlob)
+//   let downloadLink = document.createElement("a")
+//   downloadLink.href = svgUrl
+//   downloadLink.download = this.props.downloadfilename
+//   document.body.appendChild(downloadLink)
+//   downloadLink.click()
+//   document.body.removeChild(downloadLink)
+// }
 
 export function GeneExpression(props: {
   accession: string
@@ -166,6 +220,15 @@ export function GeneExpression(props: {
           >
             <Image style={{ objectFit: "contain" }} src="https://geneanalytics.genecards.org/media/81632/gc.png" fill alt="gene-card-button" />
           </Button>
+          <Button 
+            variant="contained"
+            color="secondary"
+            // onClick={() => downloadSVG(null, `${current_gene}_gene_expression.svg`)}
+            sx={{ minWidth: 125, minHeight: 50 }}
+            endIcon={<Download />}
+          >
+            Download Figure
+          </Button>
         </Stack>
       </Stack>
       <Grid2 container spacing={3}>
@@ -255,6 +318,7 @@ export function GeneExpression(props: {
           <ToggleButton sx={{ textTransform: "none" }} value="mean">Average Out Duplicates</ToggleButton>
           <ToggleButton sx={{ textTransform: "none" }} value="all">Show Duplicates</ToggleButton>
         </ToggleButtonGroup>
+        
         {geneexp_loading || gene_loading ? (
           <Grid2 xs={12} md={12} lg={12}>
             <LoadingMessage />

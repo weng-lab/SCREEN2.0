@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Stack, ToggleButton } from "@mui/material"
 import { styled } from "@mui/material/styles"
@@ -200,16 +200,21 @@ export function PlotGeneExpression(props: {
   let y: number = 0
 
   console.log(Object.keys(tissues).length, "tissues")
+
+  let refs = [];
   return (
     <>
       <Grid2 xs={12} md={12} lg={12} mt={1} ml={2} mr={2}>
         {Object.keys(tissues).length === 0 ? <span>{'No Data Available'}</span> : <Stack>
-          {Object.entries(tissues).map((entry, index: number) => {
+          {/* <svg viewBox="0 0 1200 2000"> */}
+            {Object.entries(tissues).map((entry, index: number) => {
+            const ref = useRef(null)
             let info = entry[1]
             y = info.values.length + 20 + 10
             let view: string = "0 0 1200 " + (info.values.length * (props.group === 'byTissueTPM' ? 20 : 3) + 20)
+            
             return (
-              <svg className="graph" aria-labelledby="title desc" role="img" viewBox={view} key={index}>
+              <svg ref={ref} className="graph" aria-labelledby="title desc" role="img" viewBox={view} key={index}>
                 <g className="data" data-setname="gene expression plot">
                   {/* Why 5? */}
                   {plotGeneExp(entry, index, 5)}
@@ -217,6 +222,7 @@ export function PlotGeneExpression(props: {
               </svg>
             )
           })}
+          {/* </svg> */}
         </Stack>}
       </Grid2>
     </>
