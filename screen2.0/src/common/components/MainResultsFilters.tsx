@@ -566,7 +566,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
             </AccordionDetails>
           </Accordion>}
           {/* Linked Genes */}
-          <Accordion square disableGutters>
+          {/* <Accordion square disableGutters>
             <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel4a-content" id="panel4a-header">
               <Typography>Linked Genes</Typography>
             </AccordionSummary>
@@ -575,9 +575,9 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex, sit amet blandit leo lobortis eget.
               </Typography>
             </AccordionDetails>
-          </Accordion>
+          </Accordion> */}
           {/* Functional Characterization */}
-          <Accordion square disableGutters>
+          {/* <Accordion square disableGutters>
             <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel5a-content" id="panel5a-header">
               <Typography>Functional Characterization</Typography>
             </AccordionSummary>
@@ -586,7 +586,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex, sit amet blandit leo lobortis eget.
               </Typography>
             </AccordionDetails>
-          </Accordion>
+          </Accordion> */}
         </>
       }
       <Link href={constructURL(props.mainQueryParams, urlParams)}>

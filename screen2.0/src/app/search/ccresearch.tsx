@@ -210,15 +210,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
       }).filter((x) => x != null))
       setLoading(false)
     })
-    /**
-     * This is bad practice, and causes a warning.It wants: props.mainQueryParams, searchParams
-     * Linter wants props.mainQueryParams and searchParams as dependencies.
-     * Adding them causes a fetch on switching tabs since object equality for mainQueryParams
-     * is false between rerenders.
-     * Likely solution would be to utilize useCallback() or useMemo() to wrap dependencies,
-     * Or refactor fetchRows and it's dependencies so that it doesn't need entire mainQueryParams object.
-     */
-  }, [props.mainQueryParams.bed_intersect, props.mainQueryParams.Biosample.selected, props.mainQueryParams.Biosample.biosample])
+  }, [props.mainQueryParams, searchParams])
 
   const findTabByID = (id: string) => {
     return(opencCREs.findIndex((x) => x.ID === id) + 2)
