@@ -174,12 +174,6 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
     }, [searchParams]
   )
 
-  //Initial load
-  //Biosample 
-
-
-  //Filter Changed
-
   useEffect(() => {
     console.log("useEffect table rows fetched")
     setLoading(true)
@@ -187,6 +181,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
     //Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
     startTransition(async () => {
       //fetch rows
+      setPage(searchParams.get("page") ? Number(searchParams.get("page")) : 0)
       let fetchedRows;
       if (props.mainQueryParams.bed_intersect) {
         fetchedRows = await fetchRows(props.mainQueryParams, sessionStorage.getItem("bed intersect")?.split(' '))
@@ -196,18 +191,21 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
       setTableRows(fetchedRows)
       //initialize open cCREs
       const accessions = searchParams.get("accession")?.split(',')
-      accessions && setOpencCREs(accessions.map((id) => {
-        const cCRE_info = fetchedRows.find((row) => row.accession === id)
-        if (cCRE_info) {
-          const region = { start: cCRE_info?.start, chrom: cCRE_info?.chromosome, end: cCRE_info?.end }
-          return (
-            { ID: cCRE_info.accession, region: region, linkedGenes: cCRE_info.linkedGenes }
-          )
-        } else {
-          console.log(`Couldn't find ${id} in the table`)
-          return null
-        }
-      }).filter((x) => x != null))
+      accessions ? 
+        setOpencCREs(accessions.map((id) => {
+          const cCRE_info = fetchedRows.find((row) => row.accession === id)
+          if (cCRE_info) {
+            const region = { start: cCRE_info?.start, chrom: cCRE_info?.chromosome, end: cCRE_info?.end }
+            return (
+              { ID: cCRE_info.accession, region: region, linkedGenes: cCRE_info.linkedGenes }
+            )
+          } else {
+            console.log(`Couldn't find ${id} in the table`)
+            return null
+          }
+        }).filter((x) => x != null))
+        :
+        setOpencCREs([])
       setLoading(false)
     })
   }, [props.mainQueryParams, searchParams])
