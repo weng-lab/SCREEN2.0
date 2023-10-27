@@ -197,35 +197,19 @@ export function PlotGeneExpression(props: {
     }
   })
   let tissues: { [id: string]: { values: QuantificationData } } = props.group === "byExperimentTPM" ? byValueTissues : props.group === "byTissueMaxTPM" ? byTissueMaxTissues : byTissue // dict of ftissues
-  let y: number = 0
-
-  console.log(Object.keys(tissues).length, "tissues")
-
-  let refs = [];
   
   return (
     <>
       <Grid2 xs={12} md={12} lg={12} mt={1} ml={2} mr={2}>
         {Object.keys(tissues).length === 0 ? <span>{'No Data Available'}</span> : <Stack>
-          {/* <svg viewBox="0 0 1200 2000"> */}
+        
             {Object.entries(tissues).map((entry, index: number) => {
-          //  const ref = useRef(null)
+          
             let info = entry[1]
-          //  y += (info.values.length  + 20)
-            let d = index >0 ? index  - 1: 0;
-            let sl = Object.entries(tissues).slice(index);
-
-            let sum = sl.map((entrysl,j)=>{
-              return entrysl[1].values.length * (props.group === 'byTissueTPM' ? 20 : 3) + 20
-            })
-            let r = sum.reduce((accumulator, currentValue) => {
-              return accumulator + currentValue
-            },0);
-            
-            console.log("sum",r)
+          
 
             let view: string = "0 0 1200 " + (info.values.length * (props.group === 'byTissueTPM' ? 20 : 3) + 20)
-            //console.log(entry[0], (info.values.length * (props.group === 'byTissueTPM' ? 20 : 3) + 20))
+            
             return (
               <svg className="graph" aria-labelledby="title desc" role="img" viewBox={view} key={index}>
                 <g className="data" data-setname="gene expression plot">
@@ -235,7 +219,7 @@ export function PlotGeneExpression(props: {
               </svg>
             )
           })}
-          {/* </svg> */}
+          
         </Stack>}
       </Grid2>
     </>
