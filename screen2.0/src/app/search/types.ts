@@ -11,7 +11,7 @@ export type cCREData = {
   start: number
   len: number
   dnase_zscore?: number
-  atac: string
+  atac_zscore?: number  
   promoter_zscore?: number
   enhancer_zscore?: number
   ctcf_zscore?: number
@@ -24,6 +24,7 @@ export type cCREData = {
     h3k4me3_zscore?: number
     h3k27ac_zscore?: number
     ctcf_zscore?: number
+    atac_zscore?: number
   }
   genesallpc: {
     all: {
@@ -59,6 +60,8 @@ export type MainQueryParams = {
   h3k4me3_e?: number
   h3k27ac_s?: number
   h3k27ac_e?: number
+  atac_s?: number
+  atac_e?: number
   vert_s?: number
   vert_e?: number
   mamm_s?: number
@@ -132,7 +135,7 @@ export type MainResultTableRow = {
   start: string
   end: string
   dnase?: number
-  atac: string
+  atac?: number
   h3k4me3?: number
   h3k27ac?: number
   ctcf?: number

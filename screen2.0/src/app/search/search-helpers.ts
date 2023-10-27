@@ -44,6 +44,7 @@ function passesChromatinFilter(currentElement: cCREData, biosample: string | nul
   const h3k4me3 = biosample ? currentElement.ctspecific.h3k4me3_zscore : currentElement.promoter_zscore
   const h3k27ac = biosample ? currentElement.ctspecific.h3k27ac_zscore : currentElement.enhancer_zscore
   const ctcf = biosample ? currentElement.ctspecific.ctcf_zscore : currentElement.ctcf_zscore
+  const atac = biosample ? currentElement.ctspecific.atac_zscore : currentElement.atac_zscore
   if (
     mainQueryParams.dnase_s <= dnase &&
     dnase <= mainQueryParams.dnase_e &&
@@ -52,7 +53,7 @@ function passesChromatinFilter(currentElement: cCREData, biosample: string | nul
     mainQueryParams.h3k27ac_s <= h3k27ac &&
     h3k27ac <= mainQueryParams.h3k27ac_e &&
     mainQueryParams.ctcf_s <= ctcf &&
-    ctcf <= mainQueryParams.ctcf_e
+    ctcf <= mainQueryParams.ctcf_e 
   ) {
     return true
   } else return false
