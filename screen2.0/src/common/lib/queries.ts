@@ -27,6 +27,8 @@ query ccreSearchQuery(
   $rank_enhancer_start: Float!
   $rank_promoter_end: Float!
   $rank_promoter_start: Float!
+  $rank_atac_end: Float!
+  $rank_atac_start: Float!
   $mammals_min: Float
   $mammals_max: Float
   $vertebrates_min: Float
@@ -48,6 +50,8 @@ query ccreSearchQuery(
     gene_all_end: $gene_all_end
     gene_pc_start: $gene_pc_start
     gene_pc_end: $gene_pc_end
+    rank_atac_end: $rank_atac_end
+    rank_atac_start: $rank_atac_start
     rank_ctcf_end: $rank_ctcf_end
     rank_ctcf_start: $rank_ctcf_start
     rank_dnase_end: $rank_dnase_end
@@ -76,12 +80,14 @@ query ccreSearchQuery(
     dnase_zscore
     enhancer_zscore
     promoter_zscore
+    atac_zscore
     ctspecific {
       ct
       dnase_zscore
       h3k4me3_zscore
       h3k27ac_zscore
       ctcf_zscore
+      atac_zscore
     }
     info {
       accession
@@ -211,6 +217,8 @@ function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: numbe
     gene_pc_end: 5000000,
     rank_dnase_start: -10,
     rank_dnase_end: 10,
+    rank_atac_start: -10,
+    rank_atac_end: 10,
     rank_promoter_start: -10,
     rank_promoter_end: 10,
     rank_enhancer_start: -10,

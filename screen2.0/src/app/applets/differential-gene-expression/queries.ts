@@ -29,6 +29,8 @@ export const ZSCORE_QUERY = gql`
     $gene_pc_end: Int
     $rank_ctcf_end: Float!
     $rank_ctcf_start: Float!
+    $rank_atac_end: Float!
+    $rank_atac_start: Float!
     $rank_dnase_end: Float!
     $rank_dnase_start: Float!
     $rank_enhancer_end: Float!
@@ -51,6 +53,8 @@ export const ZSCORE_QUERY = gql`
       gene_pc_end: $gene_pc_end
       rank_ctcf_end: $rank_ctcf_end
       rank_ctcf_start: $rank_ctcf_start
+      rank_atac_end: $rank_atac_end
+      rank_atac_start: $rank_atac_start
       rank_dnase_end: $rank_dnase_end
       rank_dnase_start: $rank_dnase_start
       rank_enhancer_end: $rank_enhancer_end
