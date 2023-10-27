@@ -158,6 +158,8 @@ export default function DifferentialGeneExpression() {
       gene_all_end: 5000000,
       gene_pc_start: 0,
       gene_pc_end: 5000000,
+      rank_atac_end: 10.0,
+      rank_atac_start: -10.0,
       rank_ctcf_end: 10.0,
       rank_ctcf_start: -10.0,
       rank_dnase_end: 10.0,

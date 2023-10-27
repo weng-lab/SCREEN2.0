@@ -346,6 +346,6 @@ export function GeneExpression(props: {
           )
         )}
       </Grid2>
-    </ThemeProvider>
-  )
+    </ThemeProvider> 
+    )
 }

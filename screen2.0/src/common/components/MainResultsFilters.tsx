@@ -53,7 +53,9 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
   const [H3K27acEnd, setH3K27acEnd] = useState<number>(props.mainQueryParams.h3k27ac_e)
   const [CTCFStart, setCTCFStart] = useState<number>(props.mainQueryParams.ctcf_s)
   const [CTCFEnd, setCTCFEnd] = useState<number>(props.mainQueryParams.ctcf_e)
-
+  const [ATACStart, setATACStart] = useState<number>(props.mainQueryParams.atac_s)
+  const [ATACEnd, setATACEnd] = useState<number>(props.mainQueryParams.atac_e)
+  
   //Classification Filter
   const [CA, setCA] = useState<boolean>(props.mainQueryParams.CA)
   const [CA_CTCF, setCA_CTCF] = useState<boolean>(props.mainQueryParams.CA_CTCF)
@@ -92,6 +94,8 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     H3K27acEnd,
     CTCFStart,
     CTCFEnd,
+    ATACStart,
+    ATACEnd,
     CA,
     CA_CTCF,
     CA_H3K4me3,
@@ -412,6 +416,23 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                     onChange={(value: any) => {
                       setCTCFStart(value[0])
                       setCTCFEnd(value[1])
+                    }}
+                  />
+                </Grid2>
+                <Grid2 xs={12} lg={12} xl={12}>
+                  <RangeSlider
+                    title="ATAC"
+                    width="100%"
+                    defaultStart={ATACStart}
+                    defaultEnd={ATACEnd}
+                    min={-10}
+                    max={10}
+                    minDistance={1}
+                    step={0.1}
+                    //These are not properly typed due to an issue in the component library. Type properly when fixed
+                    onChange={(value: any) => {
+                      setATACStart(value[0])
+                      setATACEnd(value[1])
                     }}
                   />
                 </Grid2>

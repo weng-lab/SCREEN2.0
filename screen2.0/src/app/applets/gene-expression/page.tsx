@@ -5,7 +5,6 @@ import { ReadonlyURLSearchParams, useSearchParams, usePathname } from "next/navi
 import { LoadingMessage, ErrorMessage } from "../../../common/lib/utility"
 
 import { PlotGeneExpression } from "./utils"
-import { GeneExpressions, gene } from "./types"
 
 
 import { Box, Button, Typography, IconButton, Drawer, Toolbar, AppBar, Stack, Paper, Switch, Tooltip } from "@mui/material"
@@ -48,7 +47,7 @@ export default function GeneExpression() {
   const [cell_components, setCellComponents] = useState<string[]>(["cell"])
 
   const [group, setGroup] = useState<string>("byTissueMaxFPKM") // experiment, tissue, tissue max
-  const [RNAtype, setRNAType] = useState<string>("all") // any, polyA RNA-seq, total RNA-seq
+  const [RNAtype, setRNAType] = useState<any>("all") // any, polyA RNA-seq, total RNA-seq
   const [scale, setScale] = useState<string>("rawFPKM") // linear or log2
   const [replicates, setReplicates] = useState<string>("mean") // single or mean
 
@@ -257,10 +256,9 @@ useEffect(()=>{
                     x: { start: 125, end: 650 },
                     y: { start: 250, end: 0 },
                   }}
-                  RNAtype={RNAtype}
-                  group={group}
-                  scale={scale}
-                  replicates={replicates}
+                  group={group as any}
+                  scale={scale as any}
+                  replicates={replicates as any}
                 />
               )
             )}
