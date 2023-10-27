@@ -1,6 +1,6 @@
-import { ApolloQueryResult } from "@apollo/client"
+
 import { cCREData, MainQueryParams, CellTypeData, UnfilteredBiosampleData, FilteredBiosampleData, URLParams, MainResultTableRows, MainResultTableRow } from "./types"
-import { linkedGenesQuery } from "../../common/lib/queries"
+
 
 /**
  *
@@ -44,6 +44,7 @@ function passesChromatinFilter(currentElement: cCREData, biosample: string | nul
   const h3k4me3 = biosample ? currentElement.ctspecific.h3k4me3_zscore : currentElement.promoter_zscore
   const h3k27ac = biosample ? currentElement.ctspecific.h3k27ac_zscore : currentElement.enhancer_zscore
   const ctcf = biosample ? currentElement.ctspecific.ctcf_zscore : currentElement.ctcf_zscore
+  const atac = biosample ? currentElement.ctspecific.atac_zscore : currentElement.atac_zscore
   if (
     mainQueryParams.dnase_s <= dnase &&
     dnase <= mainQueryParams.dnase_e &&
@@ -52,7 +53,9 @@ function passesChromatinFilter(currentElement: cCREData, biosample: string | nul
     mainQueryParams.h3k27ac_s <= h3k27ac &&
     h3k27ac <= mainQueryParams.h3k27ac_e &&
     mainQueryParams.ctcf_s <= ctcf &&
-    ctcf <= mainQueryParams.ctcf_e
+    ctcf <= mainQueryParams.ctcf_e &&
+    mainQueryParams.atac_s <= atac &&
+    atac <= mainQueryParams.atac_e 
   ) {
     return true
   } else return false
@@ -259,7 +262,7 @@ export function constructURL(
       : ""
   }`
 
-  const chromatinFilters = `&dnase_s=${urlParams.DNaseStart}&dnase_e=${urlParams.DNaseEnd}&h3k4me3_s=${urlParams.H3K4me3Start}&h3k4me3_e=${urlParams.H3K4me3End}&h3k27ac_s=${urlParams.H3K27acStart}&h3k27ac_e=${urlParams.H3K27acEnd}&ctcf_s=${urlParams.CTCFStart}&ctcf_e=${urlParams.CTCFEnd}`
+  const chromatinFilters = `&dnase_s=${urlParams.DNaseStart}&dnase_e=${urlParams.DNaseEnd}&h3k4me3_s=${urlParams.H3K4me3Start}&h3k4me3_e=${urlParams.H3K4me3End}&h3k27ac_s=${urlParams.H3K27acStart}&h3k27ac_e=${urlParams.H3K27acEnd}&ctcf_s=${urlParams.CTCFStart}&ctcf_e=${urlParams.CTCFEnd}&atac_s=${urlParams.ATACStart}&atac_e=${urlParams.ATACEnd}`
 
   const classificationFilters = `&CA=${outputT_or_F(urlParams.CA)}&CA_CTCF=${outputT_or_F(urlParams.CA_CTCF)}&CA_H3K4me3=${outputT_or_F(
     urlParams.CA_H3K4me3

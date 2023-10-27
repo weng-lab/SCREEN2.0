@@ -41,14 +41,9 @@ function MainResultsTable(props: MainResultsTableProps) {
       {
         header: "End",
         value: (row: { end: string }) => row.end,
-      },
-      {
-        header: "ATAC",
-        //Atac is a string because the data does not exist and is "TBD" for now
-        value: (row: { atac: string }) => row.atac,
-      },
+      }
     ]
-
+   
     if (props.rows[0] && props.rows[0].dnase !== null) {
       cols.push({
         header: "DNase",
@@ -73,7 +68,12 @@ function MainResultsTable(props: MainResultsTableProps) {
         value: (row) => (row.h3k4me3 && row.h3k4me3.toFixed(2)) || 0,
       })
     }
-
+    if (props.rows[0] && props.rows[0].atac !== null) {
+      cols.push({
+        header: "ATAC",
+        value: (row) => (row.atac && row.atac.toFixed(2)) || 0,
+      })
+    }
     //Whenever the state of the checkboxes conflicts with the state of the main component, it triggers a rerender
     cols.push({
       header: "Linked\u00A0Genes\u00A0(Distance)",
@@ -207,14 +207,14 @@ function MainResultsTable(props: MainResultsTableProps) {
       <LoadingMessage />
       :
       <DataTable
-        key={props.rows[0] && props.rows[0].dnase + props.rows[0].ctcf + props.rows[0].h3k27ac + props.rows[0].h3k4me3 + columns.toString() + distance + CTCF_ChIAPET + RNAPII_ChIAPET}
+        key={props.rows[0] && props.rows[0].dnase + props.rows[0].ctcf + props.rows[0].h3k27ac + props.rows[0].h3k4me3 +  props.rows[0].atac  + columns.toString() + distance + CTCF_ChIAPET + RNAPII_ChIAPET}
         rows={props.rows}
         columns={columns(setDistance, setCTCF_ChIAPET, setRNAPII_ChIAPET)}
         itemsPerPage={props.itemsPerPage}
         searchable
         onRowClick={props.onRowClick}
         tableTitle={props.tableTitle}
-        sortColumn={6}
+        sortColumn={5}
         showMoreColumns
         noOfDefaultColumns={11}
         titleHoverInfo={props.titleHoverInfo}

@@ -52,10 +52,11 @@ export async function generateRows(QueryResult: ApolloQueryResult<any>, biosampl
         end: (currentElement.start + currentElement.len).toLocaleString("en-US"),
         dnase: biosample ? currentElement.ctspecific.dnase_zscore : currentElement.dnase_zscore,
         //Need to get this data still from somewhere
-        atac: "TBD",
+        
         h3k4me3: biosample ? currentElement.ctspecific.h3k4me3_zscore : currentElement.promoter_zscore,
         h3k27ac: biosample ? currentElement.ctspecific.h3k27ac_zscore : currentElement.enhancer_zscore,
         ctcf: biosample ? currentElement.ctspecific.ctcf_zscore : currentElement.ctcf_zscore,
+        atac: biosample ? currentElement.ctspecific.atac_zscore : currentElement.atac_zscore,
         linkedGenes: { distancePC: currentElement.genesallpc.pc.intersecting_genes, distanceAll: currentElement.genesallpc.all.intersecting_genes, CTCF_ChIAPET: [], RNAPII_ChIAPET: [] },
         conservationData: {mammals: currentElement.mammals, primates: currentElement.primates, vertebrates: currentElement.vertebrates}
       })
