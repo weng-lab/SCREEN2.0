@@ -35,9 +35,10 @@ const pageLinks = [
     link: "/applets",
     dropdownID: "1",
     subPages: [
-      { pageName: "GWAS", link: "/applets/gwas" },
+      // disable GWAS and DEG App for now
+      //{ pageName: "GWAS", link: "/applets/gwas" },
       { pageName: "Gene Expression", link: "/applets/gene-expression " },
-      { pageName: "Differential Gene Expression", link: "/applets/differential-gene-expression" },
+     // { pageName: "Differential Gene Expression", link: "/applets/differential-gene-expression" },
     ],
   },
   {
