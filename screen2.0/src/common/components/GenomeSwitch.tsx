@@ -83,7 +83,7 @@ const GenomeSwitch: React.FC<GenomeSwitchProps> = (props: GenomeSwitchProps) => 
   })
 
   return (
-    <Stack direction="row" alignItems="center">
+    <Stack direction="row" alignItems="center" margin={1}>
       <Typography>GRCh38</Typography>
       <StyledSwitch
         //This is the value of the switch. When going to the results page, this value needs to mirror the search query

@@ -55,7 +55,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
       )}
       {page === 5 && <Ortholog accession={accession} assembly={assembly} />}
       {page === 6 && <Rampage gene={genes.distancePC[0].name} />}
-      {page === 7 && <GeneExpression accession={accession} assembly={assembly} genes={genes} hamburger={drawerOpen} />}
+      {page === 7 && <GeneExpression accession={accession} assembly={assembly} genes={genes} />}
       {page === 8 && <FunctionData accession={accession} coordinates={{ chromosome: region.chrom, start: +region.start.toString().replace(/\D/g, ""), end: +region.end.toString().replace(/\D/g, "") }} assembly={assembly} />}
     </>
   )

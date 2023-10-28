@@ -1,7 +1,7 @@
 "use client"
-import React, { useState, useEffect, RefObject } from "react"
+import React, { useState, useEffect } from "react"
 import { LoadingMessage } from "../../../common/lib/utility"
-import { PlotGeneExpression } from "../../applets/gene-expression/utils"
+import { PlotGeneExpression } from "../../applets/gene-expression/PlotGeneExpression"
 import { useQuery } from "@apollo/client"
 import { Button, Typography, Stack, TextField, MenuItem, FormControl, SelectChangeEvent, Checkbox, InputLabel, ListItemText, OutlinedInput, Select, ToggleButton, ToggleButtonGroup } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
@@ -13,6 +13,10 @@ import { HUMAN_GENE_EXP, MOUSE_GENE_EXP } from "../../applets/gene-expression/co
 import { LinkedGenesData } from "../types"
 import { GENE_EXP_QUERY, GENE_QUERY } from "../../applets/gene-expression/queries"
 import { Download } from "@mui/icons-material"
+
+//Replace this when Gene Autocomplete extracted into componenet
+import GeneAutoComplete from "../../applets/gene-expression/gene-autocomplete"
+import GenomeSwitch from "../../../common/components/GenomeSwitch"
 
 /**
  * @todo
@@ -35,18 +39,19 @@ const MenuProps = {
 const biosampleTypes = ["cell line", "in vitro differentiated cells", "primary cell", "tissue"];
 
 export function GeneExpression(props: {
-  accession: string
-  assembly: string
-  genes: LinkedGenesData
-  hamburger: boolean
+  assembly: "GRCh38" | "mm10"
+  genes?: LinkedGenesData
+  applet?: boolean
 }) {
   const [options, setOptions] = useState<string[]>([])
-  const [current_gene, setGene] = useState<string>(props.genes.distancePC[0].name)
+  const [current_gene, setGene] = useState<string>(props.genes ? props.genes.distancePC[0].name : props.assembly === "mm10" ? "Scml2" : "sox4" )
   const [biosamples, setBiosamples] = useState<string[]>(["cell line", "in vitro differentiated cells", "primary cell", "tissue"])
   const [group, setGroup] = useState<"byTissueMaxTPM" | "byExperimentTPM" | "byTissueTPM">("byTissueTPM") // experiment, tissue, tissue max
   const [RNAtype, setRNAType] = useState<"all" | "polyA plus RNA-seq" | "total RNA-seq">("total RNA-seq") // any, polyA plus RNA-seq, total RNA-seq
-  const [scale, setScale] = useState<"linearTPM" | "logTPM">("logTPM") // linear or log2
-  const [replicates, setReplicates] = useState<"mean" | "all">("mean") // single or mean
+  const [scale, setScale] = useState<"linearTPM" | "logTPM">("logTPM")
+  const [replicates, setReplicates] = useState<"mean" | "all">("mean")
+  //Used only for applet implementation
+  const [assembly, setAssembly] = useState<"GRCh38" | "mm10">(props.assembly)
 
   //Fetch Gene info to get ID
   const {
@@ -54,8 +59,8 @@ export function GeneExpression(props: {
     loading: gene_loading
   } = useQuery(GENE_QUERY, {
     variables: {
-      assembly: props.assembly.toLowerCase(),
-      name: [props.assembly === "mm10" ? current_gene : current_gene.toUpperCase()]
+      assembly: assembly.toLowerCase(),
+      name: [assembly === "mm10" ? current_gene : current_gene.toUpperCase()]
     },
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
@@ -68,9 +73,10 @@ export function GeneExpression(props: {
     loading: geneexp_loading
   } = useQuery(GENE_EXP_QUERY, {
     variables: {
-      assembly: props.assembly,
+      //Is this going to fail?
+      assembly: assembly,
       gene_id: data_gene && data_gene.gene.length > 0 && data_gene.gene[0].id.split(".")[0],
-      accessions: props.assembly.toLowerCase() === "grch38" ? HUMAN_GENE_EXP : MOUSE_GENE_EXP
+      accessions: assembly === "GRCh38" ? HUMAN_GENE_EXP : MOUSE_GENE_EXP
     },
     skip: !data_gene || (data_gene && data_gene.gene.length === 0),
     fetchPolicy: "cache-and-network",
@@ -80,10 +86,12 @@ export function GeneExpression(props: {
 
   //Set Gene list. Why is this wrapped in useEffect?
   useEffect(() => {
-    let geneList: string[] = []
+    if (props.genes){
+      let geneList: string[] = []
     for (let g of props.genes.distancePC) if (!geneList.includes(g.name)) geneList.push(g.name)
     for (let g of props.genes.distanceAll) if (!geneList.includes(g.name)) geneList.push(g.name)
     setOptions(geneList)
+    }
   }, [props.genes])
 
   //Gene expression Data
@@ -147,7 +155,7 @@ export function GeneExpression(props: {
     //Only reason that theme is used is to color buttons white
     <ThemeProvider theme={defaultTheme}>
       <Stack mb={3} direction="row" justifyContent={"space-between"}>
-        <Typography alignSelf={"flex-end"} variant="h5">{`${current_gene} Gene Expression Profiles by RNA-seq`}</Typography>
+        <Typography alignSelf={"flex-end"} variant={props.applet ? "h4" : "h5"}>{`${current_gene} Gene Expression Profiles by RNA-seq`}</Typography>
         <Stack direction="row" spacing={3}>
           <Button
             variant="contained"
@@ -177,15 +185,26 @@ export function GeneExpression(props: {
         </Stack>
       </Stack>
       <Grid2 container spacing={3}>
-        <TextField label="Gene" sx={{ m: 1 }} select value={current_gene}>
-          {options.map((option: string) => {
-            return (
-              <MenuItem key={option} value={option} onClick={() => setGene(option)}>
-                {option}
-              </MenuItem>
-            )
-          })}
-        </TextField>
+        {props.applet ?
+          <Stack direction="row">
+            <GenomeSwitch
+              onSwitchChange={(checked: boolean) => 
+                checked ? setAssembly("mm10") : setAssembly("GRCh38")
+              }
+            />
+            <GeneAutoComplete assembly={assembly} gene={current_gene} setGene={(gene) => setGene(gene)} />
+          </Stack>
+          :
+          <TextField label="Gene" sx={{ m: 1 }} select value={current_gene}>
+            {options.map((option: string) => {
+              return (
+                <MenuItem key={option} value={option} onClick={() => setGene(option)}>
+                  {option}
+                </MenuItem>
+              )
+            })}
+          </TextField>
+        }
         {/* Biosample Types */}
         <FormControl sx={{ m: 1, width: 300 }}>
           <InputLabel id="demo-multiple-checkbox-label">Biosample Types</InputLabel>
@@ -208,7 +227,7 @@ export function GeneExpression(props: {
           </Select>
         </FormControl>
         {/* RNA Type, hide for human as all data is total RNA-seq */}
-        {props.assembly === "mm10" &&
+        {assembly === "mm10" &&
           <ToggleButtonGroup
             color="primary"
             value={RNAtype}
