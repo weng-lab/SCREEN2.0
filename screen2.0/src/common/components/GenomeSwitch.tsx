@@ -76,20 +76,15 @@ const GenomeSwitch: React.FC<GenomeSwitchProps> = (props: GenomeSwitchProps) => 
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setChecked(event.target.checked)
+    props.onSwitchChange && props.onSwitchChange(event.target.checked)
   }
-
-  useEffect(() => {
-    props.onSwitchChange && props.onSwitchChange(checked)
-  })
 
   return (
     <Stack direction="row" alignItems="center" margin={1}>
       <Typography>GRCh38</Typography>
       <StyledSwitch
-        //This is the value of the switch. When going to the results page, this value needs to mirror the search query
         //false = human, true = mouse
         checked={checked}
-        //Not positive that this works as expected
         defaultChecked={props.initialChecked && props.initialChecked}
         onChange={handleChange}
         color="primary"

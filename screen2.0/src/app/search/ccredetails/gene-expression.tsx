@@ -44,24 +44,38 @@ export function GeneExpression(props: {
   applet?: boolean
 }) {
   const [options, setOptions] = useState<string[]>([])
-  const [current_gene, setGene] = useState<string>(props.genes ? props.genes.distancePC[0].name : props.assembly === "mm10" ? "Scml2" : "sox4" )
+  const [currentGene, setCurrentGene] = useState<string>(props.genes ? props.genes.distancePC[0].name : null)
   const [biosamples, setBiosamples] = useState<string[]>(["cell line", "in vitro differentiated cells", "primary cell", "tissue"])
-  const [group, setGroup] = useState<"byTissueMaxTPM" | "byExperimentTPM" | "byTissueTPM">("byTissueTPM") // experiment, tissue, tissue max
-  const [RNAtype, setRNAType] = useState<"all" | "polyA plus RNA-seq" | "total RNA-seq">("total RNA-seq") // any, polyA plus RNA-seq, total RNA-seq
+  const [group, setGroup] = useState<"byTissueMaxTPM" | "byExperimentTPM" | "byTissueTPM">("byTissueTPM")
+  const [RNAtype, setRNAType] = useState<"all" | "polyA plus RNA-seq" | "total RNA-seq">("total RNA-seq")
   const [scale, setScale] = useState<"linearTPM" | "logTPM">("logTPM")
   const [replicates, setReplicates] = useState<"mean" | "all">("mean")
-  //Used only for applet implementation
   const [assembly, setAssembly] = useState<"GRCh38" | "mm10">(props.assembly)
 
+  //Change RNA type back when switching between assemblies, wipe data
+  useEffect(() => {
+    if (props.applet) {
+      if (assembly === "GRCh38") {
+        setRNAType("total RNA-seq")
+      }
+      geneExpData = null
+      setCurrentGene(null)
+    }
+  }, [assembly])
+
+  console.log("current gene: " + currentGene)
+
+  //Skip fetches when no gene selected
   //Fetch Gene info to get ID
   const {
     data: data_gene,
-    loading: gene_loading
+    loading: loading_gene
   } = useQuery(GENE_QUERY, {
     variables: {
       assembly: assembly.toLowerCase(),
-      name: [assembly === "mm10" ? current_gene : current_gene.toUpperCase()]
+      name: [currentGene && assembly === "mm10" ? currentGene : currentGene?.toUpperCase()]
     },
+    skip: !currentGene,
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
     client,
@@ -70,29 +84,18 @@ export function GeneExpression(props: {
   //Fetch Gene Exp data
   const {
     data: data_geneexp,
-    loading: geneexp_loading
+    loading: loading_geneexp
   } = useQuery(GENE_EXP_QUERY, {
     variables: {
-      //Is this going to fail?
       assembly: assembly,
       gene_id: data_gene && data_gene.gene.length > 0 && data_gene.gene[0].id.split(".")[0],
       accessions: assembly === "GRCh38" ? HUMAN_GENE_EXP : MOUSE_GENE_EXP
     },
-    skip: !data_gene || (data_gene && data_gene.gene.length === 0),
+    skip: !currentGene || !data_gene || (data_gene && data_gene.gene.length === 0),
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
     client,
   })
-
-  //Set Gene list. Why is this wrapped in useEffect?
-  useEffect(() => {
-    if (props.genes){
-      let geneList: string[] = []
-    for (let g of props.genes.distancePC) if (!geneList.includes(g.name)) geneList.push(g.name)
-    for (let g of props.genes.distanceAll) if (!geneList.includes(g.name)) geneList.push(g.name)
-    setOptions(geneList)
-    }
-  }, [props.genes])
 
   //Gene expression Data
   //Filter it based on biosample types and RNA types selections
@@ -104,6 +107,17 @@ export function GeneExpression(props: {
       data_geneexp.gene_dataset
         .filter(d => biosamples.includes(d.biosample_type))
         .filter(r => r.assay_term_name === RNAtype))
+
+  //Set Gene list. Why is this wrapped in useEffect?
+  useEffect(() => {
+    if (props.genes) {
+      let geneList: string[] = []
+      for (let g of props.genes.distancePC) if (!geneList.includes(g.name)) geneList.push(g.name)
+      for (let g of props.genes.distanceAll) if (!geneList.includes(g.name)) geneList.push(g.name)
+      setOptions(geneList)
+    }
+  }, [props.genes])
+
 
   const handleGroupChange = (
     event: React.MouseEvent<HTMLElement>,
@@ -155,7 +169,7 @@ export function GeneExpression(props: {
     //Only reason that theme is used is to color buttons white
     <ThemeProvider theme={defaultTheme}>
       <Stack mb={3} direction="row" justifyContent={"space-between"}>
-        <Typography alignSelf={"flex-end"} variant={props.applet ? "h4" : "h5"}>{`${current_gene} Gene Expression Profiles by RNA-seq`}</Typography>
+        <Typography alignSelf={"flex-end"} variant={props.applet ? "h4" : "h5"}>{`${currentGene ? currentGene + " " : ""}Gene Expression Profiles by RNA-seq`}</Typography>
         <Stack direction="row" spacing={3}>
           <Button
             variant="contained"
@@ -167,7 +181,7 @@ export function GeneExpression(props: {
           </Button>
           <Button
             variant="contained"
-            href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + current_gene}
+            href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + currentGene}
             color="secondary"
             sx={{ minWidth: 125, minHeight: 50 }}
           >
@@ -188,17 +202,18 @@ export function GeneExpression(props: {
         {props.applet ?
           <Stack direction="row">
             <GenomeSwitch
-              onSwitchChange={(checked: boolean) => 
+              // On switch change, change assembly and wipe data
+              onSwitchChange={(checked: boolean) => {
                 checked ? setAssembly("mm10") : setAssembly("GRCh38")
-              }
+              }}
             />
-            <GeneAutoComplete assembly={assembly} gene={current_gene} setGene={(gene) => setGene(gene)} />
+            <GeneAutoComplete assembly={assembly} gene={currentGene} setGene={(gene) => setCurrentGene(gene)} />
           </Stack>
           :
-          <TextField label="Gene" sx={{ m: 1 }} select value={current_gene}>
+          <TextField label="Gene" sx={{ m: 1 }} select value={currentGene}>
             {options.map((option: string) => {
               return (
-                <MenuItem key={option} value={option} onClick={() => setGene(option)}>
+                <MenuItem key={option} value={option} onClick={() => setCurrentGene(option)}>
                   {option}
                 </MenuItem>
               )
@@ -282,34 +297,36 @@ export function GeneExpression(props: {
           <ToggleButton sx={{ textTransform: "none" }} value="mean">Average Out Duplicates</ToggleButton>
           <ToggleButton sx={{ textTransform: "none" }} value="all">Show Duplicates</ToggleButton>
         </ToggleButtonGroup>
-        
-        {geneexp_loading || gene_loading ? (
-          <Grid2 xs={12} md={12} lg={12}>
-            <LoadingMessage />
-          </Grid2>
-        ) : (
-          //The Main Chart
-          geneExpData &&
-          (
-            <PlotGeneExpression
-              data={geneExpData}
-              range={{
-                x: { start: 0, end: 4 },
-                y: { start: 0, end: 0 },
-              }}
-              dimensions={{
-                // x: { start: 125, end: 650 },
-                x: { start: 0, end: 650 },
-                y: { start: 250, end: 0 },
-              }}
-              // RNAtype={RNAtype}
-              group={group}
-              scale={scale}
-              replicates={replicates}
-            />
-          )
-        )}
+        <Grid2 xs={12}>
+          {loading_gene || loading_geneexp ?
+            <Grid2 xs={12} md={12} lg={12}>
+              <LoadingMessage />
+            </Grid2>
+            :
+            geneExpData ?
+              <PlotGeneExpression
+                data={geneExpData}
+                range={{
+                  x: { start: 0, end: 4 },
+                  y: { start: 0, end: 0 },
+                }}
+                dimensions={{
+                  // x: { start: 125, end: 650 },
+                  x: { start: 0, end: 650 },
+                  y: { start: 250, end: 0 },
+                }}
+                // RNAtype={RNAtype}
+                group={group}
+                scale={scale}
+                replicates={replicates}
+              />
+              :
+              <Typography variant="h4">
+                Please Select a Gene
+              </Typography>
+          }
+        </Grid2>
       </Grid2>
-    </ThemeProvider> 
-    )
+    </ThemeProvider>
+  )
 }

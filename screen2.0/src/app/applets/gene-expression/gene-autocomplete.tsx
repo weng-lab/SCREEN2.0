@@ -1,15 +1,15 @@
 "use client"
 import React, { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
-
 import { Autocomplete, TextField, Box, Button, debounce, Typography, Stack, IconButton } from "@mui/material"
-
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { gene } from "./types"
 import { QueryResponse } from "../../../../types/types"
 import { Dispatch, SetStateAction } from "react"
 import Config from "../../../config.json"
 import { Search } from "@mui/icons-material"
+
+
 const GENE_AUTOCOMPLETE_QUERY = `
   query ($assembly: String!, $name_prefix: [String!], $limit: Int) {
     gene(assembly: $assembly, name_prefix: $name_prefix, limit: $limit) {
@@ -34,7 +34,11 @@ export default function GeneAutoComplete(props: {
   const [options, setOptions] = useState<string[]>([])
   const [geneDesc, setgeneDesc] = useState<{ name: string; desc: string }[]>()
   const [geneList, setGeneList] = useState<gene[]>([])
-  const [geneID, setGeneID] = useState<string>(props.gene ?  props.gene : "OR52K1")
+  const [geneID, setGeneID] = useState<string>(null)
+
+  useEffect(() => {
+    setGeneID(null)
+  }, [props.assembly])
 
   // gene descriptions
   useEffect(() => {
@@ -105,13 +109,13 @@ export default function GeneAutoComplete(props: {
         disablePortal
         freeSolo={false}
         id="gene-ids"
-        noOptionsText="e.g. Gm25142"
+        noOptionsText={props.assembly === "GRCh38" ? "e.g. SOX4, GAPDH" : "e.g. SCML2, DBT"}
         options={options}
         size="medium"
         sx={{ width: 200 }}
         ListboxProps={{
           style: {
-            maxHeight: "120px",
+            maxHeight: "300px",
           },
         }}
         onChange={(_, value: string| null) => {
@@ -135,7 +139,7 @@ export default function GeneAutoComplete(props: {
             }
           }
         }}
-        renderInput={(tprops) => <TextField {...tprops} label={"Gene"} />}
+        renderInput={(tprops) => <TextField {...tprops} label={"Select a Gene"} />}
         renderOption={(props, opt) => {
           return (
             <li {...props} key={props.id}>
