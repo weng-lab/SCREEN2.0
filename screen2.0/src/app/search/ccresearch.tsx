@@ -347,7 +347,6 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
             assembly={props.mainQueryParams.assembly}
             genes={opencCREs[page - 2].linkedGenes}
             page={detailsPage}
-            drawerOpen={open}
           />
         )}
       </Main>

@@ -14,15 +14,14 @@ import { GeneExpression } from "./gene-expression"
 //Passing these props through this file could be done with context to reduce prop drilling
 type CcreDetailsProps = {
   accession: string
-  assembly: string
+  assembly: "GRCh38" | "mm10"
   region: GenomicRegion
   globals: any
   genes: LinkedGenesData
   page: number
-  drawerOpen: boolean
 }
 
-export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, globals, assembly, genes, page, drawerOpen }) => {
+export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, globals, assembly, genes, page }) => {
   return (
     <>
       <Stack direction="row" justifyContent={"space-between"} alignItems={"baseline"}>
@@ -55,7 +54,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
       )}
       {page === 5 && <Ortholog accession={accession} assembly={assembly} />}
       {page === 6 && <Rampage gene={genes.distancePC[0].name} />}
-      {page === 7 && <GeneExpression accession={accession} assembly={assembly} genes={genes} />}
+      {page === 7 && <GeneExpression assembly={assembly} genes={genes} />}
       {page === 8 && <FunctionData accession={accession} coordinates={{ chromosome: region.chrom, start: +region.start.toString().replace(/\D/g, ""), end: +region.end.toString().replace(/\D/g, "") }} assembly={assembly} />}
     </>
   )

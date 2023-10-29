@@ -328,9 +328,8 @@ export default function DifferentialGeneExpression() {
               </Grid2>
               <Grid2 xs={3} md={3} lg={3} sx={{ display: "flex", mt: 5 }}>
                 <GeneAutoComplete
-                  assembly={assembly}
+                  assembly={((assembly === "GRCh38") || (assembly === "mm10")) ? assembly : "GRCh38"}
                   gene={gene ? gene.name : ""}
-                  pathname={pathname + "?assembly=" + assembly + "&chromosome=" + chromosome}
                   setGene={setGene}
                 />
               </Grid2>
