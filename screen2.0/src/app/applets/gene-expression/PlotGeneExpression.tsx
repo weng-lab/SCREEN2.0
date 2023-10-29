@@ -13,7 +13,6 @@ type QuantificationData = {
   biosample_type: string,
   color: string,
   file_accession: string,
-  fpkm: number,
   tpm: number,
   value: number
 }[]
@@ -29,7 +28,7 @@ export function PlotGeneExpression(props: {
     biosample: string,
     biosample_type: string,
     cell_compartment: string,
-    gene_quantification_files: { accession: string, quantifications: { file_accession: string, tpm: number, fpkm: number }[] }[],
+    gene_quantification_files: { accession: string, quantifications: { file_accession: string, tpm: number }[] }[],
     tissue: string
   }[]
   range: Range2D
@@ -74,7 +73,7 @@ export function PlotGeneExpression(props: {
               biosample_type: biosample.biosample_type,
               assay_term_name: biosample.assay_term_name,
               accession: biosample.accession,
-              value: val, tpm: q.tpm, fpkm: q.fpkm, file_accession: q.file_accession,
+              value: val, tpm: q.tpm, file_accession: q.file_accession,
               color: tissueColors[biosample["tissue"]] ? tissueColors[biosample["tissue"]] :
                 stringToColour(biosample["tissue"])
             })
@@ -100,7 +99,7 @@ export function PlotGeneExpression(props: {
             biosample_type: r[0].biosample_type,
             assay_term_name: r[0].assay_term_name,
             accession: r[0].accession,
-            value: sum / r.length, tpm: r[0].tpm, fpkm: r[0].fpkm, file_accession: r[0].file_accession,
+            value: sum / r.length, tpm: r[0].tpm, file_accession: r[0].file_accession,
             color: tissueColors[k] ? tissueColors[k] :
               stringToColour(k)
           }

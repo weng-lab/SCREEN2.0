@@ -321,7 +321,7 @@ export function GeneExpression(props: {
                 replicates={replicates}
               />
               :
-              <Typography variant="h4">
+              <Typography variant="h5">
                 Please Select a Gene
               </Typography>
           }
