@@ -192,10 +192,6 @@ export const TOP_TISSUES = gql`
     cCREQuery(assembly: $assembly, accession: $accession) {
       accession
       group
-      zScores {
-        score
-        experiment
-      }
       dnase: maxZ(assay: "DNase")
       h3k4me3: maxZ(assay: "H3K4me3")
       h3k27ac: maxZ(assay: "H3K27ac")
@@ -227,7 +223,7 @@ function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: numbe
     rank_ctcf_end: 10,
     cellType: biosample,
     element_type: null,
-    limit: 25000,
+    limit: 25000
   }
   if (accessions) {
     vars["accessions"] = accessions

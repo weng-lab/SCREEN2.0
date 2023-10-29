@@ -1,6 +1,6 @@
-import { ApolloQueryResult } from "@apollo/client"
+
 import { cCREData, MainQueryParams, CellTypeData, UnfilteredBiosampleData, FilteredBiosampleData, URLParams, MainResultTableRows, MainResultTableRow } from "./types"
-import { linkedGenesQuery } from "../../common/lib/queries"
+
 
 /**
  *
@@ -46,14 +46,11 @@ function passesChromatinFilter(currentElement: cCREData, biosample: string | nul
   const ctcf = biosample ? currentElement.ctspecific.ctcf_zscore : currentElement.ctcf_zscore
   const atac = biosample ? currentElement.ctspecific.atac_zscore : currentElement.atac_zscore
   if (
-    mainQueryParams.dnase_s <= dnase &&
-    dnase <= mainQueryParams.dnase_e &&
-    mainQueryParams.h3k4me3_s <= h3k4me3 &&
-    h3k4me3 <= mainQueryParams.h3k4me3_e &&
-    mainQueryParams.h3k27ac_s <= h3k27ac &&
-    h3k27ac <= mainQueryParams.h3k27ac_e &&
-    mainQueryParams.ctcf_s <= ctcf &&
-    ctcf <= mainQueryParams.ctcf_e 
+    (dnase ? mainQueryParams.dnase_s <= dnase && dnase <= mainQueryParams.dnase_e : true) &&
+    (h3k4me3 ? mainQueryParams.h3k4me3_s <= h3k4me3 && h3k4me3 <= mainQueryParams.h3k4me3_e : true) &&
+    (h3k27ac ? mainQueryParams.h3k27ac_s <= h3k27ac && h3k27ac <= mainQueryParams.h3k27ac_e : true) &&
+    (ctcf ? mainQueryParams.ctcf_s <= ctcf && ctcf <= mainQueryParams.ctcf_e : true) &&
+    (atac ? mainQueryParams.atac_s <= atac && atac <= mainQueryParams.atac_e: true) 
   ) {
     return true
   } else return false
@@ -260,7 +257,7 @@ export function constructURL(
       : ""
   }`
 
-  const chromatinFilters = `&dnase_s=${urlParams.DNaseStart}&dnase_e=${urlParams.DNaseEnd}&h3k4me3_s=${urlParams.H3K4me3Start}&h3k4me3_e=${urlParams.H3K4me3End}&h3k27ac_s=${urlParams.H3K27acStart}&h3k27ac_e=${urlParams.H3K27acEnd}&ctcf_s=${urlParams.CTCFStart}&ctcf_e=${urlParams.CTCFEnd}`
+  const chromatinFilters = `&dnase_s=${urlParams.DNaseStart}&dnase_e=${urlParams.DNaseEnd}&h3k4me3_s=${urlParams.H3K4me3Start}&h3k4me3_e=${urlParams.H3K4me3End}&h3k27ac_s=${urlParams.H3K27acStart}&h3k27ac_e=${urlParams.H3K27acEnd}&ctcf_s=${urlParams.CTCFStart}&ctcf_e=${urlParams.CTCFEnd}&atac_s=${urlParams.ATACStart}&atac_e=${urlParams.ATACEnd}`
 
   const classificationFilters = `&CA=${outputT_or_F(urlParams.CA)}&CA_CTCF=${outputT_or_F(urlParams.CA_CTCF)}&CA_H3K4me3=${outputT_or_F(
     urlParams.CA_H3K4me3

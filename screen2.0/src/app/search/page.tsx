@@ -47,6 +47,9 @@ export default async function Search({
     h3k27ac_e: searchParams.h3k27ac_e ? Number(searchParams.h3k27ac_e) : 10,
     ctcf_s: searchParams.ctcf_s ? Number(searchParams.ctcf_s) : -10,
     ctcf_e: searchParams.ctcf_e ? Number(searchParams.ctcf_e) : 10,
+    
+    atac_s: searchParams.atac_s ? Number(searchParams.atac_s) : -10,
+    atac_e: searchParams.atac_e ? Number(searchParams.atac_e) : 10,
     // Classification Filters
     // URL could probably be cut down by putting this into one long string where each letter is t/f or 0/1
     CA: searchParams.CA ? checkTrueFalse(searchParams.CA) : true,

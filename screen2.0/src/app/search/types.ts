@@ -69,7 +69,7 @@ export type MainQueryParams = {
   prim_s?: number
   prim_e?: number
   ctcf_s?: number
-  ctcf_e?: number
+  ctcf_e?: number  
   CA?: boolean
   CA_CTCF?: boolean
   CA_H3K4me3?: boolean
@@ -179,6 +179,8 @@ export type URLParams = {
     H3K27acEnd: number
     CTCFStart: number
     CTCFEnd: number
+    ATACStart: number
+    ATACEnd: number
     CA: boolean
     CA_CTCF: boolean
     CA_H3K4me3: boolean

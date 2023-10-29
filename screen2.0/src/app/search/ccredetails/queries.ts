@@ -16,10 +16,6 @@ type Data = {
   cCREQuery: [{
     accession: string,
     group: string,
-    zScores: {
-      score: number,
-      experiment: string
-    }[],
     dnase: number,
     h3k4me3: number,
     h3k27ac: number,
@@ -49,10 +45,6 @@ export const TOP_TISSUES: TypedDocumentNode<Data, Variables> = gql`
     cCREQuery(assembly: $assembly, accession: $accession) {
       accession
       group
-      zScores {
-        score
-        experiment
-      }
       dnase: maxZ(assay: "DNase")
       h3k4me3: maxZ(assay: "H3K4me3")
       h3k27ac: maxZ(assay: "H3K27ac")

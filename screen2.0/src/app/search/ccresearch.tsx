@@ -174,12 +174,6 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
     }, [searchParams]
   )
 
-  //Initial load
-  //Biosample 
-
-
-  //Filter Changed
-
   useEffect(() => {
     console.log("useEffect table rows fetched")
     setLoading(true)
@@ -187,6 +181,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
     //Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
     startTransition(async () => {
       //fetch rows
+      setPage(searchParams.get("page") ? Number(searchParams.get("page")) : 0)
       let fetchedRows;
       if (props.mainQueryParams.bed_intersect) {
         fetchedRows = await fetchRows(props.mainQueryParams, sessionStorage.getItem("bed intersect")?.split(' '))
@@ -196,29 +191,24 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
       setTableRows(fetchedRows)
       //initialize open cCREs
       const accessions = searchParams.get("accession")?.split(',')
-      accessions && setOpencCREs(accessions.map((id) => {
-        const cCRE_info = fetchedRows.find((row) => row.accession === id)
-        if (cCRE_info) {
-          const region = { start: cCRE_info?.start, chrom: cCRE_info?.chromosome, end: cCRE_info?.end }
-          return (
-            { ID: cCRE_info.accession, region: region, linkedGenes: cCRE_info.linkedGenes }
-          )
-        } else {
-          console.log(`Couldn't find ${id} in the table`)
-          return null
-        }
-      }).filter((x) => x != null))
+      accessions ? 
+        setOpencCREs(accessions.map((id) => {
+          const cCRE_info = fetchedRows.find((row) => row.accession === id)
+          if (cCRE_info) {
+            const region = { start: cCRE_info?.start, chrom: cCRE_info?.chromosome, end: cCRE_info?.end }
+            return (
+              { ID: cCRE_info.accession, region: region, linkedGenes: cCRE_info.linkedGenes }
+            )
+          } else {
+            console.log(`Couldn't find ${id} in the table`)
+            return null
+          }
+        }).filter((x) => x != null))
+        :
+        setOpencCREs([])
       setLoading(false)
     })
-    /**
-     * This is bad practice, and causes a warning.It wants: props.mainQueryParams, searchParams
-     * Linter wants props.mainQueryParams and searchParams as dependencies.
-     * Adding them causes a fetch on switching tabs since object equality for mainQueryParams
-     * is false between rerenders.
-     * Likely solution would be to utilize useCallback() or useMemo() to wrap dependencies,
-     * Or refactor fetchRows and it's dependencies so that it doesn't need entire mainQueryParams object.
-     */
-  }, [props.mainQueryParams.bed_intersect, props.mainQueryParams.Biosample.selected, props.mainQueryParams.Biosample.biosample])
+  }, [props.mainQueryParams, searchParams])
 
   const findTabByID = (id: string) => {
     return(opencCREs.findIndex((x) => x.ID === id) + 2)
@@ -238,16 +228,36 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
             <MenuIcon />
           </IconButton>
           {/* Scroll buttons for tabs not showing up properly? */}
-          <Tabs sx={{'& .MuiTabs-scrollButtons.Mui-disabled': {opacity: 0.3}}} scrollButtons={true} allowScrollButtonsMobile aria-label="navigation tabs" value={page} onChange={handlePageChange}>
-            <StyledTab value={0} label="Table View" />
-            {/* Hide genome browser on bed intersect */}
+          <Tabs
+            //Key needed to force scroll buttons to show up properly when child elements change
+            key={opencCREs.length}
+            sx={{ 
+              '& .MuiTabs-scrollButtons': { color: "black" },
+              '& .MuiTabs-scrollButtons.Mui-disabled': { opacity: 0.3 },
+            }}
+            allowScrollButtonsMobile
+            variant="scrollable"
+            aria-label="navigation tabs"
+            value={page}
+            onChange={handlePageChange}
+          >
+            {/* Hidden empty icon button to keep tab height consistent */}
+            <StyledTab iconPosition="end" icon={<IconButton sx={{display: 'none'}}/>} value={0} label="Table View" />
             {!props.mainQueryParams.bed_intersect &&
               <StyledTab value={1} label="Genome Browser View" />
             }
             {/* Map opencCREs to tabs */}
             {opencCREs.length > 0 && opencCREs.map((cCRE, i) => {
               return (
-                <StyledTab onClick={(event) => event.preventDefault} key={i} value={2 + i} label={cCRE.ID} icon={<IconButton onClick={(event) => {event.stopPropagation(); handleClosecCRE(cCRE.ID)}}><CloseIcon /></IconButton>} iconPosition="end"/>
+                <StyledTab
+                  onClick={(event) => event.preventDefault} key={i} value={2 + i}
+                  label={cCRE.ID}
+                  icon={
+                    <IconButton onClick={(event) => { event.stopPropagation(); handleClosecCRE(cCRE.ID) }}>
+                      <CloseIcon />
+                    </IconButton>
+                  }
+                  iconPosition="end" />
               )
             })}
           </Tabs>
@@ -330,13 +340,13 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
         )}
         {page >= 2 && opencCREs.length > 0 && (
           <CcreDetails
+            key={opencCREs[page - 2].ID}
             accession={opencCREs[page - 2].ID}
             region={opencCREs[page - 2].region}
             globals={props.globals}
             assembly={props.mainQueryParams.assembly}
             genes={opencCREs[page - 2].linkedGenes}
             page={detailsPage}
-            drawerOpen={open}
           />
         )}
       </Main>
