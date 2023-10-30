@@ -44,7 +44,8 @@ export function GeneExpression(props: {
   applet?: boolean
 }) {
   const [options, setOptions] = useState<string[]>([])
-  const [currentGene, setCurrentGene] = useState<string>(props.genes ? props.genes.distancePC[0].name : null)
+  const [currentHumanGene, setCurrentHumanGene] = useState<string>(props.genes ? props.genes.distancePC[0].name : "APOE")
+  const [currentMouseGene, setCurrentMouseGene] = useState<string>(props.genes ? props.genes.distancePC[0].name : "Emid1")
   const [biosamples, setBiosamples] = useState<string[]>(["cell line", "in vitro differentiated cells", "primary cell", "tissue"])
   const [group, setGroup] = useState<"byTissueMaxTPM" | "byExperimentTPM" | "byTissueTPM">("byTissueTPM")
   const [RNAtype, setRNAType] = useState<"all" | "polyA plus RNA-seq" | "total RNA-seq">("total RNA-seq")
@@ -52,30 +53,31 @@ export function GeneExpression(props: {
   const [replicates, setReplicates] = useState<"mean" | "all">("mean")
   const [assembly, setAssembly] = useState<"GRCh38" | "mm10">(props.assembly)
 
-  //Change RNA type back when switching between assemblies, wipe data
-  useEffect(() => {
-    if (props.applet) {
-      if (assembly === "GRCh38") {
-        setRNAType("total RNA-seq")
-      }
-      geneExpData = null
-      setCurrentGene(null)
-    }
-  }, [assembly])
-
-  console.log("current gene: " + currentGene)
-
-  //Skip fetches when no gene selected
   //Fetch Gene info to get ID
   const {
-    data: data_gene,
-    loading: loading_gene
+    data: dataHumanGene,
+    loading: loadingHumanGene
   } = useQuery(GENE_QUERY, {
     variables: {
-      assembly: assembly.toLowerCase(),
-      name: [currentGene && assembly === "mm10" ? currentGene : currentGene?.toUpperCase()]
+      assembly: "grch38",
+      name: [currentHumanGene && currentHumanGene.toUpperCase()]
     },
-    skip: !currentGene,
+    skip: !currentHumanGene,
+    fetchPolicy: "cache-and-network",
+    nextFetchPolicy: "cache-first",
+    client,
+  })
+
+  //Fetch Gene info to get ID
+  const {
+    data: dataMouseGene,
+    loading: loadingMouseGene
+  } = useQuery(GENE_QUERY, {
+    variables: {
+      assembly: "mm10",
+      name: [currentMouseGene && currentMouseGene]
+    },
+    skip: !currentMouseGene,
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
     client,
@@ -83,30 +85,66 @@ export function GeneExpression(props: {
 
   //Fetch Gene Exp data
   const {
-    data: data_geneexp,
-    loading: loading_geneexp
+    data: dataHumanExp,
+    loading: loadingHumanExp
   } = useQuery(GENE_EXP_QUERY, {
     variables: {
-      assembly: assembly,
-      gene_id: data_gene && data_gene.gene.length > 0 && data_gene.gene[0].id.split(".")[0],
-      accessions: assembly === "GRCh38" ? HUMAN_GENE_EXP : MOUSE_GENE_EXP
+      assembly: "GRCh38",
+      gene_id: dataHumanGene && dataHumanGene.gene.length > 0 && dataHumanGene.gene[0].id.split(".")[0],
+      accessions: HUMAN_GENE_EXP
     },
-    skip: !currentGene || !data_gene || (data_gene && data_gene.gene.length === 0),
+    skip: !currentHumanGene || !dataHumanGene || (dataHumanGene && dataHumanGene.gene.length === 0),
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
     client,
   })
 
-  //Gene expression Data
+  const {
+    data: dataMouseExp,
+    loading: loadingMouseExp
+  } = useQuery(GENE_EXP_QUERY, {
+    variables: {
+      assembly: "mm10",
+      gene_id: dataMouseGene && dataMouseGene.gene.length > 0 && dataMouseGene.gene[0].id.split(".")[0],
+      accessions: MOUSE_GENE_EXP
+    },
+    skip: !currentMouseGene || !dataMouseGene || (dataMouseGene && dataMouseGene.gene.length === 0),
+    fetchPolicy: "cache-and-network",
+    nextFetchPolicy: "cache-first",
+    client,
+  })
+
+  //Gene expression Data for chart
   //Filter it based on biosample types and RNA types selections
-  let geneExpData = (data_geneexp && data_geneexp.gene_dataset.length > 0) &&
+  let humanGeneExpData = (dataHumanExp && dataHumanExp.gene_dataset.length > 0) &&
     (RNAtype === "all" ?
-      data_geneexp.gene_dataset
+      dataHumanExp.gene_dataset
         .filter(d => biosamples.includes(d.biosample_type))
       :
-      data_geneexp.gene_dataset
+      dataHumanExp.gene_dataset
         .filter(d => biosamples.includes(d.biosample_type))
         .filter(r => r.assay_term_name === RNAtype))
+
+  let mouseGeneExpData = (dataMouseExp && dataMouseExp.gene_dataset.length > 0) &&
+    (RNAtype === "all" ?
+      dataMouseExp.gene_dataset
+        .filter(d => biosamples.includes(d.biosample_type))
+      :
+      dataMouseExp.gene_dataset
+        .filter(d => biosamples.includes(d.biosample_type))
+        .filter(r => r.assay_term_name === RNAtype))
+
+  //Handle assembly switch change (for applet only)
+  const handleAssemblyChange = (checked: boolean) => {
+    console.log("assembly change called with " + checked)
+    if (props.applet) {
+      checked ? setAssembly("mm10") : setAssembly("GRCh38")
+      //Switch back RNA type if going from mouse to human, as all data there is total
+      if (assembly === "GRCh38") {
+        setRNAType("total RNA-seq")
+      }
+    }
+  }
 
   //Set Gene list. Why is this wrapped in useEffect?
   useEffect(() => {
@@ -169,7 +207,7 @@ export function GeneExpression(props: {
     //Only reason that theme is used is to color buttons white
     <ThemeProvider theme={defaultTheme}>
       <Stack mb={3} direction="row" justifyContent={"space-between"}>
-        <Typography alignSelf={"flex-end"} variant={props.applet ? "h4" : "h5"}>{`${currentGene ? currentGene + " " : ""}Gene Expression Profiles by RNA-seq`}</Typography>
+        <Typography alignSelf={"flex-end"} variant={props.applet ? "h4" : "h5"}>{`${assembly === "GRCh38" ? currentHumanGene : currentMouseGene} Gene Expression Profiles by RNA-seq`}</Typography>
         <Stack direction="row" spacing={3}>
           <Button
             variant="contained"
@@ -181,7 +219,7 @@ export function GeneExpression(props: {
           </Button>
           <Button
             variant="contained"
-            href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + currentGene}
+            href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + `${assembly === "GRCh38" ? currentHumanGene : currentMouseGene}`}
             color="secondary"
             sx={{ minWidth: 125, minHeight: 50 }}
           >
@@ -202,18 +240,25 @@ export function GeneExpression(props: {
         {props.applet ?
           <Stack direction="row">
             <GenomeSwitch
-              // On switch change, change assembly and wipe data
-              onSwitchChange={(checked: boolean) => {
-                checked ? setAssembly("mm10") : setAssembly("GRCh38")
+              onSwitchChange={(checked: boolean) => handleAssemblyChange(checked)}
+            />
+            <GeneAutoComplete
+              assembly={assembly}
+              gene={assembly === "GRCh38" ? currentHumanGene : currentMouseGene}
+              setGene={(gene) => {
+                if (assembly === "GRCh38") {
+                  setCurrentHumanGene(gene)
+                } else {
+                  setCurrentMouseGene(gene)
+                }
               }}
             />
-            <GeneAutoComplete assembly={assembly} gene={currentGene} setGene={(gene) => setCurrentGene(gene)} />
           </Stack>
           :
-          <TextField label="Gene" sx={{ m: 1 }} select value={currentGene}>
+          <TextField label="Gene" sx={{ m: 1 }} select value={assembly === "GRCh38" ? currentHumanGene : currentMouseGene}>
             {options.map((option: string) => {
               return (
-                <MenuItem key={option} value={option} onClick={() => setCurrentGene(option)}>
+                <MenuItem key={option} value={option} onClick={() => assembly === "GRCh38" ? setCurrentHumanGene(option) : setCurrentMouseGene(option)}>
                   {option}
                 </MenuItem>
               )
@@ -298,32 +343,56 @@ export function GeneExpression(props: {
           <ToggleButton sx={{ textTransform: "none" }} value="all">Show Duplicates</ToggleButton>
         </ToggleButtonGroup>
         <Grid2 xs={12}>
-          {loading_gene || loading_geneexp ?
-            <Grid2 xs={12} md={12} lg={12}>
-              <LoadingMessage />
-            </Grid2>
-            :
-            geneExpData ?
-              <PlotGeneExpression
-                data={geneExpData}
-                range={{
-                  x: { start: 0, end: 4 },
-                  y: { start: 0, end: 0 },
-                }}
-                dimensions={{
-                  // x: { start: 125, end: 650 },
-                  x: { start: 0, end: 650 },
-                  y: { start: 250, end: 0 },
-                }}
-                // RNAtype={RNAtype}
-                group={group}
-                scale={scale}
-                replicates={replicates}
-              />
+          {assembly === "GRCh38" ?
+            loadingHumanGene || loadingHumanExp ?
+              <Grid2 xs={12} md={12} lg={12}>
+                <LoadingMessage />
+              </Grid2>
               :
-              <Typography variant="h5">
-                Please Select a Gene
-              </Typography>
+              humanGeneExpData ?
+                <PlotGeneExpression
+                  data={humanGeneExpData}
+                  range={{
+                    x: { start: 0, end: 4 },
+                    y: { start: 0, end: 0 },
+                  }}
+                  dimensions={{
+                    x: { start: 0, end: 650 },
+                    y: { start: 250, end: 0 },
+                  }}
+                  group={group}
+                  scale={scale}
+                  replicates={replicates}
+                />
+                :
+                <Typography variant="h5">
+                  Please Select a Gene
+                </Typography>
+            :
+            loadingMouseGene || loadingMouseExp ?
+              <Grid2 xs={12} md={12} lg={12}>
+                <LoadingMessage />
+              </Grid2>
+              :
+              mouseGeneExpData ?
+                <PlotGeneExpression
+                  data={mouseGeneExpData}
+                  range={{
+                    x: { start: 0, end: 4 },
+                    y: { start: 0, end: 0 },
+                  }}
+                  dimensions={{
+                    x: { start: 0, end: 650 },
+                    y: { start: 250, end: 0 },
+                  }}
+                  group={group}
+                  scale={scale}
+                  replicates={replicates}
+                />
+                :
+                <Typography variant="h5">
+                  Please Select a Gene
+                </Typography>
           }
         </Grid2>
       </Grid2>

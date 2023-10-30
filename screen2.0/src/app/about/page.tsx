@@ -213,7 +213,7 @@ export default function About() {
             cell and tissue types are displayed here for each study.
           </Typography>
         </Grid2>
-        <Grid2 xs={12} id="tutorials">
+        {/* <Grid2 xs={12} id="tutorials">
           <Typography variant="h3">Tutorials</Typography>
         </Grid2>
         <Grid2 xs={12} id="api-documentation">
@@ -227,7 +227,7 @@ export default function About() {
         </Grid2>
         <Grid2 xs={12} id="contact-us">
           <Typography variant="h3">Contact Us</Typography>
-        </Grid2>
+        </Grid2> */}
       </Grid2>
     </main>
   )

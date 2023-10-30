@@ -208,7 +208,7 @@ export const NearByGenomicFeatures: React.FC<{
                     },
                   ]}
                   sortColumn={1}
-                  tableTitle="SNPs "
+                  tableTitle="SNPs"
                   rows={snps || []}
                   itemsPerPage={10}
                   searchable
