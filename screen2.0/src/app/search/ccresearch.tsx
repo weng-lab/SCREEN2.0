@@ -124,7 +124,8 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
 
     // If you're closing a tab to the right of what you're on:
     if (closedIndex > (page - 2)) {
-       // No action needed
+      //Close cCREs in URL
+      router.push(basePathname + '?' + createQueryString("accession", newOpencCREs.map((x) => x.ID).join(',')))
     }
     // If you're closing the tab you're on:
     if (closedIndex === (page - 2)) {
@@ -242,8 +243,8 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
             value={page}
             onChange={handlePageChange}
           >
-            {/* Hidden empty icon button to keep tab height consistent */}
-            <StyledTab iconPosition="end" icon={<IconButton sx={{display: 'none'}}/>} value={0} label="Table View" />
+            {/* Hidden empty icon to keep tab height consistent */}
+            <StyledTab iconPosition="end" icon={<Box sx={{display: 'none'}}/>} value={0} label="Table View" />
             {!props.mainQueryParams.bed_intersect &&
               <StyledTab value={1} label="Genome Browser View" />
             }
@@ -254,9 +255,9 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
                   onClick={(event) => event.preventDefault} key={i} value={2 + i}
                   label={cCRE.ID}
                   icon={
-                    <IconButton onClick={(event) => { event.stopPropagation(); handleClosecCRE(cCRE.ID) }}>
+                    <Box onClick={(event) => { event.stopPropagation(); handleClosecCRE(cCRE.ID) }}>
                       <CloseIcon />
-                    </IconButton>
+                    </Box>
                   }
                   iconPosition="end" />
               )
