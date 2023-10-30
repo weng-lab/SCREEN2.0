@@ -6501,7 +6501,7 @@ __metadata:
     sharp: ^0.32.4
     tailwindcss: 3.3.5
     typescript: 5.2.2
-    umms-gb: ^3.9.13
+    umms-gb: ^3.10.0
     uuid: ^9.0.0
     webpack: ^5.89.0
     webpack-cli: ^5.1.4
@@ -7551,9 +7551,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"umms-gb@npm:^3.9.13":
-  version: 3.9.13
-  resolution: "umms-gb@npm:3.9.13"
+"umms-gb@npm:^3.10.0":
+  version: 3.10.0
+  resolution: "umms-gb@npm:3.10.0"
   dependencies:
     "@types/uuid": ^8.0.0
     bigwig-reader: ^1.3.1
@@ -7564,7 +7564,7 @@ __metadata:
     use-deep-compare-effect: ^1.4.0
   peerDependencies:
     react: ">=18"
-  checksum: 863759712a9bf4a60d8b17e2e0ecfc9ed0aaff9bc4cf962f67f6570893c55a19d5d8528fd635d6672013224b2355c17c53d57c001914720c922f7aa693348756
+  checksum: 25db100605bbb238cfe358460e7d228886bb1b92aa89e5c30e43c31da461b51556e8f5bd0d0ce3f36fc4877e7927063f4be9c1e634fee68237232dcb674ff198
   languageName: node
   linkType: hard
 
