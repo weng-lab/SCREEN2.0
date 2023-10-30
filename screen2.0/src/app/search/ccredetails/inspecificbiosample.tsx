@@ -13,6 +13,7 @@ type cCRERow = {
   h3k4me3: number
   h3k27ac: number
   ctcf: number
+  atac: number
   group: any
 }
 
@@ -39,6 +40,11 @@ const tableCols = (globals, typeC = false) => {
       value: (row: cCRERow) => row.ctcf,
       render: (row: cCRERow) => z_score(row.ctcf),
     },
+    {
+      header: "ATAC Z-score",
+      value: (row: cCRERow) => row.atac,
+      render: (row: cCRERow) => z_score(row.atac),
+    }
   ] : [
     {
       header: "Cell Type",
@@ -64,6 +70,11 @@ const tableCols = (globals, typeC = false) => {
       header: "CTCF Z-score",
       value: (row: cCRERow) => row.ctcf,
       render: (row: cCRERow) => z_score(row.ctcf),
+    },
+    {
+      header: "ATAC Z-score",
+      value: (row: cCRERow) => row.atac,
+      render: (row: cCRERow) => z_score(row.atac),
     },
     {
       header: "Group",
@@ -95,6 +106,11 @@ const ctAgnosticColumns = () => [
     header: "CTCF max-Z",
     value: (row: cCRERow) => row.ctcf,
     render: (row: cCRERow) => z_score(row.ctcf),
+  },
+  {
+    header: "ATAC max-Z",
+    value: (row: cCRERow) => row.atac,
+    render: (row: cCRERow) => z_score(row.atac),
   },
   {
     header: "Group",
@@ -195,6 +211,9 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
         h3k27ac: d.cCREZScores.find((cz) => cz.assay.toLowerCase() === "h3k27ac")
           ? d.cCREZScores.find((cz) => cz.assay.toLowerCase() === "h3k27ac").score
           : -11.0,
+        atac: d.cCREZScores.find((cz) => cz.assay.toLowerCase() === "atac")
+          ? d.cCREZScores.find((cz) => cz.assay.toLowerCase() === "atac").score
+          : -11.0,
       }
     })
 
@@ -229,7 +248,7 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
       } else {
         type = "typec"
       }
-      if (t.dnase !== -11.0 && t.ctcf !== -11.0 && t.h3k27ac !== -11.0 && t.h3k4me3 !== -11.0) {
+      if (t.dnase !== -11.0 && t.ctcf !== -11.0 && t.h3k27ac !== -11.0 && t.h3k4me3 !== -11.0 && t.atac !== -11.0) {
         type = "typea"
       }
       return { ...t, type, group }
@@ -274,7 +293,7 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
           {typea && (
             <DataTable
               columns={tableCols(globals)}
-              tableTitle="Classification in Type A biosamples (all four marks available)"
+              tableTitle="Classification in Type A biosamples (all five marks available)"
               rows={typea}
               sortColumn={1}
               itemsPerPage={5}

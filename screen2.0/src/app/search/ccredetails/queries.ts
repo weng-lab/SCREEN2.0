@@ -49,6 +49,7 @@ export const TOP_TISSUES: TypedDocumentNode<Data, Variables> = gql`
       h3k4me3: maxZ(assay: "H3K4me3")
       h3k27ac: maxZ(assay: "H3K27ac")
       ctcf: maxZ(assay: "CTCF")
+      atac: maxZ(assay: "ATAC")
     }
   }
 `
