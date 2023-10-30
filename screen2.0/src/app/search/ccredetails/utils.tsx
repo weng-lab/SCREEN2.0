@@ -190,7 +190,7 @@ const tissueValues = sort==="byValue" ? byValueTissues: sort==="byTissueMax" ? b
             y += info.values.length * 20 + 20 + 25
             let view: string = "0 0 1200 " + (info.values.length * 20 +10)
             return (
-               <svg className="graph" aria-labelledby="title desc" role="img" viewBox={view}>
+               <svg className="graph" aria-labelledby="title desc" role="img" viewBox={view} key={index}>
                     <g className="data" data-setname="gene expression plot">
                       
                       {plotGeneExp(entry, 5)}
