@@ -27,11 +27,11 @@ export const TfMotifTrack = (props) => {
 
   return (
     <g>
-      <EmptyTrack height={40} width={props.width || 1400} text="TF Motif Occurences" transform="" id="" />
+      <EmptyTrack height={40} width={props.width || 1000} text="TF Motif Occurences" transform="" id="" />
       <SquishBigBed
         domain={props.coordinates}
         svgRef={props.svgRef}
-        width={1000}
+        width={props.width}
         rowHeight={20}
         onHeightChanged={(x) => {
           setHeight(x + 40)
@@ -52,7 +52,7 @@ export const TfMotifTrack = (props) => {
         }}
       />
       {settingsMousedOver && (
-        <rect width={props.width || 1400} height={height} transform="translate(0,0)" fill="#194023" fillOpacity={0.1} />
+        <rect width={props.width || 1000} height={height} transform="translate(0,0)" fill="#194023" fillOpacity={0.1} />
       )}
       <rect transform="translate(0,0)" height={height} width={40} fill="#ffffff" />
       <rect

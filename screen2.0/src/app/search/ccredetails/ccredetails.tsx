@@ -10,6 +10,7 @@ import { TfIntersection } from "./tfintersection"
 import { FunctionData } from "./functionaldata"
 import Rampage from "./rampage"
 import { GeneExpression } from "./gene-expression"
+import { TfSequenceFeatures} from "../gbview/tfsequencefeatures"
 
 //Passing these props through this file could be done with context to reduce prop drilling
 type CcreDetailsProps = {
@@ -22,6 +23,7 @@ type CcreDetailsProps = {
 }
 
 export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, globals, assembly, genes, page }) => {
+  console.log("region", region)
   return (
     <>
       <Stack direction="row" justifyContent={"space-between"} alignItems={"baseline"}>
@@ -55,7 +57,8 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
       {page === 4 && <Ortholog accession={accession} assembly={assembly} />}      
       {page === 5 && <GeneExpression assembly={assembly} genes={genes} />}
       {page === 6 && <FunctionData accession={accession} coordinates={{ chromosome: region.chrom, start: +region.start.toString().replace(/\D/g, ""), end: +region.end.toString().replace(/\D/g, "") }} assembly={assembly} />}
-      {assembly!=="mm10" && page === 7 && <Rampage gene={genes.distancePC[0].name} />}
+      {assembly!=="mm10" && page === 7 && <TfSequenceFeatures assembly={assembly} coordinates = {{ chromosome: region.chrom, start: +(region.start.replace(/\D/g, "")), end: +(region.end.replace(/\D/g, "")) }} />}
+      {assembly!=="mm10" && page === 8 && <Rampage gene={genes.distancePC[0].name} />}
     </>
   )
 }
