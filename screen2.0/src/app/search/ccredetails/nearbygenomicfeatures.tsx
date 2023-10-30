@@ -147,7 +147,7 @@ export const NearByGenomicFeatures: React.FC<{
                     },
                   ]}
                   sortColumn={1}
-                  tableTitle="Nearby Genes"
+                  tableTitle="Genes"
                   rows={genes || []}
                   itemsPerPage={10}
                   searchable
@@ -179,7 +179,7 @@ export const NearByGenomicFeatures: React.FC<{
                     },
                   ]}
                   sortColumn={1}
-                  tableTitle="Nearby cCREs"
+                  tableTitle="cCREs"
                   rows={ccres || []}
                   itemsPerPage={10}
                   searchable
@@ -208,7 +208,7 @@ export const NearByGenomicFeatures: React.FC<{
                     },
                   ]}
                   sortColumn={1}
-                  tableTitle="Nearby SNPs "
+                  tableTitle="SNPs"
                   rows={snps || []}
                   itemsPerPage={10}
                   searchable
