@@ -182,7 +182,7 @@ export const GenomeBrowserView: React.FC<GenomeBrowserViewProps> = (props) => {
       <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "1rem" }}>
         <Grid2 xs={12} lg={12}>
           <br />
-          <CytobandView innerWidth={1000} height={15} chromosome={coordinates.chromosome!} assembly={"hg38"} position={coordinates} />
+          <CytobandView innerWidth={1000} height={15} chromosome={coordinates.chromosome!} assembly={props.assembly!=="mm10" ?"hg38" : "mm10"} position={coordinates} />
           <br />
           <div style={{ textAlign: "center" }}>
             <Controls onDomainChanged={onDomainChanged} domain={coordinates || props.coordinates} />
