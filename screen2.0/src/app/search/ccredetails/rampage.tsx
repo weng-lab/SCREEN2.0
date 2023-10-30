@@ -1,7 +1,7 @@
 "use client"
 import React, { useState, useEffect } from "react"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
-import { LoadingMessage, ErrorMessage } from "../../../common/lib/utility"
+import { LoadingMessage } from "../../../common/lib/utility"
 import {
   AppBar,
   Box,
@@ -18,7 +18,6 @@ import {
   Typography,
 } from "@mui/material"
 import Config from "../../../config.json"
-import { Range2D } from "jubilant-carnival"
 import { PlotActivityProfiles } from "./utils"
 import Image from "next/image"
 import { defaultTheme } from "../../../common/lib/themes"

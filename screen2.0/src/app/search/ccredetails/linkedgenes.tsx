@@ -4,7 +4,6 @@ import { client } from "./client"
 import { useQuery } from "@apollo/client"
 import { LINKED_GENES, GENE_NAME } from "./queries"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
-import { CircularProgress } from "@mui/material"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { LoadingMessage, createLink } from "../../../common/lib/utility"
 
