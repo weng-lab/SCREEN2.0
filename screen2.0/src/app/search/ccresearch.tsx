@@ -153,8 +153,9 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
     // If you're closing a tab to the left of what you're on: 
     if (closedIndex < (page - 2)) {
       // Page count -= 1 to keep tab position
+      // Remove selected cCRE from list
       setPage(page - 1)
-      router.push(basePathname + '?' + createQueryString("page", String(page - 1)))
+      router.push(basePathname + '?' + createQueryString("accession", newOpencCREs.map((x) => x.ID).join(','), "page", String(page - 1)))
     }
   }
 
