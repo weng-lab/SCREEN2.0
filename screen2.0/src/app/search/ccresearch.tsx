@@ -1,7 +1,7 @@
 "use client"
-import React, { startTransition, useCallback, useEffect, useLayoutEffect, useState } from "react"
+import React, { startTransition, useCallback, useEffect, useState } from "react"
 import { styled } from '@mui/material/styles';
-import { Divider, IconButton, Tab, Tabs, Typography, Box, Stack } from "@mui/material"
+import { Divider, IconButton, Tab, Tabs, Typography, Box } from "@mui/material"
 import MainResultsTable from "../../common/components/MainResultsTable"
 import MainResultsFilters from "../../common/components/MainResultsFilters"
 import { CcreDetails } from "./ccredetails/ccredetails"
@@ -299,11 +299,15 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
             <StyledTab label="Linked Genes" sx={{ alignSelf: "start" }} />
             <StyledTab label="Nearby Genomic Features" sx={{ alignSelf: "start" }} />
             <StyledTab label="TF and His-mod Intersection" sx={{ alignSelf: "start" }} />
-            <StyledTab label="TF Motifs and Sequence Features" sx={{ alignSelf: "start" }} />
+           { /*
+           //Disabling this feature (temporary)
+           <StyledTab label="TF Motifs and Sequence Features" sx={{ alignSelf: "start" }} />
+           */}
             <StyledTab label="Linked cCREs in other Assemblies" sx={{ alignSelf: "start" }} />
-            <StyledTab label="Associated RAMPAGE Signal" sx={{ alignSelf: "start" }} />
+            
             <StyledTab label="Associated Gene Expression" sx={{ alignSelf: "start" }} />
             <StyledTab label="Functional Data" sx={{ alignSelf: "start" }} />
+            {props.mainQueryParams.assembly!=="mm10" && <StyledTab label="Associated RAMPAGE Signal" sx={{ alignSelf: "start" }} />}
           </Tabs>
         }
       </Drawer>

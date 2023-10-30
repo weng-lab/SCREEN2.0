@@ -1,25 +1,20 @@
 "use client"
 import React, { useState } from "react"
-import { Accordion, AccordionDetails, AccordionSummary } from "@mui/material"
 import {
   Box,
-  Button,
   FormControl,
-  FormControlLabel,
   InputLabel,
   MenuItem,
   Select,
-  SelectChangeEvent,
-  Switch,
-  Typography,
+  SelectChangeEvent
 } from "@mui/material"
 import { Point2D, Range2D, linearTransform2D } from "jubilant-carnival"
 import { Fragment } from "react"
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { GeneExpEntry } from "../../applets/gene-expression/types"
 import { tissueColors } from "../../../common/lib/colors"
 import { RampagePeak } from "./rampage"
+import { Stack } from "@mui/material"
 
 export const stringToColour = (str: string) => {
   let hash = 0;
@@ -47,9 +42,6 @@ export function PlotActivityProfiles(props: {
   peakID: string
 }) {
   const [sort, setSort] = useState<string>("byValue")
-  const [zeros, setZeros] = useState<boolean>(false)
-  const [collapse, setCollapse] = useState<{ [id: string]: boolean }>({})
-
   let tissues: { [id: string]: { sum: number; values: GeneExpEntry[] } } = {} // dict of ftissues
   let byValueTissues: { [id: string]: { sum: number; values: GeneExpEntry[] } } = {} // dict of ftissues
   let byTissueMaxTissues: { [id: string]: { sum: number; values: GeneExpEntry[] } } = {} // dict of ftissues
@@ -59,7 +51,7 @@ export function PlotActivityProfiles(props: {
 
   
   Object.values(props.data).map((biosample) => {
-    if (!zeros && biosample["value"] === 0) return
+    if (biosample["value"] === 0) return
     else if (biosample["peakId"] === props.peakID) {
       if (!tissues[biosample["tissue"]]) tissues[biosample["tissue"]] = { sum: 0, values: [] }
       tissues[biosample["tissue"]].sum += biosample["value"]
@@ -91,30 +83,49 @@ export function PlotActivityProfiles(props: {
       return (
         <Fragment key={i}>
           <rect
-            x={90}
-            width={p1.x + 90}
+            x={150}
+            width={p1.x + 150}
             y={y + i * 20}
             height={18}
             fill={item.color}
             onMouseOver={() => {
               {
-                ;<rect x={90} width={p1.x + 90} y={y + i * 20} height={18} fill="white" />
+                ;<rect x={150} width={p1.x + 150} y={y + i * 20} height={18} fill="white" />
               }
             }}
           >
             <title>
-              <rect x={90} width={p1.x + 90} y={y + i * 20} height={18} fill="white" />
+              <rect x={150} width={p1.x + 150} y={y + i * 20} height={18} fill="white" />
               {item.value.toFixed(2)} {" " + item.biosample_term} 
             {" (" + item.strand + ")"}
             </title>
           </rect>
-          <text x={p1.x + 40 + 150} y={y + i * 20 + 12.5} style={{ fontSize: 12 }}>
+          <text x={p1.x + 40 + 270} y={y + i * 20 + 12.5} style={{ fontSize: 12 }}>
             {Number(item.value.toFixed(2)) + " "}
             <a href={"https://www.encodeproject.org/experiments/" + item.expID}>{item.expID}</a>
              {" " + item.biosample_term} 
             {" (" + item.strand + ")"}
           </text>
-          <line x1={90} x2={90} y1={y + i * 20} y2={y + (i * 20 + 18)} stroke="black" />
+          {(sort === 'byValue' || sort === 'byTissueMax') &&
+            <text
+              text-anchor="end"
+              x={140}
+              y={y + (i * 20 + 15)}
+            >
+              {entry[0].split("-")[0]}
+            </text>
+          }
+          {sort=== 'byTissue' && i === Math.floor(Object.values(info.values).length / 2) &&
+            <text
+              text-anchor="end"
+              x={140}
+              // If the tissue has an even number of values, bump up a little
+              y={y + (i * 20 + 15) - (((Object.values(info.values).length % 2) !== 0) ? 0 : 12)}
+            >
+              {entry[0].split("-")[0]}
+            </text>
+          }
+          <line x1={150} x2={150} y1={y + i * 20} y2={y + (i * 20 + 18)} stroke="black" />
         </Fragment>
       )
     })
@@ -169,91 +180,25 @@ const tissueValues = sort==="byValue" ? byValueTissues: sort==="byTissueMax" ? b
           </FormControl>
         </Box>
       </Grid2>
-      <Grid2 xs={3} sx={{ alignItems: "right", justifyContent: "right", display: "flex", ml: 0, mr: 0, mt: 2 }}>
-        <Button
-          onClick={() => {
-            let c: { [id: string]: boolean } = {}
-            let uncollapse: boolean = true
-            if (Object.keys(collapse).length !== 0) {
-              Object.keys(collapse).map((b: string) => {
-                if (collapse[b]) uncollapse = false
-                c[b] = false
-              })
-
-              if (uncollapse) {
-                Object.keys(collapse).map((b: string) => {
-                  c[b] = true
-                })
-              }
-            } else
-              Object.keys(tissueValues).map((b: string) => {
-                c[b] = false
-              })
-            setCollapse(c)
-          }}
-        >
-          Collapse All
-        </Button>
-        <Box ml={5}>
-          <FormControl key={sort}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={zeros}
-                  onChange={() => {
-                    if (zeros) setZeros(false)
-                    else setZeros(true)
-                  }}
-                />
-              }
-              label="display 0's"
-            />
-          </FormControl>
-        </Box>
-      </Grid2>
       {/* rampage plot */}
       <Grid2 xs={12}>
         <Box>
+        {Object.keys(tissueValues).length === 0 ? <span>{'No Data Available'}</span> : 
+           <Stack>
           {Object.entries(tissueValues).map((entry, index: number) => {
             let info = entry[1]
             y += info.values.length * 20 + 20 + 25
-            let view: string = "0 0 1200 " + (info.values.length * 20 + 20)
+            let view: string = "0 0 1200 " + (info.values.length * 20 +10)
             return (
-              <Accordion
-                key={index}
-                expanded={Object.keys(collapse).length !== 0 ? collapse[entry[0]] : true}
-                disableGutters={true}
-                sx={{ padding: 0, mr: 0 }}
-              >
-                <AccordionSummary
-                  expandIcon={<ExpandMoreIcon />}
-                  sx={{ padding: 0, margin: 0 }}
-                  onClick={() => {
-                    let tmp: { [id: string]: boolean } = {}
-                    Object.entries(tissueValues).map((x) => {
-                      if (x[0] === entry[0]) {
-                        if (collapse[entry[0]] === undefined || collapse[entry[0]]) tmp[entry[0]] = false
-                        else tmp[entry[0]] = true
-                      } else {
-                        tmp[x[0]] = collapse[x[0]] !== undefined ? collapse[x[0]] : true
-                      }
-                    })
-                    setCollapse(tmp)
-                  }}
-                >
-                  <Typography variant="h5">{entry[0].split("-")[0]}</Typography>
-                </AccordionSummary>
-                <AccordionDetails sx={{ padding: 0 }}>
-                  <svg className="graph" aria-labelledby="title desc" role="img" viewBox={view}>
+               <svg className="graph" aria-labelledby="title desc" role="img" viewBox={view}>
                     <g className="data" data-setname="gene expression plot">
-                      <line x1={0} x2={900} y1={1} y2={1} stroke="black" />
+                      
                       {plotGeneExp(entry, 5)}
                     </g>
                   </svg>
-                </AccordionDetails>
-              </Accordion>
             )
           })}
+          </Stack>}
         </Box>
       </Grid2>
     </Box>
