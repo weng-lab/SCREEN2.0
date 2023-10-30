@@ -5,7 +5,6 @@ import { client } from "./client"
 import { useQuery } from "@apollo/client"
 import { TF_INTERSECTION_QUERY, CRE_TF_DCC_QUERY } from "./queries"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
-import { CircularProgress } from "@mui/material"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { LoadingMessage } from "../../../common/lib/utility"
 
@@ -116,7 +115,7 @@ export const TfIntersection: React.FC<{ assembly: string; coordinates: { chromos
                   setFactor(row.name)
                   setFactorHighlight(row)
                 }}
-                sortColumn={0}
+                sortColumn={1}
                 itemsPerPage={5}
                 highlighted={factorHighlight}
               />

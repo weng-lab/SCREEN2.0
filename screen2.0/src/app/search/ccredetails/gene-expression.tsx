@@ -12,7 +12,7 @@ import { client } from "./client"
 import { HUMAN_GENE_EXP, MOUSE_GENE_EXP } from "../../applets/gene-expression/const"
 import { LinkedGenesData } from "../types"
 import { GENE_EXP_QUERY, GENE_QUERY } from "../../applets/gene-expression/queries"
-import { Download } from "@mui/icons-material"
+
 
 //Replace this when Gene Autocomplete extracted into componenet
 import GeneAutoComplete from "../../applets/gene-expression/gene-autocomplete"
