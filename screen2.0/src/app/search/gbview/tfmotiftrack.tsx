@@ -67,7 +67,7 @@ export const TfMotifTrack = (props) => {
         transform="translate(20,0)"
         onClick={props.onSettingsClick}
       />
-      <text transform={`rotate(270) translate(-${height / 2 + 20},12)`} fill="#194023">
+      <text transform={`rotate(270) translate(-${height / 2 + 40},12)`} fill="#194023">
         TF Binding sites
       </text>
     </g>

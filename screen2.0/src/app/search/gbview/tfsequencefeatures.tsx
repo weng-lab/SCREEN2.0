@@ -9,7 +9,10 @@ import EGeneTracks from "./egenetracks"
 import { client } from "../ccredetails/client"
 import { TfMotifTrack } from "./tfmotiftrack"
 import { DenseBigBed, EmptyTrack, FullBigWig } from "umms-gb"
-
+import { GraphQLImportanceTrack } from "bpnet-ui"
+import { BigQueryResponse } from "./types"
+import { BIG_QUERY } from "./queries"
+import { BigWigData } from "bigwig-reader"
 type TfSequenceFeaturesProps = {
   coordinates: {
     start: number
@@ -76,6 +79,7 @@ export const TfSequenceFeatures: React.FC<TfSequenceFeaturesProps> = (props) => 
   const svgRef = useRef<SVGSVGElement>(null)
   const expandedCoordinates = useMemo(() => expandCoordinates(props.coordinates), [props.coordinates])
   const [coordinates, setCoordinates] = useState<GenomicRange>(expandedCoordinates)
+  const [settingsMousedOver, setSettingsMousedOver] = useState(false)
   useEffect(() => {
     fetch("https://ga.staging.wenglab.org/graphql", {
       method: "POST",
@@ -104,14 +108,25 @@ export const TfSequenceFeatures: React.FC<TfSequenceFeaturesProps> = (props) => 
         setLoading(false)
       })
   }, [coordinates])
-  console.log(data,'data')
+  const url = props.assembly==="GRCh38" ?"gs://gcp.wenglab.org/241-mammalian-2020v2.bigWig" : "gs://gcp.wenglab.org/mm10.phylop.bigWig"
+  const { data: sequenceData, loading: sequenceLoading } = useQuery<BigQueryResponse>(BIG_QUERY, {
+    variables: { bigRequests: [{
+      url,
+      chr1: coordinates.chromosome,
+      start: coordinates.start,
+      chr2: coordinates.chromosome,
+      end: coordinates.end
+    }] },
+    client,
+ })
+ //sequenceData?.bigRequests array
   const snpResponse = useQuery<SNPQueryResponse>(GENE_QUERY, {
     variables: { ...coordinates, assembly: props.assembly },
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
     client,
   })
-
+  
   const groupedTranscripts = useMemo(
     () =>
       snpResponse.data?.gene.map((x) => ({
@@ -169,6 +184,46 @@ export const TfSequenceFeatures: React.FC<TfSequenceFeaturesProps> = (props) => 
               squish={true}
             />
             {!loading && data && props.assembly!=="mm10" && <TfMotifTrack width={1400} data={data} svgRef={svgRef} coordinates={coordinates}/>}
+            <g>
+            <EmptyTrack height={40} width={1400} text={`Sequence Importance (${url})`} transform="" id="" />
+            {coordinates.end - coordinates.start < 5000  ? <g transform="translate(0,30)"><GraphQLImportanceTrack
+          width={1400}
+          height={140}
+          
+          endpoint="https://ga.staging.wenglab.org"
+          signalURL={url}
+          sequenceURL={props.assembly==="GRCh38" ?"gs://gcp.wenglab.org/hg38.2bit" :"gs://gcp.wenglab.org/mm10.2bit"}
+          coordinates={{ chromosome: coordinates.chromosome!, start: coordinates.start, end: coordinates.end }}
+          key={`${coordinates.chromosome}:${coordinates.start}-${coordinates.end}-${url}`}
+        /></g>:   
+        <FullBigWig
+        width={1400}
+        height={140}
+        domain={coordinates}
+        id={url}
+        transform="translate(0,40)"        
+        data={sequenceData?.bigRequests[0].data as BigWigData[]}
+        noTransparency
+      />}
+      {settingsMousedOver && (
+        <rect width={ 1400} height={150} transform="translate(0,0)" fill="#0000ff" fillOpacity={0.1} />
+      )}
+        <rect transform="translate(0,0)" height={150} width={40} fill="#ffffff" />
+        <rect
+        height={150}
+        width={15}
+        fill="#0000ff"
+        stroke="#000000"        
+        fillOpacity={settingsMousedOver ? 1 : 0.6}
+        onMouseOver={() => setSettingsMousedOver(true)}
+        onMouseOut={() => setSettingsMousedOver(false)}
+        strokeWidth={1}
+        transform="translate(20,0)"
+      />
+      <text transform={`rotate(270) translate(-${100 / 2 + 60},12)`} fill="#0000ff">
+        Sequence
+      </text>
+      </g>
             
           </GenomeBrowser>
         </Grid2>
