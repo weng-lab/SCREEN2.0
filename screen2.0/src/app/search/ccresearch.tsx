@@ -309,7 +309,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
             
             <StyledTab label="Associated Gene Expression" sx={{ alignSelf: "start" }} />
             <StyledTab label="Functional Data" sx={{ alignSelf: "start" }} />
-            {props.mainQueryParams.assembly!=="mm10" && <StyledTab label="TF Motifs" sx={{ alignSelf: "start" }} />}
+            <StyledTab label="TF Motifs and Sequence Features" sx={{ alignSelf: "start" }} />
             {props.mainQueryParams.assembly!=="mm10" && <StyledTab label="Associated RAMPAGE Signal" sx={{ alignSelf: "start" }} />}
           </Tabs>
         }
