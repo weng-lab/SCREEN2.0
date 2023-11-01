@@ -46,7 +46,7 @@ export const TfMotifTrack = (props) => {
         onClick={(x: any) => {
           
           return window.open(
-            `https://factorbook.org/tf/${props.assembly === "GRCh38" ? "human" : "mouse"}/${x.rectname.split("$")[2]}/motif`,
+            `https://factorbook.org/tf/human/${x.rectname.split("$")[2]}/motif`,
             "_blank"
           )
         }}
