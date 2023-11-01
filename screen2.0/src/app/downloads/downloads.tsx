@@ -52,7 +52,7 @@ export default function DownloadsPage(props: {
   }
 
   return (
-    <ThemeProvider theme={defaultTheme}>
+    // <ThemeProvider theme={defaultTheme}>
       <Container>
         <Grid2 mt={2} container spacing={2}>
           <Grid2 xs={12}>
@@ -72,6 +72,6 @@ export default function DownloadsPage(props: {
           </Grid2>
         </Grid2>
       </Container>
-    </ThemeProvider>
+    // </ThemeProvider>
   )
 }

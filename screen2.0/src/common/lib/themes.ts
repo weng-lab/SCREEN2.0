@@ -21,6 +21,7 @@ export const defaultTheme = createTheme({
     //     default: "#fff"
     //   }
   },
+  //What are these transitions here for? Default is probably fine?
   transitions: {
     easing: {
       easeInOut: "cubic-bezier(0.4, 0, 0.2, 1)",
