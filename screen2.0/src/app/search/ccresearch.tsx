@@ -98,19 +98,19 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
   const [loading, setLoading] = useState(false)
   const [opencCREs, setOpencCREs] = useState<{ ID: string, region: { start: string, chrom: string, end: string }, linkedGenes: LinkedGenesData }[]>([])
 
-  const handleDrawerOpen = () => {setOpen(true)}
-  const handleDrawerClose = () => {setOpen(false)}
+  const handleDrawerOpen = () => { setOpen(true) }
+  const handleDrawerClose = () => { setOpen(false) }
 
-  const numberOfDefaultTabs = searchParams.get("gene") ?  (props.mainQueryParams.assembly.toLowerCase()==="mm10" ? 3 : 4)  : 2
+  const numberOfDefaultTabs = searchParams.get("gene") ? (props.mainQueryParams.assembly.toLowerCase() === "mm10" ? 3 : 4) : 2
   const handleTableClick = (row: MainResultTableRow) => {
     if (opencCREs.length > 6) { window.alert("Open cCRE limit reached! Please close cCREs to open more") }
-    const newcCRE = {ID: row.accession, region: { start: row.start, end: row.end, chrom: row.chromosome}, linkedGenes: row.linkedGenes}
+    const newcCRE = { ID: row.accession, region: { start: row.start, end: row.end, chrom: row.chromosome }, linkedGenes: row.linkedGenes }
     //If cCRE isn't in open cCREs, add and push as current accession.
-    
+
     if (!opencCREs.find((x) => x.ID === newcCRE.ID)) {
-      setOpencCREs([... opencCREs, newcCRE])
+      setOpencCREs([...opencCREs, newcCRE])
       setPage(opencCREs.length + numberOfDefaultTabs)
-      router.push(basePathname + "?" + createQueryString("accession", [... opencCREs, newcCRE].map((x) => x.ID).join(','), "page", String(opencCREs.length + numberOfDefaultTabs)))
+      router.push(basePathname + "?" + createQueryString("accession", [...opencCREs, newcCRE].map((x) => x.ID).join(','), "page", String(opencCREs.length + numberOfDefaultTabs)))
     } else {
       const newPage = findTabByID(newcCRE.ID, numberOfDefaultTabs)
       setPage(newPage)
@@ -122,7 +122,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
     //Filter out cCRE
     const newOpencCREs = opencCREs.filter((cCRE) => cCRE.ID != closedID)
     setOpencCREs(newOpencCREs)
-    
+
     const closedIndex = opencCREs.findIndex(x => x.ID === closedID)
     // Important to note that opencCREs here is still the old value
 
@@ -173,7 +173,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
     (name1: string, value1: string, name2?: string, value2?: string) => {
       const params = new URLSearchParams(searchParams)
       params.set(name1, value1)
-      if (name2 && value2){
+      if (name2 && value2) {
         params.set(name2, value2)
       }
       return params.toString()
@@ -196,7 +196,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
       setTableRows(fetchedRows)
       //initialize open cCREs
       const accessions = searchParams.get("accession")?.split(',')
-      accessions ? 
+      accessions ?
         setOpencCREs(accessions.map((id) => {
           const cCRE_info = fetchedRows.find((row) => row.accession === id)
           if (cCRE_info) {
@@ -216,10 +216,10 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
   }, [props.mainQueryParams, searchParams])
 
   const findTabByID = (id: string, numberOfTable: number = 2) => {
-    return(opencCREs.findIndex((x) => x.ID === id) + numberOfTable)
+    return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)
   }
 
-  
+
   return (
     <Box id="Outer Box" sx={{ display: 'flex' }}>
       <AppBar id="AppBar" position="fixed" open={open} elevation={1} sx={{ bottom: "auto", top: "auto", backgroundColor: "white" }}>
@@ -237,7 +237,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
           <Tabs
             //Key needed to force scroll buttons to show up properly when child elements change
             key={opencCREs.length}
-            sx={{ 
+            sx={{
               '& .MuiTabs-scrollButtons': { color: "black" },
               '& .MuiTabs-scrollButtons.Mui-disabled': { opacity: 0.3 },
             }}
@@ -248,17 +248,17 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
             onChange={handlePageChange}
           >
             {/* Hidden empty icon to keep tab height consistent */}
-            <StyledTab iconPosition="end" icon={<Box sx={{display: 'none'}}/>} value={0} label="Table View" />
+            <StyledTab iconPosition="end" icon={<Box sx={{ display: 'none' }} />} value={0} label="Table View" />
             {!props.mainQueryParams.bed_intersect &&
               <StyledTab value={1} label="Genome Browser View" />
             }
             {searchParams.get("gene") &&
               <StyledTab value={2} label={`${searchParams.get("gene")} Gene Expression`} />
             }
-            {searchParams.get("gene") && props.mainQueryParams.assembly.toLowerCase()!=="mm10" &&
+            {searchParams.get("gene") && props.mainQueryParams.assembly.toLowerCase() !== "mm10" &&
               <StyledTab value={3} label={`${searchParams.get("gene")} RAMPAGE`} />
             }
-            
+
 
             {/* Map opencCREs to tabs */}
             {opencCREs.length > 0 && opencCREs.map((cCRE, i) => {
@@ -288,6 +288,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
             position: "fixed",
             top: "auto",
             bottom: "auto",
+            paddingBottom: "64px"
           },
         }}
         variant="persistent"
@@ -308,21 +309,30 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
           //Should the filter component be refreshing the route? I think it should probably all be controlled here
           <MainResultsFilters mainQueryParams={props.mainQueryParams} byCellType={props.globals} genomeBrowserView={page === 1} accessions={opencCREs.map((x) => x.ID).join(',')} page={page} />
           :
-          <Tabs aria-label="details-tabs" value={detailsPage} onChange={(_, newValue: number) => { setDetailsPage(newValue) }} orientation="vertical" variant="fullWidth">
+          <Tabs
+            aria-label="details-tabs"
+            value={detailsPage}
+            onChange={(_, newValue: number) => { setDetailsPage(newValue) }}
+            orientation="vertical"
+            variant="scrollable"
+            allowScrollButtonsMobile sx={{
+              '& .MuiTabs-scrollButtons': { color: "black" },
+              '& .MuiTabs-scrollButtons.Mui-disabled': { opacity: 0.3 },
+            }}>
             <StyledTab label="In Specific Biosamples" sx={{ alignSelf: "start" }} />
             <StyledTab label="Linked Genes" sx={{ alignSelf: "start" }} />
             <StyledTab label="Nearby Genomic Features" sx={{ alignSelf: "start" }} />
             <StyledTab label="TF and His-mod Intersection" sx={{ alignSelf: "start" }} />
-           { /*
+            { /*
            //Disabling this feature (temporary)
            <StyledTab label="TF Motifs and Sequence Features" sx={{ alignSelf: "start" }} />
            */}
             <StyledTab label="Linked cCREs in other Assemblies" sx={{ alignSelf: "start" }} />
-            
+
             <StyledTab label="Associated Gene Expression" sx={{ alignSelf: "start" }} />
             <StyledTab label="Functional Data" sx={{ alignSelf: "start" }} />
             <StyledTab label="TF Motifs and Sequence Features" sx={{ alignSelf: "start" }} />
-            {props.mainQueryParams.assembly!=="mm10" && <StyledTab label="Associated RAMPAGE Signal" sx={{ alignSelf: "start" }} />}
+            {props.mainQueryParams.assembly !== "mm10" && <StyledTab label="Associated RAMPAGE Signal" sx={{ alignSelf: "start" }} />}
           </Tabs>
         }
       </Drawer>
@@ -340,8 +350,8 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
               }
               titleHoverInfo={props.mainQueryParams.bed_intersect ?
                 `${sessionStorage.getItem("warning") === "true" ? "The file you uploaded, " + sessionStorage.getItem('filenames') + ", is too large to be completely intersected. Results are incomplete."
-                :
-                sessionStorage.getItem('filenames')}` : null
+                  :
+                  sessionStorage.getItem('filenames')}` : null
               }
               itemsPerPage={10}
               loading={loading}
@@ -357,12 +367,12 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
             coordinates={{ start: +props.mainQueryParams.start, end: +props.mainQueryParams.end, chromosome: props.mainQueryParams.chromosome }}
           />
         )}
-        {searchParams.get("gene") && page === 2 && 
+        {searchParams.get("gene") && page === 2 &&
           <GeneExpression assembly={props.mainQueryParams.assembly} genes={[searchParams.get("gene")]} />
         }
-        {searchParams.get("gene") && props.mainQueryParams.assembly.toLowerCase()!=="mm10" && page === 3 && (
-           <Rampage gene={searchParams.get("gene")} />
-        )}        
+        {searchParams.get("gene") && props.mainQueryParams.assembly.toLowerCase() !== "mm10" && page === 3 && (
+          <Rampage gene={searchParams.get("gene")} />
+        )}
         {page >= numberOfDefaultTabs && opencCREs.length > 0 && (
           <CcreDetails
             key={opencCREs[page - numberOfDefaultTabs].ID}
