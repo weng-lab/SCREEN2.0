@@ -15,6 +15,8 @@ import Toolbar from '@mui/material/Toolbar'
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import CloseIcon from '@mui/icons-material/Close';
+import Rampage from "./ccredetails/rampage";
+import { GeneExpression } from "./ccredetails/gene-expression";
 
 /**
  * @todo:
@@ -99,16 +101,18 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
   const handleDrawerOpen = () => {setOpen(true)}
   const handleDrawerClose = () => {setOpen(false)}
 
+  const numberOfDefaultTabs = searchParams.get("gene") ?  (props.mainQueryParams.assembly.toLowerCase()==="mm10" ? 3 : 4)  : 2
   const handleTableClick = (row: MainResultTableRow) => {
     if (opencCREs.length > 6) { window.alert("Open cCRE limit reached! Please close cCREs to open more") }
     const newcCRE = {ID: row.accession, region: { start: row.start, end: row.end, chrom: row.chromosome}, linkedGenes: row.linkedGenes}
     //If cCRE isn't in open cCREs, add and push as current accession.
+    
     if (!opencCREs.find((x) => x.ID === newcCRE.ID)) {
       setOpencCREs([... opencCREs, newcCRE])
-      setPage(opencCREs.length + 2)
-      router.push(basePathname + "?" + createQueryString("accession", [... opencCREs, newcCRE].map((x) => x.ID).join(','), "page", String(opencCREs.length + 2)))
+      setPage(opencCREs.length + numberOfDefaultTabs)
+      router.push(basePathname + "?" + createQueryString("accession", [... opencCREs, newcCRE].map((x) => x.ID).join(','), "page", String(opencCREs.length + numberOfDefaultTabs)))
     } else {
-      const newPage = findTabByID(newcCRE.ID)
+      const newPage = findTabByID(newcCRE.ID, numberOfDefaultTabs)
       setPage(newPage)
       router.push(basePathname + "?" + createQueryString("page", String(newPage)))
     }
@@ -118,17 +122,17 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
     //Filter out cCRE
     const newOpencCREs = opencCREs.filter((cCRE) => cCRE.ID != closedID)
     setOpencCREs(newOpencCREs)
-
+    
     const closedIndex = opencCREs.findIndex(x => x.ID === closedID)
     // Important to note that opencCREs here is still the old value
 
     // If you're closing a tab to the right of what you're on:
-    if (closedIndex > (page - 2)) {
+    if (closedIndex > (page - numberOfDefaultTabs)) {
       //Close cCREs in URL
       router.push(basePathname + '?' + createQueryString("accession", newOpencCREs.map((x) => x.ID).join(',')))
     }
     // If you're closing the tab you're on:
-    if (closedIndex === (page - 2)) {
+    if (closedIndex === (page - numberOfDefaultTabs)) {
       // If it is the last open:
       if (opencCREs.length === 1) {
         // Set to page 0
@@ -138,7 +142,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
         router.push(basePathname + '?' + createQueryString("accession", "", "page", "0"))
       }
       // If it's the tab at the far right
-      else if (page === (opencCREs.length + 1)) {
+      else if (page === (opencCREs.length + (numberOfDefaultTabs - 1))) {
         // Page - 1
         setPage(page - 1)
         // URL to accession on the left
@@ -152,7 +156,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
       }
     }
     // If you're closing a tab to the left of what you're on: 
-    if (closedIndex < (page - 2)) {
+    if (closedIndex < (page - numberOfDefaultTabs)) {
       // Page count -= 1 to keep tab position
       // Remove selected cCRE from list
       setPage(page - 1)
@@ -211,10 +215,11 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
     })
   }, [props.mainQueryParams, searchParams])
 
-  const findTabByID = (id: string) => {
-    return(opencCREs.findIndex((x) => x.ID === id) + 2)
+  const findTabByID = (id: string, numberOfTable: number = 2) => {
+    return(opencCREs.findIndex((x) => x.ID === id) + numberOfTable)
   }
 
+  
   return (
     <Box id="Outer Box" sx={{ display: 'flex' }}>
       <AppBar id="AppBar" position="fixed" open={open} elevation={1} sx={{ bottom: "auto", top: "auto", backgroundColor: "white" }}>
@@ -247,11 +252,19 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
             {!props.mainQueryParams.bed_intersect &&
               <StyledTab value={1} label="Genome Browser View" />
             }
+            {searchParams.get("gene") &&
+              <StyledTab value={2} label={`${searchParams.get("gene")} Gene Expression`} />
+            }
+            {searchParams.get("gene") && props.mainQueryParams.assembly.toLowerCase()!=="mm10" &&
+              <StyledTab value={3} label={`${searchParams.get("gene")} RAMPAGE`} />
+            }
+            
+
             {/* Map opencCREs to tabs */}
             {opencCREs.length > 0 && opencCREs.map((cCRE, i) => {
               return (
                 <StyledTab
-                  onClick={(event) => event.preventDefault} key={i} value={2 + i}
+                  onClick={(event) => event.preventDefault} key={i} value={numberOfDefaultTabs + i}
                   label={cCRE.ID}
                   icon={
                     <Box onClick={(event) => { event.stopPropagation(); handleClosecCRE(cCRE.ID) }}>
@@ -284,14 +297,14 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
         {/* Customized div to bump drawer content down */}
         <DrawerHeader>
           <Typography variant="h5" pl="0.4rem">
-            {`${page < 2 ? "Refine Your Search" : "cCRE Details"}`}
+            {`${page < numberOfDefaultTabs ? "Refine Your Search" : "cCRE Details"}`}
           </Typography>
           <IconButton onClick={handleDrawerClose}>
             <ChevronLeftIcon />
           </IconButton>
         </DrawerHeader>
         <Divider />
-        {page < 2 ?
+        {page < numberOfDefaultTabs ?
           //Should the filter component be refreshing the route? I think it should probably all be controlled here
           <MainResultsFilters mainQueryParams={props.mainQueryParams} byCellType={props.globals} genomeBrowserView={page === 1} accessions={opencCREs.map((x) => x.ID).join(',')} page={page} />
           :
@@ -344,14 +357,20 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
             coordinates={{ start: +props.mainQueryParams.start, end: +props.mainQueryParams.end, chromosome: props.mainQueryParams.chromosome }}
           />
         )}
-        {page >= 2 && opencCREs.length > 0 && (
+        {searchParams.get("gene") && page === 2 && 
+          <GeneExpression assembly={props.mainQueryParams.assembly} genes={[searchParams.get("gene")]} />
+        }
+        {searchParams.get("gene") && props.mainQueryParams.assembly.toLowerCase()!=="mm10" && page === 3 && (
+           <Rampage gene={searchParams.get("gene")} />
+        )}        
+        {page >= numberOfDefaultTabs && opencCREs.length > 0 && (
           <CcreDetails
-            key={opencCREs[page - 2].ID}
-            accession={opencCREs[page - 2].ID}
-            region={opencCREs[page - 2].region}
+            key={opencCREs[page - numberOfDefaultTabs].ID}
+            accession={opencCREs[page - numberOfDefaultTabs].ID}
+            region={opencCREs[page - numberOfDefaultTabs].region}
             globals={props.globals}
             assembly={props.mainQueryParams.assembly}
-            genes={opencCREs[page - 2].linkedGenes}
+            genes={opencCREs[page - numberOfDefaultTabs].linkedGenes}
             page={detailsPage}
           />
         )}

@@ -8,7 +8,6 @@ import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import Image from "next/image"
 import { client } from "./client"
 import { HUMAN_GENE_EXP, MOUSE_GENE_EXP } from "../../applets/gene-expression/const"
-import { LinkedGenesData } from "../types"
 import { GENE_EXP_QUERY, GENE_QUERY } from "../../applets/gene-expression/queries"
 
 
@@ -38,12 +37,11 @@ const biosampleTypes = ["cell line", "in vitro differentiated cells", "primary c
 
 export function GeneExpression(props: {
   assembly: "GRCh38" | "mm10"
-  genes?: LinkedGenesData
+  genes?: string[]
   applet?: boolean
 }) {
-  const [options, setOptions] = useState<string[]>([])
-  const [currentHumanGene, setCurrentHumanGene] = useState<string>(props.genes ? props.genes.distancePC[0].name : "APOE")
-  const [currentMouseGene, setCurrentMouseGene] = useState<string>(props.genes ? props.genes.distancePC[0].name : "Emid1")
+  const [currentHumanGene, setCurrentHumanGene] = useState<string>(props.genes ? props.genes[0] : "APOE")
+  const [currentMouseGene, setCurrentMouseGene] = useState<string>(props.genes ? props.genes[0] : "Emid1")
   const [biosamples, setBiosamples] = useState<string[]>(["cell line", "in vitro differentiated cells", "primary cell", "tissue"])
   const [group, setGroup] = useState<"byTissueMaxTPM" | "byExperimentTPM" | "byTissueTPM">("byTissueTPM")
   const [RNAtype, setRNAType] = useState<"all" | "polyA plus RNA-seq" | "total RNA-seq">("total RNA-seq")
@@ -144,14 +142,14 @@ export function GeneExpression(props: {
   }
 
   //Set Gene list. Why is this wrapped in useEffect?
-  useEffect(() => {
+  /*useEffect(() => {
     if (props.genes) {
       let geneList: string[] = []
       for (let g of props.genes.distancePC) if (!geneList.includes(g.name)) geneList.push(g.name)
       for (let g of props.genes.distanceAll) if (!geneList.includes(g.name)) geneList.push(g.name)
       setOptions(geneList)
     }
-  }, [props.genes])
+  }, [props.genes])*/
 
 
   const handleGroupChange = (
@@ -251,15 +249,15 @@ export function GeneExpression(props: {
             />
           </Stack>
           :
-          <TextField label="Gene" sx={{ m: 1 }} select value={assembly === "GRCh38" ? currentHumanGene : currentMouseGene}>
-            {options.map((option: string) => {
+           (props.genes && props.genes.length===1 ? <></> : <TextField label="Gene" sx={{ m: 1 }} select value={assembly === "GRCh38" ? currentHumanGene : currentMouseGene}>
+            {props.genes.map((option: string) => {
               return (
                 <MenuItem key={option} value={option} onClick={() => assembly === "GRCh38" ? setCurrentHumanGene(option) : setCurrentMouseGene(option)}>
                   {option}
                 </MenuItem>
               )
             })}
-          </TextField>
+          </TextField>)
         }
         {/* Biosample Types */}
         <FormControl sx={{ m: 1, width: 300 }}>
