@@ -142,7 +142,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
         router.push(basePathname + '?' + createQueryString("accession", "", "page", "0"))
       }
       // If it's the tab at the far right
-      else if (page === (opencCREs.length + 1)) {
+      else if (page === (opencCREs.length + (numberOfDefaultTabs - 1))) {
         // Page - 1
         setPage(page - 1)
         // URL to accession on the left
