@@ -23,7 +23,6 @@ type CcreDetailsProps = {
 }
 
 export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, globals, assembly, genes, page }) => {
-  console.log("region", region)
   return (
     <>
       <Stack direction="row" justifyContent={"space-between"} alignItems={"baseline"}>

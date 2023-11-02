@@ -3,12 +3,10 @@ import * as React from "react"
 import { AppBar, Box, Toolbar, IconButton, Typography, Menu, Container, Button, MenuItem } from "@mui/material"
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown"
 import MenuIcon from "@mui/icons-material/Menu"
-import { ThemeProvider } from "@mui/material/styles"
 import Link from "next/link"
 import Image from "next/image"
 import nextConfig from "../../../next.config"
 import screenIcon from "../../../public/screenIcon.png"
-import { defaultTheme } from "../lib/themes"
 
 import MainSearch from "./mainsearch/MainSearch"
 
@@ -42,7 +40,7 @@ const pageLinks = [
       // disable GWAS and DEG App for now
       //{ pageName: "GWAS", link: "/applets/gwas" },
       { pageName: "Gene Expression", link: "/applets/gene-expression " },
-     // { pageName: "Differential Gene Expression", link: "/applets/differential-gene-expression" },
+      // { pageName: "Differential Gene Expression", link: "/applets/differential-gene-expression" },
     ],
   },
 ]
@@ -85,7 +83,7 @@ function ResponsiveAppBar() {
   }
 
   return (
-    <ThemeProvider theme={defaultTheme}>
+    <>
       <AppBar position="fixed">
         <Container maxWidth={false}>
           <Toolbar disableGutters sx={{ justifyContent: "space-between" }}>
@@ -103,7 +101,7 @@ function ResponsiveAppBar() {
                 ml: 1,
                 display: { xs: "flex" },
                 // flexShrink: 0,
-                flexGrow: {xs: 1, md: 0},
+                flexGrow: { xs: 1, md: 0 },
                 fontFamily: "monospace",
                 fontWeight: 700,
                 letterSpacing: ".3rem",
@@ -215,15 +213,14 @@ function ResponsiveAppBar() {
                 </Box>
               ))}
             </Box>
-            <Box sx={{display: { xs: "none", lg: "flex" }}}>
+            <Box sx={{ display: { xs: "none", lg: "flex" } }}>
               <MainSearch header />
             </Box>
           </Toolbar>
         </Container>
       </AppBar>
-      {/* This empty toolbar is placed here to bump content down with new fixed positioning. Suggested in MUI docs */}
       <Toolbar />
-    </ThemeProvider>
+    </>
   )
 }
 

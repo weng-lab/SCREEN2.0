@@ -12,7 +12,6 @@ import {
   MenuItem,
   Select,
   SelectChangeEvent,
-  ThemeProvider,
   Toolbar,
   Tooltip,
   Typography,
@@ -20,7 +19,6 @@ import {
 import Config from "../../../config.json"
 import { PlotActivityProfiles } from "./utils"
 import Image from "next/image"
-import { defaultTheme } from "../../../common/lib/themes"
 import InfoIcon from "@mui/icons-material/Info"
 import { RampageToolTipInfo } from "./const"
 import { gql, useQuery } from "@apollo/client"
@@ -149,7 +147,6 @@ export default function Rampage(props: { gene: string; }) {
     
     data && data.length>0 && (
       <Grid2 container spacing={3}>
-        <ThemeProvider theme={defaultTheme}>
           <AppBar position="static" color="secondary">
             <Toolbar>
               <Grid2 xs={9} md={9} lg={9}>
@@ -230,7 +227,6 @@ export default function Rampage(props: { gene: string; }) {
               peakID={peak}           
               />
           </Grid2>
-        </ThemeProvider>
       </Grid2>
     )
   )

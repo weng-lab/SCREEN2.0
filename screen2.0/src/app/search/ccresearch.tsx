@@ -177,7 +177,6 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
   )
 
   useEffect(() => {
-    console.log("useEffect table rows fetched")
     setLoading(true)
     // @ts-expect-error
     //Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691

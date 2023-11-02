@@ -14,12 +14,6 @@ const nextConfig = {
   trailingSlash: false,
   assetPrefix: assetPrefix,
   basePath: basePath,
-  experimental: {
-    serverActions: true,
-    logging: {
-      level: "verbose"
-    },
-  },
   
   webpack: (config, { isServer }) => {
     if (!isServer) {

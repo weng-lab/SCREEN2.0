@@ -25,7 +25,6 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
 
   const getIntersect = (jq, successF, errF) => {
     //Need to put this url in config file
-    console.log("getIntersect called")
     const url = config.BED_intersect.url
     fetch(url, {
       headers: {

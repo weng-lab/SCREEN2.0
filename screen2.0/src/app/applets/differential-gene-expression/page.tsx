@@ -11,8 +11,6 @@ import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import MenuIcon from "@mui/icons-material/Menu"
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
-import { ThemeProvider } from "@mui/material/styles"
-import { defaultTheme } from "../../../common/lib/themes"
 import {
   Box,
   FormGroup,
@@ -303,7 +301,6 @@ export default function DifferentialGeneExpression() {
     <LoadingMessage />
   ) : (
     <main>
-      <ThemeProvider theme={defaultTheme}>
         <Paper sx={{ ml: open ? `${drawerWidth}px` : 0, mt: 4 }} elevation={2}>
           <AppBar position="static" color="secondary" sx={{}}>
             <Grid2 container>
@@ -564,7 +561,6 @@ export default function DifferentialGeneExpression() {
             )
           )}
         </Drawer>
-      </ThemeProvider>
     </main>
   )
 }

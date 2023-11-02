@@ -27,7 +27,6 @@ export function CoordinateRangeField(props: {
         sx={{ mb: 1.5 }}
         onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
           let value: string[] = event.target.value.split(":")[1].split("-")
-          console.log(value)
           if (value[0].split(",").length > 0) {
             let j: string = ""
             for (let c of value[0].split(",")) {
@@ -42,7 +41,6 @@ export function CoordinateRangeField(props: {
             }
             value[1] = j
           }
-          console.log(value)
           if (parseInt(value[1]) - parseInt(value[0]) <= 500000 && parseInt(value[1]) - parseInt(value[0]) > 0)
             props.setdr([parseInt(value[0]), parseInt(value[1])])
           // variant === "min"
