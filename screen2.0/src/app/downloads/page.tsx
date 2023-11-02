@@ -1,9 +1,6 @@
 import * as React from "react"
 import DownloadsPage from "./downloads"
 import { UMAPQuery, biosampleQuery } from "../../common/lib/queries"
-import { ThemeProvider } from "@mui/material"
-import { defaultTheme } from "../../common/lib/themes"
-import { ApolloQueryResult } from "@apollo/client"
 
 export default async function Downloads({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
   const biosamples: any = await biosampleQuery()

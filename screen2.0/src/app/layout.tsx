@@ -4,7 +4,7 @@ import { Inter } from "next/font/google"
 import ResponsiveAppBar from "../common/components/ResponsiveAppBar"
 import Footer from "../common/components/Footer"
 import { CssBaseline } from "@mui/material"
-import ThemeRegistry from "../common/lib/ThemeRegistry/ThemeRegistry"
+import ThemeRegistry from "../common/theme-registry/theme-registry"
 
 const inter = Inter({ subsets: ["latin"] })
 

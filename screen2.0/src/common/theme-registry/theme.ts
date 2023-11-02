@@ -10,11 +10,19 @@ const roboto = Roboto({
 const theme = createTheme({
   palette: {
     mode: 'light',
+    primary: {
+      main: "#000F9F",
+    },
+    //This is used to color buttons white, may not be best way to do so
+    secondary: {
+      main: "#ffffff",
+    },
   },
   typography: {
     fontFamily: roboto.style.fontFamily,
   },
   components: {
+    //This came with file, not sure what it does
     MuiAlert: {
       styleOverrides: {
         root: ({ ownerState }) => ({

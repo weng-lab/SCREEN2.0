@@ -5,8 +5,6 @@ import { PlotGeneExpression } from "../../applets/gene-expression/PlotGeneExpres
 import { useQuery } from "@apollo/client"
 import { Button, Typography, Stack, TextField, MenuItem, FormControl, SelectChangeEvent, Checkbox, InputLabel, ListItemText, OutlinedInput, Select, ToggleButton, ToggleButtonGroup } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
-import { ThemeProvider } from "@mui/material/styles"
-import { defaultTheme } from "../../../common/lib/themes"
 import Image from "next/image"
 import { client } from "./client"
 import { HUMAN_GENE_EXP, MOUSE_GENE_EXP } from "../../applets/gene-expression/const"
@@ -204,8 +202,7 @@ export function GeneExpression(props: {
   };
 
   return (
-    //Only reason that theme is used is to color buttons white
-    <ThemeProvider theme={defaultTheme}>
+    <>
       <Stack mb={3} direction="row" justifyContent={"space-between"}>
         <Typography alignSelf={"flex-end"} variant={props.applet ? "h4" : "h5"}>{`${assembly === "GRCh38" ? currentHumanGene : currentMouseGene} Gene Expression Profiles by RNA-seq`}</Typography>
         <Stack direction="row" spacing={3}>
@@ -396,6 +393,6 @@ export function GeneExpression(props: {
           }
         </Grid2>
       </Grid2>
-    </ThemeProvider>
+    </>
   )
 }
