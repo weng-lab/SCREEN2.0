@@ -1,11 +1,12 @@
 import { Roboto } from 'next/font/google';
 import { createTheme } from '@mui/material/styles';
 
-const roboto = Roboto({
-  weight: ['300', '400', '500', '700'],
-  subsets: ['latin'],
-  display: 'swap',
-});
+// Keeping this as example for changing fonts
+// const roboto = Roboto({
+//   weight: ['300', '400', '500', '700'],
+//   subsets: ['latin'],
+//   display: 'swap',
+// });
 
 const theme = createTheme({
   palette: {
@@ -18,9 +19,9 @@ const theme = createTheme({
       main: "#ffffff",
     },
   },
-  typography: {
-    fontFamily: roboto.style.fontFamily,
-  },
+  // typography: {
+  //   fontFamily: roboto.style.fontFamily,
+  // },
   components: {
     //This came with file, not sure what it does
     MuiAlert: {
