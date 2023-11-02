@@ -150,7 +150,7 @@ export function PlotGeneExpression(props: {
           {/* The biosample category */}
           {(props.group === 'byTissueMaxTPM' || props.group === 'byExperimentTPM') &&
             <text
-              text-anchor="end"
+              textAnchor="end"
               x={160}
               y={y + (i * 20 + 15)}
             >
@@ -159,7 +159,7 @@ export function PlotGeneExpression(props: {
           }
           {props.group === 'byTissueTPM' && i === Math.floor(Object.values(info.values).length / 2) &&
             <text
-              text-anchor="end"
+              textAnchor="end"
               x={160}
               // If the tissue has an even number of values, bump up a little
               y={y + (i * 20 + 15) - (((Object.values(info.values).length % 2) !== 0) ? 0 : 12)}

@@ -134,7 +134,6 @@ export function GeneExpression(props: {
 
   //Handle assembly switch change (for applet only)
   const handleAssemblyChange = (checked: boolean) => {
-    console.log("assembly change called with " + checked)
     if (props.applet) {
       checked ? setAssembly("mm10") : setAssembly("GRCh38")
       //Switch back RNA type if going from mouse to human, as all data there is total

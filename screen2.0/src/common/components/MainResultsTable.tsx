@@ -86,7 +86,6 @@ function MainResultsTable(props: MainResultsTableProps) {
         var open = Boolean(anchorEl);
 
         const handleClose = () => {
-          console.log("closed properly")
           funcSetDistance(checkedState[0])
           funcSetCTCF_ChIAPET(checkedState[1])
           funcSetRNAPII_ChIAPET(checkedState[2])
@@ -198,7 +197,6 @@ function MainResultsTable(props: MainResultsTableProps) {
       header: "Conservation",
       value: (row: { conservationData: ConservationData }) => `Primates:\u00A0${row.conservationData.primates?.toFixed(2) ?? "unavailable"} Mammals:\u00A0${row.conservationData.mammals?.toFixed(2) ?? "unavailable"} Vertebrates:\u00A0${row.conservationData.vertebrates?.toFixed(2) ?? "unavailable"}` , 
     })
-    console.log("columns recalculated")
     return cols
   }
 

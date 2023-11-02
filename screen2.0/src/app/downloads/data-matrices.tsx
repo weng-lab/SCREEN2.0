@@ -234,7 +234,6 @@ export function DataMatrices(props: TabPanelProps) {
       bounds.y.start = bounds.y.end
       bounds.y.end = tempY
     }
-    console.log(bounds)
     setBounds(bounds)
   }
 

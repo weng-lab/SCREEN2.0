@@ -1,8 +1,7 @@
-import React, { ReactElement } from "react"
-import { ApolloClient, gql, InMemoryCache } from "@apollo/client"
+import React from "react"
 import { Link, Alert, AlertTitle, CircularProgress, Typography, Popover, Popper } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
-import { Snackbar, Stack, Box } from "@mui/material"
+import { Snackbar, Box } from "@mui/material"
 
 /**
  * Uses fetch to make a query call (server side)
@@ -57,7 +56,6 @@ export const createLink = (url: string, id: string, label?: string) => {
  * @returns active loader
  */
 export function LoadingMessage() {
-  // console.log("Loading...")
   return (
     <Grid2 container alignItems="center" justifyContent="center" direction="column" sx={{ minHeight: "90vh" }}>
       <Box>
@@ -76,23 +74,8 @@ export function LoadingMessage() {
  * @returns error message
  */
 export function ErrorMessage(props: { error: Error }) {
-  // debugging
-  // console.log("Error!")
-  // console.log(props.error.message)
   console.log(props.error)
   // throw error
-
-  function toggleOpen(toggle: boolean) {
-    // if (toggle === true) setOpen(false)
-    // else setOpen(true)
-  }
-
-  const handleClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
-    if (reason === "clickaway") {
-      return
-    }
-    // setOpen(false)
-  }
 
   return (
     <Grid2 container alignItems="center" justifyContent="center" direction="column" sx={{ minHeight: "90vh" }}>
@@ -112,39 +95,3 @@ export function ErrorMessage(props: { error: Error }) {
     </Grid2>
   )
 }
-
-// /**
-//  * Uses fetch to make a query call (client side)
-//  * @param {string} url
-//  * @param {string} jq json of variables to use when fetching
-//  * @returns data
-//  */
-// export async function useFetch<T>(url: string, jq: BodyInit) {
-//   const [data, setData] = useState(jq)
-//   useEffect(() => {
-//     fetch(url, {
-//       headers: {
-//         Accept: "application/json",
-//         "Content-Type": "application/json",
-//       },
-//       method: "POST",
-//       body: jq
-//     })
-//     .then(response => {
-//         if (!response.ok) {
-//             throw new Error(response.statusText)
-//         }
-//         return response.json()
-//     })
-//     .then(data => {
-//         setData(data)
-//         // return data
-//     })
-//     .catch((error: Error) => {
-//         // logging
-//         return ErrorMessage(error)
-//     })
-//   }, [ jq ])
-
-//   return data
-// }

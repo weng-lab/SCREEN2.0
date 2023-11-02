@@ -301,7 +301,6 @@ export default function DifferentialGeneExpression() {
     <LoadingMessage />
   ) : (
     <main>
-      {/* <ThemeProvider theme={defaultTheme}> */}
         <Paper sx={{ ml: open ? `${drawerWidth}px` : 0, mt: 4 }} elevation={2}>
           <AppBar position="static" color="secondary" sx={{}}>
             <Grid2 container>
@@ -562,7 +561,6 @@ export default function DifferentialGeneExpression() {
             )
           )}
         </Drawer>
-      {/* </ThemeProvider> */}
     </main>
   )
 }
