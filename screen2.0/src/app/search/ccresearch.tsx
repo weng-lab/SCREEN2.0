@@ -165,6 +165,10 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
   }
 
   const handlePageChange = (_, newValue: number) => {
+    if(searchParams.get("gene") && (newValue===2 || newValue===3))
+    {
+      setOpen(false)
+    }
     setPage(newValue)
     router.push(basePathname + '?' + createQueryString("page", String(newValue)))
   }
@@ -218,7 +222,6 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
   const findTabByID = (id: string, numberOfTable: number = 2) => {
     return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)
   }
-
 
   return (
     <Box id="Outer Box" sx={{ display: 'flex' }}>
@@ -307,7 +310,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
         <Divider />
         {page < numberOfDefaultTabs ?
           //Should the filter component be refreshing the route? I think it should probably all be controlled here
-          <MainResultsFilters mainQueryParams={props.mainQueryParams} byCellType={props.globals} genomeBrowserView={page === 1} accessions={opencCREs.map((x) => x.ID).join(',')} page={page} />
+          <MainResultsFilters mainQueryParams={props.mainQueryParams} byCellType={props.globals} genomeBrowserView={page === 1} accessions={opencCREs.map((x) => x.ID).join(',')} page={page} gene={searchParams.get("gene")} />
           :
           <Tabs
             aria-label="details-tabs"
