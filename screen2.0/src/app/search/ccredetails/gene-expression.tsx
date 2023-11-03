@@ -2,11 +2,10 @@
 import React, { useState, useEffect } from "react"
 import { LoadingMessage } from "../../../common/lib/utility"
 import { PlotGeneExpression } from "../../applets/gene-expression/PlotGeneExpression"
-import { useQuery } from "@apollo/client"
+import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import { Button, Typography, Stack, TextField, MenuItem, FormControl, SelectChangeEvent, Checkbox, InputLabel, ListItemText, OutlinedInput, Select, ToggleButton, ToggleButtonGroup } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import Image from "next/image"
-import { client } from "./client"
 import { HUMAN_GENE_EXP, MOUSE_GENE_EXP } from "../../applets/gene-expression/const"
 import { GENE_EXP_QUERY, GENE_QUERY } from "../../applets/gene-expression/queries"
 
@@ -14,6 +13,7 @@ import { GENE_EXP_QUERY, GENE_QUERY } from "../../applets/gene-expression/querie
 //Replace this when Gene Autocomplete extracted into componenet
 import GeneAutoComplete from "../../applets/gene-expression/gene-autocomplete"
 import GenomeSwitch from "../../../common/components/GenomeSwitch"
+import { ReadonlyURLSearchParams, usePathname, useSearchParams, useRouter } from "next/navigation"
 
 /**
  * @todo
@@ -40,14 +40,22 @@ export function GeneExpression(props: {
   genes?: string[]
   applet?: boolean
 }) {
-  const [currentHumanGene, setCurrentHumanGene] = useState<string>(props.genes ? props.genes[0] : "APOE")
-  const [currentMouseGene, setCurrentMouseGene] = useState<string>(props.genes ? props.genes[0] : "Emid1")
+  const searchParams: ReadonlyURLSearchParams = useSearchParams()
+  const urlAssembly = searchParams.get("assembly")
+  const urlGene = searchParams.get("gene")
+  const router = useRouter()
+  const pathname = usePathname()
+
+  //Use gene from url if specified
+  const [currentHumanGene, setCurrentHumanGene] = useState<string>(props.genes ? props.genes[0] : (urlAssembly === "GRCh38" && urlGene) ? urlGene : "APOE")
+  const [currentMouseGene, setCurrentMouseGene] = useState<string>(props.genes ? props.genes[0] : (urlAssembly === "mm10" && urlGene) ? urlGene : "Emid1")
+
   const [biosamples, setBiosamples] = useState<string[]>(["cell line", "in vitro differentiated cells", "primary cell", "tissue"])
   const [group, setGroup] = useState<"byTissueMaxTPM" | "byExperimentTPM" | "byTissueTPM">("byTissueTPM")
   const [RNAtype, setRNAType] = useState<"all" | "polyA plus RNA-seq" | "total RNA-seq">("total RNA-seq")
   const [scale, setScale] = useState<"linearTPM" | "logTPM">("logTPM")
   const [replicates, setReplicates] = useState<"mean" | "all">("mean")
-  const [assembly, setAssembly] = useState<"GRCh38" | "mm10">(props.assembly)
+  const [assembly, setAssembly] = useState<"GRCh38" | "mm10">(((urlAssembly === "GRCh38") || (urlAssembly === "mm10")) ? urlAssembly : props.assembly)
 
   //Fetch Gene info to get ID
   const {
@@ -61,7 +69,6 @@ export function GeneExpression(props: {
     skip: !currentHumanGene,
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
-    client,
   })
 
   //Fetch Gene info to get ID
@@ -76,7 +83,6 @@ export function GeneExpression(props: {
     skip: !currentMouseGene,
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
-    client,
   })
 
   //Fetch Gene Exp data
@@ -92,7 +98,6 @@ export function GeneExpression(props: {
     skip: !currentHumanGene || !dataHumanGene || (dataHumanGene && dataHumanGene.gene.length === 0),
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
-    client,
   })
 
   const {
@@ -107,7 +112,6 @@ export function GeneExpression(props: {
     skip: !currentMouseGene || !dataMouseGene || (dataMouseGene && dataMouseGene.gene.length === 0),
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
-    client,
   })
 
   //Gene expression Data for chart
@@ -134,6 +138,7 @@ export function GeneExpression(props: {
   const handleAssemblyChange = (checked: boolean) => {
     if (props.applet) {
       checked ? setAssembly("mm10") : setAssembly("GRCh38")
+      router.push(`${pathname}?assembly=${checked ? "mm10" : "GRCh38"}&gene=${checked ? currentMouseGene : currentHumanGene}`)
       //Switch back RNA type if going from mouse to human, as all data there is total
       if (assembly === "GRCh38") {
         setRNAType("total RNA-seq")
@@ -234,6 +239,7 @@ export function GeneExpression(props: {
         {props.applet ?
           <Stack direction="row">
             <GenomeSwitch
+              initialChecked={urlAssembly === "mm10"}
               onSwitchChange={(checked: boolean) => handleAssemblyChange(checked)}
             />
             <GeneAutoComplete
@@ -242,8 +248,10 @@ export function GeneExpression(props: {
               setGene={(gene) => {
                 if (assembly === "GRCh38") {
                   setCurrentHumanGene(gene)
+                  router.push(`${pathname}?assembly=GRCh38&gene=${gene}`)
                 } else {
                   setCurrentMouseGene(gene)
+                  router.push(`${pathname}?assembly=mm10&gene=${gene}`)
                 }
               }}
             />

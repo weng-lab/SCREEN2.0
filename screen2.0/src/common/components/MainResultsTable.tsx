@@ -9,14 +9,13 @@ import { LoadingMessage } from "../lib/utility"
 
 interface MainResultsTableProps extends Partial<DataTableProps<any>> {
   loading?: boolean
+  assembly: "GRCh38" | "mm10"
 }
 
 function MainResultsTable(props: MainResultsTableProps) {
   const [distance, setDistance] = useState<boolean>(true)
   const [CTCF_ChIAPET, setCTCF_ChIAPET] = useState<boolean>(false)
   const [RNAPII_ChIAPET, setRNAPII_ChIAPET] = useState<boolean>(false)
-
-
 
   //Start and End are strings since toLocaleString() is called on them to get commas in the numbers
   //State variable setters are passed to columns so that linked genes modal is able to properly set table state
@@ -146,7 +145,7 @@ function MainResultsTable(props: MainResultsTableProps) {
               </Typography>
               <Typography variant="body2" color="primary" display="inline">
                 {Object.values(row.linkedGenes.distancePC).map((gene: { name: string }, i: number) => (
-                  <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?gene=${gene.name}`}>
+                  <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${gene.name}`}>
                     {i < row.linkedGenes.distancePC.length - 1 ? `\u00A0${gene.name},\u00A0` : `\u00A0${gene.name}`}
                   </a>
                 ))}
@@ -158,7 +157,7 @@ function MainResultsTable(props: MainResultsTableProps) {
               </Typography>
               <Typography variant="body2" color="primary" display="inline">
                 {Object.values(row.linkedGenes.distanceAll).map((gene: { name: string }, i: number) => (
-                  <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?gene=${gene.name}`}>
+                  <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${gene.name}`}>
                     {i < row.linkedGenes.distanceAll.length - 1 ? `\u00A0${gene.name},\u00A0` : `\u00A0${gene.name}`}
                   </a>
                 ))}
@@ -170,7 +169,7 @@ function MainResultsTable(props: MainResultsTableProps) {
               </Typography>
               <Typography variant="body2" color="primary" display="inline">
                 {row.linkedGenes.CTCF_ChIAPET.length == 0 ? "none" : Object.values(row.linkedGenes.CTCF_ChIAPET).map((gene: { name: string, biosample: string }, i: number) => (
-                  <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?gene=${gene.name}`}>
+                  <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${gene.name}`}>
                     {i < row.linkedGenes.CTCF_ChIAPET.length - 1 ? `\u00A0${gene.name},\u00A0` : `\u00A0${gene.name}`}
                   </a>
                 ))}
@@ -182,7 +181,7 @@ function MainResultsTable(props: MainResultsTableProps) {
               </Typography>
               <Typography variant="body2" color="primary" display="inline">
                 {row.linkedGenes.RNAPII_ChIAPET.length == 0 ? "none" : Object.values(row.linkedGenes.RNAPII_ChIAPET).map((gene: { name: string, biosample: string }, i: number) => (
-                  <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?gene=${gene.name}`}>
+                  <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${gene.name}`}>
                     {i < row.linkedGenes.RNAPII_ChIAPET.length - 1 ? `\u00A0${gene.name},\u00A0` : `\u00A0${gene.name}`}
                   </a>
                 ))}

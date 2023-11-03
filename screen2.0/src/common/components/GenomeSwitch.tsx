@@ -1,9 +1,9 @@
 "use client"
 import * as React from "react"
-import { useEffect } from "react"
+import { useState } from "react"
 
 import { Typography, Switch, SwitchProps, Stack } from "@mui/material"
-import { styled, alpha } from "@mui/material/styles"
+import { styled } from "@mui/material/styles"
 
 import mouseIcon from "../../../public/mouse.png"
 import humanIcon from "../../../public/human.png"
@@ -72,7 +72,7 @@ const StyledSwitch = styled(Switch)(({ theme }) => ({
 }))
 
 const GenomeSwitch: React.FC<GenomeSwitchProps> = (props: GenomeSwitchProps) => {
-  const [checked, setChecked] = React.useState(false)
+  const [checked, setChecked] = useState(props.initialChecked)
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setChecked(event.target.checked)
@@ -85,7 +85,6 @@ const GenomeSwitch: React.FC<GenomeSwitchProps> = (props: GenomeSwitchProps) => 
       <StyledSwitch
         //false = human, true = mouse
         checked={checked}
-        defaultChecked={props.initialChecked && props.initialChecked}
         onChange={handleChange}
         color="primary"
         inputProps={{ "aria-label": "primary checkbox" }}
