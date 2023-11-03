@@ -74,7 +74,6 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
   const [VertebrateStart, setVertebrateStart] = useState<number>(props.mainQueryParams.vert_s)
   const [VertebrateEnd, setVertebrateEnd] = useState<number>(props.mainQueryParams.vert_e)
 
-  //To fill in gaps for info not included in mainQueryParams
   const urlParams: URLParams = {
     Tissue,
     PrimaryCell,
@@ -257,7 +256,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
   return (
     <Paper elevation={0}>
       {/* Biosample Activity */}
-      <Accordion square disableGutters>
+      <Accordion square defaultExpanded disableGutters>
         <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
           <Typography>Biosample Activity</Typography>
         </AccordionSummary>
