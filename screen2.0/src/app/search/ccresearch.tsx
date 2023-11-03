@@ -343,8 +343,12 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
           <Box>
             <MainResultsTable
               rows={tableRows}
-              tableTitle={props.mainQueryParams.bed_intersect ?
+              tableTitle={
+                props.mainQueryParams.bed_intersect ?
                 `Intersecting by uploaded .bed file in ${props.mainQueryParams.assembly}${sessionStorage.getItem("warning") === "true" ? " (Partial)" : ""}`
+                :
+                props.mainQueryParams.gene ?
+                `cCREs overlapping ${props.mainQueryParams.gene} - ${props.mainQueryParams.chromosome}:${props.mainQueryParams.start.toLocaleString("en-US")}-${props.mainQueryParams.end.toLocaleString("en-US")}`
                 :
                 `Searching ${props.mainQueryParams.chromosome} in ${props.mainQueryParams.assembly} from ${props.mainQueryParams.start.toLocaleString("en-US")} to ${props.mainQueryParams.end.toLocaleString("en-US")}`
               }
