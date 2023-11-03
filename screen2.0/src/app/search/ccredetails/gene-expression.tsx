@@ -2,11 +2,10 @@
 import React, { useState, useEffect } from "react"
 import { LoadingMessage } from "../../../common/lib/utility"
 import { PlotGeneExpression } from "../../applets/gene-expression/PlotGeneExpression"
-import { useQuery } from "@apollo/client"
+import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import { Button, Typography, Stack, TextField, MenuItem, FormControl, SelectChangeEvent, Checkbox, InputLabel, ListItemText, OutlinedInput, Select, ToggleButton, ToggleButtonGroup } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import Image from "next/image"
-import { client } from "./client"
 import { HUMAN_GENE_EXP, MOUSE_GENE_EXP } from "../../applets/gene-expression/const"
 import { GENE_EXP_QUERY, GENE_QUERY } from "../../applets/gene-expression/queries"
 
@@ -70,7 +69,6 @@ export function GeneExpression(props: {
     skip: !currentHumanGene,
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
-    client,
   })
 
   //Fetch Gene info to get ID
@@ -85,7 +83,6 @@ export function GeneExpression(props: {
     skip: !currentMouseGene,
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
-    client,
   })
 
   //Fetch Gene Exp data
@@ -101,7 +98,6 @@ export function GeneExpression(props: {
     skip: !currentHumanGene || !dataHumanGene || (dataHumanGene && dataHumanGene.gene.length === 0),
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
-    client,
   })
 
   const {
@@ -116,7 +112,6 @@ export function GeneExpression(props: {
     skip: !currentMouseGene || !dataMouseGene || (dataMouseGene && dataMouseGene.gene.length === 0),
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
-    client,
   })
 
   //Gene expression Data for chart
