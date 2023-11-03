@@ -72,7 +72,7 @@ const StyledSwitch = styled(Switch)(({ theme }) => ({
 }))
 
 const GenomeSwitch: React.FC<GenomeSwitchProps> = (props: GenomeSwitchProps) => {
-  const [checked, setChecked] = React.useState(false)
+  const [checked, setChecked] = React.useState(props.initialChecked)
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setChecked(event.target.checked)
@@ -85,7 +85,6 @@ const GenomeSwitch: React.FC<GenomeSwitchProps> = (props: GenomeSwitchProps) => 
       <StyledSwitch
         //false = human, true = mouse
         checked={checked}
-        defaultChecked={props.initialChecked && props.initialChecked}
         onChange={handleChange}
         color="primary"
         inputProps={{ "aria-label": "primary checkbox" }}

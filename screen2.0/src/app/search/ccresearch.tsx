@@ -359,6 +359,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
               }
               itemsPerPage={10}
               loading={loading}
+              assembly={props.mainQueryParams.assembly}
               onRowClick={handleTableClick}
             />
           </Box>
