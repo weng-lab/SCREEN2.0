@@ -10,6 +10,7 @@ export async function fetchRows(mainQueryParams: MainQueryParams, accessions?: s
     let mainQueryResult: ApolloQueryResult<any>
 
     //This needs to be split up since the query will fail if accessions is passed and is null unlike other fields
+    //Main Query should probably just be passed the entire mainQueryParams object, no?
     if (accessions) {
       mainQueryResult = await MainQuery(
         mainQueryParams.assembly,
@@ -17,6 +18,8 @@ export async function fetchRows(mainQueryParams: MainQueryParams, accessions?: s
         mainQueryParams.start,
         mainQueryParams.end,
         mainQueryParams.Biosample.biosample,
+        null,
+        null,
         accessions
       )
     } else {
@@ -26,6 +29,8 @@ export async function fetchRows(mainQueryParams: MainQueryParams, accessions?: s
         mainQueryParams.start,
         mainQueryParams.end,
         mainQueryParams.Biosample.biosample,
+        null,
+        null
       )
     }
       
