@@ -182,19 +182,12 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     InVitro,
     Organoid,
     CellLine,
-    start: props.mainQueryParams.gene ?   (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length >0 ? value==="tss" 
-    && firstTSS && firstTSS!=0 && lastTSS && lastTSS!=0  ?  geneTranscripts.gene[0].strand==="+" ? firstTSS : lastTSS  : geneTranscripts.gene[0].coordinates.start :
-    
-    props.mainQueryParams.start )    
-    
-    :  props.mainQueryParams.start,
-
-    end: props.mainQueryParams.gene ?   (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length >0 ? value==="tss" 
-    && firstTSS && firstTSS!=0 && lastTSS && lastTSS!=0  ?  geneTranscripts.gene[0].strand==="+" ? lastTSS : firstTSS  : geneTranscripts.gene[0].coordinates.end :
-    
-    props.mainQueryParams.end )    
-    
-    :  props.mainQueryParams.end,
+    start: props.mainQueryParams.gene ? (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length >0 ? value==="tss" 
+    && firstTSS && firstTSS!=0 && lastTSS && lastTSS!=0  ?  geneTranscripts.gene[0].strand==="+" ? firstTSS : lastTSS  : geneTranscripts.gene[0].coordinates.start :    
+    props.mainQueryParams.start): props.mainQueryParams.start,
+    end: props.mainQueryParams.gene ? (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length >0 ? value==="tss" 
+    && firstTSS && firstTSS!=0 && lastTSS && lastTSS!=0  ?  geneTranscripts.gene[0].strand==="+" ? lastTSS : firstTSS  : geneTranscripts.gene[0].coordinates.end : 
+    props.mainQueryParams.end): props.mainQueryParams.end,
     Biosample: {
       selected: Biosample.selected,
       biosample: Biosample.biosample,
