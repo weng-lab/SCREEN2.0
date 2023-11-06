@@ -165,6 +165,8 @@ export type URLParams = {
     InVitro: boolean
     Organoid: boolean
     CellLine: boolean
+    start: number
+    end: number
     Biosample: {
       selected: boolean
       biosample: string | null
