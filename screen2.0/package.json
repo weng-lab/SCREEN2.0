@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@apollo/client": "alpha",
-    "@apollo/experimental-nextjs-app-support": "^0.4.3",
+    "@apollo/experimental-nextjs-app-support": "^0.5.1",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.14.9",
@@ -50,7 +50,7 @@
     "autoprefixer": "10.4.16",
     "bpnet-ui": "^0.2.9",
     "eslint": "8.52.0",
-    "eslint-config-next": "14.0.0",
+    "eslint-config-next": "14.0.1",
     "graphql": "^16.8.1",
     "jubilant-carnival": "^0.6.0",
     "logots-react": "latest",
