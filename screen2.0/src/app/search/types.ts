@@ -43,6 +43,7 @@ export type MainQueryParams = {
   start: number | null
   end: number | null
   gene?: string
+  snpid?: string
   CellLine?: boolean
   PrimaryCell?: boolean
   Tissue?: boolean
@@ -166,7 +167,7 @@ export type URLParams = {
     Organoid: boolean
     CellLine: boolean
     start: number
-    end: number
+    end: number   
     Biosample: {
       selected: boolean
       biosample: string | null

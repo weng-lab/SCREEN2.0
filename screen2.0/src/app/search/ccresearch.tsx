@@ -222,7 +222,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
   const findTabByID = (id: string, numberOfTable: number = 2) => {
     return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)
   }
-
+console.log(props.mainQueryParams.gene,props.mainQueryParams.snpid)
   return (
     <Box id="Outer Box" sx={{ display: 'flex' }}>
       <AppBar id="AppBar" position="fixed" open={open} elevation={1} sx={{ bottom: "auto", top: "auto", backgroundColor: "white" }}>
@@ -331,7 +331,6 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
            <StyledTab label="TF Motifs and Sequence Features" sx={{ alignSelf: "start" }} />
            */}
             <StyledTab label="Linked cCREs in other Assemblies" sx={{ alignSelf: "start" }} />
-
             <StyledTab label="Associated Gene Expression" sx={{ alignSelf: "start" }} />
             <StyledTab label="Functional Data" sx={{ alignSelf: "start" }} />
             <StyledTab label="TF Motifs and Sequence Features" sx={{ alignSelf: "start" }} />
@@ -352,7 +351,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
                   :
                   props.mainQueryParams.gene ?
                     `cCREs overlapping ${props.mainQueryParams.gene} - ${props.mainQueryParams.chromosome}:${props.mainQueryParams.start.toLocaleString("en-US")}-${props.mainQueryParams.end.toLocaleString("en-US")}`
-                    :
+                    :  props.mainQueryParams.snpid ?  `cCREs overlapping ${props.mainQueryParams.snpid} - ${props.mainQueryParams.chromosome}:${props.mainQueryParams.start.toLocaleString("en-US")}-${props.mainQueryParams.end.toLocaleString("en-US")}` :
                     `Searching ${props.mainQueryParams.chromosome} in ${props.mainQueryParams.assembly} from ${props.mainQueryParams.start.toLocaleString("en-US")} to ${props.mainQueryParams.end.toLocaleString("en-US")}`
               }
               titleHoverInfo={props.mainQueryParams.bed_intersect ?
@@ -375,11 +374,11 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
             coordinates={{ start: +props.mainQueryParams.start, end: +props.mainQueryParams.end, chromosome: props.mainQueryParams.chromosome }}
           />
         )}
-        {searchParams.get("gene") && page === 2 &&
-          <GeneExpression assembly={props.mainQueryParams.assembly} genes={[searchParams.get("gene")]} />
+        {props.mainQueryParams.gene && page === 2 &&
+          <GeneExpression assembly={props.mainQueryParams.assembly} genes={[props.mainQueryParams.gene]} />
         }
-        {searchParams.get("gene") && props.mainQueryParams.assembly.toLowerCase() !== "mm10" && page === 3 && (
-          <Rampage gene={searchParams.get("gene")} />
+        {props.mainQueryParams.gene && props.mainQueryParams.assembly.toLowerCase() !== "mm10" && page === 3 && (
+          <Rampage gene={props.mainQueryParams.gene} />
         )}
         {page >= numberOfDefaultTabs && opencCREs.length > 0 && (
           <CcreDetails

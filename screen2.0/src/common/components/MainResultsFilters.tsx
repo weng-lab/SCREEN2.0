@@ -19,7 +19,6 @@ import {
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControl from '@mui/material/FormControl';
-import FormLabel from '@mui/material/FormLabel';
 import SendIcon from "@mui/icons-material/Send"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
@@ -34,6 +33,31 @@ import { gql } from "@apollo/client"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 
 const marks = [
+  
+  {
+    value: 0,
+    label: '0kb',
+  },
+  {
+    value: 5000,
+    label: '5kb',
+  },
+  {
+    value: 10000,
+    label: '10kb',
+  },
+  {
+    value: 25000,
+    label: '25kb',
+  }
+  ,
+  {
+    value: 50000,
+    label: '50kb',
+  }
+];
+
+const snpmarks = [
   
   {
     value: 0,
@@ -86,9 +110,14 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
   //No alternatives provided for default, as all these attributes should exist and are given a default value in Search's page.tsx
 
   const [tssupstream, setTssupstream] = useState<number>(0);
+  const [snpdistance, setSnpDistance] = useState<number>(0);
 
-  const handleTssUpstreamChange = (event: Event, newValue: number) => {
+
+  const handleTssUpstreamChange = (_, newValue: number) => {
     setTssupstream(newValue as number);
+  };   
+  const handleSNPDistanceChange = (_, newValue: number) => {
+    setSnpDistance(newValue as number);
   };    
   const {
     data: geneTranscripts
@@ -182,10 +211,10 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     InVitro,
     Organoid,
     CellLine,
-    start: props.mainQueryParams.gene ? (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length >0 ? value==="tss" 
+    start: props.mainQueryParams.snpid ? Math.max(0,props.mainQueryParams.start-snpdistance)  :  props.mainQueryParams.gene ? (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length >0 ? value==="tss" 
     && firstTSS && firstTSS!=0 && lastTSS && lastTSS!=0  ?  geneTranscripts.gene[0].strand==="+" ? firstTSS : lastTSS  : geneTranscripts.gene[0].coordinates.start :    
     props.mainQueryParams.start): props.mainQueryParams.start,
-    end: props.mainQueryParams.gene ? (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length >0 ? value==="tss" 
+    end: props.mainQueryParams.snpid ? props.mainQueryParams.end+snpdistance   : props.mainQueryParams.gene ? (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length >0 ? value==="tss" 
     && firstTSS && firstTSS!=0 && lastTSS && lastTSS!=0  ?  geneTranscripts.gene[0].strand==="+" ? lastTSS : firstTSS  : geneTranscripts.gene[0].coordinates.end : 
     props.mainQueryParams.end): props.mainQueryParams.end,
     Biosample: {
@@ -367,7 +396,36 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
   return (
     <Paper elevation={0}>
       {/* cCRES near gene  */}
-      
+      {props.mainQueryParams.snpid &&
+        <>
+         <Accordion defaultExpanded square disableGutters>
+         <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel2a-content" id="panel2a-header">
+           <Typography>cCREs within distance from SNP {props.mainQueryParams.snpid}</Typography>
+         </AccordionSummary>
+         <AccordionDetails>          
+         <Grid2 container spacing={2}>
+        
+             <Grid2 xs={12}>
+              <Box sx={{ width: 300 }}>
+                <Slider
+                  aria-label="Custom marks"
+                  defaultValue={0}
+                  getAriaValueText={valuetext}
+                  valueLabelDisplay="on"
+                  min={0}
+                  max={50000}
+                  step={null}
+                  value={snpdistance} 
+                  onChange={handleSNPDistanceChange} 
+                  marks={marks}
+                />
+              </Box>
+            </Grid2>
+    </Grid2>
+          </AccordionDetails>
+          </Accordion>
+          </>
+      }
       {props.mainQueryParams.gene &&
         <>
          <Accordion defaultExpanded square disableGutters>
