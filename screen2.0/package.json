@@ -50,7 +50,7 @@
     "autoprefixer": "10.4.16",
     "bpnet-ui": "^0.2.9",
     "eslint": "8.52.0",
-    "eslint-config-next": "14.0.0",
+    "eslint-config-next": "14.0.1",
     "graphql": "^16.8.1",
     "jubilant-carnival": "^0.6.0",
     "logots-react": "latest",
