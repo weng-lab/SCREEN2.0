@@ -34,7 +34,7 @@ import { gql } from "@apollo/client"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 
 const marks = [
-  
+
   {
     value: 0,
     label: '0kb',
@@ -79,7 +79,7 @@ const GENE_TRANSCRIPTS_QUERY = gql`
       }      
     }
    }
- } ` 
+ } `
 
 
 export default function MainResultsFilters(props: { mainQueryParams: MainQueryParams, byCellType: CellTypeData, genomeBrowserView: boolean, accessions: string, page: number }) {
@@ -89,7 +89,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
 
   const handleTssUpstreamChange = (event: Event, newValue: number) => {
     setTssupstream(newValue as number);
-  };    
+  };
   const {
     data: geneTranscripts
   } = useQuery(GENE_TRANSCRIPTS_QUERY, {
@@ -100,12 +100,11 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     skip: !props.mainQueryParams.gene,
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first"
-    
+
   })
 
-  const TSSs = geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length >0 && geneTranscripts.gene[0].transcripts.map(t=>{
-    if(geneTranscripts.gene[0].strand==="+")
-    {
+  const TSSs = geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 && geneTranscripts.gene[0].transcripts.map(t => {
+    if (geneTranscripts.gene[0].strand === "+") {
       return t.coordinates.start
     } else {
       return t.coordinates.end
@@ -113,24 +112,24 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
 
   })
 
-  const firstTSS =  geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length >0 && TSSs && TSSs.length>0 ? 
-  geneTranscripts.gene[0].transcripts.length===1 ?  geneTranscripts.gene[0].transcripts[0].coordinates.start :
-  geneTranscripts.gene[0].strand==="+"  ? Math.max(0,(Math.min(...TSSs) - tssupstream)): Math.max(...TSSs)+ tssupstream : 0
-  
-  const lastTSS =  geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length >0 && TSSs && TSSs.length>0 ? 
-  geneTranscripts.gene[0].transcripts.length===1 ?  geneTranscripts.gene[0].transcripts[0].coordinates.end :
-  geneTranscripts.gene[0].strand==="+"  ? Math.max(...TSSs): Math.min(...TSSs) : 0
+  const firstTSS = geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 && TSSs && TSSs.length > 0 ?
+    geneTranscripts.gene[0].transcripts.length === 1 ? geneTranscripts.gene[0].transcripts[0].coordinates.start :
+      geneTranscripts.gene[0].strand === "+" ? Math.max(0, (Math.min(...TSSs) - tssupstream)) : Math.max(...TSSs) + tssupstream : 0
+
+  const lastTSS = geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 && TSSs && TSSs.length > 0 ?
+    geneTranscripts.gene[0].transcripts.length === 1 ? geneTranscripts.gene[0].transcripts[0].coordinates.end :
+      geneTranscripts.gene[0].strand === "+" ? Math.max(...TSSs) : Math.min(...TSSs) : 0
 
 
   //Biosample Filter
- 
+
   const [CellLine, setCellLine] = useState<boolean>(props.mainQueryParams.CellLine)
   const [PrimaryCell, setPrimaryCell] = useState<boolean>(props.mainQueryParams.PrimaryCell)
   const [Tissue, setTissue] = useState<boolean>(props.mainQueryParams.Tissue)
   const [Organoid, setOrganoid] = useState<boolean>(props.mainQueryParams.Organoid)
   const [InVitro, setInVitro] = useState<boolean>(props.mainQueryParams.InVitro)
   //Selected Biosample
- 
+
   const [Biosample, setBiosample] = useState<{
     selected: boolean
     biosample: string | null
@@ -157,7 +156,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
   const [CTCFEnd, setCTCFEnd] = useState<number>(props.mainQueryParams.ctcf_e)
   const [ATACStart, setATACStart] = useState<number>(props.mainQueryParams.atac_s)
   const [ATACEnd, setATACEnd] = useState<number>(props.mainQueryParams.atac_e)
-  
+
   //Classification Filter
   const [CA, setCA] = useState<boolean>(props.mainQueryParams.CA)
   const [CA_CTCF, setCA_CTCF] = useState<boolean>(props.mainQueryParams.CA_CTCF)
@@ -182,12 +181,12 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     InVitro,
     Organoid,
     CellLine,
-    start: props.mainQueryParams.gene ? (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length >0 ? value==="tss" 
-    && firstTSS && firstTSS!=0 && lastTSS && lastTSS!=0  ?  geneTranscripts.gene[0].strand==="+" ? firstTSS : lastTSS  : geneTranscripts.gene[0].coordinates.start :    
-    props.mainQueryParams.start): props.mainQueryParams.start,
-    end: props.mainQueryParams.gene ? (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length >0 ? value==="tss" 
-    && firstTSS && firstTSS!=0 && lastTSS && lastTSS!=0  ?  geneTranscripts.gene[0].strand==="+" ? lastTSS : firstTSS  : geneTranscripts.gene[0].coordinates.end : 
-    props.mainQueryParams.end): props.mainQueryParams.end,
+    start: props.mainQueryParams.gene ? (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 ? value === "tss"
+      && firstTSS && firstTSS != 0 && lastTSS && lastTSS != 0 ? geneTranscripts.gene[0].strand === "+" ? firstTSS : lastTSS : geneTranscripts.gene[0].coordinates.start :
+      props.mainQueryParams.start) : props.mainQueryParams.start,
+    end: props.mainQueryParams.gene ? (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 ? value === "tss"
+      && firstTSS && firstTSS != 0 && lastTSS && lastTSS != 0 ? geneTranscripts.gene[0].strand === "+" ? lastTSS : firstTSS : geneTranscripts.gene[0].coordinates.end :
+      props.mainQueryParams.end) : props.mainQueryParams.end,
     Biosample: {
       selected: Biosample.selected,
       biosample: Biosample.biosample,
@@ -367,55 +366,55 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
   return (
     <Paper elevation={0}>
       {/* cCRES near gene  */}
-      
+
       {props.mainQueryParams.gene &&
         <>
-         <Accordion defaultExpanded square disableGutters>
-         <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel2a-content" id="panel2a-header">
-           <Typography>cCREs near gene</Typography>
-         </AccordionSummary>
-         <AccordionDetails>          
-         <Grid2 container spacing={2}>
-         <Grid2 xs={12}>
-               <FormControl>
-               <RadioGroup
-                 aria-labelledby="demo-controlled-radio-buttons-group"
-                 name="controlled-radio-buttons-group"
-                 value={value}
-                 onChange={handleChange}
-               >
-                 <FormControlLabel value="overlappinggene" control={<Radio />} label={`Overlapping the gene body of ${props.mainQueryParams.gene}`} />
-                 <FormControlLabel value="tss" control={<Radio />} label={`Located between the first and last Transcription Start Sites (TSSs) of ${props.mainQueryParams.gene}`} />
-               </RadioGroup>
-             </FormControl>
-             </Grid2>
-             {value==='tss' && <Grid2 xs={12}>
-              <Box sx={{ width: 300 }}>
-                <Typography id="input-slider" gutterBottom>
-                  Upstream of the TSSs
-                </Typography>
-                <Slider
-                  aria-label="Custom marks"
-                  defaultValue={0}
-                  getAriaValueText={valuetext}
-                  valueLabelDisplay="on"
-                  min={0}
-                  max={50000}
-                  step={null}
-                  value={tssupstream} 
-                  onChange={handleTssUpstreamChange} 
-                  marks={marks}
-                />
-              </Box>
-            </Grid2>}
-    </Grid2>
-          </AccordionDetails>
+          <Accordion defaultExpanded square disableGutters>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel2a-content" id="panel2a-header">
+              <Typography>cCREs near gene</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Grid2 container spacing={2}>
+                <Grid2 xs={12}>
+                  <FormControl>
+                    <RadioGroup
+                      aria-labelledby="demo-controlled-radio-buttons-group"
+                      name="controlled-radio-buttons-group"
+                      value={value}
+                      onChange={handleChange}
+                    >
+                      <FormControlLabel value="overlappinggene" control={<Radio />} label={`Overlapping the gene body of ${props.mainQueryParams.gene}`} />
+                      <FormControlLabel value="tss" control={<Radio />} label={`Located between the first and last Transcription Start Sites (TSSs) of ${props.mainQueryParams.gene}`} />
+                    </RadioGroup>
+                  </FormControl>
+                </Grid2>
+                {value === 'tss' && <Grid2 xs={12}>
+                  <Box sx={{ width: 300 }}>
+                    <Typography id="input-slider" gutterBottom>
+                      Upstream of the TSSs
+                    </Typography>
+                    <Slider
+                      aria-label="Custom marks"
+                      defaultValue={0}
+                      getAriaValueText={valuetext}
+                      valueLabelDisplay="on"
+                      min={0}
+                      max={50000}
+                      step={null}
+                      value={tssupstream}
+                      onChange={handleTssUpstreamChange}
+                      marks={marks}
+                    />
+                  </Box>
+                </Grid2>}
+              </Grid2>
+            </AccordionDetails>
           </Accordion>
-          </>
+        </>
       }
-      
+
       {/* Biosample Activity */}
-      <Accordion defaultExpanded={props.mainQueryParams.gene ? false : true}  square disableGutters>
+      <Accordion defaultExpanded={props.mainQueryParams.gene ? false : true} square disableGutters>
         <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
           <Typography>Biosample Activity</Typography>
         </AccordionSummary>

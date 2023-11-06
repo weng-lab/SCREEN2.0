@@ -19,14 +19,14 @@ const pageLinks = [
     pageName: "About",
     link: "/about",
     dropdownID: "0",
-    // subPages: [
-    //   { pageName: "Overview", link: "/about" },
-    //   { pageName: "Tutorials", link: "/about#tutorials" },
-    //   { pageName: "API Documentation", link: "/about#api-documentation" },
-    //   { pageName: "Versions", link: "/about#versions" },
-    //   { pageName: "UCSC Genome Browser", link: "/about#ucsc-genome-browser" },
-    //   { pageName: "Contact US", link: "/about#contact-us" },
-    // ],
+    subPages: [
+      { pageName: "Overview", link: "/about" },
+      { pageName: "Tutorials", link: "/about#tutorials" },
+      { pageName: "API Documentation", link: "/about#api-documentation" },
+      { pageName: "Versions", link: "/about#versions" },
+      { pageName: "UCSC Genome Browser", link: "/about#ucsc-genome-browser" },
+      { pageName: "Contact US", link: "/about#contact-us" },
+    ],
   },
   {
     pageName: "Downloads",
