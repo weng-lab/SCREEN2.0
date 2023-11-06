@@ -33,33 +33,6 @@ import { parseByCellType, filterBiosamples, assayHoverInfo, constructURL } from 
 import { gql } from "@apollo/client"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 
-
-/*const marks = [
-  {
-    value: 1000,
-    label: '1kb',
-  },
-  {
-    value: 2000,
-    label: '2kb',
-  },
-  {
-    value: 5000,
-    label: '5kb',
-  },
-  {
-    value: 10000,
-  label: '10kb',
-  },
-  {
-    value: 25000,
-  label: '25kb',
-  },
-  {
-    value: 50000,
-  label: '50kb',
-  },
-];*/
 const marks = [
   
   {
@@ -109,7 +82,7 @@ const GENE_TRANSCRIPTS_QUERY = gql`
  } ` 
 
 
-export default function MainResultsFilters(props: { mainQueryParams: MainQueryParams, byCellType: CellTypeData, genomeBrowserView: boolean, accessions: string, page: number, gene?: string }) {
+export default function MainResultsFilters(props: { mainQueryParams: MainQueryParams, byCellType: CellTypeData, genomeBrowserView: boolean, accessions: string, page: number }) {
   //No alternatives provided for default, as all these attributes should exist and are given a default value in Search's page.tsx
 
   const [tssupstream, setTssupstream] = useState<number>(0);
@@ -122,9 +95,9 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
   } = useQuery(GENE_TRANSCRIPTS_QUERY, {
     variables: {
       assembly: props.mainQueryParams.assembly.toLowerCase(),
-      name: [props.gene && props.gene.toUpperCase()]
+      name: [props.mainQueryParams.gene && props.mainQueryParams.gene.toUpperCase()]
     },
-    skip: !props.gene,
+    skip: !props.mainQueryParams.gene,
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first"
     
@@ -147,9 +120,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
   const lastTSS =  geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length >0 && TSSs && TSSs.length>0 ? 
   geneTranscripts.gene[0].transcripts.length===1 ?  geneTranscripts.gene[0].transcripts[0].coordinates.end :
   geneTranscripts.gene[0].strand==="+"  ? Math.max(...TSSs): Math.min(...TSSs) : 0
-  
-  console.log("gene coord", geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length >0 ?  geneTranscripts.gene[0].coordinates.start :0,geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length >0 ?  geneTranscripts.gene[0].coordinates.end :0)
-  console.log("TSSs", firstTSS, lastTSS)
+
 
   //Biosample Filter
  
@@ -211,15 +182,15 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     InVitro,
     Organoid,
     CellLine,
-    start: props.gene ?   (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length >0 ? value==="tss" 
+    start: props.mainQueryParams.gene ?   (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length >0 ? value==="tss" 
     && firstTSS && firstTSS!=0 && lastTSS && lastTSS!=0  ?  geneTranscripts.gene[0].strand==="+" ? firstTSS : lastTSS  : geneTranscripts.gene[0].coordinates.start :
     
     props.mainQueryParams.start )    
     
     :  props.mainQueryParams.start,
 
-    end: props.gene ?   (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length >0 ? value==="tss" 
-    && firstTSS && firstTSS!=0 && lastTSS && lastTSS!=0  ?  geneTranscripts.gene[0].strand==="+" ? lastTSS : firstTSS  : geneTranscripts.gene[0].coordinates.start :
+    end: props.mainQueryParams.gene ?   (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length >0 ? value==="tss" 
+    && firstTSS && firstTSS!=0 && lastTSS && lastTSS!=0  ?  geneTranscripts.gene[0].strand==="+" ? lastTSS : firstTSS  : geneTranscripts.gene[0].coordinates.end :
     
     props.mainQueryParams.end )    
     
@@ -404,7 +375,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     <Paper elevation={0}>
       {/* cCRES near gene  */}
       
-      {props.gene &&
+      {props.mainQueryParams.gene &&
         <>
          <Accordion defaultExpanded square disableGutters>
          <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel2a-content" id="panel2a-header">
@@ -420,16 +391,16 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                  value={value}
                  onChange={handleChange}
                >
-                 <FormControlLabel value="overlappinggene" control={<Radio />} label={`Overlapping the gene body of ${props.gene}`} />
-                 <FormControlLabel value="tss" control={<Radio />} label={`Located between the first and last Transcription Start Sites (TSSs) of ${props.gene}`} />
+                 <FormControlLabel value="overlappinggene" control={<Radio />} label={`Overlapping the gene body of ${props.mainQueryParams.gene}`} />
+                 <FormControlLabel value="tss" control={<Radio />} label={`Located between the first and last Transcription Start Sites (TSSs) of ${props.mainQueryParams.gene}`} />
                </RadioGroup>
              </FormControl>
              </Grid2>
              {value==='tss' && <Grid2 xs={12}>
               <Box sx={{ width: 300 }}>
-              <Typography id="input-slider" gutterBottom>
-        Upstream of the TSSs
-      </Typography>
+                <Typography id="input-slider" gutterBottom>
+                  Upstream of the TSSs
+                </Typography>
                 <Slider
                   aria-label="Custom marks"
                   defaultValue={0}
@@ -451,7 +422,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
       }
       
       {/* Biosample Activity */}
-      <Accordion defaultExpanded={props.gene ? false : true}  square disableGutters>
+      <Accordion defaultExpanded={props.mainQueryParams.gene ? false : true}  square disableGutters>
         <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
           <Typography>Biosample Activity</Typography>
         </AccordionSummary>

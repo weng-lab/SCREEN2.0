@@ -241,7 +241,8 @@ export function constructURL(
    */ 
 
   //Assembly, Chromosome, Start, End
-  const urlBasics = mainQueryParams.bed_intersect ? `search?intersect=t&assembly=${mainQueryParams.assembly}` : `search?assembly=${mainQueryParams.assembly}&chromosome=${mainQueryParams.chromosome}&start=${mainQueryParams.start}&end=${mainQueryParams.end}${mainQueryParams.gene ? "&gene=" + mainQueryParams.gene : ""}`
+  const urlBasics = mainQueryParams.bed_intersect ? `search?intersect=t&assembly=${mainQueryParams.assembly}` :
+   `search?assembly=${mainQueryParams.assembly}&chromosome=${mainQueryParams.chromosome}&start=${urlParams.start}&end=${urlParams.end}${mainQueryParams.gene ? "&gene=" + mainQueryParams.gene : ""}`
 
   //Can probably get biosample down to one string, and extract other info when parsing byCellType
   const biosampleFilters = `&Tissue=${outputT_or_F(urlParams.Tissue)}&PrimaryCell=${outputT_or_F(

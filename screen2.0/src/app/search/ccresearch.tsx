@@ -310,7 +310,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
         <Divider />
         {page < numberOfDefaultTabs ?
           //Should the filter component be refreshing the route? I think it should probably all be controlled here
-          <MainResultsFilters mainQueryParams={props.mainQueryParams} byCellType={props.globals} genomeBrowserView={page === 1} accessions={opencCREs.map((x) => x.ID).join(',')} page={page} gene={searchParams.get("gene")} />
+          <MainResultsFilters mainQueryParams={props.mainQueryParams} byCellType={props.globals} genomeBrowserView={page === 1} accessions={opencCREs.map((x) => x.ID).join(',')} page={page}/>
           :
           <Tabs
             aria-label="details-tabs"
