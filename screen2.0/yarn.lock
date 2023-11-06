@@ -1280,10 +1280,10 @@ body-parser@^1.20.1:
     type-is "~1.6.18"
     unpipe "1.0.0"
 
-bpnet-ui@^0.2.9:
-  version "0.2.9"
-  resolved "https://registry.yarnpkg.com/bpnet-ui/-/bpnet-ui-0.2.9.tgz#58564c4a4956207d25176560bd175af742fc9ebe"
-  integrity sha512-LyPbcGDw8u0hk+SNBu2OnJMi3Vuf1l4ihOhafxfmNyatpK2Jqzf++0ldaJZ7zFnTNgU+k7VSQH92wT25Qnx7tw==
+bpnet-ui@^0.3.8:
+  version "0.3.8"
+  resolved "https://registry.yarnpkg.com/bpnet-ui/-/bpnet-ui-0.3.8.tgz#2c1d6114917358469f94639ec1d29703080b7794"
+  integrity sha512-BVsSVb8HBF4gXmadXuAIHEWoobu5LD4jf02+ztsK090fRaTo+cMfBpRnEAwweTI1kr3ux4o3ykqx2TSsNv4RAQ==
   dependencies:
     beautiful-react-hooks "^0.35.0"
     jubilant-carnival "^0.4.0"
