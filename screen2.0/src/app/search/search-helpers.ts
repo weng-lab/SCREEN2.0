@@ -293,10 +293,10 @@ export function constructURL(
 
   const conservationFilters = `&prim_s=${urlParams.PrimateStart}&prim_e=${urlParams.PrimateEnd}&mamm_s=${urlParams.MammalStart}&mamm_e=${urlParams.MammalEnd}&vert_s=${urlParams.VertebrateStart}&vert_e=${urlParams.VertebrateEnd}`
 
-  const linkedGenesFilter = `&linkedGene=${urlParams.linkedGene}&distancePC=${urlParams.distancePC}&distanceAll=${urlParams.distanceAll}&distanceFromcCRE=${urlParams.distanceFromcCRE}&CTCF_ChIA_PET=${urlParams.CTCF_ChIA_PET}&RNAPII_ChIA_PET=${urlParams.RNAPII_ChIA_PET}`
+  const linkedGenesFilter = `&linkedGene=${urlParams.linkedGene}&distancePC=${outputT_or_F(urlParams.distancePC)}&distanceAll=${outputT_or_F(urlParams.distanceAll)}&distanceFromcCRE=${urlParams.distanceFromcCRE}&CTCF_ChIA_PET=${outputT_or_F(urlParams.CTCF_ChIA_PET)}&RNAPII_ChIA_PET=${outputT_or_F(urlParams.RNAPII_ChIA_PET)}`
 
   const accessionsAndPage = `&accession=${urlParams.Accessions}&page=${urlParams.Page}`
 
-  const url = `${urlBasics}${biosampleFilters}${chromatinFilters}${classificationFilters}${conservationFilters}${mainQueryParams.linkedGene ? linkedGenesFilter : ""}${accessionsAndPage}`
+  const url = `${urlBasics}${biosampleFilters}${chromatinFilters}${classificationFilters}${conservationFilters}${urlParams.linkedGene !== "" ? linkedGenesFilter : ""}${accessionsAndPage}`
   return url
 }

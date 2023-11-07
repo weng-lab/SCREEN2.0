@@ -32,6 +32,7 @@ import { CellTypeData, FilteredBiosampleData, MainQueryParams, URLParams } from 
 import { parseByCellType, filterBiosamples, assayHoverInfo, constructURL } from "../../app/search/search-helpers"
 import { gql } from "@apollo/client"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
+import GeneAutoComplete from "../../app/applets/gene-expression/gene-autocomplete";
 
 const marks = [
 
@@ -175,6 +176,13 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
   const [VertebrateStart, setVertebrateStart] = useState<number>(props.mainQueryParams.vert_s)
   const [VertebrateEnd, setVertebrateEnd] = useState<number>(props.mainQueryParams.vert_e)
 
+  //Linked Genes Filter
+  const [linkedGene, setLinkedGene] = useState<string>("")
+  const [distanceAll, setdistanceAll] = React.useState(true)
+  const [distancePC, setdistancePC] = React.useState(true)
+  const [CTCF_ChIA_PET, setCTCF_ChIA_PET] = React.useState(true)
+  const [RNAPII_ChIA_PET, setRNAPII_ChIA_PET] = React.useState(true)
+
   const urlParams: URLParams = {
     Tissue,
     PrimaryCell,
@@ -218,7 +226,13 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     VertebrateStart,
     VertebrateEnd,
     Accessions: props.accessions,
-    Page: props.page
+    Page: props.page,
+    linkedGene,
+    distancePC,
+    distanceAll,
+    distanceFromcCRE: 1000000,
+    CTCF_ChIA_PET,
+    RNAPII_ChIA_PET
   }
 
   function valuetext(value: number) {
@@ -724,16 +738,48 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
             </AccordionDetails>
           </Accordion>}
           {/* Linked Genes */}
-          {/* <Accordion square disableGutters>
+          <Accordion square disableGutters>
             <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel4a-content" id="panel4a-header">
               <Typography>Linked Genes</Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <Typography>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex, sit amet blandit leo lobortis eget.
-              </Typography>
+              <GeneAutoComplete 
+                assembly={props.mainQueryParams.assembly} 
+                gene={linkedGene}
+                setGene={(gene) => setLinkedGene(gene)} 
+              />
+              {linkedGene && 
+              <Button variant="outlined" onClick={() => setLinkedGene("")}>
+                Clear Linked Gene
+              </Button>}
+            <FormGroup>
+              <FormControlLabel
+                checked={distanceAll}
+                onChange={(_, checked: boolean) => setdistanceAll(checked)}
+                control={<Checkbox />}
+                label="Distance (All)"
+              />
+              <FormControlLabel
+                checked={distancePC}
+                onChange={(_, checked: boolean) => setdistancePC(checked)}
+                control={<Checkbox />}
+                label="Distance (PC)"
+              />
+              <FormControlLabel
+                checked={CTCF_ChIA_PET}
+                onChange={(_, checked: boolean) => setCTCF_ChIA_PET(checked)}
+                control={<Checkbox />}
+                label="CTCT ChIA-PET"
+              />
+              <FormControlLabel
+                checked={RNAPII_ChIA_PET}
+                onChange={(_, checked: boolean) => setRNAPII_ChIA_PET(checked)}
+                control={<Checkbox />}
+                label="RNAPII ChIA-PET"
+              />
+            </FormGroup>
             </AccordionDetails>
-          </Accordion> */}
+          </Accordion>
           {/* Functional Characterization */}
           {/* <Accordion square disableGutters>
             <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel5a-content" id="panel5a-header">

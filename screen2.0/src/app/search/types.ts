@@ -34,7 +34,7 @@ export type cCREData = {
       intersecting_genes: { name: string }[]
     }
   }
-  
+
 }
 
 //I think there needs to be more spearation in what is used by the query (true params) and what's captured from url and used
@@ -204,12 +204,12 @@ export type URLParams = {
     MammalEnd: number
     VertebrateStart: number
     VertebrateEnd: number
-    linkedGene?: string
-    distancePC?: boolean
-    distanceAll?: boolean
-    distanceFromcCRE?: number
-    CTCF_ChIA_PET?: boolean
-    RNAPII_ChIA_PET?: boolean
+    linkedGene: string
+    distancePC: boolean
+    distanceAll: boolean
+    distanceFromcCRE: number
+    CTCF_ChIA_PET: boolean
+    RNAPII_ChIA_PET: boolean
     Accessions: string
     Page: number
 }
