@@ -159,6 +159,7 @@ function MainResultsTable(props: MainResultsTableProps) {
                 {Object.values(row.linkedGenes.distanceAll).map((gene: { name: string }, i: number) => (
                   <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${gene.name}`}>
                     {i < row.linkedGenes.distanceAll.length - 1 ? `\u00A0${gene.name},\u00A0` : `\u00A0${gene.name}`}
+                    
                   </a>
                 ))}
               </Typography>
