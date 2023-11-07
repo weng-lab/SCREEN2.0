@@ -306,6 +306,8 @@ export async function linkedGenesQuery(assembly: "GRCh38" | "mm10", accession: s
  * @param start number
  * @param end number
  * @param biosample a biosample selection. If not specified or "undefined", will be marked as "null" in gql query
+ * @param nearbygenesdistancethreshold the distance from cCRE that will be used for distance-linked genes
+ * @param nearbygeneslimit limit of returned ditance-linked genes
  * @param accessions a list of accessions to fetch information on. Set chromosome, start, end to "undefined" if using so they're set to null
  * @returns cCREs matching the search
  */

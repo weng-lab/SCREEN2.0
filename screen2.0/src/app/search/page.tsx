@@ -14,7 +14,7 @@ export default async function Search({
   //Get search parameters and define defaults.
   const mainQueryParams: MainQueryParams = {
     //Flag that user-entered accessions are to be used
-    bed_intersect: searchParams.intersect ? checkTrueFalse(searchParams.intersect): false,
+    bed_intersect: searchParams.intersect ? checkTrueFalse(searchParams.intersect) : false,
     assembly: searchParams.assembly === "GRCh38" || searchParams.assembly === "mm10" ? searchParams.assembly : "GRCh38",
     gene: searchParams.gene,
     //If bed intersecting, set chr start end to null
@@ -47,7 +47,7 @@ export default async function Search({
     h3k27ac_e: searchParams.h3k27ac_e ? Number(searchParams.h3k27ac_e) : 10,
     ctcf_s: searchParams.ctcf_s ? Number(searchParams.ctcf_s) : -10,
     ctcf_e: searchParams.ctcf_e ? Number(searchParams.ctcf_e) : 10,
-    
+
     atac_s: searchParams.atac_s ? Number(searchParams.atac_s) : -10,
     atac_e: searchParams.atac_e ? Number(searchParams.atac_e) : 10,
     // Classification Filters
@@ -62,11 +62,18 @@ export default async function Search({
     TF: searchParams.TF ? checkTrueFalse(searchParams.TF) : true,
     //Conservation Filter
     prim_s: searchParams.prim_s ? Number(searchParams.prim_s) : -2,
-    prim_e:searchParams.prim_e ? Number(searchParams.prim_e) : 2,
+    prim_e: searchParams.prim_e ? Number(searchParams.prim_e) : 2,
     mamm_s: searchParams.mamm_s ? Number(searchParams.mamm_s) : -4,
-    mamm_e:searchParams.mamm_e ? Number(searchParams.mamm_e) : 8,
+    mamm_e: searchParams.mamm_e ? Number(searchParams.mamm_e) : 8,
     vert_s: searchParams.vert_s ? Number(searchParams.vert_s) : -3,
-    vert_e:searchParams.vert_e ? Number(searchParams.vert_e) : 8,
+    vert_e: searchParams.vert_e ? Number(searchParams.vert_e) : 8,
+    //Linked Genes Filter
+    linkedGene: searchParams.linkedGene ?? null,
+    distancePC: searchParams.distancePC ? checkTrueFalse(searchParams.distancePC) : true,
+    distanceAll: searchParams.distanceAll ? checkTrueFalse(searchParams.distanceAll) : true,
+    distanceFromcCRE: searchParams.distanceFromcCRE ? Number(searchParams.distanceFromcCRE) : 1000000,
+    CTCF_ChIA_PET: searchParams.CTCF_ChIA_PET ? checkTrueFalse(searchParams.CTCF_ChIA_PET) : true,
+    RNAPII_ChIA_PET: searchParams.RNAPII_ChIA_PET ? checkTrueFalse(searchParams.RNAPII_ChIA_PET) : true
   }
 
   //Contains cell type data of the specified assembly

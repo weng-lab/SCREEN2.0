@@ -113,6 +113,30 @@ function passesClassificationFilter(currentElement: cCREData, mainQueryParams: M
   }
 }
 
+export function passesLinkedGenesFilter(row: MainResultTableRow, mainQueryParams: MainQueryParams) {
+  //If there is a gene to find a match for
+  let found = false
+  if (mainQueryParams.linkedGene) {
+    const genes = row.linkedGenes
+    //For each selected checkbox, try to find it in the corresponding spot, mark flag as found
+    if (mainQueryParams.distancePC && genes.distancePC.find((x) => x.name === mainQueryParams.linkedGene)) {
+      found = true
+    }
+    if (mainQueryParams.distanceAll && genes.distanceAll.find((x) => x.name === mainQueryParams.linkedGene)) {
+      found = true
+    }
+    if (mainQueryParams.CTCF_ChIA_PET && genes.CTCF_ChIAPET.find((x) => x.name === mainQueryParams.linkedGene)) {
+      found = true
+    }
+    if (mainQueryParams.RNAPII_ChIA_PET && genes.RNAPII_ChIAPET.find((x) => x.name === mainQueryParams.linkedGene)) {
+      found = true
+    }
+    return found
+  } else {
+    return true
+  }
+}
+
 /**
  * @param experiments Array of objects containing biosample experiments for a given biosample type
  * @returns an object with keys dnase, atac, h3k4me3, h3k27ac, ctcf with each marked true or false
@@ -222,6 +246,7 @@ export function assayHoverInfo(assays: { dnase: boolean; h3k27ac: boolean; h3k4m
  *
  * @param newBiosample optional, use if setting Biosample State and then immediately triggering router before re-render when the new state is accessible
  * @returns A URL configured with filter information
+ * @todo this function should only take in urlParams, not mainQueryParams (which should be renamed). urlParams is more like filterParams. Also this should not append things to the url unless it changes from the default value
  */
 export function constructURL(
   mainQueryParams: MainQueryParams,
@@ -268,8 +293,10 @@ export function constructURL(
 
   const conservationFilters = `&prim_s=${urlParams.PrimateStart}&prim_e=${urlParams.PrimateEnd}&mamm_s=${urlParams.MammalStart}&mamm_e=${urlParams.MammalEnd}&vert_s=${urlParams.VertebrateStart}&vert_e=${urlParams.VertebrateEnd}`
 
+  const linkedGenesFilter = `&linkedGene=${urlParams.linkedGene}&distancePC=${urlParams.distancePC}&distanceAll=${urlParams.distanceAll}&distanceFromcCRE=${urlParams.distanceFromcCRE}&CTCF_ChIA_PET=${urlParams.CTCF_ChIA_PET}&RNAPII_ChIA_PET=${urlParams.RNAPII_ChIA_PET}`
+
   const accessionsAndPage = `&accession=${urlParams.Accessions}&page=${urlParams.Page}`
 
-  const url = `${urlBasics}${biosampleFilters}${chromatinFilters}${classificationFilters}${conservationFilters}${accessionsAndPage}`
+  const url = `${urlBasics}${biosampleFilters}${chromatinFilters}${classificationFilters}${conservationFilters}${mainQueryParams.linkedGene ? linkedGenesFilter : ""}${accessionsAndPage}`
   return url
 }

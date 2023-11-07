@@ -34,6 +34,7 @@ export type cCREData = {
       intersecting_genes: { name: string }[]
     }
   }
+  
 }
 
 //I think there needs to be more spearation in what is used by the query (true params) and what's captured from url and used
@@ -79,6 +80,12 @@ export type MainQueryParams = {
   pELS?: boolean
   PLS?: boolean
   TF?: boolean
+  linkedGene: string
+  distancePC: boolean
+  distanceAll: boolean
+  distanceFromcCRE: number
+  CTCF_ChIA_PET: boolean
+  RNAPII_ChIA_PET: boolean
 }
 
 export type CellTypeData = {
@@ -157,7 +164,7 @@ export type LinkedGenesData = {
 }
 
 /**
- * Represents the state variables used by the filters and passed to the constructURL function to refresh results
+ * I guess this is best described as the parameters that can be modified by the filters panel. Strong overlap with mainQueryParams
  */
 export type URLParams = {
     Tissue: boolean
@@ -197,6 +204,12 @@ export type URLParams = {
     MammalEnd: number
     VertebrateStart: number
     VertebrateEnd: number
+    linkedGene?: string
+    distancePC?: boolean
+    distanceAll?: boolean
+    distanceFromcCRE?: number
+    CTCF_ChIA_PET?: boolean
+    RNAPII_ChIA_PET?: boolean
     Accessions: string
     Page: number
 }
