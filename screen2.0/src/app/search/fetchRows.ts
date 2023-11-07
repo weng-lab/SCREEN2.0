@@ -66,7 +66,6 @@ export async function generateRows(QueryResult: ApolloQueryResult<any>, biosampl
         linkedGenes: { distancePC: currentElement.genesallpc.pc.intersecting_genes, distanceAll: currentElement.genesallpc.all.intersecting_genes, CTCF_ChIAPET: [], RNAPII_ChIAPET: [] },
         conservationData: {mammals: currentElement.mammals, primates: currentElement.primates, vertebrates: currentElement.vertebrates}
       })
-      //add to 
       accessions.push(currentElement.info.accession)
     }
   })
@@ -86,6 +85,6 @@ export async function generateRows(QueryResult: ApolloQueryResult<any>, biosampl
     })
   })
 
-  //Is there a better way to structure this code? This seems wasteful and inefficient
+  //Is there a better way to structure this code?
   return rows.filter((row) => passesLinkedGenesFilter(row, mainQueryParams))
 }

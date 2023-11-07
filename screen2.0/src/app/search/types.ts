@@ -37,7 +37,6 @@ export type cCREData = {
 
 }
 
-//I think there needs to be more spearation in what is used by the query (true params) and what's captured from url and used
 export type MainQueryParams = {
   bed_intersect: boolean,
   assembly: "GRCh38" | "mm10"
