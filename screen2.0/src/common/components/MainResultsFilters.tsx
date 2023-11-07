@@ -57,33 +57,6 @@ const marks = [
   }
 ];
 
-const snpmarks = [
-  
-  {
-    value: 0,
-    label: '0kb',
-  },
-  {
-    value: 5000,
-    label: '5kb',
-  },
-  {
-    value: 10000,
-    label: '10kb',
-  },
-  {
-    value: 25000,
-    label: '25kb',
-  }
-  ,
-  {
-    value: 50000,
-    label: '50kb',
-  }
-];
-
-
-
 const GENE_TRANSCRIPTS_QUERY = gql`
  query ($assembly: String!, $name: [String!], $limit: Int) {
    gene(assembly: $assembly, name: $name, limit: $limit) {
