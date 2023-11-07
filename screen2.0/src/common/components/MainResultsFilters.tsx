@@ -14,6 +14,7 @@ import {
   Tooltip,
   Box,
   Slider,
+  FormLabel,
 } from "@mui/material/"
 
 import Radio from '@mui/material/Radio';
@@ -382,37 +383,38 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
 
   return (
     <Paper elevation={0}>
-      {/* cCRES near gene  */}
+      {/* cCREs within distance from SNP  */}
       {props.mainQueryParams.snpid &&
         <>
-         <Accordion defaultExpanded square disableGutters>
-         <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel2a-content" id="panel2a-header">
-           <Typography>cCREs within distance from SNP {props.mainQueryParams.snpid}</Typography>
-         </AccordionSummary>
-         <AccordionDetails>          
-         <Grid2 container spacing={2}>
-        
-             <Grid2 xs={12}>
-              <Box sx={{ width: 300 }}>
-                <Slider
-                  aria-label="Custom marks"
-                  defaultValue={0}
-                  getAriaValueText={valuetext}
-                  valueLabelDisplay="on"
-                  min={0}
-                  max={50000}
-                  step={null}
-                  value={snpdistance} 
-                  onChange={handleSNPDistanceChange} 
-                  marks={marks}
-                />
-              </Box>
-            </Grid2>
-    </Grid2>
-          </AccordionDetails>
+          <Accordion defaultExpanded square disableGutters>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel2a-content" id="panel2a-header">
+              <Typography>cCREs within distance from SNP {props.mainQueryParams.snpid}</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Grid2 container spacing={2}>
+
+                <Grid2 xs={12}>
+                  <Box sx={{ width: 300 }}>
+                    <Slider
+                      aria-label="Custom marks"
+                      defaultValue={0}
+                      getAriaValueText={valuetext}
+                      valueLabelDisplay="on"
+                      min={0}
+                      max={50000}
+                      step={null}
+                      value={snpdistance}
+                      onChange={handleSNPDistanceChange}
+                      marks={marks}
+                    />
+                  </Box>
+                </Grid2>
+              </Grid2>
+            </AccordionDetails>
           </Accordion>
-          </>
+        </>
       }
+      {/* cCRES near gene  */}
       {props.mainQueryParams.gene &&
         <>
           <Accordion defaultExpanded square disableGutters>
@@ -458,7 +460,6 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
           </Accordion>
         </>
       }
-
       {/* Biosample Activity */}
       <Accordion defaultExpanded={props.mainQueryParams.gene ? false : true} square disableGutters>
         <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
