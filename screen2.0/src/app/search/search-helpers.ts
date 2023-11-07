@@ -116,19 +116,19 @@ function passesClassificationFilter(currentElement: cCREData, mainQueryParams: M
 export function passesLinkedGenesFilter(row: MainResultTableRow, mainQueryParams: MainQueryParams) {
   //If there is a gene to find a match for
   let found = false
-  if (mainQueryParams.linkedGene) {
+  if (mainQueryParams.genesToFind) {
     const genes = row.linkedGenes
     //For each selected checkbox, try to find it in the corresponding spot, mark flag as found
-    if (mainQueryParams.distancePC && genes.distancePC.find((x) => x.name === mainQueryParams.linkedGene)) {
+    if (mainQueryParams.distancePC && genes.distancePC.find((gene) => mainQueryParams.genesToFind.find((x) => x === gene.name))) {
       found = true
     }
-    if (mainQueryParams.distanceAll && genes.distanceAll.find((x) => x.name === mainQueryParams.linkedGene)) {
+    if (mainQueryParams.distanceAll && genes.distanceAll.find((gene) => mainQueryParams.genesToFind.find((x) => x === gene.name))) {
       found = true
     }
-    if (mainQueryParams.CTCF_ChIA_PET && genes.CTCF_ChIAPET.find((x) => x.name === mainQueryParams.linkedGene)) {
+    if (mainQueryParams.CTCF_ChIA_PET && genes.CTCF_ChIAPET.find((gene) => mainQueryParams.genesToFind.find((x) => x === gene.name))) {
       found = true
     }
-    if (mainQueryParams.RNAPII_ChIA_PET && genes.RNAPII_ChIAPET.find((x) => x.name === mainQueryParams.linkedGene)) {
+    if (mainQueryParams.RNAPII_ChIA_PET && genes.RNAPII_ChIAPET.find((gene) => mainQueryParams.genesToFind.find((x) => x === gene.name))) {
       found = true
     }
     return found
@@ -293,10 +293,10 @@ export function constructURL(
 
   const conservationFilters = `&prim_s=${urlParams.PrimateStart}&prim_e=${urlParams.PrimateEnd}&mamm_s=${urlParams.MammalStart}&mamm_e=${urlParams.MammalEnd}&vert_s=${urlParams.VertebrateStart}&vert_e=${urlParams.VertebrateEnd}`
 
-  const linkedGenesFilter = `&linkedGene=${urlParams.linkedGene}&distancePC=${outputT_or_F(urlParams.distancePC)}&distanceAll=${outputT_or_F(urlParams.distanceAll)}&distanceFromcCRE=${urlParams.distanceFromcCRE}&CTCF_ChIA_PET=${outputT_or_F(urlParams.CTCF_ChIA_PET)}&RNAPII_ChIA_PET=${outputT_or_F(urlParams.RNAPII_ChIA_PET)}`
+  const linkedGenesFilter = `&genesToFind=${urlParams.genesToFind.join(',')}&distancePC=${outputT_or_F(urlParams.distancePC)}&distanceAll=${outputT_or_F(urlParams.distanceAll)}&distanceFromcCRE=${urlParams.distanceFromcCRE}&CTCF_ChIA_PET=${outputT_or_F(urlParams.CTCF_ChIA_PET)}&RNAPII_ChIA_PET=${outputT_or_F(urlParams.RNAPII_ChIA_PET)}`
 
   const accessionsAndPage = `&accession=${urlParams.Accessions}&page=${urlParams.Page}`
 
-  const url = `${urlBasics}${biosampleFilters}${chromatinFilters}${classificationFilters}${conservationFilters}${urlParams.linkedGene !== "" ? linkedGenesFilter : ""}${accessionsAndPage}`
+  const url = `${urlBasics}${biosampleFilters}${chromatinFilters}${classificationFilters}${conservationFilters}${urlParams.genesToFind.length > 0 ? linkedGenesFilter : ""}${accessionsAndPage}`
   return url
 }

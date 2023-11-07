@@ -177,7 +177,8 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
   const [VertebrateEnd, setVertebrateEnd] = useState<number>(props.mainQueryParams.vert_e)
 
   //Linked Genes Filter
-  const [linkedGene, setLinkedGene] = useState<string>("")
+  const [gene, setGene] = useState<string>("")
+  const [genesToFind, setGenesToFind] = useState<string[]>([])
   const [distanceAll, setdistanceAll] = React.useState(true)
   const [distancePC, setdistancePC] = React.useState(true)
   const [CTCF_ChIA_PET, setCTCF_ChIA_PET] = React.useState(true)
@@ -227,7 +228,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     VertebrateEnd,
     Accessions: props.accessions,
     Page: props.page,
-    linkedGene,
+    genesToFind,
     distancePC,
     distanceAll,
     distanceFromcCRE: 1000000,
@@ -745,13 +746,21 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
             <AccordionDetails>
               <GeneAutoComplete 
                 assembly={props.mainQueryParams.assembly} 
-                gene={linkedGene}
-                setGene={(gene) => setLinkedGene(gene)} 
-              />
-              {linkedGene && 
-              <Button variant="outlined" onClick={() => setLinkedGene("")}>
-                Clear Linked Gene
-              </Button>}
+                gene={gene}
+                setGene={(gene) => {setGene(gene); setGenesToFind([...genesToFind , gene])}}
+                plusIcon 
+              />  
+            {genesToFind.length > 0 &&
+              <>
+                <Typography>
+                  {"Selected: " + genesToFind.join(', ')}
+                </Typography>
+                <Button variant="outlined" onClick={() => setGenesToFind([])}>
+                  Clear Selected Genes
+                </Button>
+              </>
+            }
+            <FormLabel component="legend" sx={{pt: 2}}>Linked By</FormLabel>
             <FormGroup>
               <FormControlLabel
                 checked={distanceAll}
@@ -775,7 +784,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                 checked={RNAPII_ChIA_PET}
                 onChange={(_, checked: boolean) => setRNAPII_ChIA_PET(checked)}
                 control={<Checkbox />}
-                label="RNAPII ChIA-PET"
+                label="RNAPII ChIA"
               />
             </FormGroup>
             </AccordionDetails>

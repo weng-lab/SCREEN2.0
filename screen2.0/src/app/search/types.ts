@@ -80,7 +80,7 @@ export type MainQueryParams = {
   pELS?: boolean
   PLS?: boolean
   TF?: boolean
-  linkedGene: string
+  genesToFind: string[]
   distancePC: boolean
   distanceAll: boolean
   distanceFromcCRE: number
@@ -204,7 +204,7 @@ export type URLParams = {
     MammalEnd: number
     VertebrateStart: number
     VertebrateEnd: number
-    linkedGene: string
+    genesToFind: string[]
     distancePC: boolean
     distanceAll: boolean
     distanceFromcCRE: number

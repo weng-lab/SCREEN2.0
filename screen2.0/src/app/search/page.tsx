@@ -68,7 +68,7 @@ export default async function Search({
     vert_s: searchParams.vert_s ? Number(searchParams.vert_s) : -3,
     vert_e: searchParams.vert_e ? Number(searchParams.vert_e) : 8,
     //Linked Genes Filter
-    linkedGene: searchParams.linkedGene ?? null,
+    genesToFind: searchParams.genesToFind ? searchParams.genesToFind.split(",") : null,
     distancePC: searchParams.distancePC ? checkTrueFalse(searchParams.distancePC) : true,
     distanceAll: searchParams.distanceAll ? checkTrueFalse(searchParams.distanceAll) : true,
     distanceFromcCRE: searchParams.distanceFromcCRE ? Number(searchParams.distanceFromcCRE) : 1000000,
