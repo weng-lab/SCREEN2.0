@@ -56,8 +56,8 @@ export const SnpAutoComplete: React.FC<{ assembly: string, header?: boolean }> =
   const handleSubmit = () => {
     if (value) {
       let chromosome = snpids.find((g) => g.id === value)?.chrom
-      let start = snpids.find((g) => g.id === value)?.start - 2000
-      let end = snpids.find((g) => g.id === value)?.end + 2000
+      let start = snpids.find((g) => g.id === value)?.start
+      let end = snpids.find((g) => g.id === value)?.end
       router.push(
         `search?assembly=${props.assembly}&chromosome=${chromosome}&start=${Math.max(0, start)}&end=${end}&snpid=${value}`
       )

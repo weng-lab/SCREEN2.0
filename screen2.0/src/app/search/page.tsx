@@ -17,6 +17,7 @@ export default async function Search({
     bed_intersect: searchParams.intersect ? checkTrueFalse(searchParams.intersect): false,
     assembly: searchParams.assembly === "GRCh38" || searchParams.assembly === "mm10" ? searchParams.assembly : "GRCh38",
     gene: searchParams.gene,
+    snpid: searchParams.snpid,
     //If bed intersecting, set chr start end to null
     chromosome: (searchParams.intersect && checkTrueFalse(searchParams.intersect)) ? null : searchParams.chromosome ? searchParams.chromosome : "chr11",
     start: (searchParams.intersect && checkTrueFalse(searchParams.intersect)) ? null : searchParams.start ? Number(searchParams.start) : 5205263,
