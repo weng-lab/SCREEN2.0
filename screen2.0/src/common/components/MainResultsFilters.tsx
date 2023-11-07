@@ -14,6 +14,7 @@ import {
   Tooltip,
   Box,
   Slider,
+  FormLabel,
 } from "@mui/material/"
 
 import Radio from '@mui/material/Radio';
@@ -31,9 +32,10 @@ import { CellTypeData, FilteredBiosampleData, MainQueryParams, URLParams } from 
 import { parseByCellType, filterBiosamples, assayHoverInfo, constructURL } from "../../app/search/search-helpers"
 import { gql } from "@apollo/client"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
+import GeneAutoComplete from "../../app/applets/gene-expression/gene-autocomplete";
 
 const marks = [
-  
+
   {
     value: 0,
     label: '0kb',
@@ -76,7 +78,7 @@ const GENE_TRANSCRIPTS_QUERY = gql`
       }      
     }
    }
- } ` 
+ } `
 
 
 export default function MainResultsFilters(props: { mainQueryParams: MainQueryParams, byCellType: CellTypeData, genomeBrowserView: boolean, accessions: string, page: number }) {
@@ -102,12 +104,11 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     skip: !props.mainQueryParams.gene,
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first"
-    
+
   })
 
-  const TSSs = geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length >0 && geneTranscripts.gene[0].transcripts.map(t=>{
-    if(geneTranscripts.gene[0].strand==="+")
-    {
+  const TSSs = geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 && geneTranscripts.gene[0].transcripts.map(t => {
+    if (geneTranscripts.gene[0].strand === "+") {
       return t.coordinates.start
     } else {
       return t.coordinates.end
@@ -115,24 +116,24 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
 
   })
 
-  const firstTSS =  geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length >0 && TSSs && TSSs.length>0 ? 
-  geneTranscripts.gene[0].transcripts.length===1 ?  geneTranscripts.gene[0].transcripts[0].coordinates.start :
-  geneTranscripts.gene[0].strand==="+"  ? Math.max(0,(Math.min(...TSSs) - tssupstream)): Math.max(...TSSs)+ tssupstream : 0
-  
-  const lastTSS =  geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length >0 && TSSs && TSSs.length>0 ? 
-  geneTranscripts.gene[0].transcripts.length===1 ?  geneTranscripts.gene[0].transcripts[0].coordinates.end :
-  geneTranscripts.gene[0].strand==="+"  ? Math.max(...TSSs): Math.min(...TSSs) : 0
+  const firstTSS = geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 && TSSs && TSSs.length > 0 ?
+    geneTranscripts.gene[0].transcripts.length === 1 ? geneTranscripts.gene[0].transcripts[0].coordinates.start :
+      geneTranscripts.gene[0].strand === "+" ? Math.max(0, (Math.min(...TSSs) - tssupstream)) : Math.max(...TSSs) + tssupstream : 0
+
+  const lastTSS = geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 && TSSs && TSSs.length > 0 ?
+    geneTranscripts.gene[0].transcripts.length === 1 ? geneTranscripts.gene[0].transcripts[0].coordinates.end :
+      geneTranscripts.gene[0].strand === "+" ? Math.max(...TSSs) : Math.min(...TSSs) : 0
 
 
   //Biosample Filter
- 
+
   const [CellLine, setCellLine] = useState<boolean>(props.mainQueryParams.CellLine)
   const [PrimaryCell, setPrimaryCell] = useState<boolean>(props.mainQueryParams.PrimaryCell)
   const [Tissue, setTissue] = useState<boolean>(props.mainQueryParams.Tissue)
   const [Organoid, setOrganoid] = useState<boolean>(props.mainQueryParams.Organoid)
   const [InVitro, setInVitro] = useState<boolean>(props.mainQueryParams.InVitro)
   //Selected Biosample
- 
+
   const [Biosample, setBiosample] = useState<{
     selected: boolean
     biosample: string | null
@@ -159,7 +160,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
   const [CTCFEnd, setCTCFEnd] = useState<number>(props.mainQueryParams.ctcf_e)
   const [ATACStart, setATACStart] = useState<number>(props.mainQueryParams.atac_s)
   const [ATACEnd, setATACEnd] = useState<number>(props.mainQueryParams.atac_e)
-  
+
   //Classification Filter
   const [CA, setCA] = useState<boolean>(props.mainQueryParams.CA)
   const [CA_CTCF, setCA_CTCF] = useState<boolean>(props.mainQueryParams.CA_CTCF)
@@ -177,6 +178,14 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
   const [MammalEnd, setMammalEnd] = useState<number>(props.mainQueryParams.mamm_e)
   const [VertebrateStart, setVertebrateStart] = useState<number>(props.mainQueryParams.vert_s)
   const [VertebrateEnd, setVertebrateEnd] = useState<number>(props.mainQueryParams.vert_e)
+
+  //Linked Genes Filter
+  const [gene, setGene] = useState<string>("")
+  const [genesToFind, setGenesToFind] = useState<string[]>([])
+  const [distanceAll, setdistanceAll] = React.useState(true)
+  const [distancePC, setdistancePC] = React.useState(true)
+  const [CTCF_ChIA_PET, setCTCF_ChIA_PET] = React.useState(true)
+  const [RNAPII_ChIA_PET, setRNAPII_ChIA_PET] = React.useState(true)
 
   const urlParams: URLParams = {
     Tissue,
@@ -221,7 +230,13 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     VertebrateStart,
     VertebrateEnd,
     Accessions: props.accessions,
-    Page: props.page
+    Page: props.page,
+    genesToFind,
+    distancePC,
+    distanceAll,
+    distanceFromcCRE: 1000000,
+    CTCF_ChIA_PET,
+    RNAPII_ChIA_PET
   }
 
   function valuetext(value: number) {
@@ -368,85 +383,85 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
 
   return (
     <Paper elevation={0}>
-      {/* cCRES near gene  */}
+      {/* cCREs within distance from SNP  */}
       {props.mainQueryParams.snpid &&
         <>
-         <Accordion defaultExpanded square disableGutters>
-         <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel2a-content" id="panel2a-header">
-           <Typography>cCREs within distance from SNP {props.mainQueryParams.snpid}</Typography>
-         </AccordionSummary>
-         <AccordionDetails>          
-         <Grid2 container spacing={2}>
-        
-             <Grid2 xs={12}>
-              <Box sx={{ width: 300 }}>
-                <Slider
-                  aria-label="Custom marks"
-                  defaultValue={0}
-                  getAriaValueText={valuetext}
-                  valueLabelDisplay="on"
-                  min={0}
-                  max={50000}
-                  step={null}
-                  value={snpdistance} 
-                  onChange={handleSNPDistanceChange} 
-                  marks={marks}
-                />
-              </Box>
-            </Grid2>
-    </Grid2>
-          </AccordionDetails>
+          <Accordion defaultExpanded square disableGutters>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel2a-content" id="panel2a-header">
+              <Typography>cCREs within distance from SNP {props.mainQueryParams.snpid}</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Grid2 container spacing={2}>
+
+                <Grid2 xs={12}>
+                  <Box sx={{ width: 300 }}>
+                    <Slider
+                      aria-label="Custom marks"
+                      defaultValue={0}
+                      getAriaValueText={valuetext}
+                      valueLabelDisplay="on"
+                      min={0}
+                      max={50000}
+                      step={null}
+                      value={snpdistance}
+                      onChange={handleSNPDistanceChange}
+                      marks={marks}
+                    />
+                  </Box>
+                </Grid2>
+              </Grid2>
+            </AccordionDetails>
           </Accordion>
-          </>
+        </>
       }
+      {/* cCRES near gene  */}
       {props.mainQueryParams.gene &&
         <>
-         <Accordion defaultExpanded square disableGutters>
-         <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel2a-content" id="panel2a-header">
-           <Typography>cCREs near gene</Typography>
-         </AccordionSummary>
-         <AccordionDetails>          
-         <Grid2 container spacing={2}>
-         <Grid2 xs={12}>
-               <FormControl>
-               <RadioGroup
-                 aria-labelledby="demo-controlled-radio-buttons-group"
-                 name="controlled-radio-buttons-group"
-                 value={value}
-                 onChange={handleChange}
-               >
-                 <FormControlLabel value="overlappinggene" control={<Radio />} label={`Overlapping the gene body of ${props.mainQueryParams.gene}`} />
-                 <FormControlLabel value="tss" control={<Radio />} label={`Located between the first and last Transcription Start Sites (TSSs) of ${props.mainQueryParams.gene}`} />
-               </RadioGroup>
-             </FormControl>
-             </Grid2>
-             {value==='tss' && <Grid2 xs={12}>
-              <Box sx={{ width: 300 }}>
-                <Typography id="input-slider" gutterBottom>
-                  Upstream of the TSSs
-                </Typography>
-                <Slider
-                  aria-label="Custom marks"
-                  defaultValue={0}
-                  getAriaValueText={valuetext}
-                  valueLabelDisplay="on"
-                  min={0}
-                  max={50000}
-                  step={null}
-                  value={tssupstream} 
-                  onChange={handleTssUpstreamChange} 
-                  marks={marks}
-                />
-              </Box>
-            </Grid2>}
-    </Grid2>
-          </AccordionDetails>
+          <Accordion defaultExpanded square disableGutters>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel2a-content" id="panel2a-header">
+              <Typography>cCREs near gene</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Grid2 container spacing={2}>
+                <Grid2 xs={12}>
+                  <FormControl>
+                    <RadioGroup
+                      aria-labelledby="demo-controlled-radio-buttons-group"
+                      name="controlled-radio-buttons-group"
+                      value={value}
+                      onChange={handleChange}
+                    >
+                      <FormControlLabel value="overlappinggene" control={<Radio />} label={`Overlapping the gene body of ${props.mainQueryParams.gene}`} />
+                      <FormControlLabel value="tss" control={<Radio />} label={`Located between the first and last Transcription Start Sites (TSSs) of ${props.mainQueryParams.gene}`} />
+                    </RadioGroup>
+                  </FormControl>
+                </Grid2>
+                {value === 'tss' && <Grid2 xs={12}>
+                  <Box sx={{ width: 300 }}>
+                    <Typography id="input-slider" gutterBottom>
+                      Upstream of the TSSs
+                    </Typography>
+                    <Slider
+                      aria-label="Custom marks"
+                      defaultValue={0}
+                      getAriaValueText={valuetext}
+                      valueLabelDisplay="on"
+                      min={0}
+                      max={50000}
+                      step={null}
+                      value={tssupstream}
+                      onChange={handleTssUpstreamChange}
+                      marks={marks}
+                    />
+                  </Box>
+                </Grid2>}
+              </Grid2>
+            </AccordionDetails>
           </Accordion>
-          </>
+        </>
       }
-      
       {/* Biosample Activity */}
-      <Accordion defaultExpanded={props.mainQueryParams.gene ? false : true}  square disableGutters>
+      <Accordion defaultExpanded={props.mainQueryParams.gene ? false : true} square disableGutters>
         <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
           <Typography>Biosample Activity</Typography>
         </AccordionSummary>
@@ -756,16 +771,56 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
             </AccordionDetails>
           </Accordion>}
           {/* Linked Genes */}
-          {/* <Accordion square disableGutters>
+          <Accordion square disableGutters>
             <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel4a-content" id="panel4a-header">
               <Typography>Linked Genes</Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <Typography>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex, sit amet blandit leo lobortis eget.
-              </Typography>
+              <GeneAutoComplete 
+                assembly={props.mainQueryParams.assembly} 
+                gene={gene}
+                setGene={(gene) => {setGene(gene); setGenesToFind([...genesToFind , gene])}}
+                plusIcon 
+              />  
+            {genesToFind.length > 0 &&
+              <>
+                <Typography>
+                  {"Selected: " + genesToFind.join(', ')}
+                </Typography>
+                <Button variant="outlined" onClick={() => setGenesToFind([])}>
+                  Clear Selected Genes
+                </Button>
+              </>
+            }
+            <FormLabel component="legend" sx={{pt: 2}}>Linked By</FormLabel>
+            <FormGroup>
+              <FormControlLabel
+                checked={distanceAll}
+                onChange={(_, checked: boolean) => setdistanceAll(checked)}
+                control={<Checkbox />}
+                label="Distance (All)"
+              />
+              <FormControlLabel
+                checked={distancePC}
+                onChange={(_, checked: boolean) => setdistancePC(checked)}
+                control={<Checkbox />}
+                label="Distance (PC)"
+              />
+              <FormControlLabel
+                checked={CTCF_ChIA_PET}
+                onChange={(_, checked: boolean) => setCTCF_ChIA_PET(checked)}
+                control={<Checkbox />}
+                label="CTCT ChIA-PET"
+              />
+              <FormControlLabel
+                checked={RNAPII_ChIA_PET}
+                onChange={(_, checked: boolean) => setRNAPII_ChIA_PET(checked)}
+                control={<Checkbox />}
+                label="RNAPII ChIA"
+              />
+            </FormGroup>
             </AccordionDetails>
-          </Accordion> */}
+          </Accordion>
           {/* Functional Characterization */}
           {/* <Accordion square disableGutters>
             <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel5a-content" id="panel5a-header">

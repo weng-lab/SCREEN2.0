@@ -34,6 +34,7 @@ export type cCREData = {
       intersecting_genes: { name: string }[]
     }
   }
+
 }
 
 export type MainQueryParams = {
@@ -79,6 +80,12 @@ export type MainQueryParams = {
   pELS?: boolean
   PLS?: boolean
   TF?: boolean
+  genesToFind: string[]
+  distancePC: boolean
+  distanceAll: boolean
+  distanceFromcCRE: number
+  CTCF_ChIA_PET: boolean
+  RNAPII_ChIA_PET: boolean
 }
 
 export type CellTypeData = {
@@ -129,7 +136,6 @@ export type FilteredBiosampleData = [
 export type MainResultTableRows = MainResultTableRow[]
 
 export type MainResultTableRow = {
-  //atac will need to be changed from string to number when that data is available
   accession: string
   class: string
   chromosome: string
@@ -158,7 +164,7 @@ export type LinkedGenesData = {
 }
 
 /**
- * Represents the state variables used by the filters and passed to the constructURL function to refresh results
+ * I guess this is best described as the parameters that can be modified by the filters panel. Strong overlap with mainQueryParams
  */
 export type URLParams = {
     Tissue: boolean
@@ -198,6 +204,12 @@ export type URLParams = {
     MammalEnd: number
     VertebrateStart: number
     VertebrateEnd: number
+    genesToFind: string[]
+    distancePC: boolean
+    distanceAll: boolean
+    distanceFromcCRE: number
+    CTCF_ChIA_PET: boolean
+    RNAPII_ChIA_PET: boolean
     Accessions: string
     Page: number
 }

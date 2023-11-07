@@ -7,7 +7,7 @@ import { gene } from "./types"
 import { QueryResponse } from "../../../../types/types"
 import { Dispatch, SetStateAction } from "react"
 import Config from "../../../config.json"
-import { Search } from "@mui/icons-material"
+import { Add, Search } from "@mui/icons-material"
 
 
 const GENE_AUTOCOMPLETE_QUERY = `
@@ -28,6 +28,7 @@ export default function GeneAutoComplete(props: {
   assembly: "mm10" | "GRCh38"
   gene: string
   setGene: Dispatch<SetStateAction<any>>
+  plusIcon?: boolean
 }) {
   const router = useRouter()
 
@@ -173,7 +174,11 @@ export default function GeneAutoComplete(props: {
         }}
         color="primary"
       >
-        <Search />
+        {props.plusIcon ?
+          <Add />
+          :
+          <Search />
+        }
       </IconButton>
     </Stack>
   )

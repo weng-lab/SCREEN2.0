@@ -213,7 +213,7 @@ function MainResultsTable(props: MainResultsTableProps) {
         onRowClick={props.onRowClick}
         tableTitle={props.tableTitle}
         sortColumn={5}
-        showMoreColumns
+        showMoreColumns={props.assembly === "GRCh38"}
         noOfDefaultColumns={11}
         titleHoverInfo={props.titleHoverInfo}
       />
