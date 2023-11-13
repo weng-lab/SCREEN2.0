@@ -49,6 +49,12 @@ function MainResultsTable(props: MainResultsTableProps) {
         value: (row) => (row.dnase && row.dnase.toFixed(2)) || 0,
       })
     }
+    if (props.rows[0] && props.rows[0].atac !== null) {
+      cols.push({
+        header: "ATAC",
+        value: (row) => (row.atac && row.atac.toFixed(2)) || 0,
+      })
+    }
     if (props.rows[0] && props.rows[0].ctcf !== null) {
       cols.push({
         header: "CTCF",
@@ -65,12 +71,6 @@ function MainResultsTable(props: MainResultsTableProps) {
       cols.push({
         header: "H3K4me3",
         value: (row) => (row.h3k4me3 && row.h3k4me3.toFixed(2)) || 0,
-      })
-    }
-    if (props.rows[0] && props.rows[0].atac !== null) {
-      cols.push({
-        header: "ATAC",
-        value: (row) => (row.atac && row.atac.toFixed(2)) || 0,
       })
     }
     //Whenever the state of the checkboxes conflicts with the state of the main component, it triggers a rerender

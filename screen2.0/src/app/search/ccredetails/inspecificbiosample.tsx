@@ -26,6 +26,11 @@ const tableCols = (globals, typeC = false) => {
         globals.byCellType[row.ct] && globals.byCellType[row.ct][0] ? globals.byCellType[row.ct][0]["biosample_summary"] : "",
     },
     {
+      header: "ATAC Z-score",
+      value: (row: cCRERow) => row.atac,
+      render: (row: cCRERow) => z_score(row.atac),
+    },
+    {
       header: "H3K4me3 Z-score",
       value: (row: cCRERow) => row.h3k4me3,
       render: (row: cCRERow) => z_score(row.h3k4me3),
@@ -39,11 +44,6 @@ const tableCols = (globals, typeC = false) => {
       header: "CTCF Z-score",
       value: (row: cCRERow) => row.ctcf,
       render: (row: cCRERow) => z_score(row.ctcf),
-    },
-    {
-      header: "ATAC Z-score",
-      value: (row: cCRERow) => row.atac,
-      render: (row: cCRERow) => z_score(row.atac),
     }
   ] : [
     {
@@ -57,6 +57,11 @@ const tableCols = (globals, typeC = false) => {
       render: (row: cCRERow) => z_score(row.dnase),
     },
     {
+      header: "ATAC Z-score",
+      value: (row: cCRERow) => row.atac,
+      render: (row: cCRERow) => z_score(row.atac),
+    },
+    {
       header: "H3K4me3 Z-score",
       value: (row: cCRERow) => row.h3k4me3,
       render: (row: cCRERow) => z_score(row.h3k4me3),
@@ -70,11 +75,6 @@ const tableCols = (globals, typeC = false) => {
       header: "CTCF Z-score",
       value: (row: cCRERow) => row.ctcf,
       render: (row: cCRERow) => z_score(row.ctcf),
-    },
-    {
-      header: "ATAC Z-score",
-      value: (row: cCRERow) => row.atac,
-      render: (row: cCRERow) => z_score(row.atac),
     },
     {
       header: "Group",
@@ -93,6 +93,11 @@ const ctAgnosticColumns = () => [
     render: (row: cCRERow) => z_score(row.dnase),
   },
   {
+    header: "ATAC max-Z",
+    value: (row: cCRERow) => row.atac,
+    render: (row: cCRERow) => z_score(row.atac),
+  },
+  {
     header: "H3K4me3 max-Z",
     value: (row: cCRERow) => row.h3k4me3,
     render: (row: cCRERow) => z_score(row.h3k4me3),
@@ -106,11 +111,6 @@ const ctAgnosticColumns = () => [
     header: "CTCF max-Z",
     value: (row: cCRERow) => row.ctcf,
     render: (row: cCRERow) => z_score(row.ctcf),
-  },
-  {
-    header: "ATAC max-Z",
-    value: (row: cCRERow) => row.atac,
-    render: (row: cCRERow) => z_score(row.atac),
   },
   {
     header: "Group",

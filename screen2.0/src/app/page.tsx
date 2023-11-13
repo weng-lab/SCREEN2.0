@@ -1,10 +1,11 @@
 "use client"
 
-import { Typography } from "@mui/material"
+import { Divider, Stack, Typography } from "@mui/material"
 import MainSearch from "../common/components/mainsearch/MainSearch"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import homeImage from "../../public/homeImage.png"
 import Image from "next/image"
+import { DataTable } from "@weng-lab/psychscreen-ui-components"
 
 export default function Home() {
   return (
@@ -16,7 +17,7 @@ export default function Home() {
         </Grid2>
         <Grid2 xs={12} lg={6}>
           <MainSearch />
-          <Typography variant="h5" mt="3rem">
+          <Typography variant="h5" mt={4}>
             What is SCREEN?
           </Typography>
           <Typography paragraph>
@@ -25,23 +26,40 @@ export default function Home() {
             cross-referenced across species. SCREEN presents the data that support biochemical activities of the cCREs and the expression of
             nearby genes in specific cell and tissue types.
           </Typography>
-          <Typography variant="h5" mt="2rem">
+          <Typography variant="h5" mt={3} mb={1}>
             Version 4 Annotations:
           </Typography>
-          <Typography>
-            Human Genome assembly: hg38
-            <br />
-            Human cCRE count: 1,063,878
-            <br />
-            Human cell and tissue types covered: 1,518
-            <br />
-            Mouse Genome assembly: mm10
-            <br />
-            Mouse cCRE count: 313,838
-            <br />
-            Mouse cell and tissue types covered: 169
-          </Typography>
+          <Grid2 container justifyContent={"flex-start"}>
+            <Grid2 direction="column" flexGrow={0} border={"1px solid LightGray"} borderRight={"none"}>
+              <Typography p={1} align="left">Genome Assembly</Typography>
+              <Divider />
+              <Typography p={1} align="left">Human (hg38)</Typography>
+              <Divider />
+              <Typography p={1} align="left">Mouse (mm10)</Typography>
+            </Grid2>
+            <Grid2>
+              <Divider orientation="vertical" />
+            </Grid2>
+            <Grid2 direction="column" flexGrow={0} border={"1px solid LightGray"} borderLeft={"none"} borderRight={"none"}>
+              <Typography p={1} align="right">cCRE Count</Typography>
+              <Divider />
+              <Typography p={1} align="right">1,063,878</Typography>
+              <Divider />
+              <Typography p={1} align="right">313,838</Typography>
+            </Grid2>
+            <Grid2>
+              <Divider orientation="vertical" />
+            </Grid2>
+            <Grid2 direction="column" flexGrow={0} border={"1px solid LightGray"} borderLeft={"none"}>
+              <Typography p={1} align="right">Cell/Tissue Types Covered</Typography>
+              <Divider />
+              <Typography p={1} align="right">1,518</Typography>
+              <Divider />
+              <Typography p={1} align="right">169</Typography>
+            </Grid2>
+          </Grid2>
         </Grid2>
+
         <Grid2 xs={12} lg={6}>
           <Image src={homeImage} alt={"SCREEN home image"} />
         </Grid2>
