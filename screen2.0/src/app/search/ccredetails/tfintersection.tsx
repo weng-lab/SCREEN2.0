@@ -52,7 +52,7 @@ export const TfIntersection: React.FC<{ assembly: string; coordinates: { chromos
         biosample_term_name: p.dataset.biosample,
       }
     })
-  console.log(cre_tf_data, "cre_tf_data")
+  
   let peakmap = {}
   data &&
     data.peaks.peaks.forEach((d) => {

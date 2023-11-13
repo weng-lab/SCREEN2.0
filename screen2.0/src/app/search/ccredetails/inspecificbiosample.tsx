@@ -3,7 +3,7 @@ import React from "react"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import { TOP_TISSUES } from "./queries"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
-import { z_score, ctgroup } from "./utils"
+import { z_score, GROUP_COLOR_MAP } from "./utils"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { LoadingMessage } from "../../../common/lib/utility"
 
@@ -14,7 +14,7 @@ type cCRERow = {
   h3k27ac: number
   ctcf: number
   atac: number
-  group: any
+  group: string
 }
 
 
@@ -53,33 +53,45 @@ const tableCols = (globals, typeC = false) => {
     },
     {
       header: "DNase Z-score",
-      value: (row: cCRERow) => row.dnase,
+      value: (row: cCRERow) => z_score(row.dnase),
       render: (row: cCRERow) => z_score(row.dnase),
     },
     {
       header: "H3K4me3 Z-score",
-      value: (row: cCRERow) => row.h3k4me3,
+      value: (row: cCRERow) => z_score(row.h3k4me3),
       render: (row: cCRERow) => z_score(row.h3k4me3),
     },
     {
       header: "H3K27ac Z-score",
-      value: (row: cCRERow) => row.h3k27ac,
+      value: (row: cCRERow) => z_score(row.h3k27ac),
       render: (row: cCRERow) => z_score(row.h3k27ac),
     },
     {
       header: "CTCF Z-score",
-      value: (row: cCRERow) => row.ctcf,
+      value: (row: cCRERow) => z_score(row.ctcf),
       render: (row: cCRERow) => z_score(row.ctcf),
     },
     {
       header: "ATAC Z-score",
-      value: (row: cCRERow) => row.atac,
+      value: (row: cCRERow) => z_score(row.atac),
       render: (row: cCRERow) => z_score(row.atac),
     },
     {
       header: "Group",
-      value: (row: cCRERow) => row.group,
-      render: (row: cCRERow) => ctgroup(row.group),
+      value: (row: cCRERow) =>  GROUP_COLOR_MAP[row.group] ? GROUP_COLOR_MAP[row.group] : "DNase only",
+      render: (row: cCRERow) => {
+        
+        let group =  row.group.split(",")[0]
+        
+        let colormap = GROUP_COLOR_MAP.get(group)
+        return colormap ? 
+        <span style={{ color: colormap.split(":")[1] }}>
+          <strong>{ colormap.split(":")[0]}</strong>
+        </span>: 
+        <span style={{ color: "#06da93" }}>
+          <strong>DNase only</strong>
+        </span>
+      },
     }
   ]
   return cols
@@ -114,8 +126,19 @@ const ctAgnosticColumns = () => [
   },
   {
     header: "Group",
-    value: (row: cCRERow) => row.group,
-    render: (row: cCRERow) => ctgroup(row.group),
+    value: (row: cCRERow) =>  GROUP_COLOR_MAP[row.group] ? GROUP_COLOR_MAP[row.group] : "DNase only",
+    render: (row: cCRERow) => {
+      let group =  row.group.split(",")[0]
+      
+      let colormap = GROUP_COLOR_MAP.get(group)
+      return colormap ? 
+      <span style={{ color: colormap.split(":")[1] }}>
+        <strong>{ colormap.split(":")[0]}</strong>
+      </span>: 
+      <span style={{ color: "#06da93" }}>
+        <strong>DNase only</strong>
+      </span>
+    },
   },
 ]
 

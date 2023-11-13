@@ -6,6 +6,7 @@ import { ORTHOLOG_QUERY } from "./queries"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { createLink, LoadingMessage, ErrorMessage } from "../../../common/lib/utility"
+import { Typography } from "@mui/material"
 
 type orthologRow = {
   accession: string
@@ -50,6 +51,14 @@ export const Ortholog = ({ accession, assembly }) => {
             {
               header: "Accession",
               value: (row: orthologRow) => row.accession,
+              render: (row: orthologRow) => <Typography variant="body2" color="primary" display="inline">
+              
+                <a key={row.accession} target="_blank" rel="noopener noreferrer" href={`/search?assembly=${assembly == "GRCh38" ? "mm10" : "GRCh38"}&chromosome=${row.chrom}&start=${row.start}&end=${row.stop}&accession=${row.accession}`}>
+                  {row.accession}
+                  
+                </a>
+              
+            </Typography>
             },
             {
               header: "Chromosome",

@@ -33,7 +33,7 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
             biosample_summary: data.byCellType[ct][0].biosample_summary,
           }
         })
-        console.log(byCt[0].biosample_summary)
+        
         setOptions(byCt.map((ct) => ct.biosample_summary))
         setCelltypes(byCt)
       })

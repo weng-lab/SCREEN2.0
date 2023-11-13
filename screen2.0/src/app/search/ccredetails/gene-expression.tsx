@@ -341,8 +341,8 @@ export function GeneExpression(props: {
           size="medium"
           sx={{ m: 1 }}
         >
-          <ToggleButton sx={{ textTransform: "none" }} value="mean">Average Out Duplicates</ToggleButton>
-          <ToggleButton sx={{ textTransform: "none" }} value="all">Show Duplicates</ToggleButton>
+          <ToggleButton sx={{ textTransform: "none" }} value="mean">Average Duplicates</ToggleButton>
+          <ToggleButton sx={{ textTransform: "none" }} value="all">Individual Duplicates</ToggleButton>
         </ToggleButtonGroup>
         <Grid2 xs={12}>
           {assembly === "GRCh38" ?

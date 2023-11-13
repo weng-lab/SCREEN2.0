@@ -222,7 +222,7 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
   const findTabByID = (id: string, numberOfTable: number = 2) => {
     return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)
   }
-console.log(props.mainQueryParams.gene,props.mainQueryParams.snpid)
+
   return (
     <Box id="Outer Box" sx={{ display: 'flex' }}>
       <AppBar id="AppBar" position="fixed" open={open} elevation={1} sx={{ bottom: "auto", top: "auto", backgroundColor: "white" }}>
