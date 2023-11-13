@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react"
 import { LoadingMessage } from "../../../common/lib/utility"
 import { PlotGeneExpression } from "../../applets/gene-expression/PlotGeneExpression"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
-import { Button, Typography, Stack, TextField, MenuItem, FormControl, SelectChangeEvent, Checkbox, InputLabel, ListItemText, OutlinedInput, Select, ToggleButton, ToggleButtonGroup } from "@mui/material"
+import { Button, Typography, Stack, TextField, MenuItem, FormControl, SelectChangeEvent, Checkbox, InputLabel, ListItemText, OutlinedInput, Select, ToggleButton, ToggleButtonGroup, FormLabel } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import Image from "next/image"
 import { HUMAN_GENE_EXP, MOUSE_GENE_EXP } from "../../applets/gene-expression/const"
@@ -146,17 +146,6 @@ export function GeneExpression(props: {
     }
   }
 
-  //Set Gene list. Why is this wrapped in useEffect?
-  /*useEffect(() => {
-    if (props.genes) {
-      let geneList: string[] = []
-      for (let g of props.genes.distancePC) if (!geneList.includes(g.name)) geneList.push(g.name)
-      for (let g of props.genes.distanceAll) if (!geneList.includes(g.name)) geneList.push(g.name)
-      setOptions(geneList)
-    }
-  }, [props.genes])*/
-
-
   const handleGroupChange = (
     event: React.MouseEvent<HTMLElement>,
     newView: string | null,
@@ -235,168 +224,201 @@ export function GeneExpression(props: {
           </Button> */}
         </Stack>
       </Stack>
-      <Grid2 container spacing={3}>
+      <Grid2 container alignItems={"flex-end"} spacing={2}>
         {props.applet ?
-          <Stack direction="row">
-            <GenomeSwitch
-              initialChecked={urlAssembly === "mm10"}
-              onSwitchChange={(checked: boolean) => handleAssemblyChange(checked)}
-            />
-            <GeneAutoComplete
-              assembly={assembly}
-              gene={assembly === "GRCh38" ? currentHumanGene : currentMouseGene}
-              setGene={(gene) => {
-                if (assembly === "GRCh38") {
-                  setCurrentHumanGene(gene)
-                  router.push(`${pathname}?assembly=GRCh38&gene=${gene}`)
-                } else {
-                  setCurrentMouseGene(gene)
-                  router.push(`${pathname}?assembly=mm10&gene=${gene}`)
-                }
-              }}
-            />
-          </Stack>
+          <>
+            <Grid2>
+              <GenomeSwitch
+                initialChecked={urlAssembly === "mm10"}
+                onSwitchChange={(checked: boolean) => handleAssemblyChange(checked)}
+              />
+            </Grid2>
+            <Grid2>
+              <Stack>
+                <InputLabel>Gene</InputLabel>
+              </Stack>
+              <GeneAutoComplete
+                assembly={assembly}
+                gene={assembly === "GRCh38" ? currentHumanGene : currentMouseGene}
+                setGene={(gene) => {
+                  if (assembly === "GRCh38") {
+                    setCurrentHumanGene(gene)
+                    router.push(`${pathname}?assembly=GRCh38&gene=${gene}`)
+                  } else {
+                    setCurrentMouseGene(gene)
+                    router.push(`${pathname}?assembly=mm10&gene=${gene}`)
+                  }
+                }}
+              />
+            </Grid2>
+          </>
           :
-           (props.genes && props.genes.length===1 ? <></> : <TextField label="Gene" sx={{ m: 1 }} select value={assembly === "GRCh38" ? currentHumanGene : currentMouseGene}>
-            {props.genes.map((option: string) => {
-              return (
-                <MenuItem key={option} value={option} onClick={() => assembly === "GRCh38" ? setCurrentHumanGene(option) : setCurrentMouseGene(option)}>
-                  {option}
-                </MenuItem>
-              )
-            })}
-          </TextField>)
+          (props.genes && props.genes.length === 1 ? <></> :
+            <Grid2>
+              <Stack>
+                <InputLabel>Gene</InputLabel>
+              </Stack>
+              <TextField select value={assembly === "GRCh38" ? currentHumanGene : currentMouseGene}>
+                {props.genes.map((option: string) => {
+                  return (
+                    <MenuItem key={option} value={option} onClick={() => assembly === "GRCh38" ? setCurrentHumanGene(option) : setCurrentMouseGene(option)}>
+                      {option}
+                    </MenuItem>
+                  )
+                })}
+              </TextField>
+            </Grid2>
+          )
         }
-        {/* Biosample Types */}
-        <FormControl sx={{ m: 1, width: 300 }}>
-          <InputLabel id="demo-multiple-checkbox-label">Biosample Types</InputLabel>
-          <Select
-            labelId="demo-multiple-checkbox-label"
-            id="demo-multiple-checkbox"
-            multiple
-            value={biosamples}
-            onChange={handleBiosampleChange}
-            input={<OutlinedInput label="Biosample Types" />}
-            renderValue={(selected) => selected.join(', ')}
-            MenuProps={MenuProps}
-          >
-            {biosampleTypes.map((name) => (
-              <MenuItem key={name} value={name}>
-                <Checkbox checked={biosamples.indexOf(name) > -1} />
-                <ListItemText primary={name} />
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        {/* RNA Type, hide for human as all data is total RNA-seq */}
-        {assembly === "mm10" &&
-          <ToggleButtonGroup
-            color="primary"
-            value={RNAtype}
-            exclusive
-            onChange={handleRNATypeChange}
-            aria-label="RNA Type"
-            size="medium"
-            sx={{ m: 1 }}
-          >
-            <ToggleButton sx={{ textTransform: "none" }} value="total RNA-seq">Total RNA-seq</ToggleButton>
-            <ToggleButton sx={{ textTransform: "none" }} value="polyA plus RNA-seq">PolyA plus RNA-seq</ToggleButton>
-            <ToggleButton sx={{ textTransform: "none" }} value="all">All</ToggleButton>
-          </ToggleButtonGroup>
-        }
-        {/* View By */}
-        <ToggleButtonGroup
-          color="primary"
-          value={group}
-          exclusive
-          onChange={handleGroupChange}
-          aria-label="View By"
-          size="medium"
-          sx={{ m: 1 }}
-        >
-          <ToggleButton sx={{ textTransform: "none" }} value="byTissueTPM">By Tissue</ToggleButton>
-          <ToggleButton sx={{ textTransform: "none" }} value="byTissueMaxTPM">By Tissue Max</ToggleButton>
-          <ToggleButton sx={{ textTransform: "none" }} value="byExperimentTPM">By Experiment</ToggleButton>
-        </ToggleButtonGroup>
-        {/* Scale */}
-        <ToggleButtonGroup
-          color="primary"
-          value={scale}
-          exclusive
-          onChange={handleScaleChange}
-          aria-label="Scale"
-          size="medium"
-          sx={{ m: 1, textTransform: "none" }}
-        >
-          <ToggleButton sx={{ textTransform: "none" }} value="logTPM">Log10(TPM + 1)</ToggleButton>
-          <ToggleButton sx={{ textTransform: "none" }} value="linearTPM">Linear TPM</ToggleButton>
-        </ToggleButtonGroup>
-        {/* Replicates */}
-        <ToggleButtonGroup
-          color="primary"
-          value={replicates}
-          exclusive
-          onChange={handleReplicatesChange}
-          aria-label="Scale"
-          size="medium"
-          sx={{ m: 1 }}
-        >
-          <ToggleButton sx={{ textTransform: "none" }} value="mean">Average Out Duplicates</ToggleButton>
-          <ToggleButton sx={{ textTransform: "none" }} value="all">Show Duplicates</ToggleButton>
-        </ToggleButtonGroup>
-        <Grid2 xs={12}>
-          {assembly === "GRCh38" ?
-            loadingHumanGene || loadingHumanExp ?
-              <Grid2 xs={12} md={12} lg={12}>
-                <LoadingMessage />
-              </Grid2>
-              :
-              humanGeneExpData ?
-                <PlotGeneExpression
-                  data={humanGeneExpData}
-                  range={{
-                    x: { start: 0, end: 4 },
-                    y: { start: 0, end: 0 },
-                  }}
-                  dimensions={{
-                    x: { start: 0, end: 650 },
-                    y: { start: 250, end: 0 },
-                  }}
-                  group={group}
-                  scale={scale}
-                  replicates={replicates}
-                />
-                :
-                <Typography variant="h5">
-                  Please Select a Gene
-                </Typography>
-            :
-            loadingMouseGene || loadingMouseExp ?
-              <Grid2 xs={12} md={12} lg={12}>
-                <LoadingMessage />
-              </Grid2>
-              :
-              mouseGeneExpData ?
-                <PlotGeneExpression
-                  data={mouseGeneExpData}
-                  range={{
-                    x: { start: 0, end: 4 },
-                    y: { start: 0, end: 0 },
-                  }}
-                  dimensions={{
-                    x: { start: 0, end: 650 },
-                    y: { start: 250, end: 0 },
-                  }}
-                  group={group}
-                  scale={scale}
-                  replicates={replicates}
-                />
-                :
-                <Typography variant="h5">
-                  Please Select a Gene
-                </Typography>
-          }
+        <Grid2>
+          {/* Biosample Types */}
+          <Stack>
+            <InputLabel id="demo-multiple-checkbox-label">Biosample Types</InputLabel>
+            <FormControl sx={{ width: 300 }}>
+              <Select
+                labelId="demo-multiple-checkbox-label"
+                id="demo-multiple-checkbox"
+                multiple
+                value={biosamples}
+                onChange={handleBiosampleChange}
+                input={<OutlinedInput size="medium"/>}
+                renderValue={(selected) => selected.join(', ')}
+                MenuProps={MenuProps}
+              >
+                {biosampleTypes.map((name) => (
+                  <MenuItem key={name} value={name}>
+                    <Checkbox checked={biosamples.indexOf(name) > -1} />
+                    <ListItemText primary={name} />
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Stack>
         </Grid2>
+        {assembly === "mm10" &&
+          <Grid2>
+            {/* RNA Type, hide for human as all data is total RNA-seq */}
+            <Stack>
+              <FormLabel>RNA Type</FormLabel>
+              <ToggleButtonGroup
+                color="primary"
+                value={RNAtype}
+                exclusive
+                onChange={handleRNATypeChange}
+                aria-label="RNA Type"
+                size="medium"
+              >
+                <ToggleButton sx={{ textTransform: "none" }} value="total RNA-seq">Total RNA-seq</ToggleButton>
+                <ToggleButton sx={{ textTransform: "none" }} value="polyA plus RNA-seq">PolyA plus RNA-seq</ToggleButton>
+                <ToggleButton sx={{ textTransform: "none" }} value="all">All</ToggleButton>
+              </ToggleButtonGroup>
+            </Stack>
+          </Grid2>
+        }
+        <Grid2>
+          {/* Scale */}
+          <Stack>
+            <FormLabel>Scale</FormLabel>
+            <ToggleButtonGroup
+              color="primary"
+              value={scale}
+              exclusive
+              onChange={handleScaleChange}
+              aria-label="Scale"
+              size="medium"
+            >
+              <ToggleButton sx={{ textTransform: "none" }} value="logTPM">Log10(TPM + 1)</ToggleButton>
+              <ToggleButton sx={{ textTransform: "none" }} value="linearTPM">Linear TPM</ToggleButton>
+            </ToggleButtonGroup>
+          </Stack>
+        </Grid2>
+        <Grid2>
+          {/* View By */}
+          <Stack>
+            <FormLabel>View By</FormLabel>
+            <ToggleButtonGroup
+              color="primary"
+              value={group}
+              exclusive
+              onChange={handleGroupChange}
+              aria-label="View By"
+              size="medium"
+            >
+              <ToggleButton sx={{ textTransform: "none" }} value="byTissueTPM">Tissue</ToggleButton>
+              <ToggleButton sx={{ textTransform: "none" }} value="byTissueMaxTPM">Tissue Max</ToggleButton>
+              <ToggleButton sx={{ textTransform: "none" }} value="byExperimentTPM">Experiment</ToggleButton>
+            </ToggleButtonGroup>
+          </Stack>
+        </Grid2>
+        <Grid2>
+          {/* Replicates */}
+          <Stack direction="column">
+            <FormLabel>Duplicates</FormLabel>
+            <ToggleButtonGroup
+              color="primary"
+              value={replicates}
+              exclusive
+              onChange={handleReplicatesChange}
+              aria-label="Scale"
+              size="medium"
+            >
+              <ToggleButton sx={{ textTransform: "none" }} value="mean">Average Out Duplicates</ToggleButton>
+              <ToggleButton sx={{ textTransform: "none" }} value="all">Show Duplicates</ToggleButton>
+            </ToggleButtonGroup>
+          </Stack>
+        </Grid2>
+
+        {assembly === "GRCh38" ?
+          loadingHumanGene || loadingHumanExp ?
+            <Grid2 xs={12} md={12} lg={12}>
+              <LoadingMessage />
+            </Grid2>
+            :
+            humanGeneExpData ?
+              <PlotGeneExpression
+                data={humanGeneExpData}
+                range={{
+                  x: { start: 0, end: 4 },
+                  y: { start: 0, end: 0 },
+                }}
+                dimensions={{
+                  x: { start: 0, end: 650 },
+                  y: { start: 250, end: 0 },
+                }}
+                group={group}
+                scale={scale}
+                replicates={replicates}
+              />
+              :
+              <Typography variant="h5">
+                Please Select a Gene
+              </Typography>
+          :
+          loadingMouseGene || loadingMouseExp ?
+            <Grid2 xs={12} md={12} lg={12}>
+              <LoadingMessage />
+            </Grid2>
+            :
+            mouseGeneExpData ?
+              <PlotGeneExpression
+                data={mouseGeneExpData}
+                range={{
+                  x: { start: 0, end: 4 },
+                  y: { start: 0, end: 0 },
+                }}
+                dimensions={{
+                  x: { start: 0, end: 650 },
+                  y: { start: 250, end: 0 },
+                }}
+                group={group}
+                scale={scale}
+                replicates={replicates}
+              />
+              :
+              <Typography variant="h5">
+                Please Select a Gene
+              </Typography>
+        }
       </Grid2>
     </>
   )

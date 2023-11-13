@@ -196,7 +196,7 @@ function ResponsiveAppBar() {
                       MenuListProps={{ autoFocusItem: false, autoFocus: false }}
                       slotProps={{ paper: { onMouseLeave: () => handleCloseNavMenu_Dropdown(page.dropdownID), elevation: 0, sx: { backgroundColor: "transparent" } } }}
                     >
-                      {/* This box is here to provide better onMouseLeave behavior */}
+                      {/* This box is here to provide better onMouseLeave behavior, still not ideal */}
                       <Box width="auto" height="25px"></Box>
                       <Paper elevation={4} sx={{margin: 0.75}}>
                         {page.subPages &&
