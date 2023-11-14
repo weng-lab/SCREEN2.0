@@ -143,9 +143,9 @@ export function PlotGeneExpression(props: {
               <title>{item.biosample + "\n" + item.accession + "-" + item.file_accession}</title>
             </rect>
           </a>
-          {/* The ccore and exp/biosample ID */}
+          {/* The score and exp/biosample ID */}
           <text x={p1.x + 0 + 170} y={y + i * 20 + 12.5} style={{ fontSize: 12 }}>
-            {Number(item.value.toFixed(3)) + " "}
+            {Number(item.value.toFixed(1)) + " "}
             <a href={"https://www.encodeproject.org/experiments/" + item.accession}>{item.accession}</a>
             {" " + item.file_accession + " " + item.biosample}
           </text>

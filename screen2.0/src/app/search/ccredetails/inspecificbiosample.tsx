@@ -85,17 +85,16 @@ const tableCols = (globals, typeC = false) => {
       header: "Group",
       value: (row: cCRERow) =>  GROUP_COLOR_MAP[row.group] ? GROUP_COLOR_MAP[row.group] : "DNase only",
       render: (row: cCRERow) => {
-        
-        let group =  row.group.split(",")[0]
-        
+        let group = row.group.split(",")[0]
         let colormap = GROUP_COLOR_MAP.get(group)
-        return colormap ? 
-        <span style={{ color: colormap.split(":")[1] }}>
-          <strong>{ colormap.split(":")[0]}</strong>
-        </span>: 
-        <span style={{ color: "#06da93" }}>
-          <strong>DNase only</strong>
-        </span>
+        return colormap ?
+          <span style={{ color: colormap.split(":")[1] }}>
+            <strong>{colormap.split(":")[0]}</strong>
+          </span>
+          :
+          <span style={{ color: "#06da93" }}>
+            <strong>DNase only</strong>
+          </span>
       },
     }
   ]

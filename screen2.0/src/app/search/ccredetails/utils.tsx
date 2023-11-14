@@ -208,17 +208,17 @@ const tissueValues = sort==="byValue" ? byValueTissues: sort==="byTissueMax" ? b
 export const z_score = (d) => (d === -11.0 || d === "--" || d === undefined ? "--" : d.toFixed(2))
 
 export const GROUP_COLOR_MAP: Map<string, string> = new Map([
-  ["CA-CTCF", "chromatin accessible with ctcf:#00B0F0"],
-  ["CA-TF", "chromatin accessible with tf:#be28e5"],
-  ["CA-H3K4me3", "chromatin accessible with H3K4me3:#ffaaaa"],
+  ["CA-CTCF", "Chromatin Accessible with CTCF:#00B0F0"],
+  ["CA-TF", "Chromatin Accessible with TF:#be28e5"],
+  ["CA-H3K4me3", "Chromatin Accessible with H3K4me3:#ffaaaa"],
   ["TF", "TF:#d876ec"],
-  ["CA", "chromatin accessible only:#06DA93"],
-  ["pELS","proximal enhancer-like signature:#ffcd00"],
-  ["dELS","distal enhancer-like signature:#ffcd00"],
-  ["PLS","promoter-like signature:#ff0000"],
+  ["CA", "Chromatin Accessible Only:#06DA93"],
+  ["pELS","Proximal Enhancer-Like Signature:#ffcd00"],
+  ["dELS","Distal Enhancer-Like Signature:#ffcd00"],
+  ["PLS","Promoter-Like Signature:#ff0000"],
   ["DNase-H3K4me3","DNase-H3K4me3:#ffaaaa"],
-  ["CTCF","CTCF bound:#00b0f0"],
-  ["ylowdnase","low DNase:#8c8c8c"],
+  ["CTCF","CTCF Bound:#00b0f0"],
+  ["ylowdnase","Low DNase:#8c8c8c"],
   ["zunclassified","zunclassified:#8c8c8c"]  
 ])
 

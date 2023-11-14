@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react"
 import { LoadingMessage } from "../../../common/lib/utility"
 import { PlotGeneExpression } from "../../applets/gene-expression/PlotGeneExpression"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
-import { Button, Typography, Stack, TextField, MenuItem, FormControl, SelectChangeEvent, Checkbox, InputLabel, ListItemText, OutlinedInput, Select, ToggleButton, ToggleButtonGroup, FormLabel } from "@mui/material"
+import { Button, Typography, Stack, TextField, MenuItem, FormControl, SelectChangeEvent, Checkbox, InputLabel, ListItemText, OutlinedInput, Select, ToggleButton, ToggleButtonGroup, FormLabel, Box } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import Image from "next/image"
 import { HUMAN_GENE_EXP, MOUSE_GENE_EXP } from "../../applets/gene-expression/const"
@@ -353,7 +353,7 @@ export function GeneExpression(props: {
         <Grid2>
           {/* Replicates */}
           <Stack direction="column">
-            <FormLabel>Duplicates</FormLabel>
+            <FormLabel>Replicates</FormLabel>
             <ToggleButtonGroup
               color="primary"
               value={replicates}
@@ -362,8 +362,8 @@ export function GeneExpression(props: {
               aria-label="Scale"
               size="medium"
             >
-              <ToggleButton sx={{ textTransform: "none" }} value="mean">Average Out Duplicates</ToggleButton>
-              <ToggleButton sx={{ textTransform: "none" }} value="all">Show Duplicates</ToggleButton>
+              <ToggleButton sx={{ textTransform: "none" }} value="mean">Average Replicates</ToggleButton>
+              <ToggleButton sx={{ textTransform: "none" }} value="all">Individual Replicates</ToggleButton>
             </ToggleButtonGroup>
           </Stack>
         </Grid2>
@@ -375,20 +375,24 @@ export function GeneExpression(props: {
             </Grid2>
             :
             humanGeneExpData ?
-              <PlotGeneExpression
-                data={humanGeneExpData}
-                range={{
-                  x: { start: 0, end: 4 },
-                  y: { start: 0, end: 0 },
-                }}
-                dimensions={{
-                  x: { start: 0, end: 650 },
-                  y: { start: 250, end: 0 },
-                }}
-                group={group}
-                scale={scale}
-                replicates={replicates}
-              />
+              <Grid2 xs={12}>
+                <Box maxWidth={props.applet ? { xl: '75%', xs: '100%' } : '100%'}>
+                  <PlotGeneExpression
+                    data={humanGeneExpData}
+                    range={{
+                      x: { start: 0, end: 4 },
+                      y: { start: 0, end: 0 },
+                    }}
+                    dimensions={{
+                      x: { start: 0, end: 650 },
+                      y: { start: 250, end: 0 },
+                    }}
+                    group={group}
+                    scale={scale}
+                    replicates={replicates}
+                  />
+                </Box>
+              </Grid2>
               :
               <Typography variant="h5">
                 Please Select a Gene
@@ -400,7 +404,9 @@ export function GeneExpression(props: {
             </Grid2>
             :
             mouseGeneExpData ?
-              <PlotGeneExpression
+            <Grid2 xs={12}>
+              <Box maxWidth={props.applet ? {xl: '75%', xs: '100%'} : '100%'}>
+                <PlotGeneExpression
                 data={mouseGeneExpData}
                 range={{
                   x: { start: 0, end: 4 },
@@ -414,6 +420,8 @@ export function GeneExpression(props: {
                 scale={scale}
                 replicates={replicates}
               />
+              </Box>
+            </Grid2>
               :
               <Typography variant="h5">
                 Please Select a Gene
