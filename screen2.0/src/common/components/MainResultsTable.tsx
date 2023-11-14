@@ -56,7 +56,7 @@ function MainResultsTable(props: MainResultsTableProps) {
         value: (row) => (row.dnase && row.dnase.toFixed(2)) || 0,
         HeaderRender: () => {
           return (
-            <Stack direction="row">
+            <Stack direction="row" alignItems={"center"}>
               <strong><p>DNase</p></strong>
               <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
                 <InfoOutlined fontSize="small" />
@@ -72,7 +72,7 @@ function MainResultsTable(props: MainResultsTableProps) {
         value: (row) => (row.atac && row.atac.toFixed(2)) || 0,
         HeaderRender: () => {
           return (
-            <Stack direction="row">
+            <Stack direction="row" alignItems={"center"}>
               <strong><p>ATAC</p></strong>
               <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
                 <InfoOutlined fontSize="small" />
@@ -88,7 +88,7 @@ function MainResultsTable(props: MainResultsTableProps) {
         value: (row) => (row.ctcf && row.ctcf.toFixed(2)) || 0,
         HeaderRender: () => {
           return (
-            <Stack direction="row">
+            <Stack direction="row" alignItems={"center"}>
               <strong><p>CTCF</p></strong>
               <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
                 <InfoOutlined fontSize="small" />
@@ -104,7 +104,7 @@ function MainResultsTable(props: MainResultsTableProps) {
         value: (row) => (row.h3k27ac && row.h3k27ac.toFixed(2)) || 0,
         HeaderRender: () => {
           return (
-            <Stack direction="row">
+            <Stack direction="row" alignItems={"center"}>
             <strong><p>H3K27ac</p></strong>
             <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
               <InfoOutlined fontSize="small" />
@@ -120,7 +120,7 @@ function MainResultsTable(props: MainResultsTableProps) {
         value: (row) => (row.h3k4me3 && row.h3k4me3.toFixed(2)) || 0,
         HeaderRender: () => {
           return (
-            <Stack direction="row">
+            <Stack direction="row" alignItems={"center"}>
             <strong><p>H3K4me3</p></strong>
             <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
               <InfoOutlined fontSize="small" />

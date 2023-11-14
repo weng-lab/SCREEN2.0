@@ -14,7 +14,8 @@ type QuantificationData = {
   color: string,
   file_accession: string,
   tpm: number,
-  value: number
+  value: number,
+  replicate_num: number,
 }[]
 
 /**
@@ -40,11 +41,7 @@ export function PlotGeneExpression(props: {
 }) {
   const router = useRouter()
 
-  let byTissue: {
-    [id: string]: {
-      values: QuantificationData
-    }
-  } = {}
+  let byTissue: { [id: string]: { values: QuantificationData } } = {}
   let byTissueMean: { [id: string]: { values: QuantificationData } } = {}
   let byValueTissues: { [id: string]: { values: QuantificationData } } = {}
   let byTissueMaxTissues: { [id: string]: { values: QuantificationData } } = {}
@@ -55,14 +52,13 @@ export function PlotGeneExpression(props: {
   //Filter Data to [...]
   props.data.filter(s => s["tissue"]).map((biosample) => {
 
-    //
     if (!byTissue[biosample["tissue"]]) {
       byTissue[biosample["tissue"]] = { values: [] }
     }
 
-    biosample["gene_quantification_files"].forEach(d => {
-      if (d.quantifications.length > 0) {
-        d.quantifications.forEach(q => {
+    biosample["gene_quantification_files"].forEach((file, i) => {
+      if (file.quantifications.length > 0) {
+        file.quantifications.forEach(q => {
           let val = props.scale === "logTPM" ? Math.log10(q.tpm + 1) : q.tpm
           if (val > max) {
             max = val
@@ -75,7 +71,8 @@ export function PlotGeneExpression(props: {
               accession: biosample.accession,
               value: val, tpm: q.tpm, file_accession: q.file_accession,
               color: tissueColors[biosample["tissue"]] ? tissueColors[biosample["tissue"]] :
-                stringToColour(biosample["tissue"])
+                stringToColour(biosample["tissue"]),
+              replicate_num: i + 1
             })
           }
         })
@@ -103,7 +100,8 @@ export function PlotGeneExpression(props: {
             tpm: r[0].tpm, 
             file_accession: r[0].file_accession,
             color: tissueColors[k] ? tissueColors[k] :
-              stringToColour(k)
+              stringToColour(k),
+            replicate_num: 0
           }
         )
       })
@@ -124,9 +122,7 @@ export function PlotGeneExpression(props: {
 
     let info = entry[1]
 
-    //Value here will be p1.x
-    //So entry[1].values[x].value = width?
-    return info.values.map((item: { color: string, biosample: string, file_accession: string, accession: string, value: number }, i: number) => {
+    return info.values.map((item: { color: string, biosample: string, file_accession: string, accession: string, value: number, replicate_num: number }, i: number) => {
       //Shouldn't this just be LinearTransform? Why 2D?
       p1 = linearTransform2D(props.range, props.dimensions)({ x: item.value, y: 0 })
       return (
@@ -145,9 +141,10 @@ export function PlotGeneExpression(props: {
           </a>
           {/* The score and exp/biosample ID */}
           <text x={p1.x + 0 + 170} y={y + i * 20 + 12.5} style={{ fontSize: 12 }}>
-            {Number(item.value.toFixed(1)) + " "}
+            {Number(item.value.toFixed(1)) + ", "}
+            {item.biosample + " ("}
             <a href={"https://www.encodeproject.org/experiments/" + item.accession}>{item.accession}</a>
-            {" " + item.file_accession + " " + item.biosample}
+            {item.replicate_num ? ", rep. " + item.replicate_num + ")" : ")"}
           </text>
           {/* The biosample category */}
           {(props.group === 'byTissueMaxTPM' || props.group === 'byExperimentTPM') &&
@@ -199,29 +196,22 @@ export function PlotGeneExpression(props: {
   let tissues: { [id: string]: { values: QuantificationData } } = props.group === "byExperimentTPM" ? byValueTissues : props.group === "byTissueMaxTPM" ? byTissueMaxTissues : byTissue // dict of ftissues
   
   return (
-    <>
-      <Grid2 xs={12} md={12} lg={12} mt={1} ml={2} mr={2}>
-        {Object.keys(tissues).length === 0 ? <span>{'No Data Available'}</span> : <Stack>
-        
-            {Object.entries(tissues).map((entry, index: number) => {
-          
-            let info = entry[1]
-          
-
-            let view: string = "0 0 1200 " + (info.values.length * (props.group === 'byTissueTPM' ? 20 : 3) + 20)
-            
-            return (
-              <svg className="graph" aria-labelledby="title desc" role="img" viewBox={view} key={index}>
-                <g className="data" data-setname="gene expression plot">
-                  {/* Why 5? */}
-                  {plotGeneExp(entry, index, 5)}
-                </g>
-              </svg>
-            )
-          })}
-          
-        </Stack>}
-      </Grid2>
-    </>
+    Object.keys(tissues).length === 0 ?
+      <span>{'No Data Available'}</span>
+      :
+      <Stack>
+        {Object.entries(tissues).map((entry, index: number) => {
+          let info = entry[1]
+          let view: string = "0 0 1200 " + (info.values.length * (props.group === 'byTissueTPM' ? 20 : 3) + 20)
+          return (
+            <svg className="graph" aria-labelledby="title desc" role="img" viewBox={view} key={index}>
+              <g className="data" data-setname="gene expression plot">
+                {/* Why 5? */}
+                {plotGeneExp(entry, index, 5)}
+              </g>
+            </svg>
+          )
+        })}
+      </Stack>
   )
 }

@@ -1,11 +1,12 @@
 "use client"
 
-import { Divider, Stack, Typography } from "@mui/material"
+import { Box, Divider, Stack, Typography } from "@mui/material"
 import MainSearch from "../common/components/mainsearch/MainSearch"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import homeImage from "../../public/homeImage.png"
 import Image from "next/image"
-import { DataTable } from "@weng-lab/psychscreen-ui-components"
+import humanIcon from "../../public/humanDark.png"
+import mouseIcon from "../../public/mouseDark.png"
 
 export default function Home() {
   return (
@@ -33,9 +34,19 @@ export default function Home() {
             <Grid2 direction="column" flexGrow={0} border={"1px solid LightGray"} borderRight={"none"}>
               <Typography p={1} align="left">Genome Assembly</Typography>
               <Divider />
-              <Typography p={1} align="left">Human (hg38)</Typography>
+              <Stack direction="row" pl={1} >
+                <Box position={"relative"} minWidth={"30px"}>
+                  <Image objectFit="contain" src={humanIcon} alt={""} fill />
+                </Box>
+                <Typography p={1} align="left">Human (hg38)</Typography>
+              </Stack>
               <Divider />
-              <Typography p={1} align="left">Mouse (mm10)</Typography>
+              <Stack direction="row" pl={1} >
+                <Box position={"relative"} minWidth={"30px"}>
+                  <Image objectFit="contain" src={mouseIcon} alt={""} fill />
+                </Box>
+                <Typography p={1} align="left">Mouse (mm10)</Typography>
+              </Stack>
             </Grid2>
             <Grid2>
               <Divider orientation="vertical" />
