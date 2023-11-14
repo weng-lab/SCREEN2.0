@@ -38,7 +38,6 @@ import GeneAutoComplete from "../../app/applets/gene-expression/gene-autocomplet
 import { InfoOutlined } from "@mui/icons-material";
 
 const marks = [
-
   {
     value: 0,
     label: '0kb',

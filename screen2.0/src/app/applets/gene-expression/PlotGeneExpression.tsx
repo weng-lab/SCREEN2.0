@@ -15,7 +15,7 @@ type QuantificationData = {
   file_accession: string,
   tpm: number,
   value: number,
-  replicate_num: number,
+  // replicate_num: number,
 }[]
 
 /**
@@ -72,7 +72,7 @@ export function PlotGeneExpression(props: {
               value: val, tpm: q.tpm, file_accession: q.file_accession,
               color: tissueColors[biosample["tissue"]] ? tissueColors[biosample["tissue"]] :
                 stringToColour(biosample["tissue"]),
-              replicate_num: i + 1
+              // replicate_num: i + 1
             })
           }
         })
@@ -101,7 +101,7 @@ export function PlotGeneExpression(props: {
             file_accession: r[0].file_accession,
             color: tissueColors[k] ? tissueColors[k] :
               stringToColour(k),
-            replicate_num: 0
+            // replicate_num: 0
           }
         )
       })
@@ -144,7 +144,8 @@ export function PlotGeneExpression(props: {
             {Number(item.value.toFixed(1)) + ", "}
             {item.biosample + " ("}
             <a href={"https://www.encodeproject.org/experiments/" + item.accession}>{item.accession}</a>
-            {item.replicate_num ? ", rep. " + item.replicate_num + ")" : ")"}
+            {/* {item.replicate_num ? ", rep. " + item.replicate_num + ")" : ")"} */}
+            {")"}
           </text>
           {/* The biosample category */}
           {(props.group === 'byTissueMaxTPM' || props.group === 'byExperimentTPM') &&
