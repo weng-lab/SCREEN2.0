@@ -212,49 +212,49 @@ export const ctgroup = (group: string) => {
   if (group === "CA-CTCF")
     return (
       <span style={{ color: "#00B0F0" }}>
-        <strong>chromatin accessible with ctcf</strong>
+        <strong>Chromatin Accessible with CTCF</strong>
       </span>
     )
   if (group === "CA-TF")
     return (
       <span style={{ color: "#be28e5" }}>
-        <strong>chromatin accessible with tf</strong>
+        <strong>Chromatin Accessible with TF</strong>
       </span>
     )
   if (group === "CA-H3K4me3")
     return (
       <span style={{ color: "#ffaaaa" }}>
-        <strong>chromatin accessible with H3K4me3</strong>
+        <strong>Chromatin Accessible with H3K4me3</strong>
       </span>
     )
   if (group === "TF")
     return (
       <span style={{ color: "#d876ec" }}>
-        <strong>tf only</strong>
+        <strong>TF</strong>
       </span>
     )
   if (group === "CA")
     return (
       <span style={{ color: "#06DA93" }}>
-        <strong>chromatin accessible only</strong>
+        <strong>Chromatin Accessible only</strong>
       </span>
     )
   if (group === "pELS")
     return (
       <span style={{ color: "#ffcd00" }}>
-        <strong>proximal enhancer-like signature</strong>
+        <strong>Proximal Enhancer-Like Signature</strong>
       </span>
     )
   if (group === "dELS")
     return (
       <span style={{ color: "#ffcd00" }}>
-        <strong>distal enhancer-like signature</strong>
+        <strong>Distal Enhancer-Like Signature</strong>
       </span>
     )
   if (group === "PLS")
     return (
       <span style={{ color: "#ff0000" }}>
-        <strong>promoter-like signature</strong>
+        <strong>Promoter-Like Signature</strong>
       </span>
     )
   if (group === "DNase-H3K4me3")
@@ -272,7 +272,7 @@ export const ctgroup = (group: string) => {
   if (group === "ylowdnase")
     return (
       <span style={{ color: "#8c8c8c" }}>
-        <strong>low DNase</strong>
+        <strong>Low DNase</strong>
       </span>
     )
   if (group === "zunclassified")
@@ -283,7 +283,7 @@ export const ctgroup = (group: string) => {
     )
   return (
     <span style={{ color: "#06da93" }}>
-      <strong>DNase only</strong>
+      <strong>DNase Only</strong>
     </span>
   )
 }

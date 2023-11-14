@@ -29,7 +29,7 @@ function MainResultsTable(props: MainResultsTableProps) {
       },
       {
         header: "Class",
-        value: (row: { class: string }) => row.class,
+        value: (row: { class: string }) => row.class === "PLS" ? "Promoter" : row.class === "pELS" ? "Proximal Enhancer" : row.class === "dELS" ? "Distal Enhancer" : row.class,
       },
       {
         header: "Chr",
