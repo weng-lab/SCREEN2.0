@@ -43,7 +43,7 @@ export const LinkedGenes: React.FC<{ accession: string; assembly: string }> = ({
     nextFetchPolicy: "cache-first",
     client,
   })
-
+  
   let linked_genes
   if (data_linked && data_genes) {
     let linkedgenes: { assay: string; celltype: string; gene: string }[] = data_linked.linkedGenesQuery
@@ -53,8 +53,9 @@ export const LinkedGenes: React.FC<{ accession: string; assembly: string }> = ({
     for (let x of linkedgeneIDs) ids[x.id.split(".")[0]] = x.name
 
     for (let x of linkedgenes) {
+      
       linked.push({
-        gene: ids[x.gene.split(".")[0]],
+        gene: ids[x.gene.split(".")[0]] || x.gene.split(".")[0],
         celltype: x.celltype.replaceAll("_", " "),
         method: x.assay,
       })

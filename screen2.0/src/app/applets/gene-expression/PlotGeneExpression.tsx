@@ -99,7 +99,9 @@ export function PlotGeneExpression(props: {
             biosample_type: r[0].biosample_type,
             assay_term_name: r[0].assay_term_name,
             accession: r[0].accession,
-            value: sum / r.length, tpm: r[0].tpm, file_accession: r[0].file_accession,
+            value: sum / r.length, 
+            tpm: r[0].tpm, 
+            file_accession: r[0].file_accession,
             color: tissueColors[k] ? tissueColors[k] :
               stringToColour(k)
           }

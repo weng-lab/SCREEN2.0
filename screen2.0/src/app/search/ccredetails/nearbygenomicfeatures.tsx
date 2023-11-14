@@ -142,8 +142,8 @@ export const NearByGenomicFeatures: React.FC<{
                       render: (row) => createLink("http://www.genecards.org/cgi-bin/carddisp.pl?gene=", row.name),
                     },
                     {
-                      header: "Distance",
-                      value: (row) => row.distance,
+                      header: "Distance (in bp)",
+                      value: (row) => row.distance.toLocaleString("en-US"),
                     },
                   ]}
                   sortColumn={1}
@@ -174,13 +174,13 @@ export const NearByGenomicFeatures: React.FC<{
                       ),
                     },
                     {
-                      header: "Distance",
-                      value: (row) => row.distance,
+                      header: "Distance (in bp)",
+                      value: (row) => row.distance.toLocaleString("en-US"),
                     },
                   ]}
                   sortColumn={1}
                   tableTitle="cCREs"
-                  rows={ccres || []}
+                  rows={ccres.filter(c=>c.distance!=0) || []}
                   itemsPerPage={10}
                   searchable
                   sortDescending={true}
@@ -203,8 +203,8 @@ export const NearByGenomicFeatures: React.FC<{
                         ),
                     },
                     {
-                      header: "Distance",
-                      value: (row) => row.distance,
+                      header: "Distance (in bp)",
+                      value: (row) => row.distance.toLocaleString("en-US"),
                     },
                   ]}
                   sortColumn={1}
