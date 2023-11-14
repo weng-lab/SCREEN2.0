@@ -469,7 +469,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
           <Stack direction="row" spacing={1}>
             <Typography>Biosample Activity</Typography>
             <Tooltip arrow placement="right-end" title={"Put description here"}>
-              <InfoOutlined />
+              <InfoOutlined fontSize="small" />
             </Tooltip>
           </Stack>
         </AccordionSummary>
@@ -566,7 +566,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
               <Stack direction="row" spacing={1}>
                 <Typography>Chromatin Signals (Z-Scores)</Typography>
                 <Tooltip arrow placement="right-end" title={"Put description here"}>
-                  <InfoOutlined />
+                  <InfoOutlined fontSize="small" />
                 </Tooltip>
               </Stack>
             </AccordionSummary>
@@ -663,7 +663,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
               <Stack direction="row" spacing={1}>
                 <Typography>Classification</Typography>
                 <Tooltip arrow placement="right-end" title={"Put description here"}>
-                  <InfoOutlined />
+                  <InfoOutlined fontSize="small" />
                 </Tooltip>
               </Stack>
             </AccordionSummary>
@@ -735,7 +735,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
               <Stack direction="row" spacing={1}>
                 <Typography>Conservation</Typography>
                 <Tooltip arrow placement="right-end" title={"Put description here"}>
-                  <InfoOutlined />
+                  <InfoOutlined fontSize="small" />
                 </Tooltip>
               </Stack>
             </AccordionSummary>
@@ -799,7 +799,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
               <Stack direction="row" spacing={1}>
                 <Typography>Linked Genes</Typography>
                 <Tooltip arrow placement="right-end" title={"Put description here"}>
-                  <InfoOutlined />
+                  <InfoOutlined fontSize="small" />
                 </Tooltip>
               </Stack>
             </AccordionSummary>

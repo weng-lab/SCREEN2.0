@@ -1,11 +1,13 @@
 "use client"
 import { DataTable, DataTableProps, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import React, { useCallback, useState } from "react"
-import { Box, Typography, Menu, Checkbox, Stack, MenuItem, FormControlLabel, FormGroup } from "@mui/material"
+import { Box, Typography, Menu, Checkbox, Stack, MenuItem, FormControlLabel, FormGroup, Tooltip } from "@mui/material"
 import { MainResultTableRow, ConservationData } from "../../app/search/types"
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { LoadingMessage } from "../lib/utility"
+import Grid2 from "@mui/material/Unstable_Grid2"
+import { InfoOutlined } from "@mui/icons-material"
 
 interface MainResultsTableProps extends Partial<DataTableProps<any>> {
   loading?: boolean
@@ -47,30 +49,80 @@ function MainResultsTable(props: MainResultsTableProps) {
       cols.push({
         header: "DNase",
         value: (row) => (row.dnase && row.dnase.toFixed(2)) || 0,
+        HeaderRender: () => {
+          return (
+            <Stack direction="row">
+              <Typography variant="body2" pr={0.5}>DNase</Typography>
+              <Tooltip arrow title="Tooltip info here">
+                <InfoOutlined fontSize="small" />
+              </Tooltip>
+            </Stack>
+          )
+        }
       })
     }
     if (props.rows[0] && props.rows[0].atac !== null) {
       cols.push({
         header: "ATAC",
         value: (row) => (row.atac && row.atac.toFixed(2)) || 0,
+        HeaderRender: () => {
+          return (
+            <Stack direction="row">
+              <Typography variant="body2" pr={0.5}>ATAC</Typography>
+              <Tooltip arrow title="Tooltip info here">
+                <InfoOutlined fontSize="small" />
+              </Tooltip>
+            </Stack>
+          )
+        }
       })
     }
     if (props.rows[0] && props.rows[0].ctcf !== null) {
       cols.push({
         header: "CTCF",
         value: (row) => (row.ctcf && row.ctcf.toFixed(2)) || 0,
+        HeaderRender: () => {
+          return (
+            <Stack direction="row">
+              <Typography variant="body2" pr={0.5}>CTCF</Typography>
+              <Tooltip arrow title="Tooltip info here">
+                <InfoOutlined fontSize="small" />
+              </Tooltip>
+            </Stack>
+          )
+        }
       })
     }
     if (props.rows[0] && props.rows[0].h3k27ac != null) {
       cols.push({
         header: "H3K27ac",
         value: (row) => (row.h3k27ac && row.h3k27ac.toFixed(2)) || 0,
+        HeaderRender: () => {
+          return (
+            <Stack direction="row">
+              <Typography variant="body2" pr={0.5}>H3K27ac</Typography>
+              <Tooltip arrow title="Tooltip info here">
+                <InfoOutlined fontSize="small" />
+              </Tooltip>
+            </Stack>
+          )
+        }
       })
     }
     if (props.rows[0] && props.rows[0].h3k4me3 != null) {
       cols.push({
         header: "H3K4me3",
         value: (row) => (row.h3k4me3 && row.h3k4me3.toFixed(2)) || 0,
+        HeaderRender: () => {
+          return (
+            <Stack direction="row">
+              <Typography variant="body2" pr={0.5}>H3K4me3</Typography>
+              <Tooltip arrow title="Tooltip info here">
+                <InfoOutlined fontSize="small" />
+              </Tooltip>
+            </Stack>
+          )
+        }
       })
     }
     //Whenever the state of the checkboxes conflicts with the state of the main component, it triggers a rerender
