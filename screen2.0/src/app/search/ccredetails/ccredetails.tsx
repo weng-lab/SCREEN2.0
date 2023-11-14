@@ -28,7 +28,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
     <>
       <Stack direction="row" justifyContent={"space-between"} alignItems={"baseline"}>
         <Typography variant="h4">{accession}</Typography>
-        <Typography variant="h5">{`${region.chrom}:${region.start}-${region.end}`}</Typography>
+        <Typography variant="h6">{`${region.chrom}:${region.start}-${region.end}`}</Typography>
       </Stack>
       <Divider sx={{mb: 2}}/>
       {page === 0 && <InSpecificBiosamples accession={accession} globals={globals} assembly={assembly} />}

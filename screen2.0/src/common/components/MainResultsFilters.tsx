@@ -468,7 +468,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
         <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
           <Stack direction="row" spacing={1}>
             <Typography>Biosample Activity</Typography>
-            <Tooltip arrow placement="right-end" title={"Put description here"}>
+            <Tooltip arrow placement="right-end" title={"This will be populated with more info soon"}>
               <InfoOutlined fontSize="small" />
             </Tooltip>
           </Stack>
@@ -565,7 +565,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
             <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel2a-content" id="panel2a-header">
               <Stack direction="row" spacing={1}>
                 <Typography>Chromatin Signals (Z-Scores)</Typography>
-                <Tooltip arrow placement="right-end" title={"Put description here"}>
+                <Tooltip arrow placement="right-end" title={"This will be populated with more info soon"}>
                   <InfoOutlined fontSize="small" />
                 </Tooltip>
               </Stack>
@@ -662,7 +662,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
             <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel3a-content" id="panel3a-header">
               <Stack direction="row" spacing={1}>
                 <Typography>Classification</Typography>
-                <Tooltip arrow placement="right-end" title={"Put description here"}>
+                <Tooltip arrow placement="right-end" title={"This will be populated with more info soon"}>
                   <InfoOutlined fontSize="small" />
                 </Tooltip>
               </Stack>
@@ -734,7 +734,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
             <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel6a-content" id="panel6a-header">
               <Stack direction="row" spacing={1}>
                 <Typography>Conservation</Typography>
-                <Tooltip arrow placement="right-end" title={"Put description here"}>
+                <Tooltip arrow placement="right-end" title={"This will be populated with more info soon"}>
                   <InfoOutlined fontSize="small" />
                 </Tooltip>
               </Stack>
@@ -798,7 +798,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
             <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel4a-content" id="panel4a-header">
               <Stack direction="row" spacing={1}>
                 <Typography>Linked Genes</Typography>
-                <Tooltip arrow placement="right-end" title={"Put description here"}>
+                <Tooltip arrow placement="right-end" title={"This will be populated with more info soon"}>
                   <InfoOutlined fontSize="small" />
                 </Tooltip>
               </Stack>

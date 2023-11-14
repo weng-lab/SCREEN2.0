@@ -26,22 +26,27 @@ function MainResultsTable(props: MainResultsTableProps) {
       {
         header: "Accession",
         value: (row: { accession: string }) => row.accession,
+        HeaderRender: () => <strong><p>Accession</p></strong>
       },
       {
         header: "Class",
         value: (row: { class: string }) => row.class === "PLS" ? "Promoter" : row.class === "pELS" ? "Proximal Enhancer" : row.class === "dELS" ? "Distal Enhancer" : row.class,
+        HeaderRender: () => <strong><p>Class</p></strong>
       },
       {
         header: "Chr",
         value: (row: { chromosome: string }) => row.chromosome,
+        HeaderRender: () => <strong><p>Chr</p></strong>
       },
       {
         header: "Start",
         value: (row: { start: string }) => row.start,
+        HeaderRender: () => <strong><p>Start</p></strong>
       },
       {
         header: "End",
         value: (row: { end: string }) => row.end,
+        HeaderRender: () => <strong><p>End</p></strong>
       }
     ]
    
@@ -52,8 +57,8 @@ function MainResultsTable(props: MainResultsTableProps) {
         HeaderRender: () => {
           return (
             <Stack direction="row">
-              <Typography variant="body2" pr={0.5}>DNase</Typography>
-              <Tooltip arrow title="Tooltip info here">
+              <strong><p>DNase</p></strong>
+              <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
                 <InfoOutlined fontSize="small" />
               </Tooltip>
             </Stack>
@@ -68,8 +73,8 @@ function MainResultsTable(props: MainResultsTableProps) {
         HeaderRender: () => {
           return (
             <Stack direction="row">
-              <Typography variant="body2" pr={0.5}>ATAC</Typography>
-              <Tooltip arrow title="Tooltip info here">
+              <strong><p>ATAC</p></strong>
+              <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
                 <InfoOutlined fontSize="small" />
               </Tooltip>
             </Stack>
@@ -84,8 +89,8 @@ function MainResultsTable(props: MainResultsTableProps) {
         HeaderRender: () => {
           return (
             <Stack direction="row">
-              <Typography variant="body2" pr={0.5}>CTCF</Typography>
-              <Tooltip arrow title="Tooltip info here">
+              <strong><p>CTCF</p></strong>
+              <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
                 <InfoOutlined fontSize="small" />
               </Tooltip>
             </Stack>
@@ -100,11 +105,11 @@ function MainResultsTable(props: MainResultsTableProps) {
         HeaderRender: () => {
           return (
             <Stack direction="row">
-              <Typography variant="body2" pr={0.5}>H3K27ac</Typography>
-              <Tooltip arrow title="Tooltip info here">
-                <InfoOutlined fontSize="small" />
-              </Tooltip>
-            </Stack>
+            <strong><p>H3K27ac</p></strong>
+            <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
+              <InfoOutlined fontSize="small" />
+            </Tooltip>
+          </Stack>
           )
         }
       })
@@ -116,11 +121,11 @@ function MainResultsTable(props: MainResultsTableProps) {
         HeaderRender: () => {
           return (
             <Stack direction="row">
-              <Typography variant="body2" pr={0.5}>H3K4me3</Typography>
-              <Tooltip arrow title="Tooltip info here">
-                <InfoOutlined fontSize="small" />
-              </Tooltip>
-            </Stack>
+            <strong><p>H3K4me3</p></strong>
+            <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
+              <InfoOutlined fontSize="small" />
+            </Tooltip>
+          </Stack>
           )
         }
       })
@@ -159,9 +164,9 @@ function MainResultsTable(props: MainResultsTableProps) {
 
         return (
           <Box>
-            <Stack direction="row" alignItems="flex-start" component="button" onClick={handleClick}>
+            <Stack direction="row" alignItems="center" component="button" onClick={handleClick}>
               <ArrowRightIcon />
-              <Typography variant="body2">Linked Genes</Typography>
+              <strong><p>Linked Genes</p></strong>
             </Stack>
             <Menu
               id="basic-menu"

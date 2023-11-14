@@ -376,7 +376,7 @@ export function GeneExpression(props: {
             :
             humanGeneExpData ?
               <Grid2 xs={12}>
-                <Box maxWidth={props.applet ? { xl: '75%', xs: '100%' } : '100%'}>
+                <Box maxWidth={props.applet ? { xl: '75%', xs: '100%' } : { xl: '75%', xs: '100%' }}>
                   <PlotGeneExpression
                     data={humanGeneExpData}
                     range={{
@@ -405,7 +405,7 @@ export function GeneExpression(props: {
             :
             mouseGeneExpData ?
             <Grid2 xs={12}>
-              <Box maxWidth={props.applet ? {xl: '75%', xs: '100%'} : '100%'}>
+              <Box maxWidth={props.applet ? {xl: '75%', xs: '100%'} : { xl: '75%', xs: '100%' }}>
                 <PlotGeneExpression
                 data={mouseGeneExpData}
                 range={{
