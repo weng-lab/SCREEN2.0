@@ -9,7 +9,7 @@ import { Ortholog } from "./linkedccres"
 import { TfIntersection } from "./tfintersection"
 import { FunctionData } from "./functionaldata"
 import Rampage from "./rampage"
-import { GeneExpression } from "./gene-expression"
+import { GeneExpression } from "./geneexpression"
 import { TfSequenceFeatures} from "../gbview/tfsequencefeatures"
 
 //Passing these props through this file could be done with context to reduce prop drilling
@@ -28,7 +28,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
     <>
       <Stack direction="row" justifyContent={"space-between"} alignItems={"baseline"}>
         <Typography variant="h4">{accession}</Typography>
-        <Typography variant="h5">{`${region.chrom}:${region.start}-${region.end}`}</Typography>
+        <Typography variant="h6">{`${region.chrom}:${region.start}-${region.end}`}</Typography>
       </Stack>
       <Divider sx={{mb: 2}}/>
       {page === 0 && <InSpecificBiosamples accession={accession} globals={globals} assembly={assembly} />}

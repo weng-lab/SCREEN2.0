@@ -15,6 +15,8 @@ import {
   Box,
   Slider,
   FormLabel,
+  Stack,
+  IconButton,
 } from "@mui/material/"
 
 import Radio from '@mui/material/Radio';
@@ -33,9 +35,9 @@ import { parseByCellType, filterBiosamples, assayHoverInfo, constructURL } from 
 import { gql } from "@apollo/client"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import GeneAutoComplete from "../../app/applets/gene-expression/gene-autocomplete";
+import { InfoOutlined } from "@mui/icons-material";
 
 const marks = [
-
   {
     value: 0,
     label: '0kb',
@@ -90,10 +92,10 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
 
   const handleTssUpstreamChange = (_, newValue: number) => {
     setTssupstream(newValue as number);
-  };   
+  };
   const handleSNPDistanceChange = (_, newValue: number) => {
     setSnpDistance(newValue as number);
-  };    
+  };
   const {
     data: geneTranscripts
   } = useQuery(GENE_TRANSCRIPTS_QUERY, {
@@ -193,12 +195,12 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     InVitro,
     Organoid,
     CellLine,
-    start: props.mainQueryParams.snpid ? Math.max(0,props.mainQueryParams.start-snpdistance)  :  props.mainQueryParams.gene ? (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length >0 ? value==="tss" 
-    && firstTSS && firstTSS!=0 && lastTSS && lastTSS!=0  ?  geneTranscripts.gene[0].strand==="+" ? firstTSS : lastTSS  : geneTranscripts.gene[0].coordinates.start :    
-    props.mainQueryParams.start): props.mainQueryParams.start,
-    end: props.mainQueryParams.snpid ? props.mainQueryParams.end+snpdistance   : props.mainQueryParams.gene ? (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length >0 ? value==="tss" 
-    && firstTSS && firstTSS!=0 && lastTSS && lastTSS!=0  ?  geneTranscripts.gene[0].strand==="+" ? lastTSS : firstTSS  : geneTranscripts.gene[0].coordinates.end : 
-    props.mainQueryParams.end): props.mainQueryParams.end,
+    start: props.mainQueryParams.snpid ? Math.max(0, props.mainQueryParams.start - snpdistance) : props.mainQueryParams.gene ? (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 ? value === "tss"
+      && firstTSS && firstTSS != 0 && lastTSS && lastTSS != 0 ? geneTranscripts.gene[0].strand === "+" ? firstTSS : lastTSS : geneTranscripts.gene[0].coordinates.start :
+      props.mainQueryParams.start) : props.mainQueryParams.start,
+    end: props.mainQueryParams.snpid ? props.mainQueryParams.end + snpdistance : props.mainQueryParams.gene ? (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 ? value === "tss"
+      && firstTSS && firstTSS != 0 && lastTSS && lastTSS != 0 ? geneTranscripts.gene[0].strand === "+" ? lastTSS : firstTSS : geneTranscripts.gene[0].coordinates.end :
+      props.mainQueryParams.end) : props.mainQueryParams.end,
     Biosample: {
       selected: Biosample.selected,
       biosample: Biosample.biosample,
@@ -419,7 +421,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
         <>
           <Accordion defaultExpanded square disableGutters>
             <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel2a-content" id="panel2a-header">
-              <Typography>cCREs near gene</Typography>
+              <Typography>Overlapping Gene/By TSS</Typography>
             </AccordionSummary>
             <AccordionDetails>
               <Grid2 container spacing={2}>
@@ -463,7 +465,12 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
       {/* Biosample Activity */}
       <Accordion defaultExpanded={props.mainQueryParams.gene ? false : true} square disableGutters>
         <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
-          <Typography>Biosample Activity</Typography>
+          <Stack direction="row" spacing={1}>
+            <Typography>Biosample Activity</Typography>
+            <Tooltip arrow placement="right-end" title={"This will be populated with more info soon"}>
+              <InfoOutlined fontSize="small" />
+            </Tooltip>
+          </Stack>
         </AccordionSummary>
         <AccordionDetails>
           <Grid2 container spacing={2}>
@@ -555,7 +562,12 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
           {/* Chromatin Signals */}
           <Accordion square disableGutters>
             <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel2a-content" id="panel2a-header">
-              <Typography>Chromatin Signals (Z-Scores)</Typography>
+              <Stack direction="row" spacing={1}>
+                <Typography>Chromatin Signals (Z-Scores)</Typography>
+                <Tooltip arrow placement="right-end" title={"This will be populated with more info soon"}>
+                  <InfoOutlined fontSize="small" />
+                </Tooltip>
+              </Stack>
             </AccordionSummary>
             <AccordionDetails>
               <Grid2 container spacing={3}>
@@ -647,7 +659,12 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
           {/* Classification */}
           <Accordion square disableGutters>
             <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel3a-content" id="panel3a-header">
-              <Typography>Classification</Typography>
+              <Stack direction="row" spacing={1}>
+                <Typography>Classification</Typography>
+                <Tooltip arrow placement="right-end" title={"This will be populated with more info soon"}>
+                  <InfoOutlined fontSize="small" />
+                </Tooltip>
+              </Stack>
             </AccordionSummary>
             <AccordionDetails>
               <Typography>cCRE Classes</Typography>
@@ -714,7 +731,12 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
           {/* Conservation */}
           {props.mainQueryParams.assembly === "GRCh38" && <Accordion square disableGutters>
             <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel6a-content" id="panel6a-header">
-              <Typography>Conservation</Typography>
+              <Stack direction="row" spacing={1}>
+                <Typography>Conservation</Typography>
+                <Tooltip arrow placement="right-end" title={"This will be populated with more info soon"}>
+                  <InfoOutlined fontSize="small" />
+                </Tooltip>
+              </Stack>
             </AccordionSummary>
             <AccordionDetails>
               <Grid2 container spacing={3}>
@@ -773,52 +795,57 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
           {/* Linked Genes */}
           <Accordion square disableGutters>
             <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel4a-content" id="panel4a-header">
-              <Typography>Linked Genes</Typography>
+              <Stack direction="row" spacing={1}>
+                <Typography>Linked Genes</Typography>
+                <Tooltip arrow placement="right-end" title={"This will be populated with more info soon"}>
+                  <InfoOutlined fontSize="small" />
+                </Tooltip>
+              </Stack>
             </AccordionSummary>
             <AccordionDetails>
-              <GeneAutoComplete 
-                assembly={props.mainQueryParams.assembly} 
+              <GeneAutoComplete
+                assembly={props.mainQueryParams.assembly}
                 gene={gene}
-                setGene={(gene) => {setGene(gene); setGenesToFind([...genesToFind , gene])}}
-                plusIcon 
-              />  
-            {genesToFind.length > 0 &&
-              <>
-                <Typography>
-                  {"Selected: " + genesToFind.join(', ')}
-                </Typography>
-                <Button variant="outlined" onClick={() => setGenesToFind([])}>
-                  Clear Selected Genes
-                </Button>
-              </>
-            }
-            <FormLabel component="legend" sx={{pt: 2}}>Linked By</FormLabel>
-            <FormGroup>
-              <FormControlLabel
-                checked={distanceAll}
-                onChange={(_, checked: boolean) => setdistanceAll(checked)}
-                control={<Checkbox />}
-                label="Distance (All)"
+                setGene={(gene) => { setGene(gene); setGenesToFind([...genesToFind, gene]) }}
+                plusIcon
               />
-              <FormControlLabel
-                checked={distancePC}
-                onChange={(_, checked: boolean) => setdistancePC(checked)}
-                control={<Checkbox />}
-                label="Distance (PC)"
-              />
-              <FormControlLabel
-                checked={CTCF_ChIA_PET}
-                onChange={(_, checked: boolean) => setCTCF_ChIA_PET(checked)}
-                control={<Checkbox />}
-                label="CTCT ChIA-PET"
-              />
-              <FormControlLabel
-                checked={RNAPII_ChIA_PET}
-                onChange={(_, checked: boolean) => setRNAPII_ChIA_PET(checked)}
-                control={<Checkbox />}
-                label="RNAPII ChIA"
-              />
-            </FormGroup>
+              {genesToFind.length > 0 &&
+                <>
+                  <Typography>
+                    {"Selected: " + genesToFind.join(', ')}
+                  </Typography>
+                  <Button variant="outlined" onClick={() => setGenesToFind([])}>
+                    Clear Selected Genes
+                  </Button>
+                </>
+              }
+              <FormLabel component="legend" sx={{ pt: 2 }}>Linked By</FormLabel>
+              <FormGroup>
+                <FormControlLabel
+                  checked={distanceAll}
+                  onChange={(_, checked: boolean) => setdistanceAll(checked)}
+                  control={<Checkbox />}
+                  label="Distance (All)"
+                />
+                <FormControlLabel
+                  checked={distancePC}
+                  onChange={(_, checked: boolean) => setdistancePC(checked)}
+                  control={<Checkbox />}
+                  label="Distance (PC)"
+                />
+                <FormControlLabel
+                  checked={CTCF_ChIA_PET}
+                  onChange={(_, checked: boolean) => setCTCF_ChIA_PET(checked)}
+                  control={<Checkbox />}
+                  label="CTCF ChIA-PET"
+                />
+                <FormControlLabel
+                  checked={RNAPII_ChIA_PET}
+                  onChange={(_, checked: boolean) => setRNAPII_ChIA_PET(checked)}
+                  control={<Checkbox />}
+                  label="RNAPII ChIA-PET"
+                />
+              </FormGroup>
             </AccordionDetails>
           </Accordion>
           {/* Functional Characterization */}

@@ -26,6 +26,11 @@ const tableCols = (globals, typeC = false) => {
         globals.byCellType[row.ct] && globals.byCellType[row.ct][0] ? globals.byCellType[row.ct][0]["biosample_summary"] : "",
     },
     {
+      header: "ATAC Z-score",
+      value: (row: cCRERow) => row.atac,
+      render: (row: cCRERow) => z_score(row.atac),
+    },
+    {
       header: "H3K4me3 Z-score",
       value: (row: cCRERow) => row.h3k4me3,
       render: (row: cCRERow) => z_score(row.h3k4me3),
@@ -39,11 +44,6 @@ const tableCols = (globals, typeC = false) => {
       header: "CTCF Z-score",
       value: (row: cCRERow) => row.ctcf,
       render: (row: cCRERow) => z_score(row.ctcf),
-    },
-    {
-      header: "ATAC Z-score",
-      value: (row: cCRERow) => row.atac,
-      render: (row: cCRERow) => z_score(row.atac),
     }
   ] : [
     {
@@ -55,6 +55,11 @@ const tableCols = (globals, typeC = false) => {
       header: "DNase Z-score",
       value: (row: cCRERow) => z_score(row.dnase),
       render: (row: cCRERow) => z_score(row.dnase),
+    },
+    {
+      header: "ATAC Z-score",
+      value: (row: cCRERow) => row.atac,
+      render: (row: cCRERow) => z_score(row.atac),
     },
     {
       header: "H3K4me3 Z-score",
@@ -80,17 +85,16 @@ const tableCols = (globals, typeC = false) => {
       header: "Group",
       value: (row: cCRERow) =>  GROUP_COLOR_MAP[row.group] ? GROUP_COLOR_MAP[row.group] : "DNase only",
       render: (row: cCRERow) => {
-        
-        let group =  row.group.split(",")[0]
-        
+        let group = row.group.split(",")[0]
         let colormap = GROUP_COLOR_MAP.get(group)
-        return colormap ? 
-        <span style={{ color: colormap.split(":")[1] }}>
-          <strong>{ colormap.split(":")[0]}</strong>
-        </span>: 
-        <span style={{ color: "#06da93" }}>
-          <strong>DNase only</strong>
-        </span>
+        return colormap ?
+          <span style={{ color: colormap.split(":")[1] }}>
+            <strong>{colormap.split(":")[0]}</strong>
+          </span>
+          :
+          <span style={{ color: "#06da93" }}>
+            <strong>DNase only</strong>
+          </span>
       },
     }
   ]
@@ -103,6 +107,11 @@ const ctAgnosticColumns = () => [
     header: "DNase max-Z",
     value: (row: cCRERow) => row.dnase,
     render: (row: cCRERow) => z_score(row.dnase),
+  },
+  {
+    header: "ATAC max-Z",
+    value: (row: cCRERow) => row.atac,
+    render: (row: cCRERow) => z_score(row.atac),
   },
   {
     header: "H3K4me3 max-Z",
@@ -118,11 +127,6 @@ const ctAgnosticColumns = () => [
     header: "CTCF max-Z",
     value: (row: cCRERow) => row.ctcf,
     render: (row: cCRERow) => z_score(row.ctcf),
-  },
-  {
-    header: "ATAC max-Z",
-    value: (row: cCRERow) => row.atac,
-    render: (row: cCRERow) => z_score(row.atac),
   },
   {
     header: "Group",
@@ -291,7 +295,7 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
       </Grid2>
     ) : (
       <Grid2 container spacing={3} sx={{ mt: "0rem", mb: "0rem" }}>
-        <Grid2 xs={12} md={12} lg={12}>
+        <Grid2 xs={12}>
           {data_toptissues && (
             <DataTable
               rows={[{ ...data_toptissues.cCREQuery[0] }]}
@@ -301,33 +305,36 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
             />
           )}
         </Grid2>
-        <Grid2 xs={12} md={12} lg={12}>
-          {withdnase && (
-            <DataTable
-              columns={tableCols(globals)}
-              sortColumn={1}
-              tableTitle="Classification in Type B and D biosamples (DNase-seq available)"
-              rows={withdnase}
-              itemsPerPage={5}
-            />
-          )}
-        </Grid2>
-        <Grid2 xs={6} md={6} lg={6}>
+        <Grid2 xs={12}>
+          {/* Type A */}
           {typea && (
             <DataTable
               columns={tableCols(globals)}
-              tableTitle="Classification in Type A biosamples (all five marks available)"
+              tableTitle="Core Collection"
               rows={typea}
               sortColumn={1}
               itemsPerPage={5}
             />
           )}
         </Grid2>
-        <Grid2 xs={6} md={6} lg={6}>
+        <Grid2 xs={12}>
+          {/* Type B & D */}
+          {withdnase && (
+            <DataTable
+              columns={tableCols(globals)}
+              sortColumn={1}
+              tableTitle="Partial Data Collection"
+              rows={withdnase}
+              itemsPerPage={5}
+            />
+          )}
+        </Grid2>
+        <Grid2 xs={12}>
+          {/* Type C */}
           {typec && (
             <DataTable
               columns={tableCols(globals, true)}
-              tableTitle="Classification in Type C biosamples (DNase-seq not available)"
+              tableTitle="Ancillary Collection"
               rows={typec}
               sortColumn={1}
               itemsPerPage={5}

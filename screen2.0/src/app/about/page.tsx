@@ -53,7 +53,7 @@ export default function About() {
             across all profiles and select the DHS with the highest signal (read depth normalized signal) as the rDHS for each cluster. This
             iterative clustering and selection process continues until it results in a list of non-overlapping rDHSs—2.2 million rDHSs in
             human and 1.2 rDHSs in mouse—representing all DHSs (Figure 3). We then further selected rDHSs with high DNase signal in at least
-            one biosample (defined as a Z-score `{">"}` 1.64, see details on defining high signal below). Finally, from this subset of high
+            one biosample (defined as a Z-score {">"} 1.64, see details on defining high signal below). Finally, from this subset of high
             signal rDHSs, we selected all elements that were also supported by high H3K4me3, H3K27ac, and/or CTCF ChIP-seq signals in
             concerted biosamples (i.e., samples with complementary assay coverage). This resulted in a total of 926,535 human cCREs and
             339,815 mouse cCREs (Figure 2).
@@ -72,7 +72,7 @@ export default function About() {
             rDHS. The signals of H3K4me3 and H3K27ac were averaged across an extended region— the rDHS plus a 500-bp flanking region on each
             side—to account for these histone marks at the flanking nucleosomes. We then took the log10 of these signals and computed a
             Z-score for each rDHS compared with all other rDHSs within a biosample. rDHSs with a raw signal of 0 were assigned a Z-score of
-            -10. For all analysis we defined `&quot;`high signal`&quot;` as a Z-score greater than 1.64, a threshold corresponding to the
+            -10. For all analysis we defined &quot; high signal &quot; as a Z-score greater than 1.64, a threshold corresponding to the
             95th percentile of a one-tailed test. We define a max-Z of a rDHS as the maximum z-score for a signal across all surveyed
             biosamples.
           </Typography>
@@ -92,8 +92,8 @@ export default function About() {
           <Typography variant="h4">Classification of cCREs</Typography>
           <Typography>
             Many uses of cCREs are based on the regulatory role associated with their biochemical signatures. Thus, we putatively defined
-            cCREs in one of the following annotation groups based on each element`&apos;`s dominant biochemical signals across all available
-            biosamples. Analogous to GENCODE`&apos;`s catalog of genes, which are defined irrespective of their varying expression levels
+            cCREs in one of the following annotation groups based on each element&apos;s dominant biochemical signals across all available
+            biosamples. Analogous to GENCODE&apos;s catalog of genes, which are defined irrespective of their varying expression levels
             and alternative transcripts across different cell types, we provide a general, cell type-agnostic classification of cCREs based
             on the max-Zs as well as its proximity to the nearest annotated TSS:
           </Typography>
@@ -184,22 +184,22 @@ export default function About() {
           <Typography>
             We downloaded associations reported in the NHGRI-EBI genome-wide association studies (GWAS) catalog as of January 1, 2019.
             Because mixed populations complicate linkage disequilibrium (LD) structures, we only selected studies that were performed on a
-            single population. For each study, we downloaded all reported SNPs (p `{">"}` 10-6), even those that were just under genome wide
-            significance. We then intersected all reported SNPs and SNPs in high LD (r2 `{">"}` 0.7), with GRCh38 cCREs. These results are
+            single population. For each study, we downloaded all reported SNPs (p {">"} 10-6), even those that were just under genome wide
+            significance. We then intersected all reported SNPs and SNPs in high LD (r2 {">"} 0.7), with GRCh38 cCREs. These results are
             available through the SCREEN GWAS app.
           </Typography>
           <Typography variant="h5">Determining Cell Types with cCREs Enriched in GWAS SNPs</Typography>
           <Typography>
             For studies with more than 25 lead SNPs, we performed biosample enrichment analysis. For each study, we generated a matching set
-            of control SNPs as follows: for each SNP in the study (p-value `{">"}` 10-6) we selected a SNP on Illumina and Affymetrix SNP
+            of control SNPs as follows: for each SNP in the study (p-value {">"} 10-6) we selected a SNP on Illumina and Affymetrix SNP
             chips that fell within the same population-specific minor allele frequency (MAF) quartile and the same distance to TSS quartile.
             We repeated this process 500 times, generating 500 random control SNPs for each GWAS SNP. Then, for both GWAS and control SNPs,
-            we retrieved all SNPs in high linkage disequilibrium (LD r2 `{">"}` 0.7), creating LD groups. This method was adapted and
+            we retrieved all SNPs in high linkage disequilibrium (LD r2 {">"} 0.7), creating LD groups. This method was adapted and
             modified from the Uncovering Enrichment through Simulation (UES) method developed by the Klein Lab (Hayes et al. 2015).
           </Typography>
           <Typography>
             To assess whether the cCREs in a biosample were enriched in the GWAS SNPs, we intersected GWAS and control LD groups with cCREs
-            with an H3K27ac Z-score `{">"}` 1.64 in the biosample. To avoid overcounting, we pruned the overlaps, counting each LD group
+            with an H3K27ac Z-score {">"} 1.64 in the biosample. To avoid overcounting, we pruned the overlaps, counting each LD group
             once per biosample. We modified the UES method by calculating p-values from Z-scores for performing statistical testing. We
             calculated enrichment for overlapping cCREs by comparing the GWAS LD groups with the 500 matched controls. Finally, we applied a
             false discovery rate threshold of 5% to each study.

@@ -16,7 +16,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import CloseIcon from '@mui/icons-material/Close';
 import Rampage from "./ccredetails/rampage";
-import { GeneExpression } from "./ccredetails/gene-expression";
+import { GeneExpression } from "./ccredetails/geneexpression";
 
 /**
  * @todo:

@@ -1,11 +1,13 @@
 "use client"
 import { DataTable, DataTableProps, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import React, { useCallback, useState } from "react"
-import { Box, Typography, Menu, Checkbox, Stack, MenuItem, FormControlLabel, FormGroup } from "@mui/material"
+import { Box, Typography, Menu, Checkbox, Stack, MenuItem, FormControlLabel, FormGroup, Tooltip } from "@mui/material"
 import { MainResultTableRow, ConservationData } from "../../app/search/types"
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { LoadingMessage } from "../lib/utility"
+import Grid2 from "@mui/material/Unstable_Grid2"
+import { InfoOutlined } from "@mui/icons-material"
 
 interface MainResultsTableProps extends Partial<DataTableProps<any>> {
   loading?: boolean
@@ -24,22 +26,27 @@ function MainResultsTable(props: MainResultsTableProps) {
       {
         header: "Accession",
         value: (row: { accession: string }) => row.accession,
+        HeaderRender: () => <strong><p>Accession</p></strong>
       },
       {
         header: "Class",
-        value: (row: { class: string }) => row.class,
+        value: (row: { class: string }) => row.class === "PLS" ? "Promoter" : row.class === "pELS" ? "Proximal Enhancer" : row.class === "dELS" ? "Distal Enhancer" : row.class,
+        HeaderRender: () => <strong><p>Class</p></strong>
       },
       {
         header: "Chr",
         value: (row: { chromosome: string }) => row.chromosome,
+        HeaderRender: () => <strong><p>Chr</p></strong>
       },
       {
         header: "Start",
         value: (row: { start: string }) => row.start,
+        HeaderRender: () => <strong><p>Start</p></strong>
       },
       {
         header: "End",
         value: (row: { end: string }) => row.end,
+        HeaderRender: () => <strong><p>End</p></strong>
       }
     ]
    
@@ -47,30 +54,80 @@ function MainResultsTable(props: MainResultsTableProps) {
       cols.push({
         header: "DNase",
         value: (row) => (row.dnase && row.dnase.toFixed(2)) || 0,
-      })
-    }
-    if (props.rows[0] && props.rows[0].ctcf !== null) {
-      cols.push({
-        header: "CTCF",
-        value: (row) => (row.ctcf && row.ctcf.toFixed(2)) || 0,
-      })
-    }
-    if (props.rows[0] && props.rows[0].h3k27ac != null) {
-      cols.push({
-        header: "H3K27ac",
-        value: (row) => (row.h3k27ac && row.h3k27ac.toFixed(2)) || 0,
-      })
-    }
-    if (props.rows[0] && props.rows[0].h3k4me3 != null) {
-      cols.push({
-        header: "H3K4me3",
-        value: (row) => (row.h3k4me3 && row.h3k4me3.toFixed(2)) || 0,
+        HeaderRender: () => {
+          return (
+            <Stack direction="row" alignItems={"center"}>
+              <strong><p>DNase</p></strong>
+              <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
+                <InfoOutlined fontSize="small" />
+              </Tooltip>
+            </Stack>
+          )
+        }
       })
     }
     if (props.rows[0] && props.rows[0].atac !== null) {
       cols.push({
         header: "ATAC",
         value: (row) => (row.atac && row.atac.toFixed(2)) || 0,
+        HeaderRender: () => {
+          return (
+            <Stack direction="row" alignItems={"center"}>
+              <strong><p>ATAC</p></strong>
+              <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
+                <InfoOutlined fontSize="small" />
+              </Tooltip>
+            </Stack>
+          )
+        }
+      })
+    }
+    if (props.rows[0] && props.rows[0].ctcf !== null) {
+      cols.push({
+        header: "CTCF",
+        value: (row) => (row.ctcf && row.ctcf.toFixed(2)) || 0,
+        HeaderRender: () => {
+          return (
+            <Stack direction="row" alignItems={"center"}>
+              <strong><p>CTCF</p></strong>
+              <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
+                <InfoOutlined fontSize="small" />
+              </Tooltip>
+            </Stack>
+          )
+        }
+      })
+    }
+    if (props.rows[0] && props.rows[0].h3k27ac != null) {
+      cols.push({
+        header: "H3K27ac",
+        value: (row) => (row.h3k27ac && row.h3k27ac.toFixed(2)) || 0,
+        HeaderRender: () => {
+          return (
+            <Stack direction="row" alignItems={"center"}>
+            <strong><p>H3K27ac</p></strong>
+            <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
+              <InfoOutlined fontSize="small" />
+            </Tooltip>
+          </Stack>
+          )
+        }
+      })
+    }
+    if (props.rows[0] && props.rows[0].h3k4me3 != null) {
+      cols.push({
+        header: "H3K4me3",
+        value: (row) => (row.h3k4me3 && row.h3k4me3.toFixed(2)) || 0,
+        HeaderRender: () => {
+          return (
+            <Stack direction="row" alignItems={"center"}>
+            <strong><p>H3K4me3</p></strong>
+            <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
+              <InfoOutlined fontSize="small" />
+            </Tooltip>
+          </Stack>
+          )
+        }
       })
     }
     //Whenever the state of the checkboxes conflicts with the state of the main component, it triggers a rerender
@@ -107,9 +164,9 @@ function MainResultsTable(props: MainResultsTableProps) {
 
         return (
           <Box>
-            <Stack direction="row" alignItems="flex-start" component="button" onClick={handleClick}>
+            <Stack direction="row" alignItems="center" component="button" onClick={handleClick}>
               <ArrowRightIcon />
-              <Typography variant="body2">Linked Genes</Typography>
+              <strong><p>Linked Genes</p></strong>
             </Stack>
             <Menu
               id="basic-menu"
