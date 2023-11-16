@@ -262,7 +262,6 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
               <StyledTab value={3} label={`${searchParams.get("gene")} RAMPAGE`} />
             }
 
-
             {/* Map opencCREs to tabs */}
             {opencCREs.length > 0 && opencCREs.map((cCRE, i) => {
               return (
@@ -325,11 +324,6 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
             <StyledTab label="In Specific Biosamples" sx={{ alignSelf: "start" }} />
             <StyledTab label="Linked Genes" sx={{ alignSelf: "start" }} />
             <StyledTab label="Nearby Genomic Features" sx={{ alignSelf: "start" }} />
-            <StyledTab label="TF and His-mod Intersection" sx={{ alignSelf: "start" }} />
-            { /*
-           //Disabling this feature (temporary)
-           <StyledTab label="TF Motifs and Sequence Features" sx={{ alignSelf: "start" }} />
-           */}
             <StyledTab label="Linked cCREs in other Assemblies" sx={{ alignSelf: "start" }} />
             <StyledTab label="Associated Gene Expression" sx={{ alignSelf: "start" }} />
             <StyledTab label="Functional Data" sx={{ alignSelf: "start" }} />
