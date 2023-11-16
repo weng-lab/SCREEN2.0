@@ -10,13 +10,13 @@ query geneexpression($assembly: String!, $accessions: [String], $gene_id: [Strin
     accession  
     gene_quantification_files(assembly: $assembly) {
       accession
+      biorep
       quantifications(gene_id_prefix: $gene_id) {
         tpm
         file_accession
         fpkm
       }
     }
-    
   }
 }
  `
