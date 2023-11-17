@@ -6,38 +6,42 @@ import { passesCriteria, passesLinkedGenesFilter } from "./search-helpers"
 import { MainQueryParams, cCREData, MainResultTableRows, MainResultTableRow } from "./types"
 
 export async function fetchRows(mainQueryParams: MainQueryParams, accessions?: string[]) {
-    //Should be able to send server-side query here
-    let mainQueryResult: ApolloQueryResult<any>
+  //Should be able to send server-side query here
+  let mainQueryResult: ApolloQueryResult<any>
 
-    //This needs to be split up since the query will fail if accessions is passed and is null unlike other fields
-    //Main Query should probably just be passed the entire mainQueryParams object, no?
-    if (accessions) {
-      mainQueryResult = await MainQuery(
-        mainQueryParams.assembly,
-        mainQueryParams.chromosome,
-        mainQueryParams.start,
-        mainQueryParams.end,
-        mainQueryParams.Biosample.biosample,
-        mainQueryParams.distanceFromcCRE,
-        //This is the limit of distance linked gene
-        //Default is 3, leaving null for now
-        //TODO dynamically change this away from 3
-        null,
-        accessions
-      )
-    } else {
-      mainQueryResult = await MainQuery(
-        mainQueryParams.assembly,
-        mainQueryParams.chromosome,
-        mainQueryParams.start,
-        mainQueryParams.end,
-        mainQueryParams.Biosample.biosample,
-        mainQueryParams.distanceFromcCRE,
-        null
-      )
-    }
-      
-      return(generateRows(mainQueryResult, mainQueryParams.Biosample.biosample, mainQueryParams))
+  //This needs to be split up since the query will fail if accessions is passed and is null unlike other fields
+  //Main Query should probably just be passed the entire mainQueryParams object, no?
+  if (accessions) {
+    mainQueryResult = await MainQuery(
+      mainQueryParams.assembly,
+      mainQueryParams.chromosome,
+      mainQueryParams.start,
+      mainQueryParams.end,
+      mainQueryParams.Biosample.biosample,
+      mainQueryParams.distanceFromcCRE,
+      //This is the limit of distance linked gene
+      //Default is 3, leaving null for now
+      //TODO dynamically change this away from 3
+      null,
+      accessions
+    )
+  } else {
+    mainQueryResult = await MainQuery(
+      mainQueryParams.assembly,
+      mainQueryParams.chromosome,
+      mainQueryParams.start,
+      mainQueryParams.end,
+      mainQueryParams.Biosample.biosample,
+      mainQueryParams.distanceFromcCRE,
+      null
+    )
+  }
+
+  if (mainQueryResult) {
+    return (generateRows(mainQueryResult, mainQueryParams.Biosample.biosample, mainQueryParams))
+  } else {
+    return ([])
+  }
 }
 
 /**
