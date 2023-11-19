@@ -89,7 +89,7 @@ export function ErrorMessage(props: { error: Error }) {
       >
         <Alert severity="error" variant="filled">
           <AlertTitle>Error</AlertTitle>
-          There was an error loading. — <strong>{"Error"}</strong>
+          There was an error loading
         </Alert>
       </Snackbar>
     </Grid2>

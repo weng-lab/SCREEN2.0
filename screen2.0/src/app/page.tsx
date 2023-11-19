@@ -36,14 +36,14 @@ export default function Home() {
               <Divider />
               <Stack direction="row" pl={1} >
                 <Box position={"relative"} minWidth={"30px"}>
-                  <Image objectFit="contain" src={humanIcon} alt={""} fill />
+                  <Image style={{objectFit: "contain"}} src={humanIcon} alt={""} fill />
                 </Box>
                 <Typography p={1} align="left">Human (hg38)</Typography>
               </Stack>
               <Divider />
               <Stack direction="row" pl={1} >
                 <Box position={"relative"} minWidth={"30px"}>
-                  <Image objectFit="contain" src={mouseIcon} alt={""} fill />
+                  <Image style={{objectFit: "contain"}} src={mouseIcon} alt={""} fill />
                 </Box>
                 <Typography p={1} align="left">Mouse (mm10)</Typography>
               </Stack>

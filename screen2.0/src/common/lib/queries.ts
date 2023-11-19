@@ -312,7 +312,7 @@ export async function linkedGenesQuery(assembly: "GRCh38" | "mm10", accession: s
  * @returns cCREs matching the search
  */
 export async function MainQuery(assembly: string = null, chromosome: string = null, start: number = null, end: number = null, biosample: string = null, nearbygenesdistancethreshold: number, nearbygeneslimit: number, accessions: string[] = null) {
-  console.log("queried with: " + assembly, chromosome, start, end, biosample + `${accessions ? "with accessions" : "no accessions"}`)
+  console.log("queried with: " + assembly, chromosome, start, end, biosample + `${accessions ? " with accessions" : " no accessions"}`)
   let data: ApolloQueryResult<any>
   try {
     data = await getClient().query({
@@ -365,10 +365,19 @@ export async function UMAPQuery(assembly: "grch38" | "mm10", assay: "DNase" | "H
 export const getGlobals = async (assembly: "GRCh38" | "mm10") => {
   // console.log(assembly)
   let res: Response
-  if (assembly === "GRCh38") {
-    res = await fetch(Config.API.HumanGlobals)
-  } else if (assembly === "mm10") {
-    res = await fetch(Config.API.MouseGlobals)
+  try {
+    if (assembly === "GRCh38") {
+        res = await fetch(Config.API.HumanGlobals)
+      } else if (assembly === "mm10") {
+        res = await fetch(Config.API.MouseGlobals)
+      }
+  } catch (error) {
+    console.log(error)
+  } finally {
+    if (res) {
+      return res.json()
+    } else {
+      return undefined
+    }
   }
-  return res.json()
 }

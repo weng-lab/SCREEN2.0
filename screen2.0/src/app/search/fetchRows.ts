@@ -68,7 +68,7 @@ export async function generateRows(QueryResult: ApolloQueryResult<any>, biosampl
         ctcf: biosample ? currentElement.ctspecific.ctcf_zscore : currentElement.ctcf_zscore,
         atac: biosample ? currentElement.ctspecific.atac_zscore : currentElement.atac_zscore,
         linkedGenes: { distancePC: currentElement.genesallpc.pc.intersecting_genes, distanceAll: currentElement.genesallpc.all.intersecting_genes, CTCF_ChIAPET: [], RNAPII_ChIAPET: [] },
-        conservationData: {mammals: currentElement.mammals, primates: currentElement.primates, vertebrates: currentElement.vertebrates}
+        conservationData: { mammals: currentElement.mammals, primates: currentElement.primates, vertebrates: currentElement.vertebrates }
       })
       accessions.push(currentElement.info.accession)
     }
