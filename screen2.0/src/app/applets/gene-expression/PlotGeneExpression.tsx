@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation"
 import { Stack } from "@mui/material"
 import { Range2D, Point2D, linearTransform2D } from "jubilant-carnival"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
-import { tissueColors } from "../../../common/lib/colors"
+import { newTissueColors } from "../../../common/lib/colors"
 import { stringToColour } from "../../search/ccredetails/utils"
 
 type QuantificationData = {
@@ -70,7 +70,7 @@ export function PlotGeneExpression(props: {
               assay_term_name: biosample.assay_term_name,
               accession: biosample.accession,
               value: val, tpm: q.tpm, file_accession: q.file_accession,
-              color: tissueColors[biosample["tissue"]] ? tissueColors[biosample["tissue"]] :
+              color: newTissueColors[biosample["tissue"]] ? newTissueColors[biosample["tissue"]] :
                 stringToColour(biosample["tissue"]),
               replicate_num: file.biorep
             })
@@ -99,8 +99,7 @@ export function PlotGeneExpression(props: {
             value: sum / r.length, 
             tpm: r[0].tpm, 
             file_accession: r[0].file_accession,
-            color: tissueColors[k] ? tissueColors[k] :
-              stringToColour(k),
+            color: newTissueColors[k] ? newTissueColors[k] :  newTissueColors.Missing,
             replicate_num: 0
           }
         )

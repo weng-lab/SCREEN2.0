@@ -142,6 +142,7 @@ export function DataMatrices(props: TabPanelProps) {
   useEffect(() => setData(props.matrices != -1 ? props.matrices.data : {}), [props.matrices])
 
   // Direct copy from old SCREEN
+  //Colors for 
   const [scMap, scc] = useMemo(
     () =>
       colorMap(

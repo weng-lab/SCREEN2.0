@@ -136,13 +136,13 @@ export const tissueColors = {
   vasculature: "#880000",
 }
 
-const x = "#ff00ff"
+const x = "#000000"
 
-const newTissueColors = {
+export const newTissueColors = {
   liver: "#aabb66",
   nerve: "#fdd800",
   skin: "#6f74b6",
-  muscle: "3aba8d4",
+  muscle: "#aba8d4",
   "large intestine": "#ca9855",
   pancreas: "#995724",
   //Unassigned
@@ -185,8 +185,6 @@ const newTissueColors = {
   //Unassigned
   limb: x,
   "blood vessel": "#ee2124",
-  //Set to bright pink for visibility
-  NA: "#ff00ff",
   brain: "#ebe71b",
   heart: "#652c90",
   breast: "#4ac2c5",
@@ -197,5 +195,9 @@ const newTissueColors = {
   trachea: x,
   //Unassigned
   thymus: x,
-  testis: "#aaabab"
+  testis: "#aaabab",
+  NA: "#000000",
+  //Added as fallback
+  Missing: "#000000"
 }
+//4:15, 3:30
