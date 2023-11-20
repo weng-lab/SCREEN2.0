@@ -198,6 +198,13 @@ export const newTissueColors = {
   testis: "#aaabab",
   NA: "#000000",
   //Added as fallback
-  Missing: "#000000"
+  Missing: "#000000",
+  //Sample Types
+  "cell line": "#000000",
+  "primary cell": "#000000",
+  "in vitro differentiated cells": "#000000",
+  tissue: "#000000",
+  organoid: "#000000",
+
 }
 //4:15, 3:30

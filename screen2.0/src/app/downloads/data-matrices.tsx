@@ -34,6 +34,7 @@ import { H3K4me3 } from "../../common/lib/colors"
 import { H3K27ac } from "../../common/lib/colors"
 import { CA_CTCF } from "../../common/lib/colors"
 import { ApolloQueryResult } from "@apollo/client"
+import { newTissueColors } from "../../common/lib/colors"
 
 //Need to type these
 interface TabPanelProps {
@@ -77,23 +78,18 @@ function oneRange(min, max) {
 }
 
 // Direct copy from old SCREEN
-function spacedColors(n) {
-  const r = []
-  for (let i = 0; i < 360; i += 360 / n) r.push(`hsl(${i},50%,40%)`)
-  return r
-}
-
-// Direct copy from old SCREEN
 function colorMap(strings) {
-  const c = {}
-  strings.forEach((x) => (c[x] = c[x] ? c[x] + 1 : 1))
+  const counts = {}
+  //Count the occurences of each tissue/sample
+  strings.forEach((x) => (counts[x] = counts[x] ? counts[x] + 1 : 1))
+  //Removes duplicate elements in the array
   strings = [...new Set(strings)]
-  const r = {}
-  const colors = spacedColors(strings.length)
-  strings.forEach((x, i) => {
-    r[x] = colors[i]
+  const colors = {}
+  //For each tissue/sample type
+  strings.forEach((x) => {
+    colors[x] = newTissueColors[x] ?? "#000000"
   })
-  return [r, c]
+  return [colors, counts]
 }
 
 // Styling for selected biosamples modal
@@ -141,13 +137,12 @@ export function DataMatrices(props: TabPanelProps) {
   //Update data state variable whenever the data changes
   useEffect(() => setData(props.matrices != -1 ? props.matrices.data : {}), [props.matrices])
 
+  console.log(data && data.ccREBiosampleQuery && data.ccREBiosampleQuery.biosamples)
   // Direct copy from old SCREEN
-  //Colors for 
   const [scMap, scc] = useMemo(
     () =>
       colorMap(
-        (data &&
-          data.ccREBiosampleQuery &&
+        (data && data.ccREBiosampleQuery &&
           data.ccREBiosampleQuery.biosamples.filter((x) => x.umap_coordinates).map((x) => x.sampleType)) ||
           []
       ),
@@ -156,7 +151,9 @@ export function DataMatrices(props: TabPanelProps) {
   const [oMap, occ] = useMemo(
     () =>
       colorMap(
-        (data && data.ccREBiosampleQuery && data.ccREBiosampleQuery.biosamples.filter((x) => x.umap_coordinates).map((x) => x.ontology)) ||
+        (data && data.ccREBiosampleQuery && 
+          //Check if umap coordinates exist, then map each entry to it's ontology (tissue type). This array of strings is passed to colorMap
+          data.ccREBiosampleQuery.biosamples.filter((x) => x.umap_coordinates).map((x) => x.ontology)) ||
           []
       ),
     [data]
