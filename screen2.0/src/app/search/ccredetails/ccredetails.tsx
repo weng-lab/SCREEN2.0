@@ -48,19 +48,19 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
       {page === 4 && <GeneExpression assembly={assembly} genes={geneList} />}
       {page === 5 && <FunctionData accession={accession} coordinates={{ chromosome: region.chrom, start: +region.start.toString().replace(/\D/g, ""), end: +region.end.toString().replace(/\D/g, "") }} assembly={assembly} />}
       {page === 6 &&
-      <>
-        <TfSequenceFeatures assembly={assembly} coordinates={{ chromosome: region.chrom, start: +(region.start.replace(/\D/g, "")), end: +(region.end.replace(/\D/g, "")) }} />
-        <TfIntersection
-          assembly={assembly}
-          coordinates={{
-            chromosome: region.chrom,
-            start: +region.start.toString().replace(/\D/g, ""),
-            end: +region.end.toString().replace(/\D/g, ""),
-          }}
-        />
-      </>
+        <>
+          <TfSequenceFeatures assembly={assembly} coordinates={{ chromosome: region.chrom, start: +(region.start.replace(/\D/g, "")), end: +(region.end.replace(/\D/g, "")) }} />
+          <TfIntersection
+            assembly={assembly}
+            coordinates={{
+              chromosome: region.chrom,
+              start: +region.start.toString().replace(/\D/g, ""),
+              end: +region.end.toString().replace(/\D/g, ""),
+            }}
+          />
+        </>
       }
-      {assembly!=="mm10" && page === 8 && <Rampage gene={genes.distancePC[0].name} />}
+      {assembly !== "mm10" && page === 7 && <Rampage gene={genes.distancePC[0].name} />}
     </>
   )
 }
