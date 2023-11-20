@@ -538,7 +538,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/icons-material@npm:^5.11.0, @mui/icons-material@npm:^5.14.9":
+"@mui/icons-material@npm:^5.11.0":
   version: 5.14.16
   resolution: "@mui/icons-material@npm:5.14.16"
   dependencies:
@@ -551,6 +551,22 @@ __metadata:
     "@types/react":
       optional: true
   checksum: 9ecd90cf83986c69b9ee5c9b49e0e26bb043b8d3f99327a6530a0c862fe2652f1c8e1f84a59a39bf72e848e7e5cfe9e7ea494bc583f061b6a0215e750fcea777
+  languageName: node
+  linkType: hard
+
+"@mui/icons-material@npm:^5.14.18":
+  version: 5.14.18
+  resolution: "@mui/icons-material@npm:5.14.18"
+  dependencies:
+    "@babel/runtime": ^7.23.2
+  peerDependencies:
+    "@mui/material": ^5.0.0
+    "@types/react": ^17.0.0 || ^18.0.0
+    react: ^17.0.0 || ^18.0.0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: 719cd99f739a34fedf64bd718942611b12fb86a58a0401c58e2a90dad690e90e33f55cd973c3792c070449fcc44390e22f9319a9129712bc8b41fbfe4611dccc
   languageName: node
   linkType: hard
 
@@ -6715,7 +6731,7 @@ __metadata:
     "@apollo/experimental-nextjs-app-support": ^0.5.1
     "@emotion/react": ^11.11.1
     "@emotion/styled": ^11.11.0
-    "@mui/icons-material": ^5.14.9
+    "@mui/icons-material": ^5.14.18
     "@mui/lab": ^5.0.0-alpha.150
     "@mui/material": ^5.14.14
     "@types/node": ^20.8.3
@@ -7802,11 +7818,11 @@ semantic-ui-react@latest:
 
 "typescript@patch:typescript@5.2.2#~builtin<compat/typescript>":
   version: 5.2.2
-  resolution: "typescript@patch:typescript@npm%3A5.2.2#~builtin<compat/typescript>::version=5.2.2&hash=85af82"
+  resolution: "typescript@patch:typescript@npm%3A5.2.2#~builtin<compat/typescript>::version=5.2.2&hash=f3b441"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 07106822b4305de3f22835cbba949a2b35451cad50888759b6818421290ff95d522b38ef7919e70fb381c5fe9c1c643d7dea22c8b31652a717ddbd57b7f4d554
+  checksum: 0f4da2f15e6f1245e49db15801dbee52f2bbfb267e1c39225afdab5afee1a72839cd86000e65ee9d7e4dfaff12239d28beaf5ee431357fcced15fb08583d72ca
   languageName: node
   linkType: hard
 
