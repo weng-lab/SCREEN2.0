@@ -66,7 +66,7 @@ function MainResultsTable(props: MainResultsTableProps) {
         }
       })
     }
-    if (props.rows[0] && props.rows[0].atac !== null) {
+    /*(if (props.rows[0] && props.rows[0].atac !== null) {
       cols.push({
         header: "ATAC",
         value: (row) => (row.atac && row.atac.toFixed(2)) || 0,
@@ -81,7 +81,7 @@ function MainResultsTable(props: MainResultsTableProps) {
           )
         }
       })
-    }
+    }*/
     if (props.rows[0] && props.rows[0].ctcf !== null) {
       cols.push({
         header: "CTCF",
