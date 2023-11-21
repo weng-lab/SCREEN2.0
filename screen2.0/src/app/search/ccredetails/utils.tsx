@@ -12,7 +12,7 @@ import { Point2D, Range2D, linearTransform2D } from "jubilant-carnival"
 import { Fragment } from "react"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { GeneExpEntry } from "../../applets/gene-expression/types"
-import { newTissueColors } from "../../../common/lib/colors"
+import { tissueColors } from "../../../common/lib/colors"
 import { RampagePeak } from "./rampage"
 import { Stack } from "@mui/material"
 
@@ -61,7 +61,7 @@ export function PlotActivityProfiles(props: {
         expID: biosample["expAccession"],
         tissue: biosample["tissue"],
         strand: biosample["strand"],
-        color: newTissueColors[biosample["tissue"]] ?? "#000000",
+        color: tissueColors[biosample["tissue"]] ?? tissueColors.missing,
       })
       tissues[biosample["tissue"]].values.sort((a,b)=>b.value-a.value);
       if (sort === "byTissueMax" && tissues[biosample["tissue"]].sum > max) max = tissues[biosample["tissue"]].sum

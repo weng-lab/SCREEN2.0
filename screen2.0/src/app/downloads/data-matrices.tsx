@@ -34,7 +34,7 @@ import { H3K4me3 } from "../../common/lib/colors"
 import { H3K27ac } from "../../common/lib/colors"
 import { CA_CTCF } from "../../common/lib/colors"
 import { ApolloQueryResult } from "@apollo/client"
-import { newTissueColors } from "../../common/lib/colors"
+import { tissueColors } from "../../common/lib/colors"
 
 //Need to type these
 interface TabPanelProps {
@@ -87,7 +87,7 @@ function colorMap(strings) {
   const colors = {}
   //For each tissue/sample type
   strings.forEach((x) => {
-    colors[x] = newTissueColors[x] ?? newTissueColors.Missing
+    colors[x] = tissueColors[x] ?? tissueColors.missing
   })
   return [colors, counts]
 }

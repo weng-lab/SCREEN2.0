@@ -61,7 +61,7 @@ export const Enhancer_GeneLinks = "#A872E5"
 
 const x = "#000000"
 
-export const newTissueColors = {
+export const tissueColors = {
   liver: "#aabb66",
   nerve: "#fdd800",
   skin: "#6f74b6",
@@ -121,7 +121,7 @@ export const newTissueColors = {
   testis: "#aaabab",
   NA: "#000000",
   //Added as fallback
-  Missing: "#000000",
+  missing: "#000000",
   //Sample Types
   "cell line": "#993333",
   "primary cell": "#859933",
