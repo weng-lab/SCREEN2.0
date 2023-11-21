@@ -87,7 +87,7 @@ function colorMap(strings) {
   const colors = {}
   //For each tissue/sample type
   strings.forEach((x) => {
-    colors[x] = newTissueColors[x] ?? "#000000"
+    colors[x] = newTissueColors[x] ?? newTissueColors.Missing
   })
   return [colors, counts]
 }

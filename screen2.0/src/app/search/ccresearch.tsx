@@ -205,6 +205,8 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
           const cCRE_info = fetchedRows.find((row) => row.accession === id)
           if (cCRE_info) {
             const region = { start: cCRE_info?.start, chrom: cCRE_info?.chromosome, end: cCRE_info?.end }
+            //If we wanted to allow open cCREs that aren't in the table, would need to get: coordinates and linked genes
+            //Linked genes passed to both gene expression and rampage 
             return (
               { ID: cCRE_info.accession, region: region, linkedGenes: cCRE_info.linkedGenes }
             )
@@ -236,7 +238,6 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
           >
             <MenuIcon />
           </IconButton>
-          {/* Scroll buttons for tabs not showing up properly? */}
           <Tabs
             //Key needed to force scroll buttons to show up properly when child elements change
             key={opencCREs.length}

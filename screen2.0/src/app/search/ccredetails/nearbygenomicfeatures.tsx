@@ -8,6 +8,7 @@ import { Typography } from "@mui/material"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { LoadingMessage, createLink } from "../../../common/lib/utility"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import Link from "next/link"
 
 const genesDistance = (
   coordinates: { chromosome: string; start: number; end: number },
@@ -107,6 +108,9 @@ export const NearByGenomicFeatures: React.FC<{
       return {
         name: c.accession,
         distance: cCREDistance(c.coordinates, coordinates),
+        chromosome: c.coordinates.chromosome,
+        start: c.coordinates.start,
+        end: c.coordinates.end
       }
     })
   let snps =
@@ -143,7 +147,8 @@ export const NearByGenomicFeatures: React.FC<{
                     },
                     {
                       header: "Distance (in bp)",
-                      value: (row) => row.distance.toLocaleString("en-US"),
+                      value: (row) => row.distance,
+                      render: (row) => row.distance.toLocaleString("en-US"),
                     },
                   ]}
                   sortColumn={1}
@@ -163,19 +168,25 @@ export const NearByGenomicFeatures: React.FC<{
                       header: "Accession",
                       value: (row) => row.name,
                       render: (row) => (
-                        <Typography
-                          component="button"
-                          onClick={() => router.push(pathname + "?" + createQueryString("accession", row.name))}
-                          variant="body2"
-                          color="primary"
+                        <Link 
+                          href={pathname + `?assembly=${assembly}&chromosome=${row.chromosome}&start=${row.start}&end=${row.end}&accession=${row.name}&page=2`}
+                          target="_blank"
+                          rel="noopener noreferrer"
                         >
-                          {row.name}
-                        </Typography>
+                          <Typography
+                            component="button"
+                            variant="body2"
+                            color="primary"
+                          >
+                            {row.name}
+                          </Typography>
+                        </Link>
                       ),
                     },
                     {
                       header: "Distance (in bp)",
-                      value: (row) => row.distance.toLocaleString("en-US"),
+                      value: (row) => row.distance,
+                      render: (row) => row.distance.toLocaleString("en-US"),
                     },
                   ]}
                   sortColumn={1}
@@ -204,7 +215,8 @@ export const NearByGenomicFeatures: React.FC<{
                     },
                     {
                       header: "Distance (in bp)",
-                      value: (row) => row.distance.toLocaleString("en-US"),
+                      value: (row) => row.distance,
+                      render: (row) => row.distance.toLocaleString("en-US"),
                     },
                   ]}
                   sortColumn={1}
