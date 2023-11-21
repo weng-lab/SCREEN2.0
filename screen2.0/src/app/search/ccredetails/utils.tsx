@@ -205,7 +205,7 @@ const tissueValues = sort==="byValue" ? byValueTissues: sort==="byTissueMax" ? b
   )
 }
 
-export const z_score = (d) => (d === -11.0 || d === "--" || d === undefined ? "--" : d.toFixed(2))
+export const z_score = (d) => (d === -11.0 || d === "--" || d === undefined || d === 0 ? "--" : d ? d.toFixed(2): 0)
 
 export const GROUP_COLOR_MAP: Map<string, string> = new Map([
   ["CA-CTCF", "Chromatin Accessible with CTCF:#00B0F0"],
