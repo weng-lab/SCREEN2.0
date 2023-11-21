@@ -636,7 +636,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                     }}
                   />
                 </Grid2>
-                <Grid2 xs={12} lg={12} xl={12}>
+                {/*<Grid2 xs={12} lg={12} xl={12}>
                   <RangeSlider
                     title="ATAC"
                     width="100%"
@@ -652,7 +652,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                       setATACEnd(value[1])
                     }}
                   />
-                </Grid2>
+                </Grid2>*/}
               </Grid2>
             </AccordionDetails>
           </Accordion>
