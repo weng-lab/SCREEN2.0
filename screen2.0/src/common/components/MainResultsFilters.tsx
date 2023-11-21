@@ -331,8 +331,8 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
       ]
 
       return filteredBiosamples.sort().map((tissue: [string, {}[]], i) => {
-        // If user enters a search, check to see if the tissue name matches
-        if (tissue[0].includes(SearchString)) {
+        // Filter shown accordians by if their table contains the search
+        if (SearchString ? tissue[1].find(obj => obj["summaryName"].toLowerCase().includes(SearchString.toLowerCase())) : true) {
           return (
             <Accordion key={tissue[0]}>
               <AccordionSummary
@@ -352,6 +352,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                   rows={tissue[1]}
                   dense
                   searchable
+                  search={SearchString}
                   highlighted={BiosampleHighlight}
                   sortColumn={1}
                   onRowClick={(row, i) => {
@@ -474,14 +475,14 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
         </AccordionSummary>
         <AccordionDetails>
           <Grid2 container spacing={2}>
-            <Grid2 xs={6}>
+            <Grid2 xs={5}>
               <Typography>Tissue/Organ</Typography>
             </Grid2>
-            <Grid2 xs={6}>
+            <Grid2 xs={7}>
               <TextField
                 value={SearchString}
                 size="small"
-                label="Filter Tissues"
+                label="Search Biosamples"
                 onChange={(event) => setSearchString(event.target.value)}
               />
             </Grid2>
