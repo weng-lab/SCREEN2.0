@@ -238,9 +238,9 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
         h3k27ac: d.cCREZScores.find((cz) => cz.assay.toLowerCase() === "h3k27ac")
           ? d.cCREZScores.find((cz) => cz.assay.toLowerCase() === "h3k27ac").score
           : -11.0,
-        atac: d.cCREZScores.find((cz) => cz.assay.toLowerCase() === "atac")
+        /*atac: d.cCREZScores.find((cz) => cz.assay.toLowerCase() === "atac")
           ? d.cCREZScores.find((cz) => cz.assay.toLowerCase() === "atac").score
-          : -11.0,
+          : -11.0,*/
       }
     })
 
@@ -275,7 +275,7 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
       } else {
         type = "typec"
       }
-      if (t.dnase !== -11.0 && t.ctcf !== -11.0 && t.h3k27ac !== -11.0 && t.h3k4me3 !== -11.0 && t.atac !== -11.0) {
+      if (t.dnase !== -11.0 && t.ctcf !== -11.0 && t.h3k27ac !== -11.0 && t.h3k4me3 !== -11.0) {
         type = "typea"
       }
       return { ...t, type, group }
