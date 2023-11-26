@@ -185,10 +185,10 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
   )
 
   useEffect(() => {
-    setLoading(true)
     // @ts-expect-error
     //Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
     startTransition(async () => {
+      setLoading(true)
       //fetch rows
       setPage(searchParams.get("page") ? Number(searchParams.get("page")) : 0)
       let fetchedRows;
@@ -220,6 +220,17 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
       setLoading(false)
     })
   }, [props.mainQueryParams, searchParams])
+
+  //I want this to only resend the query when one of the true query params, assembly, chr, start, end, biosample changes
+  //I want the table rows to be recalculated when:
+    //The query changes (underlying data changes)
+    //The filters change
+  //The issue is that I want to be able to recaluculate rows wihout sending the query again (when filters change)
+  //The way this is set up right now, the filtering function is called after the query is sent (bad)
+    //It's really daisy chained badly
+
+  //What I want is a collection of items that are used for the query, and a separate collection of items that are used to filter the query
+  //The url needs to contain both
 
   const findTabByID = (id: string, numberOfTable: number = 2) => {
     return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)
@@ -355,7 +366,6 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
                   sessionStorage.getItem('filenames')}` : null
               }
               itemsPerPage={10}
-              loading={loading}
               assembly={props.mainQueryParams.assembly}
               onRowClick={handleTableClick}
             />

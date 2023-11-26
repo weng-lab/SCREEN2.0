@@ -18,7 +18,7 @@ export async function fetchRows(mainQueryParams: MainQueryParams, accessions?: s
       mainQueryParams.start,
       mainQueryParams.end,
       mainQueryParams.Biosample.biosample,
-      mainQueryParams.distanceFromcCRE,
+      1000000,
       //This is the limit of distance linked gene
       //Default is 3, leaving null for now
       //TODO dynamically change this away from 3
@@ -32,10 +32,11 @@ export async function fetchRows(mainQueryParams: MainQueryParams, accessions?: s
       mainQueryParams.start,
       mainQueryParams.end,
       mainQueryParams.Biosample.biosample,
-      mainQueryParams.distanceFromcCRE,
+      1000000,
       null
     )
   }
+  console.log(mainQueryResult.data.cCRESCREENSearch)
 
   if (mainQueryResult) {
     return (generateRows(mainQueryResult, mainQueryParams.Biosample.biosample, mainQueryParams))

@@ -83,7 +83,6 @@ export type MainQueryParams = {
   genesToFind: string[]
   distancePC: boolean
   distanceAll: boolean
-  distanceFromcCRE: number
   CTCF_ChIA_PET: boolean
   RNAPII_ChIA_PET: boolean
 }

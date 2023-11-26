@@ -72,7 +72,6 @@ export default async function Search({
     genesToFind: searchParams.genesToFind ? searchParams.genesToFind.split(",") : null,
     distancePC: searchParams.distancePC ? checkTrueFalse(searchParams.distancePC) : true,
     distanceAll: searchParams.distanceAll ? checkTrueFalse(searchParams.distanceAll) : true,
-    distanceFromcCRE: searchParams.distanceFromcCRE ? Number(searchParams.distanceFromcCRE) : 1000000,
     CTCF_ChIA_PET: searchParams.CTCF_ChIA_PET ? checkTrueFalse(searchParams.CTCF_ChIA_PET) : true,
     RNAPII_ChIA_PET: searchParams.RNAPII_ChIA_PET ? checkTrueFalse(searchParams.RNAPII_ChIA_PET) : true
   }

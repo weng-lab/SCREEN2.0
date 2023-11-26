@@ -6,6 +6,7 @@ import MenuIcon from "@mui/icons-material/Menu"
 import Link from "next/link"
 import Image from "next/image"
 import screenIcon from "../../../public/screenIcon.png"
+import test_logo from "../../../public/test_logo.png"
 
 import MainSearch from "./mainsearch/MainSearch"
 
@@ -88,7 +89,7 @@ function ResponsiveAppBar() {
           <Toolbar disableGutters sx={{ justifyContent: "space-between" }}>
             {/* Display Icon on left when >=900px */}
             <Link href={"/"}>
-              <Image src={screenIcon} alt="SCREEN Icon" height={40} width={40} />
+              <Image src={test_logo} alt="SCREEN Icon" height={40} width={40} />
             </Link>
             <Typography
               variant="h5"

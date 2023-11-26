@@ -1,16 +1,12 @@
 "use client"
 import { DataTable, DataTableProps, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
-import React, { useCallback, useState } from "react"
+import React, { useState } from "react"
 import { Box, Typography, Menu, Checkbox, Stack, MenuItem, FormControlLabel, FormGroup, Tooltip } from "@mui/material"
 import { MainResultTableRow, ConservationData } from "../../app/search/types"
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { LoadingMessage } from "../lib/utility"
-import Grid2 from "@mui/material/Unstable_Grid2"
 import { InfoOutlined } from "@mui/icons-material"
 
 interface MainResultsTableProps extends Partial<DataTableProps<any>> {
-  loading?: boolean
   assembly: "GRCh38" | "mm10"
 }
 
@@ -258,9 +254,6 @@ function MainResultsTable(props: MainResultsTableProps) {
   }
 
   return (
-    props.loading ?
-      <LoadingMessage />
-      :
       <DataTable
         key={props.rows[0] && props.rows[0].dnase + props.rows[0].ctcf + props.rows[0].h3k27ac + props.rows[0].h3k4me3 +  props.rows[0].atac  + columns.toString() + distance + CTCF_ChIAPET + RNAPII_ChIAPET}
         rows={props.rows}
