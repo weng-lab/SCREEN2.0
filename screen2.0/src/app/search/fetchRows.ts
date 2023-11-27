@@ -36,7 +36,6 @@ export async function fetchRows(mainQueryParams: MainQueryParams, accessions?: s
       null
     )
   }
-  console.log(mainQueryResult.data.cCRESCREENSearch)
 
   if (mainQueryResult) {
     return (generateRows(mainQueryResult, mainQueryParams.Biosample.biosample, mainQueryParams))

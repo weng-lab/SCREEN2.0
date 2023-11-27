@@ -357,8 +357,8 @@ export const CcreSearch = (props: { mainQueryParams: MainQueryParams, globals })
                   :
                   props.mainQueryParams.gene ?
                     `cCREs overlapping ${props.mainQueryParams.gene} - ${props.mainQueryParams.chromosome}:${props.mainQueryParams.start.toLocaleString("en-US")}-${props.mainQueryParams.end.toLocaleString("en-US")}`
-                    :  props.mainQueryParams.snpid ?  `cCREs overlapping ${props.mainQueryParams.snpid} - ${props.mainQueryParams.chromosome}:${props.mainQueryParams.start.toLocaleString("en-US")}-${props.mainQueryParams.end.toLocaleString("en-US")}` :
-                    `Searching ${props.mainQueryParams.chromosome} in ${props.mainQueryParams.assembly} from ${props.mainQueryParams.start.toLocaleString("en-US")} to ${props.mainQueryParams.end.toLocaleString("en-US")}`
+                    : props.mainQueryParams.snpid ? `cCREs overlapping ${props.mainQueryParams.snpid} - ${props.mainQueryParams.chromosome}:${props.mainQueryParams.start.toLocaleString("en-US")}-${props.mainQueryParams.end.toLocaleString("en-US")}` :
+                      `Searching ${props.mainQueryParams.chromosome} in ${props.mainQueryParams.assembly} from ${props.mainQueryParams.start.toLocaleString("en-US")} to ${props.mainQueryParams.end.toLocaleString("en-US")}`
               }
               titleHoverInfo={props.mainQueryParams.bed_intersect ?
                 `${sessionStorage.getItem("warning") === "true" ? "The file you uploaded, " + sessionStorage.getItem('filenames') + ", is too large to be completely intersected. Results are incomplete."

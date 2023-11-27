@@ -1,7 +1,7 @@
 /**
  * Send the request to our Server from a server component
  */
-
+'use server'
 import { getClient } from "../lib/client"
 import { ApolloQueryResult, gql } from "@apollo/client"
 import Config from "../../config.json"
@@ -212,31 +212,6 @@ const UMAP_QUERY = gql`
   }
 `
 
-export const TOP_TISSUES = gql`
-  query q($accession: [String!], $assembly: String!) {
-    ccREBiosampleQuery(assembly: $assembly) {
-      biosamples {
-        sampleType
-        cCREZScores(accession: $accession) {
-          score
-          assay
-          experiment_accession
-        }
-        name
-        ontology
-      }
-    }
-    cCREQuery(assembly: $assembly, accession: $accession) {
-      accession
-      group
-      dnase: maxZ(assay: "DNase")
-      h3k4me3: maxZ(assay: "H3K4me3")
-      h3k27ac: maxZ(assay: "H3K27ac")
-      ctcf: maxZ(assay: "CTCF")
-    }
-  }
-`
-
 const LINKED_GENES_QUERY = gql`
   query ($assembly: String!, $accession: [String]!) {
     linkedGenesQuery(assembly: $assembly, accession: $accession) {
@@ -362,8 +337,8 @@ export async function UMAPQuery(assembly: "grch38" | "mm10", assay: "DNase" | "H
  *
  * @returns the shortened byCellType file from https://downloads.wenglab.org/databyct.json
  */
-export const getGlobals = async (assembly: "GRCh38" | "mm10") => {
-  // console.log(assembly)
+export async function getGlobals(assembly: "GRCh38" | "mm10"){
+  console.log("called globals with" + assembly)
   let res: Response
   try {
     if (assembly === "GRCh38") {
@@ -375,6 +350,7 @@ export const getGlobals = async (assembly: "GRCh38" | "mm10") => {
     console.log(error)
   } finally {
     if (res) {
+      console.log("returning")
       return res.json()
     } else {
       return undefined

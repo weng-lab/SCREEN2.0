@@ -1,16 +1,20 @@
 // Search Results Page
+"use client"
 import { CcreSearch } from "./ccresearch"
 import { getGlobals } from "../../common/lib/queries"
 import { CellTypeData, MainQueryParams } from "./types"
 import { checkTrueFalse } from "./search-helpers"
+import { startTransition, useEffect, useState } from "react"
 
 
-export default async function Search({
+export default function Search({
   // Object from URL, see https://nextjs.org/docs/app/api-reference/file-conventions/page#searchparams-optional
   searchParams,
 }: {
   searchParams: { [key: string]: string | undefined }
 }) {
+  const [globals, setGlobals] = useState<CellTypeData>(null)
+  
   //Get search parameters and define defaults.
   const mainQueryParams: MainQueryParams = {
     //Flag that user-entered accessions are to be used
@@ -77,14 +81,24 @@ export default async function Search({
   }
 
   //Contains cell type data of the specified assembly
-  const globals: CellTypeData = await getGlobals(mainQueryParams.assembly)
+  useEffect(() => {
+    // Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
+    // @ts-expect-error
+    startTransition(async () => {
+      setGlobals(await getGlobals(mainQueryParams.assembly))
+    })
+  }, [])
 
+  
   return (
     <main>
-      <CcreSearch
-        mainQueryParams={mainQueryParams}
-        globals={globals}
-      />
+      {/* This logic should be able to be removed if following good practices, this feels wrong */}
+      {globals &&
+        <CcreSearch
+          mainQueryParams={mainQueryParams}
+          globals={globals}
+        />
+      }
     </main>
   )
 }
