@@ -42,7 +42,7 @@
     "@mui/icons-material": "^5.14.9",
     "@mui/lab": "^5.0.0-alpha.150",
     "@mui/material": "^5.14.14",
-    "@types/node": "^20.8.3",
+    "@types/node": "^20.10.0",
     "@types/react": "^18.2.37",
     "@types/react-dom": "18.2.14",
     "@weng-lab/psychscreen-ui-components": "^0.8.0-a.2",
