@@ -350,7 +350,6 @@ export async function getGlobals(assembly: "GRCh38" | "mm10"){
     console.log(error)
   } finally {
     if (res) {
-      console.log("returning")
       return res.json()
     } else {
       return undefined

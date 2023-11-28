@@ -1,9 +1,9 @@
 // Search Results Page
 "use client"
-import { getGlobals } from "../../common/lib/queries"
-import { CellTypeData, MainQueryParams } from "./types"
-import { checkTrueFalse } from "./search-helpers"
-import React, { startTransition, useCallback, useEffect, useState } from "react"
+import { MainQuery, getGlobals, linkedGenesQuery } from "../../common/lib/queries"
+import { CellTypeData, MainQueryParams, cCREData } from "./types"
+import { checkTrueFalse, sendMainQueries } from "./search-helpers"
+import React, { startTransition, useCallback, useEffect, useMemo, useState } from "react"
 import { styled } from '@mui/material/styles';
 import { Divider, IconButton, Tab, Tabs, Typography, Box } from "@mui/material"
 import MainResultsTable from "../../common/components/MainResultsTable"
@@ -11,8 +11,8 @@ import MainResultsFilters from "../../common/components/MainResultsFilters"
 import { CcreDetails } from "./ccredetails/ccredetails"
 import { ReadonlyURLSearchParams, usePathname, useRouter, useSearchParams } from "next/navigation"
 import { GenomeBrowserView } from "./gbview/genomebrowserview"
-import { LinkedGenesData, MainResultTableRow, MainResultTableRows } from "./types"
-import { fetchRows } from "./fetchRows"
+import { LinkedGenesData, MainResultTableRow, rawQueryData } from "./types"
+import { generateFilteredRows } from "./search-helpers"
 import { Drawer } from "@mui/material"
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar'
 import Toolbar from '@mui/material/Toolbar'
@@ -21,6 +21,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import CloseIcon from '@mui/icons-material/Close';
 import Rampage from "./ccredetails/rampage";
 import { GeneExpression } from "./ccredetails/geneexpression";
+import { ApolloQueryResult } from "@apollo/client"
 
 /**
  * @todo:
@@ -96,10 +97,13 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const [open, setOpen] = React.useState(true);
   const [page, setPage] = useState(searchParams.page ? Number(searchParams.page) : 0)
   const [detailsPage, setDetailsPage] = useState(0)
-  const [tableRows, setTableRows] = useState<MainResultTableRows>([])
-  const [loading, setLoading] = useState(false)
-  const [opencCREs, setOpencCREs] = useState<{ ID: string, region: { start: string, chrom: string, end: string }, linkedGenes: LinkedGenesData }[]>([])
+  const [opencCREs, setOpencCREs] = useState<{
+    ID: string,
+    region: { start: string, chrom: string, end: string },
+    linkedGenes: LinkedGenesData
+  }[]>([])
   const [globals, setGlobals] = useState<CellTypeData>(null)
+  const [rawQueryData, setRawQueryData] = useState<rawQueryData>(null)
   const [mainQueryParams, setMainQueryParams] = useState<MainQueryParams>(
     {
       //Flag that user-entered accessions are to be used
@@ -165,15 +169,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       RNAPII_ChIA_PET: searchParams.RNAPII_ChIA_PET ? checkTrueFalse(searchParams.RNAPII_ChIA_PET) : true
     }
   )
-
-  //Contains cell type data of the specified assembly
-  useEffect(() => {
-    // Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
-    // @ts-expect-error
-    startTransition(async () => {
-      setGlobals(await getGlobals(mainQueryParams.assembly))
-    })
-  }, [])
 
   const handleDrawerOpen = () => { setOpen(true) }
   const handleDrawerClose = () => { setOpen(false) }
@@ -261,43 +256,89 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     }, [searchParams]
   )
 
+  //It's maybe not great to use useEffect like this: https://react.dev/learn/you-might-not-need-an-effect
+  //Doing this to be able to use startTransition to invoke server action
+
+  //Fetch byCellType
   useEffect(() => {
+    // Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
     // @ts-expect-error
-    //Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
     startTransition(async () => {
-      setLoading(true)
-      //fetch rows
-      setPage(searchParams.page ? Number(searchParams.page) : 0)
-      let fetchedRows;
-      if (mainQueryParams.bed_intersect) {
-        fetchedRows = await fetchRows(mainQueryParams, sessionStorage.getItem("bed intersect")?.split(' '))
-      } else {
-        fetchedRows = await fetchRows(mainQueryParams)
-      }
-      setTableRows(fetchedRows)
-      //initialize open cCREs
-      const accessions = searchParams.accession?.split(',')
-      accessions ?
-        setOpencCREs(accessions.map((id) => {
-          const cCRE_info = fetchedRows.find((row) => row.accession === id)
-          if (cCRE_info) {
-            const region = { start: cCRE_info?.start, chrom: cCRE_info?.chromosome, end: cCRE_info?.end }
-            //If we wanted to allow open cCREs that aren't in the table, would need to get: coordinates and linked genes
-            //Linked genes passed to both gene expression and rampage 
-            return (
-              { ID: cCRE_info.accession, region: region, linkedGenes: cCRE_info.linkedGenes }
-            )
-          } else {
-            console.log(`Couldn't find ${id} in the table`)
-            return null
-          }
-        }).filter((x) => x != null))
-        :
-        setOpencCREs([])
-      setLoading(false)
+      setGlobals(await getGlobals(mainQueryParams.assembly))
     })
-    //!!! This might cause unexpected behavior
-  }, [mainQueryParams, searchParams])
+  }, [])
+
+  //Fetch raw cCRE data (main query and linked genes)
+  useEffect(() => {
+    // Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
+    // @ts-expect-error
+    startTransition(async () => {
+      setRawQueryData(
+        await sendMainQueries(
+          mainQueryParams.assembly,
+          mainQueryParams.chromosome,
+          mainQueryParams.start,
+          mainQueryParams.end,
+          mainQueryParams.Biosample.biosample,
+          1000000,
+          null,
+          mainQueryParams.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined
+        ))
+    })
+  }, [mainQueryParams.bed_intersect, mainQueryParams.assembly, mainQueryParams.chromosome, mainQueryParams.start, mainQueryParams.end,  mainQueryParams.Biosample.biosample])
+
+  //Generate and filter rows
+  //Main Query params is not good as a dependency here, need to change the filter functions
+  const filteredTableRows = useMemo(() => {
+    if (rawQueryData) {
+      return (generateFilteredRows(rawQueryData, mainQueryParams.Biosample.biosample, mainQueryParams))
+    } else return []
+  }, [rawQueryData, mainQueryParams.Biosample.biosample, mainQueryParams])
+
+  // useEffect(() => {
+
+  // }, [])
+
+  //Todo move linked genes filter function call
+  //Todo initialize open cCREs
+
+  // useEffect(() => {
+  //   // @ts-expect-error
+  //   //Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
+  //   startTransition(async () => {
+  //     setLoading(true)
+  //     //fetch rows
+  //     setPage(searchParams.page ? Number(searchParams.page) : 0)
+  //     let fetchedRows;
+  //     if (mainQueryParams.bed_intersect) {
+  //       fetchedRows = await fetchRows(mainQueryParams, sessionStorage.getItem("bed intersect")?.split(' '))
+  //     } else {
+  //       fetchedRows = await fetchRows(mainQueryParams)
+  //     }
+  //     setTableRows(fetchedRows)
+  //     //initialize open cCREs
+  //     const accessions = searchParams.accession?.split(',')
+  //     accessions ?
+  //       setOpencCREs(accessions.map((id) => {
+  //         const cCRE_info = fetchedRows.find((row) => row.accession === id)
+  //         if (cCRE_info) {
+  //           const region = { start: cCRE_info?.start, chrom: cCRE_info?.chromosome, end: cCRE_info?.end }
+  //           //If we wanted to allow open cCREs that aren't in the table, would need to get: coordinates and linked genes
+  //           //Linked genes passed to both gene expression and rampage 
+  //           return (
+  //             { ID: cCRE_info.accession, region: region, linkedGenes: cCRE_info.linkedGenes }
+  //           )
+  //         } else {
+  //           console.log(`Couldn't find ${id} in the table`)
+  //           return null
+  //         }
+  //       }).filter((x) => x != null))
+  //       :
+  //       setOpencCREs([])
+  //     setLoading(false)
+  //   })
+  //   //!!! This is infinite re-rendering because mainQuery Params is never the same through object equality
+  // }, [mainQueryParams, searchParams])
 
   const findTabByID = (id: string, numberOfTable: number = 2) => {
     return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)
@@ -421,7 +462,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
             {page === 0 && (
               <Box>
                 <MainResultsTable
-                  rows={tableRows}
+                  rows={filteredTableRows}
                   tableTitle={
                     mainQueryParams.bed_intersect ?
                       `Intersecting by uploaded .bed file in ${mainQueryParams.assembly}${sessionStorage.getItem("warning") === "true" ? " (Partial)" : ""}`

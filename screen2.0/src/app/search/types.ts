@@ -1,3 +1,5 @@
+import { ApolloQueryResult } from "@apollo/client"
+
 export type GenomicRegion = {
   chrom: string
   start: string
@@ -211,4 +213,17 @@ export type URLParams = {
     RNAPII_ChIA_PET: boolean
     Accessions: string
     Page: number
+}
+
+export type rawQueryData = {
+  mainQueryData: ApolloQueryResult<any>,
+  linkedGenesData: {
+    [key: string]: {
+      genes: {
+        geneName: string;
+        linkedBy: "CTCF-ChIAPET" | "RNAPII-ChIAPET";
+        biosample: string;
+      }[];
+    };
+  }
 }

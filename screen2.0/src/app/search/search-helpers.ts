@@ -1,5 +1,7 @@
 
-import { cCREData, MainQueryParams, CellTypeData, UnfilteredBiosampleData, FilteredBiosampleData, URLParams, MainResultTableRows, MainResultTableRow } from "./types"
+import { cCREData, MainQueryParams, CellTypeData, UnfilteredBiosampleData, FilteredBiosampleData, URLParams, MainResultTableRows, MainResultTableRow, rawQueryData } from "./types"
+import { ApolloQueryResult } from "@apollo/client"
+import { MainQuery, linkedGenesQuery } from "../../common/lib/queries"
 
 
 /**
@@ -34,9 +36,11 @@ export function outputT_or_F(input: boolean): "t" | "f" {
  * @returns
  */
 export function passesCriteria(currentElement: cCREData, biosample: string | null, mainQueryParams: MainQueryParams): boolean {
-  if (passesChromatinFilter(currentElement, biosample, mainQueryParams) && passesConservationFilter(currentElement, mainQueryParams) && passesClassificationFilter(currentElement, mainQueryParams)) {
-    return true
-  } else return false
+  return (
+    passesChromatinFilter(currentElement, biosample, mainQueryParams) &&
+    passesConservationFilter(currentElement, mainQueryParams) &&
+    passesClassificationFilter(currentElement, mainQueryParams)
+  )
 }
 
 function passesChromatinFilter(currentElement: cCREData, biosample: string | null, mainQueryParams: MainQueryParams) {
@@ -299,4 +303,106 @@ export function constructURL(
 
   const url = `${urlBasics}${biosampleFilters}${chromatinFilters}${classificationFilters}${conservationFilters}${urlParams.genesToFind.length > 0 ? linkedGenesFilter : ""}${accessionsAndPage}`
   return url
+}
+
+/**
+ * 
+ * @param assembly "GRCh38" | "mm10"
+ * @param chromosome string
+ * @param start number
+ * @param end number
+ * @param biosample string
+ * @param nearbygenesdistancethreshold number, 1,000,000 is default if undefined
+ * @param nearbygeneslimit number, 3 is default if undefined
+ * @param intersectedAccessions string[], optional, for intersected accessions from bed upload
+ * @returns \{mainQueryData: ..., linkedGenesData: ...}, (mostly) raw data. If biosample passed, 
+ * the ctspecific zscores in mainQueryData are used to replace normal zscores to avoid passing biosample
+ * to specify where to select scores from later in generateFilteredRows
+ */
+export async function sendMainQueries (
+  assembly: "GRCh38" | "mm10",
+  chromosome: string,
+  start: number,
+  end: number,
+  biosample: string,
+  nearbygenesdistancethreshold: number,
+  nearbygeneslimit: number,
+  intersectedAccessions?: string[]
+): Promise<rawQueryData> {
+  const mainQueryData = await MainQuery(
+    assembly,
+    chromosome,
+    start,
+    end,
+    biosample,
+    nearbygenesdistancethreshold,
+    nearbygeneslimit,
+    intersectedAccessions
+  )
+  let cCRE_data: cCREData[] = mainQueryData?.data?.cCRESCREENSearch
+  const accessions: string[] = []
+  //If biosample-specific data returned, sync z-scores with ctspecific to avoid having to select ctspecific later
+  if (biosample) {
+    cCRE_data = cCRE_data.map(cCRE => {
+      cCRE.dnase_zscore = cCRE.ctspecific.dnase_zscore;
+      cCRE.atac_zscore = cCRE.ctspecific.atac_zscore;
+      cCRE.enhancer_zscore = cCRE.ctspecific.h3k27ac_zscore;
+      cCRE.promoter_zscore = cCRE.ctspecific.h3k4me3_zscore;
+      cCRE.ctcf_zscore = cCRE.ctspecific.ctcf_zscore;
+      return cCRE
+    })
+  }
+  cCRE_data.forEach((currentElement) => {
+    accessions.push(currentElement.info.accession)
+  })
+  const linkedGenesData = await linkedGenesQuery(assembly, accessions)
+  return ({mainQueryData, linkedGenesData})
+}
+
+export function generateFilteredRows(
+  rawQueryData: rawQueryData,
+  biosample: string | null,
+  mainQueryParams: MainQueryParams): 
+  MainResultTableRows
+  {
+  const cCRE_data: cCREData[] = rawQueryData.mainQueryData.data.cCRESCREENSearch
+  const rows: MainResultTableRows = []
+  // Used for Linked Gene Query
+  const accessions: string[] = []
+  cCRE_data.forEach((currentElement) => {
+    if (passesCriteria(currentElement, biosample, mainQueryParams)) {
+      rows.push({
+        accession: currentElement.info.accession,
+        class: currentElement.pct,
+        chromosome: currentElement.chrom,
+        start: currentElement.start.toLocaleString("en-US"),
+        end: (currentElement.start + currentElement.len).toLocaleString("en-US"),
+        dnase: biosample ? currentElement.ctspecific.dnase_zscore : currentElement.dnase_zscore,
+        h3k4me3: biosample ? currentElement.ctspecific.h3k4me3_zscore : currentElement.promoter_zscore,
+        h3k27ac: biosample ? currentElement.ctspecific.h3k27ac_zscore : currentElement.enhancer_zscore,
+        ctcf: biosample ? currentElement.ctspecific.ctcf_zscore : currentElement.ctcf_zscore,
+        atac: biosample ? currentElement.ctspecific.atac_zscore : currentElement.atac_zscore,
+        linkedGenes: { distancePC: currentElement.genesallpc.pc.intersecting_genes, distanceAll: currentElement.genesallpc.all.intersecting_genes, CTCF_ChIAPET: [], RNAPII_ChIAPET: [] },
+        conservationData: { mammals: currentElement.mammals, primates: currentElement.primates, vertebrates: currentElement.vertebrates }
+      })
+      accessions.push(currentElement.info.accession)
+    }
+  })
+  const otherLinked = rawQueryData.linkedGenesData
+  rows.forEach((row: MainResultTableRow) => {
+    const accession = row.accession
+    const genesToAdd = otherLinked[accession] ?? null
+
+    genesToAdd && genesToAdd.genes.forEach(gene => {
+      if (gene.linkedBy === "CTCF-ChIAPET") {
+        row.linkedGenes.CTCF_ChIAPET.push({ name: gene.geneName, biosample: gene.biosample })
+      }
+      else if (gene.linkedBy === "RNAPII-ChIAPET") {
+        row.linkedGenes.RNAPII_ChIAPET.push({ name: gene.geneName, biosample: gene.biosample })
+      }
+    })
+  })
+
+  //Is there a better way to structure this code?
+  return rows.filter((row) => passesLinkedGenesFilter(row, mainQueryParams))
 }
