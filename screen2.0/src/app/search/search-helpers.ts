@@ -30,90 +30,72 @@ export function outputT_or_F(input: boolean): "t" | "f" {
 
 /**
  *
- * @param currentElement the cCRE to check
+ * @param row the cCRE row to check
  * @param biosample the selected biosample
  * @param mainQueryParams
  * @returns
  */
-export function passesCriteria(currentElement: cCREData, biosample: string | null, mainQueryParams: MainQueryParams): boolean {
+export function passesFilters(row: MainResultTableRow, mainQueryParams: MainQueryParams): boolean {
   return (
-    passesChromatinFilter(currentElement, biosample, mainQueryParams) &&
-    passesConservationFilter(currentElement, mainQueryParams) &&
-    passesClassificationFilter(currentElement, mainQueryParams)
+    passesChromatinFilter(row, mainQueryParams) &&
+    passesConservationFilter(row, mainQueryParams) &&
+    passesClassificationFilter(row, mainQueryParams) &&
+    passesLinkedGenesFilter(row, mainQueryParams)
   )
 }
 
-function passesChromatinFilter(currentElement: cCREData, biosample: string | null, mainQueryParams: MainQueryParams) {
-  const dnase = biosample ? currentElement.ctspecific.dnase_zscore : currentElement.dnase_zscore
-  const h3k4me3 = biosample ? currentElement.ctspecific.h3k4me3_zscore : currentElement.promoter_zscore
-  const h3k27ac = biosample ? currentElement.ctspecific.h3k27ac_zscore : currentElement.enhancer_zscore
-  const ctcf = biosample ? currentElement.ctspecific.ctcf_zscore : currentElement.ctcf_zscore
-  const atac = biosample ? currentElement.ctspecific.atac_zscore : currentElement.atac_zscore
-  if (
+function passesChromatinFilter(row: MainResultTableRow, mainQueryParams: MainQueryParams) {
+  const dnase = row.dnase
+  const h3k4me3 = row.h3k4me3
+  const h3k27ac = row.h3k27ac
+  const ctcf = row.ctcf
+  const atac = row.atac
+  return (
     (dnase ? mainQueryParams.dnase_s <= dnase && dnase <= mainQueryParams.dnase_e : true) &&
     (h3k4me3 ? mainQueryParams.h3k4me3_s <= h3k4me3 && h3k4me3 <= mainQueryParams.h3k4me3_e : true) &&
     (h3k27ac ? mainQueryParams.h3k27ac_s <= h3k27ac && h3k27ac <= mainQueryParams.h3k27ac_e : true) &&
     (ctcf ? mainQueryParams.ctcf_s <= ctcf && ctcf <= mainQueryParams.ctcf_e : true) &&
     (atac ? mainQueryParams.atac_s <= atac && atac <= mainQueryParams.atac_e: true) 
-  ) {
-    return true
-  } else return false
+  )
 }
 
-function passesConservationFilter(currentElement: cCREData, mainQueryParams: MainQueryParams) {
-  const primates = currentElement.primates
-  const mammals = currentElement.mammals
-  const vertebrates = currentElement.vertebrates
-  if (
+function passesConservationFilter(row: MainResultTableRow, mainQueryParams: MainQueryParams) {
+  const primates = row.conservationData.primates
+  const mammals = row.conservationData.mammals
+  const vertebrates = row.conservationData.vertebrates
+  return (
     mainQueryParams.prim_s <= primates &&
     primates <= mainQueryParams.prim_e &&
     mainQueryParams.mamm_s <= mammals &&
     mammals <= mainQueryParams.mamm_e &&
     mainQueryParams.vert_s <= vertebrates &&
     vertebrates <= mainQueryParams.vert_e
-  ) {
-    return true
-  } else return false
+  )
 }
 
 //Consider changing this to a switch, might be slightly faster and would be cleaner.
-function passesClassificationFilter(currentElement: cCREData, mainQueryParams: MainQueryParams) {
-  const currentElementClass: string = currentElement.pct
-  if (currentElementClass === "CA") {
-    if (mainQueryParams.CA === true) {
-      return true
-    } else return false
-  } else if (currentElementClass === "CA-CTCF") {
-    if (mainQueryParams.CA_CTCF === true) {
-      return true
-    } else return false
-  } else if (currentElementClass === "CA-H3K4me3") {
-    if (mainQueryParams.CA_H3K4me3 === true) {
-      return true
-    } else return false
-  } else if (currentElementClass === "CA-TF") {
-    if (mainQueryParams.CA_TF === true) {
-      return true
-    } else return false
-  } else if (currentElementClass === "dELS") {
-    if (mainQueryParams.dELS === true) {
-      return true
-    } else return false
-  } else if (currentElementClass === "pELS") {
-    if (mainQueryParams.pELS === true) {
-      return true
-    } else return false
-  } else if (currentElementClass === "PLS") {
-    if (mainQueryParams.PLS === true) {
-      return true
-    } else return false
-  } else if (currentElementClass === "TF") {
-    if (mainQueryParams.TF === true) {
-      return true
-    } else return false
-  } else {
-    console.log("Something went wrong, cCRE class not determined!")
-    return false
+function passesClassificationFilter(row: MainResultTableRow, mainQueryParams: MainQueryParams) {
+  const currentElementClass: string = row.class
+  switch (currentElementClass) {
+    case "CA":
+      return mainQueryParams.CA;
+    case "CA-CTCF":
+      return mainQueryParams.CA_CTCF;
+    case "CA-H3K4me3":
+      return mainQueryParams.CA_H3K4me3;
+    case "CA-TF":
+      return mainQueryParams.CA_TF;
+    case "dELS":
+      return mainQueryParams.dELS;
+    case "pELS":
+      return mainQueryParams.pELS;
+    case "PLS":
+      return mainQueryParams.PLS;
+    case "TF":
+      return mainQueryParams.TF;
+    default:
+      console.error("Something went wrong, cCRE class not determined!");
+      return false;
   }
 }
 
@@ -361,48 +343,41 @@ export async function sendMainQueries (
 
 export function generateFilteredRows(
   rawQueryData: rawQueryData,
-  biosample: string | null,
-  mainQueryParams: MainQueryParams): 
-  MainResultTableRows
-  {
+  mainQueryParams: MainQueryParams):
+  MainResultTableRows {
   const cCRE_data: cCREData[] = rawQueryData.mainQueryData.data.cCRESCREENSearch
-  const rows: MainResultTableRows = []
-  // Used for Linked Gene Query
-  const accessions: string[] = []
-  cCRE_data.forEach((currentElement) => {
-    if (passesCriteria(currentElement, biosample, mainQueryParams)) {
-      rows.push({
-        accession: currentElement.info.accession,
-        class: currentElement.pct,
-        chromosome: currentElement.chrom,
-        start: currentElement.start.toLocaleString("en-US"),
-        end: (currentElement.start + currentElement.len).toLocaleString("en-US"),
-        dnase: biosample ? currentElement.ctspecific.dnase_zscore : currentElement.dnase_zscore,
-        h3k4me3: biosample ? currentElement.ctspecific.h3k4me3_zscore : currentElement.promoter_zscore,
-        h3k27ac: biosample ? currentElement.ctspecific.h3k27ac_zscore : currentElement.enhancer_zscore,
-        ctcf: biosample ? currentElement.ctspecific.ctcf_zscore : currentElement.ctcf_zscore,
-        atac: biosample ? currentElement.ctspecific.atac_zscore : currentElement.atac_zscore,
-        linkedGenes: { distancePC: currentElement.genesallpc.pc.intersecting_genes, distanceAll: currentElement.genesallpc.all.intersecting_genes, CTCF_ChIAPET: [], RNAPII_ChIAPET: [] },
-        conservationData: { mammals: currentElement.mammals, primates: currentElement.primates, vertebrates: currentElement.vertebrates }
-      })
-      accessions.push(currentElement.info.accession)
-    }
-  })
   const otherLinked = rawQueryData.linkedGenesData
-  rows.forEach((row: MainResultTableRow) => {
-    const accession = row.accession
-    const genesToAdd = otherLinked[accession] ?? null
-
+  //Assembly unfiltered rows
+  const rows: MainResultTableRows = []
+  cCRE_data.forEach((currentElement) => {
+    const genesToAdd = otherLinked[currentElement.info.accession] ?? null
+    const CTCF_ChIAPET_ToAdd: { name: string, biosample: string }[] = []
+    const RNAPII_ChIAPET_ToAdd: { name: string, biosample: string }[] = []
+    //Gather lists of CTCF-ChIAPET and RNAPII-ChIAPET linked genes
     genesToAdd && genesToAdd.genes.forEach(gene => {
       if (gene.linkedBy === "CTCF-ChIAPET") {
-        row.linkedGenes.CTCF_ChIAPET.push({ name: gene.geneName, biosample: gene.biosample })
+        CTCF_ChIAPET_ToAdd.push({ name: gene.geneName, biosample: gene.biosample })
       }
       else if (gene.linkedBy === "RNAPII-ChIAPET") {
-        row.linkedGenes.RNAPII_ChIAPET.push({ name: gene.geneName, biosample: gene.biosample })
+        RNAPII_ChIAPET_ToAdd.push({ name: gene.geneName, biosample: gene.biosample })
       }
+    })
+    rows.push({
+      accession: currentElement.info.accession,
+      class: currentElement.pct,
+      chromosome: currentElement.chrom,
+      start: currentElement.start.toLocaleString("en-US"),
+      end: (currentElement.start + currentElement.len).toLocaleString("en-US"),
+      dnase: currentElement.dnase_zscore,
+      h3k4me3: currentElement.promoter_zscore,
+      h3k27ac: currentElement.enhancer_zscore,
+      ctcf: currentElement.ctcf_zscore,
+      atac: currentElement.atac_zscore,
+      linkedGenes: { distancePC: currentElement.genesallpc.pc.intersecting_genes, distanceAll: currentElement.genesallpc.all.intersecting_genes, CTCF_ChIAPET: CTCF_ChIAPET_ToAdd, RNAPII_ChIAPET: RNAPII_ChIAPET_ToAdd },
+      conservationData: { mammals: currentElement.mammals, primates: currentElement.primates, vertebrates: currentElement.vertebrates }
     })
   })
 
-  //Is there a better way to structure this code?
-  return rows.filter((row) => passesLinkedGenesFilter(row, mainQueryParams))
+  //This could be structured better
+  return rows.filter((row) => passesFilters(row, mainQueryParams))
 }

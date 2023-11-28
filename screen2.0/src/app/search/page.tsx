@@ -291,9 +291,9 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   //Main Query params is not good as a dependency here, need to change the filter functions
   const filteredTableRows = useMemo(() => {
     if (rawQueryData) {
-      return (generateFilteredRows(rawQueryData, mainQueryParams.Biosample.biosample, mainQueryParams))
+      return (generateFilteredRows(rawQueryData, mainQueryParams))
     } else return []
-  }, [rawQueryData, mainQueryParams.Biosample.biosample, mainQueryParams])
+  }, [rawQueryData, mainQueryParams])
 
   // useEffect(() => {
 
