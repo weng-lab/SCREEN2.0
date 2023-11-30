@@ -424,7 +424,7 @@ export function constructURL(
   return url
 }
 
-export function constructMainQueryParamsFromURL(searchParams): MainQueryParams {
+export function constructMainQueryParamsFromURL(searchParams: { [key: string]: string | undefined }): MainQueryParams {
   return (
     {
       coordinates: {

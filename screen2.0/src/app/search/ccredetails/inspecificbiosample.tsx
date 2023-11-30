@@ -307,7 +307,7 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
         </Grid2>
         <Grid2 xs={12}>
           {/* Type A */}
-          {typea && (
+          {typea && globals ? (
             <DataTable
               columns={tableCols(globals)}
               tableTitle="Core Collection"
@@ -315,11 +315,11 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
               sortColumn={1}
               itemsPerPage={5}
             />
-          )}
+          ) : <LoadingMessage />}
         </Grid2>
         <Grid2 xs={12}>
           {/* Type B & D */}
-          {withdnase && (
+          {withdnase && globals ? (
             <DataTable
               columns={tableCols(globals)}
               sortColumn={1}
@@ -327,11 +327,11 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
               rows={withdnase}
               itemsPerPage={5}
             />
-          )}
+          ) : <LoadingMessage />}
         </Grid2>
         <Grid2 xs={12}>
           {/* Type C */}
-          {typec && (
+          {typec && globals ? (
             <DataTable
               columns={tableCols(globals, true)}
               tableTitle="Ancillary Collection"
@@ -339,7 +339,7 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
               sortColumn={1}
               itemsPerPage={5}
             />
-          )}
+          ) : <LoadingMessage />}
         </Grid2>
       </Grid2>
     )

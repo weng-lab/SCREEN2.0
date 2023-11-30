@@ -17,6 +17,7 @@ import {
   FormLabel,
   Stack,
   IconButton,
+  CircularProgress,
 } from "@mui/material/"
 
 import Radio from '@mui/material/Radio';
@@ -36,6 +37,7 @@ import { gql } from "@apollo/client"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import GeneAutoComplete from "../../app/applets/gene-expression/gene-autocomplete";
 import { InfoOutlined } from "@mui/icons-material";
+import { LoadingMessage } from "../lib/utility";
 
 const marks = [
   {
@@ -252,14 +254,14 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
    */
   const biosampleTables = useMemo(
     () => {
-      const filteredBiosamples: FilteredBiosampleData = filterBiosamples(
+      const filteredBiosamples: FilteredBiosampleData = props.byCellType ? filterBiosamples(
         parseByCellType(props.byCellType),
         Tissue,
         PrimaryCell,
         CellLine,
         InVitro,
         Organoid
-      )
+      ) : []
       const cols = [
         {
           header: "Biosample",
@@ -331,50 +333,52 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
         },
       ]
 
-      return filteredBiosamples.sort().map((tissue: [string, {}[]], i) => {
-        // Filter shown accordians by if their table contains the search
-        if (SearchString ? tissue[1].find(obj => obj["summaryName"].toLowerCase().includes(SearchString.toLowerCase())) : true) {
-          return (
-            <Accordion key={tissue[0]}>
-              <AccordionSummary
-                expandIcon={<KeyboardArrowRightIcon />}
-                sx={{
-                  flexDirection: "row-reverse",
-                  "& .MuiAccordionSummary-expandIconWrapper.Mui-expanded": {
-                    transform: "rotate(90deg)",
-                  },
-                }}
-              >
-                <Typography>{tissue[0][0].toUpperCase() + tissue[0].slice(1)}</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <DataTable
-                  columns={cols}
-                  rows={tissue[1]}
-                  dense
-                  searchable
-                  search={SearchString}
-                  highlighted={BiosampleHighlight}
-                  sortColumn={1}
-                  onRowClick={(row, i) => {
-                    setBiosample({ selected: true, biosample: row.queryValue, tissue: row.biosampleTissue, summaryName: row.summaryName })
-                    setBiosampleHighlight(row)
-                    //Push to router with new biosample to avoid accessing stale Biosample value
-                    router.push(
-                      constructURL(props.mainQueryParams, urlParams, {
-                        selected: true,
-                        biosample: row.queryValue,
-                        tissue: row.biosampleTissue,
-                        summaryName: row.summaryName,
-                      })
-                    )
+      return (
+        filteredBiosamples.sort().map((tissue: [string, {}[]], i) => {
+          // Filter shows accordians by if their table contains the search
+          if (SearchString ? tissue[1].find(obj => obj["summaryName"].toLowerCase().includes(SearchString.toLowerCase())) : true) {
+            return (
+              <Accordion key={tissue[0]}>
+                <AccordionSummary
+                  expandIcon={<KeyboardArrowRightIcon />}
+                  sx={{
+                    flexDirection: "row-reverse",
+                    "& .MuiAccordionSummary-expandIconWrapper.Mui-expanded": {
+                      transform: "rotate(90deg)",
+                    },
                   }}
-                />
-              </AccordionDetails>
-            </Accordion>
-          )
-        }
-      })
+                >
+                  <Typography>{tissue[0][0].toUpperCase() + tissue[0].slice(1)}</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <DataTable
+                    columns={cols}
+                    rows={tissue[1]}
+                    dense
+                    searchable
+                    search={SearchString}
+                    highlighted={BiosampleHighlight}
+                    sortColumn={1}
+                    onRowClick={(row, i) => {
+                      setBiosample({ selected: true, biosample: row.queryValue, tissue: row.biosampleTissue, summaryName: row.summaryName })
+                      setBiosampleHighlight(row)
+                      //Push to router with new biosample to avoid accessing stale Biosample value
+                      router.push(
+                        constructURL(props.mainQueryParams, urlParams, {
+                          selected: true,
+                          biosample: row.queryValue,
+                          tissue: row.biosampleTissue,
+                          summaryName: row.summaryName,
+                        })
+                      )
+                    }}
+                  />
+                </AccordionDetails>
+              </Accordion>
+            )
+          }
+        })
+      )
     },
     // Linter wants to include biosampleTables here as a dependency. Including it breaks intended functionality. Revisit later?
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -517,8 +521,10 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                 </Grid2>
               </Grid2>
             )}
-            <Grid2 xs={12} maxHeight={300} overflow={"auto"}>
-              {biosampleTables}
+            <Grid2 xs={12} maxHeight={300} overflow={"auto"} >
+              <Box sx={{ display: 'flex', flexDirection: "column" }}>
+                {props.byCellType ? biosampleTables : <CircularProgress sx={{margin: "auto"}} />}
+              </Box>
             </Grid2>
             <Grid2 xs={12} sx={{ mt: 1 }}>
               <Typography>Biosample Type</Typography>

@@ -1,15 +1,15 @@
 // Search Results Page
 "use client"
 import { getGlobals } from "../../common/lib/queries"
-import { CellTypeData, MainQueryParams, cCREData } from "./types"
-import { checkTrueFalse, constructMainQueryParamsFromURL, fetchcCREDataAndLinkedGenes } from "./search-helpers"
+import { CellTypeData, MainQueryParams } from "./types"
+import { constructMainQueryParamsFromURL, fetchcCREDataAndLinkedGenes } from "./search-helpers"
 import React, { startTransition, useCallback, useEffect, useMemo, useState } from "react"
 import { styled } from '@mui/material/styles';
-import { Divider, IconButton, Tab, Tabs, Typography, Box } from "@mui/material"
+import { Divider, IconButton, Tab, Tabs, Typography, Box, CircularProgress } from "@mui/material"
 import MainResultsTable from "../../common/components/MainResultsTable"
 import MainResultsFilters from "../../common/components/MainResultsFilters"
 import { CcreDetails } from "./ccredetails/ccredetails"
-import { ReadonlyURLSearchParams, usePathname, useRouter, useSearchParams } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { GenomeBrowserView } from "./gbview/genomebrowserview"
 import { LinkedGenesData, MainResultTableRow, rawQueryData } from "./types"
 import { generateFilteredRows } from "./search-helpers"
@@ -21,6 +21,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import CloseIcon from '@mui/icons-material/Close';
 import Rampage from "./ccredetails/rampage";
 import { GeneExpression } from "./ccredetails/geneexpression";
+import { LoadingMessage } from "../../common/lib/utility"
 
 /**
  * @todo:
@@ -104,11 +105,12 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const [globals, setGlobals] = useState<CellTypeData>(null)
   const [rawQueryData, setRawQueryData] = useState<rawQueryData>(null)
   const [mainQueryParams, setMainQueryParams] = useState<MainQueryParams>(constructMainQueryParamsFromURL(searchParams))
+  const [loadingcCREs, setLoadingcCREs] = useState<boolean>(true)
 
   const numberOfDefaultTabs = searchParams.gene ? (mainQueryParams.coordinates.assembly.toLowerCase() === "mm10" ? 3 : 4) : 2
 
   const handleDrawerOpen = () => { setOpen(true) }
-  const handleDrawerClose = () => { setOpen(false) }  
+  const handleDrawerClose = () => { setOpen(false) }
 
   const handleTableClick = (row: MainResultTableRow) => {
     if (opencCREs.length > 6) { window.alert("Open cCRE limit reached! Please close cCREs to open more") }
@@ -201,10 +203,11 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     startTransition(async () => {
       setGlobals(await getGlobals(mainQueryParams.coordinates.assembly))
     })
-  }, [])
+  }, [mainQueryParams.coordinates.assembly])
 
   //Fetch raw cCRE data (main query and linked genes)
   useEffect(() => {
+    setLoadingcCREs(true)
     // Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
     // @ts-expect-error
     startTransition(async () => {
@@ -218,7 +221,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           1000000,
           null,
           mainQueryParams.searchConfig.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined
-        ))
+        )
+      )
     })
   }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample.biosample])
 
@@ -226,17 +230,21 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   //This may run every time the tab is switched, not ideal, due to object inequality 
   const filteredTableRows = useMemo(() => {
     if (rawQueryData) {
-      return (generateFilteredRows(rawQueryData, mainQueryParams.filterCriteria))
+      setLoadingcCREs(true)
+      const rows = generateFilteredRows(rawQueryData, mainQueryParams.filterCriteria)
+      setLoadingcCREs(false)
+      return (rows)
     } else return []
   }, [rawQueryData, mainQueryParams.filterCriteria])
 
   //Refresh mainQueryParams if route updates, either from filters panel or header search
+  //This almost certainly runs more than I want
   useEffect(() => {
-    
-  }, [])
+    setMainQueryParams(constructMainQueryParamsFromURL(searchParams))
+  }, [searchParams])
 
-  //Todo move linked genes filter function call
-  //Todo initialize open cCREs
+  //Todo initialize open cCREs on load
+  //Loading wheels
 
   // useEffect(() => {
   //   // @ts-expect-error
@@ -283,120 +291,121 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
 
   return (
     <main>
-      {/* This logic should be able to be removed if following good practices, this feels wrong */}
-      {globals &&
-        <Box id="Outer Box" sx={{ display: 'flex' }}>
-          <AppBar id="AppBar" position="fixed" open={open} elevation={1} sx={{ bottom: "auto", top: "auto", backgroundColor: "white" }}>
-            <Toolbar>
-              <IconButton
-                color="primary"
-                aria-label="open drawer"
-                onClick={handleDrawerOpen}
-                edge="start"
-                sx={{ mr: 2, ...(open && { display: 'none' }) }}
-              >
-                <MenuIcon />
-              </IconButton>
-              <Tabs
-                //Key needed to force scroll buttons to show up properly when child elements change
-                key={opencCREs.length}
-                sx={{
-                  '& .MuiTabs-scrollButtons': { color: "black" },
-                  '& .MuiTabs-scrollButtons.Mui-disabled': { opacity: 0.3 },
-                }}
-                allowScrollButtonsMobile
-                variant="scrollable"
-                aria-label="navigation tabs"
-                value={page}
-                onChange={handlePageChange}
-              >
-                {/* Hidden empty icon to keep tab height consistent */}
-                <StyledTab iconPosition="end" icon={<Box sx={{ display: 'none' }} />} value={0} label="Table View" />
-                {!mainQueryParams.searchConfig.bed_intersect &&
-                  <StyledTab value={1} label="Genome Browser View" />
-                }
-                {searchParams.gene &&
-                  <StyledTab value={2} label={`${searchParams.gene} Gene Expression`} />
-                }
-                {searchParams.gene && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" &&
-                  <StyledTab value={3} label={`${searchParams.gene} RAMPAGE`} />
-                }
+      <Box id="Outer Box" sx={{ display: 'flex' }}>
+        <AppBar id="AppBar" position="fixed" open={open} elevation={1} sx={{ bottom: "auto", top: "auto", backgroundColor: "white" }}>
+          <Toolbar>
+            <IconButton
+              color="primary"
+              aria-label="open drawer"
+              onClick={handleDrawerOpen}
+              edge="start"
+              sx={{ mr: 2, ...(open && { display: 'none' }) }}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Tabs
+              //Key needed to force scroll buttons to show up properly when child elements change
+              key={opencCREs.length}
+              sx={{
+                '& .MuiTabs-scrollButtons': { color: "black" },
+                '& .MuiTabs-scrollButtons.Mui-disabled': { opacity: 0.3 },
+              }}
+              allowScrollButtonsMobile
+              variant="scrollable"
+              aria-label="navigation tabs"
+              value={page}
+              onChange={handlePageChange}
+            >
+              {/* Hidden empty icon to keep tab height consistent */}
+              <StyledTab iconPosition="end" icon={<Box sx={{ display: 'none' }} />} value={0} label="Table View" />
+              {!mainQueryParams.searchConfig.bed_intersect &&
+                <StyledTab value={1} label="Genome Browser View" />
+              }
+              {mainQueryParams.searchConfig.gene &&
+                <StyledTab value={2} label={`${mainQueryParams.searchConfig.gene} Gene Expression`} />
+              }
+              {mainQueryParams.searchConfig.gene && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" &&
+                <StyledTab value={3} label={`${mainQueryParams.searchConfig.gene} RAMPAGE`} />
+              }
 
-                {/* Map opencCREs to tabs */}
-                {opencCREs.length > 0 && opencCREs.map((cCRE, i) => {
-                  return (
-                    <StyledTab
-                      onClick={(event) => event.preventDefault} key={i} value={numberOfDefaultTabs + i}
-                      label={cCRE.ID}
-                      icon={
-                        <Box onClick={(event) => { event.stopPropagation(); handleClosecCRE(cCRE.ID) }}>
-                          <CloseIcon />
-                        </Box>
-                      }
-                      iconPosition="end" />
-                  )
-                })}
-              </Tabs>
-            </Toolbar>
-          </AppBar>
-          <Drawer
-            id="Drawer"
-            sx={{
+              {/* Map opencCREs to tabs */}
+              {opencCREs.length > 0 && opencCREs.map((cCRE, i) => {
+                return (
+                  <StyledTab
+                    onClick={(event) => event.preventDefault} key={i} value={numberOfDefaultTabs + i}
+                    label={cCRE.ID}
+                    icon={
+                      <Box onClick={(event) => { event.stopPropagation(); handleClosecCRE(cCRE.ID) }}>
+                        <CloseIcon />
+                      </Box>
+                    }
+                    iconPosition="end" />
+                )
+              })}
+            </Tabs>
+          </Toolbar>
+        </AppBar>
+        <Drawer
+          id="Drawer"
+          sx={{
+            width: drawerWidth,
+            flexShrink: 0,
+            '& .MuiDrawer-paper': {
               width: drawerWidth,
-              flexShrink: 0,
-              '& .MuiDrawer-paper': {
-                width: drawerWidth,
-                boxSizing: 'border-box',
-                position: "fixed",
-                top: "auto",
-                bottom: "auto",
-                paddingBottom: "64px"
-              },
-            }}
-            variant="persistent"
-            anchor="left"
-            open={open}
-          >
-            {/* Customized div to bump drawer content down */}
-            <DrawerHeader>
-              <Typography variant="h5" pl="0.4rem">
-                {`${page < numberOfDefaultTabs ? "Refine Your Search" : "cCRE Details"}`}
-              </Typography>
-              <IconButton onClick={handleDrawerClose}>
-                <ChevronLeftIcon />
-              </IconButton>
-            </DrawerHeader>
-            <Divider />
-            {page < numberOfDefaultTabs ?
-              //Should the filter component be refreshing the route? I think it should probably all be controlled here
-              <MainResultsFilters mainQueryParams={mainQueryParams} byCellType={globals} genomeBrowserView={page === 1} accessions={opencCREs.map((x) => x.ID).join(',')} page={page} />
-              :
-              <Tabs
-                aria-label="details-tabs"
-                value={detailsPage}
-                onChange={(_, newValue: number) => { setDetailsPage(newValue) }}
-                orientation="vertical"
-                variant="scrollable"
-                allowScrollButtonsMobile sx={{
-                  '& .MuiTabs-scrollButtons': { color: "black" },
-                  '& .MuiTabs-scrollButtons.Mui-disabled': { opacity: 0.3 },
-                }}>
-                <StyledTab label="In Specific Biosamples" sx={{ alignSelf: "start" }} />
-                <StyledTab label="Linked Genes" sx={{ alignSelf: "start" }} />
-                <StyledTab label="Nearby Genomic Features" sx={{ alignSelf: "start" }} />
-                <StyledTab label="Linked cCREs in other Assemblies" sx={{ alignSelf: "start" }} />
-                <StyledTab label="Associated Gene Expression" sx={{ alignSelf: "start" }} />
-                <StyledTab label="Functional Data" sx={{ alignSelf: "start" }} />
-                <StyledTab label="TF Motifs and Sequence Features" sx={{ alignSelf: "start" }} />
-                {mainQueryParams.coordinates.assembly !== "mm10" && <StyledTab label="Associated RAMPAGE Signal" sx={{ alignSelf: "start" }} />}
-              </Tabs>
-            }
-          </Drawer>
-          <Main id="Main Content" open={open}>
-            {/* Bumps content below app bar */}
-            <DrawerHeader id="DrawerHeader" />
-            {page === 0 && (
-              <Box>
+              boxSizing: 'border-box',
+              position: "fixed",
+              top: "auto",
+              bottom: "auto",
+              paddingBottom: "64px"
+            },
+          }}
+          variant="persistent"
+          anchor="left"
+          open={open}
+        >
+          {/* Customized div to bump drawer content down */}
+          <DrawerHeader>
+            <Typography variant="h5" pl="0.4rem">
+              {`${page < numberOfDefaultTabs ? "Refine Your Search" : "cCRE Details"}`}
+            </Typography>
+            <IconButton onClick={handleDrawerClose}>
+              <ChevronLeftIcon />
+            </IconButton>
+          </DrawerHeader>
+          <Divider />
+          {page < numberOfDefaultTabs ?
+            //Should the filter component be refreshing the route? I think it should probably all be controlled here
+            <MainResultsFilters mainQueryParams={mainQueryParams} byCellType={globals} genomeBrowserView={page === 1} accessions={opencCREs.map((x) => x.ID).join(',')} page={page} />
+            :
+            <Tabs
+              aria-label="details-tabs"
+              value={detailsPage}
+              onChange={(_, newValue: number) => { setDetailsPage(newValue) }}
+              orientation="vertical"
+              variant="scrollable"
+              allowScrollButtonsMobile sx={{
+                '& .MuiTabs-scrollButtons': { color: "black" },
+                '& .MuiTabs-scrollButtons.Mui-disabled': { opacity: 0.3 },
+              }}>
+              <StyledTab label="In Specific Biosamples" sx={{ alignSelf: "start" }} />
+              <StyledTab label="Linked Genes" sx={{ alignSelf: "start" }} />
+              <StyledTab label="Nearby Genomic Features" sx={{ alignSelf: "start" }} />
+              <StyledTab label="Linked cCREs in other Assemblies" sx={{ alignSelf: "start" }} />
+              <StyledTab label="Associated Gene Expression" sx={{ alignSelf: "start" }} />
+              <StyledTab label="Functional Data" sx={{ alignSelf: "start" }} />
+              <StyledTab label="TF Motifs and Sequence Features" sx={{ alignSelf: "start" }} />
+              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledTab label="Associated RAMPAGE Signal" sx={{ alignSelf: "start" }} />}
+            </Tabs>
+          }
+        </Drawer>
+        <Main id="Main Content" open={open}>
+          {/* Bumps content below app bar */}
+          <DrawerHeader id="DrawerHeader" />
+          {page === 0 && (
+            <Box>
+              {loadingcCREs ?
+                <LoadingMessage />
+                :
                 <MainResultsTable
                   rows={filteredTableRows}
                   tableTitle={
@@ -420,36 +429,36 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                   assembly={mainQueryParams.coordinates.assembly}
                   onRowClick={handleTableClick}
                 />
-              </Box>
-            )}
-            {page === 1 && (
-              <GenomeBrowserView
-                gene={mainQueryParams.searchConfig.gene}
-                biosample={mainQueryParams.biosample.biosample}
-                assembly={mainQueryParams.coordinates.assembly}
-                coordinates={{ start: mainQueryParams.coordinates.start, end: mainQueryParams.coordinates.end, chromosome: mainQueryParams.coordinates.chromosome }}
-              />
-            )}
-            {mainQueryParams.searchConfig.gene && page === 2 &&
-              <GeneExpression assembly={mainQueryParams.coordinates.assembly} genes={[mainQueryParams.searchConfig.gene]} />
-            }
-            {mainQueryParams.searchConfig.gene && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" && page === 3 && (
-              <Rampage gene={mainQueryParams.searchConfig.gene} />
-            )}
-            {page >= numberOfDefaultTabs && opencCREs.length > 0 && (
-              <CcreDetails
-                key={opencCREs[page - numberOfDefaultTabs].ID}
-                accession={opencCREs[page - numberOfDefaultTabs].ID}
-                region={opencCREs[page - numberOfDefaultTabs].region}
-                globals={globals}
-                assembly={mainQueryParams.coordinates.assembly}
-                genes={opencCREs[page - numberOfDefaultTabs].linkedGenes}
-                page={detailsPage}
-              />
-            )}
-          </Main>
-        </Box>
-      }
+              }
+            </Box>
+          )}
+          {page === 1 && (
+            <GenomeBrowserView
+              gene={mainQueryParams.searchConfig.gene}
+              biosample={mainQueryParams.biosample.biosample}
+              assembly={mainQueryParams.coordinates.assembly}
+              coordinates={{ start: mainQueryParams.coordinates.start, end: mainQueryParams.coordinates.end, chromosome: mainQueryParams.coordinates.chromosome }}
+            />
+          )}
+          {mainQueryParams.searchConfig.gene && page === 2 &&
+            <GeneExpression assembly={mainQueryParams.coordinates.assembly} genes={[mainQueryParams.searchConfig.gene]} />
+          }
+          {mainQueryParams.searchConfig.gene && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" && page === 3 && (
+            <Rampage gene={mainQueryParams.searchConfig.gene} />
+          )}
+          {page >= numberOfDefaultTabs && opencCREs.length > 0 && (
+            <CcreDetails
+              key={opencCREs[page - numberOfDefaultTabs].ID}
+              accession={opencCREs[page - numberOfDefaultTabs].ID}
+              region={opencCREs[page - numberOfDefaultTabs].region}
+              globals={globals}
+              assembly={mainQueryParams.coordinates.assembly}
+              genes={opencCREs[page - numberOfDefaultTabs].linkedGenes}
+              page={detailsPage}
+            />
+          )}
+        </Main>
+      </Box>
     </main>
   )
 }
