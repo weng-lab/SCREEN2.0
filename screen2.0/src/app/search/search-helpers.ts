@@ -1,8 +1,240 @@
 
-import { cCREData, MainQueryParams, CellTypeData, UnfilteredBiosampleData, FilteredBiosampleData, URLParams, MainResultTableRows, MainResultTableRow, rawQueryData } from "./types"
+import { cCREData, MainQueryParams, CellTypeData, UnfilteredBiosampleData, FilteredBiosampleData, URLParams, MainResultTableRows, MainResultTableRow, rawQueryData, FilterCriteria } from "./types"
 import { ApolloQueryResult } from "@apollo/client"
-import { MainQuery, linkedGenesQuery } from "../../common/lib/queries"
+import { MainQuery, fetchLinkedGenes } from "../../common/lib/queries"
 
+/**
+ * 
+ * @param assembly "GRCh38" | "mm10"
+ * @param chromosome string
+ * @param start number
+ * @param end number
+ * @param biosample string
+ * @param nearbygenesdistancethreshold number, 1,000,000 is default if undefined
+ * @param nearbygeneslimit number, 3 is default if undefined
+ * @param intersectedAccessions string[], optional, for intersected accessions from bed upload
+ * @returns \{mainQueryData: ..., linkedGenesData: ...}, (mostly) raw data. If biosample passed, 
+ * the ctspecific zscores in mainQueryData are used to replace normal zscores to avoid passing biosample
+ * to specify where to select scores from later in generateFilteredRows
+ */
+export async function fetchcCREDataAndLinkedGenes (
+  assembly: "GRCh38" | "mm10",
+  chromosome: string,
+  start: number,
+  end: number,
+  biosample: string,
+  nearbygenesdistancethreshold: number,
+  nearbygeneslimit: number,
+  intersectedAccessions?: string[]
+): Promise<rawQueryData> {
+  //cCRESEarchQuery
+  const mainQueryData = await MainQuery(
+    assembly,
+    chromosome,
+    start,
+    end,
+    biosample,
+    nearbygenesdistancethreshold,
+    nearbygeneslimit,
+    intersectedAccessions
+  )
+  let cCRE_data: cCREData[] = mainQueryData?.data?.cCRESCREENSearch
+  const accessions: string[] = []
+  //If biosample-specific data returned, sync z-scores with ctspecific to avoid having to select ctspecific later
+  if (biosample) {
+    cCRE_data = cCRE_data.map(cCRE => {
+      cCRE.dnase_zscore = cCRE.ctspecific.dnase_zscore;
+      cCRE.atac_zscore = cCRE.ctspecific.atac_zscore;
+      cCRE.enhancer_zscore = cCRE.ctspecific.h3k27ac_zscore;
+      cCRE.promoter_zscore = cCRE.ctspecific.h3k4me3_zscore;
+      cCRE.ctcf_zscore = cCRE.ctspecific.ctcf_zscore;
+      return cCRE
+    })
+  }
+  cCRE_data.forEach((currentElement) => {
+    accessions.push(currentElement.info.accession)
+  })
+  const linkedGenesData = await fetchLinkedGenes(assembly, accessions)
+  return ({mainQueryData, linkedGenesData})
+}
+
+export function generateFilteredRows(rawQueryData: rawQueryData, filterCriteria: FilterCriteria): MainResultTableRows {
+  const cCRE_data: cCREData[] = rawQueryData.mainQueryData.data.cCRESCREENSearch
+  const otherLinked = rawQueryData.linkedGenesData
+  //Assembly unfiltered rows
+  const rows: MainResultTableRows = []
+  cCRE_data.forEach((currentElement) => {
+    const genesToAdd = otherLinked[currentElement.info.accession] ?? null
+    const CTCF_ChIAPET_ToAdd: { name: string, biosample: string }[] = []
+    const RNAPII_ChIAPET_ToAdd: { name: string, biosample: string }[] = []
+    //Gather lists of CTCF-ChIAPET and RNAPII-ChIAPET linked genes
+    genesToAdd && genesToAdd.genes.forEach(gene => {
+      if (gene.linkedBy === "CTCF-ChIAPET") {
+        CTCF_ChIAPET_ToAdd.push({ name: gene.geneName, biosample: gene.biosample })
+      }
+      else if (gene.linkedBy === "RNAPII-ChIAPET") {
+        RNAPII_ChIAPET_ToAdd.push({ name: gene.geneName, biosample: gene.biosample })
+      }
+    })
+    rows.push({
+      accession: currentElement.info.accession,
+      class: currentElement.pct,
+      chromosome: currentElement.chrom,
+      start: currentElement.start.toLocaleString("en-US"),
+      end: (currentElement.start + currentElement.len).toLocaleString("en-US"),
+      dnase: currentElement.dnase_zscore,
+      h3k4me3: currentElement.promoter_zscore,
+      h3k27ac: currentElement.enhancer_zscore,
+      ctcf: currentElement.ctcf_zscore,
+      atac: currentElement.atac_zscore,
+      linkedGenes: { distancePC: currentElement.genesallpc.pc.intersecting_genes, distanceAll: currentElement.genesallpc.all.intersecting_genes, CTCF_ChIAPET: CTCF_ChIAPET_ToAdd, RNAPII_ChIAPET: RNAPII_ChIAPET_ToAdd },
+      conservationData: { mammals: currentElement.mammals, primates: currentElement.primates, vertebrates: currentElement.vertebrates }
+    })
+  })
+
+  return rows.filter((row) => passesFilters(row, filterCriteria))
+}
+
+
+
+/**
+ *
+ * @param row the cCRE row to check
+ * @param biosample the selected biosample
+ * @param mainQueryParams
+ * @returns boolean, true if row passes filter criteria
+ */
+export function passesFilters(
+  row: MainResultTableRow,
+  filterCriteria: FilterCriteria
+): boolean {
+  return (
+    passesChromatinFilter(row, filterCriteria.chromatinFilter)
+    && passesConservationFilter(row, filterCriteria.conservationFilter)
+    && passesClassificationFilter(row, filterCriteria.classificationFilter)
+    && passesLinkedGenesFilter(row, filterCriteria.linkedGenesFilter)
+  )
+}
+
+function passesChromatinFilter(
+  row: MainResultTableRow,
+  chromatinFilter: {
+    dnase_s: number
+    dnase_e: number
+    atac_s: number
+    atac_e: number
+    h3k4me3_s: number
+    h3k4me3_e: number
+    h3k27ac_s: number
+    h3k27ac_e: number
+    ctcf_s: number
+    ctcf_e: number
+  }
+): boolean {
+  const dnase = row.dnase
+  const h3k4me3 = row.h3k4me3
+  const h3k27ac = row.h3k27ac
+  const ctcf = row.ctcf
+  const atac = row.atac
+  return (
+    (dnase ? chromatinFilter.dnase_s <= dnase && dnase <= chromatinFilter.dnase_e : true) &&
+    (h3k4me3 ? chromatinFilter.h3k4me3_s <= h3k4me3 && h3k4me3 <= chromatinFilter.h3k4me3_e : true) &&
+    (h3k27ac ? chromatinFilter.h3k27ac_s <= h3k27ac && h3k27ac <= chromatinFilter.h3k27ac_e : true) &&
+    (ctcf ? chromatinFilter.ctcf_s <= ctcf && ctcf <= chromatinFilter.ctcf_e : true) &&
+    (atac ? chromatinFilter.atac_s <= atac && atac <= chromatinFilter.atac_e : true)
+  )
+}
+
+function passesConservationFilter(
+  row: MainResultTableRow,
+  conservationFilter: {
+    prim_s: number
+    prim_e: number
+    mamm_s: number
+    mamm_e: number
+    vert_s: number
+    vert_e: number
+  }
+): boolean {
+  const primates = row.conservationData.primates
+  const mammals = row.conservationData.mammals
+  const vertebrates = row.conservationData.vertebrates
+  return (
+    conservationFilter.prim_s <= primates && primates <= conservationFilter.prim_e &&
+    conservationFilter.mamm_s <= mammals && mammals <= conservationFilter.mamm_e &&
+    conservationFilter.vert_s <= vertebrates && vertebrates <= conservationFilter.vert_e
+  )
+}
+
+function passesClassificationFilter(
+  row: MainResultTableRow,
+  classificationFilter: {
+    CA: boolean
+    CA_CTCF: boolean
+    CA_H3K4me3: boolean
+    CA_TF: boolean
+    dELS: boolean
+    pELS: boolean
+    PLS: boolean
+    TF: boolean
+  }
+): boolean {
+  const currentElementClass: string = row.class
+  switch (currentElementClass) {
+    case "CA":
+      return classificationFilter.CA;
+    case "CA-CTCF":
+      return classificationFilter.CA_CTCF;
+    case "CA-H3K4me3":
+      return classificationFilter.CA_H3K4me3;
+    case "CA-TF":
+      return classificationFilter.CA_TF;
+    case "dELS":
+      return classificationFilter.dELS;
+    case "pELS":
+      return classificationFilter.pELS;
+    case "PLS":
+      return classificationFilter.PLS;
+    case "TF":
+      return classificationFilter.TF;
+    default:
+      console.error("Something went wrong, cCRE class not determined!");
+      return false;
+  }
+}
+
+export function passesLinkedGenesFilter(
+  row: MainResultTableRow,
+  linkedGenesFilter: {
+    genesToFind: string[]
+    distancePC: boolean
+    distanceAll: boolean
+    CTCF_ChIA_PET: boolean
+    RNAPII_ChIA_PET: boolean
+  }
+): boolean {
+  let found = false
+  //If there is a gene to find a match for
+  if (linkedGenesFilter.genesToFind.length > 0) {
+    const genes = row.linkedGenes
+    //For each selected checkbox, try to find it in the corresponding spot, mark flag as found
+    if (linkedGenesFilter.distancePC && genes.distancePC.find((gene) => linkedGenesFilter.genesToFind.find((x) => x === gene.name))) {
+      found = true
+    }
+    if (linkedGenesFilter.distanceAll && genes.distanceAll.find((gene) => linkedGenesFilter.genesToFind.find((x) => x === gene.name))) {
+      found = true
+    }
+    if (linkedGenesFilter.CTCF_ChIA_PET && genes.CTCF_ChIAPET.find((gene) => linkedGenesFilter.genesToFind.find((x) => x === gene.name))) {
+      found = true
+    }
+    if (linkedGenesFilter.RNAPII_ChIA_PET && genes.RNAPII_ChIAPET.find((gene) => linkedGenesFilter.genesToFind.find((x) => x === gene.name))) {
+      found = true
+    }
+    return found
+  } else {
+    return true
+  }
+}
 
 /**
  *
@@ -26,101 +258,6 @@ export function outputT_or_F(input: boolean): "t" | "f" {
   if (input === true) {
     return "t"
   } else return "f"
-}
-
-/**
- *
- * @param row the cCRE row to check
- * @param biosample the selected biosample
- * @param mainQueryParams
- * @returns
- */
-export function passesFilters(row: MainResultTableRow, mainQueryParams: MainQueryParams): boolean {
-  return (
-    passesChromatinFilter(row, mainQueryParams) &&
-    passesConservationFilter(row, mainQueryParams) &&
-    passesClassificationFilter(row, mainQueryParams) &&
-    passesLinkedGenesFilter(row, mainQueryParams)
-  )
-}
-
-function passesChromatinFilter(row: MainResultTableRow, mainQueryParams: MainQueryParams) {
-  const dnase = row.dnase
-  const h3k4me3 = row.h3k4me3
-  const h3k27ac = row.h3k27ac
-  const ctcf = row.ctcf
-  const atac = row.atac
-  return (
-    (dnase ? mainQueryParams.dnase_s <= dnase && dnase <= mainQueryParams.dnase_e : true) &&
-    (h3k4me3 ? mainQueryParams.h3k4me3_s <= h3k4me3 && h3k4me3 <= mainQueryParams.h3k4me3_e : true) &&
-    (h3k27ac ? mainQueryParams.h3k27ac_s <= h3k27ac && h3k27ac <= mainQueryParams.h3k27ac_e : true) &&
-    (ctcf ? mainQueryParams.ctcf_s <= ctcf && ctcf <= mainQueryParams.ctcf_e : true) &&
-    (atac ? mainQueryParams.atac_s <= atac && atac <= mainQueryParams.atac_e: true) 
-  )
-}
-
-function passesConservationFilter(row: MainResultTableRow, mainQueryParams: MainQueryParams) {
-  const primates = row.conservationData.primates
-  const mammals = row.conservationData.mammals
-  const vertebrates = row.conservationData.vertebrates
-  return (
-    mainQueryParams.prim_s <= primates &&
-    primates <= mainQueryParams.prim_e &&
-    mainQueryParams.mamm_s <= mammals &&
-    mammals <= mainQueryParams.mamm_e &&
-    mainQueryParams.vert_s <= vertebrates &&
-    vertebrates <= mainQueryParams.vert_e
-  )
-}
-
-//Consider changing this to a switch, might be slightly faster and would be cleaner.
-function passesClassificationFilter(row: MainResultTableRow, mainQueryParams: MainQueryParams) {
-  const currentElementClass: string = row.class
-  switch (currentElementClass) {
-    case "CA":
-      return mainQueryParams.CA;
-    case "CA-CTCF":
-      return mainQueryParams.CA_CTCF;
-    case "CA-H3K4me3":
-      return mainQueryParams.CA_H3K4me3;
-    case "CA-TF":
-      return mainQueryParams.CA_TF;
-    case "dELS":
-      return mainQueryParams.dELS;
-    case "pELS":
-      return mainQueryParams.pELS;
-    case "PLS":
-      return mainQueryParams.PLS;
-    case "TF":
-      return mainQueryParams.TF;
-    default:
-      console.error("Something went wrong, cCRE class not determined!");
-      return false;
-  }
-}
-
-export function passesLinkedGenesFilter(row: MainResultTableRow, mainQueryParams: MainQueryParams) {
-  //If there is a gene to find a match for
-  let found = false
-  if (mainQueryParams.genesToFind) {
-    const genes = row.linkedGenes
-    //For each selected checkbox, try to find it in the corresponding spot, mark flag as found
-    if (mainQueryParams.distancePC && genes.distancePC.find((gene) => mainQueryParams.genesToFind.find((x) => x === gene.name))) {
-      found = true
-    }
-    if (mainQueryParams.distanceAll && genes.distanceAll.find((gene) => mainQueryParams.genesToFind.find((x) => x === gene.name))) {
-      found = true
-    }
-    if (mainQueryParams.CTCF_ChIA_PET && genes.CTCF_ChIAPET.find((gene) => mainQueryParams.genesToFind.find((x) => x === gene.name))) {
-      found = true
-    }
-    if (mainQueryParams.RNAPII_ChIA_PET && genes.RNAPII_ChIAPET.find((gene) => mainQueryParams.genesToFind.find((x) => x === gene.name))) {
-      found = true
-    }
-    return found
-  } else {
-    return true
-  }
 }
 
 /**
@@ -252,8 +389,8 @@ export function constructURL(
    */ 
 
   //Assembly, Chromosome, Start, End
-  const urlBasics = mainQueryParams.bed_intersect ? `search?intersect=t&assembly=${mainQueryParams.assembly}` :
-   `search?assembly=${mainQueryParams.assembly}&chromosome=${mainQueryParams.chromosome}&start=${urlParams.start}&end=${urlParams.end}${mainQueryParams.gene ? "&gene=" + mainQueryParams.gene : ""}${mainQueryParams.snpid ? "&snpid=" + mainQueryParams.snpid : ""}`
+  const urlBasics = mainQueryParams.searchConfig.bed_intersect ? `search?intersect=t&assembly=${mainQueryParams.coordinates.assembly}` :
+   `search?assembly=${mainQueryParams.coordinates.assembly}&chromosome=${mainQueryParams.coordinates.chromosome}&start=${urlParams.start}&end=${urlParams.end}${mainQueryParams.searchConfig.gene ? "&gene=" + mainQueryParams.searchConfig.gene : ""}${mainQueryParams.searchConfig.snpid ? "&snpid=" + mainQueryParams.searchConfig.snpid : ""}`
 
   //Can probably get biosample down to one string, and extract other info when parsing byCellType
   const biosampleFilters = `&Tissue=${outputT_or_F(urlParams.Tissue)}&PrimaryCell=${outputT_or_F(
@@ -287,97 +424,81 @@ export function constructURL(
   return url
 }
 
-/**
- * 
- * @param assembly "GRCh38" | "mm10"
- * @param chromosome string
- * @param start number
- * @param end number
- * @param biosample string
- * @param nearbygenesdistancethreshold number, 1,000,000 is default if undefined
- * @param nearbygeneslimit number, 3 is default if undefined
- * @param intersectedAccessions string[], optional, for intersected accessions from bed upload
- * @returns \{mainQueryData: ..., linkedGenesData: ...}, (mostly) raw data. If biosample passed, 
- * the ctspecific zscores in mainQueryData are used to replace normal zscores to avoid passing biosample
- * to specify where to select scores from later in generateFilteredRows
- */
-export async function sendMainQueries (
-  assembly: "GRCh38" | "mm10",
-  chromosome: string,
-  start: number,
-  end: number,
-  biosample: string,
-  nearbygenesdistancethreshold: number,
-  nearbygeneslimit: number,
-  intersectedAccessions?: string[]
-): Promise<rawQueryData> {
-  const mainQueryData = await MainQuery(
-    assembly,
-    chromosome,
-    start,
-    end,
-    biosample,
-    nearbygenesdistancethreshold,
-    nearbygeneslimit,
-    intersectedAccessions
+export function constructMainQueryParamsFromURL(searchParams): MainQueryParams {
+  return (
+    {
+      coordinates: {
+        //If bed intersecting, set chr start end to null
+        assembly: searchParams.assembly === "GRCh38" || searchParams.assembly === "mm10" ?
+          searchParams.assembly : "GRCh38",
+        chromosome: (searchParams.intersect && checkTrueFalse(searchParams.intersect)) ?
+          null : searchParams.chromosome ?? "chr11",
+        start: (searchParams.intersect && checkTrueFalse(searchParams.intersect)) ?
+          null : searchParams.start ?
+            Number(searchParams.start) : 5205263,
+        end: (searchParams.intersect && checkTrueFalse(searchParams.intersect)) ?
+          null : searchParams.end ?
+            Number(searchParams.end) : 5381894,
+      },
+      biosample: searchParams.Biosample ? 
+        {
+          selected: true,
+          biosample: searchParams.Biosample,
+          tissue: searchParams.BiosampleTissue,
+          summaryName: searchParams.BiosampleSummary,
+        } : { selected: false, biosample: null, tissue: null, summaryName: null },
+      searchConfig: {
+        //Flag for if user-entered bed file intersection accessions to be used from sessionStorage
+        bed_intersect: searchParams.intersect ? checkTrueFalse(searchParams.intersect) : false,
+        gene: searchParams.gene,
+        snpid: searchParams.snpid,
+      },
+      filterCriteria: {
+        biosampleTableFilters: {
+          CellLine: searchParams.CellLine ? checkTrueFalse(searchParams.CellLine) : true,
+          PrimaryCell: searchParams.PrimaryCell ? checkTrueFalse(searchParams.PrimaryCell) : true,
+          Tissue: searchParams.Tissue ? checkTrueFalse(searchParams.Tissue) : true,
+          Organoid: searchParams.Organoid ? checkTrueFalse(searchParams.Organoid) : true,
+          InVitro: searchParams.InVitro ? checkTrueFalse(searchParams.InVitro) : true,
+        },
+        chromatinFilter: {
+          dnase_s: searchParams.dnase_s ? Number(searchParams.dnase_s) : -10,
+          dnase_e: searchParams.dnase_e ? Number(searchParams.dnase_e) : 10,
+          atac_s: searchParams.atac_s ? Number(searchParams.atac_s) : -10,
+          atac_e: searchParams.atac_e ? Number(searchParams.atac_e) : 10,
+          h3k4me3_s: searchParams.h3k4me3_s ? Number(searchParams.h3k4me3_s) : -10,
+          h3k4me3_e: searchParams.h3k4me3_e ? Number(searchParams.h3k4me3_e) : 10,
+          h3k27ac_s: searchParams.h3k27ac_s ? Number(searchParams.h3k27ac_s) : -10,
+          h3k27ac_e: searchParams.h3k27ac_e ? Number(searchParams.h3k27ac_e) : 10,
+          ctcf_s: searchParams.ctcf_s ? Number(searchParams.ctcf_s) : -10,
+          ctcf_e: searchParams.ctcf_e ? Number(searchParams.ctcf_e) : 10,
+        },
+        conservationFilter: {
+          prim_s: searchParams.prim_s ? Number(searchParams.prim_s) : -2,
+          prim_e: searchParams.prim_e ? Number(searchParams.prim_e) : 2,
+          mamm_s: searchParams.mamm_s ? Number(searchParams.mamm_s) : -4,
+          mamm_e: searchParams.mamm_e ? Number(searchParams.mamm_e) : 8,
+          vert_s: searchParams.vert_s ? Number(searchParams.vert_s) : -3,
+          vert_e: searchParams.vert_e ? Number(searchParams.vert_e) : 8,
+        },
+        classificationFilter: {
+          CA: searchParams.CA ? checkTrueFalse(searchParams.CA) : true,
+          CA_CTCF: searchParams.CA_CTCF ? checkTrueFalse(searchParams.CA_CTCF) : true,
+          CA_H3K4me3: searchParams.CA_H3K4me3 ? checkTrueFalse(searchParams.CA_H3K4me3) : true,
+          CA_TF: searchParams.CA_TF ? checkTrueFalse(searchParams.CA_TF) : true,
+          dELS: searchParams.dELS ? checkTrueFalse(searchParams.dELS) : true,
+          pELS: searchParams.pELS ? checkTrueFalse(searchParams.pELS) : true,
+          PLS: searchParams.PLS ? checkTrueFalse(searchParams.PLS) : true,
+          TF: searchParams.TF ? checkTrueFalse(searchParams.TF) : true,
+        },
+        linkedGenesFilter: {
+          genesToFind: searchParams.genesToFind ? searchParams.genesToFind.split(",") : [],
+          distancePC: searchParams.distancePC ? checkTrueFalse(searchParams.distancePC) : true,
+          distanceAll: searchParams.distanceAll ? checkTrueFalse(searchParams.distanceAll) : true,
+          CTCF_ChIA_PET: searchParams.CTCF_ChIA_PET ? checkTrueFalse(searchParams.CTCF_ChIA_PET) : true,
+          RNAPII_ChIA_PET: searchParams.RNAPII_ChIA_PET ? checkTrueFalse(searchParams.RNAPII_ChIA_PET) : true
+        }
+      }
+    }
   )
-  let cCRE_data: cCREData[] = mainQueryData?.data?.cCRESCREENSearch
-  const accessions: string[] = []
-  //If biosample-specific data returned, sync z-scores with ctspecific to avoid having to select ctspecific later
-  if (biosample) {
-    cCRE_data = cCRE_data.map(cCRE => {
-      cCRE.dnase_zscore = cCRE.ctspecific.dnase_zscore;
-      cCRE.atac_zscore = cCRE.ctspecific.atac_zscore;
-      cCRE.enhancer_zscore = cCRE.ctspecific.h3k27ac_zscore;
-      cCRE.promoter_zscore = cCRE.ctspecific.h3k4me3_zscore;
-      cCRE.ctcf_zscore = cCRE.ctspecific.ctcf_zscore;
-      return cCRE
-    })
-  }
-  cCRE_data.forEach((currentElement) => {
-    accessions.push(currentElement.info.accession)
-  })
-  const linkedGenesData = await linkedGenesQuery(assembly, accessions)
-  return ({mainQueryData, linkedGenesData})
-}
-
-export function generateFilteredRows(
-  rawQueryData: rawQueryData,
-  mainQueryParams: MainQueryParams):
-  MainResultTableRows {
-  const cCRE_data: cCREData[] = rawQueryData.mainQueryData.data.cCRESCREENSearch
-  const otherLinked = rawQueryData.linkedGenesData
-  //Assembly unfiltered rows
-  const rows: MainResultTableRows = []
-  cCRE_data.forEach((currentElement) => {
-    const genesToAdd = otherLinked[currentElement.info.accession] ?? null
-    const CTCF_ChIAPET_ToAdd: { name: string, biosample: string }[] = []
-    const RNAPII_ChIAPET_ToAdd: { name: string, biosample: string }[] = []
-    //Gather lists of CTCF-ChIAPET and RNAPII-ChIAPET linked genes
-    genesToAdd && genesToAdd.genes.forEach(gene => {
-      if (gene.linkedBy === "CTCF-ChIAPET") {
-        CTCF_ChIAPET_ToAdd.push({ name: gene.geneName, biosample: gene.biosample })
-      }
-      else if (gene.linkedBy === "RNAPII-ChIAPET") {
-        RNAPII_ChIAPET_ToAdd.push({ name: gene.geneName, biosample: gene.biosample })
-      }
-    })
-    rows.push({
-      accession: currentElement.info.accession,
-      class: currentElement.pct,
-      chromosome: currentElement.chrom,
-      start: currentElement.start.toLocaleString("en-US"),
-      end: (currentElement.start + currentElement.len).toLocaleString("en-US"),
-      dnase: currentElement.dnase_zscore,
-      h3k4me3: currentElement.promoter_zscore,
-      h3k27ac: currentElement.enhancer_zscore,
-      ctcf: currentElement.ctcf_zscore,
-      atac: currentElement.atac_zscore,
-      linkedGenes: { distancePC: currentElement.genesallpc.pc.intersecting_genes, distanceAll: currentElement.genesallpc.all.intersecting_genes, CTCF_ChIAPET: CTCF_ChIAPET_ToAdd, RNAPII_ChIAPET: RNAPII_ChIAPET_ToAdd },
-      conservationData: { mammals: currentElement.mammals, primates: currentElement.primates, vertebrates: currentElement.vertebrates }
-    })
-  })
-
-  //This could be structured better
-  return rows.filter((row) => passesFilters(row, mainQueryParams))
 }

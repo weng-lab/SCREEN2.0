@@ -1,8 +1,8 @@
 // Search Results Page
 "use client"
-import { MainQuery, getGlobals, linkedGenesQuery } from "../../common/lib/queries"
+import { getGlobals } from "../../common/lib/queries"
 import { CellTypeData, MainQueryParams, cCREData } from "./types"
-import { checkTrueFalse, sendMainQueries } from "./search-helpers"
+import { checkTrueFalse, constructMainQueryParamsFromURL, fetchcCREDataAndLinkedGenes } from "./search-helpers"
 import React, { startTransition, useCallback, useEffect, useMemo, useState } from "react"
 import { styled } from '@mui/material/styles';
 import { Divider, IconButton, Tab, Tabs, Typography, Box } from "@mui/material"
@@ -21,7 +21,6 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import CloseIcon from '@mui/icons-material/Close';
 import Rampage from "./ccredetails/rampage";
 import { GeneExpression } from "./ccredetails/geneexpression";
-import { ApolloQueryResult } from "@apollo/client"
 
 /**
  * @todo:
@@ -104,76 +103,12 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   }[]>([])
   const [globals, setGlobals] = useState<CellTypeData>(null)
   const [rawQueryData, setRawQueryData] = useState<rawQueryData>(null)
-  const [mainQueryParams, setMainQueryParams] = useState<MainQueryParams>(
-    {
-      //Flag that user-entered accessions are to be used
-      bed_intersect: searchParams.intersect ? checkTrueFalse(searchParams.intersect) : false,
-      assembly: searchParams.assembly === "GRCh38" || searchParams.assembly === "mm10" ? searchParams.assembly : "GRCh38",
-      gene: searchParams.gene,
-      snpid: searchParams.snpid,
-      //If bed intersecting, set chr start end to null
-      chromosome: (searchParams.intersect && checkTrueFalse(searchParams.intersect)) ? null : searchParams.chromosome ? searchParams.chromosome : "chr11",
-      start: (searchParams.intersect && checkTrueFalse(searchParams.intersect)) ? null : searchParams.start ? Number(searchParams.start) : 5205263,
-      end: (searchParams.intersect && checkTrueFalse(searchParams.intersect)) ? null : searchParams.end ? Number(searchParams.end) : 5381894,
-      // Biosample Filters
-      // URL could probably be cut down by putting this into one long string where each letter is t/f or 0/1
-      CellLine: searchParams.CellLine ? checkTrueFalse(searchParams.CellLine) : true,
-      PrimaryCell: searchParams.PrimaryCell ? checkTrueFalse(searchParams.PrimaryCell) : true,
-      Tissue: searchParams.Tissue ? checkTrueFalse(searchParams.Tissue) : true,
-      Organoid: searchParams.Organoid ? checkTrueFalse(searchParams.Organoid) : true,
-      InVitro: searchParams.InVitro ? checkTrueFalse(searchParams.InVitro) : true,
-      Biosample: searchParams.Biosample
-        ? {
-          selected: true,
-          biosample: searchParams.Biosample,
-          tissue: searchParams.BiosampleTissue,
-          summaryName: searchParams.BiosampleSummary,
-        }
-        : { selected: false, biosample: null, tissue: null, summaryName: null },
-      // Chromatin Filters
-      // "[...]_s" = start, "[...]_e" = end.
-      //Maybe make these properly cased to make URL a bit more readable
-      dnase_s: searchParams.dnase_s ? Number(searchParams.dnase_s) : -10,
-      dnase_e: searchParams.dnase_e ? Number(searchParams.dnase_e) : 10,
-      h3k4me3_s: searchParams.h3k4me3_s ? Number(searchParams.h3k4me3_s) : -10,
-      h3k4me3_e: searchParams.h3k4me3_e ? Number(searchParams.h3k4me3_e) : 10,
-      h3k27ac_s: searchParams.h3k27ac_s ? Number(searchParams.h3k27ac_s) : -10,
-      h3k27ac_e: searchParams.h3k27ac_e ? Number(searchParams.h3k27ac_e) : 10,
-      ctcf_s: searchParams.ctcf_s ? Number(searchParams.ctcf_s) : -10,
-      ctcf_e: searchParams.ctcf_e ? Number(searchParams.ctcf_e) : 10,
+  const [mainQueryParams, setMainQueryParams] = useState<MainQueryParams>(constructMainQueryParamsFromURL(searchParams))
 
-      atac_s: searchParams.atac_s ? Number(searchParams.atac_s) : -10,
-      atac_e: searchParams.atac_e ? Number(searchParams.atac_e) : 10,
-      // Classification Filters
-      // URL could probably be cut down by putting this into one long string where each letter is t/f or 0/1
-      CA: searchParams.CA ? checkTrueFalse(searchParams.CA) : true,
-      CA_CTCF: searchParams.CA_CTCF ? checkTrueFalse(searchParams.CA_CTCF) : true,
-      CA_H3K4me3: searchParams.CA_H3K4me3 ? checkTrueFalse(searchParams.CA_H3K4me3) : true,
-      CA_TF: searchParams.CA_TF ? checkTrueFalse(searchParams.CA_TF) : true,
-      dELS: searchParams.dELS ? checkTrueFalse(searchParams.dELS) : true,
-      pELS: searchParams.pELS ? checkTrueFalse(searchParams.pELS) : true,
-      PLS: searchParams.PLS ? checkTrueFalse(searchParams.PLS) : true,
-      TF: searchParams.TF ? checkTrueFalse(searchParams.TF) : true,
-      //Conservation Filter
-      prim_s: searchParams.prim_s ? Number(searchParams.prim_s) : -2,
-      prim_e: searchParams.prim_e ? Number(searchParams.prim_e) : 2,
-      mamm_s: searchParams.mamm_s ? Number(searchParams.mamm_s) : -4,
-      mamm_e: searchParams.mamm_e ? Number(searchParams.mamm_e) : 8,
-      vert_s: searchParams.vert_s ? Number(searchParams.vert_s) : -3,
-      vert_e: searchParams.vert_e ? Number(searchParams.vert_e) : 8,
-      //Linked Genes Filter
-      genesToFind: searchParams.genesToFind ? searchParams.genesToFind.split(",") : null,
-      distancePC: searchParams.distancePC ? checkTrueFalse(searchParams.distancePC) : true,
-      distanceAll: searchParams.distanceAll ? checkTrueFalse(searchParams.distanceAll) : true,
-      CTCF_ChIA_PET: searchParams.CTCF_ChIA_PET ? checkTrueFalse(searchParams.CTCF_ChIA_PET) : true,
-      RNAPII_ChIA_PET: searchParams.RNAPII_ChIA_PET ? checkTrueFalse(searchParams.RNAPII_ChIA_PET) : true
-    }
-  )
+  const numberOfDefaultTabs = searchParams.gene ? (mainQueryParams.coordinates.assembly.toLowerCase() === "mm10" ? 3 : 4) : 2
 
   const handleDrawerOpen = () => { setOpen(true) }
-  const handleDrawerClose = () => { setOpen(false) }
-
-  const numberOfDefaultTabs = searchParams.gene ? (mainQueryParams.assembly.toLowerCase() === "mm10" ? 3 : 4) : 2
+  const handleDrawerClose = () => { setOpen(false) }  
 
   const handleTableClick = (row: MainResultTableRow) => {
     if (opencCREs.length > 6) { window.alert("Open cCRE limit reached! Please close cCREs to open more") }
@@ -264,7 +199,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     // Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
     // @ts-expect-error
     startTransition(async () => {
-      setGlobals(await getGlobals(mainQueryParams.assembly))
+      setGlobals(await getGlobals(mainQueryParams.coordinates.assembly))
     })
   }, [])
 
@@ -274,30 +209,31 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     // @ts-expect-error
     startTransition(async () => {
       setRawQueryData(
-        await sendMainQueries(
-          mainQueryParams.assembly,
-          mainQueryParams.chromosome,
-          mainQueryParams.start,
-          mainQueryParams.end,
-          mainQueryParams.Biosample.biosample,
+        await fetchcCREDataAndLinkedGenes(
+          mainQueryParams.coordinates.assembly,
+          mainQueryParams.coordinates.chromosome,
+          mainQueryParams.coordinates.start,
+          mainQueryParams.coordinates.end,
+          mainQueryParams.biosample.biosample,
           1000000,
           null,
-          mainQueryParams.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined
+          mainQueryParams.searchConfig.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined
         ))
     })
-  }, [mainQueryParams.bed_intersect, mainQueryParams.assembly, mainQueryParams.chromosome, mainQueryParams.start, mainQueryParams.end,  mainQueryParams.Biosample.biosample])
+  }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample.biosample])
 
   //Generate and filter rows
-  //Main Query params is not good as a dependency here, need to change the filter functions
+  //This may run every time the tab is switched, not ideal, due to object inequality 
   const filteredTableRows = useMemo(() => {
     if (rawQueryData) {
-      return (generateFilteredRows(rawQueryData, mainQueryParams))
+      return (generateFilteredRows(rawQueryData, mainQueryParams.filterCriteria))
     } else return []
-  }, [rawQueryData, mainQueryParams])
+  }, [rawQueryData, mainQueryParams.filterCriteria])
 
-  // useEffect(() => {
-
-  // }, [])
+  //Refresh mainQueryParams if route updates, either from filters panel or header search
+  useEffect(() => {
+    
+  }, [])
 
   //Todo move linked genes filter function call
   //Todo initialize open cCREs
@@ -376,13 +312,13 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               >
                 {/* Hidden empty icon to keep tab height consistent */}
                 <StyledTab iconPosition="end" icon={<Box sx={{ display: 'none' }} />} value={0} label="Table View" />
-                {!mainQueryParams.bed_intersect &&
+                {!mainQueryParams.searchConfig.bed_intersect &&
                   <StyledTab value={1} label="Genome Browser View" />
                 }
                 {searchParams.gene &&
                   <StyledTab value={2} label={`${searchParams.gene} Gene Expression`} />
                 }
-                {searchParams.gene && mainQueryParams.assembly.toLowerCase() !== "mm10" &&
+                {searchParams.gene && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" &&
                   <StyledTab value={3} label={`${searchParams.gene} RAMPAGE`} />
                 }
 
@@ -452,7 +388,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                 <StyledTab label="Associated Gene Expression" sx={{ alignSelf: "start" }} />
                 <StyledTab label="Functional Data" sx={{ alignSelf: "start" }} />
                 <StyledTab label="TF Motifs and Sequence Features" sx={{ alignSelf: "start" }} />
-                {mainQueryParams.assembly !== "mm10" && <StyledTab label="Associated RAMPAGE Signal" sx={{ alignSelf: "start" }} />}
+                {mainQueryParams.coordinates.assembly !== "mm10" && <StyledTab label="Associated RAMPAGE Signal" sx={{ alignSelf: "start" }} />}
               </Tabs>
             }
           </Drawer>
@@ -464,38 +400,41 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                 <MainResultsTable
                   rows={filteredTableRows}
                   tableTitle={
-                    mainQueryParams.bed_intersect ?
-                      `Intersecting by uploaded .bed file in ${mainQueryParams.assembly}${sessionStorage.getItem("warning") === "true" ? " (Partial)" : ""}`
+                    mainQueryParams.searchConfig.bed_intersect ?
+                      `Intersecting by uploaded .bed file in ${mainQueryParams.coordinates.assembly}${sessionStorage.getItem("warning") === "true" ? " (Partial)" : ""}`
                       :
-                      mainQueryParams.gene ?
-                        `cCREs overlapping ${mainQueryParams.gene} - ${mainQueryParams.chromosome}:${mainQueryParams.start.toLocaleString("en-US")}-${mainQueryParams.end.toLocaleString("en-US")}`
-                        : mainQueryParams.snpid ? `cCREs overlapping ${mainQueryParams.snpid} - ${mainQueryParams.chromosome}:${mainQueryParams.start.toLocaleString("en-US")}-${mainQueryParams.end.toLocaleString("en-US")}` :
-                          `Searching ${mainQueryParams.chromosome} in ${mainQueryParams.assembly} from ${mainQueryParams.start.toLocaleString("en-US")} to ${mainQueryParams.end.toLocaleString("en-US")}`
+                      mainQueryParams.searchConfig.gene ?
+                        `cCREs overlapping ${mainQueryParams.searchConfig.gene} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.start.toLocaleString("en-US")}-${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
+                        :
+                        mainQueryParams.searchConfig.snpid ?
+                          `cCREs overlapping ${mainQueryParams.searchConfig.snpid} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.start.toLocaleString("en-US")}-${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
+                          :
+                          `Searching ${mainQueryParams.coordinates.chromosome} in ${mainQueryParams.coordinates.assembly} from ${mainQueryParams.coordinates.start.toLocaleString("en-US")} to ${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
                   }
-                  titleHoverInfo={mainQueryParams.bed_intersect ?
+                  titleHoverInfo={mainQueryParams.searchConfig.bed_intersect ?
                     `${sessionStorage.getItem("warning") === "true" ? "The file you uploaded, " + sessionStorage.getItem('filenames') + ", is too large to be completely intersected. Results are incomplete."
                       :
                       sessionStorage.getItem('filenames')}` : null
                   }
                   itemsPerPage={10}
-                  assembly={mainQueryParams.assembly}
+                  assembly={mainQueryParams.coordinates.assembly}
                   onRowClick={handleTableClick}
                 />
               </Box>
             )}
             {page === 1 && (
               <GenomeBrowserView
-                gene={mainQueryParams.gene}
-                biosample={mainQueryParams.Biosample.biosample}
-                assembly={mainQueryParams.assembly}
-                coordinates={{ start: mainQueryParams.start, end: mainQueryParams.end, chromosome: mainQueryParams.chromosome }}
+                gene={mainQueryParams.searchConfig.gene}
+                biosample={mainQueryParams.biosample.biosample}
+                assembly={mainQueryParams.coordinates.assembly}
+                coordinates={{ start: mainQueryParams.coordinates.start, end: mainQueryParams.coordinates.end, chromosome: mainQueryParams.coordinates.chromosome }}
               />
             )}
-            {mainQueryParams.gene && page === 2 &&
-              <GeneExpression assembly={mainQueryParams.assembly} genes={[mainQueryParams.gene]} />
+            {mainQueryParams.searchConfig.gene && page === 2 &&
+              <GeneExpression assembly={mainQueryParams.coordinates.assembly} genes={[mainQueryParams.searchConfig.gene]} />
             }
-            {mainQueryParams.gene && mainQueryParams.assembly.toLowerCase() !== "mm10" && page === 3 && (
-              <Rampage gene={mainQueryParams.gene} />
+            {mainQueryParams.searchConfig.gene && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" && page === 3 && (
+              <Rampage gene={mainQueryParams.searchConfig.gene} />
             )}
             {page >= numberOfDefaultTabs && opencCREs.length > 0 && (
               <CcreDetails
@@ -503,7 +442,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                 accession={opencCREs[page - numberOfDefaultTabs].ID}
                 region={opencCREs[page - numberOfDefaultTabs].region}
                 globals={globals}
-                assembly={mainQueryParams.assembly}
+                assembly={mainQueryParams.coordinates.assembly}
                 genes={opencCREs[page - numberOfDefaultTabs].linkedGenes}
                 page={detailsPage}
               />

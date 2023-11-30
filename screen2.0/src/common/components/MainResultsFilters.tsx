@@ -89,21 +89,75 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
   const [tssupstream, setTssupstream] = useState<number>(0);
   const [snpdistance, setSnpDistance] = useState<number>(0);
 
+  //Biosample Filter
+  const [CellLine, setCellLine] = useState<boolean>(props.mainQueryParams.filterCriteria.biosampleTableFilters.CellLine)
+  const [PrimaryCell, setPrimaryCell] = useState<boolean>(props.mainQueryParams.filterCriteria.biosampleTableFilters.PrimaryCell)
+  const [Tissue, setTissue] = useState<boolean>(props.mainQueryParams.filterCriteria.biosampleTableFilters.Tissue)
+  const [Organoid, setOrganoid] = useState<boolean>(props.mainQueryParams.filterCriteria.biosampleTableFilters.Organoid)
+  const [InVitro, setInVitro] = useState<boolean>(props.mainQueryParams.filterCriteria.biosampleTableFilters.InVitro)
+  
+  //Selected Biosample
+  const [Biosample, setBiosample] = useState<{
+    selected: boolean
+    biosample: string | null
+    tissue: string | null
+    summaryName: string | null
+  }>(props.mainQueryParams.biosample)
+  const [BiosampleHighlight, setBiosampleHighlight] = useState<{} | null>(null)
+  const [SearchString, setSearchString] = useState<string>("")
 
-  const handleTssUpstreamChange = (_, newValue: number) => {
-    setTssupstream(newValue as number);
+  const [value, setValue] = React.useState('overlappinggene');
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setValue((event.target as HTMLInputElement).value);
   };
-  const handleSNPDistanceChange = (_, newValue: number) => {
-    setSnpDistance(newValue as number);
-  };
+
+  //Chromatin Filter
+  const [DNaseStart, setDNaseStart] = useState<number>(props.mainQueryParams.filterCriteria.chromatinFilter.dnase_s)
+  const [DNaseEnd, setDNaseEnd] = useState<number>(props.mainQueryParams.filterCriteria.chromatinFilter.dnase_e)
+  const [H3K4me3Start, setH3K4me3Start] = useState<number>(props.mainQueryParams.filterCriteria.chromatinFilter.h3k4me3_s)
+  const [H3K4me3End, setH3K4me3End] = useState<number>(props.mainQueryParams.filterCriteria.chromatinFilter.h3k4me3_e)
+  const [H3K27acStart, setH3K27acStart] = useState<number>(props.mainQueryParams.filterCriteria.chromatinFilter.h3k27ac_s)
+  const [H3K27acEnd, setH3K27acEnd] = useState<number>(props.mainQueryParams.filterCriteria.chromatinFilter.h3k27ac_e)
+  const [CTCFStart, setCTCFStart] = useState<number>(props.mainQueryParams.filterCriteria.chromatinFilter.ctcf_s)
+  const [CTCFEnd, setCTCFEnd] = useState<number>(props.mainQueryParams.filterCriteria.chromatinFilter.ctcf_e)
+  const [ATACStart, setATACStart] = useState<number>(props.mainQueryParams.filterCriteria.chromatinFilter.atac_s)
+  const [ATACEnd, setATACEnd] = useState<number>(props.mainQueryParams.filterCriteria.chromatinFilter.atac_e)
+
+  //Classification Filter
+  const [CA, setCA] = useState<boolean>(props.mainQueryParams.filterCriteria.classificationFilter.CA)
+  const [CA_CTCF, setCA_CTCF] = useState<boolean>(props.mainQueryParams.filterCriteria.classificationFilter.CA_CTCF)
+  const [CA_H3K4me3, setCA_H3K4me3] = useState<boolean>(props.mainQueryParams.filterCriteria.classificationFilter.CA_H3K4me3)
+  const [CA_TF, setCA_TF] = useState<boolean>(props.mainQueryParams.filterCriteria.classificationFilter.CA_TF)
+  const [dELS, setdELS] = useState<boolean>(props.mainQueryParams.filterCriteria.classificationFilter.dELS)
+  const [pELS, setpELS] = useState<boolean>(props.mainQueryParams.filterCriteria.classificationFilter.pELS)
+  const [PLS, setPLS] = useState<boolean>(props.mainQueryParams.filterCriteria.classificationFilter.PLS)
+  const [TF, setTF] = useState<boolean>(props.mainQueryParams.filterCriteria.classificationFilter.TF)
+
+  //Conservation Filter
+  const [PrimateStart, setPrimateStart] = useState<number>(props.mainQueryParams.filterCriteria.conservationFilter.prim_s)
+  const [PrimateEnd, setPrimateEnd] = useState<number>(props.mainQueryParams.filterCriteria.conservationFilter.prim_e)
+  const [MammalStart, setMammalStart] = useState<number>(props.mainQueryParams.filterCriteria.conservationFilter.mamm_s)
+  const [MammalEnd, setMammalEnd] = useState<number>(props.mainQueryParams.filterCriteria.conservationFilter.mamm_e)
+  const [VertebrateStart, setVertebrateStart] = useState<number>(props.mainQueryParams.filterCriteria.conservationFilter.vert_s)
+  const [VertebrateEnd, setVertebrateEnd] = useState<number>(props.mainQueryParams.filterCriteria.conservationFilter.vert_e)
+
+  //Linked Genes Filter
+  const [gene, setGene] = useState<string>("")
+  const [genesToFind, setGenesToFind] = useState<string[]>(props.mainQueryParams.filterCriteria.linkedGenesFilter.genesToFind)
+  const [distanceAll, setdistanceAll] = React.useState(props.mainQueryParams.filterCriteria.linkedGenesFilter.distanceAll)
+  const [distancePC, setdistancePC] = React.useState(props.mainQueryParams.filterCriteria.linkedGenesFilter.distancePC)
+  const [CTCF_ChIA_PET, setCTCF_ChIA_PET] = React.useState(props.mainQueryParams.filterCriteria.linkedGenesFilter.CTCF_ChIA_PET)
+  const [RNAPII_ChIA_PET, setRNAPII_ChIA_PET] = React.useState(props.mainQueryParams.filterCriteria.linkedGenesFilter.RNAPII_ChIA_PET)
+
   const {
     data: geneTranscripts
   } = useQuery(GENE_TRANSCRIPTS_QUERY, {
     variables: {
-      assembly: props.mainQueryParams.assembly.toLowerCase(),
-      name: [props.mainQueryParams.gene && props.mainQueryParams.gene.toUpperCase()]
+      assembly: props.mainQueryParams.coordinates.assembly.toLowerCase(),
+      name: [props.mainQueryParams.searchConfig.gene && props.mainQueryParams.searchConfig.gene.toUpperCase()]
     },
-    skip: !props.mainQueryParams.gene,
+    skip: !props.mainQueryParams.searchConfig.gene,
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first"
 
@@ -126,81 +180,18 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     geneTranscripts.gene[0].transcripts.length === 1 ? geneTranscripts.gene[0].transcripts[0].coordinates.end :
       geneTranscripts.gene[0].strand === "+" ? Math.max(...TSSs) : Math.min(...TSSs) : 0
 
-
-  //Biosample Filter
-
-  const [CellLine, setCellLine] = useState<boolean>(props.mainQueryParams.CellLine)
-  const [PrimaryCell, setPrimaryCell] = useState<boolean>(props.mainQueryParams.PrimaryCell)
-  const [Tissue, setTissue] = useState<boolean>(props.mainQueryParams.Tissue)
-  const [Organoid, setOrganoid] = useState<boolean>(props.mainQueryParams.Organoid)
-  const [InVitro, setInVitro] = useState<boolean>(props.mainQueryParams.InVitro)
-  //Selected Biosample
-
-  const [Biosample, setBiosample] = useState<{
-    selected: boolean
-    biosample: string | null
-    tissue: string | null
-    summaryName: string | null
-  }>(props.mainQueryParams.Biosample)
-  const [BiosampleHighlight, setBiosampleHighlight] = useState<{} | null>(null)
-  const [SearchString, setSearchString] = useState<string>("")
-
-  const [value, setValue] = React.useState('overlappinggene');
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setValue((event.target as HTMLInputElement).value);
-  };
-
-  //Chromatin Filter
-  const [DNaseStart, setDNaseStart] = useState<number>(props.mainQueryParams.dnase_s)
-  const [DNaseEnd, setDNaseEnd] = useState<number>(props.mainQueryParams.dnase_e)
-  const [H3K4me3Start, setH3K4me3Start] = useState<number>(props.mainQueryParams.h3k4me3_s)
-  const [H3K4me3End, setH3K4me3End] = useState<number>(props.mainQueryParams.h3k4me3_e)
-  const [H3K27acStart, setH3K27acStart] = useState<number>(props.mainQueryParams.h3k27ac_s)
-  const [H3K27acEnd, setH3K27acEnd] = useState<number>(props.mainQueryParams.h3k27ac_e)
-  const [CTCFStart, setCTCFStart] = useState<number>(props.mainQueryParams.ctcf_s)
-  const [CTCFEnd, setCTCFEnd] = useState<number>(props.mainQueryParams.ctcf_e)
-  const [ATACStart, setATACStart] = useState<number>(props.mainQueryParams.atac_s)
-  const [ATACEnd, setATACEnd] = useState<number>(props.mainQueryParams.atac_e)
-
-  //Classification Filter
-  const [CA, setCA] = useState<boolean>(props.mainQueryParams.CA)
-  const [CA_CTCF, setCA_CTCF] = useState<boolean>(props.mainQueryParams.CA_CTCF)
-  const [CA_H3K4me3, setCA_H3K4me3] = useState<boolean>(props.mainQueryParams.CA_H3K4me3)
-  const [CA_TF, setCA_TF] = useState<boolean>(props.mainQueryParams.CA_TF)
-  const [dELS, setdELS] = useState<boolean>(props.mainQueryParams.dELS)
-  const [pELS, setpELS] = useState<boolean>(props.mainQueryParams.pELS)
-  const [PLS, setPLS] = useState<boolean>(props.mainQueryParams.PLS)
-  const [TF, setTF] = useState<boolean>(props.mainQueryParams.TF)
-
-  //Conservation Filter
-  const [PrimateStart, setPrimateStart] = useState<number>(props.mainQueryParams.prim_s)
-  const [PrimateEnd, setPrimateEnd] = useState<number>(props.mainQueryParams.prim_e)
-  const [MammalStart, setMammalStart] = useState<number>(props.mainQueryParams.mamm_s)
-  const [MammalEnd, setMammalEnd] = useState<number>(props.mainQueryParams.mamm_e)
-  const [VertebrateStart, setVertebrateStart] = useState<number>(props.mainQueryParams.vert_s)
-  const [VertebrateEnd, setVertebrateEnd] = useState<number>(props.mainQueryParams.vert_e)
-
-  //Linked Genes Filter
-  const [gene, setGene] = useState<string>("")
-  const [genesToFind, setGenesToFind] = useState<string[]>([])
-  const [distanceAll, setdistanceAll] = React.useState(true)
-  const [distancePC, setdistancePC] = React.useState(true)
-  const [CTCF_ChIA_PET, setCTCF_ChIA_PET] = React.useState(true)
-  const [RNAPII_ChIA_PET, setRNAPII_ChIA_PET] = React.useState(true)
-
   const urlParams: URLParams = {
     Tissue,
     PrimaryCell,
     InVitro,
     Organoid,
     CellLine,
-    start: props.mainQueryParams.snpid ? Math.max(0, props.mainQueryParams.start - snpdistance) : props.mainQueryParams.gene ? (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 ? value === "tss"
+    start: props.mainQueryParams.searchConfig.snpid ? Math.max(0, props.mainQueryParams.coordinates.start - snpdistance) : props.mainQueryParams.searchConfig.gene ? (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 ? value === "tss"
       && firstTSS && firstTSS != 0 && lastTSS && lastTSS != 0 ? geneTranscripts.gene[0].strand === "+" ? firstTSS : lastTSS : geneTranscripts.gene[0].coordinates.start :
-      props.mainQueryParams.start) : props.mainQueryParams.start,
-    end: props.mainQueryParams.snpid ? props.mainQueryParams.end + snpdistance : props.mainQueryParams.gene ? (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 ? value === "tss"
+      props.mainQueryParams.coordinates.start) : props.mainQueryParams.coordinates.start,
+    end: props.mainQueryParams.searchConfig.snpid ? props.mainQueryParams.coordinates.end + snpdistance : props.mainQueryParams.searchConfig.gene ? (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 ? value === "tss"
       && firstTSS && firstTSS != 0 && lastTSS && lastTSS != 0 ? geneTranscripts.gene[0].strand === "+" ? lastTSS : firstTSS : geneTranscripts.gene[0].coordinates.end :
-      props.mainQueryParams.end) : props.mainQueryParams.end,
+      props.mainQueryParams.coordinates.end) : props.mainQueryParams.coordinates.end,
     Biosample: {
       selected: Biosample.selected,
       biosample: Biosample.biosample,
@@ -240,6 +231,16 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     CTCF_ChIA_PET,
     RNAPII_ChIA_PET
   }
+
+  const handleTssUpstreamChange = (_, newValue: number) => {
+    setTssupstream(newValue as number);
+  };
+  const handleSNPDistanceChange = (_, newValue: number) => {
+    setSnpDistance(newValue as number);
+  };
+  
+
+  
 
   function valuetext(value: number) {
     return `${value}kb`;
@@ -381,17 +382,17 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
   )
 
   useEffect(() => {
-    setBiosample(props.mainQueryParams.Biosample)
-  }, [props.mainQueryParams.Biosample])
+    setBiosample(props.mainQueryParams.biosample)
+  }, [props.mainQueryParams.biosample])
 
   return (
     <Paper elevation={0}>
       {/* cCREs within distance from SNP  */}
-      {props.mainQueryParams.snpid &&
+      {props.mainQueryParams.searchConfig.snpid &&
         <>
           <Accordion defaultExpanded square disableGutters>
             <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel2a-content" id="panel2a-header">
-              <Typography>cCREs within distance from SNP {props.mainQueryParams.snpid}</Typography>
+              <Typography>cCREs within distance from SNP {props.mainQueryParams.searchConfig.snpid}</Typography>
             </AccordionSummary>
             <AccordionDetails>
               <Grid2 container spacing={2}>
@@ -418,7 +419,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
         </>
       }
       {/* cCRES near gene  */}
-      {props.mainQueryParams.gene &&
+      {props.mainQueryParams.searchConfig.gene &&
         <>
           <Accordion defaultExpanded square disableGutters>
             <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel2a-content" id="panel2a-header">
@@ -434,8 +435,8 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                       value={value}
                       onChange={handleChange}
                     >
-                      <FormControlLabel value="overlappinggene" control={<Radio />} label={`Overlapping the gene body of ${props.mainQueryParams.gene}`} />
-                      <FormControlLabel value="tss" control={<Radio />} label={`Located between the first and last Transcription Start Sites (TSSs) of ${props.mainQueryParams.gene}`} />
+                      <FormControlLabel value="overlappinggene" control={<Radio />} label={`Overlapping the gene body of ${props.mainQueryParams.searchConfig.gene}`} />
+                      <FormControlLabel value="tss" control={<Radio />} label={`Located between the first and last Transcription Start Sites (TSSs) of ${props.mainQueryParams.searchConfig.gene}`} />
                     </RadioGroup>
                   </FormControl>
                 </Grid2>
@@ -464,7 +465,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
         </>
       }
       {/* Biosample Activity */}
-      <Accordion defaultExpanded={props.mainQueryParams.gene ? false : true} square disableGutters>
+      <Accordion defaultExpanded={props.mainQueryParams.searchConfig.gene ? false : true} square disableGutters>
         <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
           <Stack direction="row" spacing={1}>
             <Typography>Biosample Activity</Typography>
@@ -674,25 +675,25 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                   <FormGroup>
                     <FormControlLabel
                       checked={CA}
-                      onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setCA(checked)}
+                      onChange={(_, checked: boolean) => setCA(checked)}
                       control={<Checkbox />}
                       label="CA"
                     />
                     <FormControlLabel
                       checked={CA_CTCF}
-                      onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setCA_CTCF(checked)}
+                      onChange={(_, checked: boolean) => setCA_CTCF(checked)}
                       control={<Checkbox />}
                       label="CA-CTCF"
                     />
                     <FormControlLabel
                       checked={CA_H3K4me3}
-                      onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setCA_H3K4me3(checked)}
+                      onChange={(_, checked: boolean) => setCA_H3K4me3(checked)}
                       control={<Checkbox />}
                       label="CA-H3K4me3"
                     />
                     <FormControlLabel
                       checked={CA_TF}
-                      onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setCA_TF(checked)}
+                      onChange={(_, checked: boolean) => setCA_TF(checked)}
                       control={<Checkbox />}
                       label="CA-TF"
                     />
@@ -702,25 +703,25 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                   <FormGroup>
                     <FormControlLabel
                       checked={dELS}
-                      onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setdELS(checked)}
+                      onChange={(_, checked: boolean) => setdELS(checked)}
                       control={<Checkbox />}
                       label="dELS"
                     />
                     <FormControlLabel
                       checked={pELS}
-                      onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setpELS(checked)}
+                      onChange={(_, checked: boolean) => setpELS(checked)}
                       control={<Checkbox />}
                       label="pELS"
                     />
                     <FormControlLabel
                       checked={PLS}
-                      onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setPLS(checked)}
+                      onChange={(_, checked: boolean) => setPLS(checked)}
                       control={<Checkbox />}
                       label="PLS"
                     />
                     <FormControlLabel
                       checked={TF}
-                      onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setTF(checked)}
+                      onChange={(_, checked: boolean) => setTF(checked)}
                       control={<Checkbox />}
                       label="TF"
                     />
@@ -730,7 +731,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
             </AccordionDetails>
           </Accordion>
           {/* Conservation */}
-          {props.mainQueryParams.assembly === "GRCh38" && <Accordion square disableGutters>
+          {props.mainQueryParams.coordinates.assembly === "GRCh38" && <Accordion square disableGutters>
             <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel6a-content" id="panel6a-header">
               <Stack direction="row" spacing={1}>
                 <Typography>Conservation</Typography>
@@ -805,7 +806,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
             </AccordionSummary>
             <AccordionDetails>
               <GeneAutoComplete
-                assembly={props.mainQueryParams.assembly}
+                assembly={props.mainQueryParams.coordinates.assembly}
                 gene={gene}
                 setGene={(gene) => { setGene(gene); setGenesToFind([...genesToFind, gene]) }}
                 plusIcon

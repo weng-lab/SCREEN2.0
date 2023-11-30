@@ -231,8 +231,13 @@ const GENE_QUERY = gql`
     }
   }
 `
-
-export async function linkedGenesQuery(assembly: "GRCh38" | "mm10", accession: string[]) {
+/**
+ * 
+ * @param assembly "GRCh38" | "mm10"
+ * @param accessions string[]
+ * @returns an object with key/value pairs of: accession id/linked genes data (non distance-linked)
+ */
+export async function fetchLinkedGenes(assembly: "GRCh38" | "mm10", accessions: string[]) {
   let returnData: { [key: string]: { genes: { geneName: string, linkedBy: "CTCF-ChIAPET" | "RNAPII-ChIAPET", biosample: string }[] } } = {}
   let geneIDs: string[] = []
   let linkedGenes: ApolloQueryResult<any>
@@ -241,7 +246,7 @@ export async function linkedGenesQuery(assembly: "GRCh38" | "mm10", accession: s
   try {
     linkedGenes = await getClient().query({
       query: LINKED_GENES_QUERY,
-      variables: { assembly, accession },
+      variables: { assembly: assembly, accession: accessions },
     })
     linkedGenes.data.linkedGenesQuery.forEach((entry) => {
       !geneIDs.includes(entry.gene.split(".")[0]) && geneIDs.push(entry.gene.split(".")[0])
@@ -268,6 +273,7 @@ export async function linkedGenesQuery(assembly: "GRCh38" | "mm10", accession: s
       console.log(error)
     }
   } catch (error) {
+    console.log("linked gene query failed:")
     console.log(error)
   }
   //for some reason, the formatting of the data (newlines) aren't consistent. Don't think this has any effect though
@@ -295,6 +301,7 @@ export async function MainQuery(assembly: string = null, chromosome: string = nu
       variables: cCRE_QUERY_VARIABLES(assembly, chromosome, start, end, biosample, nearbygenesdistancethreshold, nearbygeneslimit, accessions),
     })
   } catch (error) {
+    console.log("error fetching main cCRE data")
     console.log(error)
   } finally {
     return data
@@ -338,7 +345,6 @@ export async function UMAPQuery(assembly: "grch38" | "mm10", assay: "DNase" | "H
  * @returns the shortened byCellType file from https://downloads.wenglab.org/databyct.json
  */
 export async function getGlobals(assembly: "GRCh38" | "mm10"){
-  console.log("called globals with" + assembly)
   let res: Response
   try {
     if (assembly === "GRCh38") {
@@ -347,6 +353,7 @@ export async function getGlobals(assembly: "GRCh38" | "mm10"){
         res = await fetch(Config.API.MouseGlobals)
       }
   } catch (error) {
+    console.log("error fetching " + assembly + " globals")
     console.log(error)
   } finally {
     if (res) {

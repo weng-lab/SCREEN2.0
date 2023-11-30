@@ -40,53 +40,72 @@ export type cCREData = {
 }
 
 export type MainQueryParams = {
-  bed_intersect: boolean,
-  assembly: "GRCh38" | "mm10"
-  chromosome: string | null
-  start: number | null
-  end: number | null
-  gene?: string
-  snpid?: string
-  CellLine?: boolean
-  PrimaryCell?: boolean
-  Tissue?: boolean
-  Organoid?: boolean
-  InVitro?: boolean
-  Biosample?: {
+  coordinates: {
+    assembly: "GRCh38" | "mm10"
+    chromosome: string | null
+    start: number | null
+    end: number | null
+  }
+  //biosample.biosample should be changed to something like: queryvalue
+  biosample: {
     selected: boolean
     biosample: string
     tissue: string
     summaryName: string
   }
-  dnase_s?: number
-  dnase_e?: number
-  h3k4me3_s?: number
-  h3k4me3_e?: number
-  h3k27ac_s?: number
-  h3k27ac_e?: number
-  atac_s?: number
-  atac_e?: number
-  vert_s?: number
-  vert_e?: number
-  mamm_s?: number
-  mamm_e?: number
-  prim_s?: number
-  prim_e?: number
-  ctcf_s?: number
-  ctcf_e?: number  
-  CA?: boolean
-  CA_CTCF?: boolean
-  CA_H3K4me3?: boolean
-  CA_TF?: boolean
-  dELS?: boolean
-  pELS?: boolean
-  PLS?: boolean
-  TF?: boolean
-  genesToFind: string[]
-  distancePC: boolean
-  distanceAll: boolean
-  CTCF_ChIA_PET: boolean
-  RNAPII_ChIA_PET: boolean
+  searchConfig: {
+    bed_intersect: boolean
+    gene: string
+    snpid: string
+  }
+  filterCriteria: FilterCriteria
+}
+
+export type FilterCriteria = {
+  biosampleTableFilters: {
+    CellLine?: boolean
+    PrimaryCell?: boolean
+    Tissue?: boolean
+    Organoid?: boolean
+    InVitro?: boolean
+  }
+  chromatinFilter: {
+    dnase_s: number
+    dnase_e: number
+    atac_s: number
+    atac_e: number
+    h3k4me3_s: number
+    h3k4me3_e: number
+    h3k27ac_s: number
+    h3k27ac_e: number
+    ctcf_s: number
+    ctcf_e: number
+  }
+  conservationFilter: {
+    prim_s: number
+    prim_e: number
+    mamm_s: number
+    mamm_e: number
+    vert_s: number
+    vert_e: number
+  }
+  classificationFilter: {
+    CA: boolean
+    CA_CTCF: boolean
+    CA_H3K4me3: boolean
+    CA_TF: boolean
+    dELS: boolean
+    pELS: boolean
+    PLS: boolean
+    TF: boolean
+  }
+  linkedGenesFilter: {
+    genesToFind: string[]
+    distancePC: boolean
+    distanceAll: boolean
+    CTCF_ChIA_PET: boolean
+    RNAPII_ChIA_PET: boolean
+  }
 }
 
 export type CellTypeData = {
