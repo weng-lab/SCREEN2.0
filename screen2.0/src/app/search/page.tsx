@@ -229,14 +229,14 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   }, [searchParams])
 
   //Initialize opencCREs on first load
-  //Lookup opencCREs with second query, admittedly it's wasteful but is easy solution for supporting cCREs not in table
   useEffect(() => {
     const cCREsToFetch = searchParams.accession && searchParams.accession.split(',').filter((cCRE) => (opencCREs.find((x) => cCRE === x.ID) === undefined))
-    console.log(cCREsToFetch)
+    //If there are cCREs to fetch...
     // @ts-expect-error
-    searchParams.accession && startTransition(async () => {
-      //Generate unfiltered rows of info for each open cCRE
+    cCREsToFetch?.length > 0 && startTransition(async () => {
+      //Generate unfiltered rows of info for each open cCRE for ease of accessing data
       const accessionOrder = searchParams.accession?.split(',')
+      console.log("fetching info on" + cCREsToFetch)
       const opencCRE_data = generateFilteredRows(
         await fetchcCREDataAndLinkedGenes(
           mainQueryParams.coordinates.assembly,
@@ -246,25 +246,26 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           undefined,
           1000000,
           null,
-          searchParams.accession.split(',')
+          cCREsToFetch
         ),
         mainQueryParams.filterCriteria,
         true
       )
-      setOpencCREs(
-        opencCRE_data.map((cCRE) => {
-          return (
-            {
-              ID: cCRE.accession,
-              region: {
-                start: cCRE.start,
-                end: cCRE.end,
-                chrom: cCRE.chromosome,
-              },
-              linkedGenes: cCRE.linkedGenes
-            }
-          )
-        }).sort((a, b) => {
+      const newOpencCREs = [...opencCREs, ...opencCRE_data.map((cCRE) => {
+        return (
+          {
+            ID: cCRE.accession,
+            region: {
+              start: cCRE.start,
+              end: cCRE.end,
+              chrom: cCRE.chromosome,
+            },
+            linkedGenes: cCRE.linkedGenes
+          }
+        )
+      })]
+      //sort to match url order
+      setOpencCREs(newOpencCREs.sort((a, b) => {
           const indexA = accessionOrder.indexOf(a.ID);
           const indexB = accessionOrder.indexOf(b.ID);
           return indexA - indexB;
