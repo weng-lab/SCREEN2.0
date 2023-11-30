@@ -59,8 +59,6 @@ export const RBP = "#f68800"
 
 export const Enhancer_GeneLinks = "#A872E5"
 
-const x = "#000000"
-
 export const tissueColors = {
   liver: "#aabb66",
   nerve: "#fdd800",
@@ -68,18 +66,13 @@ export const tissueColors = {
   muscle: "#aba8d4",
   "large intestine": "#ca9855",
   pancreas: "#995724",
-  //Unassigned
-  epithelium: x,
-  //Unassigned
-  bone: x,
+  epithelium: "#dd7e6b",
+  bone: "#a2c4c9",
   lung: "#a4cd39",
-  //Unassigned
-  eye: x,
+  eye: "#d5a6bd",
   "adrenal gland": "#5eba47",
   uterus: "#c878b2",
   "spinal cord": "#ebe71b",
-  // Error in tissue assignment?
-  "blood marrow": x,
   spleen: "#778955",
   thyroid: "#186833",
   "small intestine": "#565624",
@@ -87,37 +80,26 @@ export const tissueColors = {
   "urinary bladder": "#a91d22",
   kidney: "#74cac1",
   blood: "#dd4297",
-  //Unassigned
-  "bone marrow": x,
-  //Unassigned
-  embryo: x,
-  //Unassigned
-  penis: x,
+  "bone marrow": "#ea9999",
+  embryo: "#93c47d",
+  penis: "#144a9f",
   esophagus: "#8b7257",
-  //Unassigned
-  nose: x,
+  nose: "#b5834f",
   stomach: "#ffdd99",
-  //Unassigned
-  "connective tissue": x,
+  "connective tissue": "#aca8d3",
   vagina: "#ef5898",
-  //Unassigned
-  gallbladder: x,
+  gallbladder: "#674ea7",
   adipose: "#f26822",
-  //Unassigned
-  placenta: x,
-  //Unassigned
-  limb: x,
+  placenta: "#7bcb54",
+  limb: "#5f58ed",
   "blood vessel": "#ee2124",
   brain: "#ebe71b",
   heart: "#652c90",
   breast: "#4ac2c5",
   ovary: "#e1aed0",
-  //Unassigned
-  intestine: x,
-  //Unassigned
-  trachea: x,
-  //Unassigned
-  thymus: x,
+  intestine: "#565624",
+  trachea: "#c27ba0",
+  thymus: "#8e7cc3",
   testis: "#aaabab",
   NA: "#000000",
   //Added as fallback

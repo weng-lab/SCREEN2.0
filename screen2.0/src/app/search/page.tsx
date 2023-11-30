@@ -228,7 +228,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     setMainQueryParams(constructMainQueryParamsFromURL(searchParams))
   }, [searchParams])
 
-  //Initialize opencCREs on first load
+  //Initialize opencCREs, fetch info on them if not already in openCCREs
   useEffect(() => {
     const cCREsToFetch = searchParams.accession && searchParams.accession.split(',').filter((cCRE) => (opencCREs.find((x) => cCRE === x.ID) === undefined))
     //If there are cCREs to fetch...
@@ -236,7 +236,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     cCREsToFetch?.length > 0 && startTransition(async () => {
       //Generate unfiltered rows of info for each open cCRE for ease of accessing data
       const accessionOrder = searchParams.accession?.split(',')
-      console.log("fetching info on" + cCREsToFetch)
       const opencCRE_data = generateFilteredRows(
         await fetchcCREDataAndLinkedGenes(
           mainQueryParams.coordinates.assembly,
