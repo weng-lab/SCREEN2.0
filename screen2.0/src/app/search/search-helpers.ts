@@ -58,7 +58,7 @@ export async function fetchcCREDataAndLinkedGenes (
   return ({mainQueryData, linkedGenesData})
 }
 
-export function generateFilteredRows(rawQueryData: rawQueryData, filterCriteria: FilterCriteria): MainResultTableRows {
+export function generateFilteredRows(rawQueryData: rawQueryData, filterCriteria: FilterCriteria, unfiltered?: boolean): MainResultTableRows {
   const cCRE_data: cCREData[] = rawQueryData.mainQueryData.data.cCRESCREENSearch
   const otherLinked = rawQueryData.linkedGenesData
   //Assembly unfiltered rows
@@ -91,8 +91,11 @@ export function generateFilteredRows(rawQueryData: rawQueryData, filterCriteria:
       conservationData: { mammals: currentElement.mammals, primates: currentElement.primates, vertebrates: currentElement.vertebrates }
     })
   })
-
-  return rows.filter((row) => passesFilters(row, filterCriteria))
+  if (unfiltered) {
+    return rows
+  } else {
+    return rows.filter((row) => passesFilters(row, filterCriteria))
+  } 
 }
 
 

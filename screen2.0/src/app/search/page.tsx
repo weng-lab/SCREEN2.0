@@ -90,7 +90,6 @@ const DrawerHeader = styled('div')(({ theme }) => ({
   justifyContent: 'space-between',
 }));
 
-// export default function Search() {
 export default function Search({ searchParams }: { searchParams: { [key: string]: string | undefined } }) {
   const router = useRouter()
   const basePathname = usePathname()
@@ -99,7 +98,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const [detailsPage, setDetailsPage] = useState(0)
   const [opencCREs, setOpencCREs] = useState<{
     ID: string,
-    region: { start: string, chrom: string, end: string },
+    region: { start: string, end: string, chrom: string },
     linkedGenes: LinkedGenesData
   }[]>([])
   const [globals, setGlobals] = useState<CellTypeData>(null)
@@ -227,7 +226,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample.biosample])
 
   //Generate and filter rows
-  //This may run every time the tab is switched, not ideal, due to object inequality 
   const filteredTableRows = useMemo(() => {
     if (rawQueryData) {
       setLoadingcCREs(true)
@@ -238,51 +236,46 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   }, [rawQueryData, mainQueryParams.filterCriteria])
 
   //Refresh mainQueryParams if route updates, either from filters panel or header search
-  //This almost certainly runs more than I want
+  //This almost certainly runs more than I want, but not bad performance impact
   useEffect(() => {
     setMainQueryParams(constructMainQueryParamsFromURL(searchParams))
   }, [searchParams])
 
-  //Todo initialize open cCREs on load
-  //Loading wheels
-
-  // useEffect(() => {
-  //   // @ts-expect-error
-  //   //Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
-  //   startTransition(async () => {
-  //     setLoading(true)
-  //     //fetch rows
-  //     setPage(searchParams.page ? Number(searchParams.page) : 0)
-  //     let fetchedRows;
-  //     if (mainQueryParams.bed_intersect) {
-  //       fetchedRows = await fetchRows(mainQueryParams, sessionStorage.getItem("bed intersect")?.split(' '))
-  //     } else {
-  //       fetchedRows = await fetchRows(mainQueryParams)
-  //     }
-  //     setTableRows(fetchedRows)
-  //     //initialize open cCREs
-  //     const accessions = searchParams.accession?.split(',')
-  //     accessions ?
-  //       setOpencCREs(accessions.map((id) => {
-  //         const cCRE_info = fetchedRows.find((row) => row.accession === id)
-  //         if (cCRE_info) {
-  //           const region = { start: cCRE_info?.start, chrom: cCRE_info?.chromosome, end: cCRE_info?.end }
-  //           //If we wanted to allow open cCREs that aren't in the table, would need to get: coordinates and linked genes
-  //           //Linked genes passed to both gene expression and rampage 
-  //           return (
-  //             { ID: cCRE_info.accession, region: region, linkedGenes: cCRE_info.linkedGenes }
-  //           )
-  //         } else {
-  //           console.log(`Couldn't find ${id} in the table`)
-  //           return null
-  //         }
-  //       }).filter((x) => x != null))
-  //       :
-  //       setOpencCREs([])
-  //     setLoading(false)
-  //   })
-  //   //!!! This is infinite re-rendering because mainQuery Params is never the same through object equality
-  // }, [mainQueryParams, searchParams])
+  //Initialize opencCREs on first load
+  //Lookup opencCREs with second query, admittedly it's wasteful in most situations, but is easy solution for supporting cCREs not in table
+  useEffect(() => {
+    // @ts-expect-error
+    searchParams.accession && startTransition(async () => {
+      //Generate unfiltered rows of info for each open cCRE
+      const opencCRE_data = generateFilteredRows(
+        await fetchcCREDataAndLinkedGenes(
+          mainQueryParams.coordinates.assembly,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          1000000,
+          null,
+          searchParams.accession.split(',')
+        ),
+        mainQueryParams.filterCriteria,
+        true
+      )
+      setOpencCREs(opencCRE_data.map((cCRE) => {
+        return(
+          {
+            ID: cCRE.accession,
+            region: {
+                start: cCRE.start,
+                end: cCRE.end,
+                chrom: cCRE.chromosome,
+            },
+            linkedGenes: cCRE.linkedGenes
+        }
+        )
+      }))
+    })
+  }, [])
 
   const findTabByID = (id: string, numberOfTable: number = 2) => {
     return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)
