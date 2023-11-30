@@ -842,10 +842,10 @@
   resolved "https://registry.yarnpkg.com/@webpack-cli/serve/-/serve-2.0.5.tgz#325db42395cd49fe6c14057f9a900e427df8810e"
   integrity sha512-lqaoKnRYBdo1UgDX8uF24AfGMifWK19TxPmM5FHc2vAGxrJ/qtyUyFBWoY1tISZdelsQ5fBcOusifo5o5wSJxQ==
 
-"@weng-lab/psychscreen-ui-components@^0.8.0-a.2":
-  version "0.8.0-a.2"
-  resolved "https://registry.yarnpkg.com/@weng-lab/psychscreen-ui-components/-/psychscreen-ui-components-0.8.0-a.2.tgz#54a76b669fbb1d0c9f444246d52ffeea774658de"
-  integrity sha512-Dqfh0EVsZRtFoMLwwfxff9JiWrMkhHGlROCVFUHWE8YAdCxjjLtq3PQj5KBS4WFHC066sHuCt0e3Vzm0ZWVRtg==
+"@weng-lab/psychscreen-ui-components@^0.8.0-a.3":
+  version "0.8.0-a.3"
+  resolved "https://registry.yarnpkg.com/@weng-lab/psychscreen-ui-components/-/psychscreen-ui-components-0.8.0-a.3.tgz#ae13afa9e6b61145619cb527cd257d469037476a"
+  integrity sha512-msObhBk/9kGV9KDB5Ye4b05WHbgbBhhAvvezw380D910nEGDx7MUVJfsgtReXldYe5t2Ywdg2xohxXgKf+GFjw==
 
 "@weng-lab/ts-ztable@^4.0.1":
   version "4.0.1"
