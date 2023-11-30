@@ -41,7 +41,7 @@ export const NearByGenomicFeatures: React.FC<{
 }> = ({ assembly, accession, coordinates }) => {
   const router = useRouter()
   const pathname = usePathname()
-  const searchParams: any = useSearchParams()!
+  const searchParams= useSearchParams()!
 
   const createQueryString = React.useCallback(
     (name: string, value: string) => {
@@ -168,10 +168,8 @@ export const NearByGenomicFeatures: React.FC<{
                       header: "Accession",
                       value: (row) => row.name,
                       render: (row) => (
-                        <Link 
-                          href={pathname + `?assembly=${assembly}&chromosome=${row.chromosome}&start=${row.start}&end=${row.end}&accession=${row.name}&page=2`}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <Link
+                          href={pathname + "?" + createQueryString("accession", searchParams.get("accession") && searchParams.get("accession") + `,${row.name}`)}
                         >
                           <Typography
                             component="button"

@@ -2,7 +2,7 @@
 "use client"
 import { getGlobals } from "../../common/lib/queries"
 import { CellTypeData, MainQueryParams } from "./types"
-import { constructMainQueryParamsFromURL, fetchcCREDataAndLinkedGenes } from "./search-helpers"
+import { constructMainQueryParamsFromURL, createQueryString, fetchcCREDataAndLinkedGenes } from "./search-helpers"
 import React, { startTransition, useCallback, useEffect, useMemo, useState } from "react"
 import { styled } from '@mui/material/styles';
 import { Divider, IconButton, Tab, Tabs, Typography, Box, CircularProgress } from "@mui/material"
@@ -112,18 +112,16 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const handleDrawerClose = () => { setOpen(false) }
 
   const handleTableClick = (row: MainResultTableRow) => {
-    if (opencCREs.length > 6) { window.alert("Open cCRE limit reached! Please close cCREs to open more") }
     const newcCRE = { ID: row.accession, region: { start: row.start, end: row.end, chrom: row.chromosome }, linkedGenes: row.linkedGenes }
     //If cCRE isn't in open cCREs, add and push as current accession.
-
     if (!opencCREs.find((x) => x.ID === newcCRE.ID)) {
       setOpencCREs([...opencCREs, newcCRE])
       setPage(opencCREs.length + numberOfDefaultTabs)
-      router.push(basePathname + "?" + createQueryString("accession", [...opencCREs, newcCRE].map((x) => x.ID).join(','), "page", String(opencCREs.length + numberOfDefaultTabs)))
+      router.push(basePathname + "?" + createQueryString(searchParams, "accession", [...opencCREs, newcCRE].map((x) => x.ID).join(','), "page", String(opencCREs.length + numberOfDefaultTabs)))
     } else {
       const newPage = findTabByID(newcCRE.ID, numberOfDefaultTabs)
       setPage(newPage)
-      router.push(basePathname + "?" + createQueryString("page", String(newPage)))
+      router.push(basePathname + "?" + createQueryString(searchParams, "page", String(newPage)))
     }
   }
 
@@ -138,7 +136,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     // If you're closing a tab to the right of what you're on:
     if (closedIndex > (page - numberOfDefaultTabs)) {
       //Close cCREs in URL
-      router.push(basePathname + '?' + createQueryString("accession", newOpencCREs.map((x) => x.ID).join(',')))
+      router.push(basePathname + '?' + createQueryString(searchParams, "accession", newOpencCREs.map((x) => x.ID).join(',')))
     }
     // If you're closing the tab you're on:
     if (closedIndex === (page - numberOfDefaultTabs)) {
@@ -148,20 +146,20 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         setPage(0)
         setDetailsPage(0)
         // Change URL to ???
-        router.push(basePathname + '?' + createQueryString("accession", "", "page", "0"))
+        router.push(basePathname + '?' + createQueryString(searchParams, "accession", "", "page", "0"))
       }
       // If it's the tab at the far right
       else if (page === (opencCREs.length + (numberOfDefaultTabs - 1))) {
         // Page - 1
         setPage(page - 1)
         // URL to accession on the left
-        router.push(basePathname + '?' + createQueryString("accession", newOpencCREs.map((x) => x.ID).join(','), "page", String(page - 1)))
+        router.push(basePathname + '?' + createQueryString(searchParams, "accession", newOpencCREs.map((x) => x.ID).join(','), "page", String(page - 1)))
       }
       // Else it's not at the end or the last open:
       else {
         // Keep page position
         // Change URL to cCRE to the right
-        router.push(basePathname + '?' + createQueryString("accession", newOpencCREs.map((x) => x.ID).join(',')))
+        router.push(basePathname + '?' + createQueryString(searchParams, "accession", newOpencCREs.map((x) => x.ID).join(',')))
       }
     }
     // If you're closing a tab to the left of what you're on: 
@@ -169,7 +167,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       // Page count -= 1 to keep tab position
       // Remove selected cCRE from list
       setPage(page - 1)
-      router.push(basePathname + '?' + createQueryString("accession", newOpencCREs.map((x) => x.ID).join(','), "page", String(page - 1)))
+      router.push(basePathname + '?' + createQueryString(searchParams, "accession", newOpencCREs.map((x) => x.ID).join(','), "page", String(page - 1)))
     }
   }
 
@@ -178,21 +176,10 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       setOpen(false)
     }
     setPage(newValue)
-    router.push(basePathname + '?' + createQueryString("page", String(newValue)))
+    router.push(basePathname + '?' + createQueryString(searchParams, "page", String(newValue)))
   }
 
-  const createQueryString = useCallback(
-    (name1: string, value1: string, name2?: string, value2?: string) => {
-      const params = new URLSearchParams(searchParams)
-      params.set(name1, value1)
-      if (name2 && value2) {
-        params.set(name2, value2)
-      }
-      return params.toString()
-    }, [searchParams]
-  )
-
-  //It's maybe not great to use useEffect like this: https://react.dev/learn/you-might-not-need-an-effect
+  //It's maybe not great to use useEffect liberally like this: https://react.dev/learn/you-might-not-need-an-effect
   //Doing this to be able to use startTransition to invoke server action
 
   //Fetch byCellType
@@ -243,7 +230,13 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
 
   //Initialize opencCREs on first load
   //Lookup opencCREs with second query, admittedly it's wasteful in most situations, but is easy solution for supporting cCREs not in table
+  //If an accession doesn't exist in opencCREs, add it to list 
+
+  //Look through open ccres and 
   useEffect(() => {
+    //Want the filter function to return true when not found
+    const cCREsToFetch = searchParams.accession && searchParams.accession.split(',').filter((cCRE) => (opencCREs.find((x) => cCRE === x.ID) === undefined))
+    console.log("cCREs to fetch: " + cCREsToFetch)
     // @ts-expect-error
     searchParams.accession && startTransition(async () => {
       //Generate unfiltered rows of info for each open cCRE
@@ -275,7 +268,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         )
       }))
     })
-  }, [])
+  }, [searchParams.accession])
 
   const findTabByID = (id: string, numberOfTable: number = 2) => {
     return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)

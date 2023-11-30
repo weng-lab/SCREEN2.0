@@ -505,3 +505,12 @@ export function constructMainQueryParamsFromURL(searchParams: { [key: string]: s
     }
   )
 }
+
+export function createQueryString(searchParams: { [key: string]: string | undefined }, name1: string, value1: string, name2?: string, value2?: string){
+  const params = new URLSearchParams(searchParams)
+  params.set(name1, value1)
+  if (name2 && value2) {
+    params.set(name2, value2)
+  }
+  return params.toString()
+}
