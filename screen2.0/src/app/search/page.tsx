@@ -229,17 +229,14 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   }, [searchParams])
 
   //Initialize opencCREs on first load
-  //Lookup opencCREs with second query, admittedly it's wasteful in most situations, but is easy solution for supporting cCREs not in table
-  //If an accession doesn't exist in opencCREs, add it to list 
-
-  //Look through open ccres and 
+  //Lookup opencCREs with second query, admittedly it's wasteful but is easy solution for supporting cCREs not in table
   useEffect(() => {
-    //Want the filter function to return true when not found
     const cCREsToFetch = searchParams.accession && searchParams.accession.split(',').filter((cCRE) => (opencCREs.find((x) => cCRE === x.ID) === undefined))
-    console.log("cCREs to fetch: " + cCREsToFetch)
+    console.log(cCREsToFetch)
     // @ts-expect-error
     searchParams.accession && startTransition(async () => {
       //Generate unfiltered rows of info for each open cCRE
+      const accessionOrder = searchParams.accession?.split(',')
       const opencCRE_data = generateFilteredRows(
         await fetchcCREDataAndLinkedGenes(
           mainQueryParams.coordinates.assembly,
@@ -254,19 +251,25 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         mainQueryParams.filterCriteria,
         true
       )
-      setOpencCREs(opencCRE_data.map((cCRE) => {
-        return(
-          {
-            ID: cCRE.accession,
-            region: {
+      setOpencCREs(
+        opencCRE_data.map((cCRE) => {
+          return (
+            {
+              ID: cCRE.accession,
+              region: {
                 start: cCRE.start,
                 end: cCRE.end,
                 chrom: cCRE.chromosome,
-            },
-            linkedGenes: cCRE.linkedGenes
-        }
-        )
-      }))
+              },
+              linkedGenes: cCRE.linkedGenes
+            }
+          )
+        }).sort((a, b) => {
+          const indexA = accessionOrder.indexOf(a.ID);
+          const indexB = accessionOrder.indexOf(b.ID);
+          return indexA - indexB;
+        })
+      )
     })
   }, [searchParams.accession])
 

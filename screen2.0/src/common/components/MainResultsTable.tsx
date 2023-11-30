@@ -249,6 +249,7 @@ function MainResultsTable(props: MainResultsTableProps) {
     props.assembly === "GRCh38" && cols.push({
       header: "Conservation",
       value: (row: { conservationData: ConservationData }) => `Primates:\u00A0${row.conservationData.primates?.toFixed(2) ?? "unavailable"} Mammals:\u00A0${row.conservationData.mammals?.toFixed(2) ?? "unavailable"} Vertebrates:\u00A0${row.conservationData.vertebrates?.toFixed(2) ?? "unavailable"}` , 
+      HeaderRender: () => <strong><p>Conservation</p></strong>
     })
     return cols
   }

@@ -41,13 +41,13 @@ export const NearByGenomicFeatures: React.FC<{
 }> = ({ assembly, accession, coordinates }) => {
   const router = useRouter()
   const pathname = usePathname()
-  const searchParams= useSearchParams()!
+  const searchParams= useSearchParams()
 
   const createQueryString = React.useCallback(
     (name: string, value: string) => {
       const params = new URLSearchParams(searchParams)
       params.set(name, value)
-
+      console.log("called")
       return params.toString()
     },
     [searchParams]
@@ -143,7 +143,14 @@ export const NearByGenomicFeatures: React.FC<{
                     {
                       header: "Symbol",
                       value: (row) => row.name,
-                      render: (row) => createLink("http://www.genecards.org/cgi-bin/carddisp.pl?gene=", row.name),
+                      render: (row) =>
+                        <Typography
+                          component="a"
+                          variant="body2"
+                          color="primary"
+                        >
+                          {row.name}
+                        </Typography>,
                     },
                     {
                       header: "Distance (in bp)",
@@ -151,6 +158,9 @@ export const NearByGenomicFeatures: React.FC<{
                       render: (row) => row.distance.toLocaleString("en-US"),
                     },
                   ]}
+                  onRowClick={(row) => {
+                    window.open(`http://www.genecards.org/cgi-bin/carddisp.pl?gene=${row.name}`, "_blank")
+                  }}
                   sortColumn={1}
                   tableTitle="Genes"
                   rows={genes || []}
@@ -168,17 +178,13 @@ export const NearByGenomicFeatures: React.FC<{
                       header: "Accession",
                       value: (row) => row.name,
                       render: (row) => (
-                        <Link
-                          href={pathname + "?" + createQueryString("accession", searchParams.get("accession") && searchParams.get("accession") + `,${row.name}`)}
-                        >
                           <Typography
-                            component="button"
+                            component="a"
                             variant="body2"
                             color="primary"
                           >
                             {row.name}
                           </Typography>
-                        </Link>
                       ),
                     },
                     {
@@ -187,6 +193,7 @@ export const NearByGenomicFeatures: React.FC<{
                       render: (row) => row.distance.toLocaleString("en-US"),
                     },
                   ]}
+                  onRowClick={(row) => router.push(pathname + "?" + createQueryString("accession", searchParams.get("accession") && searchParams.get("accession") + `,${row.name}`))}
                   sortColumn={1}
                   tableTitle="cCREs"
                   rows={ccres.filter(c=>c.distance!=0) || []}
@@ -204,12 +211,13 @@ export const NearByGenomicFeatures: React.FC<{
                       header: "SNP Id",
                       value: (row) => row.name,
                       render: (row) =>
-                        createLink(
-                          row.assembly.toLowerCase() === "grch38"
-                            ? "http://ensembl.org/Homo_sapiens/Variation/Explore?vdb=variation;v="
-                            : "http://ensembl.org/Mus_musculus/Variation/Explore?vdb=variation;v=",
-                          row.name
-                        ),
+                        <Typography
+                          component="a"
+                          variant="body2"
+                          color="primary"
+                        >
+                          {row.name}
+                        </Typography>,
                     },
                     {
                       header: "Distance (in bp)",
@@ -217,6 +225,9 @@ export const NearByGenomicFeatures: React.FC<{
                       render: (row) => row.distance.toLocaleString("en-US"),
                     },
                   ]}
+                  onRowClick={(row) => {
+                    window.open(`http://ensembl.org/${row.assembly.toLowerCase() === "grch38" ? "Homo_sapiens" : "Mus_musculus"}/Variation/Explore?vdb=variation;v=${row.name}`, "_blank")
+                  }}
                   sortColumn={1}
                   tableTitle="SNPs"
                   rows={snps || []}
