@@ -39,6 +39,7 @@ export type cCREData = {
 
 }
 
+
 export type MainQueryParams = {
   coordinates: {
     assembly: "GRCh38" | "mm10"
@@ -59,6 +60,8 @@ export type MainQueryParams = {
     snpid: string
   }
   filterCriteria: FilterCriteria
+  accessions: string
+  page: number
 }
 
 export type FilterCriteria = {
@@ -181,57 +184,6 @@ export type LinkedGenesData = {
   distanceAll: { name: string }[],
   CTCF_ChIAPET: { name: string, biosample: string }[],
   RNAPII_ChIAPET: { name: string, biosample: string }[]
-}
-
-/**
- * I guess this is best described as the parameters that can be modified by the filters panel. Strong overlap with mainQueryParams
- */
-export type URLParams = {
-    Tissue: boolean
-    PrimaryCell: boolean
-    InVitro: boolean
-    Organoid: boolean
-    CellLine: boolean
-    start: number
-    end: number   
-    Biosample: {
-      selected: boolean
-      biosample: string | null
-      tissue: string | null
-      summaryName: string | null
-    },
-    DNaseStart: number
-    DNaseEnd: number
-    H3K4me3Start: number
-    H3K4me3End: number
-    H3K27acStart: number
-    H3K27acEnd: number
-    CTCFStart: number
-    CTCFEnd: number
-    ATACStart: number
-    ATACEnd: number
-    CA: boolean
-    CA_CTCF: boolean
-    CA_H3K4me3: boolean
-    CA_TF: boolean
-    dELS: boolean
-    pELS: boolean
-    PLS: boolean
-    TF: boolean
-    PrimateStart: number
-    PrimateEnd: number
-    MammalStart: number
-    MammalEnd: number
-    VertebrateStart: number
-    VertebrateEnd: number
-    genesToFind: string[]
-    distancePC: boolean
-    distanceAll: boolean
-    distanceFromcCRE: number
-    CTCF_ChIA_PET: boolean
-    RNAPII_ChIA_PET: boolean
-    Accessions: string
-    Page: number
 }
 
 export type rawQueryData = {

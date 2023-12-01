@@ -31,8 +31,8 @@ import Link from "next/link"
 import { RangeSlider, DataTable } from "@weng-lab/psychscreen-ui-components"
 import { useState, useMemo, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { CellTypeData, FilteredBiosampleData, MainQueryParams, URLParams } from "./types"
-import { parseByCellType, filterBiosamples, assayHoverInfo, constructURL } from "./search-helpers"
+import { CellTypeData, FilteredBiosampleData, MainQueryParams } from "./types"
+import { parseByCellType, filterBiosamples, assayHoverInfo, constructSearchURL } from "./search-helpers"
 import { gql } from "@apollo/client"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import GeneAutoComplete from "../applets/gene-expression/gene-autocomplete";
@@ -182,57 +182,111 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     geneTranscripts.gene[0].transcripts.length === 1 ? geneTranscripts.gene[0].transcripts[0].coordinates.end :
       geneTranscripts.gene[0].strand === "+" ? Math.max(...TSSs) : Math.min(...TSSs) : 0
 
-  const urlParams: URLParams = {
-    Tissue,
-    PrimaryCell,
-    InVitro,
-    Organoid,
-    CellLine,
-    start: props.mainQueryParams.searchConfig.snpid ? Math.max(0, props.mainQueryParams.coordinates.start - snpdistance) : props.mainQueryParams.searchConfig.gene ? (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 ? value === "tss"
-      && firstTSS && firstTSS != 0 && lastTSS && lastTSS != 0 ? geneTranscripts.gene[0].strand === "+" ? firstTSS : lastTSS : geneTranscripts.gene[0].coordinates.start :
-      props.mainQueryParams.coordinates.start) : props.mainQueryParams.coordinates.start,
-    end: props.mainQueryParams.searchConfig.snpid ? props.mainQueryParams.coordinates.end + snpdistance : props.mainQueryParams.searchConfig.gene ? (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 ? value === "tss"
-      && firstTSS && firstTSS != 0 && lastTSS && lastTSS != 0 ? geneTranscripts.gene[0].strand === "+" ? lastTSS : firstTSS : geneTranscripts.gene[0].coordinates.end :
-      props.mainQueryParams.coordinates.end) : props.mainQueryParams.coordinates.end,
-    Biosample: {
+  const newSearchParams: MainQueryParams = {
+    coordinates: {
+      assembly: props.mainQueryParams.coordinates.assembly,
+      chromosome: props.mainQueryParams.coordinates.chromosome,
+      //Start and End here should really be rewritten with if/else cases. This is impossible to read
+      start:
+        props.mainQueryParams.searchConfig.snpid ?
+          Math.max(0, props.mainQueryParams.coordinates.start - snpdistance)
+          :
+          props.mainQueryParams.searchConfig.gene ?
+            (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 ?
+              value === "tss" && firstTSS && firstTSS != 0 && lastTSS && lastTSS != 0 ?
+                geneTranscripts.gene[0].strand === "+" ?
+                  firstTSS
+                  :
+                  lastTSS
+                :
+                geneTranscripts.gene[0].coordinates.start
+              :
+              props.mainQueryParams.coordinates.start)
+            :
+            props.mainQueryParams.coordinates.start,
+      end:
+        props.mainQueryParams.searchConfig.snpid ?
+          props.mainQueryParams.coordinates.end + snpdistance
+          :
+          props.mainQueryParams.searchConfig.gene ?
+            (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 ?
+              value === "tss" && firstTSS && firstTSS != 0 && lastTSS && lastTSS != 0 ?
+                geneTranscripts.gene[0].strand === "+" ?
+                  lastTSS
+                  :
+                  firstTSS
+                :
+                geneTranscripts.gene[0].coordinates.end
+              :
+              props.mainQueryParams.coordinates.end)
+            :
+            props.mainQueryParams.coordinates.end,
+    },
+    biosample: {
       selected: Biosample.selected,
       biosample: Biosample.biosample,
       tissue: Biosample.tissue,
       summaryName: Biosample.summaryName,
     },
-    DNaseStart,
-    DNaseEnd,
-    H3K4me3Start,
-    H3K4me3End,
-    H3K27acStart,
-    H3K27acEnd,
-    CTCFStart,
-    CTCFEnd,
-    ATACStart,
-    ATACEnd,
-    CA,
-    CA_CTCF,
-    CA_H3K4me3,
-    CA_TF,
-    dELS,
-    pELS,
-    PLS,
-    TF,
-    PrimateStart,
-    PrimateEnd,
-    MammalStart,
-    MammalEnd,
-    VertebrateStart,
-    VertebrateEnd,
-    Accessions: props.accessions,
-    Page: props.page,
-    genesToFind,
-    distancePC,
-    distanceAll,
-    distanceFromcCRE: 1000000,
-    CTCF_ChIA_PET,
-    RNAPII_ChIA_PET
+    searchConfig: {
+      bed_intersect: props.mainQueryParams.searchConfig.bed_intersect,
+      gene: props.mainQueryParams.searchConfig.gene,
+      snpid: props.mainQueryParams.searchConfig.snpid,
+    },
+    filterCriteria: {
+      biosampleTableFilters: {
+        CellLine: CellLine,
+        PrimaryCell: PrimaryCell,
+        Tissue: Tissue,
+        Organoid: Organoid,
+        InVitro: InVitro,
+      },
+      chromatinFilter: {
+        dnase_s: DNaseStart,
+        dnase_e: DNaseEnd,
+        atac_s: ATACStart,
+        atac_e: ATACEnd,
+        h3k4me3_s: H3K4me3Start,
+        h3k4me3_e: H3K4me3End,
+        h3k27ac_s: H3K27acStart,
+        h3k27ac_e: H3K27acEnd,
+        ctcf_s: CTCFStart,
+        ctcf_e: CTCFEnd,
+      },
+      conservationFilter: {
+        prim_s: PrimateStart,
+        prim_e: PrimateEnd,
+        mamm_s: MammalStart,
+        mamm_e: MammalEnd,
+        vert_s: VertebrateStart,
+        vert_e: VertebrateEnd,
+      },
+      classificationFilter: {
+        CA: CA,
+        CA_CTCF: CA_CTCF,
+        CA_H3K4me3: CA_H3K4me3,
+        CA_TF: CA_TF,
+        dELS: dELS,
+        pELS: pELS,
+        PLS: PLS,
+        TF: TF,
+      },
+      linkedGenesFilter: {
+        genesToFind: genesToFind,
+        distancePC: distancePC,
+        distanceAll: distanceAll,
+        CTCF_ChIA_PET: CTCF_ChIA_PET,
+        RNAPII_ChIA_PET: RNAPII_ChIA_PET,
+      },
+    },
+    accessions: props.accessions,
+    page: props.page
   }
+
+  // useEffect(() => {
+  //   console.log("called")
+  //   router.push(constructURL(props.mainQueryParams, urlParams))
+  // }, [props.mainQueryParams, urlParams])
 
   const handleTssUpstreamChange = (_, newValue: number) => {
     setTssupstream(newValue as number);
@@ -241,9 +295,6 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     setSnpDistance(newValue as number);
   };
   
-
-  
-
   function valuetext(value: number) {
     return `${value}kb`;
   }
@@ -364,7 +415,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                       setBiosampleHighlight(row)
                       //Push to router with new biosample to avoid accessing stale Biosample value
                       router.push(
-                        constructURL(props.mainQueryParams, urlParams, {
+                        constructSearchURL(newSearchParams, {
                           selected: true,
                           biosample: row.queryValue,
                           tissue: row.biosampleTissue,
@@ -507,7 +558,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                       setBiosample({ selected: false, biosample: null, tissue: null, summaryName: null })
                       setBiosampleHighlight(null)
                       router.push(
-                        constructURL(props.mainQueryParams, urlParams, {
+                        constructSearchURL(newSearchParams, {
                           selected: false,
                           biosample: null,
                           tissue: null,
@@ -869,7 +920,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
           </Accordion> */}
         </>
       }
-      <Link href={constructURL(props.mainQueryParams, urlParams)}>
+      <Link href={constructSearchURL(newSearchParams)}>
         <Button variant="contained" endIcon={<SendIcon />} sx={{ mt: "16px", mb: "16px", ml: "16px", mr: "16px" }}>
           Filter Results
         </Button>

@@ -193,7 +193,7 @@ export const NearByGenomicFeatures: React.FC<{
                       render: (row) => row.distance.toLocaleString("en-US"),
                     },
                   ]}
-                  onRowClick={(row) => router.push(pathname + "?" + createQueryString("accession", searchParams.get("accession") && searchParams.get("accession") + `,${row.name}`))}
+                  onRowClick={(row) => router.push(pathname + "?" + createQueryString("accessions", searchParams.get("accessions") && searchParams.get("accessions") + `,${row.name}`))}
                   sortColumn={1}
                   tableTitle="cCREs"
                   rows={ccres.filter(c=>c.distance!=0) || []}

@@ -1,6 +1,5 @@
 
-import { cCREData, MainQueryParams, CellTypeData, UnfilteredBiosampleData, FilteredBiosampleData, URLParams, MainResultTableRows, MainResultTableRow, rawQueryData, FilterCriteria } from "./types"
-import { ApolloQueryResult } from "@apollo/client"
+import { cCREData, MainQueryParams, CellTypeData, UnfilteredBiosampleData, FilteredBiosampleData, MainResultTableRows, MainResultTableRow, rawQueryData, FilterCriteria } from "./types"
 import { MainQuery, fetchLinkedGenes } from "../../common/lib/queries"
 
 /**
@@ -58,6 +57,7 @@ export async function fetchcCREDataAndLinkedGenes (
   return ({mainQueryData, linkedGenesData})
 }
 
+//This could be split up into generateUnfilteredRows, and FilterRows functions for even better performace when filtering
 export function generateFilteredRows(rawQueryData: rawQueryData, filterCriteria: FilterCriteria, unfiltered?: boolean): MainResultTableRows {
   const cCRE_data: cCREData[] = rawQueryData.mainQueryData.data.cCRESCREENSearch
   const otherLinked = rawQueryData.linkedGenesData
@@ -370,20 +370,20 @@ export function assayHoverInfo(assays: { dnase: boolean; h3k27ac: boolean; h3k4m
 
 /**
  *
+ * @param newSearchParams object of type MainQueryParams
  * @param newBiosample optional, use if setting Biosample State and then immediately triggering router before re-render when the new state is accessible
- * @returns A URL configured with filter information
- * @todo this function should only take in urlParams, not mainQueryParams (which should be renamed). urlParams is more like filterParams. Also this should not append things to the url unless it changes from the default value
+ * @returns A URL configured with search params matching newSearchParams
+ *
  */
-export function constructURL(
-  mainQueryParams: MainQueryParams,
-  urlParams: URLParams,
+export function constructSearchURL(
+  newSearchParams: MainQueryParams,
   newBiosample?: {
     selected: boolean
     biosample: string
     tissue: string
     summaryName: string
   }
-) {
+): string {
   /**
    * ! Important !
    * 
@@ -392,38 +392,82 @@ export function constructURL(
    */ 
 
   //Assembly, Chromosome, Start, End
-  const urlBasics = mainQueryParams.searchConfig.bed_intersect ? `search?intersect=t&assembly=${mainQueryParams.coordinates.assembly}` :
-   `search?assembly=${mainQueryParams.coordinates.assembly}&chromosome=${mainQueryParams.coordinates.chromosome}&start=${urlParams.start}&end=${urlParams.end}${mainQueryParams.searchConfig.gene ? "&gene=" + mainQueryParams.searchConfig.gene : ""}${mainQueryParams.searchConfig.snpid ? "&snpid=" + mainQueryParams.searchConfig.snpid : ""}`
+  const urlBasics =
+    newSearchParams.searchConfig.bed_intersect ?
+      `search?intersect=t&assembly=${newSearchParams.coordinates.assembly}`
+      :
+      "search?"
+      + `assembly=${newSearchParams.coordinates.assembly}`
+      + `&chromosome=${newSearchParams.coordinates.chromosome}`
+      + `&start=${newSearchParams.coordinates.start}`
+      + `&end=${newSearchParams.coordinates.end}`
+      + `${newSearchParams.searchConfig.gene ? "&gene=" + newSearchParams.searchConfig.gene : ""}`
+      + `${newSearchParams.searchConfig.snpid ? "&snpid=" + newSearchParams.searchConfig.snpid : ""}`
 
   //Can probably get biosample down to one string, and extract other info when parsing byCellType
-  const biosampleFilters = `&Tissue=${outputT_or_F(urlParams.Tissue)}&PrimaryCell=${outputT_or_F(
-    urlParams.PrimaryCell
-  )}&InVitro=${outputT_or_F(urlParams.InVitro)}&Organoid=${outputT_or_F(urlParams.Organoid)}&CellLine=${outputT_or_F(urlParams.CellLine)}${
-    (urlParams.Biosample.selected && !newBiosample) || (newBiosample && newBiosample.selected)
-      ? "&Biosample=" +
-        (newBiosample ? newBiosample.biosample : urlParams.Biosample.biosample) +
-        "&BiosampleTissue=" +
-        (newBiosample ? newBiosample.tissue : urlParams.Biosample.tissue) +
-        "&BiosampleSummary=" +
-        (newBiosample ? newBiosample.summaryName : urlParams.Biosample.summaryName)
+  const biosampleFilters =
+    `&Tissue=${outputT_or_F(newSearchParams.filterCriteria.biosampleTableFilters.Tissue)}`
+    + `&PrimaryCell=${outputT_or_F(newSearchParams.filterCriteria.biosampleTableFilters.PrimaryCell)}`
+    + `&InVitro=${outputT_or_F(newSearchParams.filterCriteria.biosampleTableFilters.InVitro)}`
+    + `&Organoid=${outputT_or_F(newSearchParams.filterCriteria.biosampleTableFilters.Organoid)}`
+    + `&CellLine=${outputT_or_F(newSearchParams.filterCriteria.biosampleTableFilters.CellLine)}`
+    + `${(newSearchParams.biosample.selected && !newBiosample) || (newBiosample && newBiosample.selected) ?
+      "&Biosample=" + (newBiosample ? newBiosample.biosample : newSearchParams.biosample.biosample)
+      + "&BiosampleTissue=" + (newBiosample ? newBiosample.tissue : newSearchParams.biosample.tissue)
+      + "&BiosampleSummary=" + (newBiosample ? newBiosample.summaryName : newSearchParams.biosample.summaryName)
       : ""
-  }`
+    }`
 
-  const chromatinFilters = `&dnase_s=${urlParams.DNaseStart}&dnase_e=${urlParams.DNaseEnd}&h3k4me3_s=${urlParams.H3K4me3Start}&h3k4me3_e=${urlParams.H3K4me3End}&h3k27ac_s=${urlParams.H3K27acStart}&h3k27ac_e=${urlParams.H3K27acEnd}&ctcf_s=${urlParams.CTCFStart}&ctcf_e=${urlParams.CTCFEnd}&atac_s=${urlParams.ATACStart}&atac_e=${urlParams.ATACEnd}`
+  const chromatinFilters =
+    `&dnase_s=${newSearchParams.filterCriteria.chromatinFilter.dnase_s}`
+    + `&dnase_e=${newSearchParams.filterCriteria.chromatinFilter.dnase_e}`
+    + `&h3k4me3_s=${newSearchParams.filterCriteria.chromatinFilter.h3k4me3_s}`
+    + `&h3k4me3_e=${newSearchParams.filterCriteria.chromatinFilter.h3k4me3_e}`
+    + `&h3k27ac_s=${newSearchParams.filterCriteria.chromatinFilter.h3k27ac_s}`
+    + `&h3k27ac_e=${newSearchParams.filterCriteria.chromatinFilter.h3k27ac_e}`
+    + `&ctcf_s=${newSearchParams.filterCriteria.chromatinFilter.ctcf_s}`
+    + `&ctcf_e=${newSearchParams.filterCriteria.chromatinFilter.ctcf_e}`
+    + `&atac_s=${newSearchParams.filterCriteria.chromatinFilter.atac_s}`
+    + `&atac_e=${newSearchParams.filterCriteria.chromatinFilter.atac_e}`
 
-  const classificationFilters = `&CA=${outputT_or_F(urlParams.CA)}&CA_CTCF=${outputT_or_F(urlParams.CA_CTCF)}&CA_H3K4me3=${outputT_or_F(
-    urlParams.CA_H3K4me3
-  )}&CA_TF=${outputT_or_F(urlParams.CA_TF)}&dELS=${outputT_or_F(urlParams.dELS)}&pELS=${outputT_or_F(urlParams.pELS)}&PLS=${outputT_or_F(
-    urlParams.PLS
-  )}&TF=${outputT_or_F(urlParams.TF)}`
+  const classificationFilters =
+    `&CA=${outputT_or_F(newSearchParams.filterCriteria.classificationFilter.CA)}`
+    + `&CA_CTCF=${outputT_or_F(newSearchParams.filterCriteria.classificationFilter.CA_CTCF)}`
+    + `&CA_H3K4me3=${outputT_or_F(newSearchParams.filterCriteria.classificationFilter.CA_H3K4me3)}`
+    + `&CA_TF=${outputT_or_F(newSearchParams.filterCriteria.classificationFilter.CA_TF)}`
+    + `&dELS=${outputT_or_F(newSearchParams.filterCriteria.classificationFilter.dELS)}`
+    + `&pELS=${outputT_or_F(newSearchParams.filterCriteria.classificationFilter.pELS)}`
+    + `&PLS=${outputT_or_F(newSearchParams.filterCriteria.classificationFilter.PLS)}`
+    + `&TF=${outputT_or_F(newSearchParams.filterCriteria.classificationFilter.TF)}`
 
-  const conservationFilters = `&prim_s=${urlParams.PrimateStart}&prim_e=${urlParams.PrimateEnd}&mamm_s=${urlParams.MammalStart}&mamm_e=${urlParams.MammalEnd}&vert_s=${urlParams.VertebrateStart}&vert_e=${urlParams.VertebrateEnd}`
+  const conservationFilters =
+    `&prim_s=${newSearchParams.filterCriteria.conservationFilter.prim_s}`
+    + `&prim_e=${newSearchParams.filterCriteria.conservationFilter.prim_e}`
+    + `&mamm_s=${newSearchParams.filterCriteria.conservationFilter.mamm_s}`
+    + `&mamm_e=${newSearchParams.filterCriteria.conservationFilter.mamm_e}`
+    + `&vert_s=${newSearchParams.filterCriteria.conservationFilter.vert_s}`
+    + `&vert_e=${newSearchParams.filterCriteria.conservationFilter.vert_e}`
 
-  const linkedGenesFilter = `&genesToFind=${urlParams.genesToFind.join(',')}&distancePC=${outputT_or_F(urlParams.distancePC)}&distanceAll=${outputT_or_F(urlParams.distanceAll)}&distanceFromcCRE=${urlParams.distanceFromcCRE}&CTCF_ChIA_PET=${outputT_or_F(urlParams.CTCF_ChIA_PET)}&RNAPII_ChIA_PET=${outputT_or_F(urlParams.RNAPII_ChIA_PET)}`
+  const linkedGenesFilter =
+    `&genesToFind=${newSearchParams.filterCriteria.linkedGenesFilter.genesToFind.join(',')}`
+    + `&distancePC=${outputT_or_F(newSearchParams.filterCriteria.linkedGenesFilter.distancePC)}`
+    + `&distanceAll=${outputT_or_F(newSearchParams.filterCriteria.linkedGenesFilter.distanceAll)}`
+    + `&CTCF_ChIA_PET=${outputT_or_F(newSearchParams.filterCriteria.linkedGenesFilter.CTCF_ChIA_PET)}`
+    + `&RNAPII_ChIA_PET=${outputT_or_F(newSearchParams.filterCriteria.linkedGenesFilter.RNAPII_ChIA_PET)}`
 
-  const accessionsAndPage = `&accession=${urlParams.Accessions}&page=${urlParams.Page}`
+  const accessionsAndPage =
+    `&accessions=${newSearchParams.accessions}`
+    // + `&page=${newSearchParams.page}`
 
-  const url = `${urlBasics}${biosampleFilters}${chromatinFilters}${classificationFilters}${conservationFilters}${urlParams.genesToFind.length > 0 ? linkedGenesFilter : ""}${accessionsAndPage}`
+  const url =
+    `${urlBasics}`
+    + `${biosampleFilters}`
+    + `${chromatinFilters}`
+    + `${classificationFilters}`
+    + `${conservationFilters}`
+    + `${newSearchParams.filterCriteria.linkedGenesFilter.genesToFind.length > 0 ? linkedGenesFilter : ""}`
+    + `${accessionsAndPage}`
+
   return url
 }
 
@@ -501,7 +545,9 @@ export function constructMainQueryParamsFromURL(searchParams: { [key: string]: s
           CTCF_ChIA_PET: searchParams.CTCF_ChIA_PET ? checkTrueFalse(searchParams.CTCF_ChIA_PET) : true,
           RNAPII_ChIA_PET: searchParams.RNAPII_ChIA_PET ? checkTrueFalse(searchParams.RNAPII_ChIA_PET) : true
         }
-      }
+      },
+      page: +searchParams.page,
+      accessions: searchParams.accessions
     }
   )
 }
