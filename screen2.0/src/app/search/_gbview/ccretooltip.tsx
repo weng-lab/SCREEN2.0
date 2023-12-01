@@ -1,7 +1,7 @@
 import { gql, useQuery } from "@apollo/client"
 import React, { useMemo } from "react"
 import { CircularProgress } from "@mui/material"
-import { client } from "../ccredetails/client"
+import { client } from "../_ccredetails/client"
 
 export const COLORS = new Map([
   ["PLS", "#ff0000"],

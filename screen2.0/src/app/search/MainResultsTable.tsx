@@ -2,7 +2,7 @@
 import { DataTable, DataTableProps, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import React, { useState } from "react"
 import { Box, Typography, Menu, Checkbox, Stack, MenuItem, FormControlLabel, FormGroup, Tooltip } from "@mui/material"
-import { MainResultTableRow, ConservationData } from "../../app/search/types"
+import { MainResultTableRow, ConservationData } from "./types"
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import { InfoOutlined } from "@mui/icons-material"
 

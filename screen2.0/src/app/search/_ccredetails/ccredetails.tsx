@@ -10,7 +10,7 @@ import { TfIntersection } from "./tfintersection"
 import { FunctionData } from "./functionaldata"
 import Rampage from "./rampage"
 import { GeneExpression } from "./geneexpression"
-import { TfSequenceFeatures} from "../gbview/tfsequencefeatures"
+import { TfSequenceFeatures} from "../_gbview/tfsequencefeatures"
 
 //Passing these props through this file could be done with context to reduce prop drilling
 type CcreDetailsProps = {

@@ -31,13 +31,13 @@ import Link from "next/link"
 import { RangeSlider, DataTable } from "@weng-lab/psychscreen-ui-components"
 import { useState, useMemo, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { CellTypeData, FilteredBiosampleData, MainQueryParams, URLParams } from "../../app/search/types"
-import { parseByCellType, filterBiosamples, assayHoverInfo, constructURL } from "../../app/search/search-helpers"
+import { CellTypeData, FilteredBiosampleData, MainQueryParams, URLParams } from "./types"
+import { parseByCellType, filterBiosamples, assayHoverInfo, constructURL } from "./search-helpers"
 import { gql } from "@apollo/client"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
-import GeneAutoComplete from "../../app/applets/gene-expression/gene-autocomplete";
+import GeneAutoComplete from "../applets/gene-expression/gene-autocomplete";
 import { InfoOutlined } from "@mui/icons-material";
-import { LoadingMessage } from "../lib/utility";
+import { LoadingMessage } from "../../common/lib/utility";
 
 const marks = [
   {

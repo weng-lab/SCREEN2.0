@@ -3,7 +3,7 @@ import { associateBy } from "queryz"
 
 import React, { RefObject, useEffect, useMemo, useState } from "react"
 import { EmptyTrack } from "umms-gb"
-import { client } from "../ccredetails/client"
+import { client } from "../_ccredetails/client"
 import { TitledTrack } from "./defaulttracks"
 import { BIOSAMPLE_QUERY, BIG_QUERY } from "./queries"
 import { GenomicRange, BigQueryResponse } from "./types"

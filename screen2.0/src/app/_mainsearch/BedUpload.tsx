@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { Cancel, Search } from "@mui/icons-material"
 import { LoadingButton } from "@mui/lab"
-import config from "../../../config.json"
+import config from "../../config.json"
 
 const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => {
   const router = useRouter()

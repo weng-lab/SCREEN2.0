@@ -6,11 +6,11 @@ import { constructMainQueryParamsFromURL, createQueryString, fetchcCREDataAndLin
 import React, { startTransition, useCallback, useEffect, useMemo, useState } from "react"
 import { styled } from '@mui/material/styles';
 import { Divider, IconButton, Tab, Tabs, Typography, Box, CircularProgress } from "@mui/material"
-import MainResultsTable from "../../common/components/MainResultsTable"
-import MainResultsFilters from "../../common/components/MainResultsFilters"
-import { CcreDetails } from "./ccredetails/ccredetails"
+import MainResultsTable from "./MainResultsTable"
+import MainResultsFilters from "./MainResultsFilters"
+import { CcreDetails } from "./_ccredetails/ccredetails"
 import { usePathname, useRouter } from "next/navigation"
-import { GenomeBrowserView } from "./gbview/genomebrowserview"
+import { GenomeBrowserView } from "./_gbview/genomebrowserview"
 import { LinkedGenesData, MainResultTableRow, rawQueryData } from "./types"
 import { generateFilteredRows } from "./search-helpers"
 import { Drawer } from "@mui/material"
@@ -19,8 +19,8 @@ import Toolbar from '@mui/material/Toolbar'
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import CloseIcon from '@mui/icons-material/Close';
-import Rampage from "./ccredetails/rampage";
-import { GeneExpression } from "./ccredetails/geneexpression";
+import Rampage from "./_ccredetails/rampage";
+import { GeneExpression } from "./_ccredetails/geneexpression";
 import { LoadingMessage } from "../../common/lib/utility"
 
 /**

@@ -7,7 +7,7 @@ import Typography from "@mui/material/Typography"
 import { debounce } from "@mui/material/utils"
 import { useRouter } from "next/navigation"
 import { GENE_AUTOCOMPLETE_QUERY } from "./queries"
-import Config from "../../../config.json"
+import Config from "../../config.json"
 import { IconButton, Stack } from "@mui/material"
 import { Search } from "@mui/icons-material"
 type QueryResponse = [number, string[], any, [string, string, string, string, string, string][], string[]]

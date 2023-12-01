@@ -6,9 +6,9 @@ import MenuIcon from "@mui/icons-material/Menu"
 import Link from "next/link"
 import Image from "next/image"
 import screenIcon from "../../../public/screenIcon.png"
-import test_logo from "../../../public/test_logo.png"
+import test_logo from "../../public/test_logo.png"
 
-import MainSearch from "./mainsearch/MainSearch"
+import MainSearch from "./_mainsearch/MainSearch"
 
 /*  
   Links for the AppBar. If adding another page with subpages, you need to add another 

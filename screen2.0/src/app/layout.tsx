@@ -1,8 +1,8 @@
 import "./globals.css"
 import { ApolloWrapper } from "../common/lib/apollo-provider"
 import { Inter } from "next/font/google"
-import ResponsiveAppBar from "../common/components/ResponsiveAppBar"
-import Footer from "../common/components/Footer"
+import ResponsiveAppBar from "./ResponsiveAppBar"
+import Footer from "./Footer"
 import { CssBaseline } from "@mui/material"
 import ThemeRegistry from "../common/theme-registry/theme-registry"
 
