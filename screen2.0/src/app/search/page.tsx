@@ -104,7 +104,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const [globals, setGlobals] = useState<CellTypeData>(null)
   const [rawQueryData, setRawQueryData] = useState<rawQueryData>(null)
   const [mainQueryParams, setMainQueryParams] = useState<MainQueryParams>(constructMainQueryParamsFromURL(searchParams))
-  const [loadingcCREs, setLoadingcCREs] = useState<boolean>(true)
+  const [loadingTable, setLoadingTable] = useState<boolean>(false)
   const [updatingMQP, setUpdatingMQP] = useState<boolean>(false)
 
 
@@ -215,8 +215,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     }
   }
 
-  //false -> close cCRE (true) -> update mqp -> false
-
   const handleClosecCRE = (closedID: string) => {
     //Mark as updating so to eliminate race condition in opencCREs useEffect
     setUpdatingMQP(true)
@@ -289,7 +287,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
 
   //Fetch raw cCRE data (main query and linked genes)
   useEffect(() => {
-    setLoadingcCREs(true)
+    setLoadingTable(true)
     // Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
     // @ts-expect-error
     startTransition(async () => {
@@ -306,18 +304,21 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         )
       )
     })
+    // setLoadingcCREs(false)
   }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample.biosample])
 
   //Generate and filter rows
   //I think that having filterCriteria here causes this to always run, since object equality is not maintained
   const filteredTableRows = useMemo(() => {
+    setLoadingTable(true)
     if (rawQueryData) {
       console.log("recalculating rows")
-      setLoadingcCREs(true)
       const rows = generateFilteredRows(rawQueryData, filterCriteria)
-      setLoadingcCREs(false)
+      setLoadingTable(false)
       return (rows)
-    } else return []
+    } else {
+      return []
+    }
   }, [rawQueryData, filterCriteria])
 
   // Refresh mainQueryParams if route updates, either from filters panel or header search
@@ -328,10 +329,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   }, [searchParams])
 
   //Initialize opencCREs, fetch info on them if not already in openCCREs
-  //This may run too often, not be optimized
-
-  //What if I have it only update opencCREs, and this function checks to see if 
-
   useEffect(() => {
     //have to gate this effect behind updatingMQP to eliminate race condition between opencCREs and mainQueryParams.accessions when closing a cCRE
     if (!updatingMQP) {
@@ -378,15 +375,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       })
     }
   }, [mainQueryParams.accessions, mainQueryParams.coordinates.assembly, filterCriteria, opencCREs, updatingMQP])
-
-  //The issue is a race condition:
-  //When the cCRE is closed, opencCREs is modified which triggers the effect but accession is still in URL, so it gets added back
-  //Then the URL changes which triggers it again, but now there's no accession to fetch but opencCREs is populated from last call
-
-  //On load, url change
-    //If adding, search params will have extra entry so identify it
-
-  //Issue is when subtracting, search params appears to have an extra entry since it's not updated fast enough. Need to have some way to prevent it from triggering on change of opencCREs when subtracting
 
   const findTabByID = (id: string, numberOfTable: number = 2) => {
     return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)
@@ -505,8 +493,9 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           {/* Bumps content below app bar */}
           <DrawerHeader id="DrawerHeader" />
           {page === 0 && (
+            //The issue is that it get's stuck on loadingcCREs = true on reload
             <Box>
-              {loadingcCREs ?
+              {loadingTable ?
                 <LoadingMessage />
                 :
                 <MainResultsTable
