@@ -137,7 +137,6 @@ export function DataMatrices(props: TabPanelProps) {
   //Update data state variable whenever the data changes
   useEffect(() => setData(props.matrices != -1 ? props.matrices.data : {}), [props.matrices])
 
-  console.log(data && data.ccREBiosampleQuery && data.ccREBiosampleQuery.biosamples)
   // Direct copy from old SCREEN
   const [scMap, scc] = useMemo(
     () =>

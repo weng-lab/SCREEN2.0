@@ -58,7 +58,11 @@ export async function fetchcCREDataAndLinkedGenes (
 }
 
 //This could be split up into generateUnfilteredRows, and FilterRows functions for even better performace when filtering
-export function generateFilteredRows(rawQueryData: rawQueryData, filterCriteria: FilterCriteria, unfiltered?: boolean): MainResultTableRows {
+export function generateFilteredRows(
+  rawQueryData: rawQueryData,
+  filterCriteria: FilterCriteria,
+  unfiltered?: boolean
+): MainResultTableRows {
   const cCRE_data: cCREData[] = rawQueryData.mainQueryData.data.cCRESCREENSearch
   const otherLinked = rawQueryData.linkedGenesData
   //Assembly unfiltered rows
@@ -95,7 +99,7 @@ export function generateFilteredRows(rawQueryData: rawQueryData, filterCriteria:
     return rows
   } else {
     return rows.filter((row) => passesFilters(row, filterCriteria))
-  } 
+  }
 }
 
 

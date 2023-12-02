@@ -1,7 +1,7 @@
 // Search Results Page
 "use client"
 import { getGlobals } from "../../common/lib/queries"
-import { CellTypeData, MainQueryParams } from "./types"
+import { CellTypeData, FilterCriteria, MainQueryParams } from "./types"
 import { constructMainQueryParamsFromURL, createQueryString, fetchcCREDataAndLinkedGenes } from "./search-helpers"
 import React, { startTransition, useCallback, useEffect, useMemo, useState } from "react"
 import { styled } from '@mui/material/styles';
@@ -107,6 +107,95 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const [loadingcCREs, setLoadingcCREs] = useState<boolean>(true)
   const [updatingMQP, setUpdatingMQP] = useState<boolean>(false)
 
+
+  const x = mainQueryParams.filterCriteria
+  const filterCriteria: FilterCriteria = useMemo(() => {
+    return (
+      {
+        biosampleTableFilters: {
+          CellLine: x.biosampleTableFilters.CellLine,
+          PrimaryCell: x.biosampleTableFilters.PrimaryCell,
+          Tissue: x.biosampleTableFilters.Tissue,
+          Organoid: x.biosampleTableFilters.Organoid,
+          InVitro: x.biosampleTableFilters.InVitro,
+        },
+        chromatinFilter: {
+          dnase_s: x.chromatinFilter.dnase_s,
+          dnase_e: x.chromatinFilter.dnase_e,
+          atac_s: x.chromatinFilter.atac_s,
+          atac_e: x.chromatinFilter.atac_e,
+          h3k4me3_s: x.chromatinFilter.h3k4me3_s,
+          h3k4me3_e: x.chromatinFilter.h3k4me3_e,
+          h3k27ac_s: x.chromatinFilter.h3k27ac_s,
+          h3k27ac_e: x.chromatinFilter.h3k27ac_e,
+          ctcf_s: x.chromatinFilter.ctcf_s,
+          ctcf_e: x.chromatinFilter.ctcf_e,
+        },
+        conservationFilter: {
+          prim_s: x.conservationFilter.prim_s,
+          prim_e: x.conservationFilter.prim_e,
+          mamm_s: x.conservationFilter.mamm_s,
+          mamm_e: x.conservationFilter.mamm_e,
+          vert_s: x.conservationFilter.vert_s,
+          vert_e: x.conservationFilter.vert_e,
+        },
+        classificationFilter: {
+          CA: x.classificationFilter.CA,
+          CA_CTCF: x.classificationFilter.CA_CTCF,
+          CA_H3K4me3: x.classificationFilter.CA_H3K4me3,
+          CA_TF: x.classificationFilter.CA_TF,
+          dELS: x.classificationFilter.dELS,
+          pELS: x.classificationFilter.pELS,
+          PLS: x.classificationFilter.PLS,
+          TF: x.classificationFilter.TF,
+        },
+        linkedGenesFilter: {
+          //genesToFind is one-off since you can't depend on array since it will fail object equality check, so depend on string from URL
+          genesToFind: searchParams.genesToFind ? searchParams.genesToFind.split(",") : [],
+          distancePC: x.linkedGenesFilter.distancePC,
+          distanceAll: x.linkedGenesFilter.distanceAll,
+          CTCF_ChIA_PET: x.linkedGenesFilter.CTCF_ChIA_PET,
+          RNAPII_ChIA_PET: x.linkedGenesFilter.RNAPII_ChIA_PET,
+        },
+      }
+    )
+  }, [
+    x.biosampleTableFilters.CellLine,
+    x.biosampleTableFilters.InVitro,
+    x.biosampleTableFilters.Organoid,
+    x.biosampleTableFilters.PrimaryCell,
+    x.biosampleTableFilters.Tissue,
+    x.chromatinFilter.atac_e,
+    x.chromatinFilter.atac_s,
+    x.chromatinFilter.ctcf_e,
+    x.chromatinFilter.ctcf_s,
+    x.chromatinFilter.dnase_e,
+    x.chromatinFilter.dnase_s,
+    x.chromatinFilter.h3k27ac_e,
+    x.chromatinFilter.h3k27ac_s,
+    x.chromatinFilter.h3k4me3_e,
+    x.chromatinFilter.h3k4me3_s,
+    x.classificationFilter.CA,
+    x.classificationFilter.CA_CTCF,
+    x.classificationFilter.CA_H3K4me3,
+    x.classificationFilter.CA_TF,
+    x.classificationFilter.PLS,
+    x.classificationFilter.TF,
+    x.classificationFilter.dELS,
+    x.classificationFilter.pELS,
+    x.conservationFilter.mamm_e,
+    x.conservationFilter.mamm_s,
+    x.conservationFilter.prim_e,
+    x.conservationFilter.prim_s,
+    x.conservationFilter.vert_e,
+    x.conservationFilter.vert_s,
+    x.linkedGenesFilter.CTCF_ChIA_PET,
+    x.linkedGenesFilter.RNAPII_ChIA_PET,
+    x.linkedGenesFilter.distanceAll,
+    x.linkedGenesFilter.distancePC,
+    searchParams.genesToFind
+  ])
+
   const numberOfDefaultTabs = searchParams.gene ? (mainQueryParams.coordinates.assembly.toLowerCase() === "mm10" ? 3 : 4) : 2
 
   const handleDrawerOpen = () => { setOpen(true) }
@@ -126,13 +215,15 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     }
   }
 
+  //false -> close cCRE (true) -> update mqp -> false
+
   const handleClosecCRE = (closedID: string) => {
     //Mark as updating so to eliminate race condition in opencCREs useEffect
     setUpdatingMQP(true)
     
     //Filter out cCRE
     const newOpencCREs = opencCREs.filter((cCRE) => cCRE.ID != closedID)
-    setOpencCREs(newOpencCREs)
+
 
     const closedIndex = opencCREs.findIndex(x => x.ID === closedID)
     // Important to note that opencCREs here is still the old value
@@ -166,14 +257,14 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         router.push(basePathname + '?' + createQueryString(searchParams, "accessions", newOpencCREs.map((x) => x.ID).join(',')))
       }
     }
-    // If you're closing a tab to the left of what you're on: 
+    // If you're closing a tab to the left of what you're` on: 
     if (closedIndex < (page - numberOfDefaultTabs)) {
       // Page count -= 1 to keep tab position
       // Remove selected cCRE from list
       setPage(page - 1)
       router.push(basePathname + '?' + createQueryString(searchParams, "accessions", newOpencCREs.map((x) => x.ID).join(','), "page", String(page - 1)))
     }
-
+    setOpencCREs(newOpencCREs)
   }
 
   const handlePageChange = (_, newValue: number) => {
@@ -223,14 +314,13 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     if (rawQueryData) {
       console.log("recalculating rows")
       setLoadingcCREs(true)
-      const rows = generateFilteredRows(rawQueryData, mainQueryParams.filterCriteria)
+      const rows = generateFilteredRows(rawQueryData, filterCriteria)
       setLoadingcCREs(false)
       return (rows)
     } else return []
-  }, [rawQueryData, mainQueryParams.filterCriteria])
+  }, [rawQueryData, filterCriteria])
 
-  //Refresh mainQueryParams if route updates, either from filters panel or header search
-  //This almost certainly runs more than I want, but not bad performance impact
+  // Refresh mainQueryParams if route updates, either from filters panel or header search
   useEffect(() => {
     setUpdatingMQP(true)
     setMainQueryParams(constructMainQueryParamsFromURL(searchParams))
@@ -239,6 +329,9 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
 
   //Initialize opencCREs, fetch info on them if not already in openCCREs
   //This may run too often, not be optimized
+
+  //What if I have it only update opencCREs, and this function checks to see if 
+
   useEffect(() => {
     //have to gate this effect behind updatingMQP to eliminate race condition between opencCREs and mainQueryParams.accessions when closing a cCRE
     if (!updatingMQP) {
@@ -259,7 +352,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
             null,
             cCREsToFetch
           ),
-          mainQueryParams.filterCriteria,
+          filterCriteria,
           true
         )
         const newOpencCREs = [...opencCREs, ...opencCRE_data.map((cCRE) => {
@@ -284,7 +377,16 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         )
       })
     }
-  }, [mainQueryParams.accessions, mainQueryParams.coordinates.assembly, mainQueryParams.filterCriteria, opencCREs, updatingMQP])
+  }, [mainQueryParams.accessions, mainQueryParams.coordinates.assembly, filterCriteria, opencCREs, updatingMQP])
+
+  //The issue is a race condition:
+  //When the cCRE is closed, opencCREs is modified which triggers the effect but accession is still in URL, so it gets added back
+  //Then the URL changes which triggers it again, but now there's no accession to fetch but opencCREs is populated from last call
+
+  //On load, url change
+    //If adding, search params will have extra entry so identify it
+
+  //Issue is when subtracting, search params appears to have an extra entry since it's not updated fast enough. Need to have some way to prevent it from triggering on change of opencCREs when subtracting
 
   const findTabByID = (id: string, numberOfTable: number = 2) => {
     return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)
