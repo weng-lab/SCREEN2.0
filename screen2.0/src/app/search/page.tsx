@@ -2,7 +2,7 @@
 "use client"
 import { getGlobals } from "../../common/lib/queries"
 import { CellTypeData, FilterCriteria, MainQueryParams } from "./types"
-import { constructMainQueryParamsFromURL, createQueryString, fetchcCREDataAndLinkedGenes } from "./search-helpers"
+import { constructMainQueryParamsFromURL, constructSearchURL, createQueryString, fetchcCREDataAndLinkedGenes } from "./search-helpers"
 import React, { startTransition, useCallback, useEffect, useMemo, useState } from "react"
 import { styled } from '@mui/material/styles';
 import { Divider, IconButton, Tab, Tabs, Typography, Box, CircularProgress } from "@mui/material"
@@ -27,7 +27,8 @@ import { LoadingMessage } from "../../common/lib/utility"
  * @todo:
  * - Impose some kind of limit on open cCREs
  * - Have cmd click ("open new tab") functionality
- * - Clear open cCREs if assembly changes
+ * - Clear open cCREs if assembly changes, this errors out currently
+ * - Gene/SNP distance stuff
  */
 
 const drawerWidth = 350;
@@ -289,11 +290,11 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
 
   //Fetch raw cCRE data (main query and linked genes)
   useEffect(() => {
+    setLoadingFetch(true)
     // Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
     // @ts-expect-error
     startTransition(async () => {
       console.log("main fetch called")
-      setLoadingFetch(true)
       setRawQueryData(
         await fetchcCREDataAndLinkedGenes(
           mainQueryParams.coordinates.assembly,
@@ -306,17 +307,16 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           mainQueryParams.searchConfig.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined
         )
       )
-      setLoadingFetch(false)
     })
-    // setLoadingTable(false)
+    setLoadingFetch(false)
   }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample.biosample])
 
   //Generate and filter rows
   //I think that having filterCriteria here causes this to always run, since object equality is not maintained
   const filteredTableRows = useMemo(() => {
+    console.log("recalculating rows")
     setLoadingTable(true)
     if (rawQueryData) {
-      console.log("recalculating rows")
       const rows = generateFilteredRows(rawQueryData, filterCriteria)
       setLoadingTable(false)
       return (rows)
@@ -327,13 +327,28 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
 
   // Refresh mainQueryParams if route updates, either from filters panel or header search
   useEffect(() => {
+    console.log("updating mqp")
     setUpdatingMQP(true)
     setMainQueryParams(constructMainQueryParamsFromURL(searchParams))
     setUpdatingMQP(false)
   }, [searchParams])
 
+
+  //Initialize opencCREs, fetch info on them if not already in openCCREs
+  
   //Initialize opencCREs, fetch info on them if not already in openCCREs
   useEffect(() => {
+    if ((opencCREs.length > 0 && opencCREs[0].ID.includes(`${mainQueryParams.coordinates.assembly === "GRCh38" ? "EM" : "EH"}`) || searchParams.accessions?.includes(`${mainQueryParams.coordinates.assembly === "GRCh38" ? "EM" : "EH"}`))) {
+      setPage(0)
+      setOpencCREs([])
+      setDetailsPage(0)
+      router.push(basePathname + '?' + createQueryString(searchParams, "accessions", "", "page", "0"))
+    }
+  })
+  
+  //Initialize opencCREs, fetch info on them if not already in openCCREs, clear them if the assembly has changed
+  useEffect(() => {
+    console.log("open cCRE effect running")
     //have to gate this effect behind updatingMQP to eliminate race condition between opencCREs and mainQueryParams.accessions when closing a cCRE
     if (!updatingMQP) {
       const cCREsToFetch = searchParams.accessions && searchParams.accessions.split(',').filter((cCRE) => (opencCREs.find((x) => cCRE === x.ID) === undefined))
@@ -378,7 +393,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         )
       })
     }
-  }, [searchParams.accessions, mainQueryParams.coordinates.assembly, filterCriteria, opencCREs, updatingMQP])
+  }, [searchParams.accessions, mainQueryParams, mainQueryParams.coordinates.assembly, filterCriteria, opencCREs, updatingMQP])
 
   const findTabByID = (id: string, numberOfTable: number = 2) => {
     return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)

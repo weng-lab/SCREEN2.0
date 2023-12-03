@@ -244,7 +244,7 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
       }
     })
 
-    let igroup = data_toptissues.cCREQuery[0].group
+    let igroup = data_toptissues?.cCREQuery[0]?.group
     let ccreCts = typedata.map((t) => {
       let group = igroup
       if (t.dnase <= 1.64 && t.dnase != -11.0) group = "ylowdnase"

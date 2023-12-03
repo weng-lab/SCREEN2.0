@@ -299,6 +299,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
   function valuetext(value: number) {
     return `${value}kb`;
   }
+
   const router = useRouter()
 
   /**
@@ -450,7 +451,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                       aria-label="Custom marks"
                       defaultValue={0}
                       getAriaValueText={valuetext}
-                      valueLabelDisplay="on"
+                      valueLabelDisplay="auto"
                       min={0}
                       max={50000}
                       step={null}
@@ -496,7 +497,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                       aria-label="Custom marks"
                       defaultValue={0}
                       getAriaValueText={valuetext}
-                      valueLabelDisplay="on"
+                      valueLabelDisplay="auto"
                       min={0}
                       max={50000}
                       step={null}
