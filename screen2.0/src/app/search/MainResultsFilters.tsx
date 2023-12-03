@@ -23,11 +23,9 @@ import {
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControl from '@mui/material/FormControl';
-import SendIcon from "@mui/icons-material/Send"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
 import Grid2 from "@mui/material/Unstable_Grid2"
-import Link from "next/link"
 import { RangeSlider, DataTable } from "@weng-lab/psychscreen-ui-components"
 import { useState, useMemo, useEffect } from "react"
 import { useRouter } from "next/navigation"
@@ -37,7 +35,6 @@ import { gql } from "@apollo/client"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import GeneAutoComplete from "../applets/gene-expression/gene-autocomplete";
 import { InfoOutlined } from "@mui/icons-material";
-import { LoadingMessage } from "../../common/lib/utility";
 
 const marks = [
   {
@@ -85,8 +82,7 @@ const GENE_TRANSCRIPTS_QUERY = gql`
  } `
 
 
-export default function MainResultsFilters(props: { mainQueryParams: MainQueryParams, byCellType: CellTypeData, genomeBrowserView: boolean, accessions: string, page: number }) {
-  //No alternatives provided for default, as all these attributes should exist and are given a default value in Search's page.tsx
+export default function MainResultsFilters(props: { mainQueryParams: MainQueryParams, byCellType: CellTypeData, genomeBrowserView: boolean, accessions: string, page: number }): React.JSX.Element {
 
   const [tssupstream, setTssupstream] = useState<number>(0);
   const [snpdistance, setSnpDistance] = useState<number>(0);
@@ -165,7 +161,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
 
   })
 
-  const TSSs = geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 && geneTranscripts.gene[0].transcripts.map(t => {
+  const TSSs = geneTranscripts?.gene?.length > 0 && geneTranscripts.gene[0].transcripts.map(t => {
     if (geneTranscripts.gene[0].strand === "+") {
       return t.coordinates.start
     } else {
@@ -174,119 +170,124 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
 
   })
 
-  const firstTSS = geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 && TSSs && TSSs.length > 0 ?
+  const firstTSS = geneTranscripts?.gene?.length > 0 && TSSs?.length > 0 ?
     geneTranscripts.gene[0].transcripts.length === 1 ? geneTranscripts.gene[0].transcripts[0].coordinates.start :
       geneTranscripts.gene[0].strand === "+" ? Math.max(0, (Math.min(...TSSs) - tssupstream)) : Math.max(...TSSs) + tssupstream : 0
 
-  const lastTSS = geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 && TSSs && TSSs.length > 0 ?
+  const lastTSS = geneTranscripts?.gene?.length > 0 && TSSs?.length > 0 ?
     geneTranscripts.gene[0].transcripts.length === 1 ? geneTranscripts.gene[0].transcripts[0].coordinates.end :
       geneTranscripts.gene[0].strand === "+" ? Math.max(...TSSs) : Math.min(...TSSs) : 0
 
-  const newSearchParams: MainQueryParams = {
-    coordinates: {
-      assembly: props.mainQueryParams.coordinates.assembly,
-      chromosome: props.mainQueryParams.coordinates.chromosome,
-      //Start and End here should really be rewritten with if/else cases. This is impossible to read
-      start:
-        props.mainQueryParams.searchConfig.snpid ?
-          Math.max(0, props.mainQueryParams.coordinates.start - snpdistance)
-          :
-          props.mainQueryParams.searchConfig.gene ?
-            (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 ?
-              value === "tss" && firstTSS && firstTSS != 0 && lastTSS && lastTSS != 0 ?
-                geneTranscripts.gene[0].strand === "+" ?
-                  firstTSS
-                  :
-                  lastTSS
-                :
-                geneTranscripts.gene[0].coordinates.start
-              :
-              props.mainQueryParams.coordinates.start)
-            :
-            props.mainQueryParams.coordinates.start,
-      end:
-        props.mainQueryParams.searchConfig.snpid ?
-          props.mainQueryParams.coordinates.end + snpdistance
-          :
-          props.mainQueryParams.searchConfig.gene ?
-            (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 ?
-              value === "tss" && firstTSS && firstTSS != 0 && lastTSS && lastTSS != 0 ?
-                geneTranscripts.gene[0].strand === "+" ?
-                  lastTSS
-                  :
-                  firstTSS
-                :
-                geneTranscripts.gene[0].coordinates.end
-              :
-              props.mainQueryParams.coordinates.end)
-            :
-            props.mainQueryParams.coordinates.end,
-    },
-    biosample: {
-      selected: Biosample.selected,
-      biosample: Biosample.biosample,
-      tissue: Biosample.tissue,
-      summaryName: Biosample.summaryName,
-    },
-    searchConfig: {
-      bed_intersect: props.mainQueryParams.searchConfig.bed_intersect,
-      gene: props.mainQueryParams.searchConfig.gene,
-      snpid: props.mainQueryParams.searchConfig.snpid,
-    },
-    filterCriteria: {
-      biosampleTableFilters: {
-        CellLine: CellLine,
-        PrimaryCell: PrimaryCell,
-        Tissue: Tissue,
-        Organoid: Organoid,
-        InVitro: InVitro,
-      },
-      chromatinFilter: {
-        dnase_s: DNaseStart,
-        dnase_e: DNaseEnd,
-        atac_s: ATACStart,
-        atac_e: ATACEnd,
-        h3k4me3_s: H3K4me3Start,
-        h3k4me3_e: H3K4me3End,
-        h3k27ac_s: H3K27acStart,
-        h3k27ac_e: H3K27acEnd,
-        ctcf_s: CTCFStart,
-        ctcf_e: CTCFEnd,
-      },
-      conservationFilter: {
-        prim_s: PrimateStart,
-        prim_e: PrimateEnd,
-        mamm_s: MammalStart,
-        mamm_e: MammalEnd,
-        vert_s: VertebrateStart,
-        vert_e: VertebrateEnd,
-      },
-      classificationFilter: {
-        CA: CA,
-        CA_CTCF: CA_CTCF,
-        CA_H3K4me3: CA_H3K4me3,
-        CA_TF: CA_TF,
-        dELS: dELS,
-        pELS: pELS,
-        PLS: PLS,
-        TF: TF,
-      },
-      linkedGenesFilter: {
-        genesToFind: genesToFind,
-        distancePC: distancePC,
-        distanceAll: distanceAll,
-        CTCF_ChIA_PET: CTCF_ChIA_PET,
-        RNAPII_ChIA_PET: RNAPII_ChIA_PET,
-      },
-    },
-    accessions: props.accessions,
-    page: props.page
-  }
+  //SNP distance is having issues since it is adjusting the start and end, which then get adjusted again and again infinitely
+  //Need some way to track the original value of the SNP, either by sending query here, or adding start/end params to snp in mqp
 
-  // useEffect(() => {
-  //   console.log("called")
-  //   router.push(constructURL(props.mainQueryParams, urlParams))
-  // }, [props.mainQueryParams, urlParams])
+  const newSearchParams: MainQueryParams = useMemo(() => {
+    return (
+      {
+        coordinates: {
+          assembly: props.mainQueryParams.coordinates.assembly,
+          chromosome: props.mainQueryParams.coordinates.chromosome,
+          //Start and End here should really be rewritten with if/else cases. This is impossible to read
+          start:
+            props.mainQueryParams.searchConfig.snpid ?
+              Math.max(0, props.mainQueryParams.coordinates.start - snpdistance)
+              :
+              props.mainQueryParams.searchConfig.gene ?
+                (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 ?
+                  value === "tss" && firstTSS && firstTSS != 0 && lastTSS && lastTSS != 0 ?
+                    geneTranscripts.gene[0].strand === "+" ?
+                      firstTSS
+                      :
+                      lastTSS
+                    :
+                    geneTranscripts.gene[0].coordinates.start
+                  :
+                  props.mainQueryParams.coordinates.start)
+                :
+                props.mainQueryParams.coordinates.start,
+          end:
+            props.mainQueryParams.searchConfig.snpid ?
+              props.mainQueryParams.coordinates.end + snpdistance
+              :
+              props.mainQueryParams.searchConfig.gene ?
+                (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 ?
+                  value === "tss" && firstTSS && firstTSS != 0 && lastTSS && lastTSS != 0 ?
+                    geneTranscripts.gene[0].strand === "+" ?
+                      lastTSS
+                      :
+                      firstTSS
+                    :
+                    geneTranscripts.gene[0].coordinates.end
+                  :
+                  props.mainQueryParams.coordinates.end)
+                :
+                props.mainQueryParams.coordinates.end,
+        },
+        biosample: {
+          selected: Biosample.selected,
+          biosample: Biosample.biosample,
+          tissue: Biosample.tissue,
+          summaryName: Biosample.summaryName,
+        },
+        searchConfig: {
+          bed_intersect: props.mainQueryParams.searchConfig.bed_intersect,
+          gene: props.mainQueryParams.searchConfig.gene,
+          snpid: props.mainQueryParams.searchConfig.snpid,
+        },
+        filterCriteria: {
+          biosampleTableFilters: {
+            CellLine: CellLine,
+            PrimaryCell: PrimaryCell,
+            Tissue: Tissue,
+            Organoid: Organoid,
+            InVitro: InVitro,
+          },
+          chromatinFilter: {
+            dnase_s: DNaseStart,
+            dnase_e: DNaseEnd,
+            atac_s: ATACStart,
+            atac_e: ATACEnd,
+            h3k4me3_s: H3K4me3Start,
+            h3k4me3_e: H3K4me3End,
+            h3k27ac_s: H3K27acStart,
+            h3k27ac_e: H3K27acEnd,
+            ctcf_s: CTCFStart,
+            ctcf_e: CTCFEnd,
+          },
+          conservationFilter: {
+            prim_s: PrimateStart,
+            prim_e: PrimateEnd,
+            mamm_s: MammalStart,
+            mamm_e: MammalEnd,
+            vert_s: VertebrateStart,
+            vert_e: VertebrateEnd,
+          },
+          classificationFilter: {
+            CA: CA,
+            CA_CTCF: CA_CTCF,
+            CA_H3K4me3: CA_H3K4me3,
+            CA_TF: CA_TF,
+            dELS: dELS,
+            pELS: pELS,
+            PLS: PLS,
+            TF: TF,
+          },
+          linkedGenesFilter: {
+            genesToFind: genesToFind,
+            distancePC: distancePC,
+            distanceAll: distanceAll,
+            CTCF_ChIA_PET: CTCF_ChIA_PET,
+            RNAPII_ChIA_PET: RNAPII_ChIA_PET,
+          },
+        },
+      }
+    )
+  }, [props.mainQueryParams.coordinates.assembly, ATACEnd, ATACStart, Biosample.biosample, Biosample.selected, Biosample.summaryName, Biosample.tissue, CA, CA_CTCF, CA_H3K4me3, CA_TF, CTCFEnd, CTCFStart, CTCF_ChIA_PET, CellLine, DNaseEnd, DNaseStart, H3K27acEnd, H3K27acStart, H3K4me3End, H3K4me3Start, InVitro, MammalEnd, MammalStart, Organoid, PLS, PrimaryCell, PrimateEnd, PrimateStart, RNAPII_ChIA_PET, TF, Tissue, VertebrateEnd, VertebrateStart, dELS, distanceAll, distancePC, firstTSS, geneTranscripts, genesToFind, lastTSS, pELS, props.mainQueryParams.coordinates.chromosome, props.mainQueryParams.coordinates.end, props.mainQueryParams.coordinates.start, props.mainQueryParams.searchConfig.bed_intersect, props.mainQueryParams.searchConfig.gene, props.mainQueryParams.searchConfig.snpid, snpdistance, value])
+
+  useEffect(() => {
+    console.log("Filter's router.push called")
+    router.push(constructSearchURL(newSearchParams, props.page, props.accessions))
+  }, [newSearchParams])
 
   const handleTssUpstreamChange = (_, newValue: number) => {
     setTssupstream(newValue as number);
@@ -413,15 +414,6 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                     onRowClick={(row, i) => {
                       setBiosample({ selected: true, biosample: row.queryValue, tissue: row.biosampleTissue, summaryName: row.summaryName })
                       setBiosampleHighlight(row)
-                      //Push to router with new biosample to avoid accessing stale Biosample value
-                      router.push(
-                        constructSearchURL(newSearchParams, {
-                          selected: true,
-                          biosample: row.queryValue,
-                          tissue: row.biosampleTissue,
-                          summaryName: row.summaryName,
-                        })
-                      )
                     }}
                   />
                 </AccordionDetails>
@@ -557,14 +549,6 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                     onClick={() => {
                       setBiosample({ selected: false, biosample: null, tissue: null, summaryName: null })
                       setBiosampleHighlight(null)
-                      router.push(
-                        constructSearchURL(newSearchParams, {
-                          selected: false,
-                          biosample: null,
-                          tissue: null,
-                          summaryName: null,
-                        })
-                      )
                     }}
                   >
                     Clear
@@ -640,8 +624,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                     max={10}
                     minDistance={1}
                     step={0.1}
-                    //These are not properly typed due to an issue in the component library. Type properly when fixed
-                    onChange={(value: any) => {
+                    onSliderChangeCommitted={(value: any) => {
                       setDNaseStart(value[0])
                       setDNaseEnd(value[1])
                     }}
@@ -657,7 +640,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                     max={10}
                     minDistance={1}
                     step={0.1}
-                    onChange={(value: any) => {
+                    onSliderChangeCommitted={(value: any) => {
                       setH3K4me3Start(value[0])
                       setH3K4me3End(value[1])
                     }}
@@ -673,7 +656,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                     max={10}
                     minDistance={1}
                     step={0.1}
-                    onChange={(value: any) => {
+                    onSliderChangeCommitted={(value: any) => {
                       setH3K27acStart(value[0])
                       setH3K27acEnd(value[1])
                     }}
@@ -689,7 +672,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                     max={10}
                     minDistance={1}
                     step={0.1}
-                    onChange={(value: any) => {
+                    onSliderChangeCommitted={(value: any) => {
                       setCTCFStart(value[0])
                       setCTCFEnd(value[1])
                     }}
@@ -705,8 +688,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                     max={10}
                     minDistance={1}
                     step={0.1}
-                    //These are not properly typed due to an issue in the component library. Type properly when fixed
-                    onChange={(value: any) => {
+                    onSliderChangeCommitted={(value: any) => {
                       setATACStart(value[0])
                       setATACEnd(value[1])
                     }}
@@ -809,8 +791,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                     max={2}
                     minDistance={1}
                     step={0.1}
-                    //These are not properly typed due to an issue in the component library. Type properly when fixed
-                    onChange={(value: any) => {
+                    onSliderChangeCommitted={(value: any) => {
                       setPrimateStart(value[0])
                       setPrimateEnd(value[1])
                     }}
@@ -826,7 +807,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                     max={8}
                     minDistance={1}
                     step={0.1}
-                    onChange={(value: any) => {
+                    onSliderChangeCommitted={(value: any) => {
                       setMammalStart(value[0])
                       setMammalEnd(value[1])
                     }}
@@ -842,7 +823,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                     max={8}
                     minDistance={1}
                     step={0.1}
-                    onChange={(value: any) => {
+                    onSliderChangeCommitted={(value: any) => {
                       setVertebrateStart(value[0])
                       setVertebrateEnd(value[1])
                     }}
@@ -920,11 +901,6 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
           </Accordion> */}
         </>
       }
-      <Link href={constructSearchURL(newSearchParams)}>
-        <Button variant="contained" endIcon={<SendIcon />} sx={{ mt: "16px", mb: "16px", ml: "16px", mr: "16px" }}>
-          Filter Results
-        </Button>
-      </Link>
     </Paper>
   )
 }

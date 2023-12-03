@@ -27,7 +27,7 @@ import { LoadingMessage } from "../../common/lib/utility"
  * @todo:
  * - Impose some kind of limit on open cCREs
  * - Have cmd click ("open new tab") functionality
- * 
+ * - Clear open cCREs if assembly changes
  */
 
 const drawerWidth = 350;
@@ -104,7 +104,9 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const [globals, setGlobals] = useState<CellTypeData>(null)
   const [rawQueryData, setRawQueryData] = useState<rawQueryData>(null)
   const [mainQueryParams, setMainQueryParams] = useState<MainQueryParams>(constructMainQueryParamsFromURL(searchParams))
+  //Not sold on this method of tracking loading
   const [loadingTable, setLoadingTable] = useState<boolean>(false)
+  const [loadingFetch, setLoadingFetch] = useState<boolean>(false)
   const [updatingMQP, setUpdatingMQP] = useState<boolean>(false)
 
 
@@ -287,10 +289,11 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
 
   //Fetch raw cCRE data (main query and linked genes)
   useEffect(() => {
-    setLoadingTable(true)
     // Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
     // @ts-expect-error
     startTransition(async () => {
+      console.log("main fetch called")
+      setLoadingFetch(true)
       setRawQueryData(
         await fetchcCREDataAndLinkedGenes(
           mainQueryParams.coordinates.assembly,
@@ -303,8 +306,9 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           mainQueryParams.searchConfig.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined
         )
       )
+      setLoadingFetch(false)
     })
-    // setLoadingcCREs(false)
+    // setLoadingTable(false)
   }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample.biosample])
 
   //Generate and filter rows
@@ -332,12 +336,12 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   useEffect(() => {
     //have to gate this effect behind updatingMQP to eliminate race condition between opencCREs and mainQueryParams.accessions when closing a cCRE
     if (!updatingMQP) {
-      const cCREsToFetch = mainQueryParams.accessions && mainQueryParams.accessions.split(',').filter((cCRE) => (opencCREs.find((x) => cCRE === x.ID) === undefined))
+      const cCREsToFetch = searchParams.accessions && searchParams.accessions.split(',').filter((cCRE) => (opencCREs.find((x) => cCRE === x.ID) === undefined))
       //If there are cCREs to fetch...
       // @ts-expect-error
       cCREsToFetch?.length > 0 && startTransition(async () => {
         //Generate unfiltered rows of info for each open cCRE for ease of accessing data
-        const accessionOrder = mainQueryParams.accessions?.split(',')
+        const accessionOrder = searchParams.accessions?.split(',')
         const opencCRE_data = generateFilteredRows(
           await fetchcCREDataAndLinkedGenes(
             mainQueryParams.coordinates.assembly,
@@ -374,7 +378,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         )
       })
     }
-  }, [mainQueryParams.accessions, mainQueryParams.coordinates.assembly, filterCriteria, opencCREs, updatingMQP])
+  }, [searchParams.accessions, mainQueryParams.coordinates.assembly, filterCriteria, opencCREs, updatingMQP])
 
   const findTabByID = (id: string, numberOfTable: number = 2) => {
     return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)
@@ -495,7 +499,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           {page === 0 && (
             //The issue is that it get's stuck on loadingcCREs = true on reload
             <Box>
-              {loadingTable ?
+              {loadingTable || loadingFetch ?
                 <LoadingMessage />
                 :
                 <MainResultsTable

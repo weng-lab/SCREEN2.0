@@ -375,12 +375,16 @@ export function assayHoverInfo(assays: { dnase: boolean; h3k27ac: boolean; h3k4m
 /**
  *
  * @param newSearchParams object of type MainQueryParams
+ * @param page number, should be current page
+ * @param accessions string, comma-separated, (NOT string[])
  * @param newBiosample optional, use if setting Biosample State and then immediately triggering router before re-render when the new state is accessible
  * @returns A URL configured with search params matching newSearchParams
  *
  */
 export function constructSearchURL(
   newSearchParams: MainQueryParams,
+  page: number,
+  accessions: string,
   newBiosample?: {
     selected: boolean
     biosample: string
@@ -460,8 +464,8 @@ export function constructSearchURL(
     + `&RNAPII_ChIA_PET=${outputT_or_F(newSearchParams.filterCriteria.linkedGenesFilter.RNAPII_ChIA_PET)}`
 
   const accessionsAndPage =
-    `&accessions=${newSearchParams.accessions}`
-    // + `&page=${newSearchParams.page}`
+    `&accessions=${accessions}`
+    + `&page=${page}`
 
   const url =
     `${urlBasics}`
@@ -550,8 +554,8 @@ export function constructMainQueryParamsFromURL(searchParams: { [key: string]: s
           RNAPII_ChIA_PET: searchParams.RNAPII_ChIA_PET ? checkTrueFalse(searchParams.RNAPII_ChIA_PET) : true
         }
       },
-      page: +searchParams.page,
-      accessions: searchParams.accessions
+      // page: +searchParams.page,
+      // accessions: searchParams.accessions
     }
   )
 }

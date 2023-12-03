@@ -60,8 +60,8 @@ export type MainQueryParams = {
     snpid: string
   }
   filterCriteria: FilterCriteria
-  accessions: string
-  page: number
+  // accessions: string
+  // page: number
 }
 
 export type FilterCriteria = {

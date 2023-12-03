@@ -1278,12 +1278,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@weng-lab/psychscreen-ui-components@npm:^0.8.0-a.3":
-  version: 0.8.0-a.3
-  resolution: "@weng-lab/psychscreen-ui-components@npm:0.8.0-a.3"
+"@weng-lab/psychscreen-ui-components@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "@weng-lab/psychscreen-ui-components@npm:0.8.0"
   peerDependencies:
     react: ">=16"
-  checksum: e0292b1270cf182a5be63f9616c24f3cd3352ca216d4e88f349ba830c8f2bf0493f5c5e9558d2fbfd4cafbb0fb441063035c8867a00daa5cc81e37199f099f52
+  checksum: 321896c8beaa0af06a953f646cb3cb66b1356ca7a01f795e06959dddaa45d99c4f37123a542805b79d0b614878024086757435d09f88c0d34a13b82b79c8d0eb
   languageName: node
   linkType: hard
 
@@ -6728,7 +6728,7 @@ __metadata:
     "@types/node": ^20.10.0
     "@types/react": ^18.2.38
     "@types/react-dom": 18.2.17
-    "@weng-lab/psychscreen-ui-components": ^0.8.0-a.3
+    "@weng-lab/psychscreen-ui-components": ^0.8.0
     "@weng-lab/ts-ztable": ^4.0.1
     autoprefixer: 10.4.16
     bpnet-ui: ^0.3.8
