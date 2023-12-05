@@ -74,7 +74,6 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
             }
             // router.push(`/search?intersect=t&assembly=${props.assembly}`)
             router.push(constructSearchURL(constructMainQueryParamsFromURL({intersect: 't', assembly: props.assembly})))
-            //TODO replace all router.push with this ^
             setLoading(false)
           },
           //Error

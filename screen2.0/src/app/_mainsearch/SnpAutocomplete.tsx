@@ -10,6 +10,7 @@ import Config from "../../config.json"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { IconButton, Stack } from "@mui/material"
 import { Search } from "@mui/icons-material"
+import { constructSearchURL, constructMainQueryParamsFromURL } from "../search/search-helpers"
 
 export const SnpAutoComplete: React.FC<{ assembly: string, header?: boolean }> = (props) => {
   const [value, setValue] = React.useState(null)
@@ -58,9 +59,10 @@ export const SnpAutoComplete: React.FC<{ assembly: string, header?: boolean }> =
       let chromosome = snpids.find((g) => g.id === value)?.chrom
       let start = snpids.find((g) => g.id === value)?.start
       let end = snpids.find((g) => g.id === value)?.end
-      router.push(
-        `search?assembly=${props.assembly}&chromosome=${chromosome}&start=${Math.max(0, start)}&end=${end}&snpid=${value}`
-      )
+      // router.push(
+      //   `search?assembly=${props.assembly}&chromosome=${chromosome}&start=${Math.max(0, start)}&end=${end}&snpid=${value}`
+      // )
+      router.push(constructSearchURL(constructMainQueryParamsFromURL({assembly: props.assembly, chromosome: chromosome, start: String(Math.max(0, start)), end: String(end), snpid: value}), 0, ''))
     }
   }
 

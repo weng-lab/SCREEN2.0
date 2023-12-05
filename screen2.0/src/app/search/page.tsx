@@ -288,29 +288,29 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
 
   //Fetch raw cCRE data (main query and linked genes)
   useEffect(() => {
-    // if (!updatingMQP || updatingMQP){
+    if (!updatingMQP) {
       setLoadingFetch(true)
-    console.log("Main fetch effect called for " + mainQueryParams.coordinates.assembly)
-    // Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
-    // @ts-expect-error
-    startTransition(async () => {
-      console.log("sending query for " + mainQueryParams.coordinates.assembly)
-      setRawQueryData(
-        await fetchcCREDataAndLinkedGenes(
-          mainQueryParams.coordinates.assembly,
-          mainQueryParams.coordinates.chromosome,
-          mainQueryParams.coordinates.start,
-          mainQueryParams.coordinates.end,
-          mainQueryParams.biosample.biosample,
-          1000000,
-          null,
-          mainQueryParams.searchConfig.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined
+      console.log("Main fetch effect called for " + mainQueryParams.coordinates.assembly)
+      // Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
+      // @ts-expect-error
+      startTransition(async () => {
+        console.log("sending query for " + mainQueryParams.coordinates.assembly)
+        setRawQueryData(
+          await fetchcCREDataAndLinkedGenes(
+            mainQueryParams.coordinates.assembly,
+            mainQueryParams.coordinates.chromosome,
+            mainQueryParams.coordinates.start,
+            mainQueryParams.coordinates.end,
+            mainQueryParams.biosample.biosample,
+            1000000,
+            null,
+            mainQueryParams.searchConfig.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined
+          )
         )
-      )
-      console.log("query complete for " + mainQueryParams.coordinates.assembly)
-    })
-    setLoadingFetch(false)
-    // }
+        console.log("query complete for " + mainQueryParams.coordinates.assembly)
+      })
+      setLoadingFetch(false)
+    }
   }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample.biosample, updatingMQP])
 
   //Generate and filter rows
@@ -334,15 +334,20 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     setUpdatingMQP(false)
   }, [searchParams])
   
-  //Sync open cCREs with url's searchParams.accessions. Either add to or clear opencCREs. Deleting individual ones handled in handleClosecCRE
+  //Sync open cCREs with url's searchParams.accessions
   useEffect(() => {
     //Gate behind updatingMQP to eliminate race condition between opencCREs and mainQueryParams.accessions when closing a cCRE. Could probably be simplified
     if (!updatingMQP) {
+      setUpdatingMQP(true)
       console.log("open cCRE effect running")
       setPage(+searchParams.page ?? 0)
       //Find cCREs that need to be fetched (ones that exist in URL but not in opencCREs)
       const cCREsToFetch = searchParams.accessions && searchParams.accessions.split(',').filter((cCRE) => (opencCREs.find((x) => cCRE === x.ID) === undefined))
-      //If there are cCREs to fetch and add to opencCREs:
+      //Find cCREs that need to be removed (ones that are in opencCREs but not in URL)
+      const cCREsToRemove = opencCREs.filter((cCRE) => !searchParams.accessions.split(',').includes(cCRE.ID))
+      const opencCREsMinusRemoved = opencCREs.filter((cCRE) => !cCREsToRemove.includes(cCRE))
+
+      //If there are cCREs to fetch and add to opencCREs
       if (cCREsToFetch?.length > 0) {
         // @ts-expect-error
         startTransition(async () => {
@@ -362,7 +367,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
             filterCriteria,
             true
           )
-          const newOpencCREs = [...opencCREs, ...opencCRE_data.map((cCRE) => {
+          const newOpencCREs = [...opencCREsMinusRemoved, ...opencCRE_data.map((cCRE) => {
             return (
               {
                 ID: cCRE.accession,
@@ -383,9 +388,9 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           })
           )
         })
-        //Else if no accession in URL and some hanging around in opencCREs, wipe opencCREs
-      } else if (!searchParams.accessions && (opencCREs.length > 0)) {
-        setOpencCREs([])
+        //Else no cCREs to add, push opencCRES_minus_removed if some were removed
+      } else if (opencCREsMinusRemoved.length != opencCREs.length) {
+        setOpencCREs(opencCREsMinusRemoved)
       }
     }
   }, [searchParams.accessions, searchParams.page, mainQueryParams, mainQueryParams.coordinates.assembly, filterCriteria, opencCREs, updatingMQP])
@@ -482,7 +487,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           <Divider />
           {page < numberOfDefaultTabs ?
             //Should the filter component be refreshing the route? I think it should probably all be controlled here
-            <MainResultsFilters mainQueryParams={mainQueryParams} byCellType={globals} genomeBrowserView={page === 1} accessions={opencCREs.map((x) => x.ID).join(',')} page={page} />
+            <MainResultsFilters mainQueryParams={mainQueryParams} byCellType={globals} genomeBrowserView={page === 1} accessions={opencCREs.map((x) => x.ID).join(',')} page={page} searchParams={searchParams} />
             :
             <Tabs
               aria-label="details-tabs"

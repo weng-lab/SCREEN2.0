@@ -10,6 +10,7 @@ import { GENE_AUTOCOMPLETE_QUERY } from "./queries"
 import Config from "../../config.json"
 import { IconButton, Stack } from "@mui/material"
 import { Search } from "@mui/icons-material"
+import { constructSearchURL, constructMainQueryParamsFromURL } from "../search/search-helpers"
 type QueryResponse = [number, string[], any, [string, string, string, string, string, string][], string[]]
 
 export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> = (props) => {
@@ -86,7 +87,8 @@ export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
       let chrom = geneids.find((g) => g.name === value)?.chrom
       let start = geneids.find((g) => g.name === value)?.start
       let end = geneids.find((g) => g.name === value)?.end
-      router.push(`search?assembly=${props.assembly}&chromosome=${chrom}&start=${start}&end=${end}&gene=${value}`)
+      // router.push(`search?assembly=${props.assembly}&chromosome=${chrom}&start=${start}&end=${end}&gene=${value}`)
+      router.push(constructSearchURL(constructMainQueryParamsFromURL({assembly: props.assembly, chromosome: chrom, start: String(start), end: String(end), gene: value}), 0, ''))
     }
   }
 

@@ -9,6 +9,8 @@ import Config from "../../config.json"
 import { IconButton, Stack } from "@mui/material"
 import { Search } from "@mui/icons-material"
 import { parseGenomicRegion } from "./SearchHelpers"
+import { start } from "repl"
+import { constructSearchURL, constructMainQueryParamsFromURL } from "../search/search-helpers"
 
 export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean }> = (props) => {
   const [valueCellType, setValueCellType] = useState(null)
@@ -54,9 +56,10 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
       } else {
         region = {chromosome: 'chr11', start: "5205263", end: "5381894"}
       }
-      router.push(
-        `search?assembly=${props.assembly}&chromosome=${region.chromosome}&start=${Math.max(0, Number(region.start))}&end=${region.end}&BiosampleTissue=${tissue}&BiosampleSummary=${biosample_summary}&Biosample=${biosample}`
-      )
+      // router.push(
+      //   `search?assembly=${props.assembly}&chromosome=${region.chromosome}&start=${Math.max(0, Number(region.start))}&end=${region.end}&BiosampleTissue=${tissue}&BiosampleSummary=${biosample_summary}&Biosample=${biosample}`
+      // )
+      router.push(constructSearchURL(constructMainQueryParamsFromURL({assembly: props.assembly, chromosome: region.chromosome, start: String(Math.max(0, Number(region.start))), end: region.end, BiosampleTissue: tissue, BiosampleSummary: biosample_summary, biosample: biosample}), 0, ''))
     }
   }
 

@@ -30,7 +30,7 @@ import { RangeSlider, DataTable } from "@weng-lab/psychscreen-ui-components"
 import { useState, useMemo, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { CellTypeData, FilteredBiosampleData, MainQueryParams } from "./types"
-import { parseByCellType, filterBiosamples, assayHoverInfo, constructSearchURL } from "./search-helpers"
+import { parseByCellType, filterBiosamples, assayHoverInfo, constructSearchURL, constructMainQueryParamsFromURL } from "./search-helpers"
 import { gql } from "@apollo/client"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import GeneAutoComplete from "../applets/gene-expression/gene-autocomplete";
@@ -82,7 +82,7 @@ const GENE_TRANSCRIPTS_QUERY = gql`
  } `
 
 
-export default function MainResultsFilters(props: { mainQueryParams: MainQueryParams, byCellType: CellTypeData, genomeBrowserView: boolean, accessions: string, page: number }): React.JSX.Element {
+export default function MainResultsFilters(props: { mainQueryParams: MainQueryParams, byCellType: CellTypeData, genomeBrowserView: boolean, accessions: string, page: number, searchParams: { [key: string]: string | undefined }}): React.JSX.Element {
 
   const [tssupstream, setTssupstream] = useState<number>(0);
   const [snpdistance, setSnpDistance] = useState<number>(0);
@@ -147,8 +147,6 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
   const [distancePC, setdistancePC] = React.useState(props.mainQueryParams.filterCriteria.linkedGenesFilter.distancePC)
   const [CTCF_ChIA_PET, setCTCF_ChIA_PET] = React.useState(props.mainQueryParams.filterCriteria.linkedGenesFilter.CTCF_ChIA_PET)
   const [RNAPII_ChIA_PET, setRNAPII_ChIA_PET] = React.useState(props.mainQueryParams.filterCriteria.linkedGenesFilter.RNAPII_ChIA_PET)
-
-  const [didMount, setDidMount] = useState(false);
 
   const {
     data: geneTranscripts
@@ -287,13 +285,10 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
   }, [props.mainQueryParams.coordinates.assembly, ATACEnd, ATACStart, Biosample.biosample, Biosample.selected, Biosample.summaryName, Biosample.tissue, CA, CA_CTCF, CA_H3K4me3, CA_TF, CTCFEnd, CTCFStart, CTCF_ChIA_PET, CellLine, DNaseEnd, DNaseStart, H3K27acEnd, H3K27acStart, H3K4me3End, H3K4me3Start, InVitro, MammalEnd, MammalStart, Organoid, PLS, PrimaryCell, PrimateEnd, PrimateStart, RNAPII_ChIA_PET, TF, Tissue, VertebrateEnd, VertebrateStart, dELS, distanceAll, distancePC, firstTSS, geneTranscripts, genesToFind, lastTSS, pELS, props.mainQueryParams.coordinates.chromosome, props.mainQueryParams.coordinates.end, props.mainQueryParams.coordinates.start, props.mainQueryParams.searchConfig.bed_intersect, props.mainQueryParams.searchConfig.gene, props.mainQueryParams.searchConfig.snpid, snpdistance, value])
 
   useEffect(() => {
-    //Prevent this from running initially. On new search this causes the effect to fire twice which messes with startTransition apparently
-    if (didMount) {
-      console.log("Filter's router.push called")
-      console.log(newSearchParams)
-      router.push(constructSearchURL(newSearchParams, props.page, props.accessions))
-    }
-  }, [newSearchParams, didMount])
+    console.log("Filter's router.push called")
+    console.log(newSearchParams)
+    router.push(constructSearchURL(newSearchParams, props.page, props.accessions))
+  }, [newSearchParams])
 
   const handleTssUpstreamChange = (_, newValue: number) => {
     setTssupstream(newValue as number);
