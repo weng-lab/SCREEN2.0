@@ -118,7 +118,7 @@ export type CellTypeData = {
       biosample_summary: string
       biosample_type: string
       tissue: string
-      value: string
+      celltypename: string
     }[]
   }
 }

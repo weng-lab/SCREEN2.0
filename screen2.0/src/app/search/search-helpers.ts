@@ -277,7 +277,7 @@ function availableAssays(
     biosample_summary: string
     biosample_type: string
     tissue: string
-    value: string
+    celltypename: string
   }[]
 ) {
   const assays = { dnase: false, atac: false, h3k4me3: false, h3k27ac: false, ctcf: false }
@@ -311,7 +311,7 @@ export function parseByCellType(byCellType: CellTypeData): UnfilteredBiosampleDa
       //for filtering
       biosampleType: experiments[0].biosample_type,
       //for query
-      queryValue: experiments[0].value,
+      queryValue: experiments[0].celltypename,
       //for filling in available assay wheels
       //THIS DATA IS MISSING ATAC DATA! ATAC will always be false
       assays: availableAssays(experiments),
