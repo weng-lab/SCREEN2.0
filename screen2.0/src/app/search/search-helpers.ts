@@ -383,8 +383,8 @@ export function assayHoverInfo(assays: { dnase: boolean; h3k27ac: boolean; h3k4m
  */
 export function constructSearchURL(
   newSearchParams: MainQueryParams,
-  page: number,
-  accessions: string,
+  page: number = 0,
+  accessions: string = '',
   newBiosample?: {
     selected: boolean
     biosample: string

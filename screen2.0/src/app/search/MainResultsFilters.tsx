@@ -148,6 +148,8 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
   const [CTCF_ChIA_PET, setCTCF_ChIA_PET] = React.useState(props.mainQueryParams.filterCriteria.linkedGenesFilter.CTCF_ChIA_PET)
   const [RNAPII_ChIA_PET, setRNAPII_ChIA_PET] = React.useState(props.mainQueryParams.filterCriteria.linkedGenesFilter.RNAPII_ChIA_PET)
 
+  const [didMount, setDidMount] = useState(false);
+
   const {
     data: geneTranscripts
   } = useQuery(GENE_TRANSCRIPTS_QUERY, {
@@ -285,9 +287,13 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
   }, [props.mainQueryParams.coordinates.assembly, ATACEnd, ATACStart, Biosample.biosample, Biosample.selected, Biosample.summaryName, Biosample.tissue, CA, CA_CTCF, CA_H3K4me3, CA_TF, CTCFEnd, CTCFStart, CTCF_ChIA_PET, CellLine, DNaseEnd, DNaseStart, H3K27acEnd, H3K27acStart, H3K4me3End, H3K4me3Start, InVitro, MammalEnd, MammalStart, Organoid, PLS, PrimaryCell, PrimateEnd, PrimateStart, RNAPII_ChIA_PET, TF, Tissue, VertebrateEnd, VertebrateStart, dELS, distanceAll, distancePC, firstTSS, geneTranscripts, genesToFind, lastTSS, pELS, props.mainQueryParams.coordinates.chromosome, props.mainQueryParams.coordinates.end, props.mainQueryParams.coordinates.start, props.mainQueryParams.searchConfig.bed_intersect, props.mainQueryParams.searchConfig.gene, props.mainQueryParams.searchConfig.snpid, snpdistance, value])
 
   useEffect(() => {
-    console.log("Filter's router.push called")
-    router.push(constructSearchURL(newSearchParams, props.page, props.accessions))
-  }, [newSearchParams])
+    //Prevent this from running initially. On new search this causes the effect to fire twice which messes with startTransition apparently
+    if (didMount) {
+      console.log("Filter's router.push called")
+      console.log(newSearchParams)
+      router.push(constructSearchURL(newSearchParams, props.page, props.accessions))
+    }
+  }, [newSearchParams, didMount])
 
   const handleTssUpstreamChange = (_, newValue: number) => {
     setTssupstream(newValue as number);
@@ -428,10 +434,6 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [CellLine, InVitro, Organoid, PrimaryCell, Tissue, BiosampleHighlight, SearchString, props.byCellType, props.mainQueryParams]
   )
-
-  useEffect(() => {
-    setBiosample(props.mainQueryParams.biosample)
-  }, [props.mainQueryParams.biosample])
 
   return (
     <Paper elevation={0}>

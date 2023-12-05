@@ -208,9 +208,10 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     const newcCRE = { ID: row.accession, region: { start: row.start, end: row.end, chrom: row.chromosome }, linkedGenes: row.linkedGenes }
     //If cCRE isn't in open cCREs, add and push as current accession.
     if (!opencCREs.find((x) => x.ID === newcCRE.ID)) {
-      setOpencCREs([...opencCREs, newcCRE])
+      setUpdatingMQP(true)
       setPage(opencCREs.length + numberOfDefaultTabs)
       router.push(basePathname + "?" + createQueryString(searchParams, "accessions", [...opencCREs, newcCRE].map((x) => x.ID).join(','), "page", String(opencCREs.length + numberOfDefaultTabs)))
+      setOpencCREs([...opencCREs, newcCRE])
     } else {
       const newPage = findTabByID(newcCRE.ID, numberOfDefaultTabs)
       setPage(newPage)
@@ -221,47 +222,34 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const handleClosecCRE = (closedID: string) => {
     //Mark as updating so to eliminate race condition in opencCREs useEffect
     setUpdatingMQP(true)
-    
     //Filter out cCRE
     const newOpencCREs = opencCREs.filter((cCRE) => cCRE.ID != closedID)
-
-
     const closedIndex = opencCREs.findIndex(x => x.ID === closedID)
-    // Important to note that opencCREs here is still the old value
 
-    // If you're closing a tab to the right of what you're on:
+    // If you're closing a tab to the right of what you're on, eliminate from URL
     if (closedIndex > (page - numberOfDefaultTabs)) {
-      //Close cCREs in URL
       router.push(basePathname + '?' + createQueryString(searchParams, "accessions", newOpencCREs.map((x) => x.ID).join(',')))
     }
     // If you're closing the tab you're on:
     if (closedIndex === (page - numberOfDefaultTabs)) {
-      // If it is the last open:
+      // If it is the last open, set page = 0
       if (opencCREs.length === 1) {
-        // Set to page 0
         setPage(0)
         setDetailsPage(0)
-        // Change URL to ???
         router.push(basePathname + '?' + createQueryString(searchParams, "accessions", "", "page", "0"))
       }
-      // If it's the tab at the far right
+      // If it's the tab at the far right, set page -= 1, 
       else if (page === (opencCREs.length + (numberOfDefaultTabs - 1))) {
-        // Page - 1
         setPage(page - 1)
-        // URL to accession on the left
         router.push(basePathname + '?' + createQueryString(searchParams, "accessions", newOpencCREs.map((x) => x.ID).join(','), "page", String(page - 1)))
       }
-      // Else it's not at the end or the last open:
+      // Else it's not at the end or the last open, keep page same
       else {
-        // Keep page position
-        // Change URL to cCRE to the right
         router.push(basePathname + '?' + createQueryString(searchParams, "accessions", newOpencCREs.map((x) => x.ID).join(',')))
       }
     }
-    // If you're closing a tab to the left of what you're` on: 
+    // If you're closing a tab to the left of what you're on, page -= 1
     if (closedIndex < (page - numberOfDefaultTabs)) {
-      // Page count -= 1 to keep tab position
-      // Remove selected cCRE from list
       setPage(page - 1)
       router.push(basePathname + '?' + createQueryString(searchParams, "accessions", newOpencCREs.map((x) => x.ID).join(','), "page", String(page - 1)))
     }
@@ -269,6 +257,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   }
 
   const handlePageChange = (_, newValue: number) => {
+    setUpdatingMQP(true)
     if (searchParams.gene && (newValue === 2 || newValue === 3)) {
       setOpen(false)
     }
@@ -276,11 +265,20 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     router.push(basePathname + '?' + createQueryString(searchParams, "page", String(newValue)))
   }
 
-  //It's maybe not great to use useEffect liberally like this: https://react.dev/learn/you-might-not-need-an-effect
-  //Doing this to be able to use startTransition to invoke server action
+  //It's maybe not ideal to use useEffect liberally like this: https://react.dev/learn/you-might-not-need-an-effect
+  //Doing this for some to be able to use startTransition to invoke server action for fetches
+
+  //Sync page with url
+
+  // useEffect(() => {
+  //   if (searchParams.page && +searchParams.page != page) {
+  //     setPage(+searchParams.page ?? 0)
+  //   }
+  // }, [searchParams.page])
 
   //Fetch byCellType
   useEffect(() => {
+    console.log("fetching byCellType")
     // Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
     // @ts-expect-error
     startTransition(async () => {
@@ -290,11 +288,13 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
 
   //Fetch raw cCRE data (main query and linked genes)
   useEffect(() => {
-    setLoadingFetch(true)
+    // if (!updatingMQP || updatingMQP){
+      setLoadingFetch(true)
+    console.log("Main fetch effect called for " + mainQueryParams.coordinates.assembly)
     // Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
     // @ts-expect-error
     startTransition(async () => {
-      console.log("main fetch called")
+      console.log("sending query for " + mainQueryParams.coordinates.assembly)
       setRawQueryData(
         await fetchcCREDataAndLinkedGenes(
           mainQueryParams.coordinates.assembly,
@@ -307,12 +307,13 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           mainQueryParams.searchConfig.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined
         )
       )
+      console.log("query complete for " + mainQueryParams.coordinates.assembly)
     })
     setLoadingFetch(false)
-  }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample.biosample])
+    // }
+  }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample.biosample, updatingMQP])
 
   //Generate and filter rows
-  //I think that having filterCriteria here causes this to always run, since object equality is not maintained
   const filteredTableRows = useMemo(() => {
     console.log("recalculating rows")
     setLoadingTable(true)
@@ -332,68 +333,64 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     setMainQueryParams(constructMainQueryParamsFromURL(searchParams))
     setUpdatingMQP(false)
   }, [searchParams])
-
-
-  //Initialize opencCREs, fetch info on them if not already in openCCREs
   
-  //Initialize opencCREs, fetch info on them if not already in openCCREs
+  //Sync open cCREs with url's searchParams.accessions. Either add to or clear opencCREs. Deleting individual ones handled in handleClosecCRE
   useEffect(() => {
-    if ((opencCREs.length > 0 && opencCREs[0].ID.includes(`${mainQueryParams.coordinates.assembly === "GRCh38" ? "EM" : "EH"}`) || searchParams.accessions?.includes(`${mainQueryParams.coordinates.assembly === "GRCh38" ? "EM" : "EH"}`))) {
-      setPage(0)
-      setOpencCREs([])
-      setDetailsPage(0)
-      router.push(basePathname + '?' + createQueryString(searchParams, "accessions", "", "page", "0"))
-    }
-  })
-  
-  //Initialize opencCREs, fetch info on them if not already in openCCREs, clear them if the assembly has changed
-  useEffect(() => {
-    console.log("open cCRE effect running")
-    //have to gate this effect behind updatingMQP to eliminate race condition between opencCREs and mainQueryParams.accessions when closing a cCRE
+    //Gate behind updatingMQP to eliminate race condition between opencCREs and mainQueryParams.accessions when closing a cCRE. Could probably be simplified
     if (!updatingMQP) {
+      console.log("open cCRE effect running")
+      setPage(+searchParams.page ?? 0)
+      //Find cCREs that need to be fetched (ones that exist in URL but not in opencCREs)
       const cCREsToFetch = searchParams.accessions && searchParams.accessions.split(',').filter((cCRE) => (opencCREs.find((x) => cCRE === x.ID) === undefined))
-      //If there are cCREs to fetch...
-      // @ts-expect-error
-      cCREsToFetch?.length > 0 && startTransition(async () => {
-        //Generate unfiltered rows of info for each open cCRE for ease of accessing data
-        const accessionOrder = searchParams.accessions?.split(',')
-        const opencCRE_data = generateFilteredRows(
-          await fetchcCREDataAndLinkedGenes(
-            mainQueryParams.coordinates.assembly,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            1000000,
-            null,
-            cCREsToFetch
-          ),
-          filterCriteria,
-          true
-        )
-        const newOpencCREs = [...opencCREs, ...opencCRE_data.map((cCRE) => {
-          return (
-            {
-              ID: cCRE.accession,
-              region: {
-                start: cCRE.start,
-                end: cCRE.end,
-                chrom: cCRE.chromosome,
-              },
-              linkedGenes: cCRE.linkedGenes
-            }
+      //If there are cCREs to fetch and add to opencCREs:
+      if (cCREsToFetch?.length > 0) {
+        // @ts-expect-error
+        startTransition(async () => {
+          //Generate unfiltered rows of info for each open cCRE for ease of accessing data
+          const accessionOrder = searchParams.accessions?.split(',')
+          const opencCRE_data = generateFilteredRows(
+            await fetchcCREDataAndLinkedGenes(
+              mainQueryParams.coordinates.assembly,
+              undefined,
+              undefined,
+              undefined,
+              undefined,
+              1000000,
+              null,
+              cCREsToFetch
+            ),
+            filterCriteria,
+            true
           )
-        })]
-        //sort to match url order
-        setOpencCREs(newOpencCREs.sort((a, b) => {
-          const indexA = accessionOrder.indexOf(a.ID);
-          const indexB = accessionOrder.indexOf(b.ID);
-          return indexA - indexB;
+          const newOpencCREs = [...opencCREs, ...opencCRE_data.map((cCRE) => {
+            return (
+              {
+                ID: cCRE.accession,
+                region: {
+                  start: cCRE.start,
+                  end: cCRE.end,
+                  chrom: cCRE.chromosome,
+                },
+                linkedGenes: cCRE.linkedGenes
+              }
+            )
+          })]
+          //sort to match url order
+          setOpencCREs(newOpencCREs.sort((a, b) => {
+            const indexA = accessionOrder.indexOf(a.ID);
+            const indexB = accessionOrder.indexOf(b.ID);
+            return indexA - indexB;
+          })
+          )
         })
-        )
-      })
+        //Else if no accession in URL and some hanging around in opencCREs, wipe opencCREs
+      } else if (!searchParams.accessions && (opencCREs.length > 0)) {
+        setOpencCREs([])
+      }
     }
-  }, [searchParams.accessions, mainQueryParams, mainQueryParams.coordinates.assembly, filterCriteria, opencCREs, updatingMQP])
+  }, [searchParams.accessions, searchParams.page, mainQueryParams, mainQueryParams.coordinates.assembly, filterCriteria, opencCREs, updatingMQP])
+
+  //TODO update page properly on URL change
 
   const findTabByID = (id: string, numberOfTable: number = 2) => {
     return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)

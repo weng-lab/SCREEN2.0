@@ -8,6 +8,7 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { Cancel, Search } from "@mui/icons-material"
 import { LoadingButton } from "@mui/lab"
 import config from "../../config.json"
+import { constructMainQueryParamsFromURL, constructSearchURL } from "../search/search-helpers"
 
 const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => {
   const router = useRouter()
@@ -71,7 +72,9 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
             } else {
               sessionStorage.setItem("warning", "false")
             }
-            router.push(`/search?intersect=t&assembly=${props.assembly}`)
+            // router.push(`/search?intersect=t&assembly=${props.assembly}`)
+            router.push(constructSearchURL(constructMainQueryParamsFromURL({intersect: 't', assembly: props.assembly})))
+            //TODO replace all router.push with this ^
             setLoading(false)
           },
           //Error

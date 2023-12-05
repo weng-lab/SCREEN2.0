@@ -58,7 +58,7 @@ export const CcreAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
       let chrom = (ccreAccessions.find((g: { ccreaccession: string }) => g.ccreaccession === value))?.chrom
       let start = (ccreAccessions.find((g: { ccreaccession: string }) => g.ccreaccession === value))?.start
       let end = (ccreAccessions.find((g: { ccreaccession: string }) => g.ccreaccession === value))?.end
-      router.push(`search?assembly=${props.assembly}&chromosome=${chrom}&start=${start}&end=${end}&accession=${value}&page=2`)
+      router.push(`search?assembly=${props.assembly}&chromosome=${chrom}&start=${start}&end=${end}&accessions=${value}&page=2`)
     }
   }
 
