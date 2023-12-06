@@ -425,9 +425,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
         })
       )
     },
-    // Linter wants to include biosampleTables here as a dependency. Including it breaks intended functionality. Revisit later?
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [CellLine, InVitro, Organoid, PrimaryCell, Tissue, BiosampleHighlight, SearchString, props.byCellType, props.mainQueryParams]
+    [CellLine, InVitro, Organoid, PrimaryCell, Tissue, BiosampleHighlight, SearchString, props.byCellType]
   )
 
   return (

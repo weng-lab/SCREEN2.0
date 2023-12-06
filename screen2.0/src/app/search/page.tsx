@@ -105,7 +105,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const [globals, setGlobals] = useState<CellTypeData>(null)
   const [rawQueryData, setRawQueryData] = useState<rawQueryData>(null)
   const [mainQueryParams, setMainQueryParams] = useState<MainQueryParams>(constructMainQueryParamsFromURL(searchParams))
-  //Not sold on this method of tracking loading
   const [loadingTable, setLoadingTable] = useState<boolean>(false)
   const [loadingFetch, setLoadingFetch] = useState<boolean>(false)
   const [updatingMQP, setUpdatingMQP] = useState<boolean>(false)
@@ -268,14 +267,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   //It's maybe not ideal to use useEffect liberally like this: https://react.dev/learn/you-might-not-need-an-effect
   //Doing this for some to be able to use startTransition to invoke server action for fetches
 
-  //Sync page with url
-
-  // useEffect(() => {
-  //   if (searchParams.page && +searchParams.page != page) {
-  //     setPage(+searchParams.page ?? 0)
-  //   }
-  // }, [searchParams.page])
-
   //Fetch byCellType
   useEffect(() => {
     console.log("fetching byCellType")
@@ -394,8 +385,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       }
     }
   }, [searchParams.accessions, searchParams.page, mainQueryParams, mainQueryParams.coordinates.assembly, filterCriteria, opencCREs, updatingMQP])
-
-  //TODO update page properly on URL change
 
   const findTabByID = (id: string, numberOfTable: number = 2) => {
     return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)
