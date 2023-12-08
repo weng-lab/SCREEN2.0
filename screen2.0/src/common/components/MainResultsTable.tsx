@@ -66,7 +66,7 @@ function MainResultsTable(props: MainResultsTableProps) {
         }
       })
     }
-    /*(if (props.rows[0] && props.rows[0].atac !== null) {
+    if (props.rows[0] && props.rows[0].atac !== null) {
       cols.push({
         header: "ATAC",
         value: (row) => (row.atac && row.atac.toFixed(2)) || 0,
@@ -81,7 +81,7 @@ function MainResultsTable(props: MainResultsTableProps) {
           )
         }
       })
-    }*/
+    }
     if (props.rows[0] && props.rows[0].ctcf !== null) {
       cols.push({
         header: "CTCF",
@@ -253,6 +253,7 @@ function MainResultsTable(props: MainResultsTableProps) {
     cols.push({
       header: "Conservation",
       value: (row: { conservationData: ConservationData }) => `Primates:\u00A0${row.conservationData.primates?.toFixed(2) ?? "unavailable"} Mammals:\u00A0${row.conservationData.mammals?.toFixed(2) ?? "unavailable"} Vertebrates:\u00A0${row.conservationData.vertebrates?.toFixed(2) ?? "unavailable"}` , 
+      HeaderRender: () => <strong><p>Conservation</p></strong>
     })
     return cols
   }
