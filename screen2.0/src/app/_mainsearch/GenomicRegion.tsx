@@ -27,18 +27,22 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
   //TODO: Better catch errors in input so that invalid values are not passed to api
   function handleSubmit(): void {
     if (inputType === "Separated") {
-      // router.push(`/search?assembly=${assembly}&chromosome=${"chr" + chromosome}&start=${start ?? "5205263"}&end=${end ?? "5381894"}`)
-      router.push(constructSearchURL(constructMainQueryParamsFromURL({assembly: assembly, chromosome: `${"chr" + chromosome}`, start: `${start ?? "5205263"}`, end: `${end ?? "5381894"}`})))
+      router.push(`/search?assembly=${assembly}&chromosome=${"chr" + chromosome}&start=${start ?? "5205263"}&end=${end ?? "5381894"}`)
+      // router.push(constructSearchURL(constructMainQueryParamsFromURL({assembly: assembly, chromosome: `${"chr" + chromosome}`, start: `${start ?? "5205263"}`, end: `${end ?? "5381894"}`}), ))
     } else {
       if (!value) {
+        console.log("called")
+        router.push(`/search?assembly=${assembly}&chromosome=chr11&start=5205263&end=5381894`).then()
+        // router.refresh()
+        window.location.reload()
         // router.push(`/search?assembly=${assembly}&chromosome=chr11&start=5205263&end=5381894`)
-        router.push(constructSearchURL(constructMainQueryParamsFromURL({assembly: assembly, chromosome: "chr11", start: "5205263", end: "5381894"})))
+        // router.push(constructSearchURL(constructMainQueryParamsFromURL({assembly: assembly, chromosome: "chr11", start: "5205263", end: "5381894"})))
         return
       }
       try {
         const region = parseGenomicRegion(value)
-        // router.push(`/search?assembly=${assembly}&chromosome=${region.chromosome}&start=${region.start}&end=${region.end}`)
-        router.push(constructSearchURL(constructMainQueryParamsFromURL({assembly: assembly, chromosome: region.chromosome, start: region.start, end: region.end})))
+        router.push(`/search?assembly=${assembly}&chromosome=${region.chromosome}&start=${region.start}&end=${region.end}`)
+        // router.push(constructSearchURL(constructMainQueryParamsFromURL({assembly: assembly, chromosome: region.chromosome, start: region.start, end: region.end})))
       }
       catch (msg) {
         window.alert("Error in input format - " + msg)
@@ -189,9 +193,11 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
               size={props.header ? "small" : "medium"}
             />
           }
-          <IconButton aria-label="Search" type="submit" onClick={() => handleSubmit()} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
-            <Search />
-          </IconButton>
+          <a href={`/search?assembly=${assembly}&chromosome=chr11&start=5205263&end=5381894`}>
+            <IconButton aria-label="Search" type="submit" onClick={() => null} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
+              <Search />
+            </IconButton>
+          </a>
         </Stack>
       </Grid2>
     </Grid2>

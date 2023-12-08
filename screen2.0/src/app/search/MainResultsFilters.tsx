@@ -28,9 +28,8 @@ import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
 import Grid2 from "@mui/material/Unstable_Grid2"
 import { RangeSlider, DataTable } from "@weng-lab/psychscreen-ui-components"
 import { useState, useMemo, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { CellTypeData, FilteredBiosampleData, MainQueryParams } from "./types"
-import { parseByCellType, filterBiosamples, assayHoverInfo, constructSearchURL, constructMainQueryParamsFromURL } from "./search-helpers"
+import { BiosampleTableFilters, CellTypeData, FilterCriteria, FilteredBiosampleData, MainQueryParams } from "./types"
+import { parseByCellType, filterBiosamples, assayHoverInfo, constructSearchURL, constructMainQueryParamsFromURL, constructBiosampleTableFiltersFromURL } from "./search-helpers"
 import { gql } from "@apollo/client"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import GeneAutoComplete from "../applets/gene-expression/gene-autocomplete";
@@ -81,26 +80,40 @@ const GENE_TRANSCRIPTS_QUERY = gql`
    }
  } `
 
+ //TODO
+ // allow this to change mainquery params
+ // make the route refresh when filterparams change
+ // biosample fetch
+ // gene and tss changing main query
 
-export default function MainResultsFilters(props: { mainQueryParams: MainQueryParams, byCellType: CellTypeData, genomeBrowserView: boolean, accessions: string, page: number, searchParams: { [key: string]: string | undefined }}): React.JSX.Element {
+export default function MainResultsFilters(
+  props: {
+    mainQueryParams: MainQueryParams,
+    setMainQueryParams: React.Dispatch<React.SetStateAction<MainQueryParams>>,
+    filterCriteria: FilterCriteria,
+    setFilterCriteria: React.Dispatch<React.SetStateAction<FilterCriteria>>,
+    biosampleTableFilters: BiosampleTableFilters,
+    setBiosampleTableFilters: React.Dispatch<React.SetStateAction<BiosampleTableFilters>>,
+    byCellType: CellTypeData,
+    genomeBrowserView: boolean,
+    searchParams: { [key: string]: string | undefined },
+  }
+): React.JSX.Element {
 
+  //for commented gene filter
   const [tssupstream, setTssupstream] = useState<number>(0);
+
+  //for snp filter
   const [snpdistance, setSnpDistance] = useState<number>(0);
 
   //Biosample Filter
-  const [CellLine, setCellLine] = useState<boolean>(props.mainQueryParams.filterCriteria.biosampleTableFilters.CellLine)
-  const [PrimaryCell, setPrimaryCell] = useState<boolean>(props.mainQueryParams.filterCriteria.biosampleTableFilters.PrimaryCell)
-  const [Tissue, setTissue] = useState<boolean>(props.mainQueryParams.filterCriteria.biosampleTableFilters.Tissue)
-  const [Organoid, setOrganoid] = useState<boolean>(props.mainQueryParams.filterCriteria.biosampleTableFilters.Organoid)
-  const [InVitro, setInVitro] = useState<boolean>(props.mainQueryParams.filterCriteria.biosampleTableFilters.InVitro)
+  // const [CellLine, setCellLine] = useState<boolean>(biosampleTableFilters.CellLine)
+  // const [PrimaryCell, setPrimaryCell] = useState<boolean>(biosampleTableFilters.PrimaryCell)
+  // const [Tissue, setTissue] = useState<boolean>(biosampleTableFilters.Tissue)
+  // const [Organoid, setOrganoid] = useState<boolean>(biosampleTableFilters.Organoid)
+  // const [InVitro, setInVitro] = useState<boolean>(biosampleTableFilters.InVitro)
   
   //Selected Biosample
-  const [Biosample, setBiosample] = useState<{
-    selected: boolean
-    biosample: string | null
-    tissue: string | null
-    summaryName: string | null
-  }>(props.mainQueryParams.biosample)
   const [BiosampleHighlight, setBiosampleHighlight] = useState<{} | null>(null)
   const [SearchString, setSearchString] = useState<string>("")
 
@@ -110,43 +123,8 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     setValue((event.target as HTMLInputElement).value);
   };
 
-  //Chromatin Filter
-  const [DNaseStart, setDNaseStart] = useState<number>(props.mainQueryParams.filterCriteria.chromatinFilter.dnase_s)
-  const [DNaseEnd, setDNaseEnd] = useState<number>(props.mainQueryParams.filterCriteria.chromatinFilter.dnase_e)
-  const [H3K4me3Start, setH3K4me3Start] = useState<number>(props.mainQueryParams.filterCriteria.chromatinFilter.h3k4me3_s)
-  const [H3K4me3End, setH3K4me3End] = useState<number>(props.mainQueryParams.filterCriteria.chromatinFilter.h3k4me3_e)
-  const [H3K27acStart, setH3K27acStart] = useState<number>(props.mainQueryParams.filterCriteria.chromatinFilter.h3k27ac_s)
-  const [H3K27acEnd, setH3K27acEnd] = useState<number>(props.mainQueryParams.filterCriteria.chromatinFilter.h3k27ac_e)
-  const [CTCFStart, setCTCFStart] = useState<number>(props.mainQueryParams.filterCriteria.chromatinFilter.ctcf_s)
-  const [CTCFEnd, setCTCFEnd] = useState<number>(props.mainQueryParams.filterCriteria.chromatinFilter.ctcf_e)
-  const [ATACStart, setATACStart] = useState<number>(props.mainQueryParams.filterCriteria.chromatinFilter.atac_s)
-  const [ATACEnd, setATACEnd] = useState<number>(props.mainQueryParams.filterCriteria.chromatinFilter.atac_e)
-
-  //Classification Filter
-  const [CA, setCA] = useState<boolean>(props.mainQueryParams.filterCriteria.classificationFilter.CA)
-  const [CA_CTCF, setCA_CTCF] = useState<boolean>(props.mainQueryParams.filterCriteria.classificationFilter.CA_CTCF)
-  const [CA_H3K4me3, setCA_H3K4me3] = useState<boolean>(props.mainQueryParams.filterCriteria.classificationFilter.CA_H3K4me3)
-  const [CA_TF, setCA_TF] = useState<boolean>(props.mainQueryParams.filterCriteria.classificationFilter.CA_TF)
-  const [dELS, setdELS] = useState<boolean>(props.mainQueryParams.filterCriteria.classificationFilter.dELS)
-  const [pELS, setpELS] = useState<boolean>(props.mainQueryParams.filterCriteria.classificationFilter.pELS)
-  const [PLS, setPLS] = useState<boolean>(props.mainQueryParams.filterCriteria.classificationFilter.PLS)
-  const [TF, setTF] = useState<boolean>(props.mainQueryParams.filterCriteria.classificationFilter.TF)
-
-  //Conservation Filter
-  const [PrimateStart, setPrimateStart] = useState<number>(props.mainQueryParams.filterCriteria.conservationFilter.prim_s)
-  const [PrimateEnd, setPrimateEnd] = useState<number>(props.mainQueryParams.filterCriteria.conservationFilter.prim_e)
-  const [MammalStart, setMammalStart] = useState<number>(props.mainQueryParams.filterCriteria.conservationFilter.mamm_s)
-  const [MammalEnd, setMammalEnd] = useState<number>(props.mainQueryParams.filterCriteria.conservationFilter.mamm_e)
-  const [VertebrateStart, setVertebrateStart] = useState<number>(props.mainQueryParams.filterCriteria.conservationFilter.vert_s)
-  const [VertebrateEnd, setVertebrateEnd] = useState<number>(props.mainQueryParams.filterCriteria.conservationFilter.vert_e)
-
-  //Linked Genes Filter
   const [gene, setGene] = useState<string>("")
-  const [genesToFind, setGenesToFind] = useState<string[]>(props.mainQueryParams.filterCriteria.linkedGenesFilter.genesToFind)
-  const [distanceAll, setdistanceAll] = React.useState(props.mainQueryParams.filterCriteria.linkedGenesFilter.distanceAll)
-  const [distancePC, setdistancePC] = React.useState(props.mainQueryParams.filterCriteria.linkedGenesFilter.distancePC)
-  const [CTCF_ChIA_PET, setCTCF_ChIA_PET] = React.useState(props.mainQueryParams.filterCriteria.linkedGenesFilter.CTCF_ChIA_PET)
-  const [RNAPII_ChIA_PET, setRNAPII_ChIA_PET] = React.useState(props.mainQueryParams.filterCriteria.linkedGenesFilter.RNAPII_ChIA_PET)
+
 
   const {
     data: geneTranscripts
@@ -181,114 +159,63 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
   //SNP distance is having issues since it is adjusting the start and end, which then get adjusted again and again infinitely
   //Need some way to track the original value of the SNP, either by sending query here, or adding start/end params to snp in mqp
 
-  const newSearchParams: MainQueryParams = useMemo(() => {
-    return (
-      {
-        coordinates: {
-          assembly: props.mainQueryParams.coordinates.assembly,
-          chromosome: props.mainQueryParams.coordinates.chromosome,
-          //Start and End here should really be rewritten with if/else cases. This is impossible to read
-          start:
-            props.mainQueryParams.searchConfig.snpid ?
-              Math.max(0, props.mainQueryParams.coordinates.start - snpdistance)
-              :
-              props.mainQueryParams.searchConfig.gene ?
-                (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 ?
-                  value === "tss" && firstTSS && firstTSS != 0 && lastTSS && lastTSS != 0 ?
-                    geneTranscripts.gene[0].strand === "+" ?
-                      firstTSS
-                      :
-                      lastTSS
-                    :
-                    geneTranscripts.gene[0].coordinates.start
-                  :
-                  props.mainQueryParams.coordinates.start)
-                :
-                props.mainQueryParams.coordinates.start,
-          end:
-            props.mainQueryParams.searchConfig.snpid ?
-              props.mainQueryParams.coordinates.end + snpdistance
-              :
-              props.mainQueryParams.searchConfig.gene ?
-                (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 ?
-                  value === "tss" && firstTSS && firstTSS != 0 && lastTSS && lastTSS != 0 ?
-                    geneTranscripts.gene[0].strand === "+" ?
-                      lastTSS
-                      :
-                      firstTSS
-                    :
-                    geneTranscripts.gene[0].coordinates.end
-                  :
-                  props.mainQueryParams.coordinates.end)
-                :
-                props.mainQueryParams.coordinates.end,
-        },
-        biosample: {
-          selected: Biosample.selected,
-          biosample: Biosample.biosample,
-          tissue: Biosample.tissue,
-          summaryName: Biosample.summaryName,
-        },
-        searchConfig: {
-          bed_intersect: props.mainQueryParams.searchConfig.bed_intersect,
-          gene: props.mainQueryParams.searchConfig.gene,
-          snpid: props.mainQueryParams.searchConfig.snpid,
-        },
-        filterCriteria: {
-          biosampleTableFilters: {
-            CellLine: CellLine,
-            PrimaryCell: PrimaryCell,
-            Tissue: Tissue,
-            Organoid: Organoid,
-            InVitro: InVitro,
-          },
-          chromatinFilter: {
-            dnase_s: DNaseStart,
-            dnase_e: DNaseEnd,
-            atac_s: ATACStart,
-            atac_e: ATACEnd,
-            h3k4me3_s: H3K4me3Start,
-            h3k4me3_e: H3K4me3End,
-            h3k27ac_s: H3K27acStart,
-            h3k27ac_e: H3K27acEnd,
-            ctcf_s: CTCFStart,
-            ctcf_e: CTCFEnd,
-          },
-          conservationFilter: {
-            prim_s: PrimateStart,
-            prim_e: PrimateEnd,
-            mamm_s: MammalStart,
-            mamm_e: MammalEnd,
-            vert_s: VertebrateStart,
-            vert_e: VertebrateEnd,
-          },
-          classificationFilter: {
-            CA: CA,
-            CA_CTCF: CA_CTCF,
-            CA_H3K4me3: CA_H3K4me3,
-            CA_TF: CA_TF,
-            dELS: dELS,
-            pELS: pELS,
-            PLS: PLS,
-            TF: TF,
-          },
-          linkedGenesFilter: {
-            genesToFind: genesToFind,
-            distancePC: distancePC,
-            distanceAll: distanceAll,
-            CTCF_ChIA_PET: CTCF_ChIA_PET,
-            RNAPII_ChIA_PET: RNAPII_ChIA_PET,
-          },
-        },
-      }
-    )
-  }, [props.mainQueryParams.coordinates.assembly, ATACEnd, ATACStart, Biosample.biosample, Biosample.selected, Biosample.summaryName, Biosample.tissue, CA, CA_CTCF, CA_H3K4me3, CA_TF, CTCFEnd, CTCFStart, CTCF_ChIA_PET, CellLine, DNaseEnd, DNaseStart, H3K27acEnd, H3K27acStart, H3K4me3End, H3K4me3Start, InVitro, MammalEnd, MammalStart, Organoid, PLS, PrimaryCell, PrimateEnd, PrimateStart, RNAPII_ChIA_PET, TF, Tissue, VertebrateEnd, VertebrateStart, dELS, distanceAll, distancePC, firstTSS, geneTranscripts, genesToFind, lastTSS, pELS, props.mainQueryParams.coordinates.chromosome, props.mainQueryParams.coordinates.end, props.mainQueryParams.coordinates.start, props.mainQueryParams.searchConfig.bed_intersect, props.mainQueryParams.searchConfig.gene, props.mainQueryParams.searchConfig.snpid, snpdistance, value])
-
-  useEffect(() => {
-    console.log("Filter's router.push called")
-    console.log(newSearchParams)
-    router.push(constructSearchURL(newSearchParams, props.page, props.accessions))
-  }, [newSearchParams])
+//   const newSearchParams: MainQueryParams = useMemo(() => {
+//     return (
+//       {
+//         coordinates: {
+//           assembly: props.mainQueryParams.coordinates.assembly,
+//           chromosome: props.mainQueryParams.coordinates.chromosome,
+//           //Start and End here should really be rewritten with if/else cases. This is impossible to read
+//           start:
+//             props.mainQueryParams.searchConfig.snpid ?
+//               Math.max(0, props.mainQueryParams.coordinates.start - snpdistance)
+//               :
+//               props.mainQueryParams.searchConfig.gene ?
+//                 (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 ?
+//                   value === "tss" && firstTSS && firstTSS != 0 && lastTSS && lastTSS != 0 ?
+//                     geneTranscripts.gene[0].strand === "+" ?
+//                       firstTSS
+//                       :
+//                       lastTSS
+//                     :
+//                     geneTranscripts.gene[0].coordinates.start
+//                   :
+//                   props.mainQueryParams.coordinates.start)
+//                 :
+//                 props.mainQueryParams.coordinates.start,
+//           end:
+//             props.mainQueryParams.searchConfig.snpid ?
+//               props.mainQueryParams.coordinates.end + snpdistance
+//               :
+//               props.mainQueryParams.searchConfig.gene ?
+//                 (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 ?
+//                   value === "tss" && firstTSS && firstTSS != 0 && lastTSS && lastTSS != 0 ?
+//                     geneTranscripts.gene[0].strand === "+" ?
+//                       lastTSS
+//                       :
+//                       firstTSS
+//                     :
+//                     geneTranscripts.gene[0].coordinates.end
+//                   :
+//                   props.mainQueryParams.coordinates.end)
+//                 :
+//                 props.mainQueryParams.coordinates.end,
+//         },
+//         biosample: {
+//           selected: Biosample.selected,
+//           biosample: Biosample.biosample,
+//           tissue: Biosample.tissue,
+//           summaryName: Biosample.summaryName,
+//         },
+//         searchConfig: {
+//           bed_intersect: props.mainQueryParams.searchConfig.bed_intersect,
+//           gene: props.mainQueryParams.searchConfig.gene,
+//           snpid: props.mainQueryParams.searchConfig.snpid
+//         }
+//       }
+//     )
+// }, [props.mainQueryParams.coordinates.assembly, Biosample.biosample, Biosample.selected, Biosample.summaryName, Biosample.tissue, firstTSS, geneTranscripts, lastTSS, props.mainQueryParams.coordinates.chromosome, props.mainQueryParams.coordinates.end, props.mainQueryParams.coordinates.start, props.mainQueryParams.searchConfig.bed_intersect, props.mainQueryParams.searchConfig.gene, props.mainQueryParams.searchConfig.snpid, snpdistance, value])
+// }, [props.mainQueryParams.coordinates.assembly, ATACEnd, ATACStart, Biosample.biosample, Biosample.selected, Biosample.summaryName, Biosample.tissue, CA, CA_CTCF, CA_H3K4me3, CA_TF, CTCFEnd, CTCFStart, CTCF_ChIA_PET, CellLine, DNaseEnd, DNaseStart, H3K27acEnd, H3K27acStart, H3K4me3End, H3K4me3Start, InVitro, MammalEnd, MammalStart, Organoid, PLS, PrimaryCell, PrimateEnd, PrimateStart, RNAPII_ChIA_PET, TF, Tissue, VertebrateEnd, VertebrateStart, dELS, distanceAll, distancePC, firstTSS, geneTranscripts, genesToFind, lastTSS, pELS, props.mainQueryParams.coordinates.chromosome, props.mainQueryParams.coordinates.end, props.mainQueryParams.coordinates.start, props.mainQueryParams.searchConfig.bed_intersect, props.mainQueryParams.searchConfig.gene, props.mainQueryParams.searchConfig.snpid, snpdistance, value])
 
   const handleTssUpstreamChange = (_, newValue: number) => {
     setTssupstream(newValue as number);
@@ -301,7 +228,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     return `${value}kb`;
   }
 
-  const router = useRouter()
+  // const router = useRouter()
 
   /**
    * Biosample Tables, only re-rendered if the relevant state variables change. Prevents sluggish sliders in other filters
@@ -310,11 +237,11 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
     () => {
       const filteredBiosamples: FilteredBiosampleData = props.byCellType ? filterBiosamples(
         parseByCellType(props.byCellType),
-        Tissue,
-        PrimaryCell,
-        CellLine,
-        InVitro,
-        Organoid
+        props.biosampleTableFilters.Tissue,
+        props.biosampleTableFilters.PrimaryCell,
+        props.biosampleTableFilters.CellLine, 
+        props.biosampleTableFilters.InVitro,
+        props.biosampleTableFilters.Organoid
       ) : []
       const cols = [
         {
@@ -414,7 +341,8 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                     highlighted={BiosampleHighlight}
                     sortColumn={1}
                     onRowClick={(row, i) => {
-                      setBiosample({ selected: true, biosample: row.queryValue, tissue: row.biosampleTissue, summaryName: row.summaryName })
+                      //This could potentially be not what I'm expecting due to spread creating shallow copy
+                      props.setMainQueryParams({...props.mainQueryParams, biosample: { selected: true, biosample: row.queryValue, tissue: row.biosampleTissue, summaryName: row.summaryName }})
                       setBiosampleHighlight(row)
                     }}
                   />
@@ -425,7 +353,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
         })
       )
     },
-    [CellLine, InVitro, Organoid, PrimaryCell, Tissue, BiosampleHighlight, SearchString, props.byCellType]
+    [ props.biosampleTableFilters.CellLine,  props.biosampleTableFilters.InVitro,  props.biosampleTableFilters.Organoid, props.biosampleTableFilters.PrimaryCell, props.biosampleTableFilters.Tissue, BiosampleHighlight, SearchString, props.byCellType]
   )
 
   return (
@@ -462,7 +390,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
         </>
       }
       {/* cCRES near gene  */}
-      {props.mainQueryParams.searchConfig.gene &&
+      {/* {props.mainQueryParams.searchConfig.gene &&
         <>
           <Accordion defaultExpanded square disableGutters>
             <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel2a-content" id="panel2a-header">
@@ -506,7 +434,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
             </AccordionDetails>
           </Accordion>
         </>
-      }
+      } */}
       {/* Biosample Activity */}
       <Accordion defaultExpanded={props.mainQueryParams.searchConfig.gene ? false : true} square disableGutters>
         <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
@@ -530,12 +458,12 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                 onChange={(event) => setSearchString(event.target.value)}
               />
             </Grid2>
-            {Biosample.selected && (
+            {props.mainQueryParams.biosample.selected && (
               <Grid2 container spacing={2}>
                 <Grid2 xs={12}>
                   <Paper elevation={0}>
                     <Typography>Selected Biosample:</Typography>
-                    <Typography>{Biosample.tissue[0].toUpperCase() + Biosample.tissue.slice(1) + " - " + Biosample.summaryName}</Typography>
+                    <Typography>{props.mainQueryParams.biosample.tissue[0].toUpperCase() + props.mainQueryParams.biosample.tissue.slice(1) + " - " + props.mainQueryParams.biosample.summaryName}</Typography>
                   </Paper>
                 </Grid2>
                 <Grid2 xs={12}>
@@ -543,7 +471,7 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                     variant="outlined"
                     fullWidth
                     onClick={() => {
-                      setBiosample({ selected: false, biosample: null, tissue: null, summaryName: null })
+                      props.setMainQueryParams({...props.mainQueryParams, biosample: { selected: false, biosample: null, tissue: null, summaryName: null }})
                       setBiosampleHighlight(null)
                     }}
                   >
@@ -561,32 +489,32 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
               <Typography>Biosample Type</Typography>
               <FormGroup>
                 <FormControlLabel
-                  checked={Tissue}
-                  onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setTissue(checked)}
+                  checked={props.biosampleTableFilters.Tissue}
+                  onChange={(_, checked: boolean) => props.setBiosampleTableFilters({...props.biosampleTableFilters, Tissue: checked})}
                   control={<Checkbox />}
                   label="Tissue"
                 />
                 <FormControlLabel
-                  checked={PrimaryCell}
-                  onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setPrimaryCell(checked)}
+                  checked={props.biosampleTableFilters.PrimaryCell}
+                  onChange={(_, checked: boolean) => props.setBiosampleTableFilters({...props.biosampleTableFilters, PrimaryCell: checked})}
                   control={<Checkbox />}
                   label="Primary Cell"
                 />
                 <FormControlLabel
-                  checked={InVitro}
-                  onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setInVitro(checked)}
+                  checked={props.biosampleTableFilters.InVitro}
+                  onChange={(_, checked: boolean) => props.setBiosampleTableFilters({...props.biosampleTableFilters, InVitro: checked})}
                   control={<Checkbox />}
                   label="In Vitro Differentiated Cell"
                 />
                 <FormControlLabel
-                  checked={Organoid}
-                  onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setOrganoid(checked)}
+                  checked={props.biosampleTableFilters.Organoid}
+                  onChange={(_, checked: boolean) => props.setBiosampleTableFilters({...props.biosampleTableFilters, Organoid: checked})}
                   control={<Checkbox />}
                   label="Organoid"
                 />
                 <FormControlLabel
-                  checked={CellLine}
-                  onChange={(event: React.SyntheticEvent<Element, Event>, checked: boolean) => setCellLine(checked)}
+                  checked={props.biosampleTableFilters.CellLine}
+                  onChange={(_, checked: boolean) => props.setBiosampleTableFilters({...props.biosampleTableFilters, CellLine: checked})}
                   control={<Checkbox />}
                   label="Cell Line"
                 />
@@ -614,15 +542,14 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                   <RangeSlider
                     title="DNase"
                     width="100%"
-                    defaultStart={DNaseStart}
-                    defaultEnd={DNaseEnd}
+                    defaultStart={props.filterCriteria.dnase_s}
+                    defaultEnd={props.filterCriteria.dnase_e}
                     min={-10}
                     max={10}
                     minDistance={1}
                     step={0.1}
-                    onSliderChangeCommitted={(value: any) => {
-                      setDNaseStart(value[0])
-                      setDNaseEnd(value[1])
+                    onSliderChangeCommitted={(value: number[]) => {
+                      props.setFilterCriteria({...props.filterCriteria, dnase_s: value[0], dnase_e: value[1]})
                     }}
                   />
                 </Grid2>
@@ -630,15 +557,14 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                   <RangeSlider
                     title="H3K4me3"
                     width="100%"
-                    defaultStart={H3K4me3Start}
-                    defaultEnd={H3K4me3End}
+                    defaultStart={props.filterCriteria.h3k4me3_s}
+                    defaultEnd={props.filterCriteria.h3k4me3_e}
                     min={-10}
                     max={10}
                     minDistance={1}
                     step={0.1}
-                    onSliderChangeCommitted={(value: any) => {
-                      setH3K4me3Start(value[0])
-                      setH3K4me3End(value[1])
+                    onSliderChangeCommitted={(value: number[]) => {
+                      props.setFilterCriteria({...props.filterCriteria, h3k4me3_s: value[0], h3k4me3_e: value[1]})
                     }}
                   />
                 </Grid2>
@@ -646,15 +572,14 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                   <RangeSlider
                     title="H3K27ac"
                     width="100%"
-                    defaultStart={H3K27acStart}
-                    defaultEnd={H3K27acEnd}
+                    defaultStart={props.filterCriteria.h3k27ac_s}
+                    defaultEnd={props.filterCriteria.h3k27ac_e}
                     min={-10}
                     max={10}
                     minDistance={1}
                     step={0.1}
-                    onSliderChangeCommitted={(value: any) => {
-                      setH3K27acStart(value[0])
-                      setH3K27acEnd(value[1])
+                    onSliderChangeCommitted={(value: number[]) => {
+                      props.setFilterCriteria({...props.filterCriteria, h3k27ac_s: value[0], h3k27ac_e: value[1]})
                     }}
                   />
                 </Grid2>
@@ -662,15 +587,14 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                   <RangeSlider
                     title="CTCF"
                     width="100%"
-                    defaultStart={CTCFStart}
-                    defaultEnd={CTCFEnd}
+                    defaultStart={props.filterCriteria.ctcf_s}
+                    defaultEnd={props.filterCriteria.ctcf_e}
                     min={-10}
                     max={10}
                     minDistance={1}
                     step={0.1}
-                    onSliderChangeCommitted={(value: any) => {
-                      setCTCFStart(value[0])
-                      setCTCFEnd(value[1])
+                    onSliderChangeCommitted={(value: number[]) => {
+                      props.setFilterCriteria({...props.filterCriteria, ctcf_s: value[0], ctcf_e: value[1]})
                     }}
                   />
                 </Grid2>
@@ -706,60 +630,56 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
             <AccordionDetails>
               <Typography>cCRE Classes</Typography>
               <Grid2 container spacing={0}>
-                <Grid2 xs={6} sm={6} xl={6}>
+                <Grid2 xs={12}>
                   <FormGroup>
                     <FormControlLabel
-                      checked={CA}
-                      onChange={(_, checked: boolean) => setCA(checked)}
+                      checked={props.filterCriteria.CA}
+                      onChange={(_, checked: boolean) => props.setFilterCriteria({...props.filterCriteria, CA: checked})}
                       control={<Checkbox />}
                       label="CA"
                     />
                     <FormControlLabel
-                      checked={CA_CTCF}
-                      onChange={(_, checked: boolean) => setCA_CTCF(checked)}
+                      checked={props.filterCriteria.CA_CTCF}
+                      onChange={(_, checked: boolean) => props.setFilterCriteria({...props.filterCriteria, CA_CTCF: checked})}
                       control={<Checkbox />}
                       label="CA-CTCF"
                     />
                     <FormControlLabel
-                      checked={CA_H3K4me3}
-                      onChange={(_, checked: boolean) => setCA_H3K4me3(checked)}
+                      checked={props.filterCriteria.CA_H3K4me3}
+                      onChange={(_, checked: boolean) => props.setFilterCriteria({...props.filterCriteria, CA_H3K4me3: checked})}
                       control={<Checkbox />}
                       label="CA-H3K4me3"
                     />
                     <FormControlLabel
-                      checked={CA_TF}
-                      onChange={(_, checked: boolean) => setCA_TF(checked)}
+                      checked={props.filterCriteria.CA_TF}
+                      onChange={(_, checked: boolean) => props.setFilterCriteria({...props.filterCriteria, CA_TF: checked})}
                       control={<Checkbox />}
                       label="CA-TF"
                     />
-                  </FormGroup>
-                </Grid2>
-                <Grid2 xs={6} sm={6} xl={6}>
-                  <FormGroup>
-                    <FormControlLabel
-                      checked={dELS}
-                      onChange={(_, checked: boolean) => setdELS(checked)}
-                      control={<Checkbox />}
-                      label="dELS"
-                    />
-                    <FormControlLabel
-                      checked={pELS}
-                      onChange={(_, checked: boolean) => setpELS(checked)}
-                      control={<Checkbox />}
-                      label="pELS"
-                    />
-                    <FormControlLabel
-                      checked={PLS}
-                      onChange={(_, checked: boolean) => setPLS(checked)}
-                      control={<Checkbox />}
-                      label="PLS"
-                    />
-                    <FormControlLabel
-                      checked={TF}
-                      onChange={(_, checked: boolean) => setTF(checked)}
-                      control={<Checkbox />}
-                      label="TF"
-                    />
+                  <FormControlLabel
+                    checked={props.filterCriteria.dELS}
+                    onChange={(_, checked: boolean) => props.setFilterCriteria({ ...props.filterCriteria, dELS: checked })}
+                    control={<Checkbox />}
+                    label="dELS"
+                  />
+                  <FormControlLabel
+                    checked={props.filterCriteria.pELS}
+                    onChange={(_, checked: boolean) => props.setFilterCriteria({ ...props.filterCriteria, pELS: checked })}
+                    control={<Checkbox />}
+                    label="pELS"
+                  />
+                  <FormControlLabel
+                    checked={props.filterCriteria.PLS}
+                    onChange={(_, checked: boolean) => props.setFilterCriteria({ ...props.filterCriteria, PLS: checked })}
+                    control={<Checkbox />}
+                    label="PLS"
+                  />
+                  <FormControlLabel
+                    checked={props.filterCriteria.TF}
+                    onChange={(_, checked: boolean) => props.setFilterCriteria({ ...props.filterCriteria, TF: checked })}
+                    control={<Checkbox />}
+                    label="TF"
+                  />
                   </FormGroup>
                 </Grid2>
               </Grid2>
@@ -781,15 +701,14 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                   <RangeSlider
                     title="43-primate (phastCons)"
                     width="100%"
-                    defaultStart={PrimateStart}
-                    defaultEnd={PrimateEnd}
+                    defaultStart={props.filterCriteria.prim_s}
+                    defaultEnd={props.filterCriteria.prim_e}
                     min={-2}
                     max={2}
                     minDistance={1}
                     step={0.1}
-                    onSliderChangeCommitted={(value: any) => {
-                      setPrimateStart(value[0])
-                      setPrimateEnd(value[1])
+                    onSliderChangeCommitted={(value: number[]) => {
+                      props.setFilterCriteria({...props.filterCriteria, prim_s: value[0], prim_e: value[1]})
                     }}
                   />
                 </Grid2>
@@ -797,15 +716,14 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                   <RangeSlider
                     title="240-mammal (phyloP)"
                     width="100%"
-                    defaultStart={MammalStart}
-                    defaultEnd={MammalEnd}
+                    defaultStart={props.filterCriteria.mamm_s}
+                    defaultEnd={props.filterCriteria.mamm_e}
                     min={-4}
                     max={8}
                     minDistance={1}
                     step={0.1}
-                    onSliderChangeCommitted={(value: any) => {
-                      setMammalStart(value[0])
-                      setMammalEnd(value[1])
+                    onSliderChangeCommitted={(value: number[]) => {
+                      props.setFilterCriteria({...props.filterCriteria, mamm_s: value[0], mamm_e: value[1]})
                     }}
                   />
                 </Grid2>
@@ -813,15 +731,14 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
                   <RangeSlider
                     title="100-vertebrate (phyloP)"
                     width="100%"
-                    defaultStart={VertebrateStart}
-                    defaultEnd={VertebrateEnd}
+                    defaultStart={props.filterCriteria.vert_s}
+                    defaultEnd={props.filterCriteria.vert_e}
                     min={-3}
                     max={8}
                     minDistance={1}
                     step={0.1}
-                    onSliderChangeCommitted={(value: any) => {
-                      setVertebrateStart(value[0])
-                      setVertebrateEnd(value[1])
+                    onSliderChangeCommitted={(value: number[]) => {
+                      props.setFilterCriteria({...props.filterCriteria, vert_s: value[0], vert_e: value[1]})
                     }}
                   />
                 </Grid2>
@@ -842,15 +759,15 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
               <GeneAutoComplete
                 assembly={props.mainQueryParams.coordinates.assembly}
                 gene={gene}
-                setGene={(gene) => { setGene(gene); setGenesToFind([...genesToFind, gene]) }}
+                setGene={(gene) => { setGene(gene); props.setFilterCriteria({...props.filterCriteria, genesToFind: [...props.filterCriteria.genesToFind, gene]}) }}
                 plusIcon
               />
-              {genesToFind.length > 0 &&
+              {props.filterCriteria.genesToFind.length > 0 &&
                 <>
                   <Typography>
-                    {"Selected: " + genesToFind.join(', ')}
+                    {"Selected: " + props.filterCriteria.genesToFind.join(', ')}
                   </Typography>
-                  <Button variant="outlined" onClick={() => setGenesToFind([])}>
+                  <Button variant="outlined" onClick={() => props.setFilterCriteria({...props.filterCriteria, genesToFind: []})}>
                     Clear Selected Genes
                   </Button>
                 </>
@@ -858,26 +775,26 @@ export default function MainResultsFilters(props: { mainQueryParams: MainQueryPa
               <FormLabel component="legend" sx={{ pt: 2 }}>Linked By</FormLabel>
               <FormGroup>
                 <FormControlLabel
-                  checked={distanceAll}
-                  onChange={(_, checked: boolean) => setdistanceAll(checked)}
+                  checked={props.filterCriteria.distanceAll}
+                  onChange={(_, checked: boolean) => props.setFilterCriteria({...props.filterCriteria, distanceAll: checked})}
                   control={<Checkbox />}
                   label="Distance (All)"
                 />
                 <FormControlLabel
-                  checked={distancePC}
-                  onChange={(_, checked: boolean) => setdistancePC(checked)}
+                  checked={props.filterCriteria.distancePC}
+                  onChange={(_, checked: boolean) => props.setFilterCriteria({...props.filterCriteria, distancePC: checked})}
                   control={<Checkbox />}
                   label="Distance (PC)"
                 />
                 <FormControlLabel
-                  checked={CTCF_ChIA_PET}
-                  onChange={(_, checked: boolean) => setCTCF_ChIA_PET(checked)}
+                  checked={props.filterCriteria.CTCF_ChIA_PET}
+                  onChange={(_, checked: boolean) => props.setFilterCriteria({...props.filterCriteria, CTCF_ChIA_PET: checked})}
                   control={<Checkbox />}
                   label="CTCF ChIA-PET"
                 />
                 <FormControlLabel
-                  checked={RNAPII_ChIA_PET}
-                  onChange={(_, checked: boolean) => setRNAPII_ChIA_PET(checked)}
+                  checked={props.filterCriteria.RNAPII_ChIA_PET}
+                  onChange={(_, checked: boolean) => props.setFilterCriteria({...props.filterCriteria, RNAPII_ChIA_PET: checked})}
                   control={<Checkbox />}
                   label="RNAPII ChIA-PET"
                 />
