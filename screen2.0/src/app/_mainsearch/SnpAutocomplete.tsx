@@ -78,7 +78,7 @@ export const SnpAutoComplete: React.FC<{ assembly: string, header?: boolean }> =
           },
         }}
         onKeyDown={(event) => {
-          if (event.key === "Enter") {
+          if (event.key === "Enter" && value) {
             event.defaultPrevented = true
             window.location.href = handleSubmit()
           }

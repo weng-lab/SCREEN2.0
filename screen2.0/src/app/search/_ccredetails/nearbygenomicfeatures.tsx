@@ -41,7 +41,7 @@ export const NearByGenomicFeatures: React.FC<{
 }> = ({ assembly, accession, coordinates }) => {
   const router = useRouter()
   const pathname = usePathname()
-  const searchParams= useSearchParams()
+  const searchParams = useSearchParams()
 
   const createQueryString = React.useCallback(
     (name: string, value: string) => {
@@ -58,35 +58,62 @@ export const NearByGenomicFeatures: React.FC<{
       variables:
         assembly.toLowerCase() === "mm10"
           ? {
-              b: assembly.toLowerCase(),
-              c: assembly.toLowerCase(),
-              coordinates: {
-                chromosome: coordinates.chromosome,
-                start: coordinates.start - 1000000,
-                end: coordinates.end + 1000000,
-              },
-              chromosome: coordinates.chromosome,
-              start: coordinates.start - 1000000,
-              end: coordinates.end + 1000000,
-            }
-          : {
-              a: "hg38",
-              b: assembly.toLowerCase(),
-              c: assembly.toLowerCase(),
-              coordinates: {
-                chromosome: coordinates.chromosome,
-                start: coordinates.start - 1000000,
-                end: coordinates.end + 1000000,
-              },
+            b: assembly.toLowerCase(),
+            c: assembly.toLowerCase(),
+            coordinates: {
               chromosome: coordinates.chromosome,
               start: coordinates.start - 1000000,
               end: coordinates.end + 1000000,
             },
+            chromosome: coordinates.chromosome,
+            start: coordinates.start - 1000000,
+            end: coordinates.end + 1000000,
+          }
+          : {
+            a: "hg38",
+            b: assembly.toLowerCase(),
+            c: assembly.toLowerCase(),
+            coordinates: {
+              chromosome: coordinates.chromosome,
+              start: coordinates.start - 1000000,
+              end: coordinates.end + 1000000,
+            },
+            chromosome: coordinates.chromosome,
+            start: coordinates.start - 1000000,
+            end: coordinates.end + 1000000,
+          },
       fetchPolicy: "cache-and-network",
       nextFetchPolicy: "cache-first",
       client,
     }
   )
+
+  console.log(assembly.toLowerCase() === "mm10"
+    ? {
+      b: assembly.toLowerCase(),
+      c: assembly.toLowerCase(),
+      coordinates: {
+        chromosome: coordinates.chromosome,
+        start: coordinates.start - 1000000,
+        end: coordinates.end + 1000000,
+      },
+      chromosome: coordinates.chromosome,
+      start: coordinates.start - 1000000,
+      end: coordinates.end + 1000000,
+    }
+    : {
+      a: "hg38",
+      b: assembly.toLowerCase(),
+      c: assembly.toLowerCase(),
+      coordinates: {
+        chromosome: coordinates.chromosome,
+        start: coordinates.start - 1000000,
+        end: coordinates.end + 1000000,
+      },
+      chromosome: coordinates.chromosome,
+      start: coordinates.start - 1000000,
+      end: coordinates.end + 1000000,
+    })
 
   let genes =
     data &&
@@ -178,13 +205,13 @@ export const NearByGenomicFeatures: React.FC<{
                       header: "Accession",
                       value: (row) => row.name,
                       render: (row) => (
-                          <Typography
-                            component="a"
-                            variant="body2"
-                            color="primary"
-                          >
-                            {row.name}
-                          </Typography>
+                        <Typography
+                          component="a"
+                          variant="body2"
+                          color="primary"
+                        >
+                          {row.name}
+                        </Typography>
                       ),
                     },
                     {
@@ -193,10 +220,10 @@ export const NearByGenomicFeatures: React.FC<{
                       render: (row) => row.distance.toLocaleString("en-US"),
                     },
                   ]}
-                  onRowClick={(row) => router.push(pathname + "?" + createQueryString("accessions", searchParams.get("accessions") && searchParams.get("accessions") + `,${row.name}`))}
+                  onRowClick={(row) => window.open(`search?assembly=${assembly}&chromosome=${coordinates.chromosome}&start=${coordinates.start}&end=${coordinates.end}&accessions=${row.name}&page=2`)}
                   sortColumn={1}
                   tableTitle="cCREs"
-                  rows={ccres.filter(c=>c.distance!=0) || []}
+                  rows={ccres.filter(c => c.distance != 0) || []}
                   itemsPerPage={10}
                   searchable
                   sortDescending={true}

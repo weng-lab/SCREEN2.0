@@ -26,9 +26,9 @@ import { LoadingMessage } from "../../common/lib/utility"
 /**
  * @todo:
  * - Impose some kind of limit on open cCREs
- * - Have cmd click ("open new tab") functionality
  * - Gene/SNP distance stuff
- * - Be able to click enter to search for text inputs
+ * - set opencCREs in 
+ * - Change filenames to be consistent
  */
 
 const drawerWidth = 350;
