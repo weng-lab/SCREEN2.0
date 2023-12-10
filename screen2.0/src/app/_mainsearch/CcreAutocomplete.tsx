@@ -59,8 +59,7 @@ export const CcreAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
       let chrom = (ccreAccessions.find((g: { ccreaccession: string }) => g.ccreaccession === value))?.chrom
       let start = (ccreAccessions.find((g: { ccreaccession: string }) => g.ccreaccession === value))?.start
       let end = (ccreAccessions.find((g: { ccreaccession: string }) => g.ccreaccession === value))?.end
-      // router.push(`search?assembly=${props.assembly}&chromosome=${chrom}&start=${start}&end=${end}&accessions=${value}&page=2`)
-      router.push(constructSearchURL(constructMainQueryParamsFromURL({assembly: props.assembly, chromosome: chrom, start: start, end: end}), 2, value))
+      return (`search?assembly=${props.assembly}&chromosome=${chrom}&start=${start}&end=${end}&accessions=${value}&page=2`)
     }
   }
 
@@ -79,7 +78,7 @@ export const CcreAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               event.defaultPrevented = true
-              handleSubmit()
+              window.location.href = handleSubmit()
             }
           }}
           value={value}
@@ -138,7 +137,7 @@ export const CcreAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
             )
           }}
       />
-      <IconButton aria-label="Search" type="submit" onClick={() => handleSubmit()} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
+      <IconButton aria-label="Search" type="submit" href={handleSubmit()} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
         <Search />
       </IconButton>
     </Stack>

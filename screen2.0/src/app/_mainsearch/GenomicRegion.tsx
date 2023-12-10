@@ -25,24 +25,16 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
   }
 
   //TODO: Better catch errors in input so that invalid values are not passed to api
-  function handleSubmit(): void {
+  function handleSubmit(): string {
     if (inputType === "Separated") {
-      router.push(`/search?assembly=${assembly}&chromosome=${"chr" + chromosome}&start=${start ?? "5205263"}&end=${end ?? "5381894"}`)
-      // router.push(constructSearchURL(constructMainQueryParamsFromURL({assembly: assembly, chromosome: `${"chr" + chromosome}`, start: `${start ?? "5205263"}`, end: `${end ?? "5381894"}`}), ))
+      return `/search?assembly=${assembly}&chromosome=${"chr" + chromosome}&start=${start ?? "5205263"}&end=${end ?? "5381894"}`
     } else {
       if (!value) {
-        console.log("called")
-        router.push(`/search?assembly=${assembly}&chromosome=chr11&start=5205263&end=5381894`).then()
-        // router.refresh()
-        window.location.reload()
-        // router.push(`/search?assembly=${assembly}&chromosome=chr11&start=5205263&end=5381894`)
-        // router.push(constructSearchURL(constructMainQueryParamsFromURL({assembly: assembly, chromosome: "chr11", start: "5205263", end: "5381894"})))
-        return
+        return `/search?assembly=${assembly}&chromosome=chr11&start=5205263&end=5381894`
       }
       try {
         const region = parseGenomicRegion(value)
-        router.push(`/search?assembly=${assembly}&chromosome=${region.chromosome}&start=${region.start}&end=${region.end}`)
-        // router.push(constructSearchURL(constructMainQueryParamsFromURL({assembly: assembly, chromosome: region.chromosome, start: region.start, end: region.end})))
+        return `/search?assembly=${assembly}&chromosome=${region.chromosome}&start=${region.start}&end=${region.end}`
       }
       catch (msg) {
         window.alert("Error in input format - " + msg)
@@ -117,7 +109,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
                 }}
                 onKeyDown={(event) => {
                   if (event.code === "Enter") {
-                    handleSubmit()
+                    window.location.href = handleSubmit()
                   }
                   if (event.code === "Tab" && !start) {
                     setStart("5205263")
@@ -145,7 +137,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
                 }}
                 onKeyDown={(event) => {
                   if (event.code === "Enter") {
-                    handleSubmit()
+                    window.location.href = handleSubmit()
                   }
                   if (event.code === "Tab" && !end) {
                     setEnd("5381894")
@@ -171,7 +163,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
               onChange={handleChange}
               onKeyDown={(event) => {
                 if (event.code === "Enter") {
-                  handleSubmit()
+                  window.location.href = handleSubmit()
                 }
                 if (event.code === "Tab" && !value) {
                   setValue("chr11:5205263-5381894")
@@ -193,11 +185,9 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
               size={props.header ? "small" : "medium"}
             />
           }
-          <a href={`/search?assembly=${assembly}&chromosome=chr11&start=5205263&end=5381894`}>
-            <IconButton aria-label="Search" type="submit" onClick={() => null} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
-              <Search />
-            </IconButton>
-          </a>
+          <IconButton href={handleSubmit()} aria-label="Search" type="submit" sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
+            <Search />
+          </IconButton>
         </Stack>
       </Grid2>
     </Grid2>

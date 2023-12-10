@@ -87,8 +87,7 @@ export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
       let chrom = geneids.find((g) => g.name === value)?.chrom
       let start = geneids.find((g) => g.name === value)?.start
       let end = geneids.find((g) => g.name === value)?.end
-      // router.push(`search?assembly=${props.assembly}&chromosome=${chrom}&start=${start}&end=${end}&gene=${value}`)
-      router.push(constructSearchURL(constructMainQueryParamsFromURL({assembly: props.assembly, chromosome: chrom, start: String(start), end: String(end), gene: value}), 0, ''))
+      return (`search?assembly=${props.assembly}&chromosome=${chrom}&start=${start}&end=${end}&gene=${value}`)
     }
   }
 
@@ -107,7 +106,7 @@ export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
         onKeyDown={(event) => {
           if (event.key === "Enter") {
             event.defaultPrevented = true
-            handleSubmit()
+            window.location.href = handleSubmit()
           }
         }}
         value={value}
@@ -165,7 +164,7 @@ export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
           )
         }}
       />
-      <IconButton aria-label="Search" type="submit" onClick={() => handleSubmit()} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
+      <IconButton aria-label="Search" type="submit" href={handleSubmit()} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
         <Search />
       </IconButton>
     </Stack>

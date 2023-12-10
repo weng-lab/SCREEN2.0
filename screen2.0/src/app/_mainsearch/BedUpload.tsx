@@ -72,9 +72,7 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
             } else {
               sessionStorage.setItem("warning", "false")
             }
-            // router.push(`/search?intersect=t&assembly=${props.assembly}`)
-            router.push(constructSearchURL(constructMainQueryParamsFromURL({intersect: 't', assembly: props.assembly})))
-            setLoading(false)
+            window.location.href = `/search?intersect=t&assembly=${props.assembly}`
           },
           //Error
           (msg) => {

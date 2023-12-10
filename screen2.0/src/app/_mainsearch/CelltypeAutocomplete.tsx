@@ -50,16 +50,15 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
       const tissue = cellTypes.find((g) => g.biosample_summary === valueCellType)?.tissue
       const biosample = cellTypes.find((g) => g.biosample_summary === valueCellType)?.value
       const biosample_summary = valueCellType
-      let region: {chromosome: string, start: string, end: string}
-      if (valueRegion){
+      let region: { chromosome: string, start: string, end: string }
+      if (valueRegion) {
         region = parseGenomicRegion(valueRegion)
       } else {
-        region = {chromosome: 'chr11', start: "5205263", end: "5381894"}
+        region = { chromosome: 'chr11', start: "5205263", end: "5381894" }
       }
-      // router.push(
-      //   `search?assembly=${props.assembly}&chromosome=${region.chromosome}&start=${Math.max(0, Number(region.start))}&end=${region.end}&BiosampleTissue=${tissue}&BiosampleSummary=${biosample_summary}&Biosample=${biosample}`
-      // )
-      router.push(constructSearchURL(constructMainQueryParamsFromURL({assembly: props.assembly, chromosome: region.chromosome, start: String(Math.max(0, Number(region.start))), end: region.end, BiosampleTissue: tissue, BiosampleSummary: biosample_summary, biosample: biosample}), 0, ''))
+      return (
+        `search?assembly=${props.assembly}&chromosome=${region.chromosome}&start=${Math.max(0, Number(region.start))}&end=${region.end}&BiosampleTissue=${tissue}&BiosampleSummary=${biosample_summary}&Biosample=${biosample}`
+      )
     }
   }
 
@@ -72,9 +71,9 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
         sx={{ width: 300, paper: { height: 200 } }}
         options={options}
         onKeyDown={(event) => {
-          if (event.key === "Enter") {
+          if (event.key === "Enter" && valueCellType) {
             event.defaultPrevented = true
-            handleSubmit()
+            window.location.href = handleSubmit()
           }
         }}
         value={valueCellType}
@@ -140,8 +139,8 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
           setValueRegion(event.target.value)
         }}
         onKeyDown={(event) => {
-          if (event.code === "Enter") {
-            handleSubmit()
+          if (event.code === "Enter" && valueCellType) {
+            window.location.href = handleSubmit()
           }
           if (event.code === "Tab" && !valueRegion) {
             setValueRegion("chr11:5205263-5381894")
@@ -160,7 +159,7 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
         }}
         size={props.header ? "small" : "medium"}
       />
-      <IconButton aria-label="Search" type="submit" onClick={() => handleSubmit()} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
+      <IconButton aria-label="Search" type="submit" href={handleSubmit()} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
         <Search />
       </IconButton>
     </Stack>

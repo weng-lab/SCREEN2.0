@@ -3,7 +3,7 @@
 import { getGlobals } from "../../common/lib/queries"
 import { BiosampleTableFilters, CellTypeData, FilterCriteria, MainQueryParams } from "./types"
 import { checkTrueFalse, constructBiosampleTableFiltersFromURL, constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, createQueryString, fetchcCREDataAndLinkedGenes } from "./search-helpers"
-import React, { startTransition, useCallback, useEffect, useMemo, useState } from "react"
+import React, { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { styled } from '@mui/material/styles';
 import { Divider, IconButton, Tab, Tabs, Typography, Box, CircularProgress } from "@mui/material"
 import MainResultsTable from "./MainResultsTable"
@@ -22,15 +22,13 @@ import CloseIcon from '@mui/icons-material/Close';
 import Rampage from "./_ccredetails/rampage";
 import { GeneExpression } from "./_ccredetails/geneexpression";
 import { LoadingMessage } from "../../common/lib/utility"
-import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 
 /**
  * @todo:
  * - Impose some kind of limit on open cCREs
  * - Have cmd click ("open new tab") functionality
- * - Clear open cCREs if assembly changes, this errors out currently
  * - Gene/SNP distance stuff
- * - router.push with single function call within
+ * - Be able to click enter to search for text inputs
  */
 
 const drawerWidth = 350;
@@ -112,117 +110,89 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const [biosampleTableFilters, setBiosampleTableFilters] = useState<BiosampleTableFilters>(constructBiosampleTableFiltersFromURL(searchParams))
   const [loadingTable, setLoadingTable] = useState<boolean>(false)
   const [loadingFetch, setLoadingFetch] = useState<boolean>(false)
+  const [opencCREsInitialized, setOpencCREsInitialized] = useState(false);
+
+  //using useRef, and then assigning their value in useEffect to prevent accession sessionStorage on the server
+  const intersectWarning = useRef(null);
+  const intersectFilenames = useRef(null)
+
+  useEffect(() => {
+    intersectWarning.current = sessionStorage.getItem("warning")
+    intersectFilenames.current = sessionStorage.getItem("filenames")
+  }, [])
 
   const numberOfDefaultTabs = mainQueryParams.searchConfig.gene ? (mainQueryParams.coordinates.assembly.toLowerCase() === "mm10" ? 3 : 4) : 2
 
   const handleDrawerOpen = () => { setOpen(true) }
   const handleDrawerClose = () => { setOpen(false) }
 
+  //Handle opening a cCRE or navigating to its open tab
   const handleTableClick = (row: MainResultTableRow) => {
     const newcCRE = { ID: row.accession, region: { start: row.start, end: row.end, chrom: row.chromosome }, linkedGenes: row.linkedGenes }
     //If cCRE isn't in open cCREs, add and push as current accession.
     if (!opencCREs.find((x) => x.ID === newcCRE.ID)) {
       setOpencCREs([...opencCREs, newcCRE])
       setPage(opencCREs.length + numberOfDefaultTabs)
-      router.push(basePathname + "?" + createQueryString(searchParams, "accessions", [...opencCREs, newcCRE].map((x) => x.ID).join(','), "page", String(opencCREs.length + numberOfDefaultTabs)))
-
     } else {
-      const newPage = findTabByID(newcCRE.ID, numberOfDefaultTabs)
-      setPage(newPage)
-      router.push(basePathname + "?" + createQueryString(searchParams, "page", String(newPage)))
+      setPage(findTabByID(newcCRE.ID, numberOfDefaultTabs))
     }
   }
 
-  //Note: This only removes cCRE from URL, which marks it for deletion
+  //Handle closing cCRE, and changing page if needed
   const handleClosecCRE = (closedID: string) => {
-    //Filter out cCRE
     const newOpencCREs = opencCREs.filter((cCRE) => cCRE.ID != closedID)
-    const closedIndex = opencCREs.findIndex(x => x.ID === closedID)
+    setOpencCREs(newOpencCREs)
 
-    // If you're closing a tab to the right of what you're on, eliminate from URL
-    if (closedIndex > (page - numberOfDefaultTabs)) {
-      router.push(basePathname + '?' + createQueryString(searchParams, "accessions", newOpencCREs.map((x) => x.ID).join(',')))
-    }
-    // If you're closing the tab you're on:
-    if (closedIndex === (page - numberOfDefaultTabs)) {
-      // If it is the last open, set page = 0
-      if (opencCREs.length === 1) {
+    const closedIndex = opencCREs.findIndex(x => x.ID === closedID)
+    // If you're closing the tab you're on or one to the left:
+    if (closedIndex <= (page - numberOfDefaultTabs)) {
+      if (newOpencCREs.length === 0) {
         setPage(0)
         setDetailsPage(0)
-        router.push(basePathname + '?' + createQueryString(searchParams, "accessions", "", "page", "0"))
       }
-      // If it's the tab at the far right, set page -= 1, 
-      else if (page === (opencCREs.length + (numberOfDefaultTabs - 1))) {
-        setPage(page - 1)
-        router.push(basePathname + '?' + createQueryString(searchParams, "accessions", newOpencCREs.map((x) => x.ID).join(','), "page", String(page - 1)))
-      }
-      // Else it's not at the end or the last open, keep page same
-      else {
-        router.push(basePathname + '?' + createQueryString(searchParams, "accessions", newOpencCREs.map((x) => x.ID).join(',')))
-      }
+      else setPage(page - 1)
     }
-    // If you're closing a tab to the left of what you're on, page -= 1
-    if (closedIndex < (page - numberOfDefaultTabs)) {
-      setPage(page - 1)
-      router.push(basePathname + '?' + createQueryString(searchParams, "accessions", newOpencCREs.map((x) => x.ID).join(','), "page", String(page - 1)))
-    }
+    //No action needed when closing a tab to the right of the page you're on
   }
 
   const handlePageChange = (_, newValue: number) => {
-    // setUpdatingMQP(true)
     if (mainQueryParams.searchConfig.gene && (newValue === 2 || newValue === 3)) {
       setOpen(false)
     }
     setPage(newValue)
-    router.push(basePathname + '?' + createQueryString(searchParams, "page", String(newValue)))
   }
 
-  //It's maybe not ideal to use useEffect liberally like this: https://react.dev/learn/you-might-not-need-an-effect
-  //Doing this for some to be able to use startTransition to invoke server action for fetches
-
-  //Keep URL and state in sync
-  //This runs on essentially any change, URL or internal state
+  //Keep URL and state in sync. Prevent from firing initially to allow time for opencCREs to be initialized
   useEffect(() => {
-    //compare URL and state, ignoring opencCREs
-    const oldURL = constructSearchURL(
-      constructMainQueryParamsFromURL(searchParams),
-      constructFilterCriteriaFromURL(searchParams),
-      constructBiosampleTableFiltersFromURL(searchParams),
-      0,
-      ''
-    )
-    const newURL = constructSearchURL(
-      mainQueryParams,
-      filterCriteria,
-      biosampleTableFilters,
-      0,
-      ''
-    )
-
-    //If there are actually changes to push
-    if (newURL !== oldURL) {
-      console.log("State changed, new url being pushed")
-      router.push(constructSearchURL(
+    //Check if the URL params representing state are stale
+    if (
+      opencCREsInitialized &&
+      JSON.stringify(constructMainQueryParamsFromURL(searchParams)) !== JSON.stringify(mainQueryParams)
+      || JSON.stringify(constructFilterCriteriaFromURL(searchParams)) !== JSON.stringify(filterCriteria)
+      || JSON.stringify(constructBiosampleTableFiltersFromURL(searchParams)) !== JSON.stringify(biosampleTableFilters)
+      || +searchParams.page !== page
+      || searchParams.accessions !== opencCREs.map(x => x.ID).join(','))
+     {
+      const newURL = constructSearchURL(
         mainQueryParams,
         filterCriteria,
         biosampleTableFilters,
         page,
         opencCREs.map(x => x.ID).join(',')
-      ))
+      )
+      router.push(newURL)
     }
-
-  }, [searchParams, mainQueryParams, filterCriteria, biosampleTableFilters, page, opencCREs, router, basePathname])
+  }, [searchParams, mainQueryParams, filterCriteria, biosampleTableFilters, page, opencCREs, router, basePathname, opencCREsInitialized])
 
   //fetch globals
   useEffect(() => {
-    const assembly = searchParams.assembly === "mm10" ? "mm10" : "GRCh38"
     // Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
     // @ts-expect-error
     startTransition(async () => {
       console.log("fetching globals")
-      setGlobals(await getGlobals(assembly))
+      setGlobals(await getGlobals(mainQueryParams.coordinates.assembly))
     })
-  }, [searchParams.assembly])
+  }, [mainQueryParams.coordinates.assembly])
 
 
   //Fetch raw cCRE data (main query and linked genes)
@@ -250,21 +220,14 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       setLoadingFetch(false)
   }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample.biosample])
 
-  //sync open cCREs with URL
+  // Initialize open cCREs on initial load
   useEffect(() => {
-    //If an accession was added to URL, fetch and add to opencCREs
-    const cCREsToFetch = searchParams.accessions && searchParams.accessions.split(',').filter((cCRE) => (opencCREs.find((x) => cCRE === x.ID) === undefined))
-    console.log(cCREsToFetch)
-    // //Find cCREs that need to be removed (ones that are in opencCREs but not in URL)
-    const cCREsToRemove = opencCREs.filter((cCRE) => !searchParams.accessions?.split(',').includes(cCRE.ID))
-    const opencCREsMinusRemoved = opencCREs.filter((cCRE) => !cCREsToRemove.includes(cCRE))
-
-    //If there are cCREs to fetch and add to opencCREs
-    if (cCREsToFetch?.length > 0) {
+    const cCREsToFetch = searchParams.accessions?.split(',')
+    if (cCREsToFetch && !opencCREsInitialized) {
       // @ts-expect-error
       startTransition(async () => {
+        console.log("initialize cCRE effect running")
         //Generate unfiltered rows of info for each open cCRE for ease of accessing data
-        const accessionOrder = searchParams.accessions?.split(',')
         const opencCRE_data = generateFilteredRows(
           await fetchcCREDataAndLinkedGenes(
             mainQueryParams.coordinates.assembly,
@@ -279,7 +242,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           filterCriteria,
           true
         )
-        const newOpencCREs = [...opencCREsMinusRemoved, ...opencCRE_data.map((cCRE) => {
+        const newOpencCREs = [...opencCRE_data.map((cCRE) => {
           return (
             {
               ID: cCRE.accession,
@@ -294,22 +257,18 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         })]
         //sort to match url order
         setOpencCREs(newOpencCREs.sort((a, b) => {
-          const indexA = accessionOrder.indexOf(a.ID);
-          const indexB = accessionOrder.indexOf(b.ID);
+          const indexA = cCREsToFetch.indexOf(a.ID);
+          const indexB = cCREsToFetch.indexOf(b.ID);
           return indexA - indexB;
         })
         )
       })
-      //Else no cCREs to add, push opencCRES_minus_removed if some were removed
+      setOpencCREsInitialized(true)
     } 
-    else if (opencCREsMinusRemoved.length != opencCREs.length) {
-      setOpencCREs(opencCREsMinusRemoved)
-    }
-  }, [opencCREs, searchParams.accessions, mainQueryParams.coordinates.assembly, filterCriteria])
+  }, [opencCREsInitialized, filterCriteria, mainQueryParams.coordinates.assembly, searchParams.accessions])
 
   //Generate and filter rows
   const filteredTableRows = useMemo(() => {
-    console.log("recalculating rows")
     setLoadingTable(true)
     if (rawQueryData) {
       const rows = generateFilteredRows(rawQueryData, filterCriteria)
@@ -456,7 +415,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                   rows={filteredTableRows}
                   tableTitle={
                     mainQueryParams.searchConfig.bed_intersect ?
-                      `Intersecting by uploaded .bed file in ${mainQueryParams.coordinates.assembly}${sessionStorage.getItem("warning") === "true" ? " (Partial)" : ""}`
+                      `Intersecting by uploaded .bed file in ${mainQueryParams.coordinates.assembly}${intersectWarning.current === "true" ? " (Partial)" : ""}`
                       :
                       mainQueryParams.searchConfig.gene ?
                         `cCREs overlapping ${mainQueryParams.searchConfig.gene} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.start.toLocaleString("en-US")}-${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
@@ -467,9 +426,12 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                           `Searching ${mainQueryParams.coordinates.chromosome} in ${mainQueryParams.coordinates.assembly} from ${mainQueryParams.coordinates.start.toLocaleString("en-US")} to ${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
                   }
                   titleHoverInfo={mainQueryParams.searchConfig.bed_intersect ?
-                    `${sessionStorage.getItem("warning") === "true" ? "The file you uploaded, " + sessionStorage.getItem('filenames') + ", is too large to be completely intersected. Results are incomplete."
+                    `${intersectWarning.current === "true" ?
+                      "The file you uploaded, " + intersectFilenames.current + ", is too large to be completely intersected. Results are incomplete."
                       :
-                      sessionStorage.getItem('filenames')}` : null
+                      intersectFilenames.current}`
+                    :
+                    null
                   }
                   itemsPerPage={10}
                   assembly={mainQueryParams.coordinates.assembly}
