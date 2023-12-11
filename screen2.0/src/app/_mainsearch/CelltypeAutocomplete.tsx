@@ -140,7 +140,7 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
         }}
         onKeyDown={(event) => {
           if (event.code === "Enter" && valueCellType) {
-            window.location.href = handleSubmit()
+            window.open(handleSubmit(), "_self")
           }
           if (event.code === "Tab" && !valueRegion) {
             setValueRegion("chr11:5205263-5381894")
