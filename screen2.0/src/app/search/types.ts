@@ -54,15 +54,15 @@ export type MainQueryParams = {
     tissue: string
     summaryName: string
   }
-  // snp: {
-  //   //old searchConfig.snpid
-  //   rsID: string
-  //   distance: number
-  // }
+  snp: {
+    //old searchConfig.snpid
+    rsID: string
+    distance: number
+  }
   searchConfig: {
     bed_intersect: boolean
     gene: string
-    snpid: string
+    // snpid: string
   }
 }
 

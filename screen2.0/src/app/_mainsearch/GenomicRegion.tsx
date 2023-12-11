@@ -109,7 +109,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
                 }}
                 onKeyDown={(event) => {
                   if (event.code === "Enter") {
-                    window.location.href = handleSubmit()
+                    window.open(handleSubmit(), "_self")
                   }
                   if (event.code === "Tab" && !start) {
                     setStart("5205263")
@@ -137,7 +137,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
                 }}
                 onKeyDown={(event) => {
                   if (event.code === "Enter") {
-                    window.location.href = handleSubmit()
+                    window.open(handleSubmit(), "_self")
                   }
                   if (event.code === "Tab" && !end) {
                     setEnd("5381894")
@@ -163,7 +163,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
               onChange={handleChange}
               onKeyDown={(event) => {
                 if (event.code === "Enter") {
-                  window.location.href = handleSubmit()
+                  window.open(handleSubmit(), "_self")
                 }
                 if (event.code === "Tab" && !value) {
                   setValue("chr11:5205263-5381894")

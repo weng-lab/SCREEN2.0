@@ -41,21 +41,21 @@ const marks = [
     label: '0kb',
   },
   {
-    value: 5000,
-    label: '5kb',
+    value: 500,
+    label: '0.5kb',
   },
   {
-    value: 10000,
-    label: '10kb',
+    value: 1000,
+    label: '1kb',
   },
   {
-    value: 25000,
-    label: '25kb',
+    value: 1500,
+    label: '1.5kb',
   }
   ,
   {
-    value: 50000,
-    label: '50kb',
+    value: 2000,
+    label: '2kb',
   }
 ];
 
@@ -81,10 +81,7 @@ const GENE_TRANSCRIPTS_QUERY = gql`
  } `
 
  //TODO
- // allow this to change mainquery params
- // make the route refresh when filterparams change
- // biosample fetch
- // gene and tss changing main query
+ // gene changing main query
 
 export default function MainResultsFilters(
   props: {
@@ -94,6 +91,7 @@ export default function MainResultsFilters(
     setFilterCriteria: React.Dispatch<React.SetStateAction<FilterCriteria>>,
     biosampleTableFilters: BiosampleTableFilters,
     setBiosampleTableFilters: React.Dispatch<React.SetStateAction<BiosampleTableFilters>>,
+    setBiosample: (biosample: { selected: boolean, biosample: string, tissue: string, summaryName: string }) => void
     byCellType: CellTypeData,
     genomeBrowserView: boolean,
     searchParams: { [key: string]: string | undefined },
@@ -103,15 +101,6 @@ export default function MainResultsFilters(
   //for commented gene filter
   const [tssupstream, setTssupstream] = useState<number>(0);
 
-  //for snp filter
-  const [snpdistance, setSnpDistance] = useState<number>(0);
-
-  //Biosample Filter
-  // const [CellLine, setCellLine] = useState<boolean>(biosampleTableFilters.CellLine)
-  // const [PrimaryCell, setPrimaryCell] = useState<boolean>(biosampleTableFilters.PrimaryCell)
-  // const [Tissue, setTissue] = useState<boolean>(biosampleTableFilters.Tissue)
-  // const [Organoid, setOrganoid] = useState<boolean>(biosampleTableFilters.Organoid)
-  // const [InVitro, setInVitro] = useState<boolean>(biosampleTableFilters.InVitro)
   
   //Selected Biosample
   const [BiosampleHighlight, setBiosampleHighlight] = useState<{} | null>(null)
@@ -159,90 +148,32 @@ export default function MainResultsFilters(
   //SNP distance is having issues since it is adjusting the start and end, which then get adjusted again and again infinitely
   //Need some way to track the original value of the SNP, either by sending query here, or adding start/end params to snp in mqp
 
-//   const newSearchParams: MainQueryParams = useMemo(() => {
-//     return (
-//       {
-//         coordinates: {
-//           assembly: props.mainQueryParams.coordinates.assembly,
-//           chromosome: props.mainQueryParams.coordinates.chromosome,
-//           //Start and End here should really be rewritten with if/else cases. This is impossible to read
-//           start:
-//             props.mainQueryParams.searchConfig.snpid ?
-//               Math.max(0, props.mainQueryParams.coordinates.start - snpdistance)
-//               :
-//               props.mainQueryParams.searchConfig.gene ?
-//                 (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 ?
-//                   value === "tss" && firstTSS && firstTSS != 0 && lastTSS && lastTSS != 0 ?
-//                     geneTranscripts.gene[0].strand === "+" ?
-//                       firstTSS
-//                       :
-//                       lastTSS
-//                     :
-//                     geneTranscripts.gene[0].coordinates.start
-//                   :
-//                   props.mainQueryParams.coordinates.start)
-//                 :
-//                 props.mainQueryParams.coordinates.start,
-//           end:
-//             props.mainQueryParams.searchConfig.snpid ?
-//               props.mainQueryParams.coordinates.end + snpdistance
-//               :
-//               props.mainQueryParams.searchConfig.gene ?
-//                 (geneTranscripts && geneTranscripts.gene && geneTranscripts.gene.length > 0 ?
-//                   value === "tss" && firstTSS && firstTSS != 0 && lastTSS && lastTSS != 0 ?
-//                     geneTranscripts.gene[0].strand === "+" ?
-//                       lastTSS
-//                       :
-//                       firstTSS
-//                     :
-//                     geneTranscripts.gene[0].coordinates.end
-//                   :
-//                   props.mainQueryParams.coordinates.end)
-//                 :
-//                 props.mainQueryParams.coordinates.end,
-//         },
-//         biosample: {
-//           selected: Biosample.selected,
-//           biosample: Biosample.biosample,
-//           tissue: Biosample.tissue,
-//           summaryName: Biosample.summaryName,
-//         },
-//         searchConfig: {
-//           bed_intersect: props.mainQueryParams.searchConfig.bed_intersect,
-//           gene: props.mainQueryParams.searchConfig.gene,
-//           snpid: props.mainQueryParams.searchConfig.snpid
-//         }
-//       }
-//     )
-// }, [props.mainQueryParams.coordinates.assembly, Biosample.biosample, Biosample.selected, Biosample.summaryName, Biosample.tissue, firstTSS, geneTranscripts, lastTSS, props.mainQueryParams.coordinates.chromosome, props.mainQueryParams.coordinates.end, props.mainQueryParams.coordinates.start, props.mainQueryParams.searchConfig.bed_intersect, props.mainQueryParams.searchConfig.gene, props.mainQueryParams.searchConfig.snpid, snpdistance, value])
-// }, [props.mainQueryParams.coordinates.assembly, ATACEnd, ATACStart, Biosample.biosample, Biosample.selected, Biosample.summaryName, Biosample.tissue, CA, CA_CTCF, CA_H3K4me3, CA_TF, CTCFEnd, CTCFStart, CTCF_ChIA_PET, CellLine, DNaseEnd, DNaseStart, H3K27acEnd, H3K27acStart, H3K4me3End, H3K4me3Start, InVitro, MammalEnd, MammalStart, Organoid, PLS, PrimaryCell, PrimateEnd, PrimateStart, RNAPII_ChIA_PET, TF, Tissue, VertebrateEnd, VertebrateStart, dELS, distanceAll, distancePC, firstTSS, geneTranscripts, genesToFind, lastTSS, pELS, props.mainQueryParams.coordinates.chromosome, props.mainQueryParams.coordinates.end, props.mainQueryParams.coordinates.start, props.mainQueryParams.searchConfig.bed_intersect, props.mainQueryParams.searchConfig.gene, props.mainQueryParams.searchConfig.snpid, snpdistance, value])
-
   const handleTssUpstreamChange = (_, newValue: number) => {
     setTssupstream(newValue as number);
-  };
-  const handleSNPDistanceChange = (_, newValue: number) => {
-    setSnpDistance(newValue as number);
   };
   
   function valuetext(value: number) {
     return `${value}kb`;
   }
 
-  // const router = useRouter()
+  const filteredBiosamples: FilteredBiosampleData = useMemo(() => {
+    if (props.byCellType) {
+      return (
+        filterBiosamples(
+          parseByCellType(props.byCellType),
+          props.biosampleTableFilters.Tissue,
+          props.biosampleTableFilters.PrimaryCell,
+          props.biosampleTableFilters.CellLine,
+          props.biosampleTableFilters.InVitro,
+          props.biosampleTableFilters.Organoid
+        )
+      )
+    } else return []
+  }, [props.byCellType, props.biosampleTableFilters.Tissue, props.biosampleTableFilters.PrimaryCell, props.biosampleTableFilters.CellLine, props.biosampleTableFilters.InVitro, props.biosampleTableFilters.Organoid])
 
-  /**
-   * Biosample Tables, only re-rendered if the relevant state variables change. Prevents sluggish sliders in other filters
-   */
-  const biosampleTables = useMemo(
-    () => {
-      const filteredBiosamples: FilteredBiosampleData = props.byCellType ? filterBiosamples(
-        parseByCellType(props.byCellType),
-        props.biosampleTableFilters.Tissue,
-        props.biosampleTableFilters.PrimaryCell,
-        props.biosampleTableFilters.CellLine, 
-        props.biosampleTableFilters.InVitro,
-        props.biosampleTableFilters.Organoid
-      ) : []
+  //This could be refactored to improve performance in SNP/Gene filters. The onRowClick for each table depends on setting main query params, which the gene/snp filters also modify
+  //This is recalculated every time those sliders are moved.
+  const biosampleTables = useMemo(() => {
       const cols = [
         {
           header: "Biosample",
@@ -341,8 +272,7 @@ export default function MainResultsFilters(
                     highlighted={BiosampleHighlight}
                     sortColumn={1}
                     onRowClick={(row, i) => {
-                      //This could potentially be not what I'm expecting due to spread creating shallow copy
-                      props.setMainQueryParams({...props.mainQueryParams, biosample: { selected: true, biosample: row.queryValue, tissue: row.biosampleTissue, summaryName: row.summaryName }})
+                      props.setBiosample({ selected: true, biosample: row.queryValue, tissue: row.biosampleTissue, summaryName: row.summaryName })
                       setBiosampleHighlight(row)
                     }}
                   />
@@ -353,17 +283,18 @@ export default function MainResultsFilters(
         })
       )
     },
-    [ props.biosampleTableFilters.CellLine,  props.biosampleTableFilters.InVitro,  props.biosampleTableFilters.Organoid, props.biosampleTableFilters.PrimaryCell, props.biosampleTableFilters.Tissue, BiosampleHighlight, SearchString, props.byCellType]
+    //For some reason it wants "props" as a dependency here, not sure why. Not referring to just "props" here at all
+    [filteredBiosamples, BiosampleHighlight, SearchString, props.setBiosample]
   )
 
   return (
     <Paper elevation={0}>
       {/* cCREs within distance from SNP  */}
-      {props.mainQueryParams.searchConfig.snpid &&
+      {props.mainQueryParams.snp.rsID &&
         <>
           <Accordion defaultExpanded square disableGutters>
             <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel2a-content" id="panel2a-header">
-              <Typography>cCREs within distance from SNP {props.mainQueryParams.searchConfig.snpid}</Typography>
+              <Typography>cCREs within distance from SNP {props.mainQueryParams.snp.rsID} (upstream + downstream)</Typography>
             </AccordionSummary>
             <AccordionDetails>
               <Grid2 container spacing={2}>
@@ -376,10 +307,10 @@ export default function MainResultsFilters(
                       getAriaValueText={valuetext}
                       valueLabelDisplay="auto"
                       min={0}
-                      max={50000}
+                      max={2000}
                       step={null}
-                      value={snpdistance}
-                      onChange={handleSNPDistanceChange}
+                      value={props.mainQueryParams.snp.distance}
+                      onChange={(_, value: number) => props.setMainQueryParams({...props.mainQueryParams, snp: {...props.mainQueryParams.snp, distance: value}})}
                       marks={marks}
                     />
                   </Box>

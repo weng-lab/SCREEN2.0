@@ -25,11 +25,11 @@ const tableCols = (globals, typeC = false) => {
       value: (row: cCRERow) =>
         globals.byCellType[row.ct] && globals.byCellType[row.ct][0] ? globals.byCellType[row.ct][0]["biosample_summary"] : "",
     },
-   /* {
+   {
       header: "ATAC Z-score",
       value: (row: cCRERow) => row.atac,
       render: (row: cCRERow) => z_score(row.atac),
-    },*/
+    },
     {
       header: "H3K4me3 Z-score",
       value: (row: cCRERow) => row.h3k4me3,
@@ -56,11 +56,11 @@ const tableCols = (globals, typeC = false) => {
       value: (row: cCRERow) => z_score(row.dnase),
       render: (row: cCRERow) => z_score(row.dnase),
     },
-   /* {
+   {
       header: "ATAC Z-score",
       value: (row: cCRERow) => row.atac,
       render: (row: cCRERow) => z_score(row.atac),
-    },*/
+    },
     {
       header: "H3K4me3 Z-score",
       value: (row: cCRERow) => z_score(row.h3k4me3),
@@ -76,11 +76,11 @@ const tableCols = (globals, typeC = false) => {
       value: (row: cCRERow) => z_score(row.ctcf),
       render: (row: cCRERow) => z_score(row.ctcf),
     },
-   /* {
+    {
       header: "ATAC Z-score",
       value: (row: cCRERow) => z_score(row.atac),
       render: (row: cCRERow) => z_score(row.atac),
-    },*/
+    },
     {
       header: "Group",
       value: (row: cCRERow) =>  GROUP_COLOR_MAP[row.group] ? GROUP_COLOR_MAP[row.group] : "DNase only",
@@ -108,11 +108,11 @@ const ctAgnosticColumns = () => [
     value: (row: cCRERow) => row.dnase,
     render: (row: cCRERow) => z_score(row.dnase),
   },
-  /*{
+  {
     header: "ATAC max-Z",
     value: (row: cCRERow) => row.atac,
     render: (row: cCRERow) => z_score(row.atac),
-  },*/
+  },
   {
     header: "H3K4me3 max-Z",
     value: (row: cCRERow) => row.h3k4me3,
@@ -238,9 +238,9 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
         h3k27ac: d.cCREZScores.find((cz) => cz.assay.toLowerCase() === "h3k27ac")
           ? d.cCREZScores.find((cz) => cz.assay.toLowerCase() === "h3k27ac").score
           : -11.0,
-        /*atac: d.cCREZScores.find((cz) => cz.assay.toLowerCase() === "atac")
+        atac: d.cCREZScores.find((cz) => cz.assay.toLowerCase() === "atac")
           ? d.cCREZScores.find((cz) => cz.assay.toLowerCase() === "atac").score
-          : -11.0,*/
+          : -11.0,
       }
     })
 
@@ -275,7 +275,7 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
       } else {
         type = "typec"
       }
-      if (t.dnase !== -11.0 && t.ctcf !== -11.0 && t.h3k27ac !== -11.0 && t.h3k4me3 !== -11.0) {
+      if (t.dnase !== -11.0 && t.ctcf !== -11.0 && t.h3k27ac !== -11.0 && t.h3k4me3 !== -11.0 && t.atac !== -11.0) {
         type = "typea"
       }
       return { ...t, type, group }

@@ -78,7 +78,7 @@ export const CcreAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               event.defaultPrevented = true
-              window.location.href = handleSubmit()
+              window.open(handleSubmit(), "_self")
             }
           }}
           value={value}

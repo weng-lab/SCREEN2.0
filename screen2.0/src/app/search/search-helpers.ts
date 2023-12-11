@@ -459,7 +459,7 @@ export function constructSearchURL(
       + `&start=${newSearchParams.coordinates.start}`
       + `&end=${newSearchParams.coordinates.end}`
       + `${newSearchParams.searchConfig.gene ? "&gene=" + newSearchParams.searchConfig.gene : ""}`
-      + `${newSearchParams.searchConfig.snpid ? "&snpid=" + newSearchParams.searchConfig.snpid : ""}`
+      + `${newSearchParams.snp.rsID ? "&snpid=" + newSearchParams.snp.rsID + "&snpDistance=" + newSearchParams.snp.distance : ""}`
 
   //Can probably get biosample down to one string, and extract other info when parsing byCellType
   const biosampleFilters =
@@ -555,8 +555,11 @@ export function constructMainQueryParamsFromURL(searchParams: { [key: string]: s
         //Flag for if user-entered bed file intersection accessions to be used from sessionStorage
         bed_intersect: searchParams.intersect ? checkTrueFalse(searchParams.intersect) : false,
         gene: searchParams.gene,
-        snpid: searchParams.snpid,
       },
+      snp: {
+        rsID: searchParams.snpid,
+        distance: +searchParams.snpDistance ?? 0
+      }
     }
   )
 }

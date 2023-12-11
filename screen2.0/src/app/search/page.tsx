@@ -112,7 +112,18 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const [loadingFetch, setLoadingFetch] = useState<boolean>(false)
   const [opencCREsInitialized, setOpencCREsInitialized] = useState(false);
 
-  //using useRef, and then assigning their value in useEffect to prevent accession sessionStorage on the server
+  //Used to set just biosample in filters. Used for performance improvement to avoid having entire mainQueryParams in dep array
+  const handleSetBiosample = (
+    biosample: {
+      selected: boolean
+      biosample: string
+      tissue: string
+      summaryName: string
+    }) => {
+    setMainQueryParams({ ...mainQueryParams, biosample: biosample })
+  }
+
+  //using useRef, and then assigning their value in useEffect to prevent accessing sessionStorage on the server
   const intersectWarning = useRef(null);
   const intersectFilenames = useRef(null)
 
@@ -207,8 +218,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           await fetchcCREDataAndLinkedGenes(
             mainQueryParams.coordinates.assembly,
             mainQueryParams.coordinates.chromosome,
-            mainQueryParams.coordinates.start,
-            mainQueryParams.coordinates.end,
+            mainQueryParams.snp.rsID ? mainQueryParams.coordinates.start - mainQueryParams.snp.distance : mainQueryParams.coordinates.start,
+            mainQueryParams.snp.rsID ? mainQueryParams.coordinates.end + mainQueryParams.snp.distance : mainQueryParams.coordinates.end,
             mainQueryParams.biosample.biosample,
             1000000,
             null,
@@ -218,7 +229,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         console.log("query complete for " + mainQueryParams.coordinates.assembly)
       })
       setLoadingFetch(false)
-  }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample.biosample])
+  }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample.biosample, mainQueryParams.snp.rsID, mainQueryParams.snp.distance])
 
   // Initialize open cCREs on initial load
   useEffect(() => {
@@ -376,6 +387,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               setFilterCriteria={setFilterCriteria}
               biosampleTableFilters={biosampleTableFilters}
               setBiosampleTableFilters={setBiosampleTableFilters}
+              setBiosample={(biosample) => handleSetBiosample(biosample)}
               byCellType={globals}
               genomeBrowserView={page === 1}
               searchParams={searchParams}
@@ -420,8 +432,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                       mainQueryParams.searchConfig.gene ?
                         `cCREs overlapping ${mainQueryParams.searchConfig.gene} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.start.toLocaleString("en-US")}-${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
                         :
-                        mainQueryParams.searchConfig.snpid ?
-                          `cCREs overlapping ${mainQueryParams.searchConfig.snpid} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.start.toLocaleString("en-US")}-${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
+                        mainQueryParams.snp.rsID ?
+                          `cCREs overlapping ${mainQueryParams.snp.rsID} with ${mainQueryParams.snp.distance}kb padding - ${mainQueryParams.coordinates.chromosome}:${(mainQueryParams.coordinates.start - mainQueryParams.snp.distance).toLocaleString("en-US")}-${(mainQueryParams.coordinates.end + mainQueryParams.snp.distance).toLocaleString("en-US")}`
                           :
                           `Searching ${mainQueryParams.coordinates.chromosome} in ${mainQueryParams.coordinates.assembly} from ${mainQueryParams.coordinates.start.toLocaleString("en-US")} to ${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
                   }

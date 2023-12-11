@@ -73,7 +73,7 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
         onKeyDown={(event) => {
           if (event.key === "Enter" && valueCellType) {
             event.defaultPrevented = true
-            window.location.href = handleSubmit()
+            window.open(handleSubmit(), "_self")
           }
         }}
         value={valueCellType}

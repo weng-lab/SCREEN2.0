@@ -72,7 +72,8 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
             } else {
               sessionStorage.setItem("warning", "false")
             }
-            window.location.href = `/search?intersect=t&assembly=${props.assembly}`
+            window.open(`/search?intersect=t&assembly=${props.assembly}`, "_self")
+
           },
           //Error
           (msg) => {
