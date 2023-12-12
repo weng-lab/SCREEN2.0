@@ -25,10 +25,7 @@ import { LoadingMessage } from "../../common/lib/utility"
 
 /**
  * @todo:
- * - Impose some kind of limit on open cCREs
- * - Gene/SNP distance stuff
- * - set opencCREs in 
- * - Change filenames to be consistent
+ * - set opencCREs in nearby and orthologous
  */
 
 const drawerWidth = 350;
@@ -247,8 +244,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           )
         )
         console.log("query complete for " + mainQueryParams.coordinates.assembly)
+        setLoadingFetch(false)
       })
-      setLoadingFetch(false)
   }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample.biosample, mainQueryParams.snp.rsID, mainQueryParams.snp.distance, TSSs, mainQueryParams.gene.distance, mainQueryParams.gene.nearTSS])
 
   // Initialize open cCREs on initial load
