@@ -10,7 +10,7 @@ interface MainResultsTableProps extends Partial<DataTableProps<any>> {
   assembly: "GRCh38" | "mm10"
 }
 
-function MainResultsTable(props: MainResultsTableProps) {
+export function MainResultsTable(props: MainResultsTableProps) {
   const [distance, setDistance] = useState<boolean>(true)
   const [CTCF_ChIAPET, setCTCF_ChIAPET] = useState<boolean>(false)
   const [RNAPII_ChIAPET, setRNAPII_ChIAPET] = useState<boolean>(false)
@@ -270,5 +270,3 @@ function MainResultsTable(props: MainResultsTableProps) {
       />
   )
 }
-
-export default MainResultsTable

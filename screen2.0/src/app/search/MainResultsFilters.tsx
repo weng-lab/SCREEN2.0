@@ -102,7 +102,7 @@ const GENE_TRANSCRIPTS_QUERY = gql`
    }
  } `
 
-export default function MainResultsFilters(
+export function MainResultsFilters(
   props: {
     mainQueryParams: MainQueryParams,
     setMainQueryParams: Dispatch<SetStateAction<MainQueryParams>>,
@@ -161,7 +161,7 @@ export default function MainResultsFilters(
       return { start: Math.max(0, tss - props.mainQueryParams.gene.distance), end: tss + props.mainQueryParams.gene.distance }
     })
     props.setTSSranges(TSSranges)
-  }, [props.mainQueryParams.gene.distance])
+  }, [props.mainQueryParams.gene.distance, props.TSSs])
   
   function valuetext(value: number) {
     return `${value}kb`;

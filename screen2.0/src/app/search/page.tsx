@@ -6,8 +6,8 @@ import { checkTrueFalse, constructBiosampleTableFiltersFromURL, constructFilterC
 import React, { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { styled } from '@mui/material/styles';
 import { Divider, IconButton, Tab, Tabs, Typography, Box, CircularProgress } from "@mui/material"
-import MainResultsTable from "./mainresultstable"
-import MainResultsFilters from "./mainresultsfilters"
+import { MainResultsTable } from "./mainresultstable"
+import { MainResultsFilters } from "./mainresultsfilters"
 import { CcreDetails } from "./_ccredetails/ccredetails"
 import { usePathname, useRouter } from "next/navigation"
 import { GenomeBrowserView } from "./_gbview/genomebrowserview"
@@ -213,14 +213,14 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       if (mainQueryParams.snp.rsID) {
         start = Math.max(0, mainQueryParams.coordinates.start - mainQueryParams.snp.distance);
       } else if (mainQueryParams.gene.nearTSS) {
-        start = TSSs ? Math.max(0, Math.min(...TSSs) - mainQueryParams.gene.distance) : null
+        start = TSSs && TSSranges ? Math.max(0, Math.min(...TSSs) - mainQueryParams.gene.distance) : null
       }
 
       let end = mainQueryParams.coordinates.end
       if (mainQueryParams.snp.rsID) {
         end = mainQueryParams.coordinates.end + mainQueryParams.snp.distance;
       } else if (mainQueryParams.gene.nearTSS) {
-        end = TSSs ? Math.max(...TSSs) + mainQueryParams.gene.distance : null
+        end = TSSs && TSSranges ? Math.max(...TSSs) + mainQueryParams.gene.distance : null
       }
 
       // Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
@@ -242,7 +242,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         console.log("query complete for " + mainQueryParams.coordinates.assembly)
         setLoadingFetch(false)
       })
-  }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample.biosample, mainQueryParams.snp.rsID, mainQueryParams.snp.distance, TSSs, mainQueryParams.gene.distance, mainQueryParams.gene.nearTSS])
+  }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample.biosample, mainQueryParams.snp.rsID, mainQueryParams.snp.distance, TSSs, TSSranges, mainQueryParams.gene.distance, mainQueryParams.gene.nearTSS])
 
   // Initialize open cCREs on initial load
   useEffect(() => {

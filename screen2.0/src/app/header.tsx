@@ -7,7 +7,7 @@ import Link from "next/link"
 import Image from "next/image"
 import screenIcon from "../../public/screenIcon.png"
 
-import MainSearch from "./_mainsearch/mainsearch"
+import { MainSearch } from "./_mainsearch/mainsearch"
 import { useState } from "react"
 
 /*  

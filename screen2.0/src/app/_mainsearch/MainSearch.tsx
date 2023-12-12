@@ -18,7 +18,7 @@ export type MainSearchProps = InputBaseProps & {
 }
 
 
-const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) => {
+export const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) => {
   const [assembly, setAssembly] = useState<"GRCh38" | "mm10">("GRCh38")
   const [selectedSearch, setSelectedSearch] = useState<string>("Genomic Region")
 
@@ -104,5 +104,3 @@ const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) => {
       </Stack>
   )
 }
-
-export default MainSearch

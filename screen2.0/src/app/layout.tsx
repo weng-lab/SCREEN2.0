@@ -2,7 +2,7 @@ import "./globals.css"
 import { ApolloWrapper } from "../common/lib/apolloprovider"
 import { Inter } from "next/font/google"
 import ResponsiveAppBar from "./header"
-import Footer from "./footer"
+import { Footer } from "./footer"
 import { CssBaseline } from "@mui/material"
 import ThemeRegistry from "../common/themeregistry/themeregistry"
 
