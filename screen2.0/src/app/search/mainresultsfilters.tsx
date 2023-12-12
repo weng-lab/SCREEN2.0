@@ -199,7 +199,7 @@ export function MainResultsFilters(
           header: "Assays",
           value: (row) => Object.keys(row.assays).filter((key) => row.assays[key] === true).length,
           render: (row) => {
-            const fifth = (2 * 3.1416 * 10) / 5
+            const fifthOfCircle = (2 * 3.1416 * 10) / 5
             return (
               <Tooltip title={assayHoverInfo(row.assays)} arrow>
                 <svg height="50" width="50" viewBox="0 0 50 50">
@@ -211,7 +211,7 @@ export function MainResultsFilters(
                     fill="transparent"
                     stroke={`${row.assays.dnase ? "#06DA93" : "transparent"}`}
                     strokeWidth="20"
-                    strokeDasharray={`${fifth} ${fifth * 4}`}
+                    strokeDasharray={`${fifthOfCircle} ${fifthOfCircle * 4}`}
                   />
                   <circle
                     r="10"
@@ -220,7 +220,7 @@ export function MainResultsFilters(
                     fill="transparent"
                     stroke={`${row.assays.h3k27ac ? "#FFCD00" : "transparent"}`}
                     strokeWidth="20"
-                    strokeDasharray={`${fifth * 0} ${fifth} ${fifth} ${fifth * 3}`}
+                    strokeDasharray={`${fifthOfCircle * 0} ${fifthOfCircle} ${fifthOfCircle} ${fifthOfCircle * 3}`}
                   />
                   <circle
                     r="10"
@@ -229,7 +229,7 @@ export function MainResultsFilters(
                     fill="transparent"
                     stroke={`${row.assays.h3k4me3 ? "#FF0000" : "transparent"}`}
                     strokeWidth="20"
-                    strokeDasharray={`${fifth * 0} ${fifth * 2} ${fifth} ${fifth * 2}`}
+                    strokeDasharray={`${fifthOfCircle * 0} ${fifthOfCircle * 2} ${fifthOfCircle} ${fifthOfCircle * 2}`}
                   />
                   <circle
                     r="10"
@@ -238,7 +238,7 @@ export function MainResultsFilters(
                     fill="transparent"
                     stroke={`${row.assays.ctcf ? "#00B0F0" : "transparent"}`}
                     strokeWidth="20"
-                    strokeDasharray={`${fifth * 0} ${fifth * 3} ${fifth} ${fifth * 1}`}
+                    strokeDasharray={`${fifthOfCircle * 0} ${fifthOfCircle * 3} ${fifthOfCircle} ${fifthOfCircle * 1}`}
                   />
                   <circle
                     r="10"
@@ -247,7 +247,7 @@ export function MainResultsFilters(
                     fill="transparent"
                     stroke={`${row.assays.atac ? "#02C7B9" : "transparent"}`}
                     strokeWidth="20"
-                    strokeDasharray={`${fifth * 0} ${fifth * 4} ${fifth}`}
+                    strokeDasharray={`${fifthOfCircle * 0} ${fifthOfCircle * 4} ${fifthOfCircle}`}
                   />
                 </svg>
               </Tooltip>

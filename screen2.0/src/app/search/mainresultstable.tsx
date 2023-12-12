@@ -1,6 +1,6 @@
 "use client"
 import { DataTable, DataTableProps, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
-import React, { useState } from "react"
+import React, { useState, Dispatch } from "react"
 import { Box, Typography, Menu, Checkbox, Stack, MenuItem, FormControlLabel, FormGroup, Tooltip } from "@mui/material"
 import { MainResultTableRow, ConservationData } from "./types"
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
@@ -17,7 +17,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
 
   //Start and End are strings since toLocaleString() is called on them to get commas in the numbers
   //State variable setters are passed to columns so that linked genes modal is able to properly set table state
-  const columns = (funcSetDistance: React.Dispatch<React.SetStateAction<boolean>>, funcSetCTCF_ChIAPET: React.Dispatch<React.SetStateAction<boolean>>, funcSetRNAPII_ChIAPET: React.Dispatch<React.SetStateAction<boolean>>) => {
+  const columns = (funcSetDistance: Dispatch<React.SetStateAction<boolean>>, funcSetCTCF_ChIAPET: Dispatch<React.SetStateAction<boolean>>, funcSetRNAPII_ChIAPET: Dispatch<React.SetStateAction<boolean>>) => {
     let cols: DataTableColumn<MainResultTableRow>[] = [
       {
         header: "Accession",

@@ -542,10 +542,10 @@ export function constructMainQueryParamsFromURL(searchParams: { [key: string]: s
           null : searchParams.chromosome ?? "chr11",
         start: (searchParams.intersect && checkTrueFalse(searchParams.intersect)) ?
           null : searchParams.start ?
-            Number(searchParams.start) : 5205263,
+            +(searchParams.start) : 5205263,
         end: (searchParams.intersect && checkTrueFalse(searchParams.intersect)) ?
           null : searchParams.end ?
-            Number(searchParams.end) : 5381894,
+            +(searchParams.end) : 5381894,
       },
       biosample: searchParams.Biosample ? 
         {
@@ -574,22 +574,22 @@ export function constructMainQueryParamsFromURL(searchParams: { [key: string]: s
 export function constructFilterCriteriaFromURL(searchParams: { [key: string]: string | undefined }): FilterCriteria {
   return (
     {
-      dnase_s: searchParams.dnase_s ? Number(searchParams.dnase_s) : -10,
-      dnase_e: searchParams.dnase_e ? Number(searchParams.dnase_e) : 10,
-      atac_s: searchParams.atac_s ? Number(searchParams.atac_s) : -10,
-      atac_e: searchParams.atac_e ? Number(searchParams.atac_e) : 10,
-      h3k4me3_s: searchParams.h3k4me3_s ? Number(searchParams.h3k4me3_s) : -10,
-      h3k4me3_e: searchParams.h3k4me3_e ? Number(searchParams.h3k4me3_e) : 10,
-      h3k27ac_s: searchParams.h3k27ac_s ? Number(searchParams.h3k27ac_s) : -10,
-      h3k27ac_e: searchParams.h3k27ac_e ? Number(searchParams.h3k27ac_e) : 10,
-      ctcf_s: searchParams.ctcf_s ? Number(searchParams.ctcf_s) : -10,
-      ctcf_e: searchParams.ctcf_e ? Number(searchParams.ctcf_e) : 10,
-      prim_s: searchParams.prim_s ? Number(searchParams.prim_s) : -2,
-      prim_e: searchParams.prim_e ? Number(searchParams.prim_e) : 2,
-      mamm_s: searchParams.mamm_s ? Number(searchParams.mamm_s) : -4,
-      mamm_e: searchParams.mamm_e ? Number(searchParams.mamm_e) : 8,
-      vert_s: searchParams.vert_s ? Number(searchParams.vert_s) : -3,
-      vert_e: searchParams.vert_e ? Number(searchParams.vert_e) : 8,
+      dnase_s: searchParams.dnase_s ? +(searchParams.dnase_s) : -10,
+      dnase_e: searchParams.dnase_e ? +(searchParams.dnase_e) : 10,
+      atac_s: searchParams.atac_s ? +(searchParams.atac_s) : -10,
+      atac_e: searchParams.atac_e ? +(searchParams.atac_e) : 10,
+      h3k4me3_s: searchParams.h3k4me3_s ? +(searchParams.h3k4me3_s) : -10,
+      h3k4me3_e: searchParams.h3k4me3_e ? +(searchParams.h3k4me3_e) : 10,
+      h3k27ac_s: searchParams.h3k27ac_s ? +(searchParams.h3k27ac_s) : -10,
+      h3k27ac_e: searchParams.h3k27ac_e ? +(searchParams.h3k27ac_e) : 10,
+      ctcf_s: searchParams.ctcf_s ? +(searchParams.ctcf_s) : -10,
+      ctcf_e: searchParams.ctcf_e ? +(searchParams.ctcf_e) : 10,
+      prim_s: searchParams.prim_s ? +(searchParams.prim_s) : -2,
+      prim_e: searchParams.prim_e ? +(searchParams.prim_e) : 2,
+      mamm_s: searchParams.mamm_s ? +(searchParams.mamm_s) : -4,
+      mamm_e: searchParams.mamm_e ? +(searchParams.mamm_e) : 8,
+      vert_s: searchParams.vert_s ? +(searchParams.vert_s) : -3,
+      vert_e: searchParams.vert_e ? +(searchParams.vert_e) : 8,
       CA: searchParams.CA ? checkTrueFalse(searchParams.CA) : true,
       CA_CTCF: searchParams.CA_CTCF ? checkTrueFalse(searchParams.CA_CTCF) : true,
       CA_H3K4me3: searchParams.CA_H3K4me3 ? checkTrueFalse(searchParams.CA_H3K4me3) : true,
@@ -617,13 +617,4 @@ export function constructBiosampleTableFiltersFromURL(searchParams: { [key: stri
       InVitro: searchParams.InVitro ? checkTrueFalse(searchParams.InVitro) : true,
     }
   )
-}
-
-export function createQueryString(searchParams: { [key: string]: string | undefined }, name1: string, value1: string, name2?: string, value2?: string){
-  const params = new URLSearchParams(searchParams)
-  params.set(name1, value1)
-  if (name2 && value2) {
-    params.set(name2, value2)
-  }
-  return params.toString()
 }

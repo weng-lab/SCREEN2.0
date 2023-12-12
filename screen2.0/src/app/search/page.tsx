@@ -2,10 +2,10 @@
 "use client"
 import { getGlobals } from "../../common/lib/queries"
 import { BiosampleTableFilters, CellTypeData, FilterCriteria, MainQueryParams } from "./types"
-import { checkTrueFalse, constructBiosampleTableFiltersFromURL, constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, createQueryString, fetchcCREDataAndLinkedGenes } from "./searchhelpers"
-import React, { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { constructBiosampleTableFiltersFromURL, constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, fetchcCREDataAndLinkedGenes } from "./searchhelpers"
+import React, { startTransition, useEffect, useMemo, useRef, useState } from "react"
 import { styled } from '@mui/material/styles';
-import { Divider, IconButton, Tab, Tabs, Typography, Box, CircularProgress } from "@mui/material"
+import { Divider, IconButton, Tab, Tabs, Typography, Box } from "@mui/material"
 import { MainResultsTable } from "./mainresultstable"
 import { MainResultsFilters } from "./mainresultsfilters"
 import { CcreDetails } from "./_ccredetails/ccredetails"
@@ -190,8 +190,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         page,
         opencCREs.map(x => x.ID).join(',')
       )
-      console.log("pushing:")
-      console.log(newURL)
       router.push(newURL)
     }
   }, [searchParams, mainQueryParams, filterCriteria, biosampleTableFilters, page, opencCREs, router, basePathname, opencCREsInitialized])
@@ -201,7 +199,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     // Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
     // @ts-expect-error
     startTransition(async () => {
-      console.log("fetching globals")
       setGlobals(await getGlobals(mainQueryParams.coordinates.assembly))
     })
   }, [mainQueryParams.coordinates.assembly])
@@ -228,7 +225,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       // Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
       // @ts-expect-error
       start && end && startTransition(async () => {
-        console.log("sending query for " + mainQueryParams.coordinates.assembly)
         setRawQueryData(
           await fetchcCREDataAndLinkedGenes(
             mainQueryParams.coordinates.assembly,
@@ -241,7 +237,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
             mainQueryParams.searchConfig.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined
           )
         )
-        console.log("query complete for " + mainQueryParams.coordinates.assembly)
         setLoadingFetch(false)
       })
   }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample.biosample, mainQueryParams.snp.rsID, mainQueryParams.snp.distance, TSSs, TSSranges, mainQueryParams.gene.distance, mainQueryParams.gene.nearTSS])
@@ -249,11 +244,9 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   // Initialize open cCREs on initial load
   useEffect(() => {
     const cCREsToFetch = searchParams.accessions?.split(',')
-    console.log
     if (cCREsToFetch?.length > 0 && !opencCREsInitialized) {
       // @ts-expect-error
       startTransition(async () => {
-        console.log("initialize cCRE effect running")
         //Generate unfiltered rows of info for each open cCRE for ease of accessing data
         const opencCRE_data = generateFilteredRows(
           await fetchcCREDataAndLinkedGenes(
