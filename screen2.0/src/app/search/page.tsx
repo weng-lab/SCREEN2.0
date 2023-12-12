@@ -177,11 +177,11 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     //Check if the URL params representing state are stale
     if (
       opencCREsInitialized &&
-      JSON.stringify(constructMainQueryParamsFromURL(searchParams)) !== JSON.stringify(mainQueryParams)
+      (JSON.stringify(constructMainQueryParamsFromURL(searchParams)) !== JSON.stringify(mainQueryParams)
       || JSON.stringify(constructFilterCriteriaFromURL(searchParams)) !== JSON.stringify(filterCriteria)
       || JSON.stringify(constructBiosampleTableFiltersFromURL(searchParams)) !== JSON.stringify(biosampleTableFilters)
       || +searchParams.page !== page
-      || searchParams.accessions !== opencCREs.map(x => x.ID).join(','))
+      || searchParams.accessions !== opencCREs.map(x => x.ID).join(',')))
      {
       const newURL = constructSearchURL(
         mainQueryParams,
