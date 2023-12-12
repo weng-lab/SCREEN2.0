@@ -77,11 +77,6 @@ const tableCols = (globals, typeC = false) => {
       render: (row: cCRERow) => z_score(row.ctcf),
     },
     {
-      header: "ATAC Z-score",
-      value: (row: cCRERow) => z_score(row.atac),
-      render: (row: cCRERow) => z_score(row.atac),
-    },
-    {
       header: "Group",
       value: (row: cCRERow) =>  GROUP_COLOR_MAP[row.group] ? GROUP_COLOR_MAP[row.group] : "DNase only",
       render: (row: cCRERow) => {
