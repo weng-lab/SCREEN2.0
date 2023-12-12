@@ -286,14 +286,10 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           return indexA - indexB;
         })
         )
+        setOpencCREsInitialized(true)
       })
-      setOpencCREsInitialized(true)
     } 
   }, [opencCREsInitialized, filterCriteria, mainQueryParams.coordinates.assembly, searchParams.accessions])
-
-  /**
-   * TODO ADD TSS ranges to filter function
-   */
 
   //Generate and filter rows
   const filteredTableRows = useMemo(() => {
