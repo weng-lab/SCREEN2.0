@@ -16,7 +16,6 @@ import {
   Slider,
   FormLabel,
   Stack,
-  IconButton,
   CircularProgress,
 } from "@mui/material/"
 
@@ -29,13 +28,13 @@ import Grid2 from "@mui/material/Unstable_Grid2"
 import { RangeSlider, DataTable } from "@weng-lab/psychscreen-ui-components"
 import { useState, useMemo, useEffect } from "react"
 import { BiosampleTableFilters, CellTypeData, FilterCriteria, FilteredBiosampleData, MainQueryParams } from "./types"
-import { parseByCellType, filterBiosamples, assayHoverInfo, constructSearchURL, constructMainQueryParamsFromURL, constructBiosampleTableFiltersFromURL } from "./search-helpers"
+import { parseByCellType, filterBiosamples, assayHoverInfo } from "./search-helpers"
 import { gql } from "@apollo/client"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import GeneAutoComplete from "../applets/gene-expression/gene-autocomplete";
 import { InfoOutlined } from "@mui/icons-material";
 
-const marks = [
+const snpMarks = [
   {
     value: 0,
     label: '0kb',
@@ -51,11 +50,33 @@ const marks = [
   {
     value: 1500,
     label: '1.5kb',
-  }
-  ,
+  },
   {
     value: 2000,
     label: '2kb',
+  }
+];
+
+const tssMarks = [
+  {
+    value: 0,
+    label: '0kb',
+  },
+  {
+    value: 10000,
+    label: '10kb',
+  },
+  {
+    value: 25000,
+    label: '25kb',
+  },
+  {
+    value: 50000,
+    label: '50kb',
+  },
+  {
+    value: 100000,
+    label: '100kb',
   }
 ];
 
@@ -91,26 +112,19 @@ export default function MainResultsFilters(
     setFilterCriteria: React.Dispatch<React.SetStateAction<FilterCriteria>>,
     biosampleTableFilters: BiosampleTableFilters,
     setBiosampleTableFilters: React.Dispatch<React.SetStateAction<BiosampleTableFilters>>,
-    setBiosample: (biosample: { selected: boolean, biosample: string, tissue: string, summaryName: string }) => void
+    setBiosample: (biosample: { selected: boolean, biosample: string, tissue: string, summaryName: string }) => void,
+    TSSs: number[]
+    setTSSs: React.Dispatch<React.SetStateAction<number[]>>,
+    setTSSranges: React.Dispatch<React.SetStateAction<{ start: number, end: number }[]>>
     byCellType: CellTypeData,
     genomeBrowserView: boolean,
     searchParams: { [key: string]: string | undefined },
   }
 ): React.JSX.Element {
-
-  //for commented gene filter
-  const [tssupstream, setTssupstream] = useState<number>(0);
-
   
   //Selected Biosample
   const [BiosampleHighlight, setBiosampleHighlight] = useState<{} | null>(null)
   const [SearchString, setSearchString] = useState<string>("")
-
-  const [value, setValue] = React.useState('overlappinggene');
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setValue((event.target as HTMLInputElement).value);
-  };
 
   const [gene, setGene] = useState<string>("")
 
@@ -120,37 +134,37 @@ export default function MainResultsFilters(
   } = useQuery(GENE_TRANSCRIPTS_QUERY, {
     variables: {
       assembly: props.mainQueryParams.coordinates.assembly.toLowerCase(),
-      name: [props.mainQueryParams.searchConfig.gene && props.mainQueryParams.searchConfig.gene.toUpperCase()]
+      name: [props.mainQueryParams.gene.name && props.mainQueryParams.gene.name.toUpperCase()]
     },
-    skip: !props.mainQueryParams.searchConfig.gene,
+    skip: !props.mainQueryParams.gene.name,
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first"
 
   })
 
-  const TSSs = geneTranscripts?.gene?.length > 0 && geneTranscripts.gene[0].transcripts.map(t => {
-    if (geneTranscripts.gene[0].strand === "+") {
-      return t.coordinates.start
-    } else {
-      return t.coordinates.end
+  //Recalculate when geneTranscripts available, near
+  useEffect(() => {
+    if (geneTranscripts?.gene?.length > 0) {
+      const TSSs = geneTranscripts.gene[0].transcripts.map(t => {
+        if (geneTranscripts.gene[0].strand === "+") {
+          return t.coordinates.start
+        } else {
+          return t.coordinates.end
+        }
+      })
+      console.log("Max" + Math.max(...TSSs))
+      console.log("Min" + Math.min(...TSSs))
+      props.setTSSs(TSSs)
     }
+  }, [geneTranscripts])
 
-  })
-
-  const firstTSS = geneTranscripts?.gene?.length > 0 && TSSs?.length > 0 ?
-    geneTranscripts.gene[0].transcripts.length === 1 ? geneTranscripts.gene[0].transcripts[0].coordinates.start :
-      geneTranscripts.gene[0].strand === "+" ? Math.max(0, (Math.min(...TSSs) - tssupstream)) : Math.max(...TSSs) + tssupstream : 0
-
-  const lastTSS = geneTranscripts?.gene?.length > 0 && TSSs?.length > 0 ?
-    geneTranscripts.gene[0].transcripts.length === 1 ? geneTranscripts.gene[0].transcripts[0].coordinates.end :
-      geneTranscripts.gene[0].strand === "+" ? Math.max(...TSSs) : Math.min(...TSSs) : 0
-
-  //SNP distance is having issues since it is adjusting the start and end, which then get adjusted again and again infinitely
-  //Need some way to track the original value of the SNP, either by sending query here, or adding start/end params to snp in mqp
-
-  const handleTssUpstreamChange = (_, newValue: number) => {
-    setTssupstream(newValue as number);
-  };
+  //Recalculate TSS ranges when gene distance changes
+  useEffect(() => {
+    const TSSranges: { start: number, end: number }[] = props.TSSs?.map((tss) => {
+      return { start: Math.max(0, tss - props.mainQueryParams.gene.distance), end: tss + props.mainQueryParams.gene.distance }
+    })
+    props.setTSSranges(TSSranges)
+  }, [props.mainQueryParams.gene.distance])
   
   function valuetext(value: number) {
     return `${value}kb`;
@@ -294,11 +308,10 @@ export default function MainResultsFilters(
         <>
           <Accordion defaultExpanded square disableGutters>
             <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel2a-content" id="panel2a-header">
-              <Typography>cCREs within distance from SNP {props.mainQueryParams.snp.rsID} (upstream + downstream)</Typography>
+              <Typography>Search distance from {props.mainQueryParams.snp.rsID}</Typography>
             </AccordionSummary>
             <AccordionDetails>
               <Grid2 container spacing={2}>
-
                 <Grid2 xs={12}>
                   <Box sx={{ width: 300 }}>
                     <Slider
@@ -311,7 +324,7 @@ export default function MainResultsFilters(
                       step={null}
                       value={props.mainQueryParams.snp.distance}
                       onChange={(_, value: number) => props.setMainQueryParams({...props.mainQueryParams, snp: {...props.mainQueryParams.snp, distance: value}})}
-                      marks={marks}
+                      marks={snpMarks}
                     />
                   </Box>
                 </Grid2>
@@ -321,31 +334,33 @@ export default function MainResultsFilters(
         </>
       }
       {/* cCRES near gene  */}
-      {/* {props.mainQueryParams.searchConfig.gene &&
-        <>
-          <Accordion defaultExpanded square disableGutters>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel2a-content" id="panel2a-header">
-              <Typography>Overlapping Gene/By TSS</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
+      {props.mainQueryParams.gene.name &&
+        <Accordion defaultExpanded square disableGutters>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel2a-content" id="panel2a-header">
+            <Typography>Overlapping Gene/By TSS</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            {geneTranscripts ?
               <Grid2 container spacing={2}>
                 <Grid2 xs={12}>
                   <FormControl>
                     <RadioGroup
                       aria-labelledby="demo-controlled-radio-buttons-group"
                       name="controlled-radio-buttons-group"
-                      value={value}
-                      onChange={handleChange}
+                      value={props.mainQueryParams.gene.nearTSS ? "tss" : "overlappinggene"}
+                      onChange={(_, value: string) => {
+                        props.setMainQueryParams({ ...props.mainQueryParams, gene: { ...props.mainQueryParams.gene, nearTSS: value === "tss" } })
+                      }}
                     >
-                      <FormControlLabel value="overlappinggene" control={<Radio />} label={`Overlapping the gene body of ${props.mainQueryParams.searchConfig.gene}`} />
-                      <FormControlLabel value="tss" control={<Radio />} label={`Located between the first and last Transcription Start Sites (TSSs) of ${props.mainQueryParams.searchConfig.gene}`} />
+                      <FormControlLabel value="overlappinggene" control={<Radio />} label={`${props.mainQueryParams.gene.name} gene body`} />
+                      <FormControlLabel value="tss" control={<Radio />} label={`Within distance of TSS of ${props.mainQueryParams.gene.name}`} />
                     </RadioGroup>
                   </FormControl>
                 </Grid2>
-                {value === 'tss' && <Grid2 xs={12}>
+                {props.mainQueryParams.gene.nearTSS && <Grid2 xs={12}>
                   <Box sx={{ width: 300 }}>
                     <Typography id="input-slider" gutterBottom>
-                      Upstream of the TSSs
+                      Distance around TSS
                     </Typography>
                     <Slider
                       aria-label="Custom marks"
@@ -353,21 +368,23 @@ export default function MainResultsFilters(
                       getAriaValueText={valuetext}
                       valueLabelDisplay="auto"
                       min={0}
-                      max={50000}
+                      max={100000}
                       step={null}
-                      value={tssupstream}
-                      onChange={handleTssUpstreamChange}
-                      marks={marks}
+                      value={props.mainQueryParams.gene.distance}
+                      onChange={(_, value: number) => props.setMainQueryParams({...props.mainQueryParams, gene: {...props.mainQueryParams.gene, distance: value}})}
+                      marks={tssMarks}
                     />
                   </Box>
                 </Grid2>}
               </Grid2>
-            </AccordionDetails>
-          </Accordion>
-        </>
-      } */}
+              :
+              <CircularProgress sx={{ margin: "auto" }} />
+            }
+          </AccordionDetails>
+        </Accordion>
+      }
       {/* Biosample Activity */}
-      <Accordion defaultExpanded={props.mainQueryParams.searchConfig.gene ? false : true} square disableGutters>
+      <Accordion defaultExpanded={props.mainQueryParams.gene.name ? false : true} square disableGutters>
         <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel1a-content" id="panel1a-header">
           <Stack direction="row" spacing={1}>
             <Typography>Biosample Activity</Typography>

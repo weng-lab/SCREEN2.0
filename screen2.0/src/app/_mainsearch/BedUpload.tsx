@@ -1,14 +1,13 @@
 "use client"
 
 import React, { useCallback, useState } from "react"
-import { Button, Typography, Box, Stack, Container, RadioGroup, FormControl, FormControlLabel, FormLabel, Radio, IconButton } from "@mui/material"
+import { Button, Typography, Stack, Container, IconButton } from "@mui/material"
 import { useDropzone } from "react-dropzone"
 import { useRouter } from 'next/navigation'
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { Cancel, Search } from "@mui/icons-material"
 import { LoadingButton } from "@mui/lab"
 import config from "../../config.json"
-import { constructMainQueryParamsFromURL, constructSearchURL } from "../search/search-helpers"
 
 const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => {
   const router = useRouter()

@@ -5,12 +5,10 @@ import Autocomplete from "@mui/material/Autocomplete"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import Typography from "@mui/material/Typography"
 import { debounce } from "@mui/material/utils"
-import { useRouter } from "next/navigation"
 import { CCRE_AUTOCOMPLETE_QUERY } from "./queries"
 import Config from "../../config.json"
 import { IconButton, Stack } from "@mui/material"
 import { Search } from "@mui/icons-material"
-import { constructSearchURL, constructMainQueryParamsFromURL } from "../search/search-helpers"
 
 export const CcreAutoComplete: React.FC<{ assembly: string, header?: boolean }> = (props) => {
   const [value, setValue] = useState(null)
@@ -18,7 +16,6 @@ export const CcreAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
   const [options, setOptions] = useState([])
   const [ccreAccessions, setCcreAccessions] = useState([])
 
-  const router = useRouter()
   const onSearchChange = async (value: string) => {
     setOptions([])
     const response = await fetch(Config.API.CcreAPI, {
@@ -121,14 +118,14 @@ export const CcreAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
             return (
               <li {...props} key={props.id}>
                 <Grid2 container alignItems="center">
-                  <Grid2 sx={{ width: "calc(100% - 44px)", wordWrap: "break-word" }}>
+                  <Grid2 sx={{ width: "100%", wordWrap: "break-word" }}>
                     <Box component="span" sx={{ fontWeight: "regular" }}>
                       {option}
                     </Box>
                     {ccreAccessions && ccreAccessions.find((g: { ccreaccession: string }) => g.ccreaccession === option) && (
                       <Typography variant="body2" color="text.secondary">
                         {`${(ccreAccessions.find((g: { ccreaccession: string }) => g.ccreaccession === option))?.chrom}:${(ccreAccessions.find((g: { ccreaccession: string }) => g.ccreaccession === option))?.start
-                          }:${(ccreAccessions.find((g: { ccreaccession: string }) => g.ccreaccession === option))?.end}`}
+                          }-${(ccreAccessions.find((g: { ccreaccession: string }) => g.ccreaccession === option))?.end}`}
                       </Typography>
                     )}
                   </Grid2>

@@ -4,20 +4,17 @@ import TextField from "@mui/material/TextField"
 import Autocomplete from "@mui/material/Autocomplete"
 import Typography from "@mui/material/Typography"
 import { debounce } from "@mui/material/utils"
-import { useRouter } from "next/navigation"
 import { SNP_AUTOCOMPLETE_QUERY } from "./queries"
 import Config from "../../config.json"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { IconButton, Stack } from "@mui/material"
 import { Search } from "@mui/icons-material"
-import { constructSearchURL, constructMainQueryParamsFromURL } from "../search/search-helpers"
 
 export const SnpAutoComplete: React.FC<{ assembly: string, header?: boolean }> = (props) => {
   const [value, setValue] = React.useState(null)
   const [inputValue, setInputValue] = React.useState("")
   const [options, setOptions] = React.useState([])
   const [snpids, setSnpIds] = React.useState([])
-  const router = useRouter()
 
   const onSearchChange = async (value: string) => {
     setOptions([])
@@ -38,7 +35,7 @@ export const SnpAutoComplete: React.FC<{ assembly: string, header?: boolean }> =
       const snp = snpSuggestion.map((g: { id: string, coordinates: { chromosome: string, start: number, end: number } }) => {
         return {
           chrom: g.coordinates.chromosome,
-          start: g.coordinates.start,
+          start: g.coordinates.end,
           end: g.coordinates.end,
           id: g.id,
         }
@@ -122,14 +119,13 @@ export const SnpAutoComplete: React.FC<{ assembly: string, header?: boolean }> =
           return (
             <li {...props} key={props.id}>
               <Grid2 container alignItems="center">
-                <Grid2 sx={{ width: "calc(100% - 44px)", wordWrap: "break-word" }}>
+                <Grid2 sx={{ width: "calc(100%)", wordWrap: "break-word" }}>
                   <Box component="span" sx={{ fontWeight: "regular" }}>
                     {option}
                   </Box>
                   {snpids && snpids.find((g) => g.id === option) && (
                     <Typography variant="body2" color="text.secondary">
-                      {`${snpids.find((g) => g.id === option)?.chrom}:${snpids.find((g) => g.id === option)?.start}:${snpids.find((g) => g.id === option)?.end
-                        }`}
+                      {`${snpids.find((g) => g.id === option)?.chrom}:${snpids.find((g) => g.id === option)?.end}`}
                     </Typography>
                   )}
                 </Grid2>

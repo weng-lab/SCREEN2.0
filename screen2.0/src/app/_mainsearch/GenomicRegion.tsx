@@ -1,10 +1,8 @@
-import { TextField, InputAdornment, IconButton, Stack, Select, MenuItem, SelectChangeEvent, FormControl, InputLabel, Typography, FormControlLabel, FormLabel, Radio, RadioGroup } from "@mui/material"
+import { TextField, IconButton, Stack, Select, MenuItem, SelectChangeEvent, FormControl, InputLabel, Typography, FormControlLabel, Radio, RadioGroup } from "@mui/material"
 import { useState } from "react"
 import { Search } from "@mui/icons-material"
-import { useRouter } from "next/navigation"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { parseGenomicRegion } from "./SearchHelpers"
-import { constructMainQueryParamsFromURL, constructSearchURL } from "../search/search-helpers"
 
 //https://mui.com/material-ui/react-text-field/#integration-with-3rd-party-input-libraries
 //For formatting the start/end as it's being entered.
@@ -15,8 +13,6 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
   const [start, setStart] = useState('')
   const [end, setEnd] = useState('')
   const [inputType, setInputType] = useState("UCSC")
-
-  const router = useRouter()
 
   const assembly = props.assembly
 

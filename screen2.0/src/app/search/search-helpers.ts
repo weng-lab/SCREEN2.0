@@ -61,39 +61,42 @@ export async function fetchcCREDataAndLinkedGenes (
 export function generateFilteredRows(
   rawQueryData: rawQueryData,
   filterCriteria: FilterCriteria,
-  unfiltered?: boolean
+  unfiltered?: boolean,
+  TSSranges?: {start: number, end: number}[]
 ): MainResultTableRows {
   const cCRE_data: cCREData[] = rawQueryData.mainQueryData.data.cCRESCREENSearch
   const otherLinked = rawQueryData.linkedGenesData
-  //Assembly unfiltered rows
   const rows: MainResultTableRows = []
+  //Assemble unfiltered rows, if TSS ranges passed check to make sure it's in one of them
   cCRE_data.forEach((currentElement) => {
-    const genesToAdd = otherLinked[currentElement.info.accession] ?? null
-    const CTCF_ChIAPET_ToAdd: { name: string, biosample: string }[] = []
-    const RNAPII_ChIAPET_ToAdd: { name: string, biosample: string }[] = []
-    //Gather lists of CTCF-ChIAPET and RNAPII-ChIAPET linked genes
-    genesToAdd && genesToAdd.genes.forEach(gene => {
-      if (gene.linkedBy === "CTCF-ChIAPET") {
-        CTCF_ChIAPET_ToAdd.push({ name: gene.geneName, biosample: gene.biosample })
-      }
-      else if (gene.linkedBy === "RNAPII-ChIAPET") {
-        RNAPII_ChIAPET_ToAdd.push({ name: gene.geneName, biosample: gene.biosample })
-      }
-    })
-    rows.push({
-      accession: currentElement.info.accession,
-      class: currentElement.pct,
-      chromosome: currentElement.chrom,
-      start: currentElement.start.toLocaleString("en-US"),
-      end: (currentElement.start + currentElement.len).toLocaleString("en-US"),
-      dnase: currentElement.dnase_zscore,
-      h3k4me3: currentElement.promoter_zscore,
-      h3k27ac: currentElement.enhancer_zscore,
-      ctcf: currentElement.ctcf_zscore,
-      atac: currentElement.atac_zscore,
-      linkedGenes: { distancePC: currentElement.genesallpc.pc.intersecting_genes, distanceAll: currentElement.genesallpc.all.intersecting_genes, CTCF_ChIAPET: CTCF_ChIAPET_ToAdd, RNAPII_ChIAPET: RNAPII_ChIAPET_ToAdd },
-      conservationData: { mammals: currentElement.mammals, primates: currentElement.primates, vertebrates: currentElement.vertebrates }
-    })
+    if (!TSSranges || TSSranges && TSSranges.find((TSSrange) => currentElement.start <= TSSrange.end && TSSrange.start <= (currentElement.start + currentElement.len))) {
+      const genesToAdd = otherLinked[currentElement.info.accession] ?? null
+      const CTCF_ChIAPET_ToAdd: { name: string, biosample: string }[] = []
+      const RNAPII_ChIAPET_ToAdd: { name: string, biosample: string }[] = []
+      //Gather lists of CTCF-ChIAPET and RNAPII-ChIAPET linked genes
+      genesToAdd && genesToAdd.genes.forEach(gene => {
+        if (gene.linkedBy === "CTCF-ChIAPET") {
+          CTCF_ChIAPET_ToAdd.push({ name: gene.geneName, biosample: gene.biosample })
+        }
+        else if (gene.linkedBy === "RNAPII-ChIAPET") {
+          RNAPII_ChIAPET_ToAdd.push({ name: gene.geneName, biosample: gene.biosample })
+        }
+      })
+      rows.push({
+        accession: currentElement.info.accession,
+        class: currentElement.pct,
+        chromosome: currentElement.chrom,
+        start: currentElement.start.toLocaleString("en-US"),
+        end: (currentElement.start + currentElement.len).toLocaleString("en-US"),
+        dnase: currentElement.dnase_zscore,
+        h3k4me3: currentElement.promoter_zscore,
+        h3k27ac: currentElement.enhancer_zscore,
+        ctcf: currentElement.ctcf_zscore,
+        atac: currentElement.atac_zscore,
+        linkedGenes: { distancePC: currentElement.genesallpc.pc.intersecting_genes, distanceAll: currentElement.genesallpc.all.intersecting_genes, CTCF_ChIAPET: CTCF_ChIAPET_ToAdd, RNAPII_ChIAPET: RNAPII_ChIAPET_ToAdd },
+        conservationData: { mammals: currentElement.mammals, primates: currentElement.primates, vertebrates: currentElement.vertebrates }
+      })
+    }
   })
   if (unfiltered) {
     return rows
@@ -458,7 +461,7 @@ export function constructSearchURL(
       + `&chromosome=${newSearchParams.coordinates.chromosome}`
       + `&start=${newSearchParams.coordinates.start}`
       + `&end=${newSearchParams.coordinates.end}`
-      + `${newSearchParams.searchConfig.gene ? "&gene=" + newSearchParams.searchConfig.gene : ""}`
+      + `${newSearchParams.gene.name ? "&gene=" + newSearchParams.gene.name + "&tssDistance=" + newSearchParams.gene.distance + "&nearTSS=" + outputT_or_F(newSearchParams.gene.nearTSS) : ""}`
       + `${newSearchParams.snp.rsID ? "&snpid=" + newSearchParams.snp.rsID + "&snpDistance=" + newSearchParams.snp.distance : ""}`
 
   //Can probably get biosample down to one string, and extract other info when parsing byCellType
@@ -554,7 +557,11 @@ export function constructMainQueryParamsFromURL(searchParams: { [key: string]: s
       searchConfig: {
         //Flag for if user-entered bed file intersection accessions to be used from sessionStorage
         bed_intersect: searchParams.intersect ? checkTrueFalse(searchParams.intersect) : false,
-        gene: searchParams.gene,
+      },
+      gene: {
+        name: searchParams.gene,
+        distance: +searchParams.tssDistance ?? 0,
+        nearTSS: searchParams.nearTSS ? checkTrueFalse(searchParams.nearTSS) : false
       },
       snp: {
         rsID: searchParams.snpid,

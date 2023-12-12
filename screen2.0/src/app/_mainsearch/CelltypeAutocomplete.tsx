@@ -9,8 +9,6 @@ import Config from "../../config.json"
 import { IconButton, Stack } from "@mui/material"
 import { Search } from "@mui/icons-material"
 import { parseGenomicRegion } from "./SearchHelpers"
-import { start } from "repl"
-import { constructSearchURL, constructMainQueryParamsFromURL } from "../search/search-helpers"
 
 export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean }> = (props) => {
   const [valueCellType, setValueCellType] = useState(null)
@@ -19,7 +17,6 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
   const [options, setOptions] = useState([])
   const [cellTypes, setCelltypes] = useState([])
 
-  const router = useRouter()
 
   //Fetch for the biosample options
   useEffect(() => {
@@ -113,7 +110,7 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
           return (
             <li {...props} key={props.id}>
               <Grid2 container alignItems="center">
-                <Grid2 sx={{ width: "calc(100% - 44px)", wordWrap: "normal" }}>
+                <Grid2 sx={{ width: "100%", wordWrap: "normal" }}>
                   <Box component="span" sx={{ fontWeight: "regular" }}>
                     {option}
                   </Box>

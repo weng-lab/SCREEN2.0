@@ -110,7 +110,9 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const [biosampleTableFilters, setBiosampleTableFilters] = useState<BiosampleTableFilters>(constructBiosampleTableFiltersFromURL(searchParams))
   const [loadingTable, setLoadingTable] = useState<boolean>(false)
   const [loadingFetch, setLoadingFetch] = useState<boolean>(false)
-  const [opencCREsInitialized, setOpencCREsInitialized] = useState(false);
+  const [opencCREsInitialized, setOpencCREsInitialized] = useState(false)
+  const [TSSs, setTSSs] = useState<number[]>(null)
+  const [TSSranges, setTSSranges] = useState<{start: number, end: number}[]>(null)
 
   //Used to set just biosample in filters. Used for performance improvement to avoid having entire mainQueryParams in dep array
   const handleSetBiosample = (
@@ -132,7 +134,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     intersectFilenames.current = sessionStorage.getItem("filenames")
   }, [])
 
-  const numberOfDefaultTabs = mainQueryParams.searchConfig.gene ? (mainQueryParams.coordinates.assembly.toLowerCase() === "mm10" ? 3 : 4) : 2
+  const numberOfDefaultTabs = mainQueryParams.gene.name ? (mainQueryParams.coordinates.assembly.toLowerCase() === "mm10" ? 3 : 4) : 2
 
   const handleDrawerOpen = () => { setOpen(true) }
   const handleDrawerClose = () => { setOpen(false) }
@@ -167,7 +169,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   }
 
   const handlePageChange = (_, newValue: number) => {
-    if (mainQueryParams.searchConfig.gene && (newValue === 2 || newValue === 3)) {
+    if (mainQueryParams.gene.name && (newValue === 2 || newValue === 3)) {
       setOpen(false)
     }
     setPage(newValue)
@@ -209,17 +211,35 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   //Fetch raw cCRE data (main query and linked genes)
   useEffect(() => {
       setLoadingFetch(true)
-      console.log("Main fetch effect called for " + mainQueryParams.coordinates.assembly)
+
+      let start: number;
+      if (mainQueryParams.snp.rsID) {
+        start = Math.max(0, mainQueryParams.coordinates.start - mainQueryParams.snp.distance);
+      } else if (mainQueryParams.gene.nearTSS) {
+        start = TSSs ? Math.max(0, Math.min(...TSSs) - mainQueryParams.gene.distance) : null
+      } else {
+        start = mainQueryParams.coordinates.start;
+      }
+
+      let end: number;
+      if (mainQueryParams.snp.rsID) {
+        end = mainQueryParams.coordinates.end + mainQueryParams.snp.distance;
+      } else if (mainQueryParams.gene.nearTSS) {
+        end = TSSs ? Math.max(...TSSs) + mainQueryParams.gene.distance : null
+      } else {
+        end = mainQueryParams.coordinates.end;
+      }
+
       // Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
       // @ts-expect-error
-      startTransition(async () => {
+      start && end && startTransition(async () => {
         console.log("sending query for " + mainQueryParams.coordinates.assembly)
         setRawQueryData(
           await fetchcCREDataAndLinkedGenes(
             mainQueryParams.coordinates.assembly,
             mainQueryParams.coordinates.chromosome,
-            mainQueryParams.snp.rsID ? mainQueryParams.coordinates.start - mainQueryParams.snp.distance : mainQueryParams.coordinates.start,
-            mainQueryParams.snp.rsID ? mainQueryParams.coordinates.end + mainQueryParams.snp.distance : mainQueryParams.coordinates.end,
+            start,
+            end,
             mainQueryParams.biosample.biosample,
             1000000,
             null,
@@ -229,7 +249,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         console.log("query complete for " + mainQueryParams.coordinates.assembly)
       })
       setLoadingFetch(false)
-  }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample.biosample, mainQueryParams.snp.rsID, mainQueryParams.snp.distance])
+  }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample.biosample, mainQueryParams.snp.rsID, mainQueryParams.snp.distance, TSSs, mainQueryParams.gene.distance, mainQueryParams.gene.nearTSS])
 
   // Initialize open cCREs on initial load
   useEffect(() => {
@@ -278,17 +298,21 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     } 
   }, [opencCREsInitialized, filterCriteria, mainQueryParams.coordinates.assembly, searchParams.accessions])
 
+  /**
+   * TODO ADD TSS ranges to filter function
+   */
+
   //Generate and filter rows
   const filteredTableRows = useMemo(() => {
     setLoadingTable(true)
     if (rawQueryData) {
-      const rows = generateFilteredRows(rawQueryData, filterCriteria)
+      const rows = generateFilteredRows(rawQueryData, filterCriteria, false, TSSranges)
       setLoadingTable(false)
       return (rows)
     } else {
       return []
     }
-  }, [rawQueryData, filterCriteria])
+  }, [rawQueryData, filterCriteria, TSSranges])
 
   const findTabByID = (id: string, numberOfTable: number = 2) => {
     return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)
@@ -326,11 +350,11 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               {!mainQueryParams.searchConfig.bed_intersect &&
                 <StyledTab value={1} label="Genome Browser View" />
               }
-              {mainQueryParams.searchConfig.gene &&
-                <StyledTab value={2} label={`${mainQueryParams.searchConfig.gene} Gene Expression`} />
+              {mainQueryParams.gene.name &&
+                <StyledTab value={2} label={`${mainQueryParams.gene.name} Gene Expression`} />
               }
-              {mainQueryParams.searchConfig.gene && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" &&
-                <StyledTab value={3} label={`${mainQueryParams.searchConfig.gene} RAMPAGE`} />
+              {mainQueryParams.gene.name && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" &&
+                <StyledTab value={3} label={`${mainQueryParams.gene.name} RAMPAGE`} />
               }
 
               {/* Map opencCREs to tabs */}
@@ -388,6 +412,9 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               biosampleTableFilters={biosampleTableFilters}
               setBiosampleTableFilters={setBiosampleTableFilters}
               setBiosample={(biosample) => handleSetBiosample(biosample)}
+              TSSs={TSSs}
+              setTSSs={setTSSs}
+              setTSSranges={setTSSranges}
               byCellType={globals}
               genomeBrowserView={page === 1}
               searchParams={searchParams}
@@ -429,11 +456,14 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                     mainQueryParams.searchConfig.bed_intersect ?
                       `Intersecting by uploaded .bed file in ${mainQueryParams.coordinates.assembly}${intersectWarning.current === "true" ? " (Partial)" : ""}`
                       :
-                      mainQueryParams.searchConfig.gene ?
-                        `cCREs overlapping ${mainQueryParams.searchConfig.gene} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.start.toLocaleString("en-US")}-${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
+                      mainQueryParams.gene.name ?
+                        mainQueryParams.gene.nearTSS ?
+                          `cCREs within ${mainQueryParams.gene.distance / 1000}kb of TSSs of ${mainQueryParams.gene.name} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.start.toLocaleString("en-US")}-${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
+                          :
+                          `cCREs overlapping ${mainQueryParams.gene.name} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.start.toLocaleString("en-US")}-${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
                         :
                         mainQueryParams.snp.rsID ?
-                          `cCREs overlapping ${mainQueryParams.snp.rsID} with ${mainQueryParams.snp.distance}kb padding - ${mainQueryParams.coordinates.chromosome}:${(mainQueryParams.coordinates.start - mainQueryParams.snp.distance).toLocaleString("en-US")}-${(mainQueryParams.coordinates.end + mainQueryParams.snp.distance).toLocaleString("en-US")}`
+                          `cCREs within ${mainQueryParams.snp.distance}bp of ${mainQueryParams.snp.rsID} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
                           :
                           `Searching ${mainQueryParams.coordinates.chromosome} in ${mainQueryParams.coordinates.assembly} from ${mainQueryParams.coordinates.start.toLocaleString("en-US")} to ${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
                   }
@@ -454,17 +484,17 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           )}
           {page === 1 && (
             <GenomeBrowserView
-              gene={mainQueryParams.searchConfig.gene}
+              gene={mainQueryParams.gene.name}
               biosample={mainQueryParams.biosample.biosample}
               assembly={mainQueryParams.coordinates.assembly}
               coordinates={{ start: mainQueryParams.coordinates.start, end: mainQueryParams.coordinates.end, chromosome: mainQueryParams.coordinates.chromosome }}
             />
           )}
-          {mainQueryParams.searchConfig.gene && page === 2 &&
-            <GeneExpression assembly={mainQueryParams.coordinates.assembly} genes={[mainQueryParams.searchConfig.gene]} />
+          {mainQueryParams.gene.name && page === 2 &&
+            <GeneExpression assembly={mainQueryParams.coordinates.assembly} genes={[mainQueryParams.gene.name]} />
           }
-          {mainQueryParams.searchConfig.gene && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" && page === 3 && (
-            <Rampage gene={mainQueryParams.searchConfig.gene} />
+          {mainQueryParams.gene.name && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" && page === 3 && (
+            <Rampage gene={mainQueryParams.gene.name} />
           )}
           {page >= numberOfDefaultTabs && opencCREs.length > 0 && (
             opencCREs[page - numberOfDefaultTabs] ?

@@ -55,14 +55,16 @@ export type MainQueryParams = {
     summaryName: string
   }
   snp: {
-    //old searchConfig.snpid
     rsID: string
     distance: number
   }
+  gene: {
+    name: string
+    distance: number
+    nearTSS: boolean
+  }
   searchConfig: {
     bed_intersect: boolean
-    gene: string
-    // snpid: string
   }
 }
 

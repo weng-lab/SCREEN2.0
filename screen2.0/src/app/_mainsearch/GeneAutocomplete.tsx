@@ -5,12 +5,10 @@ import Autocomplete from "@mui/material/Autocomplete"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import Typography from "@mui/material/Typography"
 import { debounce } from "@mui/material/utils"
-import { useRouter } from "next/navigation"
 import { GENE_AUTOCOMPLETE_QUERY } from "./queries"
 import Config from "../../config.json"
 import { IconButton, Stack } from "@mui/material"
 import { Search } from "@mui/icons-material"
-import { constructSearchURL, constructMainQueryParamsFromURL } from "../search/search-helpers"
 type QueryResponse = [number, string[], any, [string, string, string, string, string, string][], string[]]
 
 export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> = (props) => {
@@ -19,7 +17,6 @@ export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
   const [options, setOptions] = useState<string[]>([])
   const [geneids, setGeneIds] = useState<{ chrom: string; start: number; end: number; id: string; name: string }[]>([])
 
-  const router = useRouter()
   const [geneDesc, setgeneDesc] = useState<{ name: string; desc: string }[]>()
 
   useEffect(() => {
@@ -87,7 +84,7 @@ export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
       let chrom = geneids.find((g) => g.name === value)?.chrom
       let start = geneids.find((g) => g.name === value)?.start
       let end = geneids.find((g) => g.name === value)?.end
-      return (`search?assembly=${props.assembly}&chromosome=${chrom}&start=${start}&end=${end}&gene=${value}`)
+      return (`search?assembly=${props.assembly}&chromosome=${chrom}&start=${start}&end=${end}&gene=${value}&tssDistance=0`)
     }
   }
 
@@ -149,7 +146,7 @@ export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
           return (
             <li {...props} key={props.id}>
               <Grid2 container alignItems="center">
-                <Grid2 sx={{ width: "calc(100% - 44px)" }}>
+                <Grid2 sx={{ width: "100%" }}>
                   <Box component="span" sx={{ fontWeight: "regular" }}>
                     {option}
                   </Box>
