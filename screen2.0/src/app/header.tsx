@@ -5,10 +5,10 @@ import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown"
 import MenuIcon from "@mui/icons-material/Menu"
 import Link from "next/link"
 import Image from "next/image"
-import screenIcon from "../../../public/screenIcon.png"
-import test_logo from "../../public/test_logo.png"
+import screenIcon from "../../public/screenIcon.png"
 
 import MainSearch from "./_mainsearch/mainsearch"
+import { useState } from "react"
 
 /*  
   Links for the AppBar. If adding another page with subpages, you need to add another 
@@ -46,13 +46,13 @@ const pageLinks = [
 ]
 
 function ResponsiveAppBar() {
-  const [open, setState] = React.useState<boolean>(false)
+  const [open, setState] = useState<boolean>(false)
   // Hamburger Menu, deals with setting its position
-  const [anchorElNav_Hamburger, setAnchorElNav_Hamburger] = React.useState<null | HTMLElement>(null)
+  const [anchorElNav_Hamburger, setAnchorElNav_Hamburger] = useState<null | HTMLElement>(null)
 
   // Hover dropdowns, deals with setting its position
-  const [anchorElNav_Dropdown0, setAnchorElNav_Dropdown0] = React.useState<null | HTMLElement>(null)
-  const [anchorElNav_Dropdown1, setAnchorElNav_Dropdown1] = React.useState<null | HTMLElement>(null)
+  const [anchorElNav_Dropdown0, setAnchorElNav_Dropdown0] = useState<null | HTMLElement>(null)
+  const [anchorElNav_Dropdown1, setAnchorElNav_Dropdown1] = useState<null | HTMLElement>(null)
 
   // Open Hamburger
   const handleOpenNavMenu_Hamburger = (event: React.MouseEvent<HTMLElement>) => {
@@ -89,7 +89,7 @@ function ResponsiveAppBar() {
           <Toolbar disableGutters sx={{ justifyContent: "space-between" }}>
             {/* Display Icon on left when >=900px */}
             <Link href={"/"}>
-              <Image src={test_logo} alt="SCREEN Icon" height={40} width={40} />
+              <Image src={screenIcon} alt="SCREEN Icon" height={40} width={40} />
             </Link>
             <Typography
               variant="h5"

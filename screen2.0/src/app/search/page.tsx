@@ -91,7 +91,7 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 export default function Search({ searchParams }: { searchParams: { [key: string]: string | undefined } }) {
   const router = useRouter()
   const basePathname = usePathname()
-  const [open, setOpen] = React.useState(true);
+  const [open, setOpen] = useState(true);
   const [page, setPage] = useState(searchParams.page ? Number(searchParams.page) : 0)
   const [detailsPage, setDetailsPage] = useState(0)
   const [opencCREs, setOpencCREs] = useState<{
@@ -209,22 +209,18 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   useEffect(() => {
       setLoadingFetch(true)
 
-      let start: number;
+      let start = mainQueryParams.coordinates.start
       if (mainQueryParams.snp.rsID) {
         start = Math.max(0, mainQueryParams.coordinates.start - mainQueryParams.snp.distance);
       } else if (mainQueryParams.gene.nearTSS) {
         start = TSSs ? Math.max(0, Math.min(...TSSs) - mainQueryParams.gene.distance) : null
-      } else {
-        start = mainQueryParams.coordinates.start;
       }
 
-      let end: number;
+      let end = mainQueryParams.coordinates.end
       if (mainQueryParams.snp.rsID) {
         end = mainQueryParams.coordinates.end + mainQueryParams.snp.distance;
       } else if (mainQueryParams.gene.nearTSS) {
         end = TSSs ? Math.max(...TSSs) + mainQueryParams.gene.distance : null
-      } else {
-        end = mainQueryParams.coordinates.end;
       }
 
       // Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
@@ -303,7 +299,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const filteredTableRows = useMemo(() => {
     setLoadingTable(true)
     if (rawQueryData) {
-      const rows = generateFilteredRows(rawQueryData, filterCriteria, false, TSSranges)
+      const rows = generateFilteredRows(rawQueryData, filterCriteria, false, mainQueryParams.gene.nearTSS ? TSSranges : undefined)
       setLoadingTable(false)
       return (rows)
     } else {

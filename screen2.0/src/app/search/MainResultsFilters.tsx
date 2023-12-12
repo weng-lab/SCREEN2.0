@@ -1,5 +1,6 @@
 "use client"
 import * as React from "react"
+import { Dispatch, SetStateAction } from "react";
 import {
   Accordion,
   AccordionSummary,
@@ -101,33 +102,29 @@ const GENE_TRANSCRIPTS_QUERY = gql`
    }
  } `
 
- //TODO
- // gene changing main query
-
 export default function MainResultsFilters(
   props: {
     mainQueryParams: MainQueryParams,
-    setMainQueryParams: React.Dispatch<React.SetStateAction<MainQueryParams>>,
+    setMainQueryParams: Dispatch<SetStateAction<MainQueryParams>>,
     filterCriteria: FilterCriteria,
-    setFilterCriteria: React.Dispatch<React.SetStateAction<FilterCriteria>>,
+    setFilterCriteria: Dispatch<SetStateAction<FilterCriteria>>,
     biosampleTableFilters: BiosampleTableFilters,
-    setBiosampleTableFilters: React.Dispatch<React.SetStateAction<BiosampleTableFilters>>,
+    setBiosampleTableFilters: Dispatch<SetStateAction<BiosampleTableFilters>>,
     setBiosample: (biosample: { selected: boolean, biosample: string, tissue: string, summaryName: string }) => void,
     TSSs: number[]
-    setTSSs: React.Dispatch<React.SetStateAction<number[]>>,
-    setTSSranges: React.Dispatch<React.SetStateAction<{ start: number, end: number }[]>>
+    setTSSs: Dispatch<SetStateAction<number[]>>,
+    setTSSranges: Dispatch<SetStateAction<{ start: number, end: number }[]>>
     byCellType: CellTypeData,
     genomeBrowserView: boolean,
     searchParams: { [key: string]: string | undefined },
   }
-): React.JSX.Element {
+): JSX.Element {
   
   //Selected Biosample
-  const [BiosampleHighlight, setBiosampleHighlight] = useState<{} | null>(null)
-  const [SearchString, setSearchString] = useState<string>("")
+  const [biosampleHighlight, setBiosampleHighlight] = useState<{} | null>(null)
+  const [searchString, setSearchString] = useState<string>("")
 
   const [gene, setGene] = useState<string>("")
-
 
   const {
     data: geneTranscripts
@@ -262,7 +259,7 @@ export default function MainResultsFilters(
       return (
         filteredBiosamples.sort().map((tissue: [string, {}[]], i) => {
           // Filter shows accordians by if their table contains the search
-          if (SearchString ? tissue[1].find(obj => obj["summaryName"].toLowerCase().includes(SearchString.toLowerCase())) : true) {
+          if (searchString ? tissue[1].find(obj => obj["summaryName"].toLowerCase().includes(searchString.toLowerCase())) : true) {
             return (
               <Accordion key={tissue[0]}>
                 <AccordionSummary
@@ -282,8 +279,8 @@ export default function MainResultsFilters(
                     rows={tissue[1]}
                     dense
                     searchable
-                    search={SearchString}
-                    highlighted={BiosampleHighlight}
+                    search={searchString}
+                    highlighted={biosampleHighlight}
                     sortColumn={1}
                     onRowClick={(row, i) => {
                       props.setBiosample({ selected: true, biosample: row.queryValue, tissue: row.biosampleTissue, summaryName: row.summaryName })
@@ -298,7 +295,7 @@ export default function MainResultsFilters(
       )
     },
     //For some reason it wants "props" as a dependency here, not sure why. Not referring to just "props" here at all
-    [filteredBiosamples, BiosampleHighlight, SearchString, props.setBiosample]
+    [filteredBiosamples, biosampleHighlight, searchString, props.setBiosample]
   )
 
   return (
@@ -400,7 +397,7 @@ export default function MainResultsFilters(
             </Grid2>
             <Grid2 xs={7}>
               <TextField
-                value={SearchString}
+                value={searchString}
                 size="small"
                 label="Search Biosamples"
                 onChange={(event) => setSearchString(event.target.value)}
@@ -546,22 +543,21 @@ export default function MainResultsFilters(
                     }}
                   />
                 </Grid2>
-                {/*<Grid2 xs={12} lg={12} xl={12}>
+                <Grid2 xs={12} lg={12} xl={12}>
                   <RangeSlider
                     title="ATAC"
                     width="100%"
-                    defaultStart={ATACStart}
-                    defaultEnd={ATACEnd}
+                    defaultStart={props.filterCriteria.atac_s}
+                    defaultEnd={props.filterCriteria.atac_e}
                     min={-10}
                     max={10}
                     minDistance={1}
                     step={0.1}
-                    onSliderChangeCommitted={(value: any) => {
-                      setATACStart(value[0])
-                      setATACEnd(value[1])
+                    onSliderChangeCommitted={(value: number[]) => {
+                      props.setFilterCriteria({...props.filterCriteria, atac_s: value[0], atac_e: value[1]})
                     }}
                   />
-                </Grid2>*/}
+                </Grid2>
               </Grid2>
             </AccordionDetails>
           </Accordion>
