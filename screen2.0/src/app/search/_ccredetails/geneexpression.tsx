@@ -12,7 +12,7 @@ import { GENE_EXP_QUERY, GENE_QUERY } from "../../applets/gene-expression/querie
 
 //Replace this when Gene Autocomplete extracted into componenet
 import GeneAutoComplete from "../../applets/gene-expression/geneautocomplete"
-import GenomeSwitch from "./GenomeSwitch"
+import GenomeSwitch from "./genomeswitch"
 import { ReadonlyURLSearchParams, usePathname, useSearchParams, useRouter } from "next/navigation"
 
 /**
