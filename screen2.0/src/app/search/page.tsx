@@ -190,6 +190,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         page,
         opencCREs.map(x => x.ID).join(',')
       )
+      console.log("pushing:")
+      console.log(newURL)
       router.push(newURL)
     }
   }, [searchParams, mainQueryParams, filterCriteria, biosampleTableFilters, page, opencCREs, router, basePathname, opencCREsInitialized])
@@ -247,7 +249,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   // Initialize open cCREs on initial load
   useEffect(() => {
     const cCREsToFetch = searchParams.accessions?.split(',')
-    if (cCREsToFetch && !opencCREsInitialized) {
+    console.log
+    if (cCREsToFetch?.length > 0 && !opencCREsInitialized) {
       // @ts-expect-error
       startTransition(async () => {
         console.log("initialize cCRE effect running")
@@ -288,7 +291,9 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         )
         setOpencCREsInitialized(true)
       })
-    } 
+    } else if ((!cCREsToFetch || cCREsToFetch?.length === 0) && !opencCREsInitialized) {
+      setOpencCREsInitialized(true)
+    }
   }, [opencCREsInitialized, filterCriteria, mainQueryParams.coordinates.assembly, searchParams.accessions])
 
   //Generate and filter rows
