@@ -305,7 +305,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     } else {
       return []
     }
-  }, [rawQueryData, filterCriteria, TSSranges])
+  }, [rawQueryData, filterCriteria, TSSranges, mainQueryParams.gene.nearTSS])
 
   const findTabByID = (id: string, numberOfTable: number = 2) => {
     return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)
