@@ -4,12 +4,12 @@ import { Stack, InputBaseProps, Typography, Box } from "@mui/material"
 import MenuItem from "@mui/material/MenuItem"
 import FormControl from "@mui/material/FormControl"
 import Select, { SelectChangeEvent } from "@mui/material/Select"
-import { CcreAutoComplete } from "./CcreAutocomplete"
-import { GeneAutoComplete } from "./GeneAutocomplete"
-import { SnpAutoComplete } from "./SnpAutocomplete"
-import { CelltypeAutocomplete } from "./CelltypeAutocomplete"
-import BedUpload from "./BedUpload"
-import GenomicRegion from "./GenomicRegion"
+import { CcreAutoComplete } from "./ccreautocomplete"
+import { GeneAutoComplete } from "./geneautocomplete"
+import { SnpAutoComplete } from "./snpautocomplete"
+import { CelltypeAutocomplete } from "./celltypeautocomplete"
+import BedUpload from "./bedupload"
+import GenomicRegion from "./genomicregion"
 
 export type MainSearchProps = InputBaseProps & {
   //false for human, true for mouse

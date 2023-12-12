@@ -28,10 +28,10 @@ import Grid2 from "@mui/material/Unstable_Grid2"
 import { RangeSlider, DataTable } from "@weng-lab/psychscreen-ui-components"
 import { useState, useMemo, useEffect } from "react"
 import { BiosampleTableFilters, CellTypeData, FilterCriteria, FilteredBiosampleData, MainQueryParams } from "./types"
-import { parseByCellType, filterBiosamples, assayHoverInfo } from "./search-helpers"
+import { parseByCellType, filterBiosamples, assayHoverInfo } from "./searchhelpers"
 import { gql } from "@apollo/client"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
-import GeneAutoComplete from "../applets/gene-expression/gene-autocomplete";
+import GeneAutoComplete from "../applets/gene-expression/geneautocomplete";
 import { InfoOutlined } from "@mui/icons-material";
 
 const snpMarks = [

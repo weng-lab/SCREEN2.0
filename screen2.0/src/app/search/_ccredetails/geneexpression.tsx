@@ -1,7 +1,7 @@
 "use client"
 import React, { useState, useEffect } from "react"
 import { LoadingMessage } from "../../../common/lib/utility"
-import { PlotGeneExpression } from "../../applets/gene-expression/PlotGeneExpression"
+import { PlotGeneExpression } from "../../applets/gene-expression/geneexpressionplot"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import { Button, Typography, Stack, TextField, MenuItem, FormControl, SelectChangeEvent, Checkbox, InputLabel, ListItemText, OutlinedInput, Select, ToggleButton, ToggleButtonGroup, FormLabel, Box } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
@@ -11,7 +11,7 @@ import { GENE_EXP_QUERY, GENE_QUERY } from "../../applets/gene-expression/querie
 
 
 //Replace this when Gene Autocomplete extracted into componenet
-import GeneAutoComplete from "../../applets/gene-expression/gene-autocomplete"
+import GeneAutoComplete from "../../applets/gene-expression/geneautocomplete"
 import GenomeSwitch from "./GenomeSwitch"
 import { ReadonlyURLSearchParams, usePathname, useSearchParams, useRouter } from "next/navigation"
 

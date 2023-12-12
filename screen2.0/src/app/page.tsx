@@ -1,7 +1,7 @@
 "use client"
 
 import { Box, Divider, Stack, Typography } from "@mui/material"
-import MainSearch from "./_mainsearch/MainSearch"
+import MainSearch from "./_mainsearch/mainsearch"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import homeImage from "../../public/homeImage.png"
 import Image from "next/image"

@@ -28,7 +28,7 @@ import {
 
 import { useQuery } from "@apollo/client"
 import { GENE_SEARCH_QUERY, ZSCORE_QUERY } from "./queries"
-import GeneAutoComplete from "../gene-expression/gene-autocomplete"
+import GeneAutoComplete from "../gene-expression/geneautocomplete"
 import { CoordinateRangeField, TogglePCT, TogglePlot } from "./options"
 import { PlotDifferentialExpression, PlotGenes } from "./plot"
 import { cellTypeInfoArr } from "./types"

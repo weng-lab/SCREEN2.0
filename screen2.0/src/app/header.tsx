@@ -8,7 +8,7 @@ import Image from "next/image"
 import screenIcon from "../../../public/screenIcon.png"
 import test_logo from "../../public/test_logo.png"
 
-import MainSearch from "./_mainsearch/MainSearch"
+import MainSearch from "./_mainsearch/mainsearch"
 
 /*  
   Links for the AppBar. If adding another page with subpages, you need to add another 

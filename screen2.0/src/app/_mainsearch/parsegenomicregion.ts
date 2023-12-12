@@ -1,7 +1,5 @@
 //Helpers for the Search components
 
-import { TextField } from "@mui/material"
-
 /**
  * 
  * @param input A user-entered string representing a genomic region; chr_:start-end or tab separated format supported

@@ -2,7 +2,7 @@ import { TextField, IconButton, Stack, Select, MenuItem, SelectChangeEvent, Form
 import { useState } from "react"
 import { Search } from "@mui/icons-material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
-import { parseGenomicRegion } from "./SearchHelpers"
+import { parseGenomicRegion } from "./parsegenomicregion"
 
 //https://mui.com/material-ui/react-text-field/#integration-with-3rd-party-input-libraries
 //For formatting the start/end as it's being entered.

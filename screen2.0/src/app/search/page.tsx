@@ -2,17 +2,17 @@
 "use client"
 import { getGlobals } from "../../common/lib/queries"
 import { BiosampleTableFilters, CellTypeData, FilterCriteria, MainQueryParams } from "./types"
-import { checkTrueFalse, constructBiosampleTableFiltersFromURL, constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, createQueryString, fetchcCREDataAndLinkedGenes } from "./search-helpers"
+import { checkTrueFalse, constructBiosampleTableFiltersFromURL, constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, createQueryString, fetchcCREDataAndLinkedGenes } from "./searchhelpers"
 import React, { startTransition, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { styled } from '@mui/material/styles';
 import { Divider, IconButton, Tab, Tabs, Typography, Box, CircularProgress } from "@mui/material"
-import MainResultsTable from "./MainResultsTable"
-import MainResultsFilters from "./MainResultsFilters"
+import MainResultsTable from "./mainresultstable"
+import MainResultsFilters from "./mainresultsfilters"
 import { CcreDetails } from "./_ccredetails/ccredetails"
 import { usePathname, useRouter } from "next/navigation"
 import { GenomeBrowserView } from "./_gbview/genomebrowserview"
 import { LinkedGenesData, MainResultTableRow, rawQueryData } from "./types"
-import { generateFilteredRows } from "./search-helpers"
+import { generateFilteredRows } from "./searchhelpers"
 import { Drawer } from "@mui/material"
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar'
 import Toolbar from '@mui/material/Toolbar'

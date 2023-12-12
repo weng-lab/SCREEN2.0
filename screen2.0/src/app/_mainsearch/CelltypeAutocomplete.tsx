@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation"
 import Config from "../../config.json"
 import { IconButton, Stack } from "@mui/material"
 import { Search } from "@mui/icons-material"
-import { parseGenomicRegion } from "./SearchHelpers"
+import { parseGenomicRegion } from "./parsegenomicregion"
 
 export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean }> = (props) => {
   const [valueCellType, setValueCellType] = useState(null)
