@@ -1,8 +1,8 @@
 "use client"
 import { DataTable, DataTableProps, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
-import React, { useState, Dispatch, SetStateAction } from "react"
+import React, { useState, Dispatch, SetStateAction, useMemo, use } from "react"
 import { Box, Typography, Menu, Checkbox, Stack, MenuItem, FormControlLabel, FormGroup, Tooltip, Button, Modal, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, Paper, Container } from "@mui/material"
-import { MainResultTableRow, ConservationData, CellTypeData } from "./types"
+import { MainResultTableRow, ConservationData, CellTypeData, SelectedBiosamples } from "./types"
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import { EventBusyTwoTone, InfoOutlined } from "@mui/icons-material"
 import { BiosampleTables } from "./biosampletables"
@@ -263,7 +263,8 @@ export function MainResultsTable(props: MainResultsTableProps) {
       },
       FunctionalRender: (row: MainResultTableRow) => {
         const [open, setOpen] = useState(false);
-        
+        const [selectedBiosamples, setSelectedBiosamples] = useState<SelectedBiosamples>([])
+
         const handleClickOpen = () => {
           setOpen(true);
         };
@@ -271,6 +272,12 @@ export function MainResultsTable(props: MainResultsTableProps) {
         const handleClose = () => {
           setOpen(false);
         };
+
+        const handleSubmit = () => {
+          //Access selected biosamples and cCRE info
+          console.log(row)
+          console.log(selectedBiosamples)
+        }
 
         return (
           //Box's onClick prevents onRowClick from running when interacting with modal
@@ -284,22 +291,26 @@ export function MainResultsTable(props: MainResultsTableProps) {
               open={open}
               onClose={handleClose}
               disableRestoreFocus
+              PaperProps={{sx:{maxWidth: "none"}}}
             >
-              <DialogTitle>Create UCSC Genome Browser Track</DialogTitle>
+              <DialogTitle>Configure UCSC Genome Browser Track</DialogTitle>
               <DialogContent>
                 <DialogContentText>
                   Select biosamples and use the handles to change the order in
                   which they will display in the browser.
                 </DialogContentText>
-                <DialogContentText >
+                <DialogContentText mb={2} >
                   Note: For best UCSC performance, choose {"<"}10 cell types.
                 </DialogContentText>
-                <BiosampleTables byCellType={props.byCellType} />
+                <BiosampleTables
+                  byCellType={props.byCellType} 
+                  selectedBiosamples={selectedBiosamples}
+                  setSelectedBiosamples={setSelectedBiosamples}
+                />
               </DialogContent>
               <DialogActions>
                 <Button onClick={handleClose}>Cancel</Button>
-                {/* Nishi add functionality here */}
-                <Button onClick={null}>Open in UCSC</Button>
+                <Button onClick={handleSubmit}>Open in UCSC</Button>
               </DialogActions>
             </Dialog>
           </Box>
@@ -314,18 +325,22 @@ export function MainResultsTable(props: MainResultsTableProps) {
     return cols
   }
 
+  const cols = useMemo(() => {
+    return columns(setDistance, setCTCF_ChIAPET, setRNAPII_ChIAPET)
+  },[setDistance, setCTCF_ChIAPET, setRNAPII_ChIAPET])
+
   return (
       <DataTable
         key={props.rows[0] && props.rows[0].dnase + props.rows[0].ctcf + props.rows[0].h3k27ac + props.rows[0].h3k4me3 +  props.rows[0].atac  + columns.toString() + distance + CTCF_ChIAPET + RNAPII_ChIAPET}
         rows={props.rows}
-        columns={columns(setDistance, setCTCF_ChIAPET, setRNAPII_ChIAPET)}
+        columns={cols}
         itemsPerPage={props.itemsPerPage}
         searchable
         onRowClick={props.onRowClick}
         tableTitle={props.tableTitle}
         sortColumn={5}
         showMoreColumns={props.assembly === "GRCh38"}
-        noOfDefaultColumns={12}
+        noOfDefaultColumns={cols.length - 1}
         titleHoverInfo={props.titleHoverInfo}
       />
   )

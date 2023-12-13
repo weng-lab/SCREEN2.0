@@ -153,6 +153,20 @@ export type FilteredBiosampleData = [
   }[],
 ][]
 
+export type SelectedBiosamples = {
+  summaryName: string;
+  biosampleType: string;
+  biosampleTissue: string;
+  queryValue: string;
+  assays: {
+    atac: boolean;
+    ctcf: boolean;
+    dnase: boolean;
+    h3k27ac: boolean;
+    h3k4me3: boolean;
+  }
+}[]
+
 export type MainResultTableRows = MainResultTableRow[]
 
 export type MainResultTableRow = {

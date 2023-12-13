@@ -1,13 +1,16 @@
-import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, Paper, Box, CircularProgress, FormControlLabel, Accordion, FormGroup, Checkbox } from "@mui/material"
+import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, Paper, Box, CircularProgress, FormControlLabel, Accordion, FormGroup, Checkbox, Stack, IconButton } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { useMemo, useState } from "react"
 import { filterBiosamples, parseByCellType, assayHoverInfo } from "./searchhelpers"
-import { BiosampleTableFilters, CellTypeData, FilteredBiosampleData } from "./types"
+import { BiosampleTableFilters, CellTypeData, FilteredBiosampleData, SelectedBiosamples } from "./types"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
+import { Close } from "@mui/icons-material"
+
+
 
 //This should be modified to be used by both filters panel and configure genome browser for ease of maintenence
-export const BiosampleTables = (props: { byCellType: CellTypeData }) => {
+export const BiosampleTables = (props: { byCellType: CellTypeData, selectedBiosamples: SelectedBiosamples, setSelectedBiosamples: React.Dispatch<React.SetStateAction<SelectedBiosamples>> }) => {
   const [biosampleTableFilters, setBiosampleTableFilters] = useState<BiosampleTableFilters>({
     CellLine: true,
     PrimaryCell: true,
@@ -15,7 +18,7 @@ export const BiosampleTables = (props: { byCellType: CellTypeData }) => {
     Organoid: true,
     InVitro: true,
   })
-  const [selectedBiosamples, setSelectedBiosamples] = useState<{}[]>([])
+
   const [searchString, setSearchString] = useState<string>("")
 
   const filteredBiosamples: FilteredBiosampleData = useMemo(() => {
@@ -131,10 +134,12 @@ export const BiosampleTables = (props: { byCellType: CellTypeData }) => {
                   dense
                   searchable
                   search={searchString}
-                  highlighted={selectedBiosamples}
+                  highlighted={props.selectedBiosamples}
                   sortColumn={1}
                   onRowClick={(row, i) => {
-                    setSelectedBiosamples([...selectedBiosamples, row])
+                    if (!props.selectedBiosamples.find((x) => x.summaryName === row.summaryName)) {
+                      props.setSelectedBiosamples([...props.selectedBiosamples, row])
+                    }
                   }}
                 />
               </AccordionDetails>
@@ -145,14 +150,11 @@ export const BiosampleTables = (props: { byCellType: CellTypeData }) => {
     )
   },
     //For some reason it wants "props" as a dependency here, not sure why. Not referring to just "props" here at all
-    [filteredBiosamples, selectedBiosamples, searchString]
+    [filteredBiosamples, props.selectedBiosamples, searchString]
   )
   return (
     <Grid2 container spacing={2}>
-      <Grid2 xs={5}>
-        <Typography>Tissue/Organ</Typography>
-      </Grid2>
-      <Grid2 xs={7}>
+      <Grid2 xs={12}>
         <TextField
           value={searchString}
           size="small"
@@ -160,12 +162,12 @@ export const BiosampleTables = (props: { byCellType: CellTypeData }) => {
           onChange={(event) => setSearchString(event.target.value)}
         />
       </Grid2>
-      <Grid2 xs={12} maxHeight={300} overflow={"auto"} >
+      <Grid2 xs={6} maxHeight={500} overflow={"auto"} >
         <Box sx={{ display: 'flex', flexDirection: "column" }}>
           {props.byCellType ? biosampleTables : <CircularProgress sx={{ margin: "auto" }} />}
         </Box>
       </Grid2>
-      <Grid2 xs={12} sx={{ mt: 1 }}>
+      <Grid2 xs={6}>
         <Typography>Biosample Type</Typography>
         <FormGroup>
           <FormControlLabel
@@ -199,6 +201,21 @@ export const BiosampleTables = (props: { byCellType: CellTypeData }) => {
             label="Cell Line"
           />
         </FormGroup>
+        <Typography width="400px" mt={2}>Selected Biosamples:</Typography>
+        {props.selectedBiosamples.length === 0 ?
+          <Typography>none</Typography>
+          :
+          props.selectedBiosamples.map((biosample) => {
+            return (
+              <Stack mt={1} width="400px" direction="row" alignItems={"center"}>
+                <IconButton onClick={() => props.setSelectedBiosamples(props.selectedBiosamples.filter((x) => x.summaryName !== biosample.summaryName))}>
+                  <Close />
+                </IconButton>
+                <Typography>{biosample.summaryName}</Typography>
+              </Stack>
+            )
+          })
+        }
       </Grid2>
     </Grid2>
   )
