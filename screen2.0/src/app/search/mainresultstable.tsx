@@ -1,13 +1,15 @@
 "use client"
 import { DataTable, DataTableProps, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import React, { useState, Dispatch, SetStateAction } from "react"
-import { Box, Typography, Menu, Checkbox, Stack, MenuItem, FormControlLabel, FormGroup, Tooltip } from "@mui/material"
-import { MainResultTableRow, ConservationData } from "./types"
+import { Box, Typography, Menu, Checkbox, Stack, MenuItem, FormControlLabel, FormGroup, Tooltip, Button, Modal, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, Paper, Container } from "@mui/material"
+import { MainResultTableRow, ConservationData, CellTypeData } from "./types"
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
-import { InfoOutlined } from "@mui/icons-material"
+import { EventBusyTwoTone, InfoOutlined } from "@mui/icons-material"
+import { BiosampleTables } from "./biosampletables"
 
 interface MainResultsTableProps extends Partial<DataTableProps<any>> {
   assembly: "GRCh38" | "mm10"
+  byCellType: CellTypeData
 }
 
 export function MainResultsTable(props: MainResultsTableProps) {
@@ -54,9 +56,9 @@ export function MainResultsTable(props: MainResultsTableProps) {
           return (
             <Stack direction="row" alignItems={"center"}>
               <strong><p>DNase</p></strong>
-              <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
+              {/* <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
                 <InfoOutlined fontSize="small" />
-              </Tooltip>
+              </Tooltip> */}
             </Stack>
           )
         }
@@ -70,9 +72,9 @@ export function MainResultsTable(props: MainResultsTableProps) {
           return (
             <Stack direction="row" alignItems={"center"}>
               <strong><p>ATAC</p></strong>
-              <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
+              {/* <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
                 <InfoOutlined fontSize="small" />
-              </Tooltip>
+              </Tooltip> */}
             </Stack>
           )
         }
@@ -86,9 +88,9 @@ export function MainResultsTable(props: MainResultsTableProps) {
           return (
             <Stack direction="row" alignItems={"center"}>
               <strong><p>CTCF</p></strong>
-              <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
+              {/* <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
                 <InfoOutlined fontSize="small" />
-              </Tooltip>
+              </Tooltip> */}
             </Stack>
           )
         }
@@ -102,9 +104,9 @@ export function MainResultsTable(props: MainResultsTableProps) {
           return (
             <Stack direction="row" alignItems={"center"}>
             <strong><p>H3K27ac</p></strong>
-            <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
+            {/* <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
               <InfoOutlined fontSize="small" />
-            </Tooltip>
+            </Tooltip> */}
           </Stack>
           )
         }
@@ -118,9 +120,9 @@ export function MainResultsTable(props: MainResultsTableProps) {
           return (
             <Stack direction="row" alignItems={"center"}>
             <strong><p>H3K4me3</p></strong>
-            <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
+            {/* <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
               <InfoOutlined fontSize="small" />
-            </Tooltip>
+            </Tooltip> */}
           </Stack>
           )
         }
@@ -186,7 +188,6 @@ export function MainResultsTable(props: MainResultsTableProps) {
               </FormGroup>
             </Menu>
           </Box>
-
         )
       },
       render: (row) => {
@@ -245,7 +246,66 @@ export function MainResultsTable(props: MainResultsTableProps) {
         )
       },
     })
+    cols.push({
+      header: "Configure UCSC",
+      value: () => "",
+      unsearchable: true,
+      unsortable: true,
+      HeaderRender: () => {
+        return (
+          <Stack direction="column" alignItems={"center"}>
+            <strong><p>Genome Browser</p></strong>
+            {/* <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
+                <InfoOutlined fontSize="small" />
+              </Tooltip> */}
+          </Stack>
+        )
+      },
+      FunctionalRender: (row: MainResultTableRow) => {
+        const [open, setOpen] = useState(false);
+        
+        const handleClickOpen = () => {
+          setOpen(true);
+        };
+      
+        const handleClose = () => {
+          setOpen(false);
+        };
 
+        return (
+          //Box's onClick prevents onRowClick from running when interacting with modal
+          <Box onClick={(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {event.stopPropagation()}}>
+            <Button variant="outlined"
+              onClick={handleClickOpen}
+            >
+              UCSC
+            </Button>
+            <Dialog
+              open={open}
+              onClose={handleClose}
+              disableRestoreFocus
+            >
+              <DialogTitle>Create UCSC Genome Browser Track</DialogTitle>
+              <DialogContent>
+                <DialogContentText>
+                  Select biosamples and use the handles to change the order in
+                  which they will display in the browser.
+                </DialogContentText>
+                <DialogContentText >
+                  Note: For best UCSC performance, choose {"<"}10 cell types.
+                </DialogContentText>
+                <BiosampleTables byCellType={props.byCellType} />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleClose}>Cancel</Button>
+                {/* Nishi add functionality here */}
+                <Button onClick={null}>Open in UCSC</Button>
+              </DialogActions>
+            </Dialog>
+          </Box>
+        )
+      }
+    })
     props.assembly === "GRCh38" && cols.push({
       header: "Conservation",
       value: (row: { conservationData: ConservationData }) => `Primates:\u00A0${row.conservationData.primates?.toFixed(2) ?? "unavailable"} Mammals:\u00A0${row.conservationData.mammals?.toFixed(2) ?? "unavailable"} Vertebrates:\u00A0${row.conservationData.vertebrates?.toFixed(2) ?? "unavailable"}` , 
@@ -265,7 +325,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
         tableTitle={props.tableTitle}
         sortColumn={5}
         showMoreColumns={props.assembly === "GRCh38"}
-        noOfDefaultColumns={11}
+        noOfDefaultColumns={12}
         titleHoverInfo={props.titleHoverInfo}
       />
   )

@@ -465,6 +465,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                   itemsPerPage={10}
                   assembly={mainQueryParams.coordinates.assembly}
                   onRowClick={handleTableClick}
+                  byCellType={globals}
                 />
               }
             </Box>
