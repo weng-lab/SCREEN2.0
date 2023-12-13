@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation"
 import { ReadonlyURLSearchParams, useSearchParams, usePathname } from "next/navigation"
 import { LoadingMessage, ErrorMessage, createLink } from "../../../common/lib/utility"
 import { client } from "../../search/_ccredetails/client"
-
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import Divider from "@mui/material/Divider"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"

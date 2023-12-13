@@ -309,7 +309,7 @@ export async function MainQuery(assembly: string = null, chromosome: string = nu
 }
 
 export async function biosampleQuery() {
-  var data: ApolloQueryResult<any> | -1
+  let data: ApolloQueryResult<any> | -1
   try {
     data = await getClient().query({
       query: BIOSAMPLE_QUERY,
@@ -322,7 +322,7 @@ export async function biosampleQuery() {
 }
 
 export async function UMAPQuery(assembly: "grch38" | "mm10", assay: "DNase" | "H3K4me3" | "H3K27ac" | "CTCF") {
-  var data: ApolloQueryResult<any> | -1
+  let data: ApolloQueryResult<any> | -1
   try {
     data = await getClient().query({
       query: UMAP_QUERY,

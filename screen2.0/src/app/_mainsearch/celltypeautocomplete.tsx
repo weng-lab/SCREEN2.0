@@ -43,7 +43,7 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
 
   const handleSubmit = () => {
     if (valueCellType) {
-      console.log(valueCellType)
+      console.log(valueCellType,"val ct", cellTypes)
       const tissue = cellTypes.find((g) => g.biosample_summary === valueCellType)?.tissue
       const biosample = cellTypes.find((g) => g.biosample_summary === valueCellType)?.value
       console.log(tissue,biosample)
@@ -75,12 +75,12 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
           }
         }}
         value={valueCellType}
-        onChange={(_, newValue: string | null) => {
+        onChange={(_, newValue: string | null) => {          
           setValueCellType(newValue)
         }}
         inputValue={inputValue}
         onInputChange={(_, newInputValue) => {
-          setValueCellType(newInputValue)
+          
           setInputValue(newInputValue)
         }}
         noOptionsText={props.assembly === "mm10" ? "strain B6NCrl cortical plate tissue male adult (8 weeks)" : "e.g. LNCAP"}

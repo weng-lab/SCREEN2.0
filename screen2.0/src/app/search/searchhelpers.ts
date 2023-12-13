@@ -344,7 +344,7 @@ export function parseByCellType(byCellType: CellTypeData): UnfilteredBiosampleDa
   Object.entries(byCellType.byCellType).forEach((entry) => {
     // if the tissue catergory hasn't been catalogued, make a new blank array for it
     const experiments = entry[1]
-    var tissueArr = []
+    let tissueArr = []
     if (!biosamples[experiments[0].tissue]) {
       Object.defineProperty(biosamples, experiments[0].tissue, {
         value: [],
