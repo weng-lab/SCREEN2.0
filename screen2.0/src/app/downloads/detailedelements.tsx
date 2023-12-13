@@ -1,7 +1,7 @@
 import { Button, ButtonProps, IconButton, Paper, Tooltip, Typography, Modal, Container, Divider } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { Box } from "@mui/system"
-import React, { useMemo } from "react"
+import React, { useMemo, useState } from "react"
 import Config from "../../config.json"
 import DownloadIcon from "@mui/icons-material/Download"
 import SearchIcon from "@mui/icons-material/Search"
@@ -145,27 +145,27 @@ function BiosampleModals(props: {
 
 export function DetailedElements(props: TabPanelProps) {
   // Each of these handles one modal
-  const [open0, setOpen0] = React.useState(false)
+  const [open0, setOpen0] = useState(false)
   const handleOpen0 = () => setOpen0(true)
   const handleClose0 = () => setOpen0(false)
 
-  const [open1, setOpen1] = React.useState(false)
+  const [open1, setOpen1] = useState(false)
   const handleOpen1 = () => setOpen1(true)
   const handleClose1 = () => setOpen1(false)
 
-  const [open2, setOpen2] = React.useState(false)
+  const [open2, setOpen2] = useState(false)
   const handleOpen2 = () => setOpen2(true)
   const handleClose2 = () => setOpen2(false)
 
-  const [open3, setOpen3] = React.useState(false)
+  const [open3, setOpen3] = useState(false)
   const handleOpen3 = () => setOpen3(true)
   const handleClose3 = () => setOpen3(false)
 
-  const [open4, setOpen4] = React.useState(false)
+  const [open4, setOpen4] = useState(false)
   const handleOpen4 = () => setOpen4(true)
   const handleClose4 = () => setOpen4(false)
 
-  const [open5, setOpen5] = React.useState(false)
+  const [open5, setOpen5] = useState(false)
   const handleOpen5 = () => setOpen5(true)
   const handleClose5 = () => setOpen5(false)
 

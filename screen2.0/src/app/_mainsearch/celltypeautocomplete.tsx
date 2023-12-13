@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, SetStateAction } from "react"
 import Box from "@mui/material/Box"
 import TextField from "@mui/material/TextField"
 import Autocomplete from "@mui/material/Autocomplete"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import Typography from "@mui/material/Typography"
-import { useRouter } from "next/navigation"
 import Config from "../../config.json"
 import { IconButton, Stack } from "@mui/material"
 import { Search } from "@mui/icons-material"
@@ -44,8 +43,10 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
 
   const handleSubmit = () => {
     if (valueCellType) {
+      console.log(valueCellType)
       const tissue = cellTypes.find((g) => g.biosample_summary === valueCellType)?.tissue
       const biosample = cellTypes.find((g) => g.biosample_summary === valueCellType)?.value
+      console.log(tissue,biosample)
       const biosample_summary = valueCellType
       let region: { chromosome: string, start: string, end: string }
       if (valueRegion) {
@@ -132,7 +133,7 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
         label="Enter a genomic region"
         placeholder="chr11:5205263-5381894"
         value={valueRegion}
-        onChange={(event: { target: { value: React.SetStateAction<string> } }) => {
+        onChange={(event: { target: { value: SetStateAction<string> } }) => {
           setValueRegion(event.target.value)
         }}
         onKeyDown={(event) => {

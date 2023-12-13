@@ -1,6 +1,6 @@
 "use client"
-import * as React from "react"
-import { Dispatch, SetStateAction } from "react";
+
+import React, { useState, useMemo, useEffect, Dispatch, SetStateAction } from "react";
 import {
   Accordion,
   AccordionSummary,
@@ -27,7 +27,6 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
 import Grid2 from "@mui/material/Unstable_Grid2"
 import { RangeSlider, DataTable } from "@weng-lab/psychscreen-ui-components"
-import { useState, useMemo, useEffect } from "react"
 import { BiosampleTableFilters, CellTypeData, FilterCriteria, FilteredBiosampleData, MainQueryParams } from "./types"
 import { parseByCellType, filterBiosamples, assayHoverInfo } from "./searchhelpers"
 import { gql } from "@apollo/client"
@@ -163,7 +162,7 @@ export function MainResultsFilters(
     props.setTSSranges(TSSranges)
   }, [props.mainQueryParams.gene.distance, props.TSSs])
   
-  function valuetext(value: number) {
+  const valuetext = (value: number) => {
     return `${value}kb`;
   }
 
@@ -342,7 +341,7 @@ export function MainResultsFilters(
                 <Grid2 xs={12}>
                   <FormControl>
                     <RadioGroup
-                      aria-labelledby="demo-controlled-radio-buttons-group"
+                      aria-labelledby="gene-controlled-radio-buttons-group"
                       name="controlled-radio-buttons-group"
                       value={props.mainQueryParams.gene.nearTSS ? "tss" : "overlappinggene"}
                       onChange={(_, value: string) => {

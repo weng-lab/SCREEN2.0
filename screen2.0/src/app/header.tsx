@@ -1,14 +1,14 @@
 "use client"
-import * as React from "react"
+
+import React, { useState } from "react"
 import { AppBar, Box, Toolbar, IconButton, Typography, Menu, Container, Button, MenuItem, Paper } from "@mui/material"
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown"
 import MenuIcon from "@mui/icons-material/Menu"
 import Link from "next/link"
 import Image from "next/image"
 import screenIcon from "../../public/screenIcon.png"
-
 import { MainSearch } from "./_mainsearch/mainsearch"
-import { useState } from "react"
+
 
 /*  
   Links for the AppBar. If adding another page with subpages, you need to add another 

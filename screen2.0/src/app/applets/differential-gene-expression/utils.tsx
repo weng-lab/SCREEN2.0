@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from "react"
+import React, { Fragment, useState, Dispatch, SetStateAction } from "react"
 import { geneRed, geneBlue, H3K4me3, H3K27ac } from "../../../common/lib/colors"
 import { Point2D, Range2D, linearTransform2D } from "jubilant-carnival"
 import { ErrorMessage } from "../../../common/lib/utility"
@@ -18,7 +18,7 @@ export const Point = (props: {
   range: Range2D
   dimensions: Range2D
   data_ct2: any
-  setRange: React.Dispatch<React.SetStateAction<Range2D>>
+  setRange: Dispatch<SetStateAction<Range2D>>
   ct1: string
   ct2: string
   togglePCT: { TF: boolean; CA: boolean; "CA-CTCF": boolean; "CA-H3K4me3": boolean; dELS: boolean; pELS: boolean }
@@ -320,7 +320,7 @@ export const GenePoint = (props: { point: Gene; i: number; range: Range2D; dimen
  * @param {Range2D} dimensions x and y range of svg
  * @returns list of labels along the x-axis
  */
-export const SetRange_x = (props: { range: Range2D; dimensions: Range2D }) => {
+export const SetXAxisRange = (props: { range: Range2D; dimensions: Range2D }) => {
   let range_x: number[] = []
   let zeros: string = "00000"
 
@@ -380,7 +380,7 @@ export const SetRange_x = (props: { range: Range2D; dimensions: Range2D }) => {
  * @param {string} ct2 cell type 2
  * @returns list of labels along the y-axis
  */
-export const SetRange_y = (props: {
+export const SetYAxisRange = (props: {
   title: { ct1: { name: string; expID: string }; ct2: { name: string; expID: string } }
   range: Range2D
   dimensions: Range2D
@@ -388,7 +388,7 @@ export const SetRange_y = (props: {
   ct2: string
   data_ct1: any
   data_ct2: any
-  setRange: React.Dispatch<React.SetStateAction<Range2D>>
+  setRange: Dispatch<SetStateAction<Range2D>>
 }) => {
   let range_y: number[] = []
   let ymin: number = props.range.y.start

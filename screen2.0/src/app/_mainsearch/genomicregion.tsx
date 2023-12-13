@@ -1,5 +1,5 @@
 import { TextField, IconButton, Stack, Select, MenuItem, SelectChangeEvent, FormControl, InputLabel, Typography, FormControlLabel, Radio, RadioGroup } from "@mui/material"
-import { useState } from "react"
+import { useState, SetStateAction } from "react"
 import { Search } from "@mui/icons-material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { parseGenomicRegion } from "./parsegenomicregion"
@@ -16,7 +16,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
 
   const assembly = props.assembly
 
-  const handleChange = (event: { target: { value: React.SetStateAction<string> } }) => {
+  const handleChange = (event: { target: { value: SetStateAction<string> } }) => {
     setValue(event.target.value)
   }
 
@@ -100,7 +100,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
                 label="Start"
                 placeholder="5205263"
                 value={start}
-                onChange={(event: { target: { value: React.SetStateAction<string> } }) => {
+                onChange={(event: { target: { value: SetStateAction<string> } }) => {
                   setStart(event.target.value)
                 }}
                 onKeyDown={(event) => {
@@ -128,7 +128,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
                 label="End"
                 placeholder="5381894"
                 value={end}
-                onChange={(event: { target: { value: React.SetStateAction<string> } }) => {
+                onChange={(event: { target: { value: SetStateAction<string> } }) => {
                   setEnd(event.target.value)
                 }}
                 onKeyDown={(event) => {

@@ -26,6 +26,7 @@ export async function fetchcCREDataAndLinkedGenes (
   nearbygeneslimit: number,
   intersectedAccessions?: string[]
 ): Promise<rawQueryData> {
+  
   //cCRESEarchQuery
   const mainQueryData = await MainQuery(
     assembly,

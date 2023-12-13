@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react"
+import React, { useState } from "react"
 import { EmptyTrack, SquishBigBed } from "umms-gb"
 import { DNALogo, Y } from "logots-react"
 import { MOTIFS } from "./allmotifs"

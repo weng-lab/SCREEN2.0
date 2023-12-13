@@ -1,4 +1,4 @@
-import * as React from "react"
+import React, { useState, useCallback } from "react"
 import Box from "@mui/material/Box"
 import TextField from "@mui/material/TextField"
 import Autocomplete from "@mui/material/Autocomplete"
@@ -11,10 +11,10 @@ import { IconButton, Stack } from "@mui/material"
 import { Search } from "@mui/icons-material"
 
 export const SnpAutoComplete: React.FC<{ assembly: string, header?: boolean }> = (props) => {
-  const [value, setValue] = React.useState(null)
-  const [inputValue, setInputValue] = React.useState("")
-  const [options, setOptions] = React.useState([])
-  const [snpids, setSnpIds] = React.useState([])
+  const [value, setValue] = useState(null)
+  const [inputValue, setInputValue] = useState("")
+  const [options, setOptions] = useState([])
+  const [snpids, setSnpIds] = useState([])
 
   const onSearchChange = async (value: string) => {
     setOptions([])
@@ -49,7 +49,7 @@ export const SnpAutoComplete: React.FC<{ assembly: string, header?: boolean }> =
 
   }
 
-  const debounceFn = React.useCallback(debounce(onSearchChange, 500), [])
+  const debounceFn = useCallback(debounce(onSearchChange, 500), [])
 
   const handleSubmit = () => {
     if (value) {

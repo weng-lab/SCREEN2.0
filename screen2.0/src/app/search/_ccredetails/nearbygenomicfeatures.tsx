@@ -6,9 +6,9 @@ import { NEARBY_GENOMIC_FEATURES_QUERY, NEARBY_GENOMIC_FEATURES_NOSNPS_QUERY } f
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { Typography } from "@mui/material"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
-import { LoadingMessage, createLink } from "../../../common/lib/utility"
+import { LoadingMessage } from "../../../common/lib/utility"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import Link from "next/link"
+
 
 const genesDistance = (
   coordinates: { chromosome: string; start: number; end: number },
