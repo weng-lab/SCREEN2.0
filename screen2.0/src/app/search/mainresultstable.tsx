@@ -310,7 +310,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
               </DialogContent>
               <DialogActions>
                 <Button onClick={handleClose}>Cancel</Button>
-                <Button onClick={handleSubmit}>Open in UCSC</Button>
+                <Button disabled={selectedBiosamples.length === 0} onClick={handleSubmit}>Open in UCSC</Button>
               </DialogActions>
             </Dialog>
           </Box>
