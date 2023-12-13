@@ -1,3 +1,5 @@
+import { ApolloQueryResult } from "@apollo/client"
+
 export type GenomicRegion = {
   chrom: string
   start: string
@@ -37,53 +39,71 @@ export type cCREData = {
 
 }
 
+
 export type MainQueryParams = {
-  bed_intersect: boolean,
-  assembly: "GRCh38" | "mm10"
-  chromosome: string | null
-  start: number | null
-  end: number | null
-  gene?: string
-  snpid?: string
-  CellLine?: boolean
-  PrimaryCell?: boolean
-  Tissue?: boolean
-  Organoid?: boolean
-  InVitro?: boolean
-  Biosample?: {
+  coordinates: {
+    assembly: "GRCh38" | "mm10"
+    chromosome: string | null
+    start: number | null
+    end: number | null
+  }
+  //biosample.biosample should be changed to something like: queryvalue
+  biosample: {
     selected: boolean
     biosample: string
     tissue: string
     summaryName: string
   }
-  dnase_s?: number
-  dnase_e?: number
-  h3k4me3_s?: number
-  h3k4me3_e?: number
-  h3k27ac_s?: number
-  h3k27ac_e?: number
-  atac_s?: number
-  atac_e?: number
-  vert_s?: number
-  vert_e?: number
-  mamm_s?: number
-  mamm_e?: number
-  prim_s?: number
-  prim_e?: number
-  ctcf_s?: number
-  ctcf_e?: number  
-  CA?: boolean
-  CA_CTCF?: boolean
-  CA_H3K4me3?: boolean
-  CA_TF?: boolean
-  dELS?: boolean
-  pELS?: boolean
-  PLS?: boolean
-  TF?: boolean
+  snp: {
+    rsID: string
+    distance: number
+  }
+  gene: {
+    name: string
+    distance: number
+    nearTSS: boolean
+  }
+  searchConfig: {
+    bed_intersect: boolean
+  }
+}
+
+export type BiosampleTableFilters = {
+  CellLine: boolean
+  PrimaryCell: boolean
+  Tissue: boolean
+  Organoid: boolean
+  InVitro: boolean
+}
+
+export type FilterCriteria = {
+  dnase_s: number
+  dnase_e: number
+  atac_s: number
+  atac_e: number
+  h3k4me3_s: number
+  h3k4me3_e: number
+  h3k27ac_s: number
+  h3k27ac_e: number
+  ctcf_s: number
+  ctcf_e: number
+  prim_s: number
+  prim_e: number
+  mamm_s: number
+  mamm_e: number
+  vert_s: number
+  vert_e: number
+  CA: boolean
+  CA_CTCF: boolean
+  CA_H3K4me3: boolean
+  CA_TF: boolean
+  dELS: boolean
+  pELS: boolean
+  PLS: boolean
+  TF: boolean
   genesToFind: string[]
   distancePC: boolean
   distanceAll: boolean
-  distanceFromcCRE: number
   CTCF_ChIA_PET: boolean
   RNAPII_ChIA_PET: boolean
 }
@@ -95,7 +115,7 @@ export type CellTypeData = {
       biosample_summary: string
       biosample_type: string
       tissue: string
-      value: string
+      celltypename: string
     }[]
   }
 }
@@ -163,53 +183,15 @@ export type LinkedGenesData = {
   RNAPII_ChIAPET: { name: string, biosample: string }[]
 }
 
-/**
- * I guess this is best described as the parameters that can be modified by the filters panel. Strong overlap with mainQueryParams
- */
-export type URLParams = {
-    Tissue: boolean
-    PrimaryCell: boolean
-    InVitro: boolean
-    Organoid: boolean
-    CellLine: boolean
-    start: number
-    end: number   
-    Biosample: {
-      selected: boolean
-      biosample: string | null
-      tissue: string | null
-      summaryName: string | null
-    },
-    DNaseStart: number
-    DNaseEnd: number
-    H3K4me3Start: number
-    H3K4me3End: number
-    H3K27acStart: number
-    H3K27acEnd: number
-    CTCFStart: number
-    CTCFEnd: number
-    ATACStart: number
-    ATACEnd: number
-    CA: boolean
-    CA_CTCF: boolean
-    CA_H3K4me3: boolean
-    CA_TF: boolean
-    dELS: boolean
-    pELS: boolean
-    PLS: boolean
-    TF: boolean
-    PrimateStart: number
-    PrimateEnd: number
-    MammalStart: number
-    MammalEnd: number
-    VertebrateStart: number
-    VertebrateEnd: number
-    genesToFind: string[]
-    distancePC: boolean
-    distanceAll: boolean
-    distanceFromcCRE: number
-    CTCF_ChIA_PET: boolean
-    RNAPII_ChIA_PET: boolean
-    Accessions: string
-    Page: number
+export type rawQueryData = {
+  mainQueryData: ApolloQueryResult<any>,
+  linkedGenesData: {
+    [key: string]: {
+      genes: {
+        geneName: string;
+        linkedBy: "CTCF-ChIAPET" | "RNAPII-ChIAPET";
+        biosample: string;
+      }[];
+    };
+  }
 }

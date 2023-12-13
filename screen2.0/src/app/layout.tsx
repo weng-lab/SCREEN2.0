@@ -1,10 +1,10 @@
 import "./globals.css"
-import { ApolloWrapper } from "../common/lib/apollo-provider"
+import { ApolloWrapper } from "../common/lib/apolloprovider"
 import { Inter } from "next/font/google"
-import ResponsiveAppBar from "../common/components/ResponsiveAppBar"
-import Footer from "../common/components/Footer"
+import ResponsiveAppBar from "./header"
+import { Footer } from "./footer"
 import { CssBaseline } from "@mui/material"
-import ThemeRegistry from "../common/theme-registry/theme-registry"
+import ThemeRegistry from "../common/themeregistry/themeregistry"
 
 const inter = Inter({ subsets: ["latin"] })
 

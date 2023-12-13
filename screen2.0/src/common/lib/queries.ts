@@ -1,7 +1,7 @@
 /**
  * Send the request to our Server from a server component
  */
-
+'use server'
 import { getClient } from "../lib/client"
 import { ApolloQueryResult, gql } from "@apollo/client"
 import Config from "../../config.json"
@@ -212,31 +212,6 @@ const UMAP_QUERY = gql`
   }
 `
 
-export const TOP_TISSUES = gql`
-  query q($accession: [String!], $assembly: String!) {
-    ccREBiosampleQuery(assembly: $assembly) {
-      biosamples {
-        sampleType
-        cCREZScores(accession: $accession) {
-          score
-          assay
-          experiment_accession
-        }
-        name
-        ontology
-      }
-    }
-    cCREQuery(assembly: $assembly, accession: $accession) {
-      accession
-      group
-      dnase: maxZ(assay: "DNase")
-      h3k4me3: maxZ(assay: "H3K4me3")
-      h3k27ac: maxZ(assay: "H3K27ac")
-      ctcf: maxZ(assay: "CTCF")
-    }
-  }
-`
-
 const LINKED_GENES_QUERY = gql`
   query ($assembly: String!, $accession: [String]!) {
     linkedGenesQuery(assembly: $assembly, accession: $accession) {
@@ -256,8 +231,13 @@ const GENE_QUERY = gql`
     }
   }
 `
-
-export async function linkedGenesQuery(assembly: "GRCh38" | "mm10", accession: string[]) {
+/**
+ * 
+ * @param assembly "GRCh38" | "mm10"
+ * @param accessions string[]
+ * @returns an object with key/value pairs of: accession id/linked genes data (non distance-linked)
+ */
+export async function fetchLinkedGenes(assembly: "GRCh38" | "mm10", accessions: string[]) {
   let returnData: { [key: string]: { genes: { geneName: string, linkedBy: "CTCF-ChIAPET" | "RNAPII-ChIAPET", biosample: string }[] } } = {}
   let geneIDs: string[] = []
   let linkedGenes: ApolloQueryResult<any>
@@ -266,7 +246,7 @@ export async function linkedGenesQuery(assembly: "GRCh38" | "mm10", accession: s
   try {
     linkedGenes = await getClient().query({
       query: LINKED_GENES_QUERY,
-      variables: { assembly, accession },
+      variables: { assembly: assembly, accession: accessions },
     })
     linkedGenes.data.linkedGenesQuery.forEach((entry) => {
       !geneIDs.includes(entry.gene.split(".")[0]) && geneIDs.push(entry.gene.split(".")[0])
@@ -293,6 +273,7 @@ export async function linkedGenesQuery(assembly: "GRCh38" | "mm10", accession: s
       console.log(error)
     }
   } catch (error) {
+    console.log("linked gene query failed:")
     console.log(error)
   }
   //for some reason, the formatting of the data (newlines) aren't consistent. Don't think this has any effect though
@@ -312,7 +293,7 @@ export async function linkedGenesQuery(assembly: "GRCh38" | "mm10", accession: s
  * @returns cCREs matching the search
  */
 export async function MainQuery(assembly: string = null, chromosome: string = null, start: number = null, end: number = null, biosample: string = null, nearbygenesdistancethreshold: number, nearbygeneslimit: number, accessions: string[] = null) {
-  console.log("queried with: " + assembly, chromosome, start, end, biosample + `${accessions ? "with accessions" : "no accessions"}`)
+  console.log("queried with: " + assembly, chromosome, start, end, biosample + `${accessions ? " with accessions" : " no accessions"}`)
   let data: ApolloQueryResult<any>
   try {
     data = await getClient().query({
@@ -320,6 +301,7 @@ export async function MainQuery(assembly: string = null, chromosome: string = nu
       variables: cCRE_QUERY_VARIABLES(assembly, chromosome, start, end, biosample, nearbygenesdistancethreshold, nearbygeneslimit, accessions),
     })
   } catch (error) {
+    console.log("error fetching main cCRE data")
     console.log(error)
   } finally {
     return data
@@ -327,7 +309,7 @@ export async function MainQuery(assembly: string = null, chromosome: string = nu
 }
 
 export async function biosampleQuery() {
-  var data: ApolloQueryResult<any> | -1
+  let data: ApolloQueryResult<any> | -1
   try {
     data = await getClient().query({
       query: BIOSAMPLE_QUERY,
@@ -340,7 +322,7 @@ export async function biosampleQuery() {
 }
 
 export async function UMAPQuery(assembly: "grch38" | "mm10", assay: "DNase" | "H3K4me3" | "H3K27ac" | "CTCF") {
-  var data: ApolloQueryResult<any> | -1
+  let data: ApolloQueryResult<any> | -1
   try {
     data = await getClient().query({
       query: UMAP_QUERY,
@@ -362,13 +344,22 @@ export async function UMAPQuery(assembly: "grch38" | "mm10", assay: "DNase" | "H
  *
  * @returns the shortened byCellType file from https://downloads.wenglab.org/databyct.json
  */
-export const getGlobals = async (assembly: "GRCh38" | "mm10") => {
-  // console.log(assembly)
+export async function getGlobals(assembly: "GRCh38" | "mm10"){
   let res: Response
-  if (assembly === "GRCh38") {
-    res = await fetch(Config.API.HumanGlobals)
-  } else if (assembly === "mm10") {
-    res = await fetch(Config.API.MouseGlobals)
+  try {
+    if (assembly === "GRCh38") {
+        res = await fetch(Config.API.HumanGlobals)
+      } else if (assembly === "mm10") {
+        res = await fetch(Config.API.MouseGlobals)
+      }
+  } catch (error) {
+    console.log("error fetching " + assembly + " globals")
+    console.log(error)
+  } finally {
+    if (res) {
+      return res.json()
+    } else {
+      return undefined
+    }
   }
-  return res.json()
 }

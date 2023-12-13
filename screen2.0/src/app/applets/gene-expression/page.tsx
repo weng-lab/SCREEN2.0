@@ -1,6 +1,6 @@
 "use client"
 import { Box } from "@mui/material"
-import { GeneExpression } from "../../search/ccredetails/geneexpression"
+import { GeneExpression } from "../../search/_ccredetails/geneexpression"
 
 export default function GeneExpressionApplet() {
   return (
