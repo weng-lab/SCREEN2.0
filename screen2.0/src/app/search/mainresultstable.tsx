@@ -295,6 +295,9 @@ export function MainResultsTable(props: MainResultsTableProps) {
             >
               <DialogTitle>Configure UCSC Genome Browser Track</DialogTitle>
               <DialogContent>
+                <DialogContentText mb={2}>
+                  {`${row.accession} - ${row.chromosome}:${row.start}-${row.end}`}
+                </DialogContentText>
                 <DialogContentText>
                   Select biosamples and use the handles to change the order in
                   which they will display in the browser.
