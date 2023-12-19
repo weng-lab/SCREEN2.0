@@ -205,9 +205,9 @@ export const BiosampleTables = (props: { byCellType: CellTypeData, selectedBiosa
         {props.selectedBiosamples.length === 0 ?
           <Typography>none</Typography>
           :
-          props.selectedBiosamples.map((biosample) => {
+          props.selectedBiosamples.map((biosample, i) => {
             return (
-              <Stack mt={1} width="400px" direction="row" alignItems={"center"}>
+              <Stack mt={1} width="400px" direction="row" alignItems={"center"} key={i}>
                 <IconButton onClick={() => props.setSelectedBiosamples(props.selectedBiosamples.filter((x) => x.summaryName !== biosample.summaryName))}>
                   <Close />
                 </IconButton>
