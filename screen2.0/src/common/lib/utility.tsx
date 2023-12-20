@@ -52,7 +52,7 @@ export const createLink = (url: string, id: string, label?: string) => {
 }
 
 /**
- * Logs and returns loading message
+ * Returns loading wheel
  * @returns active loader
  */
 export function LoadingMessage() {
@@ -89,7 +89,7 @@ export function ErrorMessage(props: { error: Error }) {
       >
         <Alert severity="error" variant="filled">
           <AlertTitle>Error</AlertTitle>
-          There was an error loading. — <strong>{"Error"}</strong>
+          There was an error loading
         </Alert>
       </Snackbar>
     </Grid2>
