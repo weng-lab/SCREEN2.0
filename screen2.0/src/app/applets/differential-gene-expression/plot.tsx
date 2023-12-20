@@ -1,7 +1,7 @@
 import { Range2D } from "jubilant-carnival"
 import { H3K27ac, H3K4me3, geneBlue, geneRed } from "../../../common/lib/colors"
-import React from "react"
-import { SetRange_x, SetRange_y, Point, GenePoint } from "./utils"
+import React, { Dispatch, SetStateAction } from "react"
+import { SetXAxisRange, SetYAxisRange, Point, GenePoint } from "./utils"
 import { Gene, cCREZScore } from "./types"
 
 /**
@@ -23,7 +23,7 @@ export function PlotDifferentialExpression(props: {
   toggleccres: boolean
   toggleGenes: boolean
   togglePCT: { TF: boolean; CA: boolean; "CA-CTCF": boolean; "CA-H3K4me3": boolean; dELS: boolean; pELS: boolean }
-  setRange: React.Dispatch<React.SetStateAction<Range2D>>
+  setRange: Dispatch<SetStateAction<Range2D>>
 }) {
   let data: Gene[] = [...props.data_genes.gene]
   data = data.sort((a, b) => (a.coordinates.start < b.coordinates.start ? -1 : 1))
@@ -53,11 +53,11 @@ export function PlotDifferentialExpression(props: {
         </text>
       </g>
       <g className="labels x-labels">
-        <SetRange_x range={props.range} dimensions={props.dimensions} />
+        <SetXAxisRange range={props.range} dimensions={props.dimensions} />
         <line x1="100" y1="450" x2="900" y2="450" stroke="black"></line>
       </g>
       <g className="labels y-labels">
-        <SetRange_y
+        <SetYAxisRange
           title={props.title}
           range={props.range}
           dimensions={props.dimensions}

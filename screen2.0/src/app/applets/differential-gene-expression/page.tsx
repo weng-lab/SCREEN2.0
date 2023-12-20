@@ -3,8 +3,7 @@ import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ReadonlyURLSearchParams, useSearchParams, usePathname } from "next/navigation"
 import { LoadingMessage, ErrorMessage, createLink } from "../../../common/lib/utility"
-import { client } from "../../search/ccredetails/client"
-
+import { client } from "../../search/_ccredetails/client"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import Divider from "@mui/material/Divider"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
@@ -28,7 +27,7 @@ import {
 
 import { useQuery } from "@apollo/client"
 import { GENE_SEARCH_QUERY, ZSCORE_QUERY } from "./queries"
-import GeneAutoComplete from "../gene-expression/gene-autocomplete"
+import GeneAutoComplete from "../gene-expression/geneautocomplete"
 import { CoordinateRangeField, TogglePCT, TogglePlot } from "./options"
 import { PlotDifferentialExpression, PlotGenes } from "./plot"
 import { cellTypeInfoArr } from "./types"

@@ -1,6 +1,7 @@
 import { Box, Button, Checkbox, FormControlLabel, TextField, Typography } from "@mui/material"
 import { Range2D } from "jubilant-carnival"
 import { ErrorMessage } from "../../../common/lib/utility"
+import React, { Dispatch, SetStateAction } from "react"
 
 type SliderInfo = {
   x1: number
@@ -13,9 +14,9 @@ export function CoordinateRangeField(props: {
   dr: number[]
   range: Range2D
   slider: SliderInfo
-  setdr: React.Dispatch<React.SetStateAction<number[]>>
-  setRange: React.Dispatch<React.SetStateAction<Range2D>>
-  setSlider: React.Dispatch<React.SetStateAction<SliderInfo>>
+  setdr: Dispatch<SetStateAction<number[]>>
+  setRange: Dispatch<SetStateAction<Range2D>>
+  setSlider: Dispatch<SetStateAction<SliderInfo>>
 }) {
   const CoordinateTextBox = () => {
     return (
@@ -124,7 +125,7 @@ export function CoordinateRangeField(props: {
   )
 }
 
-export const TogglePlot = (props: { label: string; toggle: boolean; setToggle: React.Dispatch<React.SetStateAction<boolean>> }) => {
+export const TogglePlot = (props: { label: string; toggle: boolean; setToggle: Dispatch<SetStateAction<boolean>> }) => {
   return (
     <FormControlLabel
       control={<Checkbox checked={props.toggle} onChange={() => props.setToggle(props.toggle ? false : true)} />}
@@ -135,8 +136,8 @@ export const TogglePlot = (props: { label: string; toggle: boolean; setToggle: R
 
 export const TogglePCT = (props: {
   togglePCT: { TF: boolean; CA: boolean; "CA-CTCF": boolean; "CA-H3K4me3": boolean; dELS: boolean; pELS: boolean }
-  setPCT: React.Dispatch<
-    React.SetStateAction<{ TF: boolean; CA: boolean; "CA-CTCF": boolean; "CA-H3K4me3": boolean; dELS: boolean; pELS: boolean }>
+  setPCT: Dispatch<
+    SetStateAction<{ TF: boolean; CA: boolean; "CA-CTCF": boolean; "CA-H3K4me3": boolean; dELS: boolean; pELS: boolean }>
   >
 }) => {
   return Object.entries(props.togglePCT).map((entry) => {
