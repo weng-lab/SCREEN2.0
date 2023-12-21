@@ -66,6 +66,9 @@ export const BiosampleTables: React.FC<Props> = ({
           configGB ? biosampleTableFiltersInternal.CellLine.checked : biosampleTableFilters.CellLine.checked,
           configGB ? biosampleTableFiltersInternal.InVitro.checked : biosampleTableFilters.InVitro.checked,
           configGB ? biosampleTableFiltersInternal.Organoid.checked : biosampleTableFilters.Organoid.checked,
+          configGB ? biosampleTableFiltersInternal.Core.checked : biosampleTableFilters.Core.checked,
+          configGB ? biosampleTableFiltersInternal.Partial.checked : biosampleTableFilters.Partial.checked,
+          configGB ? biosampleTableFiltersInternal.Ancillary.checked : biosampleTableFilters.Ancillary.checked,
         )
       )
     } else return []

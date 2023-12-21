@@ -297,6 +297,7 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
               tableTitle="Cell type agnostic classification"
               columns={ctAgnosticColumns()}
               sortColumn={1}
+              searchable
             />
           )}
         </Grid2>
@@ -309,6 +310,7 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
               rows={typea}
               sortColumn={1}
               itemsPerPage={5}
+              searchable
             />
           ) : <LoadingMessage />}
         </Grid2>
@@ -321,6 +323,7 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
               tableTitle="Partial Data Collection"
               rows={withdnase}
               itemsPerPage={5}
+              searchable
             />
           ) : <LoadingMessage />}
         </Grid2>
@@ -333,6 +336,7 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
               rows={typec}
               sortColumn={1}
               itemsPerPage={5}
+              searchable
             />
           ) : <LoadingMessage />}
         </Grid2>

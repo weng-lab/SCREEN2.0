@@ -383,22 +383,41 @@ export function filterBiosamples(
   PrimaryCell: boolean,
   CellLine: boolean,
   InVitro: boolean,
-  Organoid: boolean
+  Organoid: boolean,
+  Core: boolean,
+  Partial: boolean,
+  Ancillary: boolean
 ): FilteredBiosampleData {
   const filteredBiosamples: FilteredBiosampleData = Object.entries(biosamples).map(([str, objArray]) => [
     str,
     objArray.filter((biosample) => {
+      let passesType: boolean = false
       if (Tissue && biosample.biosampleType === "tissue") {
-        return true
+        passesType = true
       } else if (PrimaryCell && biosample.biosampleType === "primary cell") {
-        return true
+        passesType = true
       } else if (CellLine && biosample.biosampleType === "cell line") {
-        return true
+        passesType = true
       } else if (InVitro && biosample.biosampleType === "in vitro differentiated cells") {
-        return true
+        passesType = true
       } else if (Organoid && biosample.biosampleType === "organoid") {
-        return true
-      } else return false
+        passesType = true
+      }
+      //Assign to Ancillary as baseline
+      let collection = "Ancillary"
+      if (biosample.assays.dnase == true) {
+        //Assign to Partial if at least dnase is available
+        collection = "Partial"
+        if (biosample.assays.ctcf && biosample.assays.h3k4me3 && biosample.assays.h3k4me3) {
+          //If all other marks (ignoring atac) are available, assign to core
+          collection = "Core"
+        }
+      }
+      let passesCollection = false
+      if ((Core && collection == "Core") || (Partial && collection == "Partial") || (Ancillary && collection == "Ancillary")) {
+        passesCollection = true
+      }
+      return (passesType && passesCollection)
     }),
   ])
   return filteredBiosamples
