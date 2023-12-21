@@ -1,4 +1,4 @@
-import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, Paper, Box, CircularProgress, FormControlLabel, Accordion, FormGroup, Checkbox, Stack, IconButton, Menu, MenuItem } from "@mui/material"
+import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, Paper, Box, CircularProgress, FormControlLabel, Accordion, FormGroup, Checkbox, Stack, IconButton, Menu, MenuItem, Button, InputAdornment } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { Dispatch, SetStateAction, useMemo, useState } from "react"
@@ -7,6 +7,7 @@ import { BiosampleTableFilters, CellTypeData, FilteredBiosampleData, Biosample }
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
 import { ArrowDropDown, Close } from "@mui/icons-material"
 import { ArrowRight } from "@mui/icons-material"
+import SearchIcon from '@mui/icons-material/Search';
 
 
 interface Props {
@@ -192,10 +193,7 @@ export const BiosampleTables: React.FC<Props> = ({
       //If using in config GB, wrap checkboxes in dropdown. Use local biosampleCheckboxes state (doesn't sync to URL)
       return (
         <Box>
-          <Stack direction="row" alignItems="center" component="button" onClick={handleClick}>
-            {open ? <ArrowDropDown /> : <ArrowRight />}
-            <strong><p>Biosample Types</p></strong>
-          </Stack>
+          <Button fullWidth variant="outlined" size="medium" startIcon={open ? <ArrowDropDown /> : <ArrowRight />} onClick={handleClick}>Biosample Types</Button>
           <Menu
             id="basic-menu"
             anchorEl={anchorEl}
@@ -254,6 +252,10 @@ export const BiosampleTables: React.FC<Props> = ({
           size="small"
           label="Search Biosamples"
           onChange={(event) => setSearchString(event.target.value)}
+          fullWidth
+          InputProps={{
+            endAdornment: <InputAdornment position="end"><SearchIcon /></InputAdornment>,
+          }}
         />
       </Grid2>
       {configGB &&
@@ -261,7 +263,7 @@ export const BiosampleTables: React.FC<Props> = ({
           {typeCheckboxes}
         </Grid2>
       }
-      <Grid2 xs={12} maxHeight={configGB ? 500 : 350} overflow={"auto"} >
+      <Grid2 xs={12} height={configGB ? 500 : 350} overflow={"auto"} >
         <Box sx={{ display: 'flex', flexDirection: "column" }}>
           {byCellType ? biosampleTables : <CircularProgress sx={{ margin: "auto" }} />}
         </Box>
