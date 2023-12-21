@@ -1,7 +1,7 @@
-import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, Paper, Box, CircularProgress, FormControlLabel, Accordion, FormGroup, Checkbox, Stack, IconButton, Menu, MenuItem, Button, InputAdornment } from "@mui/material"
+import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, Paper, Box, CircularProgress, FormControlLabel, Accordion, FormGroup, Checkbox, Stack, IconButton, Menu, MenuItem, Button, InputAdornment, FormControl, FormLabel } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
-import { Dispatch, SetStateAction, useMemo, useState } from "react"
+import { ChangeEvent, Dispatch, SetStateAction, useMemo, useState } from "react"
 import { filterBiosamples, parseByCellType, assayHoverInfo } from "./searchhelpers"
 import { BiosampleTableFilters, CellTypeData, FilteredBiosampleData, Biosample } from "./types"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
@@ -27,15 +27,18 @@ export const BiosampleTables: React.FC<Props> = ({
   selectedBiosamples,
   setSelectedBiosamples,
   biosampleTableFilters,
-  setBiosampleTableFilters}
+  setBiosampleTableFilters }
 ) => {
   //This is ONLY used in configGB == true situations. Otherwise, use biosampleTableFilters if changes are to be synced to URL
-  const [biosampleCheckboxes, setBiosampleCheckboxes] = useState<BiosampleTableFilters>({
+  const [biosampleTableFiltersInternal, setBiosampleTableFiltersInternal] = useState<BiosampleTableFilters>({
     CellLine: { checked: true, label: "Cell Line" },
     PrimaryCell: { checked: true, label: "Primary Cell" },
     Tissue: { checked: true, label: "Tissue" },
     Organoid: { checked: true, label: "Organoid" },
     InVitro: { checked: true, label: "In Vitro Differentiated Cell" },
+    Core: { checked: true, label: "Core Collection" },
+    Partial: { checked: true, label: "Partial Data Collection" },
+    Ancillary: { checked: true, label: "Ancillary Collection" },
   })
 
   //For searching biosample tables
@@ -43,7 +46,6 @@ export const BiosampleTables: React.FC<Props> = ({
 
   //Anchor for dropdown menu
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-  let open = Boolean(anchorEl);
 
   const handleClose = () => {
     setAnchorEl(null);
@@ -59,15 +61,15 @@ export const BiosampleTables: React.FC<Props> = ({
       return (
         filterBiosamples(
           parseByCellType(byCellType),
-          configGB ? biosampleCheckboxes.Tissue.checked : biosampleTableFilters.Tissue.checked,
-          configGB ? biosampleCheckboxes.PrimaryCell.checked : biosampleTableFilters.PrimaryCell.checked,
-          configGB ? biosampleCheckboxes.CellLine.checked : biosampleTableFilters.CellLine.checked,
-          configGB ? biosampleCheckboxes.InVitro.checked : biosampleTableFilters.InVitro.checked,
-          configGB ? biosampleCheckboxes.Organoid.checked : biosampleTableFilters.Organoid.checked,
+          configGB ? biosampleTableFiltersInternal.Tissue.checked : biosampleTableFilters.Tissue.checked,
+          configGB ? biosampleTableFiltersInternal.PrimaryCell.checked : biosampleTableFilters.PrimaryCell.checked,
+          configGB ? biosampleTableFiltersInternal.CellLine.checked : biosampleTableFilters.CellLine.checked,
+          configGB ? biosampleTableFiltersInternal.InVitro.checked : biosampleTableFilters.InVitro.checked,
+          configGB ? biosampleTableFiltersInternal.Organoid.checked : biosampleTableFilters.Organoid.checked,
         )
       )
     } else return []
-  }, [byCellType, configGB, biosampleCheckboxes, biosampleTableFilters])
+  }, [byCellType, configGB, biosampleTableFiltersInternal, biosampleTableFilters])
 
   //This could be refactored to improve performance in SNP/Gene filters. The onRowClick for each table depends on setting main query params, which the gene/snp filters also modify
   //This is recalculated every time those sliders are moved.
@@ -144,15 +146,15 @@ export const BiosampleTables: React.FC<Props> = ({
     ]
 
     if (configGB) cols.push({
-      header: "RNA-Seq Available",
-        value: (row) => +row.rnaseq,
-        render: (row) => {
-          if (row.rnaseq) {
-            return (
-              <Check />
-            )
-          }
-        },
+      header: "RNA-Seq",
+      value: (row) => +row.rnaseq,
+      render: (row) => {
+        if (row.rnaseq) {
+          return (
+            <Check />
+          )
+        }
+      },
     })
 
     return (
@@ -184,7 +186,7 @@ export const BiosampleTables: React.FC<Props> = ({
                   onRowClick={(row, i) => {
                     //If in config GB, and selected Biosamples does not contain the clicked item
                     if (configGB && !selectedBiosamples.find((x) => x.summaryName === row.summaryName)) {
-                        setSelectedBiosamples([...selectedBiosamples, row])
+                      setSelectedBiosamples([...selectedBiosamples, row])
                     } else if (!configGB) {
                       setSelectedBiosamples([row])
                     }
@@ -200,60 +202,95 @@ export const BiosampleTables: React.FC<Props> = ({
     [filteredBiosamples, selectedBiosamples, searchString, configGB, setSelectedBiosamples]
   )
 
-  const typeCheckboxes = useMemo(() => {
-    if (configGB) {
-      //If using in config GB, wrap checkboxes in dropdown. Use local biosampleCheckboxes state (doesn't sync to URL)
-      return (
-        <Box>
-          <Button fullWidth variant="outlined" size="medium" startIcon={open ? <ArrowDropDown /> : <ArrowRight />} onClick={handleClick}>Biosample Types</Button>
-          <Menu
-            id="basic-menu"
-            anchorEl={anchorEl}
-            open={open}
-            onClose={handleClose}
-            MenuListProps={{
-              'aria-labelledby': 'basic-button',
-            }}
-          >
+  const Checkboxes = (checkboxStates: BiosampleTableFilters, setCheckboxStates: Dispatch<SetStateAction<BiosampleTableFilters>>) => {
+    return (
+      <Box>
+        <Button fullWidth variant="outlined" size="medium" startIcon={open ? <ArrowDropDown /> : <ArrowRight />} onClick={handleClick}>Sample Type/Collection</Button>
+        <Menu
+          id="basic-menu"
+          anchorEl={anchorEl}
+          open={Boolean(anchorEl)}
+          onClose={handleClose}
+          MenuListProps={{
+            'aria-labelledby': 'basic-button',
+          }}
+        >
+          <FormControl sx={{ ml: 2, mt: 1 }} component="fieldset" variant="standard">
+            <FormLabel component="legend">Biosample Types</FormLabel>
             <FormGroup>
-              {Object.keys(biosampleCheckboxes).map((value: string, i: number) => {
-                return (
-                  <MenuItem key={i}>
-                    <FormControlLabel
-                      checked={biosampleCheckboxes[value].checked}
-                      onChange={(_, checked: boolean) => setBiosampleCheckboxes({ ...biosampleCheckboxes, [value]: { checked: checked, label: biosampleCheckboxes[value].label } })}
-                      control={<Checkbox />}
-                      label={biosampleCheckboxes[value].label}
-                    />
-                  </MenuItem>
-                )
-              })}
+              <MenuItem>
+                <FormControlLabel
+                  checked={checkboxStates.CellLine.checked}
+                  onChange={(_, checked: boolean) => setCheckboxStates({ ...checkboxStates, CellLine: { checked: checked, label: checkboxStates.CellLine.label } })}
+                  control={<Checkbox />}
+                  label={checkboxStates.CellLine.label}
+                />
+              </MenuItem>
+              <MenuItem>
+                <FormControlLabel
+                  checked={checkboxStates.PrimaryCell.checked}
+                  onChange={(_, checked: boolean) => setCheckboxStates({ ...checkboxStates, PrimaryCell: { checked: checked, label: checkboxStates.PrimaryCell.label } })}
+                  control={<Checkbox />}
+                  label={checkboxStates.PrimaryCell.label}
+                />
+              </MenuItem>
+              <MenuItem>
+                <FormControlLabel
+                  checked={checkboxStates.Tissue.checked}
+                  onChange={(_, checked: boolean) => setCheckboxStates({ ...checkboxStates, Tissue: { checked: checked, label: checkboxStates.Tissue.label } })}
+                  control={<Checkbox />}
+                  label={checkboxStates.Tissue.label}
+                />
+              </MenuItem>
+              <MenuItem>
+                <FormControlLabel
+                  checked={checkboxStates.Organoid.checked}
+                  onChange={(_, checked: boolean) => setCheckboxStates({ ...checkboxStates, Organoid: { checked: checked, label: checkboxStates.Organoid.label } })}
+                  control={<Checkbox />}
+                  label={checkboxStates.Organoid.label}
+                />
+              </MenuItem>
+              <MenuItem>
+                <FormControlLabel
+                  checked={checkboxStates.InVitro.checked}
+                  onChange={(_, checked: boolean) => setCheckboxStates({ ...checkboxStates, InVitro: { checked: checked, label: checkboxStates.InVitro.label } })}
+                  control={<Checkbox />}
+                  label={checkboxStates.InVitro.label}
+                />
+              </MenuItem>
             </FormGroup>
-          </Menu>
-        </Box>
-      )
-    } else {
-      //If not in config GB, return simple list. Use external biosampleTableFilters state (syncs to URL)
-      return (
-        <>
-          <Typography>Biosample Types</Typography>
-          <FormGroup>
-            {Object.keys(biosampleTableFilters).map((value: string, i: number) => {
-            return (
-              <FormControlLabel
-                key={i}
-                checked={biosampleTableFilters[value].checked}
-                onChange={(_, checked: boolean) => setBiosampleTableFilters({ ...biosampleTableFilters, [value]: { checked: checked, label: biosampleTableFilters[value].label } })}
-                control={<Checkbox />}
-                label={biosampleTableFilters[value].label}
-              />
-            )
-          })}
-          </FormGroup>
-        </>
-      )
-    }
-  }, [anchorEl, biosampleCheckboxes, open, biosampleTableFilters, configGB, setBiosampleTableFilters])
+            <FormLabel component="legend">Collection</FormLabel>
+            <FormGroup>
+              <MenuItem>
+                <FormControlLabel
+                  checked={checkboxStates.Core.checked}
+                  onChange={(_, checked: boolean) => setCheckboxStates({ ...checkboxStates, Core: { checked: checked, label: checkboxStates.Core.label } })}
+                  control={<Checkbox />}
+                  label={checkboxStates.Core.label}
+                />
+              </MenuItem>
+              <MenuItem>
+                <FormControlLabel
+                  checked={checkboxStates.Partial.checked}
+                  onChange={(_, checked: boolean) => setCheckboxStates({ ...checkboxStates, Partial: { checked: checked, label: checkboxStates.Partial.label } })}
+                  control={<Checkbox />}
+                  label={checkboxStates.Partial.label}
+                />
+              </MenuItem>
+              <MenuItem>
+                <FormControlLabel
+                  checked={checkboxStates.Ancillary.checked}
+                  onChange={(_, checked: boolean) => setCheckboxStates({ ...checkboxStates, Ancillary: { checked: checked, label: checkboxStates.Ancillary.label } })}
+                  control={<Checkbox />}
+                  label={checkboxStates.Ancillary.label}
+                />
+              </MenuItem>
+            </FormGroup>
+          </FormControl>
+        </Menu>
+      </Box>
+    )
+  }
 
   return (
     <Grid2 container spacing={2}>
@@ -269,21 +306,18 @@ export const BiosampleTables: React.FC<Props> = ({
           }}
         />
       </Grid2>
-      {configGB &&
-        <Grid2 xs={6}>
-          {typeCheckboxes}
-        </Grid2>
-      }
+      <Grid2 xs={configGB ? 6 : 12}>
+        {configGB ?
+          Checkboxes(biosampleTableFiltersInternal, setBiosampleTableFiltersInternal)
+          :
+          Checkboxes(biosampleTableFilters, setBiosampleTableFilters)
+        }
+      </Grid2>
       <Grid2 xs={12} height={configGB ? 500 : 350} overflow={"auto"} >
         <Box sx={{ display: 'flex', flexDirection: "column" }}>
           {byCellType ? biosampleTables : <CircularProgress sx={{ margin: "auto" }} />}
         </Box>
       </Grid2>
-      {!configGB &&
-        <Grid2 xs={12}>
-          {typeCheckboxes}
-        </Grid2>
-      }
     </Grid2>
   )
 }

@@ -68,6 +68,9 @@ export type BiosampleTableFilters = {
   Tissue: { checked: boolean, label: "Tissue" },
   Organoid: { checked: boolean, label: "Organoid" },
   InVitro: { checked: boolean, label: "In Vitro Differentiated Cell" },
+  Core: { checked: boolean, label: "Core Collection" },
+  Partial: { checked: boolean, label: "Partial Data Collection" },
+  Ancillary: { checked: boolean, label: "Ancillary Collection" },
 }
 
 export type FilterCriteria = {

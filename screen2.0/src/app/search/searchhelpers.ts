@@ -466,6 +466,9 @@ export function constructSearchURL(
     + `&InVitro=${outputT_or_F(newBiosampleTableFilters.InVitro.checked)}`
     + `&Organoid=${outputT_or_F(newBiosampleTableFilters.Organoid.checked)}`
     + `&CellLine=${outputT_or_F(newBiosampleTableFilters.CellLine.checked)}`
+    + `&Core=${outputT_or_F(newBiosampleTableFilters.Core.checked)}`
+    + `&Partial=${outputT_or_F(newBiosampleTableFilters.Partial.checked)}`
+    + `&Ancillary=${outputT_or_F(newBiosampleTableFilters.Ancillary.checked)}`
     + `${newSearchParams.biosample ?
       "&Biosample=" + (newSearchParams.biosample.queryValue)
       + "&BiosampleTissue=" + (newSearchParams.biosample.biosampleTissue)
@@ -613,6 +616,9 @@ export function constructBiosampleTableFiltersFromURL(searchParams: { [key: stri
       Tissue: { checked: searchParams.Tissue ? checkTrueFalse(searchParams.Tissue) : true, label: "Tissue" },
       Organoid: { checked: searchParams.Organoid ? checkTrueFalse(searchParams.Organoid) : true, label: "Organoid" },
       InVitro: { checked: searchParams.InVitro ? checkTrueFalse(searchParams.InVitro) : true, label: "In Vitro Differentiated Cell" },
+      Core: { checked: searchParams.Core ? checkTrueFalse(searchParams.Core) : true, label: "Core Collection" },
+      Partial: { checked: searchParams.Partial ? checkTrueFalse(searchParams.Partial) : true, label: "Partial Data Collection" },
+      Ancillary: { checked: searchParams.Ancillary ? checkTrueFalse(searchParams.Ancillary) : true, label: "Ancillary Collection" },
     }
   )
 }

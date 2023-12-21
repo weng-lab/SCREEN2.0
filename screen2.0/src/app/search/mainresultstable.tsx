@@ -1,6 +1,6 @@
 "use client"
 import { DataTable, DataTableProps, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
-import React, { useState, Dispatch, SetStateAction, useMemo, use } from "react"
+import React, { useState, Dispatch, SetStateAction, useMemo, use, useCallback } from "react"
 import { Box, Typography, Menu, Checkbox, Stack, MenuItem, FormControlLabel, FormGroup, Tooltip, Button, Modal, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, Paper, Container } from "@mui/material"
 import { MainResultTableRow, ConservationData, CellTypeData, Biosample } from "./types"
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
@@ -26,7 +26,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
   const [CTCF_ChIAPET, setCTCF_ChIAPET] = useState<boolean>(false)
   const [RNAPII_ChIAPET, setRNAPII_ChIAPET] = useState<boolean>(false)
 
-  const columns = (
+  const columns = useCallback((
     funcSetDistance: Dispatch<SetStateAction<boolean>>,
     funcSetCTCF_ChIAPET: Dispatch<SetStateAction<boolean>>,
     funcSetRNAPII_ChIAPET: Dispatch<SetStateAction<boolean>>
@@ -381,11 +381,11 @@ export function MainResultsTable(props: MainResultsTableProps) {
       HeaderRender: () => <strong><p>Conservation</p></strong>
     })
     return cols
-  }
+  }, [CTCF_ChIAPET, RNAPII_ChIAPET, distance, props.assembly, props.byCellType, props.rows])
 
   const cols = useMemo(() => {
     return columns(setDistance, setCTCF_ChIAPET, setRNAPII_ChIAPET)
-  },[setDistance, setCTCF_ChIAPET, setRNAPII_ChIAPET, columns])
+  }, [setDistance, setCTCF_ChIAPET, setRNAPII_ChIAPET, columns])
 
   return (
       <DataTable
