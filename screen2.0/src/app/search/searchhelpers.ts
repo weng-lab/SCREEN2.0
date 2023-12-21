@@ -438,12 +438,6 @@ export function constructSearchURL(
   newBiosampleTableFilters: BiosampleTableFilters,
   page: number = 0,
   accessions: string = '',
-  newBiosample?: {
-    selected: boolean
-    biosample: string
-    tissue: string
-    summaryName: string
-  }
 ): string {
   /**
    * ! Important !
@@ -467,15 +461,15 @@ export function constructSearchURL(
 
   //Can probably get biosample down to one string, and extract other info when parsing byCellType
   const biosampleFilters =
-    `&Tissue=${outputT_or_F(newBiosampleTableFilters.Tissue)}`
-    + `&PrimaryCell=${outputT_or_F(newBiosampleTableFilters.PrimaryCell)}`
-    + `&InVitro=${outputT_or_F(newBiosampleTableFilters.InVitro)}`
-    + `&Organoid=${outputT_or_F(newBiosampleTableFilters.Organoid)}`
-    + `&CellLine=${outputT_or_F(newBiosampleTableFilters.CellLine)}`
-    + `${(newSearchParams.biosample.selected && !newBiosample) || (newBiosample && newBiosample.selected) ?
-      "&Biosample=" + (newBiosample ? newBiosample.biosample : newSearchParams.biosample.biosample)
-      + "&BiosampleTissue=" + (newBiosample ? newBiosample.tissue : newSearchParams.biosample.tissue)
-      + "&BiosampleSummary=" + (newBiosample ? newBiosample.summaryName : newSearchParams.biosample.summaryName)
+    `&Tissue=${outputT_or_F(newBiosampleTableFilters.Tissue.checked)}`
+    + `&PrimaryCell=${outputT_or_F(newBiosampleTableFilters.PrimaryCell.checked)}`
+    + `&InVitro=${outputT_or_F(newBiosampleTableFilters.InVitro.checked)}`
+    + `&Organoid=${outputT_or_F(newBiosampleTableFilters.Organoid.checked)}`
+    + `&CellLine=${outputT_or_F(newBiosampleTableFilters.CellLine.checked)}`
+    + `${newSearchParams.biosample ?
+      "&Biosample=" + (newSearchParams.biosample.queryValue)
+      + "&BiosampleTissue=" + (newSearchParams.biosample.biosampleTissue)
+      + "&BiosampleSummary=" + (newSearchParams.biosample.summaryName)
       : ""
     }`
 
@@ -548,13 +542,14 @@ export function constructMainQueryParamsFromURL(searchParams: { [key: string]: s
           null : searchParams.end ?
             +(searchParams.end) : 5381894,
       },
-      biosample: searchParams.Biosample ? 
+      biosample: searchParams.Biosample ?
         {
-          selected: true,
-          biosample: searchParams.Biosample,
-          tissue: searchParams.BiosampleTissue,
           summaryName: searchParams.BiosampleSummary,
-        } : { selected: false, biosample: null, tissue: null, summaryName: null },
+          biosampleType: null,
+          biosampleTissue: searchParams.BiosampleTissue,
+          queryValue: searchParams.Biosample,
+          assays: null
+        } : null,
       searchConfig: {
         //Flag for if user-entered bed file intersection accessions to be used from sessionStorage
         bed_intersect: searchParams.intersect ? checkTrueFalse(searchParams.intersect) : false,
@@ -611,11 +606,11 @@ export function constructFilterCriteriaFromURL(searchParams: { [key: string]: st
 export function constructBiosampleTableFiltersFromURL(searchParams: { [key: string]: string | undefined }): BiosampleTableFilters {
   return (
     {
-      CellLine: searchParams.CellLine ? checkTrueFalse(searchParams.CellLine) : true,
-      PrimaryCell: searchParams.PrimaryCell ? checkTrueFalse(searchParams.PrimaryCell) : true,
-      Tissue: searchParams.Tissue ? checkTrueFalse(searchParams.Tissue) : true,
-      Organoid: searchParams.Organoid ? checkTrueFalse(searchParams.Organoid) : true,
-      InVitro: searchParams.InVitro ? checkTrueFalse(searchParams.InVitro) : true,
+      CellLine: { checked: searchParams.CellLine ? checkTrueFalse(searchParams.CellLine) : true, label: "Cell Line" },
+      PrimaryCell: { checked: searchParams.PrimaryCell ? checkTrueFalse(searchParams.PrimaryCell) : true, label: "Primary Cell" },
+      Tissue: { checked: searchParams.Tissue ? checkTrueFalse(searchParams.Tissue) : true, label: "Tissue" },
+      Organoid: { checked: searchParams.Organoid ? checkTrueFalse(searchParams.Organoid) : true, label: "Organoid" },
+      InVitro: { checked: searchParams.InVitro ? checkTrueFalse(searchParams.InVitro) : true, label: "In Vitro Differentiated Cell" },
     }
   )
 }

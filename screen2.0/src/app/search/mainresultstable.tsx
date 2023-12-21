@@ -2,10 +2,11 @@
 import { DataTable, DataTableProps, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import React, { useState, Dispatch, SetStateAction, useMemo, use } from "react"
 import { Box, Typography, Menu, Checkbox, Stack, MenuItem, FormControlLabel, FormGroup, Tooltip, Button, Modal, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, Paper, Container } from "@mui/material"
-import { MainResultTableRow, ConservationData, CellTypeData, SelectedBiosamples } from "./types"
+import { MainResultTableRow, ConservationData, CellTypeData, Biosample } from "./types"
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import { EventBusyTwoTone, InfoOutlined } from "@mui/icons-material"
 import { BiosampleTables } from "./biosampletables"
+import ConfigureGenomeBrowser from "./_ccredetails/configuregb"
 
 interface MainResultsTableProps extends Partial<DataTableProps<any>> {
   assembly: "GRCh38" | "mm10"
@@ -17,9 +18,11 @@ export function MainResultsTable(props: MainResultsTableProps) {
   const [CTCF_ChIAPET, setCTCF_ChIAPET] = useState<boolean>(false)
   const [RNAPII_ChIAPET, setRNAPII_ChIAPET] = useState<boolean>(false)
 
-  //Start and End are strings since toLocaleString() is called on them to get commas in the numbers
-  //State variable setters are passed to columns so that linked genes modal is able to properly set table state
-  const columns = (funcSetDistance: Dispatch<SetStateAction<boolean>>, funcSetCTCF_ChIAPET: Dispatch<SetStateAction<boolean>>, funcSetRNAPII_ChIAPET: Dispatch<SetStateAction<boolean>>) => {
+  const columns = (
+    funcSetDistance: Dispatch<SetStateAction<boolean>>,
+    funcSetCTCF_ChIAPET: Dispatch<SetStateAction<boolean>>,
+    funcSetRNAPII_ChIAPET: Dispatch<SetStateAction<boolean>>
+  ) => {
     let cols: DataTableColumn<MainResultTableRow>[] = [
       {
         header: "Accession",
@@ -263,7 +266,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
       },
       FunctionalRender: (row: MainResultTableRow) => {
         const [open, setOpen] = useState(false);
-        const [selectedBiosamples, setSelectedBiosamples] = useState<SelectedBiosamples>([])
+        const [selectedBiosamples, setSelectedBiosamples] = useState<Biosample[]>([])
 
         const handleClickOpen = () => {
           setOpen(true);
@@ -305,8 +308,8 @@ export function MainResultsTable(props: MainResultsTableProps) {
                 <DialogContentText mb={2} >
                   Note: For best UCSC performance, choose {"<"}10 cell types.
                 </DialogContentText>
-                <BiosampleTables
-                  byCellType={props.byCellType} 
+                <ConfigureGenomeBrowser
+                  byCellType={props.byCellType}
                   selectedBiosamples={selectedBiosamples}
                   setSelectedBiosamples={setSelectedBiosamples}
                 />

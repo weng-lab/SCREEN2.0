@@ -27,12 +27,13 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
 import Grid2 from "@mui/material/Unstable_Grid2"
 import { RangeSlider, DataTable } from "@weng-lab/psychscreen-ui-components"
-import { BiosampleTableFilters, CellTypeData, FilterCriteria, FilteredBiosampleData, MainQueryParams } from "./types"
+import { Biosample, BiosampleTableFilters, CellTypeData, FilterCriteria, FilteredBiosampleData, MainQueryParams } from "./types"
 import { parseByCellType, filterBiosamples, assayHoverInfo } from "./searchhelpers"
 import { gql } from "@apollo/client"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import GeneAutoComplete from "../applets/gene-expression/geneautocomplete";
 import { InfoOutlined } from "@mui/icons-material";
+import BiosampleTables from "./biosampletables";
 
 const snpMarks = [
   {
@@ -109,7 +110,7 @@ export function MainResultsFilters(
     setFilterCriteria: Dispatch<SetStateAction<FilterCriteria>>,
     biosampleTableFilters: BiosampleTableFilters,
     setBiosampleTableFilters: Dispatch<SetStateAction<BiosampleTableFilters>>,
-    setBiosample: (biosample: { selected: boolean, biosample: string, tissue: string, summaryName: string }) => void,
+    setBiosample: (biosample: Biosample) => void,
     TSSs: number[]
     setTSSs: Dispatch<SetStateAction<number[]>>,
     setTSSranges: Dispatch<SetStateAction<{ start: number, end: number }[]>>
@@ -118,10 +119,6 @@ export function MainResultsFilters(
     searchParams: { [key: string]: string | undefined },
   }
 ): JSX.Element {
-  
-  //Selected Biosample
-  const [biosampleHighlight, setBiosampleHighlight] = useState<{} | null>(null)
-  const [searchString, setSearchString] = useState<string>("")
 
   const [gene, setGene] = useState<string>("")
 
@@ -165,137 +162,6 @@ export function MainResultsFilters(
   const valuetext = (value: number) => {
     return `${value}kb`;
   }
-
-  const filteredBiosamples: FilteredBiosampleData = useMemo(() => {
-    if (props.byCellType) {
-      return (
-        filterBiosamples(
-          parseByCellType(props.byCellType),
-          props.biosampleTableFilters.Tissue,
-          props.biosampleTableFilters.PrimaryCell,
-          props.biosampleTableFilters.CellLine,
-          props.biosampleTableFilters.InVitro,
-          props.biosampleTableFilters.Organoid
-        )
-      )
-    } else return []
-  }, [props.byCellType, props.biosampleTableFilters.Tissue, props.biosampleTableFilters.PrimaryCell, props.biosampleTableFilters.CellLine, props.biosampleTableFilters.InVitro, props.biosampleTableFilters.Organoid])
-
-  //This could be refactored to improve performance in SNP/Gene filters. The onRowClick for each table depends on setting main query params, which the gene/snp filters also modify
-  //This is recalculated every time those sliders are moved.
-  const biosampleTables = useMemo(() => {
-      const cols = [
-        {
-          header: "Biosample",
-          value: (row) => row.summaryName,
-          render: (row) => (
-            <Tooltip title={"Biosample Type: " + row.biosampleType} arrow>
-              <Typography variant="body2">{row.summaryName}</Typography>
-            </Tooltip>
-          ),
-        },
-        {
-          header: "Assays",
-          value: (row) => Object.keys(row.assays).filter((key) => row.assays[key] === true).length,
-          render: (row) => {
-            const fifthOfCircle = (2 * 3.1416 * 10) / 5
-            return (
-              <Tooltip title={assayHoverInfo(row.assays)} arrow>
-                <svg height="50" width="50" viewBox="0 0 50 50">
-                  <circle r="20.125" cx="25" cy="25" fill="#EEEEEE" stroke="black" strokeWidth="0.25" />
-                  <circle
-                    r="10"
-                    cx="25"
-                    cy="25"
-                    fill="transparent"
-                    stroke={`${row.assays.dnase ? "#06DA93" : "transparent"}`}
-                    strokeWidth="20"
-                    strokeDasharray={`${fifthOfCircle} ${fifthOfCircle * 4}`}
-                  />
-                  <circle
-                    r="10"
-                    cx="25"
-                    cy="25"
-                    fill="transparent"
-                    stroke={`${row.assays.h3k27ac ? "#FFCD00" : "transparent"}`}
-                    strokeWidth="20"
-                    strokeDasharray={`${fifthOfCircle * 0} ${fifthOfCircle} ${fifthOfCircle} ${fifthOfCircle * 3}`}
-                  />
-                  <circle
-                    r="10"
-                    cx="25"
-                    cy="25"
-                    fill="transparent"
-                    stroke={`${row.assays.h3k4me3 ? "#FF0000" : "transparent"}`}
-                    strokeWidth="20"
-                    strokeDasharray={`${fifthOfCircle * 0} ${fifthOfCircle * 2} ${fifthOfCircle} ${fifthOfCircle * 2}`}
-                  />
-                  <circle
-                    r="10"
-                    cx="25"
-                    cy="25"
-                    fill="transparent"
-                    stroke={`${row.assays.ctcf ? "#00B0F0" : "transparent"}`}
-                    strokeWidth="20"
-                    strokeDasharray={`${fifthOfCircle * 0} ${fifthOfCircle * 3} ${fifthOfCircle} ${fifthOfCircle * 1}`}
-                  />
-                  <circle
-                    r="10"
-                    cx="25"
-                    cy="25"
-                    fill="transparent"
-                    stroke={`${row.assays.atac ? "#02C7B9" : "transparent"}`}
-                    strokeWidth="20"
-                    strokeDasharray={`${fifthOfCircle * 0} ${fifthOfCircle * 4} ${fifthOfCircle}`}
-                  />
-                </svg>
-              </Tooltip>
-            )
-          },
-        },
-      ]
-
-      return (
-        filteredBiosamples.sort().map((tissue: [string, {}[]], i) => {
-          // Filter shows accordians by if their table contains the search
-          if (searchString ? tissue[1].find(obj => obj["summaryName"].toLowerCase().includes(searchString.toLowerCase())) : true) {
-            return (
-              <Accordion key={tissue[0]}>
-                <AccordionSummary
-                  expandIcon={<KeyboardArrowRightIcon />}
-                  sx={{
-                    flexDirection: "row-reverse",
-                    "& .MuiAccordionSummary-expandIconWrapper.Mui-expanded": {
-                      transform: "rotate(90deg)",
-                    },
-                  }}
-                >
-                  <Typography>{tissue[0][0].toUpperCase() + tissue[0].slice(1)}</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <DataTable
-                    columns={cols}
-                    rows={tissue[1]}
-                    dense
-                    searchable
-                    search={searchString}
-                    highlighted={biosampleHighlight}
-                    sortColumn={1}
-                    onRowClick={(row, i) => {
-                      props.setBiosample({ selected: true, biosample: row.queryValue, tissue: row.biosampleTissue, summaryName: row.summaryName })
-                      setBiosampleHighlight(row)
-                    }}
-                  />
-                </AccordionDetails>
-              </Accordion>
-            )
-          }
-        })
-      )
-    },
-    //For some reason it wants "props" as a dependency here, not sure why. Not referring to just "props" here at all
-    [filteredBiosamples, biosampleHighlight, searchString, props.setBiosample]
-  )
 
   return (
     <Paper elevation={0}>
@@ -391,23 +257,12 @@ export function MainResultsFilters(
         </AccordionSummary>
         <AccordionDetails>
           <Grid2 container spacing={2}>
-            <Grid2 xs={5}>
-              <Typography>Tissue/Organ</Typography>
-            </Grid2>
-            <Grid2 xs={7}>
-              <TextField
-                value={searchString}
-                size="small"
-                label="Search Biosamples"
-                onChange={(event) => setSearchString(event.target.value)}
-              />
-            </Grid2>
-            {props.mainQueryParams.biosample.selected && (
+            {props.mainQueryParams.biosample && (
               <Grid2 container spacing={2}>
                 <Grid2 xs={12}>
                   <Paper elevation={0}>
                     <Typography>Selected Biosample:</Typography>
-                    <Typography>{props.mainQueryParams.biosample.tissue[0].toUpperCase() + props.mainQueryParams.biosample.tissue.slice(1) + " - " + props.mainQueryParams.biosample.summaryName}</Typography>
+                    <Typography>{props.mainQueryParams.biosample.biosampleTissue[0].toUpperCase() + props.mainQueryParams.biosample.biosampleTissue.slice(1) + " - " + props.mainQueryParams.biosample.summaryName}</Typography>
                   </Paper>
                 </Grid2>
                 <Grid2 xs={12}>
@@ -415,8 +270,7 @@ export function MainResultsFilters(
                     variant="outlined"
                     fullWidth
                     onClick={() => {
-                      props.setMainQueryParams({...props.mainQueryParams, biosample: { selected: false, biosample: null, tissue: null, summaryName: null }})
-                      setBiosampleHighlight(null)
+                      props.setMainQueryParams({ ...props.mainQueryParams, biosample: null })
                     }}
                   >
                     Clear
@@ -424,45 +278,21 @@ export function MainResultsFilters(
                 </Grid2>
               </Grid2>
             )}
-            <Grid2 xs={12} maxHeight={300} overflow={"auto"} >
+            <Grid2 xs={12}>
               <Box sx={{ display: 'flex', flexDirection: "column" }}>
-                {props.byCellType ? biosampleTables : <CircularProgress sx={{margin: "auto"}} />}
+                {props.byCellType ?
+                  <BiosampleTables
+                    configGB={false}
+                    byCellType={props.byCellType}
+                    selectedBiosamples={[props.mainQueryParams.biosample]}
+                    setSelectedBiosamples={(biosample: [Biosample]) => props.setBiosample(biosample[0])}
+                    biosampleTableFilters={props.biosampleTableFilters}
+                    setBiosampleTableFilters={props.setBiosampleTableFilters}
+                  />
+                  :
+                  <CircularProgress sx={{ margin: "auto" }} />
+                }
               </Box>
-            </Grid2>
-            <Grid2 xs={12} sx={{ mt: 1 }}>
-              <Typography>Biosample Type</Typography>
-              <FormGroup>
-                <FormControlLabel
-                  checked={props.biosampleTableFilters.Tissue}
-                  onChange={(_, checked: boolean) => props.setBiosampleTableFilters({...props.biosampleTableFilters, Tissue: checked})}
-                  control={<Checkbox />}
-                  label="Tissue"
-                />
-                <FormControlLabel
-                  checked={props.biosampleTableFilters.PrimaryCell}
-                  onChange={(_, checked: boolean) => props.setBiosampleTableFilters({...props.biosampleTableFilters, PrimaryCell: checked})}
-                  control={<Checkbox />}
-                  label="Primary Cell"
-                />
-                <FormControlLabel
-                  checked={props.biosampleTableFilters.InVitro}
-                  onChange={(_, checked: boolean) => props.setBiosampleTableFilters({...props.biosampleTableFilters, InVitro: checked})}
-                  control={<Checkbox />}
-                  label="In Vitro Differentiated Cell"
-                />
-                <FormControlLabel
-                  checked={props.biosampleTableFilters.Organoid}
-                  onChange={(_, checked: boolean) => props.setBiosampleTableFilters({...props.biosampleTableFilters, Organoid: checked})}
-                  control={<Checkbox />}
-                  label="Organoid"
-                />
-                <FormControlLabel
-                  checked={props.biosampleTableFilters.CellLine}
-                  onChange={(_, checked: boolean) => props.setBiosampleTableFilters({...props.biosampleTableFilters, CellLine: checked})}
-                  control={<Checkbox />}
-                  label="Cell Line"
-                />
-              </FormGroup>
             </Grid2>
           </Grid2>
         </AccordionDetails>
