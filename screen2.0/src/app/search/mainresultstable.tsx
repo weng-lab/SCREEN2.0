@@ -4,7 +4,7 @@ import React, { useState, Dispatch, SetStateAction, useMemo, use } from "react"
 import { Box, Typography, Menu, Checkbox, Stack, MenuItem, FormControlLabel, FormGroup, Tooltip, Button, Modal, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, Paper, Container } from "@mui/material"
 import { MainResultTableRow, ConservationData, CellTypeData, Biosample } from "./types"
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
-import { EventBusyTwoTone, InfoOutlined } from "@mui/icons-material"
+import { ArrowDropDown, ArrowRight, EventBusyTwoTone, InfoOutlined } from "@mui/icons-material"
 import { BiosampleTables } from "./biosampletables"
 import ConfigureGenomeBrowser from "./_ccredetails/configuregb"
 
@@ -166,7 +166,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
         return (
           <Box>
             <Stack direction="row" alignItems="center" component="button" onClick={handleClick}>
-              <ArrowRightIcon />
+              {open ? <ArrowDropDown /> : <ArrowRight />}
               <strong><p>Linked Genes</p></strong>
             </Stack>
             <Menu
@@ -226,11 +226,18 @@ export function MainResultsTable(props: MainResultsTableProps) {
                 {`CTCF-ChIAPET:\u00A0`}
               </Typography>
               <Typography variant="body2" color="primary" display="inline">
-                {row.linkedGenes.CTCF_ChIAPET.length == 0 ? "none" : Object.values(row.linkedGenes.CTCF_ChIAPET).map((gene: { name: string, biosample: string }, i: number) => (
-                  <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${gene.name}`}>
-                    {i < row.linkedGenes.CTCF_ChIAPET.length - 1 ? `\u00A0${gene.name},\u00A0` : `\u00A0${gene.name}`}
-                  </a>
-                ))}
+                {row.linkedGenes.CTCF_ChIAPET.length == 0 ?
+                  "none"
+                  :
+                  Object.values(row.linkedGenes.CTCF_ChIAPET)
+                  .map((gene: { name: string, biosample: string }, i: number) => gene.name)
+                  //deduplicate
+                  .filter((name, index, self) => { return self.indexOf(name) === index })
+                  .map((name: string, i: number) => (
+                    <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${name}`}>
+                      {i < row.linkedGenes.CTCF_ChIAPET.length - 1 ? `\u00A0${name},\u00A0` : `\u00A0${name}`}
+                    </a>
+                  ))}
               </Typography>
             </Box>}
             {RNAPII_ChIAPET && <Box>
@@ -238,11 +245,18 @@ export function MainResultsTable(props: MainResultsTableProps) {
                 {`RNAPII-ChIAPET:\u00A0`}
               </Typography>
               <Typography variant="body2" color="primary" display="inline">
-                {row.linkedGenes.RNAPII_ChIAPET.length == 0 ? "none" : Object.values(row.linkedGenes.RNAPII_ChIAPET).map((gene: { name: string, biosample: string }, i: number) => (
-                  <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${gene.name}`}>
-                    {i < row.linkedGenes.RNAPII_ChIAPET.length - 1 ? `\u00A0${gene.name},\u00A0` : `\u00A0${gene.name}`}
-                  </a>
-                ))}
+                {row.linkedGenes.RNAPII_ChIAPET.length == 0 ?
+                  "none"
+                  :
+                  Object.values(row.linkedGenes.RNAPII_ChIAPET)
+                    .map((gene: { name: string, biosample: string }, i: number) => gene.name)
+                    //deduplicate
+                    .filter((name, index, self) => { return self.indexOf(name) === index })
+                    .map((name: string, i: number) => (
+                      <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${name}`}>
+                        {i < row.linkedGenes.RNAPII_ChIAPET.length - 1 ? `\u00A0${name},\u00A0` : `\u00A0${name}`}
+                      </a>
+                    ))}
               </Typography>
             </Box>}
           </>
@@ -333,7 +347,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
 
   const cols = useMemo(() => {
     return columns(setDistance, setCTCF_ChIAPET, setRNAPII_ChIAPET)
-  },[setDistance, setCTCF_ChIAPET, setRNAPII_ChIAPET])
+  },[setDistance, setCTCF_ChIAPET, setRNAPII_ChIAPET, columns])
 
   return (
       <DataTable

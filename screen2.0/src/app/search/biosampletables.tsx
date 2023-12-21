@@ -5,7 +5,7 @@ import { Dispatch, SetStateAction, useMemo, useState } from "react"
 import { filterBiosamples, parseByCellType, assayHoverInfo } from "./searchhelpers"
 import { BiosampleTableFilters, CellTypeData, FilteredBiosampleData, Biosample } from "./types"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
-import { Close } from "@mui/icons-material"
+import { ArrowDropDown, Close } from "@mui/icons-material"
 import { ArrowRight } from "@mui/icons-material"
 
 
@@ -193,7 +193,7 @@ export const BiosampleTables: React.FC<Props> = ({
       return (
         <Box>
           <Stack direction="row" alignItems="center" component="button" onClick={handleClick}>
-            <ArrowRight />
+            {open ? <ArrowDropDown /> : <ArrowRight />}
             <strong><p>Biosample Types</p></strong>
           </Stack>
           <Menu
