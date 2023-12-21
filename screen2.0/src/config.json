@@ -31,8 +31,8 @@
     "overrides": {}
   },
   "API": {
-    "HumanGlobals": "https://downloads.wenglab.org/humanrna.json",
-    "MouseGlobals": "https://downloads.wenglab.org/mouserna.json",
+    "HumanGlobals": "https://downloads.wenglab.org/humanglobals.json",
+    "MouseGlobals": "https://downloads.wenglab.org/mouseglobals.json",
     "CcreAPI": "https://factorbook.api.wenglab.org/graphql",
     "GraphqlAPI": "https://ga.staging.wenglab.org/graphql"
   },
