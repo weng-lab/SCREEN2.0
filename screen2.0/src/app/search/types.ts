@@ -110,6 +110,7 @@ export type CellTypeData = {
       biosample_type: string
       tissue: string
       celltypename: string
+      rnaseq: boolean
     }[]
   }
 }
@@ -135,6 +136,7 @@ export type Biosample = {
     h3k27ac: boolean;
     h3k4me3: boolean;
   }
+  rnaseq: boolean
 }
 
 export type MainResultTableRows = MainResultTableRow[]

@@ -31,10 +31,8 @@
     "overrides": {}
   },
   "API": {
-    "OLD_HumanGlobals": "https://downloads.wenglab.org/humanglobalssummary.json",
-    "OLD_MouseGlobals": "https://downloads.wenglab.org/mouseglobalssummary.json",
-    "HumanGlobals": "https://storage.googleapis.com/gcp.wenglab.org/screen-files/humanglobalssummary.json",
-    "MouseGlobals": "https://storage.googleapis.com/gcp.wenglab.org/screen-files/mouseglobalssummary.json",
+    "HumanGlobals": "https://downloads.wenglab.org/humanrna.json",
+    "MouseGlobals": "https://downloads.wenglab.org/mouserna.json",
     "CcreAPI": "https://factorbook.api.wenglab.org/graphql",
     "GraphqlAPI": "https://ga.staging.wenglab.org/graphql"
   },

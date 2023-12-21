@@ -5,7 +5,7 @@ import { Dispatch, SetStateAction, useMemo, useState } from "react"
 import { filterBiosamples, parseByCellType, assayHoverInfo } from "./searchhelpers"
 import { BiosampleTableFilters, CellTypeData, FilteredBiosampleData, Biosample } from "./types"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
-import { ArrowDropDown, Close } from "@mui/icons-material"
+import { ArrowDropDown, Check, Close } from "@mui/icons-material"
 import { ArrowRight } from "@mui/icons-material"
 import SearchIcon from '@mui/icons-material/Search';
 
@@ -140,8 +140,20 @@ export const BiosampleTables: React.FC<Props> = ({
             </Tooltip>
           )
         },
-      },
+      }
     ]
+
+    if (configGB) cols.push({
+      header: "RNA-Seq Available",
+        value: (row) => +row.rnaseq,
+        render: (row) => {
+          if (row.rnaseq) {
+            return (
+              <Check />
+            )
+          }
+        },
+    })
 
     return (
       filteredBiosamples.sort().map((tissue: [string, {}[]], i) => {
@@ -205,7 +217,6 @@ export const BiosampleTables: React.FC<Props> = ({
           >
             <FormGroup>
               {Object.keys(biosampleCheckboxes).map((value: string, i: number) => {
-                console.log(value)
                 return (
                   <MenuItem key={i}>
                     <FormControlLabel

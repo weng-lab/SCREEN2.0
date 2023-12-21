@@ -1,5 +1,5 @@
 
-import { cCREData, MainQueryParams, CellTypeData, UnfilteredBiosampleData, FilteredBiosampleData, MainResultTableRows, MainResultTableRow, rawQueryData, FilterCriteria, BiosampleTableFilters } from "./types"
+import { cCREData, MainQueryParams, CellTypeData, UnfilteredBiosampleData, FilteredBiosampleData, MainResultTableRows, MainResultTableRow, rawQueryData, FilterCriteria, BiosampleTableFilters, Biosample } from "./types"
 import { MainQuery, fetchLinkedGenes } from "../../common/lib/queries"
 
 /**
@@ -340,11 +340,11 @@ function availableAssays(
  * @returns an object of sorted biosample types, grouped by tissue type
  */
 export function parseByCellType(byCellType: CellTypeData): UnfilteredBiosampleData {
-  const biosamples = {}
+  const biosamples: UnfilteredBiosampleData = {}
   Object.entries(byCellType.byCellType).forEach((entry) => {
     // if the tissue catergory hasn't been catalogued, make a new blank array for it
     const experiments = entry[1]
-    let tissueArr = []
+    let tissueArr: Biosample[] = []
     if (!biosamples[experiments[0].tissue]) {
       Object.defineProperty(biosamples, experiments[0].tissue, {
         value: [],
@@ -362,10 +362,10 @@ export function parseByCellType(byCellType: CellTypeData): UnfilteredBiosampleDa
       //for query
       queryValue: experiments[0].celltypename,
       //for filling in available assay wheels
-      //THIS DATA IS MISSING ATAC DATA! ATAC will always be false
       assays: availableAssays(experiments),
       //for displaying tissue category when selected
       biosampleTissue: experiments[0].tissue,
+      rnaseq: experiments[0].rnaseq
     })
     Object.defineProperty(biosamples, experiments[0].tissue, { value: tissueArr, enumerable: true, writable: true })
   })
@@ -542,13 +542,15 @@ export function constructMainQueryParamsFromURL(searchParams: { [key: string]: s
           null : searchParams.end ?
             +(searchParams.end) : 5381894,
       },
+      //If biosampleType, assays, or rnaseq is needed on reload, need to store it in the URL
       biosample: searchParams.Biosample ?
         {
           summaryName: searchParams.BiosampleSummary,
           biosampleType: null,
           biosampleTissue: searchParams.BiosampleTissue,
           queryValue: searchParams.Biosample,
-          assays: null
+          assays: null,
+          rnaseq: null,
         } : null,
       searchConfig: {
         //Flag for if user-entered bed file intersection accessions to be used from sessionStorage
