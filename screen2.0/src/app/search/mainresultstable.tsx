@@ -7,6 +7,14 @@ import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import { ArrowDropDown, ArrowRight, EventBusyTwoTone, InfoOutlined } from "@mui/icons-material"
 import { BiosampleTables } from "./biosampletables"
 import ConfigureGenomeBrowser from "./_ccredetails/configuregb"
+import { v4 as uuidv4 } from "uuid"
+import Config from "../../config.json"
+
+const CREATE_TRACKHUB_QUERY = `
+query ($assembly: String!,$uuid: String!,$celltypes: [CellTypeInput]!) {
+  createTrackhubQuery(uuid: $uuid, celltypes: $celltypes, assembly:$assembly)
+  }  
+ `
 
 interface MainResultsTableProps extends Partial<DataTableProps<any>> {
   assembly: "GRCh38" | "mm10"
@@ -282,6 +290,27 @@ export function MainResultsTable(props: MainResultsTableProps) {
         const [open, setOpen] = useState(false);
         const [selectedBiosamples, setSelectedBiosamples] = useState<Biosample[]>([])
 
+        const createTrackHub = async (value) => {
+          
+          const response = await fetch(Config.API.CcreAPI, {
+            method: "POST",
+            body: JSON.stringify({
+              query: CREATE_TRACKHUB_QUERY,
+              variables: {
+                celltypes: value,
+                uuid: uuidv4(),
+                assembly: props.assembly.toLowerCase()
+              },
+            }),
+            headers: { "Content-Type": "application/json" },
+          })
+          const trackhuburl = (await response.json()).data?.createTrackhubQuery
+          const start  = +(row.start.replaceAll(",","")) - 7500
+          const end = +(row.end.replaceAll(",","")) + 7500
+          
+          const ucscbrowserurl =  `https://genome.ucsc.edu/cgi-bin/hgTracks?db=${props.assembly}&position=${row.chromosome}:${start}-${end}&hubClear=${trackhuburl}&highlight=${props.assembly}.${row.chromosome}%3A${row.start.replaceAll(",","")}-${row.end.replaceAll(",","")}`          
+          window.open(ucscbrowserurl)
+        }
         const handleClickOpen = () => {
           setOpen(true);
         };
@@ -292,8 +321,17 @@ export function MainResultsTable(props: MainResultsTableProps) {
 
         const handleSubmit = () => {
           //Access selected biosamples and cCRE info
-          console.log(row)
-          console.log(selectedBiosamples)
+         
+          let ct  = selectedBiosamples.map(s=> {
+              return s.rnaseq ? {
+                celltype:s.queryValue,
+                rnaseq: true
+              } : {
+                celltype:s.queryValue
+              }
+          })
+          
+          createTrackHub(ct)
         }
 
         return (

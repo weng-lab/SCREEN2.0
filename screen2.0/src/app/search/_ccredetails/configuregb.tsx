@@ -21,11 +21,9 @@ const ConfigureGenomeBrowser = (props: {
           setSelectedBiosamples={props.setSelectedBiosamples}
         />
       </Grid2>
-      <Grid2 xs={6}>
+      {props.selectedBiosamples.length>0 && <Grid2 xs={6}>
         <Typography width="400px" mt={2}>Selected Biosamples:</Typography>
-        {props.selectedBiosamples.length === 0 ?
-          <Typography>none</Typography>
-          :
+        {
           props.selectedBiosamples.map((biosample, i) => {
             return (
               <Stack mt={1} width="400px" direction="row" alignItems={"center"} key={i}>
@@ -37,7 +35,7 @@ const ConfigureGenomeBrowser = (props: {
             )
           })
         }
-      </Grid2>
+      </Grid2>}
     </Grid2>
   )
 }
