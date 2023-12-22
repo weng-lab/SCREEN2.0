@@ -382,7 +382,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           </DrawerHeader>
           <Divider />
           {page < numberOfDefaultTabs ?
-            //Should the filter component be refreshing the route? I think it should probably all be controlled here
             <MainResultsFilters
               mainQueryParams={mainQueryParams}
               setMainQueryParams={setMainQueryParams}
@@ -416,6 +415,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               <StyledTab label="Associated Gene Expression" sx={{ alignSelf: "start" }} />
               <StyledTab label="Functional Data" sx={{ alignSelf: "start" }} />
               <StyledTab label="TF Motifs and Sequence Features" sx={{ alignSelf: "start" }} />
+              <StyledTab label="Configure UCSC Genome Browser" sx={{ alignSelf: "start" }} />
               {mainQueryParams.coordinates.assembly !== "mm10" && <StyledTab label="Associated RAMPAGE Signal" sx={{ alignSelf: "start" }} />}
             </Tabs>
           }

@@ -5,16 +5,9 @@ import { Box, Typography, Menu, Checkbox, Stack, MenuItem, FormControlLabel, For
 import { MainResultTableRow, ConservationData, CellTypeData, Biosample } from "./types"
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import { ArrowDropDown, ArrowRight, EventBusyTwoTone, InfoOutlined } from "@mui/icons-material"
-import { BiosampleTables } from "./biosampletables"
-import ConfigureGenomeBrowser from "./_ccredetails/configuregb"
-import { v4 as uuidv4 } from "uuid"
-import Config from "../../config.json"
 
-const CREATE_TRACKHUB_QUERY = `
-query ($assembly: String!,$uuid: String!,$celltypes: [CellTypeInput]!) {
-  createTrackhubQuery(uuid: $uuid, celltypes: $celltypes, assembly:$assembly)
-  }  
- `
+import ConfigureGenomeBrowser from "./_ccredetails/configuregb"
+
 
 interface MainResultsTableProps extends Partial<DataTableProps<any>> {
   assembly: "GRCh38" | "mm10"
@@ -290,27 +283,6 @@ export function MainResultsTable(props: MainResultsTableProps) {
         const [open, setOpen] = useState(false);
         const [selectedBiosamples, setSelectedBiosamples] = useState<Biosample[]>([])
 
-        const createTrackHub = async (value) => {
-          
-          const response = await fetch(Config.API.CcreAPI, {
-            method: "POST",
-            body: JSON.stringify({
-              query: CREATE_TRACKHUB_QUERY,
-              variables: {
-                celltypes: value,
-                uuid: uuidv4(),
-                assembly: props.assembly.toLowerCase()
-              },
-            }),
-            headers: { "Content-Type": "application/json" },
-          })
-          const trackhuburl = (await response.json()).data?.createTrackhubQuery
-          const start  = +(row.start.replaceAll(",","")) - 7500
-          const end = +(row.end.replaceAll(",","")) + 7500
-          
-          const ucscbrowserurl =  `https://genome.ucsc.edu/cgi-bin/hgTracks?db=${props.assembly}&position=${row.chromosome}:${start}-${end}&hubClear=${trackhuburl}&highlight=${props.assembly}.${row.chromosome}%3A${row.start.replaceAll(",","")}-${row.end.replaceAll(",","")}`          
-          window.open(ucscbrowserurl)
-        }
         const handleClickOpen = () => {
           setOpen(true);
         };
@@ -319,24 +291,9 @@ export function MainResultsTable(props: MainResultsTableProps) {
           setOpen(false);
         };
 
-        const handleSubmit = () => {
-          //Access selected biosamples and cCRE info
-         
-          let ct  = selectedBiosamples.map(s=> {
-              return s.rnaseq ? {
-                celltype:s.queryValue,
-                rnaseq: true
-              } : {
-                celltype:s.queryValue
-              }
-          })
-          
-          createTrackHub(ct)
-        }
-
         return (
           //Box's onClick prevents onRowClick from running when interacting with modal
-          <Box onClick={(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {event.stopPropagation()}}>
+          <Box onClick={(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => { event.stopPropagation() }}>
             <Button variant="outlined"
               onClick={handleClickOpen}
             >
@@ -346,30 +303,21 @@ export function MainResultsTable(props: MainResultsTableProps) {
               open={open}
               onClose={handleClose}
               disableRestoreFocus
-              PaperProps={{sx:{maxWidth: "none"}}}
+              PaperProps={{ sx: { maxWidth: "none" } }}
             >
-              <DialogTitle>Configure UCSC Genome Browser Track</DialogTitle>
-              <DialogContent>
-                <DialogContentText mb={2}>
-                  {`${row.accession} - ${row.chromosome}:${row.start}-${row.end}`}
-                </DialogContentText>
-                <DialogContentText>
-                  Select biosamples and use the handles to change the order in
-                  which they will display in the browser.
-                </DialogContentText>
-                <DialogContentText mb={2} >
-                  Note: For best UCSC performance, choose {"<"}10 cell types.
-                </DialogContentText>
-                <ConfigureGenomeBrowser
-                  byCellType={props.byCellType}
-                  selectedBiosamples={selectedBiosamples}
-                  setSelectedBiosamples={setSelectedBiosamples}
-                />
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={handleClose}>Cancel</Button>
-                <Button disabled={selectedBiosamples.length === 0} onClick={handleSubmit}>Open in UCSC</Button>
-              </DialogActions>
+              <ConfigureGenomeBrowser
+                byCellType={props.byCellType}
+                selectedBiosamples={selectedBiosamples}
+                setSelectedBiosamples={setSelectedBiosamples}
+                coordinates={{
+                  assembly: props.assembly,
+                  chromosome: row.chromosome,
+                  start: row.start,
+                  end: row.end,
+                }}
+                accession={row.accession}
+                handleClose={handleClose}
+              />
             </Dialog>
           </Box>
         )
