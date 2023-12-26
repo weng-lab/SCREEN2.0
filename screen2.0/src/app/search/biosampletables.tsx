@@ -208,7 +208,7 @@ export const BiosampleTables: React.FC<Props> = ({
   const Checkboxes = (checkboxStates: BiosampleTableFilters, setCheckboxStates: Dispatch<SetStateAction<BiosampleTableFilters>>) => {
     return (
       <Box>
-        <Button fullWidth variant="outlined" size="medium" startIcon={Boolean(anchorEl) ? <ArrowDropDown /> : <ArrowRight />} onClick={handleClick}>Sample Type/Collection</Button>
+        <Button sx={{textTransform: "none"}} fullWidth variant="outlined" size="medium" startIcon={Boolean(anchorEl) ? <ArrowDropDown /> : <ArrowRight />} onClick={handleClick}>Sample Type/Collection</Button>
         <Menu
           id="basic-menu"
           anchorEl={anchorEl}

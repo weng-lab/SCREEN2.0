@@ -1,12 +1,14 @@
 import Grid2 from "@mui/material/Unstable_Grid2";
 import { BiosampleTables } from "../biosampletables";
 import { CellTypeData, Biosample, cCREData, MainQueryParams, MainResultTableRow } from "../types";
-import { Dispatch, SetStateAction } from "react";
-import { Button, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Stack, Typography } from "@mui/material";
+import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import { Button, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Snackbar, Stack, Tooltip, Typography } from "@mui/material";
 import { Close, CloseOutlined } from "@mui/icons-material";
 import { v4 as uuidv4 } from "uuid"
 import Config from "../../../config.json"
 import SendIcon from '@mui/icons-material/Send';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import DownloadIcon from '@mui/icons-material/Download';
 
 const CREATE_TRACKHUB_QUERY = `
   query ($assembly: String!,$uuid: String!,$celltypes: [CellTypeInput]!) {
@@ -28,8 +30,21 @@ const ConfigureGenomeBrowser = (props: {
   accession: string
   handleClose?: () => void
 }) => {
+  const [trackhubURL, setTrackhubURL] = useState<{url: string, biosamples: Biosample[]}>(null)
+  const [open, setOpen] = useState(false);
 
-  //This appears to be creating a trackhub by appending the selecting biosample to the existing ones selected before?
+  const handleOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = (event: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    setOpen(false);
+  };
+
   const createTrackHub = async (value) => {
     const response = await fetch(Config.API.CcreAPI, {
       method: "POST",
@@ -48,19 +63,45 @@ const ConfigureGenomeBrowser = (props: {
     const end = +(props.coordinates.end.replaceAll(",","")) + 7500
 
     const ucscbrowserurl =  `https://genome.ucsc.edu/cgi-bin/hgTracks?db=${props.coordinates.assembly}&position=${props.coordinates.chromosome}:${start}-${end}&hubClear=${trackhuburl}&highlight=${props.coordinates.assembly}.${props.coordinates.chromosome}%3A${props.coordinates.start.replaceAll(",","")}-${props.coordinates.end.replaceAll(",","")}`
-    window.open(ucscbrowserurl)
+
+    setTrackhubURL({url: ucscbrowserurl, biosamples: props.selectedBiosamples})
+    return ucscbrowserurl
   }
 
-  const handleSubmit = () => {
-    let ct = props.selectedBiosamples.map(s => {
-      return s.rnaseq ? {
-        celltype: s.queryValue,
-        rnaseq: true
-      } : {
-        celltype: s.queryValue
-      }
-    })
-    createTrackHub(ct)
+  const parsedBiosamples = props.selectedBiosamples.map(s => {
+    return s.rnaseq ? {
+      celltype: s.queryValue,
+      rnaseq: true
+    } : {
+      celltype: s.queryValue
+    }
+  })
+
+  const getURL = async () => {
+    if (!trackhubURL || (JSON.stringify(trackhubURL.biosamples) !== JSON.stringify(props.selectedBiosamples))){
+      return await createTrackHub(parsedBiosamples)
+    } else {
+      return trackhubURL.url
+    }  
+  }
+
+  const updateClipboard = (newClip) => { navigator.clipboard.writeText(newClip) }
+
+  const handleDownload = (UCSCLink: string) => {
+    // Create a Blob object representing the text file
+    const blob = new Blob([UCSCLink], { type: "text/plain" });
+  
+    // Create a URL for the Blob object
+    const url = URL.createObjectURL(blob);
+  
+    // Create a temporary link and simulate a click to download the file
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `UCSC-${props.selectedBiosamples.map(x => x.summaryName).join('+')}.txt`;
+    link.click();
+  
+    // Revoke the Object URL after the download is complete
+    URL.revokeObjectURL(url);
   }
 
   return (
@@ -103,10 +144,36 @@ const ConfigureGenomeBrowser = (props: {
           </Grid2>
         </Grid2>
       </DialogContent>
-      <DialogActions>
-        <Button endIcon={<SendIcon />} variant="contained" disabled={props.selectedBiosamples.length === 0} onClick={handleSubmit} sx={!props.handleClose && {position: "fixed", bottom: 15, right: 15}}>Open in UCSC</Button>
-      </DialogActions></>
-
+      <DialogActions sx={!props.handleClose && { position: "fixed", bottom: 15, right: 15 }}>
+        <Tooltip placement="top" arrow title="Copy Track URL">
+          <IconButton disabled={props.selectedBiosamples.length === 0} onClick={async () => {updateClipboard(await getURL()); handleOpen();}}>
+            <ContentCopyIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip placement="top" arrow title="Download Track URL (.txt)" sx={{mr: 1}}>
+          <IconButton disabled={props.selectedBiosamples.length === 0} onClick={async () => handleDownload(await getURL())}>
+            <DownloadIcon />
+          </IconButton>
+        </Tooltip>
+        <Button
+          sx={{textTransform: "none"}}
+          endIcon={<SendIcon />}
+          variant="contained"
+          disabled={props.selectedBiosamples.length === 0}
+          onClick={async () => window.open(await getURL())}
+        >
+          Open in UCSC
+        </Button>
+      </DialogActions>
+      <Snackbar
+        sx={{ "& .MuiSnackbarContent-message": {margin: "auto"}}}
+        open={open}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        autoHideDuration={2000}
+        onClose={handleClose}
+        message="URL coppied to clipboard"
+      />
+    </>
   )
 }
 
