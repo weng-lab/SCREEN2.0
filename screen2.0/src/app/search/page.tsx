@@ -1,7 +1,7 @@
 // Search Results Page
 "use client"
 import { getGlobals } from "../../common/lib/queries"
-import { BiosampleTableFilters, CellTypeData, FilterCriteria, MainQueryParams } from "./types"
+import { Biosample, BiosampleTableFilters, CellTypeData, FilterCriteria, MainQueryParams } from "./types"
 import { constructBiosampleTableFiltersFromURL, constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, fetchcCREDataAndLinkedGenes } from "./searchhelpers"
 import React, { startTransition, useEffect, useMemo, useRef, useState } from "react"
 import { styled } from '@mui/material/styles';
@@ -112,15 +112,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const [TSSranges, setTSSranges] = useState<{start: number, end: number}[]>(null)
 
   //Used to set just biosample in filters. Used for performance improvement to avoid having entire mainQueryParams in dep array
-  const handleSetBiosample = (
-    biosample: {
-      selected: boolean
-      biosample: string
-      tissue: string
-      summaryName: string
-    }) => {
-    setMainQueryParams({ ...mainQueryParams, biosample: biosample })
-  }
+  const handleSetBiosample = (biosample: Biosample) => { setMainQueryParams({ ...mainQueryParams, biosample: biosample }) }
 
   //using useRef, and then assigning their value in useEffect to prevent accessing sessionStorage on the server
   const intersectWarning = useRef(null);
@@ -231,7 +223,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
             mainQueryParams.coordinates.chromosome,
             start,
             end,
-            mainQueryParams.biosample.biosample,
+            mainQueryParams.biosample ? mainQueryParams.biosample.queryValue : undefined,
             1000000,
             null,
             mainQueryParams.searchConfig.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined
@@ -239,7 +231,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         )
         setLoadingFetch(false)
       })
-  }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample.biosample, mainQueryParams.snp.rsID, mainQueryParams.snp.distance, TSSs, TSSranges, mainQueryParams.gene.distance, mainQueryParams.gene.nearTSS])
+  }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample, mainQueryParams.snp.rsID, mainQueryParams.snp.distance, TSSs, TSSranges, mainQueryParams.gene.distance, mainQueryParams.gene.nearTSS])
 
   // Initialize open cCREs on initial load
   useEffect(() => {
@@ -390,7 +382,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           </DrawerHeader>
           <Divider />
           {page < numberOfDefaultTabs ?
-            //Should the filter component be refreshing the route? I think it should probably all be controlled here
             <MainResultsFilters
               mainQueryParams={mainQueryParams}
               setMainQueryParams={setMainQueryParams}
@@ -424,6 +415,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               <StyledTab label="Associated Gene Expression" sx={{ alignSelf: "start" }} />
               <StyledTab label="Functional Data" sx={{ alignSelf: "start" }} />
               <StyledTab label="TF Motifs and Sequence Features" sx={{ alignSelf: "start" }} />
+              <StyledTab label="Configure UCSC Genome Browser" sx={{ alignSelf: "start" }} />
               {mainQueryParams.coordinates.assembly !== "mm10" && <StyledTab label="Associated RAMPAGE Signal" sx={{ alignSelf: "start" }} />}
             </Tabs>
           }
@@ -465,6 +457,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                   itemsPerPage={10}
                   assembly={mainQueryParams.coordinates.assembly}
                   onRowClick={handleTableClick}
+                  byCellType={globals}
                 />
               }
             </Box>
@@ -472,7 +465,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           {page === 1 && (
             <GenomeBrowserView
               gene={mainQueryParams.gene.name}
-              biosample={mainQueryParams.biosample.biosample}
+              biosample={mainQueryParams.biosample.queryValue}
               assembly={mainQueryParams.coordinates.assembly}
               coordinates={{ start: mainQueryParams.coordinates.start, end: mainQueryParams.coordinates.end, chromosome: mainQueryParams.coordinates.chromosome }}
             />

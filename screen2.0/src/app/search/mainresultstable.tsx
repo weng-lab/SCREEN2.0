@@ -1,13 +1,17 @@
 "use client"
 import { DataTable, DataTableProps, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
-import React, { useState, Dispatch, SetStateAction } from "react"
-import { Box, Typography, Menu, Checkbox, Stack, MenuItem, FormControlLabel, FormGroup, Tooltip } from "@mui/material"
-import { MainResultTableRow, ConservationData } from "./types"
+import React, { useState, Dispatch, SetStateAction, useMemo, use, useCallback } from "react"
+import { Box, Typography, Menu, Checkbox, Stack, MenuItem, FormControlLabel, FormGroup, Tooltip, Button, Modal, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, Paper, Container } from "@mui/material"
+import { MainResultTableRow, ConservationData, CellTypeData, Biosample } from "./types"
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
-import { InfoOutlined } from "@mui/icons-material"
+import { ArrowDropDown, ArrowRight, EventBusyTwoTone, InfoOutlined } from "@mui/icons-material"
+
+import ConfigureGenomeBrowser from "./_ccredetails/configuregb"
+
 
 interface MainResultsTableProps extends Partial<DataTableProps<any>> {
   assembly: "GRCh38" | "mm10"
+  byCellType: CellTypeData
 }
 
 export function MainResultsTable(props: MainResultsTableProps) {
@@ -15,9 +19,11 @@ export function MainResultsTable(props: MainResultsTableProps) {
   const [CTCF_ChIAPET, setCTCF_ChIAPET] = useState<boolean>(false)
   const [RNAPII_ChIAPET, setRNAPII_ChIAPET] = useState<boolean>(false)
 
-  //Start and End are strings since toLocaleString() is called on them to get commas in the numbers
-  //State variable setters are passed to columns so that linked genes modal is able to properly set table state
-  const columns = (funcSetDistance: Dispatch<SetStateAction<boolean>>, funcSetCTCF_ChIAPET: Dispatch<SetStateAction<boolean>>, funcSetRNAPII_ChIAPET: Dispatch<SetStateAction<boolean>>) => {
+  const columns = useCallback((
+    funcSetDistance: Dispatch<SetStateAction<boolean>>,
+    funcSetCTCF_ChIAPET: Dispatch<SetStateAction<boolean>>,
+    funcSetRNAPII_ChIAPET: Dispatch<SetStateAction<boolean>>
+  ) => {
     let cols: DataTableColumn<MainResultTableRow>[] = [
       {
         header: "Accession",
@@ -54,9 +60,9 @@ export function MainResultsTable(props: MainResultsTableProps) {
           return (
             <Stack direction="row" alignItems={"center"}>
               <strong><p>DNase</p></strong>
-              <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
+              {/* <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
                 <InfoOutlined fontSize="small" />
-              </Tooltip>
+              </Tooltip> */}
             </Stack>
           )
         }
@@ -70,9 +76,9 @@ export function MainResultsTable(props: MainResultsTableProps) {
           return (
             <Stack direction="row" alignItems={"center"}>
               <strong><p>ATAC</p></strong>
-              <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
+              {/* <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
                 <InfoOutlined fontSize="small" />
-              </Tooltip>
+              </Tooltip> */}
             </Stack>
           )
         }
@@ -86,9 +92,9 @@ export function MainResultsTable(props: MainResultsTableProps) {
           return (
             <Stack direction="row" alignItems={"center"}>
               <strong><p>CTCF</p></strong>
-              <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
+              {/* <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
                 <InfoOutlined fontSize="small" />
-              </Tooltip>
+              </Tooltip> */}
             </Stack>
           )
         }
@@ -102,9 +108,9 @@ export function MainResultsTable(props: MainResultsTableProps) {
           return (
             <Stack direction="row" alignItems={"center"}>
             <strong><p>H3K27ac</p></strong>
-            <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
+            {/* <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
               <InfoOutlined fontSize="small" />
-            </Tooltip>
+            </Tooltip> */}
           </Stack>
           )
         }
@@ -118,9 +124,9 @@ export function MainResultsTable(props: MainResultsTableProps) {
           return (
             <Stack direction="row" alignItems={"center"}>
             <strong><p>H3K4me3</p></strong>
-            <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
+            {/* <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
               <InfoOutlined fontSize="small" />
-            </Tooltip>
+            </Tooltip> */}
           </Stack>
           )
         }
@@ -161,7 +167,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
         return (
           <Box>
             <Stack direction="row" alignItems="center" component="button" onClick={handleClick}>
-              <ArrowRightIcon />
+              {open ? <ArrowDropDown /> : <ArrowRight />}
               <strong><p>Linked Genes</p></strong>
             </Stack>
             <Menu
@@ -186,7 +192,6 @@ export function MainResultsTable(props: MainResultsTableProps) {
               </FormGroup>
             </Menu>
           </Box>
-
         )
       },
       render: (row) => {
@@ -222,11 +227,18 @@ export function MainResultsTable(props: MainResultsTableProps) {
                 {`CTCF-ChIAPET:\u00A0`}
               </Typography>
               <Typography variant="body2" color="primary" display="inline">
-                {row.linkedGenes.CTCF_ChIAPET.length == 0 ? "none" : Object.values(row.linkedGenes.CTCF_ChIAPET).map((gene: { name: string, biosample: string }, i: number) => (
-                  <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${gene.name}`}>
-                    {i < row.linkedGenes.CTCF_ChIAPET.length - 1 ? `\u00A0${gene.name},\u00A0` : `\u00A0${gene.name}`}
-                  </a>
-                ))}
+                {row.linkedGenes.CTCF_ChIAPET.length == 0 ?
+                  "none"
+                  :
+                  Object.values(row.linkedGenes.CTCF_ChIAPET)
+                  .map((gene: { name: string, biosample: string }, i: number) => gene.name)
+                  //deduplicate
+                  .filter((name, index, self) => { return self.indexOf(name) === index })
+                  .map((name: string, i: number) => (
+                    <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${name}`}>
+                      {i < row.linkedGenes.CTCF_ChIAPET.length - 1 ? `\u00A0${name},\u00A0` : `\u00A0${name}`}
+                    </a>
+                  ))}
               </Typography>
             </Box>}
             {RNAPII_ChIAPET && <Box>
@@ -234,38 +246,107 @@ export function MainResultsTable(props: MainResultsTableProps) {
                 {`RNAPII-ChIAPET:\u00A0`}
               </Typography>
               <Typography variant="body2" color="primary" display="inline">
-                {row.linkedGenes.RNAPII_ChIAPET.length == 0 ? "none" : Object.values(row.linkedGenes.RNAPII_ChIAPET).map((gene: { name: string, biosample: string }, i: number) => (
-                  <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${gene.name}`}>
-                    {i < row.linkedGenes.RNAPII_ChIAPET.length - 1 ? `\u00A0${gene.name},\u00A0` : `\u00A0${gene.name}`}
-                  </a>
-                ))}
+                {row.linkedGenes.RNAPII_ChIAPET.length == 0 ?
+                  "none"
+                  :
+                  Object.values(row.linkedGenes.RNAPII_ChIAPET)
+                    .map((gene: { name: string, biosample: string }, i: number) => gene.name)
+                    //deduplicate
+                    .filter((name, index, self) => { return self.indexOf(name) === index })
+                    .map((name: string, i: number) => (
+                      <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${name}`}>
+                        {i < row.linkedGenes.RNAPII_ChIAPET.length - 1 ? `\u00A0${name},\u00A0` : `\u00A0${name}`}
+                      </a>
+                    ))}
               </Typography>
             </Box>}
           </>
         )
       },
     })
+    cols.push({
+      header: "Configure UCSC",
+      value: () => "",
+      unsearchable: true,
+      unsortable: true,
+      HeaderRender: () => {
+        return (
+          <Stack direction="column" alignItems={"center"}>
+            <strong><p>Genome Browser</p></strong>
+            {/* <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
+                <InfoOutlined fontSize="small" />
+              </Tooltip> */}
+          </Stack>
+        )
+      },
+      FunctionalRender: (row: MainResultTableRow) => {
+        const [open, setOpen] = useState(false);
+        const [selectedBiosamples, setSelectedBiosamples] = useState<Biosample[]>([])
 
+        const handleClickOpen = () => {
+          setOpen(true);
+        };
+      
+        const handleClose = () => {
+          setOpen(false);
+        };
+
+        return (
+          //Box's onClick prevents onRowClick from running when interacting with modal
+          <Box onClick={(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => { event.stopPropagation() }}>
+            <Button variant="outlined"
+              onClick={handleClickOpen}
+            >
+              UCSC
+            </Button>
+            <Dialog
+              open={open}
+              onClose={handleClose}
+              disableRestoreFocus
+              PaperProps={{ sx: { maxWidth: "none" } }}
+            >
+              <ConfigureGenomeBrowser
+                byCellType={props.byCellType}
+                selectedBiosamples={selectedBiosamples}
+                setSelectedBiosamples={setSelectedBiosamples}
+                coordinates={{
+                  assembly: props.assembly,
+                  chromosome: row.chromosome,
+                  start: row.start,
+                  end: row.end,
+                }}
+                accession={row.accession}
+                handleClose={handleClose}
+              />
+            </Dialog>
+          </Box>
+        )
+      }
+    })
     props.assembly === "GRCh38" && cols.push({
       header: "Conservation",
       value: (row: { conservationData: ConservationData }) => `Primates:\u00A0${row.conservationData.primates?.toFixed(2) ?? "unavailable"} Mammals:\u00A0${row.conservationData.mammals?.toFixed(2) ?? "unavailable"} Vertebrates:\u00A0${row.conservationData.vertebrates?.toFixed(2) ?? "unavailable"}` , 
       HeaderRender: () => <strong><p>Conservation</p></strong>
     })
     return cols
-  }
+  }, [CTCF_ChIAPET, RNAPII_ChIAPET, distance, props.assembly, props.byCellType, props.rows])
+
+  const cols = useMemo(() => {
+    return columns(setDistance, setCTCF_ChIAPET, setRNAPII_ChIAPET)
+  }, [setDistance, setCTCF_ChIAPET, setRNAPII_ChIAPET, columns])
 
   return (
       <DataTable
         key={props.rows[0] && props.rows[0].dnase + props.rows[0].ctcf + props.rows[0].h3k27ac + props.rows[0].h3k4me3 +  props.rows[0].atac  + columns.toString() + distance + CTCF_ChIAPET + RNAPII_ChIAPET}
         rows={props.rows}
-        columns={columns(setDistance, setCTCF_ChIAPET, setRNAPII_ChIAPET)}
+        columns={cols}
         itemsPerPage={props.itemsPerPage}
         searchable
         onRowClick={props.onRowClick}
         tableTitle={props.tableTitle}
         sortColumn={5}
         showMoreColumns={props.assembly === "GRCh38"}
-        noOfDefaultColumns={11}
+        noOfDefaultColumns={cols.length - 1}
         titleHoverInfo={props.titleHoverInfo}
       />
   )

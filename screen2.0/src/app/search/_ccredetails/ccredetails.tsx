@@ -1,7 +1,7 @@
 "use client"
 import React from "react"
 import { Typography, Stack, Divider } from "@mui/material"
-import { GenomicRegion, LinkedGenesData } from "../types"
+import { CellTypeData, GenomicRegion, LinkedGenesData } from "../types"
 import { InSpecificBiosamples } from "./inspecificbiosample"
 import { NearByGenomicFeatures } from "./nearbygenomicfeatures"
 import { LinkedGenes } from "./linkedgenes"
@@ -11,13 +11,14 @@ import { FunctionData } from "./functionaldata"
 import Rampage from "./rampage"
 import { GeneExpression } from "./geneexpression"
 import { TfSequenceFeatures} from "../_gbview/tfsequencefeatures"
+import ConfigureGBTab from "./configuregbtab"
 
 //Passing these props through this file could be done with context to reduce prop drilling
 type CcreDetailsProps = {
   accession: string
   assembly: "GRCh38" | "mm10"
   region: GenomicRegion
-  globals: any
+  globals: CellTypeData
   genes: LinkedGenesData
   page: number
 }
@@ -60,7 +61,19 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
           />
         </>
       }
-      {assembly !== "mm10" && page === 7 && <Rampage gene={genes.distancePC[0].name} />}
+      {page === 7 &&
+        <ConfigureGBTab
+          byCellType={globals}
+          coordinates={{
+            assembly: assembly,
+            chromosome: region.chrom,
+            start: region.start,
+            end: region.end
+          }} 
+          accession={accession}
+        />
+      }
+      {assembly !== "mm10" && page === 8 && <Rampage gene={genes.distancePC[0].name} />}
     </>
   )
 }

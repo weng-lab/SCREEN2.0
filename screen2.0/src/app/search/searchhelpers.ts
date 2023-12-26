@@ -1,5 +1,5 @@
 
-import { cCREData, MainQueryParams, CellTypeData, UnfilteredBiosampleData, FilteredBiosampleData, MainResultTableRows, MainResultTableRow, rawQueryData, FilterCriteria, BiosampleTableFilters } from "./types"
+import { cCREData, MainQueryParams, CellTypeData, UnfilteredBiosampleData, FilteredBiosampleData, MainResultTableRows, MainResultTableRow, rawQueryData, FilterCriteria, BiosampleTableFilters, Biosample } from "./types"
 import { MainQuery, fetchLinkedGenes } from "../../common/lib/queries"
 
 /**
@@ -340,11 +340,11 @@ function availableAssays(
  * @returns an object of sorted biosample types, grouped by tissue type
  */
 export function parseByCellType(byCellType: CellTypeData): UnfilteredBiosampleData {
-  const biosamples = {}
+  const biosamples: UnfilteredBiosampleData = {}
   Object.entries(byCellType.byCellType).forEach((entry) => {
     // if the tissue catergory hasn't been catalogued, make a new blank array for it
     const experiments = entry[1]
-    let tissueArr = []
+    let tissueArr: Biosample[] = []
     if (!biosamples[experiments[0].tissue]) {
       Object.defineProperty(biosamples, experiments[0].tissue, {
         value: [],
@@ -362,10 +362,10 @@ export function parseByCellType(byCellType: CellTypeData): UnfilteredBiosampleDa
       //for query
       queryValue: experiments[0].celltypename,
       //for filling in available assay wheels
-      //THIS DATA IS MISSING ATAC DATA! ATAC will always be false
       assays: availableAssays(experiments),
       //for displaying tissue category when selected
       biosampleTissue: experiments[0].tissue,
+      rnaseq: experiments[0].rnaseq
     })
     Object.defineProperty(biosamples, experiments[0].tissue, { value: tissueArr, enumerable: true, writable: true })
   })
@@ -383,22 +383,41 @@ export function filterBiosamples(
   PrimaryCell: boolean,
   CellLine: boolean,
   InVitro: boolean,
-  Organoid: boolean
+  Organoid: boolean,
+  Core: boolean,
+  Partial: boolean,
+  Ancillary: boolean
 ): FilteredBiosampleData {
   const filteredBiosamples: FilteredBiosampleData = Object.entries(biosamples).map(([str, objArray]) => [
     str,
     objArray.filter((biosample) => {
+      let passesType: boolean = false
       if (Tissue && biosample.biosampleType === "tissue") {
-        return true
+        passesType = true
       } else if (PrimaryCell && biosample.biosampleType === "primary cell") {
-        return true
+        passesType = true
       } else if (CellLine && biosample.biosampleType === "cell line") {
-        return true
+        passesType = true
       } else if (InVitro && biosample.biosampleType === "in vitro differentiated cells") {
-        return true
+        passesType = true
       } else if (Organoid && biosample.biosampleType === "organoid") {
-        return true
-      } else return false
+        passesType = true
+      }
+      //Assign to Ancillary as baseline
+      let collection = "Ancillary"
+      if (biosample.assays.dnase == true) {
+        //Assign to Partial if at least dnase is available
+        collection = "Partial"
+        if (biosample.assays.ctcf && biosample.assays.h3k4me3 && biosample.assays.h3k4me3) {
+          //If all other marks (ignoring atac) are available, assign to core
+          collection = "Core"
+        }
+      }
+      let passesCollection = false
+      if ((Core && collection == "Core") || (Partial && collection == "Partial") || (Ancillary && collection == "Ancillary")) {
+        passesCollection = true
+      }
+      return (passesType && passesCollection)
     }),
   ])
   return filteredBiosamples
@@ -438,12 +457,6 @@ export function constructSearchURL(
   newBiosampleTableFilters: BiosampleTableFilters,
   page: number = 0,
   accessions: string = '',
-  newBiosample?: {
-    selected: boolean
-    biosample: string
-    tissue: string
-    summaryName: string
-  }
 ): string {
   /**
    * ! Important !
@@ -467,15 +480,18 @@ export function constructSearchURL(
 
   //Can probably get biosample down to one string, and extract other info when parsing byCellType
   const biosampleFilters =
-    `&Tissue=${outputT_or_F(newBiosampleTableFilters.Tissue)}`
-    + `&PrimaryCell=${outputT_or_F(newBiosampleTableFilters.PrimaryCell)}`
-    + `&InVitro=${outputT_or_F(newBiosampleTableFilters.InVitro)}`
-    + `&Organoid=${outputT_or_F(newBiosampleTableFilters.Organoid)}`
-    + `&CellLine=${outputT_or_F(newBiosampleTableFilters.CellLine)}`
-    + `${(newSearchParams.biosample.selected && !newBiosample) || (newBiosample && newBiosample.selected) ?
-      "&Biosample=" + (newBiosample ? newBiosample.biosample : newSearchParams.biosample.biosample)
-      + "&BiosampleTissue=" + (newBiosample ? newBiosample.tissue : newSearchParams.biosample.tissue)
-      + "&BiosampleSummary=" + (newBiosample ? newBiosample.summaryName : newSearchParams.biosample.summaryName)
+    `&Tissue=${outputT_or_F(newBiosampleTableFilters.Tissue.checked)}`
+    + `&PrimaryCell=${outputT_or_F(newBiosampleTableFilters.PrimaryCell.checked)}`
+    + `&InVitro=${outputT_or_F(newBiosampleTableFilters.InVitro.checked)}`
+    + `&Organoid=${outputT_or_F(newBiosampleTableFilters.Organoid.checked)}`
+    + `&CellLine=${outputT_or_F(newBiosampleTableFilters.CellLine.checked)}`
+    + `&Core=${outputT_or_F(newBiosampleTableFilters.Core.checked)}`
+    + `&Partial=${outputT_or_F(newBiosampleTableFilters.Partial.checked)}`
+    + `&Ancillary=${outputT_or_F(newBiosampleTableFilters.Ancillary.checked)}`
+    + `${newSearchParams.biosample ?
+      "&Biosample=" + (newSearchParams.biosample.queryValue)
+      + "&BiosampleTissue=" + (newSearchParams.biosample.biosampleTissue)
+      + "&BiosampleSummary=" + (newSearchParams.biosample.summaryName)
       : ""
     }`
 
@@ -548,13 +564,16 @@ export function constructMainQueryParamsFromURL(searchParams: { [key: string]: s
           null : searchParams.end ?
             +(searchParams.end) : 5381894,
       },
-      biosample: searchParams.Biosample ? 
+      //If biosampleType, assays, or rnaseq is needed on reload, need to store it in the URL
+      biosample: searchParams.Biosample ?
         {
-          selected: true,
-          biosample: searchParams.Biosample,
-          tissue: searchParams.BiosampleTissue,
           summaryName: searchParams.BiosampleSummary,
-        } : { selected: false, biosample: null, tissue: null, summaryName: null },
+          biosampleType: null,
+          biosampleTissue: searchParams.BiosampleTissue,
+          queryValue: searchParams.Biosample,
+          assays: null,
+          rnaseq: null,
+        } : null,
       searchConfig: {
         //Flag for if user-entered bed file intersection accessions to be used from sessionStorage
         bed_intersect: searchParams.intersect ? checkTrueFalse(searchParams.intersect) : false,
@@ -611,11 +630,14 @@ export function constructFilterCriteriaFromURL(searchParams: { [key: string]: st
 export function constructBiosampleTableFiltersFromURL(searchParams: { [key: string]: string | undefined }): BiosampleTableFilters {
   return (
     {
-      CellLine: searchParams.CellLine ? checkTrueFalse(searchParams.CellLine) : true,
-      PrimaryCell: searchParams.PrimaryCell ? checkTrueFalse(searchParams.PrimaryCell) : true,
-      Tissue: searchParams.Tissue ? checkTrueFalse(searchParams.Tissue) : true,
-      Organoid: searchParams.Organoid ? checkTrueFalse(searchParams.Organoid) : true,
-      InVitro: searchParams.InVitro ? checkTrueFalse(searchParams.InVitro) : true,
+      CellLine: { checked: searchParams.CellLine ? checkTrueFalse(searchParams.CellLine) : true, label: "Cell Line" },
+      PrimaryCell: { checked: searchParams.PrimaryCell ? checkTrueFalse(searchParams.PrimaryCell) : true, label: "Primary Cell" },
+      Tissue: { checked: searchParams.Tissue ? checkTrueFalse(searchParams.Tissue) : true, label: "Tissue" },
+      Organoid: { checked: searchParams.Organoid ? checkTrueFalse(searchParams.Organoid) : true, label: "Organoid" },
+      InVitro: { checked: searchParams.InVitro ? checkTrueFalse(searchParams.InVitro) : true, label: "In Vitro Differentiated Cell" },
+      Core: { checked: searchParams.Core ? checkTrueFalse(searchParams.Core) : true, label: "Core Collection" },
+      Partial: { checked: searchParams.Partial ? checkTrueFalse(searchParams.Partial) : true, label: "Partial Data Collection" },
+      Ancillary: { checked: searchParams.Ancillary ? checkTrueFalse(searchParams.Ancillary) : true, label: "Ancillary Collection" },
     }
   )
 }

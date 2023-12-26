@@ -47,13 +47,7 @@ export type MainQueryParams = {
     start: number | null
     end: number | null
   }
-  //biosample.biosample should be changed to something like: queryvalue
-  biosample: {
-    selected: boolean
-    biosample: string
-    tissue: string
-    summaryName: string
-  }
+  biosample: Biosample
   snp: {
     rsID: string
     distance: number
@@ -69,11 +63,14 @@ export type MainQueryParams = {
 }
 
 export type BiosampleTableFilters = {
-  CellLine: boolean
-  PrimaryCell: boolean
-  Tissue: boolean
-  Organoid: boolean
-  InVitro: boolean
+  CellLine: { checked: boolean, label: "Cell Line" }
+  PrimaryCell: { checked: boolean, label: "Primary Cell" },
+  Tissue: { checked: boolean, label: "Tissue" },
+  Organoid: { checked: boolean, label: "Organoid" },
+  InVitro: { checked: boolean, label: "In Vitro Differentiated Cell" },
+  Core: { checked: boolean, label: "Core Collection" },
+  Partial: { checked: boolean, label: "Partial Data Collection" },
+  Ancillary: { checked: boolean, label: "Ancillary Collection" },
 }
 
 export type FilterCriteria = {
@@ -116,42 +113,34 @@ export type CellTypeData = {
       biosample_type: string
       tissue: string
       celltypename: string
+      rnaseq: boolean
     }[]
   }
 }
 
 export type UnfilteredBiosampleData = {
-  [key: string]: {
-    summaryName: string
-    biosampleType: string
-    biosampleTissue: string
-    queryValue: string
-    assays: {
-      atac: boolean
-      ctcf: boolean
-      dnase: boolean
-      h3k27ac: boolean
-      h3k4me3: boolean
-    }
-  }[]
+  [key: string]: Biosample[]
 }
 
 export type FilteredBiosampleData = [
   string,
-  {
-    summaryName: string
-    biosampleType: string
-    biosampleTissue: string
-    queryValue: string
-    assays: {
-      atac: boolean
-      ctcf: boolean
-      dnase: boolean
-      h3k27ac: boolean
-      h3k4me3: boolean
-    }
-  }[],
+  Biosample[],
 ][]
+
+export type Biosample = {
+  summaryName: string;
+  biosampleType: string;
+  biosampleTissue: string;
+  queryValue: string;
+  assays: {
+    atac: boolean;
+    ctcf: boolean;
+    dnase: boolean;
+    h3k27ac: boolean;
+    h3k4me3: boolean;
+  }
+  rnaseq: boolean
+}
 
 export type MainResultTableRows = MainResultTableRow[]
 
