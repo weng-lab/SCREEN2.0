@@ -30,7 +30,7 @@ const ConfigureGenomeBrowser = (props: {
   accession: string
   handleClose?: () => void
 }) => {
-  const [trackhubURL, setTrackhubURL] = useState<{url: string, biosamples: Biosample[]}>(null)
+  const [currentURLs, setCurrentURLs] = useState<{urlUCSC: string, urlTrackhub: string, biosamples: Biosample[]}>(null)
   const [open, setOpen] = useState(false);
 
   const handleOpen = () => {
@@ -64,8 +64,9 @@ const ConfigureGenomeBrowser = (props: {
 
     const ucscbrowserurl =  `https://genome.ucsc.edu/cgi-bin/hgTracks?db=${props.coordinates.assembly}&position=${props.coordinates.chromosome}:${start}-${end}&hubClear=${trackhuburl}&highlight=${props.coordinates.assembly}.${props.coordinates.chromosome}%3A${props.coordinates.start.replaceAll(",","")}-${props.coordinates.end.replaceAll(",","")}`
 
-    setTrackhubURL({url: ucscbrowserurl, biosamples: props.selectedBiosamples})
-    return ucscbrowserurl
+    setCurrentURLs({urlUCSC: ucscbrowserurl, urlTrackhub: trackhuburl, biosamples: props.selectedBiosamples})
+
+    return {urlUCSC: ucscbrowserurl, urlTrackhub: trackhuburl, biosamples: props.selectedBiosamples}
   }
 
   const parsedBiosamples = props.selectedBiosamples.map(s => {
@@ -77,31 +78,31 @@ const ConfigureGenomeBrowser = (props: {
     }
   })
 
-  const getURL = async () => {
-    if (!trackhubURL || (JSON.stringify(trackhubURL.biosamples) !== JSON.stringify(props.selectedBiosamples))){
-      return await createTrackHub(parsedBiosamples)
+  const getURL = async (x: "ucsc" | "trackhub") => {
+    //If current urls are outdated, create new ones
+    if (!currentURLs || (JSON.stringify(currentURLs.biosamples) !== JSON.stringify(props.selectedBiosamples))){
+      return x === "ucsc" ? (await createTrackHub(parsedBiosamples)).urlUCSC : (await createTrackHub(parsedBiosamples)).urlTrackhub
     } else {
-      return trackhubURL.url
+      return x === "ucsc" ? currentURLs.urlUCSC : currentURLs.urlTrackhub
     }  
   }
 
   const updateClipboard = (newClip) => { navigator.clipboard.writeText(newClip) }
 
-  const handleDownload = (UCSCLink: string) => {
-    // Create a Blob object representing the text file
-    const blob = new Blob([UCSCLink], { type: "text/plain" });
-  
-    // Create a URL for the Blob object
-    const url = URL.createObjectURL(blob);
-  
-    // Create a temporary link and simulate a click to download the file
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `UCSC-${props.selectedBiosamples.map(x => x.summaryName).join('+')}.txt`;
-    link.click();
-  
-    // Revoke the Object URL after the download is complete
-    URL.revokeObjectURL(url);
+  const handleDownload = async (urlTrackhub: string) => {
+    try {
+      const response = await fetch(urlTrackhub);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `UCSC-${props.selectedBiosamples.map(x => x.summaryName).join('+')}.txt`);
+      link.click();
+      URL.revokeObjectURL(url); // Clean up the object URL
+    } catch (error) {
+      console.error('Error downloading Trackhub: ', error);
+      window.alert("Error fetching trackhub: " + error)
+    }
   }
 
   return (
@@ -145,13 +146,13 @@ const ConfigureGenomeBrowser = (props: {
         </Grid2>
       </DialogContent>
       <DialogActions sx={!props.handleClose && { position: "fixed", bottom: 15, right: 15 }}>
-        <Tooltip placement="top" arrow title="Copy Track URL">
-          <IconButton disabled={props.selectedBiosamples.length === 0} onClick={async () => {updateClipboard(await getURL()); handleOpen();}}>
+        <Tooltip placement="top" arrow title="Copy link to Trackhub">
+          <IconButton disabled={props.selectedBiosamples.length === 0} onClick={async () => {updateClipboard(await getURL("trackhub")); handleOpen();}}>
             <ContentCopyIcon />
           </IconButton>
         </Tooltip>
-        <Tooltip placement="top" arrow title="Download Track URL (.txt)" sx={{mr: 1}}>
-          <IconButton disabled={props.selectedBiosamples.length === 0} onClick={async () => handleDownload(await getURL())}>
+        <Tooltip placement="top" arrow title="Download Trackhub (.txt)" sx={{mr: 1}}>
+          <IconButton disabled={props.selectedBiosamples.length === 0} onClick={async () => handleDownload(await getURL("trackhub"))}>
             <DownloadIcon />
           </IconButton>
         </Tooltip>
@@ -160,7 +161,7 @@ const ConfigureGenomeBrowser = (props: {
           endIcon={<SendIcon />}
           variant="contained"
           disabled={props.selectedBiosamples.length === 0}
-          onClick={async () => window.open(await getURL())}
+          onClick={async () => window.open(await getURL("ucsc"))}
         >
           Open in UCSC
         </Button>
