@@ -19,16 +19,16 @@ const cCRE_QUERY = gql`
     $gene_all_end: Int
     $gene_pc_start: Int
     $gene_pc_end: Int
-    $rank_ctcf_end: Float!
-    $rank_ctcf_start: Float!
-    $rank_dnase_end: Float!
-    $rank_dnase_start: Float!
-    $rank_enhancer_end: Float!
-    $rank_enhancer_start: Float!
-    $rank_promoter_end: Float!
-    $rank_promoter_start: Float!
-    $rank_atac_end: Float!
-    $rank_atac_start: Float!
+    $rank_ctcf_end: Float
+    $rank_ctcf_start: Float
+    $rank_dnase_end: Float
+    $rank_dnase_start: Float
+    $rank_enhancer_end: Float
+    $rank_enhancer_start: Float
+    $rank_promoter_end: Float
+    $rank_promoter_start: Float
+    $rank_atac_end: Float
+    $rank_atac_start: Float
     $mammals_min: Float
     $mammals_max: Float
     $vertebrates_min: Float

@@ -72,9 +72,11 @@ const ConfigureGenomeBrowser = (props: {
   const parsedBiosamples = props.selectedBiosamples.map(s => {
     return s.rnaseq ? {
       celltype: s.queryValue,
-      rnaseq: true
+      rnaseq: true,
+      celltypedisplayname: s.summaryName
     } : {
-      celltype: s.queryValue
+      celltype: s.queryValue,
+      celltypedisplayname: s.summaryName
     }
   })
 
