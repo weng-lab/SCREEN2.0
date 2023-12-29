@@ -641,3 +641,39 @@ export function constructBiosampleTableFiltersFromURL(searchParams: { [key: stri
     }
   )
 }
+
+export function filtersModified(
+  f: FilterCriteria,
+  checkFilter: "chromatin signals" | "conservation" | "classification"
+): boolean {
+  switch (checkFilter) {
+    case ("chromatin signals"):
+      if (
+        f.atac_s === -10 &&
+        f.atac_e === 10 &&
+        f.dnase_s === -10 &&
+        f.dnase_e === 10 &&
+        f.ctcf_s === -10 &&
+        f.ctcf_e === 10 &&
+        f.h3k4me3_s === -10 &&
+        f.h3k4me3_e === 10 &&
+        f.h3k27ac_s === -10 &&
+        f.h3k27ac_e === 10
+      ) return false
+      else return true
+    case ("conservation"):
+      if (
+        f.prim_s === -2 &&
+        f.prim_e === 2 &&
+        f.mamm_s === -4 &&
+        f.mamm_e === 8 &&
+        f.vert_s === -3 &&
+        f.vert_e === 8
+      ) return false
+      else return true
+    case ("classification"):
+      if (f.CA && f.CA_CTCF && f.CA_H3K4me3 && f.CA_TF && f.PLS && f.TF && f.dELS && f.pELS
+      ) return false
+      else return true
+  }
+}
