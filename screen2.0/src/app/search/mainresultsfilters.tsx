@@ -388,7 +388,7 @@ export function MainResultsFilters(
                   :
                   <Typography>Chromatin Signals (Z-Scores)</Typography>
                 }
-                <Tooltip arrow placement="right-end" title={"This will be populated with more info soon"}>
+                <Tooltip arrow placement="right-end" title={"Filter results based on DNase, H3K4me3, H3K27ac, CTCF, and ATAC Z-scores"}>
                   <InfoOutlined fontSize="small" />
                 </Tooltip>
               </Stack>
@@ -499,7 +499,7 @@ export function MainResultsFilters(
                   :
                   <Typography>Classification</Typography>
                 }
-                <Tooltip arrow placement="right-end" title={"This will be populated with more info soon"}>
+                <Tooltip arrow placement="right-end" title={"Filter results based on cCRE classification"}>
                   <InfoOutlined fontSize="small" />
                 </Tooltip>
               </Stack>
@@ -616,7 +616,7 @@ export function MainResultsFilters(
                   :
                   <Typography>Conservation</Typography>
                 }
-                <Tooltip arrow placement="right-end" title={"This will be populated with more info soon"}>
+                <Tooltip arrow placement="right-end" title={"Filter results based on Primate, Mammal, and Vertebrate conservation scores"}>
                   <InfoOutlined fontSize="small" />
                 </Tooltip>
               </Stack>
@@ -692,7 +692,7 @@ export function MainResultsFilters(
                   :
                   <Typography>Linked Genes</Typography>
                 }
-                <Tooltip arrow placement="right-end" title={"This will be populated with more info soon"}>
+                <Tooltip arrow placement="right-end" title={"Filter results based on genes linked by distance, CTCF ChIA-PET, or RNAPII ChIA-PET"}>
                   <InfoOutlined fontSize="small" />
                 </Tooltip>
               </Stack>
