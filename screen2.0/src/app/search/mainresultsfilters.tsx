@@ -383,7 +383,7 @@ export function MainResultsFilters(
                         <ClearIcon />
                       </Tooltip>
                     </IconButton>
-                    <i><Typography sx={{fontWeight: "bold"}}>Chromatin Signals (Z-Scores)</Typography></i>
+                    <i><Typography sx={{fontWeight: "bold"}}>Chromatin Signals (Z&#8209;Scores)</Typography></i>
                   </>
                   :
                   <Typography>Chromatin Signals (Z-Scores)</Typography>
