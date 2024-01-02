@@ -188,7 +188,7 @@ export function MainResultsFilters(
                     <ClearIcon />
                   </Tooltip>
                 </IconButton>
-                <i><Typography>Search distance from {props.mainQueryParams.snp.rsID}</Typography></i>
+                <i><Typography sx={{fontWeight: "bold"}}>Search distance from {props.mainQueryParams.snp.rsID}</Typography></i>
               </>
               :
               <Typography>Search distance from {props.mainQueryParams.snp.rsID}</Typography>
@@ -238,7 +238,7 @@ export function MainResultsFilters(
                     <ClearIcon />
                   </Tooltip>
                 </IconButton>
-                <i><Typography>Overlapping Gene/Near TSSs</Typography></i>
+                <i><Typography sx={{fontWeight: "bold"}}>Overlapping Gene/Near TSSs</Typography></i>
               </>
               :
               <Typography>Overlapping Gene/Near TSSs</Typography>
@@ -300,7 +300,7 @@ export function MainResultsFilters(
                     <ClearIcon />
                   </Tooltip>
                 </IconButton>
-                <i><Typography>Biosample Activity</Typography></i>
+                <i><Typography sx={{fontWeight: "bold"}}>Biosample Activity</Typography></i>
               </>
               :
               <Typography>Biosample Activity</Typography>
@@ -383,7 +383,7 @@ export function MainResultsFilters(
                         <ClearIcon />
                       </Tooltip>
                     </IconButton>
-                    <i><Typography>Chromatin Signals (Z-Scores)</Typography></i>
+                    <i><Typography sx={{fontWeight: "bold"}}>Chromatin Signals (Z-Scores)</Typography></i>
                   </>
                   :
                   <Typography>Chromatin Signals (Z-Scores)</Typography>
@@ -494,7 +494,7 @@ export function MainResultsFilters(
                         <ClearIcon />
                       </Tooltip>
                     </IconButton>
-                    <i><Typography>Classification</Typography></i>
+                    <i><Typography sx={{fontWeight: "bold"}}>Classification</Typography></i>
                   </>
                   :
                   <Typography>Classification</Typography>
@@ -611,7 +611,7 @@ export function MainResultsFilters(
                          <ClearIcon />
                       </Tooltip>
                     </IconButton>
-                    <i><Typography>Conservation</Typography></i>
+                    <i><Typography sx={{fontWeight: "bold"}}>Conservation</Typography></i>
                   </>
                   :
                   <Typography>Conservation</Typography>
@@ -687,7 +687,7 @@ export function MainResultsFilters(
                         <ClearIcon />
                       </Tooltip>
                     </IconButton>
-                    <i><Typography>Linked Genes</Typography></i>
+                    <i><Typography sx={{fontWeight: "bold"}}>Linked Genes</Typography></i>
                   </>
                   :
                   <Typography>Linked Genes</Typography>
