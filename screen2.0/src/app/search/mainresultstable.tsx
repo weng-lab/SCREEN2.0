@@ -272,7 +272,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
       HeaderRender: () => {
         return (
           <Stack direction="column" alignItems={"center"}>
-            <strong><p>Genome Browser</p></strong>
+            <strong><p>Track&nbsp;Hub</p></strong>
             {/* <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
                 <InfoOutlined fontSize="small" />
               </Tooltip> */}

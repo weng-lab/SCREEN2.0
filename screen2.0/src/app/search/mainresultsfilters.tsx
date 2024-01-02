@@ -601,7 +601,7 @@ export function MainResultsFilters(
             </AccordionSummary>
             <AccordionDetails>
               <Grid2 container spacing={3}>
-                <Grid2 xs={6} lg={12} xl={6}>
+                <Grid2 xs={6}>
                   <RangeSlider
                     title="43-primate (phastCons)"
                     width="100%"
@@ -615,7 +615,7 @@ export function MainResultsFilters(
                     }}
                   />
                 </Grid2>
-                <Grid2 xs={6} lg={12} xl={6}>
+                <Grid2 xs={6}>
                   <RangeSlider
                     title="240-mammal (phyloP)"
                     width="100%"
@@ -629,7 +629,7 @@ export function MainResultsFilters(
                     }}
                   />
                 </Grid2>
-                <Grid2 xs={6} lg={12} xl={6}>
+                <Grid2 xs={6}>
                   <RangeSlider
                     title="100-vertebrate (phyloP)"
                     width="100%"
