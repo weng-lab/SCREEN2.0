@@ -19,6 +19,7 @@ import {
   Stack,
   CircularProgress,
   IconButton,
+  Divider,
 } from "@mui/material/"
 
 import Radio from '@mui/material/Radio';
@@ -504,7 +505,28 @@ export function MainResultsFilters(
               </Stack>
             </AccordionSummary>
             <AccordionDetails>
-              <Typography>cCRE Classes</Typography>
+              <FormGroup>
+                <FormControlLabel
+                  checked={!filtersModified(props.filterCriteria, "classification")}
+                  onChange={(_, checked: boolean) => 
+                    props.setFilterCriteria({
+                      ...props.filterCriteria,
+                      CA: checked,
+                      CA_CTCF: checked,
+                      CA_H3K4me3: checked,
+                      CA_TF: checked,
+                      dELS: checked,
+                      pELS: checked,
+                      PLS: checked,
+                      TF: checked,
+                    })
+                  }
+                  control={<Checkbox />}
+                  label="Select All"
+                />
+              </FormGroup>
+              <Divider />
+              {/* <Typography>cCRE Classes</Typography> */}
               <Grid2 container spacing={0}>
                 <Grid2 xs={6}>
                   <FormGroup>

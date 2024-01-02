@@ -672,7 +672,8 @@ export function filtersModified(
       ) return false
       else return true
     case ("classification"):
-      if (f.CA && f.CA_CTCF && f.CA_H3K4me3 && f.CA_TF && f.PLS && f.TF && f.dELS && f.pELS
+      if (
+        f.CA && f.CA_CTCF && f.CA_H3K4me3 && f.CA_TF && f.PLS && f.TF && f.dELS && f.pELS
       ) return false
       else return true
   }
