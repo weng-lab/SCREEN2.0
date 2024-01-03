@@ -110,7 +110,7 @@ const ConfigureGenomeBrowser = (props: {
   return (
     <>
       <Stack direction={"row"} justifyContent={"space-between"}>
-        <DialogTitle>Configure UCSC Genome Browser Trackhub</DialogTitle>
+        <DialogTitle>Configure UCSC Genome Browser Track Hub</DialogTitle>
         {props.handleClose && <IconButton size="large" onClick={props.handleClose} sx={{mr: 1}}><CloseOutlined fontSize="inherit"/></IconButton>}
       </Stack>
       <DialogContent>
@@ -118,10 +118,10 @@ const ConfigureGenomeBrowser = (props: {
           {`${props.accession} - ${props.coordinates.chromosome}:${props.coordinates.start}-${props.coordinates.end}`}
         </DialogContentText>
         <DialogContentText>
-          Select biosamples to generate trackhub with.
+          Select biosamples to generate track hub with.
         </DialogContentText>
         <DialogContentText mb={2}>
-          Note: For best UCSC performance, choose {"<"}10 cell types. Trackhubs will be deleted after 30 days.
+          Note: For best UCSC performance, choose {"<"}10 cell types. Track hubs will be deleted after 30 days.
         </DialogContentText>
         <Grid2 container spacing={2}>
           <Grid2 xs={8}>
