@@ -32,9 +32,10 @@ export const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) =>
 
   return (
       <Stack direction={props.header ? "row" : "column"} spacing={3}>
-        <Stack direction={"row"} alignItems={"center"}>
+        <Stack direction={"row"} alignItems={"center"} flexWrap={"wrap"}>
           {!props.header && <Typography variant={"h5"} mr={1} alignSelf="center">Search by</Typography>}
-          <FormControl variant="standard" size="medium" sx={
+          <Stack direction={"row"} alignItems={"center"} flexWrap={props.header ? "nowrap" : "wrap"}>
+            <FormControl variant="standard" size="medium" sx={
             props.header ?
               {
                 '& .MuiInputBase-root': { color: "white" },
@@ -84,6 +85,7 @@ export const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) =>
               <MenuItem value={"mm10"}>mm10</MenuItem>
             </Select>
           </FormControl>
+          </Stack>
         </Stack>
         <Box>
           {selectedSearch === "Genomic Region" ? (

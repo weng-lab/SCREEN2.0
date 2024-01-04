@@ -101,7 +101,7 @@ function ResponsiveAppBar() {
                 ml: 1,
                 display: { xs: "flex" },
                 // flexShrink: 0,
-                flexGrow: { xs: 1, md: 0 },
+                flexGrow: { xs: 1, lg: 0 },
                 fontFamily: "monospace",
                 fontWeight: 700,
                 letterSpacing: ".3rem",
@@ -111,52 +111,9 @@ function ResponsiveAppBar() {
             >
               SCREEN
             </Typography>
-            <Box sx={{ flexGrow: 0, display: { xs: "inline", md: "none" } }}>
-              <IconButton
-                size="large"
-                aria-label="account of current user"
-                aria-controls="menu-appbar"
-                aria-haspopup="true"
-                onClick={handleOpenNavMenu_Hamburger}
-                color="inherit"
-                sx={{ pl: 0 }}
-              >
-                <MenuIcon />
-              </IconButton>
-              <Menu
-                id="menu-appbar"
-                anchorEl={anchorElNav_Hamburger}
-                anchorOrigin={{
-                  vertical: "bottom",
-                  horizontal: "left",
-                }}
-                keepMounted
-                transformOrigin={{
-                  vertical: "top",
-                  horizontal: "left",
-                }}
-                open={Boolean(anchorElNav_Hamburger)}
-                onClose={handleCloseNavMenu_Hamburger}
-                sx={{
-                  display: { xs: "block", md: "none" },
-                }}
-              >
-                <MenuItem onClick={handleCloseNavMenu_Hamburger}>
-                  <Typography component="a" href={""} textAlign="center">
-                    Home
-                  </Typography>
-                </MenuItem>
-                {pageLinks.map((page) => (
-                  <MenuItem key={page.pageName} onClick={handleCloseNavMenu_Hamburger}>
-                    <Link href={page.link}>
-                      <Typography textAlign="center" textTransform="none">{page.pageName}</Typography>
-                    </Link>
-                  </MenuItem>
-                ))}
-              </Menu>
-            </Box>
+           
             {/* Main navigation items for desktop */}
-            <Box sx={{ flexGrow: 1, flexShrink: 1, display: { xs: "none", md: "flex" } }}>
+            <Box sx={{ flexGrow: 1, flexShrink: 1, display: { xs: "none", lg: "flex" } }}>
               {pageLinks.map((page) => (
                 <Box key={page.pageName}>
                   <Button
@@ -215,8 +172,51 @@ function ResponsiveAppBar() {
                 </Box>
               ))}
             </Box>
-            <Box sx={{ display: { xs: "none", lg: "flex" } }}>
+            <Box sx={{ display: { xs: "none", md: "flex" } }}>
               <MainSearch header />
+            </Box>
+            <Box sx={{ flexGrow: 0, display: { xs: "inline", lg: "none" } }}>
+              <IconButton
+                size="large"
+                aria-label="account of current user"
+                aria-controls="menu-appbar"
+                aria-haspopup="true"
+                onClick={handleOpenNavMenu_Hamburger}
+                color="inherit"
+              >
+                <MenuIcon />
+              </IconButton>
+              <Menu
+                id="menu-appbar"
+                anchorEl={anchorElNav_Hamburger}
+                anchorOrigin={{
+                  vertical: "bottom",
+                  horizontal: "left",
+                }}
+                keepMounted
+                transformOrigin={{
+                  vertical: "top",
+                  horizontal: "left",
+                }}
+                open={Boolean(anchorElNav_Hamburger)}
+                onClose={handleCloseNavMenu_Hamburger}
+                sx={{
+                  display: { xs: "block", lg: "none" },
+                }}
+              >
+                <MenuItem onClick={handleCloseNavMenu_Hamburger}>
+                  <Typography component="a" href={"/"} textAlign="center">
+                    Home
+                  </Typography>
+                </MenuItem>
+                {pageLinks.map((page) => (
+                  <MenuItem key={page.pageName} onClick={handleCloseNavMenu_Hamburger}>
+                    <Link href={page.link}>
+                      <Typography textAlign="center" textTransform="none">{page.pageName}</Typography>
+                    </Link>
+                  </MenuItem>
+                ))}
+              </Menu>
             </Box>
           </Toolbar>
         </Container>

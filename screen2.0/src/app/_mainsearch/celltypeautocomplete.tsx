@@ -64,9 +64,8 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
     <Stack direction={"row"} spacing={2}>
       <Autocomplete
         size={props.header ? "small" : "medium"}
-        // freeSolo
         id="celltype-autocomplete"
-        sx={{ width: 300, paper: { height: 200 } }}
+        sx={{ minWidth: 200, paper: { height: 200 } }}
         options={options}
         onKeyDown={(event) => {
           if (event.key === "Enter" && valueCellType) {
@@ -90,7 +89,7 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
             label="Enter a celltype"
             InputLabelProps={{ shrink: true, style: props.header ? { color: "white" } : { color: "black" } }}
             placeholder={props.assembly === "mm10" ? "strain B6NCrl cortical plate tissue male adult (8 weeks)" : "e.g. LNCAP"}
-            fullWidth
+            fullWidth          
             sx={{
               //Border at rest
               fieldset: props.header ? { borderColor: "white" } : { borderColor: "black" },

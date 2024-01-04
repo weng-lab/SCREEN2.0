@@ -61,7 +61,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
           {inputType === "Separated" ?
             //Separated Input
             <>
-              <FormControl>
+              <FormControl sx={{minWidth: "auto !important"}}>
                 <InputLabel id="demo-simple-select-standard-label">Chr</InputLabel>
                 <Select
                   MenuProps={{
@@ -139,11 +139,12 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
                     setEnd("5381894")
                   }
                 }}
+                
                 sx={
                   props.header ?
                     { mr: "1rem", ml: "0.5rem", fieldset: { borderColor: "white" }, maxWidth: "7rem" }
                     :
-                    { mr: "1rem", ml: "0.5rem", fieldset: { borderColor: "black" }, maxWidth: "7rem" }
+                    { mr: {xs: "0rem", sm: "1rem"}, ml: "0.5rem", fieldset: { borderColor: "black" }, maxWidth: "7rem" }
                 }
                 size={props.header ? "small" : "medium"}
               />
