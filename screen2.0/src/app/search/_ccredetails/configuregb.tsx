@@ -24,8 +24,8 @@ const ConfigureGenomeBrowser = (props: {
   coordinates: {
     assembly: "GRCh38" | "mm10"
     chromosome: string
-    start: string
-    end: string
+    start: number
+    end: number
   }
   accession: string
   handleClose?: () => void
@@ -59,10 +59,10 @@ const ConfigureGenomeBrowser = (props: {
       headers: { "Content-Type": "application/json" },
     })
     const trackhuburl = (await response.json()).data?.createTrackhubQuery
-    const start = +(props.coordinates.start.replaceAll(",","")) - 7500
-    const end = +(props.coordinates.end.replaceAll(",","")) + 7500
+    const start = +(props.coordinates.start) - 7500
+    const end = +(props.coordinates.end) + 7500
 
-    const ucscbrowserurl =  `https://genome.ucsc.edu/cgi-bin/hgTracks?db=${props.coordinates.assembly}&position=${props.coordinates.chromosome}:${start}-${end}&hubClear=${trackhuburl}&highlight=${props.coordinates.assembly}.${props.coordinates.chromosome}%3A${props.coordinates.start.replaceAll(",","")}-${props.coordinates.end.replaceAll(",","")}`
+    const ucscbrowserurl =  `https://genome.ucsc.edu/cgi-bin/hgTracks?db=${props.coordinates.assembly}&position=${props.coordinates.chromosome}:${start}-${end}&hubClear=${trackhuburl}&highlight=${props.coordinates.assembly}.${props.coordinates.chromosome}%3A${props.coordinates.start}-${props.coordinates.end}`
 
     setCurrentURLs({urlUCSC: ucscbrowserurl, urlTrackhub: trackhuburl, biosamples: props.selectedBiosamples})
 
@@ -115,7 +115,7 @@ const ConfigureGenomeBrowser = (props: {
       </Stack>
       <DialogContent>
         <DialogContentText mb={2}>
-          {`${props.accession} - ${props.coordinates.chromosome}:${props.coordinates.start}-${props.coordinates.end}`}
+          {`${props.accession} - ${props.coordinates.chromosome}:${props.coordinates.start.toLocaleString("en-US")}-${props.coordinates.end.toLocaleString("en-US")}`}
         </DialogContentText>
         <DialogContentText>
           Select biosamples to generate track hub with.

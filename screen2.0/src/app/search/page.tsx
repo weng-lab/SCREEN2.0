@@ -96,7 +96,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const [detailsPage, setDetailsPage] = useState(0)
   const [opencCREs, setOpencCREs] = useState<{
     ID: string,
-    region: { start: string, end: string, chrom: string },
+    region: { start: number, end: number, chrom: string },
     linkedGenes: LinkedGenesData
   }[]>([])
   const [globals, setGlobals] = useState<CellTypeData>(null)
@@ -465,7 +465,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           {page === 1 && (
             <GenomeBrowserView
               gene={mainQueryParams.gene.name}
-              biosample={mainQueryParams.biosample.queryValue}
+              biosample={mainQueryParams.biosample?.queryValue}
               assembly={mainQueryParams.coordinates.assembly}
               coordinates={{ start: mainQueryParams.coordinates.start, end: mainQueryParams.coordinates.end, chromosome: mainQueryParams.coordinates.chromosome }}
             />

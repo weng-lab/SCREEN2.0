@@ -2,8 +2,8 @@ import { ApolloQueryResult } from "@apollo/client"
 
 export type GenomicRegion = {
   chrom: string
-  start: string
-  end: string
+  start: number
+  end: number
 }
 
 export type cCREData = {
@@ -148,8 +148,8 @@ export type MainResultTableRow = {
   accession: string
   class: string
   chromosome: string
-  start: string
-  end: string
+  start: number
+  end: number
   dnase?: number
   atac?: number
   h3k4me3?: number
