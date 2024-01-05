@@ -8,8 +8,8 @@ interface Props {
   coordinates: {
     assembly: "mm10" | "GRCh38",
     chromosome: string,
-    start: string,
-    end: string,
+    start: number,
+    end: number,
   }
   accession: string
 }

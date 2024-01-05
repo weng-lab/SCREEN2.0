@@ -42,12 +42,14 @@ export function MainResultsTable(props: MainResultsTableProps) {
       },
       {
         header: "Start",
-        value: (row: { start: string }) => row.start,
+        value: (row: { start: number }) => row.start,
+        render: (row: { start: number }) => row.start.toLocaleString("en-US"),
         HeaderRender: () => <strong><p>Start</p></strong>
       },
       {
         header: "End",
-        value: (row: { end: string }) => row.end,
+        value: (row: { end: number }) => row.end,
+        render: (row: { end: number }) => row.end.toLocaleString("en-US"),
         HeaderRender: () => <strong><p>End</p></strong>
       }
     ]

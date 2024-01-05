@@ -87,8 +87,8 @@ export function generateFilteredRows(
         accession: currentElement.info.accession,
         class: currentElement.pct,
         chromosome: currentElement.chrom,
-        start: currentElement.start.toLocaleString("en-US"),
-        end: (currentElement.start + currentElement.len).toLocaleString("en-US"),
+        start: currentElement.start,
+        end: (currentElement.start + currentElement.len),
         dnase: currentElement.dnase_zscore,
         h3k4me3: currentElement.promoter_zscore,
         h3k27ac: currentElement.enhancer_zscore,
@@ -408,7 +408,7 @@ export function filterBiosamples(
       if (biosample.assays.dnase == true) {
         //Assign to Partial if at least dnase is available
         collection = "Partial"
-        if (biosample.assays.ctcf && biosample.assays.h3k4me3 && biosample.assays.h3k4me3) {
+        if (biosample.assays.ctcf && biosample.assays.h3k4me3 && biosample.assays.h3k27ac) {
           //If all other marks (ignoring atac) are available, assign to core
           collection = "Core"
         }

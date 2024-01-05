@@ -29,7 +29,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
     <>
       <Stack direction="row" justifyContent={"space-between"} alignItems={"baseline"}>
         <Typography variant="h4">{accession}</Typography>
-        <Typography variant="h6">{`${region.chrom}:${region.start}-${region.end}`}</Typography>
+        <Typography variant="h6">{`${region.chrom}:${region.start.toLocaleString("en-US")}-${region.end.toLocaleString("en-US")}`}</Typography>
       </Stack>
       <Divider sx={{mb: 2}}/>
       {page === 0 && <InSpecificBiosamples accession={accession} globals={globals} assembly={assembly} />}
@@ -40,23 +40,23 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
           assembly={assembly}
           coordinates={{
             chromosome: region.chrom,
-            start: +region.start.replace(/\D/g, ""),
-            end: +region.end.replace(/\D/g, ""),
+            start: +region.start,
+            end: +region.end,
           }}
         />
       )}
       {page === 3 && <Ortholog accession={accession} assembly={assembly} />}      
       {page === 4 && <GeneExpression assembly={assembly} genes={geneList} />}
-      {page === 5 && <FunctionData accession={accession} coordinates={{ chromosome: region.chrom, start: +region.start.toString().replace(/\D/g, ""), end: +region.end.toString().replace(/\D/g, "") }} assembly={assembly} />}
+      {page === 5 && <FunctionData accession={accession} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }} assembly={assembly} />}
       {page === 6 &&
         <>
-          <TfSequenceFeatures assembly={assembly} coordinates={{ chromosome: region.chrom, start: +(region.start.replace(/\D/g, "")), end: +(region.end.replace(/\D/g, "")) }} />
+          <TfSequenceFeatures assembly={assembly} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }} />
           <TfIntersection
             assembly={assembly}
             coordinates={{
               chromosome: region.chrom,
-              start: +region.start.toString().replace(/\D/g, ""),
-              end: +region.end.toString().replace(/\D/g, ""),
+              start: region.start,
+              end: region.end,
             }}
           />
         </>
