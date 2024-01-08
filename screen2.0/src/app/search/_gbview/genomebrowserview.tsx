@@ -9,6 +9,7 @@ import EGeneTracks from "./egenetracks"
 import { client } from "../_ccredetails/client"
 import DefaultTracks from "./defaulttracks"
 import { BiosampleTracks } from "./biosampletracks"
+
 type GenomeBrowserViewProps = {
   coordinates: {
     start: number
@@ -19,6 +20,7 @@ type GenomeBrowserViewProps = {
   gene?: string
   assembly: string
 }
+
 const BIOSAMPLE_QUERY = gql`
   query biosamples {
     human: ccREBiosampleQuery(assembly: "grch38") {

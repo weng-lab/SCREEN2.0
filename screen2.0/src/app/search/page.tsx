@@ -197,6 +197,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
 
 
   //Fetch raw cCRE data (main query and linked genes)
+  //This is happening an extra unexpected time...
   useEffect(() => {
       setLoadingFetch(true)
 
@@ -216,7 +217,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
 
       // Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
       // @ts-expect-error
-      start && end && startTransition(async () => {
+      (start !== null) && (end !== null) && startTransition(async () => {
         setRawQueryData(
           await fetchcCREDataAndLinkedGenes(
             mainQueryParams.coordinates.assembly,

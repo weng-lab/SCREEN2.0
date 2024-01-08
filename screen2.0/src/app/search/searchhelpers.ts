@@ -27,7 +27,7 @@ export async function fetchcCREDataAndLinkedGenes (
   intersectedAccessions?: string[]
 ): Promise<rawQueryData> {
   
-  //cCRESEarchQuery
+  //cCRESearchQuery
   const mainQueryData = await MainQuery(
     assembly,
     chromosome,
@@ -580,12 +580,12 @@ export function constructMainQueryParamsFromURL(searchParams: { [key: string]: s
       },
       gene: {
         name: searchParams.gene,
-        distance: +searchParams.tssDistance ?? 0,
+        distance: +searchParams.tssDistance ? +searchParams.tssDistance : 0,
         nearTSS: searchParams.nearTSS ? checkTrueFalse(searchParams.nearTSS) : false
       },
       snp: {
         rsID: searchParams.snpid,
-        distance: +searchParams.snpDistance ?? 0
+        distance: searchParams.snpDistance ? +searchParams.snpDistance : 0
       }
     }
   )
