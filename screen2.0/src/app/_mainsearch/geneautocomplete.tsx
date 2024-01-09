@@ -12,6 +12,7 @@ import { Search } from "@mui/icons-material"
 type QueryResponse = [number, string[], any, [string, string, string, string, string, string][], string[]]
 
 export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> = (props) => {
+  console.log(props.assembly,"assembly")
   const [value, setValue] = useState(null)
   const [inputValue, setInputValue] = useState("")
   const [options, setOptions] = useState<string[]>([])
@@ -43,14 +44,14 @@ export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
     options && fetchData()
   }, [options])
 
-  const onSearchChange = async (value: string) => {
+  const onSearchChange = async (value: string, assembly: string) => {
     setOptions([])
     const response = await fetch(Config.API.GraphqlAPI, {
       method: "POST",
       body: JSON.stringify({
         query: GENE_AUTOCOMPLETE_QUERY,
         variables: {
-          assembly: props.assembly.toLowerCase(),
+          assembly: assembly.toLowerCase(),
           name_prefix: value,
           limit: 1000
         },
@@ -113,7 +114,7 @@ export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
         inputValue={inputValue}
         onInputChange={(_, newInputValue) => {
           if (newInputValue != "") {
-            debounceFn(newInputValue)
+            debounceFn(newInputValue, props.assembly)
           }
 
           setInputValue(newInputValue)
