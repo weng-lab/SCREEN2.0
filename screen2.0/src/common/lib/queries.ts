@@ -247,6 +247,7 @@ export async function fetchLinkedGenes(assembly: "GRCh38" | "mm10", accessions: 
     linkedGenes = await getClient().query({
       query: LINKED_GENES_QUERY,
       variables: { assembly: assembly, accession: accessions },
+      fetchPolicy: "no-cache"
     })
     linkedGenes.data.linkedGenesQuery.forEach((entry) => {
       !geneIDs.includes(entry.gene.split(".")[0]) && geneIDs.push(entry.gene.split(".")[0])
@@ -256,6 +257,7 @@ export async function fetchLinkedGenes(assembly: "GRCh38" | "mm10", accessions: 
       geneNames = await getClient().query({
         query: GENE_QUERY,
         variables: { assembly: assembly, name_prefix: geneIDs },
+        fetchPolicy: "no-cache"
       })
       //If both queries are successful, go through each of linkedGenes.data.linkedGenesQuery, find the accession and (if doesnt exist) add to linkedGenesData along with any gene names matching the ID in queryRes2
       linkedGenes.data.linkedGenesQuery.forEach((entry) => {
@@ -299,6 +301,8 @@ export async function MainQuery(assembly: string = null, chromosome: string = nu
     data = await getClient().query({
       query: cCRE_QUERY,
       variables: cCRE_QUERY_VARIABLES(assembly, chromosome, start, end, biosample, nearbygenesdistancethreshold, nearbygeneslimit, accessions),
+      //Telling it to not cache, next js caches also and for things that exceed the 2mb cache limit it slows down substantially for some reason
+      fetchPolicy: "no-cache"
     })
   } catch (error) {
     console.log("error fetching main cCRE data")

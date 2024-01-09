@@ -5,7 +5,7 @@ import { Biosample, BiosampleTableFilters, CellTypeData, FilterCriteria, MainQue
 import { constructBiosampleTableFiltersFromURL, constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, fetchcCREDataAndLinkedGenes } from "./searchhelpers"
 import React, { startTransition, useEffect, useMemo, useRef, useState } from "react"
 import { styled } from '@mui/material/styles';
-import { Divider, IconButton, Tab, Tabs, Typography, Box } from "@mui/material"
+import { Divider, IconButton, Tab, Tabs, Typography, Box, Button } from "@mui/material"
 import { MainResultsTable } from "./mainresultstable"
 import { MainResultsFilters } from "./mainresultsfilters"
 import { CcreDetails } from "./_ccredetails/ccredetails"
@@ -298,6 +298,62 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)
   }
 
+  // Function to extract the start value from a string
+  const getStartValue = (str: string) => {
+    // Split the string by tabs and get the second element (index 1)
+    return parseInt(str.split('\t')[1]);
+  };
+
+  // Convert the results to a BED file string
+  const convertToBED = (data: rawQueryData): string => {
+    let bedContent: string[] = [];
+
+    data.mainQueryData.data.cCRESCREENSearch.forEach((item) => {
+      const chromosome = item.chrom;
+      const start = item.start;
+      const end = start + item.len;
+      const name = item.info.accession;
+
+      // Construct the BED-formatted string
+      const bedRow = `${chromosome}\t${start}\t${end}\t${name}\n`;
+
+      // Append to the content string
+      bedContent.push(bedRow);
+    });
+
+    return bedContent.sort((a, b) => {
+      const startA = getStartValue(a);
+      const startB = getStartValue(b);
+    
+      // Compare the start values
+      return startA - startB;
+    }).join('');
+  };
+
+  //Download results shown in table
+  const handleDownloadBED = async (data: rawQueryData) => {
+    const bedContent = convertToBED(data);
+
+    // Create a Blob with the content
+    const blob = new Blob([bedContent], { type: 'text/plain' });
+
+    // Create a temporary URL for the Blob
+    const url = URL.createObjectURL(blob);
+
+    // Create a link element to trigger the download
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${mainQueryParams.coordinates.assembly}-${mainQueryParams.coordinates.chromosome}-${mainQueryParams.coordinates.start}-${mainQueryParams.coordinates.end}.bed`; // File name for download
+    document.body.appendChild(link);
+
+    // Simulate a click on the link to initiate download
+    link.click();
+
+    // Clean up by removing the link and revoking the URL object
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <main>
       <Box id="Outer Box" sx={{ display: 'flex' }}>
@@ -430,36 +486,34 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               {loadingTable || loadingFetch ?
                 <LoadingMessage />
                 :
-                <MainResultsTable
+                <><MainResultsTable
                   rows={filteredTableRows}
-                  tableTitle={
-                    mainQueryParams.searchConfig.bed_intersect ?
-                      `Intersecting by uploaded .bed file in ${mainQueryParams.coordinates.assembly}${intersectWarning.current === "true" ? " (Partial)" : ""}`
-                      :
-                      mainQueryParams.gene.name ?
-                        mainQueryParams.gene.nearTSS ?
-                          `cCREs within ${mainQueryParams.gene.distance / 1000}kb of TSSs of ${mainQueryParams.gene.name} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.start.toLocaleString("en-US")}-${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
-                          :
-                          `cCREs overlapping ${mainQueryParams.gene.name} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.start.toLocaleString("en-US")}-${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
+                  tableTitle={mainQueryParams.searchConfig.bed_intersect ?
+                    `Intersecting by uploaded .bed file in ${mainQueryParams.coordinates.assembly}${intersectWarning.current === "true" ? " (Partial)" : ""}`
+                    :
+                    mainQueryParams.gene.name ?
+                      mainQueryParams.gene.nearTSS ?
+                        `cCREs within ${mainQueryParams.gene.distance / 1000}kb of TSSs of ${mainQueryParams.gene.name} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.start.toLocaleString("en-US")}-${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
                         :
-                        mainQueryParams.snp.rsID ?
-                          `cCREs within ${mainQueryParams.snp.distance}bp of ${mainQueryParams.snp.rsID} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
-                          :
-                          `Searching ${mainQueryParams.coordinates.chromosome} in ${mainQueryParams.coordinates.assembly} from ${mainQueryParams.coordinates.start.toLocaleString("en-US")} to ${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
-                  }
+                        `cCREs overlapping ${mainQueryParams.gene.name} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.start.toLocaleString("en-US")}-${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
+                      :
+                      mainQueryParams.snp.rsID ?
+                        `cCREs within ${mainQueryParams.snp.distance}bp of ${mainQueryParams.snp.rsID} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
+                        :
+                        `Searching ${mainQueryParams.coordinates.chromosome} in ${mainQueryParams.coordinates.assembly} from ${mainQueryParams.coordinates.start.toLocaleString("en-US")} to ${mainQueryParams.coordinates.end.toLocaleString("en-US")}`}
                   titleHoverInfo={mainQueryParams.searchConfig.bed_intersect ?
                     `${intersectWarning.current === "true" ?
                       "The file you uploaded, " + intersectFilenames.current + ", is too large to be completely intersected. Results are incomplete."
                       :
                       intersectFilenames.current}`
                     :
-                    null
-                  }
+                    null}
                   itemsPerPage={10}
                   assembly={mainQueryParams.coordinates.assembly}
                   onRowClick={handleTableClick}
-                  byCellType={globals}
-                />
+                  byCellType={globals} />
+                  <Button sx={{mt: 1}} variant="outlined" onClick={() => handleDownloadBED(rawQueryData)}>Download Search Results (.bed)</Button>
+                  </>
               }
             </Box>
           )}

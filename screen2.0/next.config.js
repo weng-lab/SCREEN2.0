@@ -14,6 +14,12 @@ const nextConfig = {
   trailingSlash: false,
   assetPrefix: assetPrefix,
   basePath: basePath,
+  reactStrictMode: false,
+  logging: {
+    fetches: {
+      fullUrl: true,
+    },
+  },
   
   webpack: (config, { isServer }) => {
     if (!isServer) {

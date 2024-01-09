@@ -54,6 +54,7 @@ export async function fetchcCREDataAndLinkedGenes (
   cCRE_data.forEach((currentElement) => {
     accessions.push(currentElement.info.accession)
   })
+  // const linkedGenesData = {}
   const linkedGenesData = await fetchLinkedGenes(assembly, accessions)
   return ({mainQueryData, linkedGenesData})
 }
