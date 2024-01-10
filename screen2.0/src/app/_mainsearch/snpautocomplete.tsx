@@ -16,7 +16,7 @@ export const SnpAutoComplete: React.FC<{ assembly: string, header?: boolean }> =
   const [options, setOptions] = useState([])
   const [snpids, setSnpIds] = useState([])
 
-  const onSearchChange = async (value: string) => {
+  const onSearchChange = async (value: string, assembly: string) => {
     setOptions([])
     const response = await fetch(Config.API.GraphqlAPI, {
       method: "POST",
@@ -87,7 +87,7 @@ export const SnpAutoComplete: React.FC<{ assembly: string, header?: boolean }> =
         inputValue={inputValue}
         onInputChange={(_, newInputValue) => {
           if (newInputValue != "") {
-            debounceFn(newInputValue)
+            debounceFn(newInputValue, props.assembly)
           }
           setInputValue(newInputValue)
         }}
