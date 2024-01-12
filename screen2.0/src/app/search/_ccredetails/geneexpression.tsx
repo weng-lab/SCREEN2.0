@@ -64,7 +64,7 @@ export function GeneExpression(props: {
   } = useQuery(GENE_QUERY, {
     variables: {
       assembly: "grch38",
-      name: [currentHumanGene && currentHumanGene.toUpperCase()]
+      name: [currentHumanGene && currentHumanGene]
     },
     skip: !currentHumanGene,
     fetchPolicy: "cache-and-network",
