@@ -353,7 +353,10 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     }).join('');
   };
 
+  //TODO add support for TSS range search and distance from rsID. These situations have results which depend on either/both adding a distance from start/end and filtering with TSS ranges
   const new_handleDownloadBED = async () => {
+    let bedContents: string;
+    
     const start = mainQueryParams.coordinates.start !== 0 ? mainQueryParams.coordinates.start : 1
     const end = mainQueryParams.coordinates.end
     
@@ -382,20 +385,18 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         ))
       })
     })
-
     //Check every second to see if the queries have resolved
     while (dataArray.length < ranges.length) {
       await new Promise(resolve => setTimeout(resolve, 1000))
       console.log("checking, length is " + dataArray.length, 'want ' + ranges.length)
     }
-
     //Combine and deduplicate results, as a cCRE might be included in two searches
     const combinedResults: SCREENSearchResult[] = []
     dataArray.forEach((queryResult) => {console.log(queryResult); queryResult.data.cCRESCREENSearch.forEach((cCRE) => {combinedResults.push(cCRE)})})
     const deduplicatedResults: MainQueryData = {data: {cCRESCREENSearch: [...new Set(combinedResults)]}}
 
-    //For each query result, generate BED results
-    let bedContents = convertToBED(deduplicatedResults)
+    //generate BED string
+    bedContents = convertToBED(deduplicatedResults)
 
     const blob = new Blob([bedContents], { type: 'text/plain' });
 

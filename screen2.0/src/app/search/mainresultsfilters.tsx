@@ -403,8 +403,8 @@ export function MainResultsFilters(
                     title="DNase"
                     width="100%"
                     value={[props.filterCriteria.dnase_s, props.filterCriteria.dnase_e]}
-                    defaultStart={-10}
-                    defaultEnd={10}
+                    min={-10}
+                    max={10}
                     minDistance={1}
                     step={0.1}
                     onSliderChangeCommitted={(value: number[]) => {
@@ -417,8 +417,8 @@ export function MainResultsFilters(
                     title="H3K4me3"
                     width="100%"
                     value={[props.filterCriteria.h3k4me3_s, props.filterCriteria.h3k4me3_e]}
-                    defaultStart={-10}
-                    defaultEnd={10}
+                    min={-10}
+                    max={10}
                     minDistance={1}
                     step={0.1}
                     onSliderChangeCommitted={(value: number[]) => {
@@ -431,8 +431,8 @@ export function MainResultsFilters(
                     title="H3K27ac"
                     width="100%"
                     value={[props.filterCriteria.h3k27ac_s, props.filterCriteria.h3k27ac_e]}
-                    defaultStart={-10}
-                    defaultEnd={10}
+                    min={-10}
+                    max={10}
                     minDistance={1}
                     step={0.1}
                     onSliderChangeCommitted={(value: number[]) => {
@@ -445,8 +445,8 @@ export function MainResultsFilters(
                     title="CTCF"
                     width="100%"
                     value={[props.filterCriteria.ctcf_s, props.filterCriteria.ctcf_e]}
-                    defaultStart={-10}
-                    defaultEnd={10}
+                    min={-10}
+                    max={10}
                     minDistance={1}
                     step={0.1}
                     onSliderChangeCommitted={(value: number[]) => {
@@ -459,8 +459,8 @@ export function MainResultsFilters(
                     title="ATAC"
                     width="100%"
                     value={[props.filterCriteria.atac_s, props.filterCriteria.atac_e]}
-                    defaultStart={-10}
-                    defaultEnd={10}
+                    min={-10}
+                    max={10}
                     minDistance={1}
                     step={0.1}
                     onSliderChangeCommitted={(value: number[]) => {
@@ -631,8 +631,8 @@ export function MainResultsFilters(
                     title="43-primate (phastCons)"
                     width="100%"
                     value={[props.filterCriteria.prim_s, props.filterCriteria.prim_e]}
-                    defaultStart={-2}
-                    defaultEnd={2}
+                    min={-2}
+                    max={2}
                     minDistance={1}
                     step={0.1}
                     onSliderChangeCommitted={(value: number[]) => {
@@ -645,8 +645,8 @@ export function MainResultsFilters(
                     title="240-mammal (phyloP)"
                     width="100%"
                     value={[props.filterCriteria.mamm_s, props.filterCriteria.mamm_e]}
-                    defaultStart={-4}
-                    defaultEnd={8}
+                    min={-4}
+                    max={8}
                     minDistance={1}
                     step={0.1}
                     onSliderChangeCommitted={(value: number[]) => {
@@ -659,8 +659,8 @@ export function MainResultsFilters(
                     title="100-vertebrate (phyloP)"
                     width="100%"
                     value={[props.filterCriteria.vert_s, props.filterCriteria.vert_e]}
-                    defaultStart={-3}
-                    defaultEnd={8}
+                    min={-3}
+                    max={8}
                     minDistance={1}
                     step={0.1}
                     onSliderChangeCommitted={(value: number[]) => {
