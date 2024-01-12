@@ -22,6 +22,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
 
   //TODO: Better catch errors in input so that invalid values are not passed to api
   function handleSubmit(): string {
+    console.log("submit function called")
     if (inputType === "Separated") {
       return `/search?assembly=${assembly}&chromosome=${"chr" + chromosome}&start=${start ?? "5205263"}&end=${end ?? "5381894"}`
     } else {
@@ -104,10 +105,10 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
                   setStart(event.target.value)
                 }}
                 onKeyDown={(event) => {
-                  if (event.code === "Enter") {
+                  if (event.key === "Enter") {
                     window.open(handleSubmit(), "_self")
                   }
-                  if (event.code === "Tab" && !start) {
+                  if (event.key === "Tab" && !start) {
                     setStart("5205263")
                   }
                 }}
@@ -132,10 +133,10 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
                   setEnd(event.target.value)
                 }}
                 onKeyDown={(event) => {
-                  if (event.code === "Enter") {
+                  if (event.key === "Enter") {
                     window.open(handleSubmit(), "_self")
                   }
-                  if (event.code === "Tab" && !end) {
+                  if (event.key === "Tab" && !end) {
                     setEnd("5381894")
                   }
                 }}
@@ -159,10 +160,10 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
               value={value}
               onChange={handleChange}
               onKeyDown={(event) => {
-                if (event.code === "Enter") {
+                if (event.key === "Enter") {
                   window.open(handleSubmit(), "_self")
                 }
-                if (event.code === "Tab" && !value) {
+                if (event.key === "Tab" && !value) {
                   setValue("chr11:5205263-5381894")
                 }
               }}
@@ -182,13 +183,12 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
               size={props.header ? "small" : "medium"}
             />
           }
-          <IconButton href={handleSubmit()} aria-label="Search" type="submit" sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
+          <IconButton onClick={() => window.open(handleSubmit(), "_self")} aria-label="Search" type="submit" sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
             <Search />
           </IconButton>
         </Stack>
       </Grid2>
     </Grid2>
-
   )
 }
 

@@ -1,5 +1,5 @@
 
-import { cCREData, MainQueryParams, CellTypeData, UnfilteredBiosampleData, FilteredBiosampleData, MainResultTableRows, MainResultTableRow, rawQueryData, FilterCriteria, BiosampleTableFilters, Biosample } from "./types"
+import { cCREData, MainQueryParams, CellTypeData, UnfilteredBiosampleData, FilteredBiosampleData, MainResultTableRows, MainResultTableRow, rawQueryData, FilterCriteria, BiosampleTableFilters, Biosample, MainQueryData, RawLinkedGenesData } from "./types"
 import { MainQuery, fetchLinkedGenes } from "../../common/lib/queries"
 
 /**
@@ -12,11 +12,12 @@ import { MainQuery, fetchLinkedGenes } from "../../common/lib/queries"
  * @param nearbygenesdistancethreshold number, 1,000,000 is default if undefined
  * @param nearbygeneslimit number, 3 is default if undefined
  * @param intersectedAccessions string[], optional, for intersected accessions from bed upload
- * @returns \{mainQueryData: ..., linkedGenesData: ...}, (mostly) raw data. If biosample passed, 
+ * @param noLimit boolean, set to true to eliminate 25K limit on results (defined in queries.ts). Only remove limit if region is ~ <20M bp to avoid crashing cCRE service
+ * @returns Main cCRE search results (of type MainQueryData) (mostly) raw data. If biosample passed, 
  * the ctspecific zscores in mainQueryData are used to replace normal zscores to avoid passing biosample
  * to specify where to select scores from later in generateFilteredRows
  */
-export async function fetchcCREDataAndLinkedGenes (
+export async function fetchcCREData (
   assembly: "GRCh38" | "mm10",
   chromosome: string,
   start: number,
@@ -24,8 +25,9 @@ export async function fetchcCREDataAndLinkedGenes (
   biosample: string,
   nearbygenesdistancethreshold: number,
   nearbygeneslimit: number,
-  intersectedAccessions?: string[]
-): Promise<rawQueryData> {
+  intersectedAccessions?: string[],
+  noLimit?: boolean
+): Promise<MainQueryData> {
   
   //cCRESearchQuery
   const mainQueryData = await MainQuery(
@@ -36,11 +38,12 @@ export async function fetchcCREDataAndLinkedGenes (
     biosample,
     nearbygenesdistancethreshold,
     nearbygeneslimit,
-    intersectedAccessions
+    intersectedAccessions,
+    noLimit
   )
-  let cCRE_data: cCREData[] = mainQueryData?.data?.cCRESCREENSearch
-  const accessions: string[] = []
+
   //If biosample-specific data returned, sync z-scores with ctspecific to avoid having to select ctspecific later
+  let cCRE_data: cCREData[] = mainQueryData?.data?.cCRESCREENSearch
   if (biosample) {
     cCRE_data = cCRE_data.map(cCRE => {
       cCRE.dnase_zscore = cCRE.ctspecific.dnase_zscore;
@@ -51,12 +54,27 @@ export async function fetchcCREDataAndLinkedGenes (
       return cCRE
     })
   }
-  cCRE_data.forEach((currentElement) => {
+  
+  return (mainQueryData)
+}
+
+/**
+ * 
+ * @param mainQueryData data of type MainQueryData
+ * @param assembly  "GRCh38" | "mm10"
+ * @returns 
+ */
+export async function fetchLinkedGenesData (
+  mainQueryData: MainQueryData,
+  assembly: "GRCh38" | "mm10"
+): Promise<RawLinkedGenesData> {
+  const accessions: string[] = []
+  mainQueryData?.data?.cCRESCREENSearch.forEach((currentElement) => {
     accessions.push(currentElement.info.accession)
   })
-  // const linkedGenesData = {}
+
   const linkedGenesData = await fetchLinkedGenes(assembly, accessions)
-  return ({mainQueryData, linkedGenesData})
+  return (linkedGenesData)
 }
 
 //This could be split up into generateUnfilteredRows, and FilterRows functions for even better performace when filtering

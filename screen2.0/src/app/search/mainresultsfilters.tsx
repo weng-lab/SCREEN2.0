@@ -148,8 +148,8 @@ export function MainResultsFilters(
           return t.coordinates.end
         }
       })
-      console.log("Max" + Math.max(...TSSs))
-      console.log("Min" + Math.min(...TSSs))
+      // console.log("Max" + Math.max(...TSSs))
+      // console.log("Min" + Math.min(...TSSs))
       props.setTSSs(TSSs)
     }
   }, [geneTranscripts])
@@ -160,6 +160,7 @@ export function MainResultsFilters(
       const TSSranges: { start: number, end: number }[] = props.TSSs?.map((tss) => {
       return { start: Math.max(0, tss - props.mainQueryParams.gene.distance), end: tss + props.mainQueryParams.gene.distance }
     })
+    // console.log("setting TSSranges")
     props.setTSSranges(TSSranges)
     }
   }, [props.mainQueryParams.gene.distance, props.TSSs])

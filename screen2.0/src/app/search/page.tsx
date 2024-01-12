@@ -1,8 +1,8 @@
 // Search Results Page
 "use client"
 import { getGlobals } from "../../common/lib/queries"
-import { Biosample, BiosampleTableFilters, CellTypeData, FilterCriteria, MainQueryParams } from "./types"
-import { constructBiosampleTableFiltersFromURL, constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, fetchcCREDataAndLinkedGenes } from "./searchhelpers"
+import { Biosample, BiosampleTableFilters, CellTypeData, FilterCriteria, MainQueryData, MainQueryParams, SCREENSearchResult } from "./types"
+import { constructBiosampleTableFiltersFromURL, constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, fetchcCREData, fetchLinkedGenesData } from "./searchhelpers"
 import React, { startTransition, useEffect, useMemo, useRef, useState } from "react"
 import { styled } from '@mui/material/styles';
 import { Divider, IconButton, Tab, Tabs, Typography, Box, Button } from "@mui/material"
@@ -22,6 +22,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import Rampage from "./_ccredetails/rampage";
 import { GeneExpression } from "./_ccredetails/geneexpression";
 import { LoadingMessage } from "../../common/lib/utility"
+import { DataArray } from "@mui/icons-material"
 
 /**
  * @todo:
@@ -182,6 +183,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         page,
         opencCREs.map(x => x.ID).join(',')
       )
+      // console.log("pushing new url")
       router.push(newURL)
     }
   }, [searchParams, mainQueryParams, filterCriteria, biosampleTableFilters, page, opencCREs, router, basePathname, opencCREsInitialized])
@@ -196,8 +198,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   }, [mainQueryParams.coordinates.assembly])
 
 
-  //Fetch raw cCRE data (main query and linked genes)
-  //This is happening an extra unexpected time...
+  //Fetch raw cCRE data (main query only to prevent hidden linked genes from slowing down search)
   useEffect(() => {
       setLoadingFetch(true)
 
@@ -218,8 +219,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       // Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
       // @ts-expect-error
       (start !== null) && (end !== null) && startTransition(async () => {
-        setRawQueryData(
-          await fetchcCREDataAndLinkedGenes(
+        const mainQueryData = await fetchcCREData(
             mainQueryParams.coordinates.assembly,
             mainQueryParams.coordinates.chromosome,
             start,
@@ -229,10 +229,26 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
             null,
             mainQueryParams.searchConfig.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined
           )
-        )
+          console.log("setting main query data")
+        setRawQueryData({mainQueryData: mainQueryData, linkedGenesData: {}})
+        // setRawQueryData({...rawQueryData, mainQueryData: mainQueryData})
         setLoadingFetch(false)
       })
   }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample, mainQueryParams.snp.rsID, mainQueryParams.snp.distance, TSSs, TSSranges, mainQueryParams.gene.distance, mainQueryParams.gene.nearTSS])
+
+  //Fetch linked genes data.
+  useEffect(() => {
+    // Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
+    // @ts-expect-error
+    rawQueryData?.mainQueryData && startTransition(async () => {
+      const linkedGenesData = await fetchLinkedGenesData(
+        rawQueryData.mainQueryData,
+        mainQueryParams.coordinates.assembly
+      )
+      console.log("setting linked genes data")
+      setRawQueryData({mainQueryData: rawQueryData.mainQueryData, linkedGenesData: linkedGenesData})
+    })
+  }, [rawQueryData?.mainQueryData, mainQueryParams.coordinates.assembly])
 
   // Initialize open cCREs on initial load
   useEffect(() => {
@@ -241,17 +257,22 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       // @ts-expect-error
       startTransition(async () => {
         //Generate unfiltered rows of info for each open cCRE for ease of accessing data
+        const cCREQueryData = await fetchcCREData(
+          mainQueryParams.coordinates.assembly,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          1000000,
+          null,
+          cCREsToFetch
+        )
+        const linkedGenesData = await fetchLinkedGenesData(
+          cCREQueryData,
+          mainQueryParams.coordinates.assembly
+        )
         const opencCRE_data = generateFilteredRows(
-          await fetchcCREDataAndLinkedGenes(
-            mainQueryParams.coordinates.assembly,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            1000000,
-            null,
-            cCREsToFetch
-          ),
+          {mainQueryData: cCREQueryData, linkedGenesData: linkedGenesData},
           filterCriteria,
           true
         )
@@ -305,22 +326,24 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   };
 
   // Convert the results to a BED file string
-  const convertToBED = (data: rawQueryData): string => {
+  const convertToBED = (mainQueryData: MainQueryData): string => {
     let bedContent: string[] = [];
 
-    data.mainQueryData.data.cCRESCREENSearch.forEach((item) => {
+    mainQueryData.data.cCRESCREENSearch.forEach((item) => {
       const chromosome = item.chrom;
       const start = item.start;
       const end = start + item.len;
       const name = item.info.accession;
+      const classification = item.pct;
 
       // Construct the BED-formatted string
-      const bedRow = `${chromosome}\t${start}\t${end}\t${name}\n`;
+      const bedRow = `${chromosome}\t${start}\t${end}\t${name}\t${classification}\n`;
 
       // Append to the content string
       bedContent.push(bedRow);
     });
 
+    //sort contents
     return bedContent.sort((a, b) => {
       const startA = getStartValue(a);
       const startB = getStartValue(b);
@@ -330,12 +353,51 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     }).join('');
   };
 
-  //Download results shown in table
-  const handleDownloadBED = async (data: rawQueryData) => {
-    const bedContent = convertToBED(data);
+  const new_handleDownloadBED = async () => {
+    const start = mainQueryParams.coordinates.start !== 0 ? mainQueryParams.coordinates.start : 1
+    const end = mainQueryParams.coordinates.end
+    
+    let ranges: {start: number, end: number}[] = []
+    const maxRange = 20000000
+    //Divide range into sub ranges so bigger than maxRange
+    for (let i = start; i <= end; i += maxRange) {
+      const rangeEnd = Math.min(i + maxRange - 1, end)
+      ranges.push({start: i, end: rangeEnd})
+    }
+    //For each range, send query and populate dataArray
+    let dataArray: MainQueryData[] = []
+    ranges.forEach((range, i) => {
+      // @ts-expect-error
+      startTransition(async () => {
+        dataArray.push(await fetchcCREData(
+          mainQueryParams.coordinates.assembly,
+          mainQueryParams.coordinates.chromosome,
+          range.start,
+          range.end,
+          mainQueryParams.biosample ? mainQueryParams.biosample.queryValue : undefined,
+          1000000,
+          null,
+          mainQueryParams.searchConfig.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined,
+          true
+        ))
+      })
+    })
 
-    // Create a Blob with the content
-    const blob = new Blob([bedContent], { type: 'text/plain' });
+    //Check every second to see if the queries have resolved
+    while (dataArray.length < ranges.length) {
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      console.log("checking, length is " + dataArray.length, 'want ' + ranges.length)
+    }
+
+    //Combine and deduplicate results, as a cCRE might be included in two searches
+    const combinedResults: SCREENSearchResult[] = []
+    dataArray.forEach((queryResult) => {console.log(queryResult); queryResult.data.cCRESCREENSearch.forEach((cCRE) => {combinedResults.push(cCRE)})})
+    const deduplicatedResults: MainQueryData = {data: {cCRESCREENSearch: [...new Set(combinedResults)]}}
+
+    //For each query result, generate BED results
+    let bedContents = convertToBED(deduplicatedResults)
+
+    const blob = new Blob([bedContents], { type: 'text/plain' });
 
     // Create a temporary URL for the Blob
     const url = URL.createObjectURL(blob);
@@ -512,7 +574,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                   assembly={mainQueryParams.coordinates.assembly}
                   onRowClick={handleTableClick}
                   byCellType={globals} />
-                  <Button sx={{mt: 1}} variant="outlined" onClick={() => handleDownloadBED(rawQueryData)}>Download Search Results (.bed)</Button>
+                  <Button sx={{mt: 1}} variant="outlined" onClick={new_handleDownloadBED}>Download Search Results (.bed)</Button>
                   </>
               }
             </Box>

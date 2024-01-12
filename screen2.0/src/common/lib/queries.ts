@@ -123,7 +123,7 @@ const cCRE_QUERY = gql`
   }
 `
 
-function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: number, end: number, biosample: string, nearbygenesdistancethreshold: number, nearbygeneslimit: number, accessions: string[]) {
+function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: number, end: number, biosample: string, nearbygenesdistancethreshold: number, nearbygeneslimit: number, accessions: string[], noLimit?: boolean) {
   let vars = {
     uuid: null,
     assembly: assembly,
@@ -146,10 +146,11 @@ function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: numbe
     rank_ctcf_end: 10,
     cellType: biosample,
     element_type: null,
-    limit: 25000,
+    limit: noLimit ? null : 25000,
     nearbygenesdistancethreshold: nearbygenesdistancethreshold,
     nearbygeneslimit: nearbygeneslimit
   }
+  //Can't just null out accessions field if not using due to API functionality as of writing this, so push to vars only if using
   if (accessions) {
     vars["accessions"] = accessions
   }
@@ -294,7 +295,7 @@ export async function fetchLinkedGenes(assembly: "GRCh38" | "mm10", accessions: 
  * @param accessions a list of accessions to fetch information on. Set chromosome, start, end to "undefined" if using so they're set to null
  * @returns cCREs matching the search
  */
-export async function MainQuery(assembly: string = null, chromosome: string = null, start: number = null, end: number = null, biosample: string = null, nearbygenesdistancethreshold: number, nearbygeneslimit: number, accessions: string[] = null) {
+export async function MainQuery(assembly: string = null, chromosome: string = null, start: number = null, end: number = null, biosample: string = null, nearbygenesdistancethreshold: number, nearbygeneslimit: number, accessions: string[] = null, noLimit?: boolean) {
   console.log("queried with: " + assembly, chromosome, start, end, biosample + `${accessions ? " with accessions" : " no accessions"}`)
   let data: ApolloQueryResult<any>
   try {

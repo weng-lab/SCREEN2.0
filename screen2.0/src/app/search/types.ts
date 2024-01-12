@@ -172,21 +172,25 @@ export type LinkedGenesData = {
   RNAPII_ChIAPET: { name: string, biosample: string }[]
 }
 
-export type rawQueryData = {
-  mainQueryData: {
-    data: {
-      cCRESCREENSearch: SCREENSearchResult[]
-    }
-  },
-  linkedGenesData: {
-    [key: string]: {
-      genes: {
-        geneName: string;
-        linkedBy: "CTCF-ChIAPET" | "RNAPII-ChIAPET";
-        biosample: string;
-      }[];
-    };
+export type MainQueryData = {
+  data: {
+    cCRESCREENSearch: SCREENSearchResult[]
   }
+}
+
+export type RawLinkedGenesData = {
+  [key: string]: {
+    genes: {
+      geneName: string;
+      linkedBy: "CTCF-ChIAPET" | "RNAPII-ChIAPET";
+      biosample: string;
+    }[];
+  };
+}
+
+export type rawQueryData = {
+  mainQueryData: MainQueryData,
+  linkedGenesData: RawLinkedGenesData,
 }
 
 type SCREENCellTypeSpecificResponse = {
