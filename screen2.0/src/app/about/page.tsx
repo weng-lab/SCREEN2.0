@@ -249,7 +249,6 @@ export default function About() {
             <Button sx={{mt: 1}} variant="contained">Submit</Button>
           </Box>
         </Grid2>
-        
       </Grid2>
     </main>
   )

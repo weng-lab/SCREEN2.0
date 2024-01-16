@@ -14,6 +14,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
   const [end, setEnd] = useState('')
   const [inputType, setInputType] = useState("UCSC")
 
+
   const assembly = props.assembly
 
   const handleChange = (event: { target: { value: SetStateAction<string> } }) => {
@@ -39,6 +40,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
       }
     }
   }
+
 
   return (
     <Grid2 container spacing={2}>
@@ -183,7 +185,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
               size={props.header ? "small" : "medium"}
             />
           }
-          <IconButton onClick={() => window.open(handleSubmit(), "_self")} aria-label="Search" type="submit" sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
+          <IconButton onClick={() =>  window.open(handleSubmit(), "_self")} aria-label="Search" type="submit" sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
             <Search />
           </IconButton>
         </Stack>

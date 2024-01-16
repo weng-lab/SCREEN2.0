@@ -14,6 +14,7 @@ const nextConfig = {
   trailingSlash: false,
   assetPrefix: assetPrefix,
   basePath: basePath,
+  reactStrictMode: true,
   logging: {
     fetches: {
       fullUrl: true,

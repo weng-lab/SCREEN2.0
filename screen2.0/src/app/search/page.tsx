@@ -3,7 +3,7 @@
 import { getGlobals } from "../../common/lib/queries"
 import { Biosample, BiosampleTableFilters, CellTypeData, FilterCriteria, MainQueryData, MainQueryParams, SCREENSearchResult } from "./types"
 import { constructBiosampleTableFiltersFromURL, constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, fetchcCREData, fetchLinkedGenesData } from "./searchhelpers"
-import React, { startTransition, useEffect, useMemo, useRef, useState } from "react"
+import React, { startTransition, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { styled } from '@mui/material/styles';
 import { Divider, IconButton, Tab, Tabs, Typography, Box, Button, CircularProgressProps, CircularProgress, Stack } from "@mui/material"
 import { MainResultsTable } from "./mainresultstable"
@@ -138,6 +138,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const [biosampleTableFilters, setBiosampleTableFilters] = useState<BiosampleTableFilters>(constructBiosampleTableFiltersFromURL(searchParams))
   const [loadingTable, setLoadingTable] = useState<boolean>(false)
   const [loadingFetch, setLoadingFetch] = useState<boolean>(false)
+  const [isPending, startTransition] = useTransition();
   const [opencCREsInitialized, setOpencCREsInitialized] = useState(false)
   const [TSSs, setTSSs] = useState<number[]>(null)
   const [TSSranges, setTSSranges] = useState<{start: number, end: number}[]>(null)
@@ -221,8 +222,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
 
   //fetch globals
   useEffect(() => {
-    // Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
-    // @ts-expect-error
     startTransition(async () => {
       setGlobals(await getGlobals(mainQueryParams.coordinates.assembly))
     })
@@ -231,6 +230,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
 
   //Fetch raw cCRE data (main query only to prevent hidden linked genes from slowing down search)
   useEffect(() => {
+    console.log("main fetch effect called")
       setLoadingFetch(true)
 
       let start = mainQueryParams.coordinates.start
@@ -247,9 +247,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         end = TSSs && TSSranges ? Math.max(...TSSs) + mainQueryParams.gene.distance : null
       }
 
-      // Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
-      // @ts-expect-error
-      (start !== null) && (end !== null) && startTransition(async () => {
+      (start !== null) && (end !== null) && !isPending && startTransition(async () => {
         const mainQueryData = await fetchcCREData(
             mainQueryParams.coordinates.assembly,
             mainQueryParams.coordinates.chromosome,
@@ -261,24 +259,19 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
             mainQueryParams.searchConfig.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined
           )
           console.log("setting main query data")
-        // setRawQueryData({mainQueryData: mainQueryData, linkedGenesData: {}})
         setMainQueryData(mainQueryData)
-        // setRawQueryData({...rawQueryData, mainQueryData: mainQueryData})
         setLoadingFetch(false)
       })
   }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample, mainQueryParams.snp.rsID, mainQueryParams.snp.distance, TSSs, TSSranges, mainQueryParams.gene.distance, mainQueryParams.gene.nearTSS])
 
   //Fetch linked genes data.
   useEffect(() => {
-    // Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
-    // @ts-expect-error
     mainQueryData && startTransition(async () => {
       const linkedGenesData = await fetchLinkedGenesData(
         mainQueryData,
         mainQueryParams.coordinates.assembly
       )
       console.log("setting linked genes data")
-      // setRawQueryData({mainQueryData: rawQueryData.mainQueryData, linkedGenesData: linkedGenesData})
       setRawLinkedGenesData(linkedGenesData)
     })
   }, [mainQueryData, mainQueryParams.coordinates.assembly])
@@ -287,7 +280,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   useEffect(() => {
     const cCREsToFetch = searchParams.accessions?.split(',')
     if (cCREsToFetch?.length > 0 && !opencCREsInitialized) {
-      // @ts-expect-error
       startTransition(async () => {
         //Generate unfiltered rows of info for each open cCRE for ease of accessing data
         const cCREQueryData = await fetchcCREData(
@@ -404,8 +396,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     //For each range, send query and populate dataArray
     let dataArray: MainQueryData[] = []
 
-    
-    //@ts-expect-error
     startTransition(async () => {
       for (let i = 0; i < ranges.length; i++) {
         const range = ranges[i];

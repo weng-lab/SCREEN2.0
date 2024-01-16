@@ -56,9 +56,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@apollo/experimental-nextjs-app-support@npm:^0.5.1":
-  version: 0.5.2
-  resolution: "@apollo/experimental-nextjs-app-support@npm:0.5.2"
+"@apollo/experimental-nextjs-app-support@npm:^0.6.0":
+  version: 0.6.0
+  resolution: "@apollo/experimental-nextjs-app-support@npm:0.6.0"
   dependencies:
     server-only: ^0.0.1
     superjson: ^1.12.2
@@ -67,7 +67,7 @@ __metadata:
     "@apollo/client": ">=3.8.0-rc || ^3.8.0 || >=3.9.0-alpha || >=3.9.0-beta || >=3.9.0-rc"
     next: ^13.4.1 || ^14.0.0
     react: ^18
-  checksum: e8a168a0cc58cfaf202315a35675c7888561f65b94913f4b59957a6a3bc008f394f3e48d2b18c63049757e617ad05b7e12ad8062e372354c38d462ec26ed06f4
+  checksum: 3d9c806e7d0ceda9ddb3e1b435df418ea4d67a61ecbdae10612e729ada868b8c909c26ea8cc06c4cd37eb83054d147d89fc3ca44ffd55dbde8f63a3bac74712e
   languageName: node
   linkType: hard
 
@@ -6975,7 +6975,7 @@ __metadata:
   resolution: "screen2.0@workspace:."
   dependencies:
     "@apollo/client": alpha
-    "@apollo/experimental-nextjs-app-support": ^0.5.1
+    "@apollo/experimental-nextjs-app-support": ^0.6.0
     "@emotion/react": ^11.11.1
     "@emotion/styled": ^11.11.0
     "@mui/icons-material": ^5.15.2
