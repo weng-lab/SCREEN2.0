@@ -24,7 +24,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
   function handleSubmit(): string {
     console.log("submit function called")
     if (inputType === "Separated") {
-      return `/search?assembly=${assembly}&chromosome=${"chr" + chromosome}&start=${start ?? "5205263"}&end=${end ?? "5381894"}`
+      return `/search?assembly=${assembly}&chromosome=${"chr" + chromosome}&start=${start.replace(new RegExp(',', 'g'), "") ?? "5205263"}&end=${end.replace(new RegExp(',', 'g'), "") ?? "5381894"}`
     } else {
       if (!value) {
         return `/search?assembly=${assembly}&chromosome=chr11&start=5205263&end=5381894`

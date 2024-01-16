@@ -303,14 +303,15 @@ export async function MainQuery(assembly: string = null, chromosome: string = nu
       query: cCRE_QUERY,
       variables: cCRE_QUERY_VARIABLES(assembly, chromosome, start, end, biosample, nearbygenesdistancethreshold, nearbygeneslimit, accessions),
       //Telling it to not cache, next js caches also and for things that exceed the 2mb cache limit it slows down substantially for some reason
-      fetchPolicy: "no-cache"
+      fetchPolicy: "no-cache",
     })
   } catch (error) {
     console.log("error fetching main cCRE data")
     console.log(error)
-  } finally {
-    return data
+    throw error
   }
+  
+  return data
 }
 
 export async function biosampleQuery() {

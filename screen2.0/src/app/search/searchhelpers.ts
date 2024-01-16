@@ -79,18 +79,19 @@ export async function fetchLinkedGenesData (
 
 //This could be split up into generateUnfilteredRows, and FilterRows functions for even better performace when filtering
 export function generateFilteredRows(
-  rawQueryData: rawQueryData,
+  mainQueryData: MainQueryData,
+  linkedGenesData: RawLinkedGenesData,
   filterCriteria: FilterCriteria,
   unfiltered?: boolean,
   TSSranges?: {start: number, end: number}[]
 ): MainResultTableRows {
-  const cCRE_data: cCREData[] = rawQueryData.mainQueryData.data.cCRESCREENSearch
-  const otherLinked = rawQueryData.linkedGenesData
+  const cCRE_data: cCREData[] = mainQueryData.data.cCRESCREENSearch
+  const otherLinked = linkedGenesData
   const rows: MainResultTableRows = []
   //Assemble unfiltered rows, if TSS ranges passed check to make sure it's in one of them
   cCRE_data.forEach((currentElement) => {
     if (!TSSranges || TSSranges && TSSranges.find((TSSrange) => currentElement.start <= TSSrange.end && TSSrange.start <= (currentElement.start + currentElement.len))) {
-      const genesToAdd = otherLinked[currentElement.info.accession] ?? null
+      const genesToAdd = otherLinked ? otherLinked[currentElement.info.accession] : null
       const CTCF_ChIAPET_ToAdd: { name: string, biosample: string }[] = []
       const RNAPII_ChIAPET_ToAdd: { name: string, biosample: string }[] = []
       //Gather lists of CTCF-ChIAPET and RNAPII-ChIAPET linked genes

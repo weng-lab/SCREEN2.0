@@ -5,13 +5,13 @@ import { Biosample, BiosampleTableFilters, CellTypeData, FilterCriteria, MainQue
 import { constructBiosampleTableFiltersFromURL, constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, fetchcCREData, fetchLinkedGenesData } from "./searchhelpers"
 import React, { startTransition, useEffect, useMemo, useRef, useState } from "react"
 import { styled } from '@mui/material/styles';
-import { Divider, IconButton, Tab, Tabs, Typography, Box, Button } from "@mui/material"
+import { Divider, IconButton, Tab, Tabs, Typography, Box, Button, CircularProgressProps, CircularProgress, Stack } from "@mui/material"
 import { MainResultsTable } from "./mainresultstable"
 import { MainResultsFilters } from "./mainresultsfilters"
 import { CcreDetails } from "./_ccredetails/ccredetails"
 import { usePathname, useRouter } from "next/navigation"
 import { GenomeBrowserView } from "./_gbview/genomebrowserview"
-import { LinkedGenesData, MainResultTableRow, rawQueryData } from "./types"
+import { LinkedGenesData, MainResultTableRow, RawLinkedGenesData, rawQueryData } from "./types"
 import { generateFilteredRows } from "./searchhelpers"
 import { Drawer } from "@mui/material"
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar'
@@ -22,6 +22,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import Rampage from "./_ccredetails/rampage";
 import { GeneExpression } from "./_ccredetails/geneexpression";
 import { LoadingMessage } from "../../common/lib/utility"
+import { LoadingButton } from '@mui/lab'
 import { DataArray } from "@mui/icons-material"
 
 /**
@@ -89,6 +90,34 @@ const DrawerHeader = styled('div')(({ theme }) => ({
   justifyContent: 'space-between',
 }));
 
+function CircularProgressWithLabel(
+  props: CircularProgressProps & { value: number },
+) {
+  return (
+    <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+      <CircularProgress variant="determinate" {...props} />
+      <Box
+        sx={{
+          top: 0,
+          left: 0,
+          bottom: 0,
+          right: 0,
+          position: 'absolute',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Typography
+          variant="caption"
+          component="div"
+          color="text.secondary"
+        >{`${Math.round(props.value)}%`}</Typography>
+      </Box>
+    </Box>
+  );
+}
+
 export default function Search({ searchParams }: { searchParams: { [key: string]: string | undefined } }) {
   const router = useRouter()
   const basePathname = usePathname()
@@ -101,7 +130,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     linkedGenes: LinkedGenesData
   }[]>([])
   const [globals, setGlobals] = useState<CellTypeData>(null)
-  const [rawQueryData, setRawQueryData] = useState<rawQueryData>(null)
+  const [mainQueryData, setMainQueryData] = useState<MainQueryData>(null)
+  const [rawLinkedGenesData, setRawLinkedGenesData] = useState<RawLinkedGenesData>(null)
   //potential performance improvement if I make an initializer function vs passing param here.
   const [mainQueryParams, setMainQueryParams] = useState<MainQueryParams>(constructMainQueryParamsFromURL(searchParams))
   const [filterCriteria, setFilterCriteria] = useState<FilterCriteria>(constructFilterCriteriaFromURL(searchParams))
@@ -111,6 +141,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const [opencCREsInitialized, setOpencCREsInitialized] = useState(false)
   const [TSSs, setTSSs] = useState<number[]>(null)
   const [TSSranges, setTSSranges] = useState<{start: number, end: number}[]>(null)
+  const [bedLoadingPercent, setBedLoadingPercent] = useState<number>(null)
 
   //Used to set just biosample in filters. Used for performance improvement to avoid having entire mainQueryParams in dep array
   const handleSetBiosample = (biosample: Biosample) => { setMainQueryParams({ ...mainQueryParams, biosample: biosample }) }
@@ -230,7 +261,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
             mainQueryParams.searchConfig.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined
           )
           console.log("setting main query data")
-        setRawQueryData({mainQueryData: mainQueryData, linkedGenesData: {}})
+        // setRawQueryData({mainQueryData: mainQueryData, linkedGenesData: {}})
+        setMainQueryData(mainQueryData)
         // setRawQueryData({...rawQueryData, mainQueryData: mainQueryData})
         setLoadingFetch(false)
       })
@@ -240,15 +272,16 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   useEffect(() => {
     // Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
     // @ts-expect-error
-    rawQueryData?.mainQueryData && startTransition(async () => {
+    mainQueryData && startTransition(async () => {
       const linkedGenesData = await fetchLinkedGenesData(
-        rawQueryData.mainQueryData,
+        mainQueryData,
         mainQueryParams.coordinates.assembly
       )
       console.log("setting linked genes data")
-      setRawQueryData({mainQueryData: rawQueryData.mainQueryData, linkedGenesData: linkedGenesData})
+      // setRawQueryData({mainQueryData: rawQueryData.mainQueryData, linkedGenesData: linkedGenesData})
+      setRawLinkedGenesData(linkedGenesData)
     })
-  }, [rawQueryData?.mainQueryData, mainQueryParams.coordinates.assembly])
+  }, [mainQueryData, mainQueryParams.coordinates.assembly])
 
   // Initialize open cCREs on initial load
   useEffect(() => {
@@ -272,7 +305,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           mainQueryParams.coordinates.assembly
         )
         const opencCRE_data = generateFilteredRows(
-          {mainQueryData: cCREQueryData, linkedGenesData: linkedGenesData},
+          cCREQueryData,
+          linkedGenesData,
           filterCriteria,
           true
         )
@@ -306,14 +340,14 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   //Generate and filter rows
   const filteredTableRows = useMemo(() => {
     setLoadingTable(true)
-    if (rawQueryData) {
-      const rows = generateFilteredRows(rawQueryData, filterCriteria, false, mainQueryParams.gene.nearTSS ? TSSranges : undefined)
+    if (mainQueryData) {
+      const rows = generateFilteredRows(mainQueryData, rawLinkedGenesData, filterCriteria, false, mainQueryParams.gene.nearTSS ? TSSranges : undefined)
       setLoadingTable(false)
       return (rows)
     } else {
       return []
     }
-  }, [rawQueryData, filterCriteria, TSSranges, mainQueryParams.gene.nearTSS])
+  }, [mainQueryData, rawLinkedGenesData, filterCriteria, TSSranges, mainQueryParams.gene.nearTSS])
 
   const findTabByID = (id: string, numberOfTable: number = 2) => {
     return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)
@@ -353,50 +387,76 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     }).join('');
   };
 
-  //TODO add support for TSS range search and distance from rsID. These situations have results which depend on either/both adding a distance from start/end and filtering with TSS ranges
-  const new_handleDownloadBED = async () => {
-    let bedContents: string;
-    
-    const start = mainQueryParams.coordinates.start !== 0 ? mainQueryParams.coordinates.start : 1
-    const end = mainQueryParams.coordinates.end
-    
-    let ranges: {start: number, end: number}[] = []
-    const maxRange = 20000000
+  //TODO properly deduplicate even even returned genes are different. Current issue is that there's a bug in returned linked PC genes. Edge cases in split queries are returning with different linked PC genes
+  const handleDownloadBED = async () => {
+    //Define start and end of search region. If it is a SNP search, pad start and end by snp distance
+    const start = mainQueryParams.coordinates.start !== 0 ? mainQueryParams.snp.rsID ? mainQueryParams.coordinates.start - mainQueryParams.snp.distance : mainQueryParams.coordinates.start : 1
+    const end = mainQueryParams.snp.rsID ? mainQueryParams.coordinates.end + mainQueryParams.snp.distance : mainQueryParams.coordinates.end
+    setBedLoadingPercent(0)
+
+    let ranges: { start: number, end: number }[] = []
+    const maxRange = 10000000
     //Divide range into sub ranges so bigger than maxRange
     for (let i = start; i <= end; i += maxRange) {
       const rangeEnd = Math.min(i + maxRange - 1, end)
-      ranges.push({start: i, end: rangeEnd})
+      ranges.push({ start: i, end: rangeEnd })
     }
     //For each range, send query and populate dataArray
     let dataArray: MainQueryData[] = []
-    ranges.forEach((range, i) => {
-      // @ts-expect-error
-      startTransition(async () => {
-        dataArray.push(await fetchcCREData(
-          mainQueryParams.coordinates.assembly,
-          mainQueryParams.coordinates.chromosome,
-          range.start,
-          range.end,
-          mainQueryParams.biosample ? mainQueryParams.biosample.queryValue : undefined,
-          1000000,
-          null,
-          mainQueryParams.searchConfig.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined,
-          true
-        ))
-      })
+
+    
+    //@ts-expect-error
+    startTransition(async () => {
+      for (let i = 0; i < ranges.length; i++) {
+        const range = ranges[i];
+        try {
+          const data = await fetchcCREData(
+            mainQueryParams.coordinates.assembly,
+            mainQueryParams.coordinates.chromosome,
+            range.start,
+            range.end,
+            mainQueryParams.biosample ? mainQueryParams.biosample.queryValue : undefined,
+            1000000,
+            null,
+            mainQueryParams.searchConfig.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined,
+            true
+          )
+          dataArray.push(data)
+          setBedLoadingPercent(dataArray.length / ranges.length * 100)
+        } catch (error) {
+          window.alert(
+            "There was an error fetching cCRE data, please try again soon. If this error persists, please report it via our 'Contact Us' form on the About page and include this info:\n\n" +
+            `Downloading:\n${mainQueryParams.coordinates.assembly}\n${mainQueryParams.coordinates.chromosome}\n${mainQueryParams.coordinates.start}\n${mainQueryParams.coordinates.end}\n${mainQueryParams.biosample ? mainQueryParams.biosample.queryValue : undefined}\n` +
+            error
+          );
+          return;
+        }
+      }
     })
+
     //Check every second to see if the queries have resolved
     while (dataArray.length < ranges.length) {
       await new Promise(resolve => setTimeout(resolve, 1000))
-      console.log("checking, length is " + dataArray.length, 'want ' + ranges.length)
+      // setBedLoadingPercent(dataArray.length / ranges.length * 100)
     }
     //Combine and deduplicate results, as a cCRE might be included in two searches
-    const combinedResults: SCREENSearchResult[] = []
-    dataArray.forEach((queryResult) => {console.log(queryResult); queryResult.data.cCRESCREENSearch.forEach((cCRE) => {combinedResults.push(cCRE)})})
-    const deduplicatedResults: MainQueryData = {data: {cCRESCREENSearch: [...new Set(combinedResults)]}}
+    let combinedResults: SCREENSearchResult[] = []
+    dataArray.forEach((queryResult) => { queryResult.data.cCRESCREENSearch.forEach((cCRE) => { combinedResults.push(cCRE) }) })
+    //If it is a near gene TSS search, make sure each cCRE is within one of the ranges
+    if (mainQueryParams.gene.nearTSS) {
+      combinedResults = combinedResults.filter((cCRE) => TSSranges.find((TSSrange) => cCRE.start <= TSSrange.end && TSSrange.start <= (cCRE.start + cCRE.len)))
+    }
+
+    // const deduplicatedResults: MainQueryData = { data: { cCRESCREENSearch: [...new Set(combinedResults)] } }
+    const deduplicatedResults: MainQueryData = {
+      data: {
+        cCRESCREENSearch: Array.from(new Set(combinedResults.map((x) => JSON.stringify(x))), (x) => JSON.parse(x)),
+      },
+    };
+    console.log(deduplicatedResults)
 
     //generate BED string
-    bedContents = convertToBED(deduplicatedResults)
+    const bedContents = convertToBED(deduplicatedResults)
 
     const blob = new Blob([bedContents], { type: 'text/plain' });
 
@@ -415,6 +475,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     // Clean up by removing the link and revoking the URL object
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+
+    setBedLoadingPercent(null)
   }
 
   return (
@@ -575,7 +637,11 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                   assembly={mainQueryParams.coordinates.assembly}
                   onRowClick={handleTableClick}
                   byCellType={globals} />
-                  <Button sx={{mt: 1}} variant="outlined" onClick={new_handleDownloadBED}>Download Search Results (.bed)</Button>
+                  <Stack direction="row" alignItems={"center"} sx={{mt: 1}}>
+                    <Button disabled={typeof bedLoadingPercent === "number" } variant="outlined" onClick={handleDownloadBED}>Download Search Results (.bed)</Button>
+                    {bedLoadingPercent !== null && <CircularProgressWithLabel value={bedLoadingPercent} />}
+                  </Stack>
+                  
                   </>
               }
             </Box>
