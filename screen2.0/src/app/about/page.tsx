@@ -231,9 +231,9 @@ export default function About() {
         </Grid2> */}
         <Grid2 xs={12} id="contact-us">
           <Typography variant="h3">Contact Us</Typography>
-          <Typography mb={1} variant="body1">Send us a message and we'll be in touch</Typography>
+          <Typography mb={1} variant="body1">Send us a message and we&apos;ll be in touch</Typography>
           <Stack direction="row">
-            <Typography mb={1} variant="body1">If you're experiencing an error/bug, feel free to&nbsp;</Typography>
+            <Typography mb={1} variant="body1">If you&apos;re experiencing an error/bug, feel free to&nbsp;</Typography>
             <a href="https://github.com/weng-lab/SCREEN2.0/issues"><u><Typography mb={1} color={"primary"} variant="body1">submit an issue on Github</Typography></u></a>
           </Stack>
           <Box
