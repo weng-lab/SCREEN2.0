@@ -201,7 +201,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   useEffect(() => {
     //Check if the URL params representing state are stale
     if (
-      opencCREsInitialized &&
+      opencCREsInitialized && !loadingFetch &&
       (JSON.stringify(constructMainQueryParamsFromURL(searchParams)) !== JSON.stringify(mainQueryParams)
       || JSON.stringify(constructFilterCriteriaFromURL(searchParams)) !== JSON.stringify(filterCriteria)
       || JSON.stringify(constructBiosampleTableFiltersFromURL(searchParams)) !== JSON.stringify(biosampleTableFilters)
@@ -230,38 +230,38 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
 
   //Fetch raw cCRE data (main query only to prevent hidden linked genes from slowing down search)
   useEffect(() => {
-    console.log("main fetch effect called")
-      setLoadingFetch(true)
+    // console.log("main fetch effect called")
+    setLoadingFetch(true)
 
-      let start = mainQueryParams.coordinates.start
-      if (mainQueryParams.snp.rsID) {
-        start = Math.max(0, mainQueryParams.coordinates.start - mainQueryParams.snp.distance);
-      } else if (mainQueryParams.gene.nearTSS) {
-        start = TSSs && TSSranges ? Math.max(0, Math.min(...TSSs) - mainQueryParams.gene.distance) : null
-      }
+    let start = mainQueryParams.coordinates.start
+    if (mainQueryParams.snp.rsID) {
+      start = Math.max(0, mainQueryParams.coordinates.start - mainQueryParams.snp.distance);
+    } else if (mainQueryParams.gene.nearTSS) {
+      start = TSSs && TSSranges ? Math.max(0, Math.min(...TSSs) - mainQueryParams.gene.distance) : null
+    }
 
-      let end = mainQueryParams.coordinates.end
-      if (mainQueryParams.snp.rsID) {
-        end = mainQueryParams.coordinates.end + mainQueryParams.snp.distance;
-      } else if (mainQueryParams.gene.nearTSS) {
-        end = TSSs && TSSranges ? Math.max(...TSSs) + mainQueryParams.gene.distance : null
-      }
+    let end = mainQueryParams.coordinates.end
+    if (mainQueryParams.snp.rsID) {
+      end = mainQueryParams.coordinates.end + mainQueryParams.snp.distance;
+    } else if (mainQueryParams.gene.nearTSS) {
+      end = TSSs && TSSranges ? Math.max(...TSSs) + mainQueryParams.gene.distance : null
+    }
 
-      (start !== null) && (end !== null) && !isPending && startTransition(async () => {
-        const mainQueryData = await fetchcCREData(
-            mainQueryParams.coordinates.assembly,
-            mainQueryParams.coordinates.chromosome,
-            start,
-            end,
-            mainQueryParams.biosample ? mainQueryParams.biosample.queryValue : undefined,
-            1000000,
-            null,
-            mainQueryParams.searchConfig.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined
-          )
-          console.log("setting main query data")
-        setMainQueryData(mainQueryData)
-        setLoadingFetch(false)
-      })
+    (start !== null) && (end !== null) && !isPending && startTransition(async () => {
+      const mainQueryData = await fetchcCREData(
+        mainQueryParams.coordinates.assembly,
+        mainQueryParams.coordinates.chromosome,
+        start,
+        end,
+        mainQueryParams.biosample ? mainQueryParams.biosample.queryValue : undefined,
+        1000000,
+        null,
+        mainQueryParams.searchConfig.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined
+      )
+      // console.log("setting main query data")
+      setMainQueryData(mainQueryData)
+      setLoadingFetch(false)
+    })
   }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample, mainQueryParams.snp.rsID, mainQueryParams.snp.distance, TSSs, TSSranges, mainQueryParams.gene.distance, mainQueryParams.gene.nearTSS])
 
   //Fetch linked genes data.
@@ -271,7 +271,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         mainQueryData,
         mainQueryParams.coordinates.assembly
       )
-      console.log("setting linked genes data")
+      // console.log("setting linked genes data")
       setRawLinkedGenesData(linkedGenesData)
     })
   }, [mainQueryData, mainQueryParams.coordinates.assembly])
@@ -443,7 +443,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         cCRESCREENSearch: Array.from(new Set(combinedResults.map((x) => JSON.stringify(x))), (x) => JSON.parse(x)),
       },
     };
-    console.log(deduplicatedResults)
+    // console.log(deduplicatedResults)
 
     //generate BED string
     const bedContents = convertToBED(deduplicatedResults)
