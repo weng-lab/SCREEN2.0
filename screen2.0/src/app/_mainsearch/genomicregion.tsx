@@ -189,7 +189,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
               size={props.header ? "small" : "medium"}
             />
           }
-          <IconButton href={"http://localhost:3000/search?assembly=GRCh38&chromosome=chr11&start=5205263&end=5381894"} aria-label="Search" type="submit" sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
+          <IconButton href={url} aria-label="Search" type="submit" sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
             <Search />
           </IconButton>
         </Stack>

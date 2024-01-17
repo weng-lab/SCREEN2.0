@@ -382,8 +382,21 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   //TODO properly deduplicate even even returned genes are different. Current issue is that there's a bug in returned linked PC genes. Edge cases in split queries are returning with different linked PC genes
   const handleDownloadBED = async () => {
     //Define start and end of search region. If it is a SNP search, pad start and end by snp distance
-    const start = mainQueryParams.coordinates.start !== 0 ? mainQueryParams.snp.rsID ? mainQueryParams.coordinates.start - mainQueryParams.snp.distance : mainQueryParams.coordinates.start : 1
-    const end = mainQueryParams.snp.rsID ? mainQueryParams.coordinates.end + mainQueryParams.snp.distance : mainQueryParams.coordinates.end
+    
+    let start = mainQueryParams.coordinates.start
+    if (mainQueryParams.snp.rsID) {
+      start = Math.max(0, mainQueryParams.coordinates.start - mainQueryParams.snp.distance);
+    } else if (mainQueryParams.gene.nearTSS) {
+      start = TSSs && TSSranges ? Math.max(0, Math.min(...TSSs) - mainQueryParams.gene.distance) : null
+    }
+
+    let end = mainQueryParams.coordinates.end
+    if (mainQueryParams.snp.rsID) {
+      end = mainQueryParams.coordinates.end + mainQueryParams.snp.distance;
+    } else if (mainQueryParams.gene.nearTSS) {
+      end = TSSs && TSSranges ? Math.max(...TSSs) + mainQueryParams.gene.distance : null
+    }
+    
     setBedLoadingPercent(0)
 
     let ranges: { start: number, end: number }[] = []
@@ -419,6 +432,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
             `Downloading:\n${mainQueryParams.coordinates.assembly}\n${mainQueryParams.coordinates.chromosome}\n${mainQueryParams.coordinates.start}\n${mainQueryParams.coordinates.end}\n${mainQueryParams.biosample ? mainQueryParams.biosample.queryValue : undefined}\n` +
             error
           );
+          setBedLoadingPercent(null)
           return;
         }
       }
