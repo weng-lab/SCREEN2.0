@@ -702,7 +702,14 @@ export function filtersModified(
 
 // Convert the results to a BED file string
 const convertToBED = (mainQueryData: MainQueryData): string => {
+  const firstEntry = mainQueryData.data.cCRESCREENSearch[0]
+
   let bedContent: string[] = [];
+  if (firstEntry.ctspecific.ct) {
+    bedContent.push(`# chr\tstart\tend\tacccession\tclassification${firstEntry.ctspecific.dnase_zscore ? '\tdnase_z-score': ''}${firstEntry.ctspecific.atac_zscore ? '\tatac_z-score': ''}${firstEntry.ctspecific.ctcf_zscore ? '\tctcf_z-score': ''}${firstEntry.ctspecific.h3k27ac_zscore ? '\th3k27ac_z-score': ''}${firstEntry.ctspecific.h3k4me3_zscore ? '\th3k4me3_z-score': ''}\n`)
+  } else {
+    bedContent.push("# chr\tstart\tend\tacccession\tclassification\tdnase_z-score\tatac_z-score\tctcf_z-score\th3k27ac_z-score\th3k4me3_z-score\n")
+  }
 
   mainQueryData.data.cCRESCREENSearch.forEach((item) => {
     const chromosome = item.chrom;
@@ -710,9 +717,14 @@ const convertToBED = (mainQueryData: MainQueryData): string => {
     const end = start + item.len;
     const name = item.info.accession;
     const classification = item.pct;
+    const dnase = item.ctspecific.ct ? item.ctspecific.dnase_zscore : item.dnase_zscore;
+    const atac = item.ctspecific.ct ? item.ctspecific.atac_zscore : item.atac_zscore;
+    const ctcf = item.ctspecific.ct ? item.ctspecific.ctcf_zscore : item.ctcf_zscore;
+    const h3k27ac = item.ctspecific.ct ? item.ctspecific.h3k27ac_zscore : item.enhancer_zscore;
+    const h3k4me3 = item.ctspecific.ct ? item.ctspecific.h3k4me3_zscore : item.promoter_zscore;
 
     // Construct the BED-formatted string
-    const bedRow = `${chromosome}\t${start}\t${end}\t${name}\t${classification}\n`;
+    const bedRow = `${chromosome}\t${start}\t${end}\t${name}\t${classification}${dnase ? '\t' + dnase : ''}${atac ? '\t' + atac : ''}${ctcf ? '\t' + ctcf : ''}${h3k27ac ? '\t' + h3k27ac : ''}${h3k4me3 ? '\t' + h3k4me3 : ''}\n`;
 
     // Append to the content string
     bedContent.push(bedRow);
@@ -805,7 +817,7 @@ export const downloadBED = async (assembly: "GRCh38" | "mm10", chromosome: strin
   // Create a link element to trigger the download
   const link = document.createElement('a');
   link.href = url;
-  link.download = `${assembly}-${chromosome}-${start}-${end}.bed`; // File name for download
+  link.download = `${assembly}-${chromosome}-${start}-${end}${biosample ? '-' + biosample.summaryName : ''}.bed`; // File name for download
   document.body.appendChild(link);
 
   // Simulate a click on the link to initiate download
