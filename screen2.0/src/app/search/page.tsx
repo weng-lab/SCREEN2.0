@@ -247,7 +247,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       end = TSSs && TSSranges ? Math.max(...TSSs) + mainQueryParams.gene.distance : null
     }
 
-    (start !== null) && (end !== null) && !isPending && startTransition(async () => {
+    (start !== null) && (end !== null) && startTransition(async () => {
       const mainQueryData = await fetchcCREData(
         mainQueryParams.coordinates.assembly,
         mainQueryParams.coordinates.chromosome,
