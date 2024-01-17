@@ -1,6 +1,7 @@
 
-import { cCREData, MainQueryParams, CellTypeData, UnfilteredBiosampleData, FilteredBiosampleData, MainResultTableRows, MainResultTableRow, rawQueryData, FilterCriteria, BiosampleTableFilters, Biosample, MainQueryData, RawLinkedGenesData } from "./types"
+import { cCREData, MainQueryParams, CellTypeData, UnfilteredBiosampleData, FilteredBiosampleData, MainResultTableRows, MainResultTableRow, rawQueryData, FilterCriteria, BiosampleTableFilters, Biosample, MainQueryData, RawLinkedGenesData, SCREENSearchResult } from "./types"
 import { MainQuery, fetchLinkedGenes } from "../../common/lib/queries"
+import { startTransition } from "react"
 
 /**
  * 
@@ -697,4 +698,122 @@ export function filtersModified(
       ) return false
       else return true
   }
+}
+
+// Convert the results to a BED file string
+const convertToBED = (mainQueryData: MainQueryData): string => {
+  let bedContent: string[] = [];
+
+  mainQueryData.data.cCRESCREENSearch.forEach((item) => {
+    const chromosome = item.chrom;
+    const start = item.start;
+    const end = start + item.len;
+    const name = item.info.accession;
+    const classification = item.pct;
+
+    // Construct the BED-formatted string
+    const bedRow = `${chromosome}\t${start}\t${end}\t${name}\t${classification}\n`;
+
+    // Append to the content string
+    bedContent.push(bedRow);
+  });
+
+  //sort contents
+  return bedContent.sort((a, b) => {
+    const startA = parseInt(a.split('\t')[1]);
+    const startB = parseInt(b.split('\t')[1]);
+  
+    // Compare the start values
+    return startA - startB;
+  }).join('');
+};
+
+//TODO properly deduplicate even even returned genes are different. Current issue is that there's a bug in returned linked PC genes. Edge cases in split queries are returning with different linked PC genes
+export const downloadBED = async (assembly: "GRCh38" | "mm10", chromosome: string, start: number, end: number, biosample: Biosample, bedIntersect: boolean = false, TSSranges: {start: number, end: number}[] = null, setBedLoadingPercent?: React.Dispatch<React.SetStateAction<number>>, ) => {
+  
+  setBedLoadingPercent(0)
+
+  let ranges: { start: number, end: number }[] = []
+  const maxRange = 10000000
+  //Divide range into sub ranges so bigger than maxRange
+  for (let i = start; i <= end; i += maxRange) {
+    const rangeEnd = Math.min(i + maxRange - 1, end)
+    ranges.push({ start: i, end: rangeEnd })
+  }
+  //For each range, send query and populate dataArray
+  let dataArray: MainQueryData[] = []
+
+  //@ts-expect-error
+  startTransition(async () => {
+    for (let i = 0; i < ranges.length; i++) {
+      const range = ranges[i];
+      try {
+        const data = await fetchcCREData(
+          assembly,
+          chromosome,
+          range.start,
+          range.end,
+          biosample ? biosample.queryValue : undefined,
+          1000000,
+          null,
+          bedIntersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined,
+          true
+        )
+        dataArray.push(data)
+        setBedLoadingPercent(dataArray.length / ranges.length * 100)
+      } catch (error) {
+        window.alert(
+          "There was an error fetching cCRE data, please try again soon. If this error persists, please report it via our 'Contact Us' form on the About page and include this info:\n\n" +
+          `Downloading:\n${assembly}\n${chromosome}\n${start}\n${end}\n${biosample ? biosample.queryValue : undefined}\n` +
+          error
+        );
+        setBedLoadingPercent(null)
+        return;
+      }
+    }
+  })
+
+  //Check every second to see if the queries have resolved
+  while (dataArray.length < ranges.length) {
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    // setBedLoadingPercent(dataArray.length / ranges.length * 100)
+  }
+  //Combine and deduplicate results, as a cCRE might be included in two searches
+  let combinedResults: SCREENSearchResult[] = []
+  dataArray.forEach((queryResult) => { queryResult.data.cCRESCREENSearch.forEach((cCRE) => { combinedResults.push(cCRE) }) })
+  //If it is a near gene TSS search, make sure each cCRE is within one of the ranges
+  if (TSSranges) {
+    combinedResults = combinedResults.filter((cCRE) => TSSranges.find((TSSrange) => cCRE.start <= TSSrange.end && TSSrange.start <= (cCRE.start + cCRE.len)))
+  }
+
+  // const deduplicatedResults: MainQueryData = { data: { cCRESCREENSearch: [...new Set(combinedResults)] } }
+  const deduplicatedResults: MainQueryData = {
+    data: {
+      cCRESCREENSearch: Array.from(new Set(combinedResults.map((x) => JSON.stringify(x))), (x) => JSON.parse(x)),
+    },
+  };
+  // console.log(deduplicatedResults)
+
+  //generate BED string
+  const bedContents = convertToBED(deduplicatedResults)
+
+  const blob = new Blob([bedContents], { type: 'text/plain' });
+
+  // Create a temporary URL for the Blob
+  const url = URL.createObjectURL(blob);
+
+  // Create a link element to trigger the download
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${assembly}-${chromosome}-${start}-${end}.bed`; // File name for download
+  document.body.appendChild(link);
+
+  // Simulate a click on the link to initiate download
+  link.click();
+
+  // Clean up by removing the link and revoking the URL object
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+
+  setBedLoadingPercent(null)
 }

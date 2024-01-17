@@ -2,7 +2,7 @@
 "use client"
 import { getGlobals } from "../../common/lib/queries"
 import { Biosample, BiosampleTableFilters, CellTypeData, FilterCriteria, MainQueryData, MainQueryParams, SCREENSearchResult } from "./types"
-import { constructBiosampleTableFiltersFromURL, constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, fetchcCREData, fetchLinkedGenesData } from "./searchhelpers"
+import { constructBiosampleTableFiltersFromURL, constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, downloadBED, fetchcCREData, fetchLinkedGenesData } from "./searchhelpers"
 import React, { startTransition, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { styled } from '@mui/material/styles';
 import { Divider, IconButton, Tab, Tabs, Typography, Box, Button, CircularProgressProps, CircularProgress, Stack } from "@mui/material"
@@ -24,6 +24,7 @@ import { GeneExpression } from "./_ccredetails/geneexpression";
 import { LoadingMessage } from "../../common/lib/utility"
 import { LoadingButton } from '@mui/lab'
 import { DataArray } from "@mui/icons-material"
+import { B } from "logots-react"
 
 /**
  * @todo:
@@ -345,144 +346,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)
   }
 
-  // Function to extract the start value from a string
-  const getStartValue = (str: string) => {
-    // Split the string by tabs and get the second element (index 1)
-    return parseInt(str.split('\t')[1]);
-  };
-
-  // Convert the results to a BED file string
-  const convertToBED = (mainQueryData: MainQueryData): string => {
-    let bedContent: string[] = [];
-
-    mainQueryData.data.cCRESCREENSearch.forEach((item) => {
-      const chromosome = item.chrom;
-      const start = item.start;
-      const end = start + item.len;
-      const name = item.info.accession;
-      const classification = item.pct;
-
-      // Construct the BED-formatted string
-      const bedRow = `${chromosome}\t${start}\t${end}\t${name}\t${classification}\n`;
-
-      // Append to the content string
-      bedContent.push(bedRow);
-    });
-
-    //sort contents
-    return bedContent.sort((a, b) => {
-      const startA = getStartValue(a);
-      const startB = getStartValue(b);
-    
-      // Compare the start values
-      return startA - startB;
-    }).join('');
-  };
-
-  //TODO properly deduplicate even even returned genes are different. Current issue is that there's a bug in returned linked PC genes. Edge cases in split queries are returning with different linked PC genes
-  const handleDownloadBED = async () => {
-    //Define start and end of search region. If it is a SNP search, pad start and end by snp distance
-    
-    let start = mainQueryParams.coordinates.start
-    if (mainQueryParams.snp.rsID) {
-      start = Math.max(0, mainQueryParams.coordinates.start - mainQueryParams.snp.distance);
-    } else if (mainQueryParams.gene.nearTSS) {
-      start = TSSs && TSSranges ? Math.max(0, Math.min(...TSSs) - mainQueryParams.gene.distance) : null
-    }
-
-    let end = mainQueryParams.coordinates.end
-    if (mainQueryParams.snp.rsID) {
-      end = mainQueryParams.coordinates.end + mainQueryParams.snp.distance;
-    } else if (mainQueryParams.gene.nearTSS) {
-      end = TSSs && TSSranges ? Math.max(...TSSs) + mainQueryParams.gene.distance : null
-    }
-    
-    setBedLoadingPercent(0)
-
-    let ranges: { start: number, end: number }[] = []
-    const maxRange = 10000000
-    //Divide range into sub ranges so bigger than maxRange
-    for (let i = start; i <= end; i += maxRange) {
-      const rangeEnd = Math.min(i + maxRange - 1, end)
-      ranges.push({ start: i, end: rangeEnd })
-    }
-    //For each range, send query and populate dataArray
-    let dataArray: MainQueryData[] = []
-
-    startTransition(async () => {
-      for (let i = 0; i < ranges.length; i++) {
-        const range = ranges[i];
-        try {
-          const data = await fetchcCREData(
-            mainQueryParams.coordinates.assembly,
-            mainQueryParams.coordinates.chromosome,
-            range.start,
-            range.end,
-            mainQueryParams.biosample ? mainQueryParams.biosample.queryValue : undefined,
-            1000000,
-            null,
-            mainQueryParams.searchConfig.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined,
-            true
-          )
-          dataArray.push(data)
-          setBedLoadingPercent(dataArray.length / ranges.length * 100)
-        } catch (error) {
-          window.alert(
-            "There was an error fetching cCRE data, please try again soon. If this error persists, please report it via our 'Contact Us' form on the About page and include this info:\n\n" +
-            `Downloading:\n${mainQueryParams.coordinates.assembly}\n${mainQueryParams.coordinates.chromosome}\n${mainQueryParams.coordinates.start}\n${mainQueryParams.coordinates.end}\n${mainQueryParams.biosample ? mainQueryParams.biosample.queryValue : undefined}\n` +
-            error
-          );
-          setBedLoadingPercent(null)
-          return;
-        }
-      }
-    })
-
-    //Check every second to see if the queries have resolved
-    while (dataArray.length < ranges.length) {
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      // setBedLoadingPercent(dataArray.length / ranges.length * 100)
-    }
-    //Combine and deduplicate results, as a cCRE might be included in two searches
-    let combinedResults: SCREENSearchResult[] = []
-    dataArray.forEach((queryResult) => { queryResult.data.cCRESCREENSearch.forEach((cCRE) => { combinedResults.push(cCRE) }) })
-    //If it is a near gene TSS search, make sure each cCRE is within one of the ranges
-    if (mainQueryParams.gene.nearTSS) {
-      combinedResults = combinedResults.filter((cCRE) => TSSranges.find((TSSrange) => cCRE.start <= TSSrange.end && TSSrange.start <= (cCRE.start + cCRE.len)))
-    }
-
-    // const deduplicatedResults: MainQueryData = { data: { cCRESCREENSearch: [...new Set(combinedResults)] } }
-    const deduplicatedResults: MainQueryData = {
-      data: {
-        cCRESCREENSearch: Array.from(new Set(combinedResults.map((x) => JSON.stringify(x))), (x) => JSON.parse(x)),
-      },
-    };
-    // console.log(deduplicatedResults)
-
-    //generate BED string
-    const bedContents = convertToBED(deduplicatedResults)
-
-    const blob = new Blob([bedContents], { type: 'text/plain' });
-
-    // Create a temporary URL for the Blob
-    const url = URL.createObjectURL(blob);
-
-    // Create a link element to trigger the download
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${mainQueryParams.coordinates.assembly}-${mainQueryParams.coordinates.chromosome}-${mainQueryParams.coordinates.start}-${mainQueryParams.coordinates.end}.bed`; // File name for download
-    document.body.appendChild(link);
-
-    // Simulate a click on the link to initiate download
-    link.click();
-
-    // Clean up by removing the link and revoking the URL object
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    setBedLoadingPercent(null)
-  }
-
   return (
     <main>
       <Box id="Outer Box" sx={{ display: 'flex' }}>
@@ -642,7 +505,24 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                   onRowClick={handleTableClick}
                   byCellType={globals} />
                   <Stack direction="row" alignItems={"center"} sx={{mt: 1}}>
-                    <Button disabled={typeof bedLoadingPercent === "number" } variant="outlined" onClick={handleDownloadBED}>Download Search Results (.bed)</Button>
+                    <Button
+                      disabled={typeof bedLoadingPercent === "number"}
+                      variant="outlined"
+                      onClick={() => {
+                        downloadBED(
+                          mainQueryParams.coordinates.assembly,
+                          mainQueryParams.coordinates.chromosome,
+                          mainQueryParams.coordinates.start,
+                          mainQueryParams.coordinates.end,
+                          mainQueryParams.biosample,
+                          mainQueryParams.searchConfig.bed_intersect,
+                          TSSranges,
+                          setBedLoadingPercent
+                        )
+                      }}
+                    >
+                      Download Search Results (.bed)
+                    </Button>
                     {bedLoadingPercent !== null && <CircularProgressWithLabel value={bedLoadingPercent} />}
                   </Stack>
                   

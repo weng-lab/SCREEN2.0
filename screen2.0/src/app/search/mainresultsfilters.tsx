@@ -156,12 +156,12 @@ export function MainResultsFilters(
 
   //Recalculate TSS ranges when gene distance changes
   useEffect(() => {
-    if (props.TSSs !== null){
+    if (props.TSSs !== null) {
       const TSSranges: { start: number, end: number }[] = props.TSSs?.map((tss) => {
-      return { start: Math.max(0, tss - props.mainQueryParams.gene.distance), end: tss + props.mainQueryParams.gene.distance }
-    })
-    // console.log("setting TSSranges")
-    props.setTSSranges(TSSranges)
+        return { start: Math.max(0, tss - props.mainQueryParams.gene.distance), end: tss + props.mainQueryParams.gene.distance }
+      })
+      // console.log("setting TSSranges")
+      props.setTSSranges(TSSranges)
     }
   }, [props.mainQueryParams.gene.distance, props.TSSs])
 
