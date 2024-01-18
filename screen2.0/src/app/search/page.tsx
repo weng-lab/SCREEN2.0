@@ -346,6 +346,33 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)
   }
 
+  const handleDownloadBed = () => {
+    let start = mainQueryParams.coordinates.start
+    if (mainQueryParams.snp.rsID) {
+      start = Math.max(0, mainQueryParams.coordinates.start - mainQueryParams.snp.distance);
+    } else if (mainQueryParams.gene.nearTSS) {
+      start = TSSs && TSSranges ? Math.max(0, Math.min(...TSSs) - mainQueryParams.gene.distance) : null
+    }
+
+    let end = mainQueryParams.coordinates.end
+    if (mainQueryParams.snp.rsID) {
+      end = mainQueryParams.coordinates.end + mainQueryParams.snp.distance;
+    } else if (mainQueryParams.gene.nearTSS) {
+      end = TSSs && TSSranges ? Math.max(...TSSs) + mainQueryParams.gene.distance : null
+    }
+    
+    downloadBED(
+      mainQueryParams.coordinates.assembly,
+      mainQueryParams.coordinates.chromosome,
+      start,
+      end,
+      mainQueryParams.biosample,
+      mainQueryParams.searchConfig.bed_intersect,
+      mainQueryParams.gene.nearTSS ? TSSranges : null,
+      setBedLoadingPercent
+    )
+  }
+
   return (
     <main>
       <Box id="Outer Box" sx={{ display: 'flex' }}>
@@ -509,16 +536,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                       disabled={typeof bedLoadingPercent === "number"}
                       variant="outlined"
                       onClick={() => {
-                        downloadBED(
-                          mainQueryParams.coordinates.assembly,
-                          mainQueryParams.coordinates.chromosome,
-                          mainQueryParams.coordinates.start,
-                          mainQueryParams.coordinates.end,
-                          mainQueryParams.biosample,
-                          mainQueryParams.searchConfig.bed_intersect,
-                          TSSranges,
-                          setBedLoadingPercent
-                        )
+                        handleDownloadBed()
                       }}
                     >
                       Download Search Results (.bed)
