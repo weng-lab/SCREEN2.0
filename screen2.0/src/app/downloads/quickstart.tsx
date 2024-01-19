@@ -25,7 +25,6 @@ import { downloadTSV } from "./utils"
 
 interface TabPanelProps {
   children?: React.ReactNode
-  value: number
   biosamples: -1 | ApolloQueryResult<any>
 }
 
@@ -181,7 +180,6 @@ export function QuickStart(props: TabPanelProps) {
 
   return (
     <div role="tabpanel" id={`simple-tabpanel-${0}`} aria-labelledby={`simple-tab-${0}`}>
-      {props.value === 0 && (
         <Grid2 container columnSpacing={{ xs: 4, md: 6 }} rowSpacing={3} mt={1}>
           {/* Titles */}
           <Grid2 display="flex" alignItems="flex-start" flexDirection="column" xsOffset={2} xs={3.75}>
@@ -297,7 +295,6 @@ export function QuickStart(props: TabPanelProps) {
             <DownloadButton href={Config.Downloads.HumanGeneLinks} label="Download Human cCRE-Gene Links" />
           </Grid2>
         </Grid2>
-      )}
     </div>
   )
 }

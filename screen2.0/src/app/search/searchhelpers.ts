@@ -701,14 +701,14 @@ export function filtersModified(
 }
 
 // Convert the results to a BED file string
-const convertToBED = (mainQueryData: MainQueryData): string => {
+const convertToBED = (mainQueryData: MainQueryData, assays: { atac: boolean, ctcf: boolean, dnase: boolean, h3k27ac: boolean, h3k4me3: boolean }): string => {
   const firstEntry = mainQueryData.data.cCRESCREENSearch[0]
 
   let bedContent: string[] = [];
   if (firstEntry.ctspecific.ct) {
-    bedContent.push(`# chr\tstart\tend\tacccession\tclassification${firstEntry.ctspecific.dnase_zscore ? '\tdnase_z-score': ''}${firstEntry.ctspecific.atac_zscore ? '\tatac_z-score': ''}${firstEntry.ctspecific.ctcf_zscore ? '\tctcf_z-score': ''}${firstEntry.ctspecific.h3k27ac_zscore ? '\th3k27ac_z-score': ''}${firstEntry.ctspecific.h3k4me3_zscore ? '\th3k4me3_z-score': ''}\n`)
+    bedContent.push(`# chr\tstart\tend\tacccession\tclassification${firstEntry.ctspecific.dnase_zscore && assays.dnase ? '\tdnase_z-score': ''}${firstEntry.ctspecific.atac_zscore && assays.atac ? '\tatac_z-score': ''}${firstEntry.ctspecific.ctcf_zscore && assays.ctcf ? '\tctcf_z-score': ''}${firstEntry.ctspecific.h3k27ac_zscore && assays.h3k27ac ? '\th3k27ac_z-score': ''}${firstEntry.ctspecific.h3k4me3_zscore && assays.h3k4me3 ? '\th3k4me3_z-score': ''}\n`)
   } else {
-    bedContent.push("# chr\tstart\tend\tacccession\tclassification\tdnase_z-score\tatac_z-score\tctcf_z-score\th3k27ac_z-score\th3k4me3_z-score\n")
+    bedContent.push(`# chr\tstart\tend\tacccession\tclassification${assays.dnase && '\tdnase_z-score'}${assays.atac && '\tatac_z-score'}${assays.ctcf && '\tctcf_z-score'}${assays.h3k27ac && '\th3k27ac_z-score'}${assays.h3k4me3 && '\th3k4me3_z-score'}\n`)
   }
 
   mainQueryData.data.cCRESCREENSearch.forEach((item) => {
@@ -724,7 +724,7 @@ const convertToBED = (mainQueryData: MainQueryData): string => {
     const h3k4me3 = item.ctspecific.ct ? item.ctspecific.h3k4me3_zscore : item.promoter_zscore;
 
     // Construct the BED-formatted string
-    const bedRow = `${chromosome}\t${start}\t${end}\t${name}\t${classification}${dnase ? '\t' + dnase : ''}${atac ? '\t' + atac : ''}${ctcf ? '\t' + ctcf : ''}${h3k27ac ? '\t' + h3k27ac : ''}${h3k4me3 ? '\t' + h3k4me3 : ''}\n`;
+    const bedRow = `${chromosome}\t${start}\t${end}\t${name}\t${classification}${dnase && assays.dnase ? '\t' + dnase : ''}${atac && assays.atac ? '\t' + atac : ''}${ctcf && assays.ctcf ? '\t' + ctcf : ''}${h3k27ac && assays.h3k27ac ? '\t' + h3k27ac : ''}${h3k4me3 && assays.h3k4me3 ? '\t' + h3k4me3 : ''}\n`;
 
     // Append to the content string
     bedContent.push(bedRow);
@@ -741,8 +741,18 @@ const convertToBED = (mainQueryData: MainQueryData): string => {
 };
 
 //TODO properly deduplicate even even returned genes are different. Current issue is that there's a bug in returned linked PC genes. Edge cases in split queries are returning with different linked PC genes
-export const downloadBED = async (assembly: "GRCh38" | "mm10", chromosome: string, start: number, end: number, biosample: Biosample, bedIntersect: boolean = false, TSSranges: {start: number, end: number}[] = null, setBedLoadingPercent?: React.Dispatch<React.SetStateAction<number>>, ) => {
-  
+export const downloadBED = async (
+  assembly: "GRCh38" | "mm10",
+  chromosome: string,
+  start: number,
+  end: number,
+  biosample: Biosample,
+  bedIntersect: boolean = false,
+  TSSranges: { start: number, end: number }[] = null,
+  assays: { atac: boolean, ctcf: boolean, dnase: boolean, h3k27ac: boolean, h3k4me3: boolean },
+  setBedLoadingPercent?: React.Dispatch<React.SetStateAction<number>>
+) => {
+
   setBedLoadingPercent(0)
 
   let ranges: { start: number, end: number }[] = []
@@ -807,7 +817,7 @@ export const downloadBED = async (assembly: "GRCh38" | "mm10", chromosome: strin
   // console.log(deduplicatedResults)
 
   //generate BED string
-  const bedContents = convertToBED(deduplicatedResults)
+  const bedContents = convertToBED(deduplicatedResults, assays)
 
   const blob = new Blob([bedContents], { type: 'text/plain' });
 
@@ -829,3 +839,4 @@ export const downloadBED = async (assembly: "GRCh38" | "mm10", chromosome: strin
 
   setBedLoadingPercent(null)
 }
+

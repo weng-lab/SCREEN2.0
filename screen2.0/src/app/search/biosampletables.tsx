@@ -11,21 +11,21 @@ import SearchIcon from '@mui/icons-material/Search';
 
 
 interface Props {
-  configGB: boolean,
   byCellType: CellTypeData,
-  //when sidebar = true, selected biosamples should only be length 1
   selectedBiosamples: Biosample[],
   setSelectedBiosamples: Dispatch<SetStateAction<Biosample[]>>,
+  showRNAseq: boolean,
+  biosampleSelectMode: "replace" | "append"
   biosampleTableFilters?: BiosampleTableFilters,
   setBiosampleTableFilters?: Dispatch<SetStateAction<BiosampleTableFilters>>,
 }
 
 export const BiosampleTables: React.FC<Props> = ({
-  configGB,
   byCellType,
-  //when sidebar = true, selected biosamples should only be length 1
   selectedBiosamples,
   setSelectedBiosamples,
+  showRNAseq,
+  biosampleSelectMode,
   biosampleTableFilters,
   setBiosampleTableFilters }
 ) => {
@@ -40,6 +40,8 @@ export const BiosampleTables: React.FC<Props> = ({
     Partial: { checked: true, label: "Partial Data Collection" },
     Ancillary: { checked: true, label: "Ancillary Collection" },
   })
+
+  const sidebar = Boolean(biosampleTableFilters)
 
   //For searching biosample tables
   const [searchString, setSearchString] = useState<string>("")
@@ -61,18 +63,18 @@ export const BiosampleTables: React.FC<Props> = ({
       return (
         filterBiosamples(
           parseByCellType(byCellType),
-          configGB ? biosampleTableFiltersInternal.Tissue.checked : biosampleTableFilters.Tissue.checked,
-          configGB ? biosampleTableFiltersInternal.PrimaryCell.checked : biosampleTableFilters.PrimaryCell.checked,
-          configGB ? biosampleTableFiltersInternal.CellLine.checked : biosampleTableFilters.CellLine.checked,
-          configGB ? biosampleTableFiltersInternal.InVitro.checked : biosampleTableFilters.InVitro.checked,
-          configGB ? biosampleTableFiltersInternal.Organoid.checked : biosampleTableFilters.Organoid.checked,
-          configGB ? biosampleTableFiltersInternal.Core.checked : biosampleTableFilters.Core.checked,
-          configGB ? biosampleTableFiltersInternal.Partial.checked : biosampleTableFilters.Partial.checked,
-          configGB ? biosampleTableFiltersInternal.Ancillary.checked : biosampleTableFilters.Ancillary.checked,
+          sidebar ? biosampleTableFilters.Tissue.checked : biosampleTableFiltersInternal.Tissue.checked,
+          sidebar ? biosampleTableFilters.PrimaryCell.checked : biosampleTableFiltersInternal.PrimaryCell.checked,
+          sidebar ? biosampleTableFilters.CellLine.checked : biosampleTableFiltersInternal.CellLine.checked,
+          sidebar ? biosampleTableFilters.InVitro.checked : biosampleTableFiltersInternal.InVitro.checked,
+          sidebar ? biosampleTableFilters.Organoid.checked : biosampleTableFiltersInternal.Organoid.checked,
+          sidebar ? biosampleTableFilters.Core.checked : biosampleTableFiltersInternal.Core.checked,
+          sidebar ? biosampleTableFilters.Partial.checked : biosampleTableFiltersInternal.Partial.checked,
+          sidebar ? biosampleTableFilters.Ancillary.checked : biosampleTableFiltersInternal.Ancillary.checked,
         )
       )
     } else return []
-  }, [byCellType, configGB, biosampleTableFiltersInternal, biosampleTableFilters])
+  }, [byCellType, sidebar, biosampleTableFiltersInternal, biosampleTableFilters])
 
   //This could be refactored to improve performance in SNP/Gene filters. The onRowClick for each table depends on setting main query params, which the gene/snp filters also modify
   //This is recalculated every time those sliders are moved.
@@ -148,7 +150,7 @@ export const BiosampleTables: React.FC<Props> = ({
       }
     ]
 
-    if (configGB) cols.push({
+    if (showRNAseq) cols.push({
       header: "RNA-Seq",
       value: (row) => +row.rnaseq,
       render: (row) => {
@@ -187,10 +189,9 @@ export const BiosampleTables: React.FC<Props> = ({
                   highlighted={selectedBiosamples}
                   sortColumn={1}
                   onRowClick={(row, i) => {
-                    //If in config GB, and selected Biosamples does not contain the clicked item
-                    if (configGB && !selectedBiosamples.find((x) => x.summaryName === row.summaryName)) {
+                    if (biosampleSelectMode === "append" && !selectedBiosamples.find((x) => x.summaryName === row.summaryName)) {
                       setSelectedBiosamples([...selectedBiosamples, row])
-                    } else if (!configGB) {
+                    } else {
                       setSelectedBiosamples([row])
                     }
                   }}
@@ -202,7 +203,7 @@ export const BiosampleTables: React.FC<Props> = ({
       })
     )
   },
-    [filteredBiosamples, selectedBiosamples, searchString, configGB, setSelectedBiosamples]
+    [filteredBiosamples, sidebar, selectedBiosamples, searchString, setSelectedBiosamples]
   )
 
   const Checkboxes = (checkboxStates: BiosampleTableFilters, setCheckboxStates: Dispatch<SetStateAction<BiosampleTableFilters>>) => {
@@ -297,7 +298,7 @@ export const BiosampleTables: React.FC<Props> = ({
 
   return (
     <Grid2 container spacing={2}>
-      <Grid2 xs={configGB ? 6 : 12}>
+      <Grid2 xs={sidebar ? 12 : 6}>
         <TextField
           value={searchString}
           size="small"
@@ -309,14 +310,14 @@ export const BiosampleTables: React.FC<Props> = ({
           }}
         />
       </Grid2>
-      <Grid2 xs={configGB ? 6 : 12}>
-        {configGB ?
-          Checkboxes(biosampleTableFiltersInternal, setBiosampleTableFiltersInternal)
-          :
+      <Grid2 xs={sidebar ? 12 : 6}>
+        {sidebar ?
           Checkboxes(biosampleTableFilters, setBiosampleTableFilters)
+          :
+          Checkboxes(biosampleTableFiltersInternal, setBiosampleTableFiltersInternal)
         }
       </Grid2>
-      <Grid2 xs={12} height={configGB ? 500 : 350} overflow={"auto"} >
+      <Grid2 xs={12} height={sidebar ? 350 : 500} overflow={"auto"} >
         <Box sx={{ display: 'flex', flexDirection: "column" }}>
           {byCellType ? biosampleTables : <CircularProgress sx={{ margin: "auto" }} />}
         </Box>

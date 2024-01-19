@@ -5,6 +5,7 @@
 import { getClient } from "../lib/client"
 import { ApolloQueryResult, gql } from "@apollo/client"
 import Config from "../../config.json"
+import { CellTypeData } from "../../app/search/types"
 
 const cCRE_QUERY = gql`
   query ccreSearchQuery(
@@ -348,9 +349,9 @@ export async function UMAPQuery(assembly: "grch38" | "mm10", assay: "DNase" | "H
 
 /**
  *
- * @returns the shortened byCellType file from https://downloads.wenglab.org/databyct.json
+ * @returns the shortened byCellType file
  */
-export async function getGlobals(assembly: "GRCh38" | "mm10"){
+export async function getGlobals(assembly: "GRCh38" | "mm10"): Promise<CellTypeData>{
   let res: Response
   try {
     if (assembly === "GRCh38") {

@@ -23,7 +23,7 @@ import Rampage from "./_ccredetails/rampage";
 import { GeneExpression } from "./_ccredetails/geneexpression";
 import { LoadingMessage } from "../../common/lib/utility"
 import { LoadingButton } from '@mui/lab'
-import { DataArray } from "@mui/icons-material"
+import { DataArray, Download } from "@mui/icons-material"
 import { B } from "logots-react"
 
 /**
@@ -369,6 +369,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       mainQueryParams.biosample,
       mainQueryParams.searchConfig.bed_intersect,
       mainQueryParams.gene.nearTSS ? TSSranges : null,
+      {dnase: true, atac: true, ctcf: true, h3k27ac: true, h3k4me3: true},
       setBedLoadingPercent
     )
   }
@@ -535,9 +536,11 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                     <Button
                       disabled={typeof bedLoadingPercent === "number"}
                       variant="outlined"
+                      sx={{textTransform: 'none'}}
                       onClick={() => {
                         handleDownloadBed()
                       }}
+                      endIcon={<Download />}
                     >
                       Download Search Results (.bed)
                     </Button>

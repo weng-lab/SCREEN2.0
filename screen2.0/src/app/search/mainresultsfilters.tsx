@@ -340,7 +340,8 @@ export function MainResultsFilters(
               <Box sx={{ display: 'flex', flexDirection: "column" }}>
                 {props.byCellType ?
                   <BiosampleTables
-                    configGB={false}
+                    showRNAseq={false}
+                    biosampleSelectMode="replace"
                     byCellType={props.byCellType}
                     selectedBiosamples={[props.mainQueryParams.biosample]}
                     setSelectedBiosamples={(biosample: [Biosample]) => props.setBiosample(biosample[0])}

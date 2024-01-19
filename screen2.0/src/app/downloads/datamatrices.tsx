@@ -39,8 +39,6 @@ import { tissueColors } from "../../common/lib/colors"
 //Need to type these
 interface TabPanelProps {
   children?: React.ReactNode
-  value: number
-  biosamples: -1 | ApolloQueryResult<any>
   matrices: -1 | ApolloQueryResult<any>
   searchParams: { [key: string]: string | string[] | undefined }
 }
@@ -143,17 +141,17 @@ export function DataMatrices(props: TabPanelProps) {
       colorMap(
         (data && data.ccREBiosampleQuery &&
           data.ccREBiosampleQuery.biosamples.filter((x) => x.umap_coordinates).map((x) => x.sampleType)) ||
-          []
+        []
       ),
     [data]
   )
   const [oMap, occ] = useMemo(
     () =>
       colorMap(
-        (data && data.ccREBiosampleQuery && 
+        (data && data.ccREBiosampleQuery &&
           //Check if umap coordinates exist, then map each entry to it's ontology (tissue type). This array of strings is passed to colorMap
           data.ccREBiosampleQuery.biosamples.filter((x) => x.umap_coordinates).map((x) => x.ontology)) ||
-          []
+        []
       ),
     [data]
   )
@@ -269,9 +267,8 @@ export function DataMatrices(props: TabPanelProps) {
         sx={{
           mb: 1,
           textTransform: "none",
-          borderLeft: `${
-            selectedAssay && selectedAssay.assembly === variant.assembly && selectedAssay.assay === variant.assay ? "1.5rem" : "0.40rem"
-          } solid ${borderColor(variant.assay)}`,
+          borderLeft: `${selectedAssay && selectedAssay.assembly === variant.assembly && selectedAssay.assay === variant.assay ? "1.5rem" : "0.40rem"
+            } solid ${borderColor(variant.assay)}`,
           "&:hover": { borderLeft: `1.5rem solid ${borderColor(variant.assay)}` },
         }}
       >
@@ -337,189 +334,185 @@ export function DataMatrices(props: TabPanelProps) {
   ]
 
   return (
-    <>
-      {props.value === 2 && (
-        <div role="tabpanel" id={`simple-tabpanel-${2}`} aria-labelledby={`simple-tab-${2}`}>
-          <Grid2 container spacing={3} columnSpacing={5}>
-            <Grid2 container justifyContent="flex-start" alignContent="flex-start" spacing={2} xs={2.5}>
-              <Grid2 xs={8}>
-                <Typography mt="auto" variant="h5">
-                  Human
-                </Typography>
-                <Divider />
-                <Typography variant="subtitle2">2,348,854 cCREs</Typography>
-                <Typography variant="subtitle2">1,678 cell types</Typography>
-              </Grid2>
-              <Grid2 xs={4}>
-                <Image src={Human} alt={"Human Icon"} width={50} />
-              </Grid2>
-              <Grid2 xs={12}>
-                {selectorButton({ assembly: "Human", assay: "DNase" })}
-                {selectorButton({ assembly: "Human", assay: "H3K4me3" })}
-                {selectorButton({ assembly: "Human", assay: "H3K27ac" })}
-                {selectorButton({ assembly: "Human", assay: "CTCF" })}
-              </Grid2>
-              <Grid2 xs={8}>
-                <Typography variant="h5">Mouse</Typography>
-                <Divider />
-                <Typography variant="subtitle2">926,843 cCREs</Typography>
-                <Typography variant="subtitle2">366 cell types</Typography>
-              </Grid2>
-              <Grid2 xs={4}>
-                <Image src={Mouse} alt={"Mouse Icon"} width={50} />
-              </Grid2>
-              <Grid2 xs={12}>
-                {selectorButton({ assembly: "Mouse", assay: "DNase" })}
-                {selectorButton({ assembly: "Mouse", assay: "H3K4me3" })}
-                {selectorButton({ assembly: "Mouse", assay: "H3K27ac" })}
-                {selectorButton({ assembly: "Mouse", assay: "CTCF" })}
-              </Grid2>
-            </Grid2>
-            <Grid2 container xs={9.5}>
-              <Grid2 xs={4}>
-                <Button
-                  variant="outlined"
-                  fullWidth
-                  onClick={() => null}
-                  endIcon={<Download />}
-                  sx={{ mr: 1, mb: 1, mt: 3, textTransform: "none" }}
-                  href={matrixDownloadURL(selectedAssay, "signal")}
-                >
-                  {`${selectedAssay.assay === "DNase" ? "Read-Depth Normalized Signal Matrix" : "Fold-Change Signal Matrix"}`}
-                </Button>
-                <Button
-                  variant="outlined"
-                  fullWidth
-                  endIcon={<Download />}
-                  sx={{ textTransform: "none", mb: 1 }}
-                  href={matrixDownloadURL(selectedAssay, "zScore")}
-                >
-                  Z-Score Matrix
-                </Button>
-                <Autocomplete
-                  sx={{ mb: 3 }}
-                  disablePortal
-                  id="combo-box-demo"
-                  options={fData}
-                  renderInput={(params) => <TextField {...params} label={"Search for a Biosample"} />}
-                  getOptionLabel={(biosample: BiosampleUMAP) => biosample.displayname + " — Exp ID: " + biosample.experimentAccession}
-                  blurOnSelect
-                  onChange={(_, value: any) => setSearched(value)}
-                  size="small"
-                />
-                <FormControl>
-                  <FormLabel id="demo-radio-buttons-group-label">Color By:</FormLabel>
-                  <RadioGroup
-                    aria-labelledby="demo-radio-buttons-group-label"
-                    defaultValue="sampleType"
-                    name="radio-buttons-group"
-                    sx={{ mb: 2 }}
-                    onChange={(event: ChangeEvent<HTMLInputElement>, value: string) => setColorBy(value)}
-                  >
-                    <FormControlLabel value="sampleType" control={<Radio />} label="Sample Type" />
-                    <FormControlLabel value="ontology" control={<Radio />} label="Ontology" />
-                  </RadioGroup>
-                </FormControl>
-                <FormControl>
-                  <FormLabel id="demo-radio-buttons-group-label">Show:</FormLabel>
-                  <RadioGroup
-                    aria-labelledby="demo-radio-buttons-group-label"
-                    defaultValue="all"
-                    name="radio-buttons-group"
-                    sx={{ mb: 2 }}
-                    onChange={(event: ChangeEvent<HTMLInputElement>, value: string) => setLifeStage(value)}
-                  >
-                    <FormControlLabel value="all" control={<Radio />} label="All" />
-                    <FormControlLabel value="adult" control={<Radio />} label="Adult" />
-                    <FormControlLabel value="embryonic" control={<Radio />} label="Embyronic" />
-                  </RadioGroup>
-                </FormControl>
-                <FormControl>
-                  <FormLabel id="demo-radio-buttons-group-label">Hold shift, click, and draw a selection to:</FormLabel>
-                  <RadioGroup
-                    aria-labelledby="demo-radio-buttons-group-label"
-                    defaultValue="select"
-                    name="radio-buttons-group"
-                    onChange={(event: ChangeEvent<HTMLInputElement>, value: "select" | "zoom") => setSelectMode(value)}
-                  >
-                    <FormControlLabel value="select" control={<Radio />} label="Select Experiments" />
-                    <FormControlLabel value="zoom" control={<Radio />} label="Zoom In" />
-                  </RadioGroup>
-                </FormControl>
-                {bounds && <Button onClick={() => setBounds(undefined)}>Reset Zoom</Button>}
-              </Grid2>
-              <Grid2 xs={8}>
-                <Chart
-                  domain={{ x: { start: xMin, end: xMax }, y: { start: yMin, end: yMax } }}
-                  innerSize={{ width: 1000, height: 1000 }}
-                  xAxisProps={{ ticks: (bounds ? oneRange : fiveRange)(xMin, xMax), title: "UMAP-1", fontSize: 40 }}
-                  yAxisProps={{ ticks: (bounds ? oneRange : fiveRange)(yMin, yMax), title: "UMAP-2", fontSize: 40 }}
-                  scatterData={[scatterData]}
-                  plotAreaProps={{
-                    onFreeformSelectionEnd: (_, c) => setBiosamples(c[0].map((x) => fData[x])),
-                    onSelectionEnd: (x) => handleSetBounds(x),
-                    freeformSelection: selectMode === "select",
-                  }}
-                >
-                  <Scatter
-                    data={scatterData}
-                    pointStyle={{ r: bounds ? 6 : 4 }}
-                    onPointMouseOver={setTooltip}
-                    onPointMouseOut={() => setTooltip(-1)}
-                    onPointClick={(i) => setBiosamples([fData[i]])}
-                  />
-                  {tooltip !== -1 && (
-                    //X and Y attributes added due to error. Not sure if setting to zero has unintended consequences
-                    <Annotation notScaled notTranslated x={0} y={0}>
-                      <rect x={35} y={100} width={740} height={120} strokeWidth={2} stroke="#000000" fill="#ffffffdd" />
-                      <rect x={55} y={120} width={740 * 0.04} height={740 * 0.04} strokeWidth={1} stroke="#000000" fill="#00b0d0" />
-                      <text x={100} y={140} fontSize="26px" fontWeight="bold">
-                        {fData[tooltip].name.replace(/_/g, " ").slice(0, 45)}
-                        {fData[tooltip].name.length > 45 ? "..." : ""}
-                      </text>
-                      <text x={55} y={185} fontSize="24px">
-                        {fData[tooltip].experimentAccession}
-                      </text>
-                    </Annotation>
-                  )}
-                </Chart>
-                {biosamples.length !== 0 && (
-                  <Stack direction="row" justifyContent="space-between" mb={1}>
-                    <Button endIcon={biosamples.length !== 0 && <Visibility />} onClick={handleOpenModal}>
-                      {`${biosamples.length} Experiments Selected`}
-                    </Button>
-                    <Button onClick={() => setBiosamples([])}>Clear</Button>
-                  </Stack>
-                )}
-                <Accordion elevation={2}>
-                  <AccordionSummary expandIcon={<ExpandMore />}>Legend</AccordionSummary>
-                  <AccordionDetails>
-                    {legendEntries.map((element, index) => {
-                      return (
-                        <Typography key={index} borderLeft={`0.2rem solid ${element.color}`} paddingLeft={1}>
-                          {`${element.label}: ${element.value}`}
-                        </Typography>
-                      )
-                    })}
-                  </AccordionDetails>
-                </Accordion>
-              </Grid2>
-            </Grid2>
+    <div role="tabpanel" id={`simple-tabpanel-${2}`} aria-labelledby={`simple-tab-${2}`}>
+      <Grid2 container spacing={3} columnSpacing={5}>
+        <Grid2 container justifyContent="flex-start" alignContent="flex-start" spacing={2} xs={2.5}>
+          <Grid2 xs={8}>
+            <Typography mt="auto" variant="h5">
+              Human
+            </Typography>
+            <Divider />
+            <Typography variant="subtitle2">2,348,854 cCREs</Typography>
+            <Typography variant="subtitle2">1,678 cell types</Typography>
           </Grid2>
-          <Modal open={open} onClose={handleCloseModal} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
-            <Box sx={style}>
-              <DataTable
-                sortDescending
-                searchable
-                tableTitle={"Selected Biosamples"}
-                columns={modalCols}
-                rows={biosamples}
-                itemsPerPage={7}
+          <Grid2 xs={4}>
+            <Image src={Human} alt={"Human Icon"} width={50} />
+          </Grid2>
+          <Grid2 xs={12}>
+            {selectorButton({ assembly: "Human", assay: "DNase" })}
+            {selectorButton({ assembly: "Human", assay: "H3K4me3" })}
+            {selectorButton({ assembly: "Human", assay: "H3K27ac" })}
+            {selectorButton({ assembly: "Human", assay: "CTCF" })}
+          </Grid2>
+          <Grid2 xs={8}>
+            <Typography variant="h5">Mouse</Typography>
+            <Divider />
+            <Typography variant="subtitle2">926,843 cCREs</Typography>
+            <Typography variant="subtitle2">366 cell types</Typography>
+          </Grid2>
+          <Grid2 xs={4}>
+            <Image src={Mouse} alt={"Mouse Icon"} width={50} />
+          </Grid2>
+          <Grid2 xs={12}>
+            {selectorButton({ assembly: "Mouse", assay: "DNase" })}
+            {selectorButton({ assembly: "Mouse", assay: "H3K4me3" })}
+            {selectorButton({ assembly: "Mouse", assay: "H3K27ac" })}
+            {selectorButton({ assembly: "Mouse", assay: "CTCF" })}
+          </Grid2>
+        </Grid2>
+        <Grid2 container xs={9.5}>
+          <Grid2 xs={4}>
+            <Button
+              variant="outlined"
+              fullWidth
+              onClick={() => null}
+              endIcon={<Download />}
+              sx={{ mr: 1, mb: 1, mt: 3, textTransform: "none" }}
+              href={matrixDownloadURL(selectedAssay, "signal")}
+            >
+              {`${selectedAssay.assay === "DNase" ? "Read-Depth Normalized Signal Matrix" : "Fold-Change Signal Matrix"}`}
+            </Button>
+            <Button
+              variant="outlined"
+              fullWidth
+              endIcon={<Download />}
+              sx={{ textTransform: "none", mb: 1 }}
+              href={matrixDownloadURL(selectedAssay, "zScore")}
+            >
+              Z-Score Matrix
+            </Button>
+            <Autocomplete
+              sx={{ mb: 3 }}
+              disablePortal
+              id="combo-box-demo"
+              options={fData}
+              renderInput={(params) => <TextField {...params} label={"Search for a Biosample"} />}
+              getOptionLabel={(biosample: BiosampleUMAP) => biosample.displayname + " — Exp ID: " + biosample.experimentAccession}
+              blurOnSelect
+              onChange={(_, value: any) => setSearched(value)}
+              size="small"
+            />
+            <FormControl>
+              <FormLabel id="demo-radio-buttons-group-label">Color By:</FormLabel>
+              <RadioGroup
+                aria-labelledby="demo-radio-buttons-group-label"
+                defaultValue="sampleType"
+                name="radio-buttons-group"
+                sx={{ mb: 2 }}
+                onChange={(event: ChangeEvent<HTMLInputElement>, value: string) => setColorBy(value)}
+              >
+                <FormControlLabel value="sampleType" control={<Radio />} label="Sample Type" />
+                <FormControlLabel value="ontology" control={<Radio />} label="Ontology" />
+              </RadioGroup>
+            </FormControl>
+            <FormControl>
+              <FormLabel id="demo-radio-buttons-group-label">Show:</FormLabel>
+              <RadioGroup
+                aria-labelledby="demo-radio-buttons-group-label"
+                defaultValue="all"
+                name="radio-buttons-group"
+                sx={{ mb: 2 }}
+                onChange={(event: ChangeEvent<HTMLInputElement>, value: string) => setLifeStage(value)}
+              >
+                <FormControlLabel value="all" control={<Radio />} label="All" />
+                <FormControlLabel value="adult" control={<Radio />} label="Adult" />
+                <FormControlLabel value="embryonic" control={<Radio />} label="Embyronic" />
+              </RadioGroup>
+            </FormControl>
+            <FormControl>
+              <FormLabel id="demo-radio-buttons-group-label">Hold shift, click, and draw a selection to:</FormLabel>
+              <RadioGroup
+                aria-labelledby="demo-radio-buttons-group-label"
+                defaultValue="select"
+                name="radio-buttons-group"
+                onChange={(event: ChangeEvent<HTMLInputElement>, value: "select" | "zoom") => setSelectMode(value)}
+              >
+                <FormControlLabel value="select" control={<Radio />} label="Select Experiments" />
+                <FormControlLabel value="zoom" control={<Radio />} label="Zoom In" />
+              </RadioGroup>
+            </FormControl>
+            {bounds && <Button onClick={() => setBounds(undefined)}>Reset Zoom</Button>}
+          </Grid2>
+          <Grid2 xs={8}>
+            <Chart
+              domain={{ x: { start: xMin, end: xMax }, y: { start: yMin, end: yMax } }}
+              innerSize={{ width: 1000, height: 1000 }}
+              xAxisProps={{ ticks: (bounds ? oneRange : fiveRange)(xMin, xMax), title: "UMAP-1", fontSize: 40 }}
+              yAxisProps={{ ticks: (bounds ? oneRange : fiveRange)(yMin, yMax), title: "UMAP-2", fontSize: 40 }}
+              scatterData={[scatterData]}
+              plotAreaProps={{
+                onFreeformSelectionEnd: (_, c) => setBiosamples(c[0].map((x) => fData[x])),
+                onSelectionEnd: (x) => handleSetBounds(x),
+                freeformSelection: selectMode === "select",
+              }}
+            >
+              <Scatter
+                data={scatterData}
+                pointStyle={{ r: bounds ? 6 : 4 }}
+                onPointMouseOver={setTooltip}
+                onPointMouseOut={() => setTooltip(-1)}
+                onPointClick={(i) => setBiosamples([fData[i]])}
               />
-            </Box>
-          </Modal>
-        </div>
-      )}
-    </>
+              {tooltip !== -1 && (
+                //X and Y attributes added due to error. Not sure if setting to zero has unintended consequences
+                <Annotation notScaled notTranslated x={0} y={0}>
+                  <rect x={35} y={100} width={740} height={120} strokeWidth={2} stroke="#000000" fill="#ffffffdd" />
+                  <rect x={55} y={120} width={740 * 0.04} height={740 * 0.04} strokeWidth={1} stroke="#000000" fill="#00b0d0" />
+                  <text x={100} y={140} fontSize="26px" fontWeight="bold">
+                    {fData[tooltip].name.replace(/_/g, " ").slice(0, 45)}
+                    {fData[tooltip].name.length > 45 ? "..." : ""}
+                  </text>
+                  <text x={55} y={185} fontSize="24px">
+                    {fData[tooltip].experimentAccession}
+                  </text>
+                </Annotation>
+              )}
+            </Chart>
+            {biosamples.length !== 0 && (
+              <Stack direction="row" justifyContent="space-between" mb={1}>
+                <Button endIcon={biosamples.length !== 0 && <Visibility />} onClick={handleOpenModal}>
+                  {`${biosamples.length} Experiments Selected`}
+                </Button>
+                <Button onClick={() => setBiosamples([])}>Clear</Button>
+              </Stack>
+            )}
+            <Accordion elevation={2}>
+              <AccordionSummary expandIcon={<ExpandMore />}>Legend</AccordionSummary>
+              <AccordionDetails>
+                {legendEntries.map((element, index) => {
+                  return (
+                    <Typography key={index} borderLeft={`0.2rem solid ${element.color}`} paddingLeft={1}>
+                      {`${element.label}: ${element.value}`}
+                    </Typography>
+                  )
+                })}
+              </AccordionDetails>
+            </Accordion>
+          </Grid2>
+        </Grid2>
+      </Grid2>
+      <Modal open={open} onClose={handleCloseModal} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
+        <Box sx={style}>
+          <DataTable
+            sortDescending
+            searchable
+            tableTitle={"Selected Biosamples"}
+            columns={modalCols}
+            rows={biosamples}
+            itemsPerPage={7}
+          />
+        </Box>
+      </Modal>
+    </div>
   )
 }

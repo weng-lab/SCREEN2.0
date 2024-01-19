@@ -14,7 +14,6 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
   const [start, setStart] = useState('')
   const [end, setEnd] = useState('')
   const [inputType, setInputType] = useState("UCSC")
-  const [error, setError] = useState(false)
 
 
   const handleChange = (event: { target: { value: SetStateAction<string> } }) => {
@@ -162,7 +161,6 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
               InputLabelProps={{ shrink: true, style: props.header ? {color: "white"} : { color: "black" } }}
               label="Enter a genomic region"
               placeholder="chr11:5205263-5381894"
-              error={error}
               value={value}
               onChange={handleChange}
               onKeyDown={(event) => {

@@ -108,11 +108,12 @@ export type FilterCriteria = {
 export type CellTypeData = {
   byCellType: {
     [key: string]: {
-      assay: string
-      biosample_summary: string
-      biosample_type: string
-      tissue: string
       celltypename: string
+      name: string
+      biosample_summary: string
+      assay: string
+      tissue: string
+      biosample_type: string
       rnaseq: boolean
     }[]
   }

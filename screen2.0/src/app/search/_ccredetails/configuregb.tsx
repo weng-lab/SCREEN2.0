@@ -126,7 +126,8 @@ const ConfigureGenomeBrowser = (props: {
         <Grid2 container spacing={2}>
           <Grid2 xs={8}>
             <BiosampleTables
-              configGB={true}
+              showRNAseq={true}
+              biosampleSelectMode="append"
               byCellType={props.byCellType}
               selectedBiosamples={props.selectedBiosamples}
               setSelectedBiosamples={props.setSelectedBiosamples} />

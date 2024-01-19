@@ -1,6 +1,7 @@
 import * as React from "react"
 import DownloadsPage from "./downloads"
-import { UMAPQuery, biosampleQuery } from "../../common/lib/queries"
+import { UMAPQuery, biosampleQuery, getGlobals } from "../../common/lib/queries"
+import { CellTypeData } from "../search/types"
 
 export default async function Downloads({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
   const biosamples: any = await biosampleQuery()
