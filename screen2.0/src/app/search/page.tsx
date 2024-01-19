@@ -231,7 +231,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
 
   //Fetch raw cCRE data (main query only to prevent hidden linked genes from slowing down search)
   useEffect(() => {
-    // console.log("main fetch effect called")
+    console.log("main fetch effect called")
     setLoadingFetch(true)
 
     let start = mainQueryParams.coordinates.start
@@ -248,7 +248,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       end = TSSs && TSSranges ? Math.max(...TSSs) + mainQueryParams.gene.distance : null
     }
 
-    (start !== null) && (end !== null) && startTransition(async () => {
+    (mainQueryParams.searchConfig.bed_intersect || (start !== null) && (end !== null)) && startTransition(async () => {
+      console.log("transition started")
       const mainQueryData = await fetchcCREData(
         mainQueryParams.coordinates.assembly,
         mainQueryParams.coordinates.chromosome,
@@ -259,7 +260,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         null,
         mainQueryParams.searchConfig.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined
       )
-      // console.log("setting main query data")
+      console.log("setting main query data")
       setMainQueryData(mainQueryData)
       setLoadingFetch(false)
     })
@@ -360,6 +361,18 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     } else if (mainQueryParams.gene.nearTSS) {
       end = TSSs && TSSranges ? Math.max(...TSSs) + mainQueryParams.gene.distance : null
     }
+
+    let assays: {dnase: boolean, atac: boolean, ctcf: boolean, h3k27ac: boolean, h3k4me3: boolean};
+    if (mainQueryParams.biosample) {
+      if (mainQueryParams.biosample.assays) {
+        assays = mainQueryParams.biosample.assays
+      } else {
+        const firstCtData = mainQueryData.data.cCRESCREENSearch[0].ctspecific
+        assays = {dnase: !!firstCtData.dnase_zscore, atac: !!firstCtData.atac_zscore, ctcf: !!firstCtData.ctcf_zscore, h3k27ac: !!firstCtData.h3k27ac_zscore, h3k4me3: !!firstCtData.h3k4me3_zscore}
+      }
+    } else {
+      assays = {dnase: true, atac: true, ctcf: true, h3k27ac: true, h3k4me3: true}
+    }
     
     downloadBED(
       mainQueryParams.coordinates.assembly,
@@ -369,7 +382,9 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       mainQueryParams.biosample,
       mainQueryParams.searchConfig.bed_intersect,
       mainQueryParams.gene.nearTSS ? TSSranges : null,
-      {dnase: true, atac: true, ctcf: true, h3k27ac: true, h3k4me3: true},
+      assays,
+      {primate: false, mammal: false, vertebrate: false},
+      {distancePC: false, distanceAll: false, ctcfChiaPet: false, rnapiiChiaPet: false},
       setBedLoadingPercent
     )
   }

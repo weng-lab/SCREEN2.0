@@ -58,7 +58,7 @@ export default function DownloadsPage(props: {
               <Tab label="Quick Start" sx={{ textTransform: "none" }} {...a11yProps(0)} />
               <Tab label="Detailed Elements" sx={{ textTransform: "none" }} {...a11yProps(1)} />
               <Tab label="Data Matrices" sx={{ textTransform: "none" }} {...a11yProps(2)} />
-              <Tab label="Download Range" sx={{ textTransform: "none" }} {...a11yProps(3)} />
+              <Tab label="Download cCREs in Genomic Region" sx={{ textTransform: "none" }} {...a11yProps(3)} />
             </Tabs>
           </Box>
         </Grid2>

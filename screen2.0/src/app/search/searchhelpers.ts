@@ -701,15 +701,53 @@ export function filtersModified(
 }
 
 // Convert the results to a BED file string
-const convertToBED = (mainQueryData: MainQueryData, assays: { atac: boolean, ctcf: boolean, dnase: boolean, h3k27ac: boolean, h3k4me3: boolean }): string => {
+const convertToBED = (
+  mainQueryData: MainQueryData,
+  assays: { atac: boolean, ctcf: boolean, dnase: boolean, h3k27ac: boolean, h3k4me3: boolean },
+  conservation: { primate: boolean, mammal: boolean, vertebrate: boolean },
+  linkedGenes: { distancePC: boolean, distanceAll: boolean, ctcfChiaPet: boolean, rnapiiChiaPet: boolean }
+): string => {
   const firstEntry = mainQueryData.data.cCRESCREENSearch[0]
 
-  let bedContent: string[] = [];
-  if (firstEntry.ctspecific.ct) {
-    bedContent.push(`# chr\tstart\tend\tacccession\tclassification${firstEntry.ctspecific.dnase_zscore && assays.dnase ? '\tdnase_z-score': ''}${firstEntry.ctspecific.atac_zscore && assays.atac ? '\tatac_z-score': ''}${firstEntry.ctspecific.ctcf_zscore && assays.ctcf ? '\tctcf_z-score': ''}${firstEntry.ctspecific.h3k27ac_zscore && assays.h3k27ac ? '\th3k27ac_z-score': ''}${firstEntry.ctspecific.h3k4me3_zscore && assays.h3k4me3 ? '\th3k4me3_z-score': ''}\n`)
-  } else {
-    bedContent.push(`# chr\tstart\tend\tacccession\tclassification${assays.dnase && '\tdnase_z-score'}${assays.atac && '\tatac_z-score'}${assays.ctcf && '\tctcf_z-score'}${assays.h3k27ac && '\th3k27ac_z-score'}${assays.h3k4me3 && '\th3k4me3_z-score'}\n`)
-  }
+  //Create header comment for the file
+  let header: string;
+  // if (firstEntry.ctspecific.ct) {
+  //   //If cell type selected, check to make sure data is available
+  //   header = [
+  //     "# chr\tstart\tend\tacccession\tclassification",
+  //     `${firstEntry.ctspecific.dnase_zscore && assays.dnase ? '\tDNase_z-score': ''}`,
+  //     `${firstEntry.ctspecific.atac_zscore && assays.atac ? '\tATAC_z-score': ''}`,
+  //     `${firstEntry.ctspecific.ctcf_zscore && assays.ctcf ? '\tCTCF_z-score': ''}`,
+  //     `${firstEntry.ctspecific.h3k27ac_zscore && assays.h3k27ac ? '\tH3K27ac_z-score': ''}`,
+  //     `${firstEntry.ctspecific.h3k4me3_zscore && assays.h3k4me3 ? '\tH3K4me3_z-score': ''}`,
+  //     `${conservation.primate ? '\tprimate_conservation' : ''}`,
+  //     `${conservation.mammal ? '\tmammal_conservation' : ''}`,
+  //     `${conservation.vertebrate ? '\tvertebrate_conservation' : ''}`,
+  //     `${linkedGenes.distancePC ? '\tdistance_protein_coding' : ''}`,
+  //     `${linkedGenes.distanceAll ? '\tdistance_all' : ''}`,
+  //     `${linkedGenes.ctcfChiaPet ? '\tCTCF-ChIAPET' : ''}`,
+  //     `${linkedGenes.rnapiiChiaPet ? '\RNAPII-ChIAPET' : ''}`,
+  //     '\n'
+  //   ].join('')
+  // } else {
+    header = [
+      "# chr\tstart\tend\tacccession\tclassification",
+      `${assays.dnase ? '\tDNase_z-score' : ''}`,
+      `${assays.atac ? '\tATAC_z-score' : ''}`,
+      `${assays.ctcf ? '\tCTCF_z-score' : ''}`,
+      `${assays.h3k27ac ? '\tH3K27ac_z-score' : ''}`,
+      `${assays.h3k4me3 ? '\tH3K4me3_z-score' : ''}`,
+      `${conservation.primate ? '\tprimate_conservation' : ''}`,
+      `${conservation.mammal ? '\tmammal_conservation' : ''}`,
+      `${conservation.vertebrate ? '\tvertebrate_conservation' : ''}`,
+      `${linkedGenes.distancePC ? '\tdistance_protein_coding' : ''}`,
+      `${linkedGenes.distanceAll ? '\tdistance_all' : ''}`,
+      `${linkedGenes.ctcfChiaPet ? '\tCTCF-ChIAPET' : ''}`,
+      `${linkedGenes.rnapiiChiaPet ? '\tRNAPII-ChIAPET' : ''}`,
+      '\n'
+    ].join('')
+  // }
+  let bedContent: string[] = [header];
 
   mainQueryData.data.cCRESCREENSearch.forEach((item) => {
     const chromosome = item.chrom;
@@ -722,9 +760,35 @@ const convertToBED = (mainQueryData: MainQueryData, assays: { atac: boolean, ctc
     const ctcf = item.ctspecific.ct ? item.ctspecific.ctcf_zscore : item.ctcf_zscore;
     const h3k27ac = item.ctspecific.ct ? item.ctspecific.h3k27ac_zscore : item.enhancer_zscore;
     const h3k4me3 = item.ctspecific.ct ? item.ctspecific.h3k4me3_zscore : item.promoter_zscore;
+    const primate = item.primates;
+    const mammal = item.mammals;
+    const vertebrate = item.vertebrates;
+    const distancePC = item.genesallpc.pc.intersecting_genes.map(gene => gene.name).join()
+    const distanceAll = item.genesallpc.all.intersecting_genes.map(gene => gene.name).join()
+    const ctcfChiaPet = null
+    const rnapiiChiaPet = null
 
-    // Construct the BED-formatted string
-    const bedRow = `${chromosome}\t${start}\t${end}\t${name}\t${classification}${dnase && assays.dnase ? '\t' + dnase : ''}${atac && assays.atac ? '\t' + atac : ''}${ctcf && assays.ctcf ? '\t' + ctcf : ''}${h3k27ac && assays.h3k27ac ? '\t' + h3k27ac : ''}${h3k4me3 && assays.h3k4me3 ? '\t' + h3k4me3 : ''}\n`;
+    // Construct tab separated row, ends with newline
+    const bedRow = [
+      `${chromosome}`,
+      `\t${start}`,
+      `\t${end}`,
+      `\t${name}`,
+      `\t${classification}`,
+      `${assays.dnase ? '\t' + dnase : ''}`,
+      `${assays.atac ? '\t' + atac : ''}`,
+      `${assays.ctcf ? '\t' + ctcf : ''}`,
+      `${assays.h3k27ac ? '\t' + h3k27ac : ''}`,
+      `${assays.h3k4me3 ? '\t' + h3k4me3 : ''}`,
+      `${conservation.primate ? '\t' + primate : ''}`,
+      `${conservation.mammal ? '\t' + mammal : ''}`,
+      `${conservation.vertebrate ? '\t' + vertebrate : ''}`,
+      `${linkedGenes.distancePC ? '\t' + distancePC : ''}`,
+      `${linkedGenes.distanceAll ? '\t' + distanceAll : ''}`,
+      `${linkedGenes.ctcfChiaPet ? '\t' + ctcfChiaPet : ''}`,
+      `${linkedGenes.rnapiiChiaPet ? '\t' + rnapiiChiaPet : ''}`,
+      '\n'
+    ].join('')
 
     // Append to the content string
     bedContent.push(bedRow);
@@ -750,6 +814,8 @@ export const downloadBED = async (
   bedIntersect: boolean = false,
   TSSranges: { start: number, end: number }[] = null,
   assays: { atac: boolean, ctcf: boolean, dnase: boolean, h3k27ac: boolean, h3k4me3: boolean },
+  conservation: { primate: boolean, mammal: boolean, vertebrate: boolean },
+  linkedGenes: { distancePC: boolean, distanceAll: boolean, ctcfChiaPet: boolean, rnapiiChiaPet: boolean },
   setBedLoadingPercent?: React.Dispatch<React.SetStateAction<number>>
 ) => {
 
@@ -817,7 +883,7 @@ export const downloadBED = async (
   // console.log(deduplicatedResults)
 
   //generate BED string
-  const bedContents = convertToBED(deduplicatedResults, assays)
+  const bedContents = convertToBED(deduplicatedResults, assays, conservation, linkedGenes)
 
   const blob = new Blob([bedContents], { type: 'text/plain' });
 
