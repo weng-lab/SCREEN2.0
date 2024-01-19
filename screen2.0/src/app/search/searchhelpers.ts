@@ -78,7 +78,6 @@ export async function fetchLinkedGenesData (
   return (linkedGenesData)
 }
 
-//This could be split up into generateUnfilteredRows, and FilterRows functions for even better performace when filtering
 export function generateFilteredRows(
   mainQueryData: MainQueryData,
   linkedGenesData: RawLinkedGenesData,
@@ -703,6 +702,7 @@ export function filtersModified(
 // Convert the results to a BED file string
 const convertToBED = (
   mainQueryData: MainQueryData,
+  linkedGenesData: RawLinkedGenesData,
   assays: { atac: boolean, ctcf: boolean, dnase: boolean, h3k27ac: boolean, h3k4me3: boolean },
   conservation: { primate: boolean, mammal: boolean, vertebrate: boolean },
   linkedGenes: { distancePC: boolean, distanceAll: boolean, ctcfChiaPet: boolean, rnapiiChiaPet: boolean }
@@ -710,43 +710,22 @@ const convertToBED = (
   const firstEntry = mainQueryData.data.cCRESCREENSearch[0]
 
   //Create header comment for the file
-  let header: string;
-  // if (firstEntry.ctspecific.ct) {
-  //   //If cell type selected, check to make sure data is available
-  //   header = [
-  //     "# chr\tstart\tend\tacccession\tclassification",
-  //     `${firstEntry.ctspecific.dnase_zscore && assays.dnase ? '\tDNase_z-score': ''}`,
-  //     `${firstEntry.ctspecific.atac_zscore && assays.atac ? '\tATAC_z-score': ''}`,
-  //     `${firstEntry.ctspecific.ctcf_zscore && assays.ctcf ? '\tCTCF_z-score': ''}`,
-  //     `${firstEntry.ctspecific.h3k27ac_zscore && assays.h3k27ac ? '\tH3K27ac_z-score': ''}`,
-  //     `${firstEntry.ctspecific.h3k4me3_zscore && assays.h3k4me3 ? '\tH3K4me3_z-score': ''}`,
-  //     `${conservation.primate ? '\tprimate_conservation' : ''}`,
-  //     `${conservation.mammal ? '\tmammal_conservation' : ''}`,
-  //     `${conservation.vertebrate ? '\tvertebrate_conservation' : ''}`,
-  //     `${linkedGenes.distancePC ? '\tdistance_protein_coding' : ''}`,
-  //     `${linkedGenes.distanceAll ? '\tdistance_all' : ''}`,
-  //     `${linkedGenes.ctcfChiaPet ? '\tCTCF-ChIAPET' : ''}`,
-  //     `${linkedGenes.rnapiiChiaPet ? '\RNAPII-ChIAPET' : ''}`,
-  //     '\n'
-  //   ].join('')
-  // } else {
-    header = [
-      "# chr\tstart\tend\tacccession\tclassification",
-      `${assays.dnase ? '\tDNase_z-score' : ''}`,
-      `${assays.atac ? '\tATAC_z-score' : ''}`,
-      `${assays.ctcf ? '\tCTCF_z-score' : ''}`,
-      `${assays.h3k27ac ? '\tH3K27ac_z-score' : ''}`,
-      `${assays.h3k4me3 ? '\tH3K4me3_z-score' : ''}`,
-      `${conservation.primate ? '\tprimate_conservation' : ''}`,
-      `${conservation.mammal ? '\tmammal_conservation' : ''}`,
-      `${conservation.vertebrate ? '\tvertebrate_conservation' : ''}`,
-      `${linkedGenes.distancePC ? '\tdistance_protein_coding' : ''}`,
-      `${linkedGenes.distanceAll ? '\tdistance_all' : ''}`,
-      `${linkedGenes.ctcfChiaPet ? '\tCTCF-ChIAPET' : ''}`,
-      `${linkedGenes.rnapiiChiaPet ? '\tRNAPII-ChIAPET' : ''}`,
-      '\n'
-    ].join('')
-  // }
+  let header = [
+    "# chr\tstart\tend\tacccession\tclassification",
+    `${assays.dnase ? '\tDNase_z-score' : ''}`,
+    `${assays.atac ? '\tATAC_z-score' : ''}`,
+    `${assays.ctcf ? '\tCTCF_z-score' : ''}`,
+    `${assays.h3k27ac ? '\tH3K27ac_z-score' : ''}`,
+    `${assays.h3k4me3 ? '\tH3K4me3_z-score' : ''}`,
+    `${conservation.primate ? '\tprimate_conservation' : ''}`,
+    `${conservation.mammal ? '\tmammal_conservation' : ''}`,
+    `${conservation.vertebrate ? '\tvertebrate_conservation' : ''}`,
+    `${linkedGenes.distancePC ? '\tdistance_protein_coding' : ''}`,
+    `${linkedGenes.distanceAll ? '\tdistance_all' : ''}`,
+    `${linkedGenes.ctcfChiaPet ? '\tCTCF-ChIAPET' : ''}`,
+    `${linkedGenes.rnapiiChiaPet ? '\tRNAPII-ChIAPET' : ''}`,
+    '\n'
+  ].join('')
   let bedContent: string[] = [header];
 
   mainQueryData.data.cCRESCREENSearch.forEach((item) => {
