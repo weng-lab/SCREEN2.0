@@ -219,7 +219,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       // console.log("pushing new url")
       router.push(newURL)
     }
-  }, [searchParams, mainQueryParams, filterCriteria, biosampleTableFilters, page, opencCREs, router, basePathname, opencCREsInitialized])
+  }, [searchParams, mainQueryParams, filterCriteria, biosampleTableFilters, page, opencCREs, router, basePathname, opencCREsInitialized, loadingFetch])
 
   //fetch globals
   useEffect(() => {

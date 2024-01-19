@@ -60,6 +60,14 @@ export const DownloadRange: React.FC = () => {
   }
 
   const handleSetAssembly = (value: string) => {
+    if (value === "mm10") {
+      setSelectedConservation({ primate: null, mammal: null, vertebrate: null })
+      setLinkedGenes({ ...linkedGenes, ctcfChiaPet: null, rnapiiChiaPet: null })
+    } else {
+      setSelectedConservation({ primate: true, mammal: true, vertebrate: true })
+      setLinkedGenes({ distancePC: true, distanceAll: true, ctcfChiaPet: true, rnapiiChiaPet: true })
+    }
+    setSelectedBiosample([]);
     (value === "GRCh38" || value === "mm10") && setAssembly(value)
   }
 
@@ -79,17 +87,6 @@ export const DownloadRange: React.FC = () => {
       setSelectedAssays({ atac: true, ctcf: true, dnase: true, h3k27ac: true, h3k4me3: true })
     }
   }, [selectedBiosample])
-
-  useEffect(() => {
-    if (assembly === "mm10") {
-      setSelectedConservation({ primate: null, mammal: null, vertebrate: null })
-      setLinkedGenes({...linkedGenes, ctcfChiaPet: null, rnapiiChiaPet: null})
-    } else {
-      setSelectedConservation({ primate: true, mammal: true, vertebrate: true })
-      setLinkedGenes({ distancePC: true, distanceAll: true, ctcfChiaPet: true, rnapiiChiaPet: true })
-    }
-    setSelectedBiosample([])
-  }, [assembly])
 
   //fetch globals
   useEffect(() => {
@@ -120,7 +117,7 @@ export const DownloadRange: React.FC = () => {
     <Grid2 container spacing={3}>
       <Grid2 xs={6}>
         <BiosampleTables
-          showRNAseq={true}
+          showRNAseq={false}
           biosampleSelectMode="replace"
           byCellType={globals}
           selectedBiosamples={selectedBiosample}
@@ -128,7 +125,7 @@ export const DownloadRange: React.FC = () => {
         />
       </Grid2>
       <Grid2 xs={6}>
-        <FormControl sx={{mb: 1}}>
+        <FormControl sx={{ mb: 1 }}>
           <FormLabel id="demo-row-radio-buttons-group-label">Assembly</FormLabel>
           <RadioGroup
             row
@@ -156,166 +153,174 @@ export const DownloadRange: React.FC = () => {
             </IconButton>
           }
         </Stack>
-        <FormControlLabel
-          label="Assays"
-          control={
-            <Checkbox
-              checked={Object.values(selectedAssays).every(assay => assay || assay === null)}
-              indeterminate={
-                !(
-                  //If every value is not true/null
-                  Object.values(selectedAssays).every(assay => assay || assay === null) ||
-                  //Or every value is not false/null
-                  Object.values(selectedAssays).every(assay => !assay || assay === null)
-                )
-              }
-              onChange={(_, checked: boolean) => setSelectedAssays(
-                {
-                  atac: selectedAssays.atac === null ? null : checked,
-                  ctcf: selectedAssays.ctcf === null ? null : checked,
-                  dnase: selectedAssays.dnase === null ? null : checked,
-                  h3k27ac: selectedAssays.h3k27ac === null ? null : checked,
-                  h3k4me3: selectedAssays.h3k4me3 === null ? null : checked
-                }
-              )}
-            />
-          } />
-        <Box sx={{ display: 'flex', flexDirection: 'column', ml: 3 }}>
-          <FormControlLabel
-            checked={selectedAssays.dnase}
-            onChange={(_, checked: boolean) => setSelectedAssays({ ...selectedAssays, dnase: checked })}
-            control={<Checkbox />}
-            label={"DNase"}
-            disabled={selectedAssays.dnase === null}
-          />
-          <FormControlLabel
-            checked={selectedAssays.atac}
-            onChange={(_, checked: boolean) => setSelectedAssays({ ...selectedAssays, atac: checked })}
-            control={<Checkbox />}
-            label={"ATAC"}
-            disabled={selectedAssays.atac === null}
-          />
-          <FormControlLabel
-            checked={selectedAssays.ctcf}
-            onChange={(_, checked: boolean) => setSelectedAssays({ ...selectedAssays, ctcf: checked })}
-            control={<Checkbox />}
-            label={"CTCF"}
-            disabled={selectedAssays.ctcf === null}
-          />
-          <FormControlLabel
-            checked={selectedAssays.h3k27ac}
-            onChange={(_, checked: boolean) => setSelectedAssays({ ...selectedAssays, h3k27ac: checked })}
-            control={<Checkbox />}
-            label={"H3K27ac"}
-            disabled={selectedAssays.h3k27ac === null}
-          />
-          <FormControlLabel
-            checked={selectedAssays.h3k4me3}
-            onChange={(_, checked: boolean) => setSelectedAssays({ ...selectedAssays, h3k4me3: checked })}
-            control={<Checkbox />}
-            label={"H3K4me3"}
-            disabled={selectedAssays.h3k4me3 === null}
-          />
-        </Box>
-        <FormControlLabel
-          label="Conservation Data"
-          control={
-            <Checkbox
-              checked={Object.values(selectedConservation).every(x => x || x === null) && assembly !== "mm10"}
-              disabled={assembly === "mm10"}
-              indeterminate={
-                !(
-                  //If every value is not true/null
-                  Object.values(selectedConservation).every(x => x || x === null) ||
-                  //Or every value is not false/null
-                  Object.values(selectedConservation).every(x => !x || x === null)
-                )
-              }
-              onChange={(_, checked: boolean) => setSelectedConservation(
-                {
-                  primate: selectedConservation.primate === null ? null : checked,
-                  mammal: selectedConservation.mammal === null ? null : checked,
-                  vertebrate: selectedConservation.vertebrate === null ? null : checked
-                }
-              )}
-            />
-          } />
-        <Box sx={{ display: 'flex', flexDirection: 'column', ml: 3 }}>
-          <FormControlLabel
-            checked={selectedConservation.primate}
-            onChange={(_, checked: boolean) => setSelectedConservation({ ...selectedConservation, primate: checked })}
-            control={<Checkbox />}
-            label={"Primate"}
-            disabled={selectedConservation.primate === null || assembly === "mm10"}
-          />
-          <FormControlLabel
-            checked={selectedConservation.mammal}
-            onChange={(_, checked: boolean) => setSelectedConservation({ ...selectedConservation, mammal: checked })}
-            control={<Checkbox />}
-            label={"Mammal"}
-            disabled={selectedConservation.mammal === null || assembly === "mm10"}
-          />
-          <FormControlLabel
-            checked={selectedConservation.vertebrate}
-            onChange={(_, checked: boolean) => setSelectedConservation({ ...selectedConservation, vertebrate: checked })}
-            control={<Checkbox />}
-            label={"Vertebrate"}
-            disabled={selectedConservation.vertebrate === null || assembly === "mm10"}
-          />
-        </Box>
-        <FormControlLabel
-          label="Linked Genes"
-          control={
-            <Checkbox
-              checked={Object.values(linkedGenes).every(x => x || x === null)}
-              indeterminate={
-                !(
-                  //If every value is not true/null
-                  Object.values(linkedGenes).every(x => x || x === null) ||
-                  //Or every value is not false/null
-                  Object.values(linkedGenes).every(x => !x || x === null)
-                )
-              }
-              onChange={(_, checked: boolean) => setLinkedGenes(
-                {
-                  distancePC: linkedGenes.distancePC === null ? null : checked,
-                  distanceAll: linkedGenes.distanceAll === null ? null : checked,
-                  ctcfChiaPet: linkedGenes.ctcfChiaPet === null ? null : checked,
-                  rnapiiChiaPet: linkedGenes.rnapiiChiaPet === null ? null : checked,
-                }
-              )}
-            />
-          } />
-        <Box sx={{ display: 'flex', flexDirection: 'column', ml: 3 }}>
-          <FormControlLabel
-            checked={linkedGenes.distancePC}
-            onChange={(_, checked: boolean) => setLinkedGenes({ ...linkedGenes, distancePC: checked })}
-            control={<Checkbox />}
-            label={"Distance (protein-coding only)"}
-            disabled={linkedGenes.distancePC === null}
-          />
-          <FormControlLabel
-            checked={linkedGenes.distanceAll}
-            onChange={(_, checked: boolean) => setLinkedGenes({ ...linkedGenes, distanceAll: checked })}
-            control={<Checkbox />}
-            label={"Distance (all)"}
-            disabled={linkedGenes.distanceAll === null}
-          />
-          <FormControlLabel
-            checked={linkedGenes.ctcfChiaPet}
-            onChange={(_, checked: boolean) => setLinkedGenes({ ...linkedGenes, ctcfChiaPet: checked })}
-            control={<Checkbox />}
-            label={"CTCF-ChIA-PET"}
-            disabled={linkedGenes.ctcfChiaPet === null || assembly === "mm10"}
-          />
-          <FormControlLabel
-            checked={linkedGenes.rnapiiChiaPet}
-            onChange={(_, checked: boolean) => setLinkedGenes({ ...linkedGenes, rnapiiChiaPet: checked })}
-            control={<Checkbox />}
-            label={"RNAPII-ChIA-PET"}
-            disabled={linkedGenes.rnapiiChiaPet === null || assembly === "mm10"}
-          />
-        </Box>
+        <Stack direction="row" flexWrap={"wrap"}>
+          <div>
+            <FormControlLabel
+              label="Assays"
+              control={
+                <Checkbox
+                  checked={Object.values(selectedAssays).every(assay => assay || assay === null)}
+                  indeterminate={
+                    !(
+                      //If every value is not true/null
+                      Object.values(selectedAssays).every(assay => assay || assay === null) ||
+                      //Or every value is not false/null
+                      Object.values(selectedAssays).every(assay => !assay || assay === null)
+                    )
+                  }
+                  onChange={(_, checked: boolean) => setSelectedAssays(
+                    {
+                      atac: selectedAssays.atac === null ? null : checked,
+                      ctcf: selectedAssays.ctcf === null ? null : checked,
+                      dnase: selectedAssays.dnase === null ? null : checked,
+                      h3k27ac: selectedAssays.h3k27ac === null ? null : checked,
+                      h3k4me3: selectedAssays.h3k4me3 === null ? null : checked
+                    }
+                  )}
+                />
+              } />
+            <Box sx={{ display: 'flex', flexDirection: 'column', ml: 3 }}>
+              <FormControlLabel
+                checked={selectedAssays.dnase}
+                onChange={(_, checked: boolean) => setSelectedAssays({ ...selectedAssays, dnase: checked })}
+                control={<Checkbox />}
+                label={"DNase"}
+                disabled={selectedAssays.dnase === null}
+              />
+              <FormControlLabel
+                checked={selectedAssays.atac}
+                onChange={(_, checked: boolean) => setSelectedAssays({ ...selectedAssays, atac: checked })}
+                control={<Checkbox />}
+                label={"ATAC"}
+                disabled={selectedAssays.atac === null}
+              />
+              <FormControlLabel
+                checked={selectedAssays.ctcf}
+                onChange={(_, checked: boolean) => setSelectedAssays({ ...selectedAssays, ctcf: checked })}
+                control={<Checkbox />}
+                label={"CTCF"}
+                disabled={selectedAssays.ctcf === null}
+              />
+              <FormControlLabel
+                checked={selectedAssays.h3k27ac}
+                onChange={(_, checked: boolean) => setSelectedAssays({ ...selectedAssays, h3k27ac: checked })}
+                control={<Checkbox />}
+                label={"H3K27ac"}
+                disabled={selectedAssays.h3k27ac === null}
+              />
+              <FormControlLabel
+                checked={selectedAssays.h3k4me3}
+                onChange={(_, checked: boolean) => setSelectedAssays({ ...selectedAssays, h3k4me3: checked })}
+                control={<Checkbox />}
+                label={"H3K4me3"}
+                disabled={selectedAssays.h3k4me3 === null}
+              />
+            </Box>
+          </div>
+          <div>
+            <FormControlLabel
+              label="Conservation"
+              control={
+                <Checkbox
+                  checked={Object.values(selectedConservation).every(x => x || x === null) && assembly !== "mm10"}
+                  disabled={assembly === "mm10"}
+                  indeterminate={
+                    !(
+                      //If every value is not true/null
+                      Object.values(selectedConservation).every(x => x || x === null) ||
+                      //Or every value is not false/null
+                      Object.values(selectedConservation).every(x => !x || x === null)
+                    )
+                  }
+                  onChange={(_, checked: boolean) => setSelectedConservation(
+                    {
+                      primate: selectedConservation.primate === null ? null : checked,
+                      mammal: selectedConservation.mammal === null ? null : checked,
+                      vertebrate: selectedConservation.vertebrate === null ? null : checked
+                    }
+                  )}
+                />
+              } />
+            <Box sx={{ display: 'flex', flexDirection: 'column', ml: 3 }}>
+              <FormControlLabel
+                checked={selectedConservation.primate}
+                onChange={(_, checked: boolean) => setSelectedConservation({ ...selectedConservation, primate: checked })}
+                control={<Checkbox />}
+                label={"Primate"}
+                disabled={selectedConservation.primate === null || assembly === "mm10"}
+              />
+              <FormControlLabel
+                checked={selectedConservation.mammal}
+                onChange={(_, checked: boolean) => setSelectedConservation({ ...selectedConservation, mammal: checked })}
+                control={<Checkbox />}
+                label={"Mammal"}
+                disabled={selectedConservation.mammal === null || assembly === "mm10"}
+              />
+              <FormControlLabel
+                checked={selectedConservation.vertebrate}
+                onChange={(_, checked: boolean) => setSelectedConservation({ ...selectedConservation, vertebrate: checked })}
+                control={<Checkbox />}
+                label={"Vertebrate"}
+                disabled={selectedConservation.vertebrate === null || assembly === "mm10"}
+              />
+            </Box>
+          </div>
+          <div>
+            <FormControlLabel
+              label="Linked Genes"
+              control={
+                <Checkbox
+                  checked={Object.values(linkedGenes).every(x => x || x === null)}
+                  indeterminate={
+                    !(
+                      //If every value is not true/null
+                      Object.values(linkedGenes).every(x => x || x === null) ||
+                      //Or every value is not false/null
+                      Object.values(linkedGenes).every(x => !x || x === null)
+                    )
+                  }
+                  onChange={(_, checked: boolean) => setLinkedGenes(
+                    {
+                      distancePC: linkedGenes.distancePC === null ? null : checked,
+                      distanceAll: linkedGenes.distanceAll === null ? null : checked,
+                      ctcfChiaPet: linkedGenes.ctcfChiaPet === null ? null : checked,
+                      rnapiiChiaPet: linkedGenes.rnapiiChiaPet === null ? null : checked,
+                    }
+                  )}
+                />
+              } />
+            <Box sx={{ display: 'flex', flexDirection: 'column', ml: 3 }}>
+              <FormControlLabel
+                checked={linkedGenes.distancePC}
+                onChange={(_, checked: boolean) => setLinkedGenes({ ...linkedGenes, distancePC: checked })}
+                control={<Checkbox />}
+                label={"Distance (protein-coding)"}
+                disabled={linkedGenes.distancePC === null}
+              />
+              <FormControlLabel
+                checked={linkedGenes.distanceAll}
+                onChange={(_, checked: boolean) => setLinkedGenes({ ...linkedGenes, distanceAll: checked })}
+                control={<Checkbox />}
+                label={"Distance (all)"}
+                disabled={linkedGenes.distanceAll === null}
+              />
+              <FormControlLabel
+                checked={linkedGenes.ctcfChiaPet}
+                onChange={(_, checked: boolean) => setLinkedGenes({ ...linkedGenes, ctcfChiaPet: checked })}
+                control={<Checkbox />}
+                label={"CTCF-ChIA-PET"}
+                disabled={linkedGenes.ctcfChiaPet === null || assembly === "mm10"}
+              />
+              <FormControlLabel
+                checked={linkedGenes.rnapiiChiaPet}
+                onChange={(_, checked: boolean) => setLinkedGenes({ ...linkedGenes, rnapiiChiaPet: checked })}
+                control={<Checkbox />}
+                label={"RNAPII-ChIA-PET"}
+                disabled={linkedGenes.rnapiiChiaPet === null || assembly === "mm10"}
+              />
+            </Box>
+          </div>
+        </Stack>
         <Stack direction="row" alignItems={"center"} sx={{ mt: 1 }}>
           <Button
             disabled={typeof bedLoadingPercent === "number" || !inputValue}

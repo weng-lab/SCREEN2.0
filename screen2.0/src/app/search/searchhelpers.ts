@@ -707,8 +707,6 @@ const convertToBED = (
   conservation: { primate: boolean, mammal: boolean, vertebrate: boolean },
   linkedGenes: { distancePC: boolean, distanceAll: boolean, ctcfChiaPet: boolean, rnapiiChiaPet: boolean }
 ): string => {
-  const firstEntry = mainQueryData.data.cCRESCREENSearch[0]
-
   //Create header comment for the file
   let header = [
     "# chr\tstart\tend\tacccession\tclassification",
@@ -742,10 +740,10 @@ const convertToBED = (
     const primate = item.primates;
     const mammal = item.mammals;
     const vertebrate = item.vertebrates;
-    const distancePC = item.genesallpc.pc.intersecting_genes.map(gene => gene.name).join()
-    const distanceAll = item.genesallpc.all.intersecting_genes.map(gene => gene.name).join()
-    const ctcfChiaPet = null
-    const rnapiiChiaPet = null
+    const distancePC = item.genesallpc.pc.intersecting_genes.map(gene => gene.name).join();
+    const distanceAll = item.genesallpc.all.intersecting_genes.map(gene => gene.name).join();
+    const ctcfChiaPet = linkedGenesData[item.info.accession]?.genes.filter(gene => gene.linkedBy === "CTCF-ChIAPET").map(gene => gene.geneName).join() || 'none';
+    const rnapiiChiaPet = linkedGenesData[item.info.accession]?.genes.filter(gene => gene.linkedBy === "RNAPII-ChIAPET").map(gene => gene.geneName).join() || 'none';
 
     // Construct tab separated row, ends with newline
     const bedRow = [
@@ -768,7 +766,6 @@ const convertToBED = (
       `${linkedGenes.rnapiiChiaPet ? '\t' + rnapiiChiaPet : ''}`,
       '\n'
     ].join('')
-
     // Append to the content string
     bedContent.push(bedRow);
   });
@@ -809,6 +806,7 @@ export const downloadBED = async (
   }
   //For each range, send query and populate dataArray
   let dataArray: MainQueryData[] = []
+  let linkedGenesArray: RawLinkedGenesData[] = []
 
   //@ts-expect-error
   startTransition(async () => {
@@ -826,6 +824,15 @@ export const downloadBED = async (
           bedIntersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined,
           true
         )
+        let linkedGenesData: RawLinkedGenesData = null;
+        //If ChIAPET linked genes requested, fetch them
+        if (linkedGenes.ctcfChiaPet || linkedGenes.rnapiiChiaPet) {
+          linkedGenesData = await fetchLinkedGenesData(
+            data,
+            assembly
+          )
+          linkedGenesArray.push(linkedGenesData)
+        }
         dataArray.push(data)
         setBedLoadingPercent(dataArray.length / ranges.length * 100)
       } catch (error) {
@@ -853,16 +860,16 @@ export const downloadBED = async (
     combinedResults = combinedResults.filter((cCRE) => TSSranges.find((TSSrange) => cCRE.start <= TSSrange.end && TSSrange.start <= (cCRE.start + cCRE.len)))
   }
 
-  // const deduplicatedResults: MainQueryData = { data: { cCRESCREENSearch: [...new Set(combinedResults)] } }
   const deduplicatedResults: MainQueryData = {
     data: {
       cCRESCREENSearch: Array.from(new Set(combinedResults.map((x) => JSON.stringify(x))), (x) => JSON.parse(x)),
     },
   };
-  // console.log(deduplicatedResults)
+
+  const combinedLinkedGenes: RawLinkedGenesData = Object.assign({}, ...linkedGenesArray)
 
   //generate BED string
-  const bedContents = convertToBED(deduplicatedResults, assays, conservation, linkedGenes)
+  const bedContents = convertToBED(deduplicatedResults, combinedLinkedGenes, assays, conservation, linkedGenes)
 
   const blob = new Blob([bedContents], { type: 'text/plain' });
 

@@ -203,7 +203,7 @@ export const BiosampleTables: React.FC<Props> = ({
       })
     )
   },
-    [filteredBiosamples, sidebar, selectedBiosamples, searchString, setSelectedBiosamples]
+    [filteredBiosamples, selectedBiosamples, searchString, setSelectedBiosamples, biosampleSelectMode, showRNAseq]
   )
 
   const Checkboxes = (checkboxStates: BiosampleTableFilters, setCheckboxStates: Dispatch<SetStateAction<BiosampleTableFilters>>) => {
