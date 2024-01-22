@@ -742,8 +742,8 @@ const convertToBED = (
     const vertebrate = item.vertebrates;
     const distancePC = item.genesallpc.pc.intersecting_genes.map(gene => gene.name).join();
     const distanceAll = item.genesallpc.all.intersecting_genes.map(gene => gene.name).join();
-    const ctcfChiaPet = linkedGenesData[item.info.accession]?.genes.filter(gene => gene.linkedBy === "CTCF-ChIAPET").map(gene => gene.geneName).join() || 'none';
-    const rnapiiChiaPet = linkedGenesData[item.info.accession]?.genes.filter(gene => gene.linkedBy === "RNAPII-ChIAPET").map(gene => gene.geneName).join() || 'none';
+    const ctcfChiaPet = linkedGenesData[item.info.accession]?.genes.filter(gene => gene.linkedBy === "CTCF-ChIAPET").map(gene => gene.geneName).join() || '.';
+    const rnapiiChiaPet = linkedGenesData[item.info.accession]?.genes.filter(gene => gene.linkedBy === "RNAPII-ChIAPET").map(gene => gene.geneName).join() || '.';
 
     // Construct tab separated row, ends with newline
     const bedRow = [
