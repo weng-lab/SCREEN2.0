@@ -133,7 +133,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.23.7":
+"@babel/runtime@npm:^7.23.7, @babel/runtime@npm:^7.23.8":
   version: 7.23.8
   resolution: "@babel/runtime@npm:7.23.8"
   dependencies:
@@ -798,7 +798,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/icons-material@npm:^5.11.0, @mui/icons-material@npm:^5.15.2":
+"@mui/icons-material@npm:^5.11.0":
   version: 5.15.2
   resolution: "@mui/icons-material@npm:5.15.2"
   dependencies:
@@ -811,6 +811,22 @@ __metadata:
     "@types/react":
       optional: true
   checksum: f1ff774daaa12b7a2ab7d007bff740a1b936d00cc549fe6ee66e3ff8678ea982d57863a44509446c76b2f1eddb7a5041e27a38ae332045b4fd98f2b39887815c
+  languageName: node
+  linkType: hard
+
+"@mui/icons-material@npm:^5.15.5":
+  version: 5.15.5
+  resolution: "@mui/icons-material@npm:5.15.5"
+  dependencies:
+    "@babel/runtime": ^7.23.8
+  peerDependencies:
+    "@mui/material": ^5.0.0
+    "@types/react": ^17.0.0 || ^18.0.0
+    react: ^17.0.0 || ^18.0.0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: a3382da9afa48e8603d21da515e0c82ccadcda7033c8dcfcd944ea72643da7f64fa9fa4e9b22c51d9ff4c9a07fc8553de5b537515a11d015fa1aacbe9f19461e
   languageName: node
   linkType: hard
 
@@ -6978,7 +6994,7 @@ __metadata:
     "@apollo/experimental-nextjs-app-support": ^0.5.1
     "@emotion/react": ^11.11.1
     "@emotion/styled": ^11.11.0
-    "@mui/icons-material": ^5.15.2
+    "@mui/icons-material": ^5.15.5
     "@mui/lab": ^5.0.0-alpha.158
     "@mui/material": ^5.15.4
     "@types/node": ^20.10.8
