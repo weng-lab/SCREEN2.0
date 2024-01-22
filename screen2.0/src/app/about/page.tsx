@@ -7,7 +7,7 @@ import figure3 from "../../../public/assets/about/images/figure3.png"
 import figure4 from "../../../public/assets/about/images/figure4.png"
 import figure5 from "../../../public/assets/about/images/figure5.png"
 
-import { Box, Button, Stack, TextField, Typography } from "@mui/material"
+import { Typography } from "@mui/material"
 
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 
@@ -20,10 +20,6 @@ export default function About() {
     <main>
       <Grid2 container spacing={4} sx={{ maxWidth: "70%", mr: "auto", ml: "auto", mt: "3rem" }}>
         <Grid2 xs={12} lg={6}>
-          <Typography variant="h3">About SCREEN</Typography>
-          <Typography variant="h5">Search Candidate cis-Regulatory Elements by ENCODE</Typography>
-        </Grid2>
-        {/* <Grid2 xs={12} lg={6}>
           <Typography variant="h3">About SCREEN</Typography>
           <Typography variant="h5">Search Candidate cis-Regulatory Elements by ENCODE</Typography>
           <Typography variant="h4" sx={{ pt: "2em" }}>
@@ -39,7 +35,7 @@ export default function About() {
           </Typography>
         </Grid2>
         <Grid2 xs={12} lg={6}>
-
+          {/* Should have better alt text */}
           <Image src={figure1} alt={"The ENCODE Encyclodia"} />
           <Typography>
             Figure 1 | Overview of the ENCODE Encyclopedia with a Registry of candidate cis-regulatory elements. The Encyclopedia consists
@@ -228,26 +224,9 @@ export default function About() {
         </Grid2>
         <Grid2 xs={12} id="ucsc-genome-browser">
           <Typography variant="h3">UCSC Genome Browser</Typography>
-        </Grid2> */}
+        </Grid2>
         <Grid2 xs={12} id="contact-us">
           <Typography variant="h3">Contact Us</Typography>
-          <Typography mb={1} variant="body1">Send us a message and we&apos;ll be in touch</Typography>
-          <Stack direction="row">
-            <Typography mb={1} variant="body1">If you&apos;re experiencing an error/bug, feel free to&nbsp;</Typography>
-            <a href="https://github.com/weng-lab/SCREEN2.0/issues"><u><Typography mb={1} color={"primary"} variant="body1">submit an issue on Github</Typography></u></a>
-          </Stack>
-          <Box
-            component="form"
-            sx={{
-              '& > :not(style)': { width: '25ch' },
-            }}
-            noValidate
-            autoComplete="off"
-          >
-            <TextField sx={{display: 'block', mb: 1}} id="outlined-basic" label="Email" variant="outlined" />
-            <TextField fullWidth rows={4} sx={{display: 'block'}} multiline id="outlined-basic" label="Message" variant="outlined" />
-            <Button sx={{mt: 1}} variant="contained">Submit</Button>
-          </Box>
         </Grid2>
       </Grid2>
     </main>
