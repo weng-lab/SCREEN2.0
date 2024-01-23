@@ -135,16 +135,16 @@ function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: numbe
     gene_all_end: 5000000,
     gene_pc_start: 0,
     gene_pc_end: 5000000,
-    rank_dnase_start: -10,
-    rank_dnase_end: 10,
-    rank_atac_start: -10,
-    rank_atac_end: 10,
-    rank_promoter_start: -10,
-    rank_promoter_end: 10,
-    rank_enhancer_start: -10,
-    rank_enhancer_end: 10,
-    rank_ctcf_start: -10,
-    rank_ctcf_end: 10,
+    rank_dnase_start: -20,
+    rank_dnase_end: 20,
+    rank_atac_start: -20,
+    rank_atac_end: 20,
+    rank_promoter_start: -20,
+    rank_promoter_end: 20,
+    rank_enhancer_start: -20,
+    rank_enhancer_end: 20,
+    rank_ctcf_start: -20,
+    rank_ctcf_end: 20,
     cellType: biosample,
     element_type: null,
     limit: noLimit ? null : 25000,
@@ -254,6 +254,7 @@ export async function fetchLinkedGenes(assembly: "GRCh38" | "mm10", accessions: 
     linkedGenes.data.linkedGenesQuery.forEach((entry) => {
       !geneIDs.includes(entry.gene.split(".")[0]) && geneIDs.push(entry.gene.split(".")[0])
     })
+    console.log(linkedGenes.data)
     //Attempt to lookup gene names
     try {
       geneNames = await getClient().query({
@@ -261,15 +262,18 @@ export async function fetchLinkedGenes(assembly: "GRCh38" | "mm10", accessions: 
         variables: { assembly: assembly, name_prefix: geneIDs },
         fetchPolicy: "no-cache"
       })
-      //If both queries are successful, go through each of linkedGenes.data.linkedGenesQuery, find the accession and (if doesnt exist) add to linkedGenesData along with any gene names matching the ID in queryRes2
+      console.log(geneNames.data)
+      //If both queries are successful, go through each of linkedGenes.data.linkedGenesQuery and assemble return data
       linkedGenes.data.linkedGenesQuery.forEach((entry) => {
-        // if returnData does not have an entry for that accession, and if there is a gene in query2 with an id that matches
-        if (geneNames.data && (!Object.hasOwn(returnData, entry.accession)) && (geneNames.data.gene.find((x) => x.id === entry.gene) !== undefined)) {
-          Object.defineProperty(returnData, entry.accession, { value: { genes: [{ geneName: geneNames.data.gene.find((x) => x.id === entry.gene).name, linkedBy: entry.assay, biosample: entry.celltype }] }, writable: true, enumerable: true, configurable: true })
+        const hasEntry: boolean = Object.hasOwn(returnData, entry.accession)
+        const matchingGeneName = geneNames.data.gene.find((x) => x.id.split('.')[0] === entry.gene.split('.')[0])?.name
+        // If there is no entry for that accession, create new one
+        if (geneNames.data && !hasEntry && matchingGeneName) {
+          returnData[entry.accession] = { genes: [{ geneName: matchingGeneName, linkedBy: entry.assay, biosample: entry.celltype }] }
         }
-        // if returnData does already have a linked gene for that accession, add the linked gene to the existing data
-        else if (geneNames.data && (Object.hasOwn(returnData, entry.accession)) && (geneNames.data.gene.find((x) => x.id === entry.gene) !== undefined)) {
-          Object.defineProperty(returnData[entry.accession], "genes", { value: [...returnData[entry.accession].genes, { geneName: geneNames.data.gene.find((x) => x.id === entry.gene).name, linkedBy: entry.assay, biosample: entry.celltype }], writable: true, enumerable: true, configurable: true })
+        // if entry for accession already exists, add to linked genes
+        else if (geneNames.data && hasEntry && matchingGeneName) {
+          returnData[entry.accession].genes = [...returnData[entry.accession].genes, { geneName: matchingGeneName, linkedBy: entry.assay, biosample: entry.celltype }]
         }
       })
     } catch (error) {

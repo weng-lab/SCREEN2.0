@@ -742,8 +742,8 @@ const convertToBED = (
     const vertebrate = item.vertebrates;
     const distancePC = item.genesallpc.pc.intersecting_genes.map(gene => gene.name).join();
     const distanceAll = item.genesallpc.all.intersecting_genes.map(gene => gene.name).join();
-    const ctcfChiaPet = linkedGenesData[item.info.accession]?.genes.filter(gene => gene.linkedBy === "CTCF-ChIAPET").map(gene => gene.geneName).join() || '.';
-    const rnapiiChiaPet = linkedGenesData[item.info.accession]?.genes.filter(gene => gene.linkedBy === "RNAPII-ChIAPET").map(gene => gene.geneName).join() || '.';
+    const ctcfChiaPet = [...new Set(linkedGenesData[item.info.accession]?.genes.filter(gene => gene.linkedBy === "CTCF-ChIAPET").map(gene => gene.geneName))].join();
+    const rnapiiChiaPet = [...new Set(linkedGenesData[item.info.accession]?.genes.filter(gene => gene.linkedBy === "RNAPII-ChIAPET").map(gene => gene.geneName))].join();
 
     // Construct tab separated row, ends with newline
     const bedRow = [
@@ -762,8 +762,8 @@ const convertToBED = (
       `${conservation.vertebrate ? '\t' + vertebrate : ''}`,
       `${linkedGenes.distancePC ? '\t' + distancePC : ''}`,
       `${linkedGenes.distanceAll ? '\t' + distanceAll : ''}`,
-      `${linkedGenes.ctcfChiaPet ? '\t' + ctcfChiaPet : ''}`,
-      `${linkedGenes.rnapiiChiaPet ? '\t' + rnapiiChiaPet : ''}`,
+      `${linkedGenes.ctcfChiaPet ? '\t' + (ctcfChiaPet ? ctcfChiaPet : '.') : ''}`,
+      `${linkedGenes.rnapiiChiaPet ? '\t' + (rnapiiChiaPet ? rnapiiChiaPet : '.') : ''}`,
       '\n'
     ].join('')
     // Append to the content string
@@ -835,6 +835,8 @@ export const downloadBED = async (
         }
         dataArray.push(data)
         setBedLoadingPercent(dataArray.length / ranges.length * 100)
+        //Wait one second before sending the next query to reduce load on service
+        await new Promise(resolve => setTimeout(resolve, 1000))
       } catch (error) {
         window.alert(
           "There was an error fetching cCRE data, please try again soon. If this error persists, please report it via our 'Contact Us' form on the About page and include this info:\n\n" +
