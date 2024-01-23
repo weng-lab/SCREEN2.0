@@ -1,6 +1,6 @@
 {
   "name": "screen2.0",
-  "version": "0.1.0",
+  "version": "0.0.5",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -45,7 +45,7 @@
     "@types/node": "^20.10.8",
     "@types/react": "^18.2.47",
     "@types/react-dom": "18.2.18",
-    "@weng-lab/psychscreen-ui-components": "^0.8.5",
+    "@weng-lab/psychscreen-ui-components": "^0.8.6",
     "@weng-lab/ts-ztable": "^4.0.1",
     "autoprefixer": "10.4.16",
     "bpnet-ui": "^0.3.8",
