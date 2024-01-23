@@ -50,13 +50,22 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
       const biosample_summary = valueCellType
       let region: { chromosome: string, start: string, end: string }
       if (valueRegion) {
-        region = parseGenomicRegion(valueRegion)
+        try {
+          region = parseGenomicRegion(valueRegion)
+          return (
+            `search?assembly=${props.assembly}&chromosome=${region.chromosome}&start=${Math.max(0, Number(region.start))}&end=${region.end}&BiosampleTissue=${tissue}&BiosampleSummary=${biosample_summary}&Biosample=${biosample}`
+          )
+        }
+        catch (msg) {
+          window.alert("Error in input format - " + msg)
+          setValueRegion("")
+        }
       } else {
         region = { chromosome: 'chr11', start: "5205263", end: "5381894" }
+        return (
+          `search?assembly=${props.assembly}&chromosome=${region.chromosome}&start=${Math.max(0, Number(region.start))}&end=${region.end}&BiosampleTissue=${tissue}&BiosampleSummary=${biosample_summary}&Biosample=${biosample}`
+        )
       }
-      return (
-        `search?assembly=${props.assembly}&chromosome=${region.chromosome}&start=${Math.max(0, Number(region.start))}&end=${region.end}&BiosampleTissue=${tissue}&BiosampleSummary=${biosample_summary}&Biosample=${biosample}`
-      )
     }
   }
 
@@ -136,10 +145,10 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
           setValueRegion(event.target.value)
         }}
         onKeyDown={(event) => {
-          if (event.code === "Enter" && valueCellType) {
+          if (event.key === "Enter" && valueCellType) {
             window.open(handleSubmit(), "_self")
           }
-          if (event.code === "Tab" && !valueRegion) {
+          if (event.key === "Tab" && !valueRegion) {
             setValueRegion("chr11:5205263-5381894")
           }
         }}
@@ -156,7 +165,7 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
         }}
         size={props.header ? "small" : "medium"}
       />
-      <IconButton aria-label="Search" type="submit" href={handleSubmit()} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
+      <IconButton aria-label="Search" type="submit" onClick={() => window.open(handleSubmit(), "_self")} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
         <Search />
       </IconButton>
     </Stack>

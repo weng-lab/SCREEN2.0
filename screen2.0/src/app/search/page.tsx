@@ -1,17 +1,17 @@
 // Search Results Page
 "use client"
 import { getGlobals } from "../../common/lib/queries"
-import { Biosample, BiosampleTableFilters, CellTypeData, FilterCriteria, MainQueryParams } from "./types"
-import { constructBiosampleTableFiltersFromURL, constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, fetchcCREDataAndLinkedGenes } from "./searchhelpers"
-import React, { startTransition, useEffect, useMemo, useRef, useState } from "react"
+import { Biosample, BiosampleTableFilters, CellTypeData, FilterCriteria, MainQueryData, MainQueryParams, SCREENSearchResult } from "./types"
+import { constructBiosampleTableFiltersFromURL, constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, downloadBED, fetchcCREData, fetchLinkedGenesData } from "./searchhelpers"
+import React, { startTransition, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { styled } from '@mui/material/styles';
-import { Divider, IconButton, Tab, Tabs, Typography, Box } from "@mui/material"
+import { Divider, IconButton, Tab, Tabs, Typography, Box, Button, CircularProgressProps, CircularProgress, Stack } from "@mui/material"
 import { MainResultsTable } from "./mainresultstable"
 import { MainResultsFilters } from "./mainresultsfilters"
 import { CcreDetails } from "./_ccredetails/ccredetails"
 import { usePathname, useRouter } from "next/navigation"
 import { GenomeBrowserView } from "./_gbview/genomebrowserview"
-import { LinkedGenesData, MainResultTableRow, rawQueryData } from "./types"
+import { LinkedGenesData, MainResultTableRow, RawLinkedGenesData, rawQueryData } from "./types"
 import { generateFilteredRows } from "./searchhelpers"
 import { Drawer } from "@mui/material"
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar'
@@ -22,6 +22,9 @@ import CloseIcon from '@mui/icons-material/Close';
 import Rampage from "./_ccredetails/rampage";
 import { GeneExpression } from "./_ccredetails/geneexpression";
 import { LoadingMessage } from "../../common/lib/utility"
+import { LoadingButton } from '@mui/lab'
+import { DataArray, Download } from "@mui/icons-material"
+import { B } from "logots-react"
 
 /**
  * @todo:
@@ -88,6 +91,34 @@ const DrawerHeader = styled('div')(({ theme }) => ({
   justifyContent: 'space-between',
 }));
 
+function CircularProgressWithLabel(
+  props: CircularProgressProps & { value: number },
+) {
+  return (
+    <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+      <CircularProgress variant="determinate" {...props} />
+      <Box
+        sx={{
+          top: 0,
+          left: 0,
+          bottom: 0,
+          right: 0,
+          position: 'absolute',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Typography
+          variant="caption"
+          component="div"
+          color="text.secondary"
+        >{`${Math.round(props.value)}%`}</Typography>
+      </Box>
+    </Box>
+  );
+}
+
 export default function Search({ searchParams }: { searchParams: { [key: string]: string | undefined } }) {
   const router = useRouter()
   const basePathname = usePathname()
@@ -100,16 +131,19 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     linkedGenes: LinkedGenesData
   }[]>([])
   const [globals, setGlobals] = useState<CellTypeData>(null)
-  const [rawQueryData, setRawQueryData] = useState<rawQueryData>(null)
+  const [mainQueryData, setMainQueryData] = useState<MainQueryData>(null)
+  const [rawLinkedGenesData, setRawLinkedGenesData] = useState<RawLinkedGenesData>(null)
   //potential performance improvement if I make an initializer function vs passing param here.
   const [mainQueryParams, setMainQueryParams] = useState<MainQueryParams>(constructMainQueryParamsFromURL(searchParams))
   const [filterCriteria, setFilterCriteria] = useState<FilterCriteria>(constructFilterCriteriaFromURL(searchParams))
   const [biosampleTableFilters, setBiosampleTableFilters] = useState<BiosampleTableFilters>(constructBiosampleTableFiltersFromURL(searchParams))
   const [loadingTable, setLoadingTable] = useState<boolean>(false)
   const [loadingFetch, setLoadingFetch] = useState<boolean>(false)
+  const [isPending, startTransition] = useTransition();
   const [opencCREsInitialized, setOpencCREsInitialized] = useState(false)
   const [TSSs, setTSSs] = useState<number[]>(null)
   const [TSSranges, setTSSranges] = useState<{start: number, end: number}[]>(null)
+  const [bedLoadingPercent, setBedLoadingPercent] = useState<number>(null)
 
   //Used to set just biosample in filters. Used for performance improvement to avoid having entire mainQueryParams in dep array
   const handleSetBiosample = (biosample: Biosample) => { setMainQueryParams({ ...mainQueryParams, biosample: biosample }) }
@@ -168,7 +202,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   useEffect(() => {
     //Check if the URL params representing state are stale
     if (
-      opencCREsInitialized &&
+      opencCREsInitialized && !loadingFetch &&
       (JSON.stringify(constructMainQueryParamsFromURL(searchParams)) !== JSON.stringify(mainQueryParams)
       || JSON.stringify(constructFilterCriteriaFromURL(searchParams)) !== JSON.stringify(filterCriteria)
       || JSON.stringify(constructBiosampleTableFiltersFromURL(searchParams)) !== JSON.stringify(biosampleTableFilters)
@@ -182,75 +216,91 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         page,
         opencCREs.map(x => x.ID).join(',')
       )
+      // console.log("pushing new url")
       router.push(newURL)
     }
-  }, [searchParams, mainQueryParams, filterCriteria, biosampleTableFilters, page, opencCREs, router, basePathname, opencCREsInitialized])
+  }, [searchParams, mainQueryParams, filterCriteria, biosampleTableFilters, page, opencCREs, router, basePathname, opencCREsInitialized, loadingFetch])
 
   //fetch globals
   useEffect(() => {
-    // Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
-    // @ts-expect-error
     startTransition(async () => {
       setGlobals(await getGlobals(mainQueryParams.coordinates.assembly))
     })
   }, [mainQueryParams.coordinates.assembly])
 
 
-  //Fetch raw cCRE data (main query and linked genes)
+  //Fetch raw cCRE data (main query only to prevent hidden linked genes from slowing down search)
   useEffect(() => {
-      setLoadingFetch(true)
+    console.log("main fetch effect called")
+    setLoadingFetch(true)
 
-      let start = mainQueryParams.coordinates.start
-      if (mainQueryParams.snp.rsID) {
-        start = Math.max(0, mainQueryParams.coordinates.start - mainQueryParams.snp.distance);
-      } else if (mainQueryParams.gene.nearTSS) {
-        start = TSSs && TSSranges ? Math.max(0, Math.min(...TSSs) - mainQueryParams.gene.distance) : null
-      }
+    let start = mainQueryParams.coordinates.start
+    if (mainQueryParams.snp.rsID) {
+      start = Math.max(0, mainQueryParams.coordinates.start - mainQueryParams.snp.distance);
+    } else if (mainQueryParams.gene.nearTSS) {
+      start = TSSs && TSSranges ? Math.max(0, Math.min(...TSSs) - mainQueryParams.gene.distance) : null
+    }
 
-      let end = mainQueryParams.coordinates.end
-      if (mainQueryParams.snp.rsID) {
-        end = mainQueryParams.coordinates.end + mainQueryParams.snp.distance;
-      } else if (mainQueryParams.gene.nearTSS) {
-        end = TSSs && TSSranges ? Math.max(...TSSs) + mainQueryParams.gene.distance : null
-      }
+    let end = mainQueryParams.coordinates.end
+    if (mainQueryParams.snp.rsID) {
+      end = mainQueryParams.coordinates.end + mainQueryParams.snp.distance;
+    } else if (mainQueryParams.gene.nearTSS) {
+      end = TSSs && TSSranges ? Math.max(...TSSs) + mainQueryParams.gene.distance : null
+    }
 
-      // Setting react/experimental in types is not fixing this error? https://github.com/vercel/next.js/issues/49420#issuecomment-1537794691
-      // @ts-expect-error
-      start && end && startTransition(async () => {
-        setRawQueryData(
-          await fetchcCREDataAndLinkedGenes(
-            mainQueryParams.coordinates.assembly,
-            mainQueryParams.coordinates.chromosome,
-            start,
-            end,
-            mainQueryParams.biosample ? mainQueryParams.biosample.queryValue : undefined,
-            1000000,
-            null,
-            mainQueryParams.searchConfig.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined
-          )
-        )
-        setLoadingFetch(false)
-      })
+    (mainQueryParams.searchConfig.bed_intersect || (start !== null) && (end !== null)) && startTransition(async () => {
+      console.log("transition started")
+      const mainQueryData = await fetchcCREData(
+        mainQueryParams.coordinates.assembly,
+        mainQueryParams.coordinates.chromosome,
+        start,
+        end,
+        mainQueryParams.biosample ? mainQueryParams.biosample.queryValue : undefined,
+        1000000,
+        null,
+        mainQueryParams.searchConfig.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined
+      )
+      console.log("setting main query data")
+      setMainQueryData(mainQueryData)
+      setLoadingFetch(false)
+    })
   }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample, mainQueryParams.snp.rsID, mainQueryParams.snp.distance, TSSs, TSSranges, mainQueryParams.gene.distance, mainQueryParams.gene.nearTSS])
+
+  //Fetch linked genes data.
+  useEffect(() => {
+    mainQueryData && startTransition(async () => {
+      const linkedGenesData = await fetchLinkedGenesData(
+        mainQueryData,
+        mainQueryParams.coordinates.assembly
+      )
+      // console.log("setting linked genes data")
+      setRawLinkedGenesData(linkedGenesData)
+    })
+  }, [mainQueryData, mainQueryParams.coordinates.assembly])
 
   // Initialize open cCREs on initial load
   useEffect(() => {
     const cCREsToFetch = searchParams.accessions?.split(',')
     if (cCREsToFetch?.length > 0 && !opencCREsInitialized) {
-      // @ts-expect-error
       startTransition(async () => {
         //Generate unfiltered rows of info for each open cCRE for ease of accessing data
+        const cCREQueryData = await fetchcCREData(
+          mainQueryParams.coordinates.assembly,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          1000000,
+          null,
+          cCREsToFetch
+        )
+        const linkedGenesData = await fetchLinkedGenesData(
+          cCREQueryData,
+          mainQueryParams.coordinates.assembly
+        )
         const opencCRE_data = generateFilteredRows(
-          await fetchcCREDataAndLinkedGenes(
-            mainQueryParams.coordinates.assembly,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            1000000,
-            null,
-            cCREsToFetch
-          ),
+          cCREQueryData,
+          linkedGenesData,
           filterCriteria,
           true
         )
@@ -284,17 +334,59 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   //Generate and filter rows
   const filteredTableRows = useMemo(() => {
     setLoadingTable(true)
-    if (rawQueryData) {
-      const rows = generateFilteredRows(rawQueryData, filterCriteria, false, mainQueryParams.gene.nearTSS ? TSSranges : undefined)
+    if (mainQueryData) {
+      const rows = generateFilteredRows(mainQueryData, rawLinkedGenesData, filterCriteria, false, mainQueryParams.gene.nearTSS ? TSSranges : undefined)
       setLoadingTable(false)
       return (rows)
     } else {
       return []
     }
-  }, [rawQueryData, filterCriteria, TSSranges, mainQueryParams.gene.nearTSS])
+  }, [mainQueryData, rawLinkedGenesData, filterCriteria, TSSranges, mainQueryParams.gene.nearTSS])
 
   const findTabByID = (id: string, numberOfTable: number = 2) => {
     return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)
+  }
+
+  const handleDownloadBed = () => {
+    let start = mainQueryParams.coordinates.start
+    if (mainQueryParams.snp.rsID) {
+      start = Math.max(0, mainQueryParams.coordinates.start - mainQueryParams.snp.distance);
+    } else if (mainQueryParams.gene.nearTSS) {
+      start = TSSs && TSSranges ? Math.max(0, Math.min(...TSSs) - mainQueryParams.gene.distance) : null
+    }
+
+    let end = mainQueryParams.coordinates.end
+    if (mainQueryParams.snp.rsID) {
+      end = mainQueryParams.coordinates.end + mainQueryParams.snp.distance;
+    } else if (mainQueryParams.gene.nearTSS) {
+      end = TSSs && TSSranges ? Math.max(...TSSs) + mainQueryParams.gene.distance : null
+    }
+
+    let assays: {dnase: boolean, atac: boolean, ctcf: boolean, h3k27ac: boolean, h3k4me3: boolean};
+    if (mainQueryParams.biosample) {
+      if (mainQueryParams.biosample.assays) {
+        assays = mainQueryParams.biosample.assays
+      } else {
+        const firstCtData = mainQueryData.data.cCRESCREENSearch[0].ctspecific
+        assays = {dnase: !!firstCtData.dnase_zscore, atac: !!firstCtData.atac_zscore, ctcf: !!firstCtData.ctcf_zscore, h3k27ac: !!firstCtData.h3k27ac_zscore, h3k4me3: !!firstCtData.h3k4me3_zscore}
+      }
+    } else {
+      assays = {dnase: true, atac: true, ctcf: true, h3k27ac: true, h3k4me3: true}
+    }
+    
+    downloadBED(
+      mainQueryParams.coordinates.assembly,
+      mainQueryParams.coordinates.chromosome,
+      start,
+      end,
+      mainQueryParams.biosample,
+      mainQueryParams.searchConfig.bed_intersect,
+      mainQueryParams.gene.nearTSS ? TSSranges : null,
+      assays,
+      {primate: false, mammal: false, vertebrate: false},
+      {distancePC: false, distanceAll: false, ctcfChiaPet: false, rnapiiChiaPet: false},
+      setBedLoadingPercent
+    )
   }
 
   return (
@@ -429,36 +521,48 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               {loadingTable || loadingFetch ?
                 <LoadingMessage />
                 :
-                <MainResultsTable
+                <><MainResultsTable
                   rows={filteredTableRows}
-                  tableTitle={
-                    mainQueryParams.searchConfig.bed_intersect ?
-                      `Intersecting by uploaded .bed file in ${mainQueryParams.coordinates.assembly}${intersectWarning.current === "true" ? " (Partial)" : ""}`
-                      :
-                      mainQueryParams.gene.name ?
-                        mainQueryParams.gene.nearTSS ?
-                          `cCREs within ${mainQueryParams.gene.distance / 1000}kb of TSSs of ${mainQueryParams.gene.name} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.start.toLocaleString("en-US")}-${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
-                          :
-                          `cCREs overlapping ${mainQueryParams.gene.name} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.start.toLocaleString("en-US")}-${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
+                  tableTitle={mainQueryParams.searchConfig.bed_intersect ?
+                    `Intersecting by uploaded .bed file in ${mainQueryParams.coordinates.assembly}${intersectWarning.current === "true" ? " (Partial)" : ""}`
+                    :
+                    mainQueryParams.gene.name ?
+                      mainQueryParams.gene.nearTSS ?
+                        `cCREs within ${mainQueryParams.gene.distance / 1000}kb of TSSs of ${mainQueryParams.gene.name} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.start.toLocaleString("en-US")}-${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
                         :
-                        mainQueryParams.snp.rsID ?
-                          `cCREs within ${mainQueryParams.snp.distance}bp of ${mainQueryParams.snp.rsID} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
-                          :
-                          `Searching ${mainQueryParams.coordinates.chromosome} in ${mainQueryParams.coordinates.assembly} from ${mainQueryParams.coordinates.start.toLocaleString("en-US")} to ${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
-                  }
+                        `cCREs overlapping ${mainQueryParams.gene.name} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.start.toLocaleString("en-US")}-${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
+                      :
+                      mainQueryParams.snp.rsID ?
+                        `cCREs within ${mainQueryParams.snp.distance}bp of ${mainQueryParams.snp.rsID} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
+                        :
+                        `Searching ${mainQueryParams.coordinates.chromosome} in ${mainQueryParams.coordinates.assembly} from ${mainQueryParams.coordinates.start.toLocaleString("en-US")} to ${mainQueryParams.coordinates.end.toLocaleString("en-US")}`}
                   titleHoverInfo={mainQueryParams.searchConfig.bed_intersect ?
                     `${intersectWarning.current === "true" ?
                       "The file you uploaded, " + intersectFilenames.current + ", is too large to be completely intersected. Results are incomplete."
                       :
                       intersectFilenames.current}`
                     :
-                    null
-                  }
+                    null}
                   itemsPerPage={10}
                   assembly={mainQueryParams.coordinates.assembly}
                   onRowClick={handleTableClick}
-                  byCellType={globals}
-                />
+                  byCellType={globals} />
+                  <Stack direction="row" alignItems={"center"} sx={{mt: 1}}>
+                    <Button
+                      disabled={typeof bedLoadingPercent === "number"}
+                      variant="outlined"
+                      sx={{textTransform: 'none'}}
+                      onClick={() => {
+                        handleDownloadBed()
+                      }}
+                      endIcon={<Download />}
+                    >
+                      Download Search Results (.bed)
+                    </Button>
+                    {bedLoadingPercent !== null && <CircularProgressWithLabel value={bedLoadingPercent} />}
+                  </Stack>
+                  
+                  </>
               }
             </Box>
           )}

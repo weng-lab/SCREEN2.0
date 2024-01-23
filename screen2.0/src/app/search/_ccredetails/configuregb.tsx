@@ -121,12 +121,13 @@ const ConfigureGenomeBrowser = (props: {
           Select biosamples to generate track hub with.
         </DialogContentText>
         <DialogContentText mb={2}>
-          Note: For best UCSC performance, choose {"<"}10 cell types. Track hubs will be deleted after 30 days.
+          Note: For best UCSC performance, choose {"<"}10 cell types. Track hubs will be deleted after 24 hours.
         </DialogContentText>
         <Grid2 container spacing={2}>
           <Grid2 xs={8}>
             <BiosampleTables
-              configGB={true}
+              showRNAseq={true}
+              biosampleSelectMode="append"
               byCellType={props.byCellType}
               selectedBiosamples={props.selectedBiosamples}
               setSelectedBiosamples={props.setSelectedBiosamples} />

@@ -16,7 +16,6 @@ import { downloadTSV } from "./utils"
 
 interface TabPanelProps {
   children?: React.ReactNode
-  value: number
   biosamples: -1 | ApolloQueryResult<any>
 }
 
@@ -210,213 +209,209 @@ export function DetailedElements(props: TabPanelProps) {
   )
 
   return (
-    <>
-      {props.value === 1 && (
-        <div>
-          <Grid2 container columnSpacing={6} rowSpacing={3} mt={1}>
-            <Grid2 container xs={12} md={6}>
-              <Grid2 display="flex" alignItems="flex-start" flexDirection="column" xs={10}>
-                <Typography mt="auto" variant="h5">
-                  Human (GRCh38/hg38)
-                </Typography>
-                {/* These are not showing up because of the flex container */}
-                <Divider />
-                <Typography variant="subtitle1">2,348,854 cCREs • 1,678 cell types</Typography>
-              </Grid2>
-              <Grid2 xs={2}>
-                <Image src={Human} alt={"Human Icon"} height={75} />
-              </Grid2>
-              <Grid2 xs={12}>
-                <DownloadButton href={Config.Downloads.HumanCCREs} label="Download All Human cCREs" />
-              </Grid2>
-              <Grid2 display={"flex"} flexWrap={"wrap"} justifyContent={"space-between"} xs={12}>
-                <InlineDownloadButton
-                  mode="download"
-                  href={Config.Downloads.HumanPromoters}
-                  label="Promoter-like (PLS) (47,532)"
-                  bordercolor={PLS}
-                />
-                <InlineDownloadButton
-                  mode="download"
-                  href={Config.Downloads.HumanProximalEnhancers}
-                  label="Proximal enhancer-like (pELS) (249,464)"
-                  bordercolor={pELS}
-                />
-                <InlineDownloadButton
-                  mode="download"
-                  href={Config.Downloads.HumanDistalEnhancers}
-                  label="Distal enhancer-like (dELS) (1,469,205)"
-                  bordercolor={dELS}
-                />
-                <InlineDownloadButton
-                  mode="download"
-                  href={Config.Downloads.HumanCA_CTCF}
-                  label="Chromatin Accessible with CTCF (126,034)"
-                  bordercolor={CA_CTCF}
-                />
-                <InlineDownloadButton
-                  mode="download"
-                  href={Config.Downloads.HumanCA_H3K4me3}
-                  label="Chromatin Accessible with H3K4me3 (79,246)"
-                  bordercolor={CA_H3K4me3}
-                />
-                <InlineDownloadButton
-                  mode="download"
-                  href={Config.Downloads.HumanCA_TF}
-                  label="Chromatin Accessible with TF (26,102)"
-                  bordercolor={CA_TF}
-                />
-                <InlineDownloadButton
-                  mode="download"
-                  href={Config.Downloads.HumanCA_only}
-                  label="Chromatin Accessible Only (245,985)"
-                  bordercolor={CA_only}
-                />
-                <InlineDownloadButton
-                  mode="download"
-                  href={Config.Downloads.HumanTF_only}
-                  label="TF Only (105,286)"
-                  bordercolor={TF_only}
-                />
-                {/* Box added to align last row */}
-                <Box width={"9rem"}></Box>
-              </Grid2>
-            </Grid2>
-            <Grid2 container xs={12} md={6}>
-              <Grid2 display="flex" alignItems="flex-start" flexDirection="column" xs={10}>
-                <Typography variant="h5">Mouse (GRCm38/mm10)</Typography>
-                <Divider />
-                <Typography variant="subtitle1">926,843 cCREs • 366 cell types</Typography>
-              </Grid2>
-              <Grid2 display="flex" justifyContent="flex-end" xs={2}>
-                <Image src={Mouse} alt={"Mouse Icon"} height={75} />
-              </Grid2>
-              <Grid2 xs={12}>
-                <DownloadButton href={Config.Downloads.MouseCCREs} label="Download All Mouse cCREs" />
-              </Grid2>
-              <Grid2 display={"flex"} flexWrap={"wrap"} justifyContent={"space-between"} xs={12}>
-                <InlineDownloadButton
-                  mode="download"
-                  href={Config.Downloads.MousePromoters}
-                  label={`Promoter-like (PLS) (47,532)`}
-                  bordercolor={PLS}
-                />
-                <InlineDownloadButton
-                  mode="download"
-                  href={Config.Downloads.MouseProximalEnhancers}
-                  label="Proximal enhancer-like (pELS) (249,464)"
-                  bordercolor={pELS}
-                />
-                <InlineDownloadButton
-                  mode="download"
-                  href={Config.Downloads.MouseDistalEnhancers}
-                  label="Distal enhancer-like (dELS) (1,469,205)"
-                  bordercolor={dELS}
-                />
-                <InlineDownloadButton
-                  mode="download"
-                  href={Config.Downloads.MouseCA_CTCF}
-                  label="Chromatin Accessible with CTCF (126,034)"
-                  bordercolor={CA_CTCF}
-                />
-                <InlineDownloadButton
-                  mode="download"
-                  href={Config.Downloads.MouseCA_H3K4me3}
-                  label="Chromatin Accessible with H3K4me3 (79,246)"
-                  bordercolor={CA_H3K4me3}
-                />
-                <InlineDownloadButton
-                  mode="download"
-                  href={Config.Downloads.MouseCA_TF}
-                  label="Chromatin Accessible with TF (26,102)"
-                  bordercolor={CA_TF}
-                />
-                <InlineDownloadButton
-                  mode="download"
-                  href={Config.Downloads.MouseCA_only}
-                  label="Chromatin Accessible Only (245,985)"
-                  bordercolor={CA_only}
-                />
-                <InlineDownloadButton
-                  mode="download"
-                  href={Config.Downloads.MouseTF_only}
-                  label="TF Only (105,286)"
-                  bordercolor={TF_only}
-                />
-                {/* Box added to align last row */}
-                <Box width={"9rem"}></Box>
-              </Grid2>
-            </Grid2>
-            <Grid2 xs={6}>
-              <Typography variant="h6">Human cCREs by Cell Type</Typography>
-            </Grid2>
-            <Grid2 xs={6}>
-              <Typography variant="h6">Mouse cCREs by Cell Type</Typography>
-            </Grid2>
-            <Grid2 display={"flex"} flexWrap={"wrap"} justifyContent={"space-between"} xs={6}>
-              <InlineDownloadButton mode="search" onClick={handleOpen0} label="Cell Lines (206 Cell Types)" bordercolor={"#333333"} />
-              <InlineDownloadButton
-                mode="search"
-                onClick={handleOpen1}
-                label="Adult Primary Cells and Tissues (1093 cell types)"
-                bordercolor={"#333333"}
-              />
-              <InlineDownloadButton
-                mode="search"
-                onClick={handleOpen2}
-                label="Embryonic Tissues (379 cell types)"
-                bordercolor={"#333333"}
-              />
-            </Grid2>
-            <Grid2 display={"flex"} flexWrap={"wrap"} justifyContent={"space-between"} xs={6}>
-              <InlineDownloadButton mode="search" onClick={handleOpen3} label="Cell Lines (27 Cell Types)" bordercolor={"#333333"} />
-              <InlineDownloadButton
-                mode="search"
-                onClick={handleOpen4}
-                label="Adult Primary Cells and Tissues (244 cell types)"
-                bordercolor={"#333333"}
-              />
-              <InlineDownloadButton mode="search" onClick={handleOpen5} label="Embryonic Tissues (96 cell types)" bordercolor={"#333333"} />
-            </Grid2>
+    <div>
+      <Grid2 container columnSpacing={6} rowSpacing={3} mt={1}>
+        <Grid2 container xs={12} md={6}>
+          <Grid2 display="flex" alignItems="flex-start" flexDirection="column" xs={10}>
+            <Typography mt="auto" variant="h5">
+              Human (GRCh38/hg38)
+            </Typography>
+            {/* These are not showing up because of the flex container */}
+            <Divider />
+            <Typography variant="subtitle1">2,348,854 cCREs • 1,678 cell types</Typography>
           </Grid2>
-          <BiosampleModals
-            tableTitle="Download cCREs active in human immortalized cell lines"
-            rows={humanCellLines}
-            open={open0}
-            handleClose={handleClose0}
+          <Grid2 xs={2}>
+            <Image src={Human} alt={"Human Icon"} height={75} />
+          </Grid2>
+          <Grid2 xs={12}>
+            <DownloadButton href={Config.Downloads.HumanCCREs} label="Download All Human cCREs" />
+          </Grid2>
+          <Grid2 display={"flex"} flexWrap={"wrap"} justifyContent={"space-between"} xs={12}>
+            <InlineDownloadButton
+              mode="download"
+              href={Config.Downloads.HumanPromoters}
+              label="Promoter-like (PLS) (47,532)"
+              bordercolor={PLS}
+            />
+            <InlineDownloadButton
+              mode="download"
+              href={Config.Downloads.HumanProximalEnhancers}
+              label="Proximal enhancer-like (pELS) (249,464)"
+              bordercolor={pELS}
+            />
+            <InlineDownloadButton
+              mode="download"
+              href={Config.Downloads.HumanDistalEnhancers}
+              label="Distal enhancer-like (dELS) (1,469,205)"
+              bordercolor={dELS}
+            />
+            <InlineDownloadButton
+              mode="download"
+              href={Config.Downloads.HumanCA_CTCF}
+              label="Chromatin Accessible with CTCF (126,034)"
+              bordercolor={CA_CTCF}
+            />
+            <InlineDownloadButton
+              mode="download"
+              href={Config.Downloads.HumanCA_H3K4me3}
+              label="Chromatin Accessible with H3K4me3 (79,246)"
+              bordercolor={CA_H3K4me3}
+            />
+            <InlineDownloadButton
+              mode="download"
+              href={Config.Downloads.HumanCA_TF}
+              label="Chromatin Accessible with TF (26,102)"
+              bordercolor={CA_TF}
+            />
+            <InlineDownloadButton
+              mode="download"
+              href={Config.Downloads.HumanCA_only}
+              label="Chromatin Accessible Only (245,985)"
+              bordercolor={CA_only}
+            />
+            <InlineDownloadButton
+              mode="download"
+              href={Config.Downloads.HumanTF_only}
+              label="TF Only (105,286)"
+              bordercolor={TF_only}
+            />
+            {/* Box added to align last row */}
+            <Box width={"9rem"}></Box>
+          </Grid2>
+        </Grid2>
+        <Grid2 container xs={12} md={6}>
+          <Grid2 display="flex" alignItems="flex-start" flexDirection="column" xs={10}>
+            <Typography variant="h5">Mouse (GRCm38/mm10)</Typography>
+            <Divider />
+            <Typography variant="subtitle1">926,843 cCREs • 366 cell types</Typography>
+          </Grid2>
+          <Grid2 display="flex" justifyContent="flex-end" xs={2}>
+            <Image src={Mouse} alt={"Mouse Icon"} height={75} />
+          </Grid2>
+          <Grid2 xs={12}>
+            <DownloadButton href={Config.Downloads.MouseCCREs} label="Download All Mouse cCREs" />
+          </Grid2>
+          <Grid2 display={"flex"} flexWrap={"wrap"} justifyContent={"space-between"} xs={12}>
+            <InlineDownloadButton
+              mode="download"
+              href={Config.Downloads.MousePromoters}
+              label={`Promoter-like (PLS) (47,532)`}
+              bordercolor={PLS}
+            />
+            <InlineDownloadButton
+              mode="download"
+              href={Config.Downloads.MouseProximalEnhancers}
+              label="Proximal enhancer-like (pELS) (249,464)"
+              bordercolor={pELS}
+            />
+            <InlineDownloadButton
+              mode="download"
+              href={Config.Downloads.MouseDistalEnhancers}
+              label="Distal enhancer-like (dELS) (1,469,205)"
+              bordercolor={dELS}
+            />
+            <InlineDownloadButton
+              mode="download"
+              href={Config.Downloads.MouseCA_CTCF}
+              label="Chromatin Accessible with CTCF (126,034)"
+              bordercolor={CA_CTCF}
+            />
+            <InlineDownloadButton
+              mode="download"
+              href={Config.Downloads.MouseCA_H3K4me3}
+              label="Chromatin Accessible with H3K4me3 (79,246)"
+              bordercolor={CA_H3K4me3}
+            />
+            <InlineDownloadButton
+              mode="download"
+              href={Config.Downloads.MouseCA_TF}
+              label="Chromatin Accessible with TF (26,102)"
+              bordercolor={CA_TF}
+            />
+            <InlineDownloadButton
+              mode="download"
+              href={Config.Downloads.MouseCA_only}
+              label="Chromatin Accessible Only (245,985)"
+              bordercolor={CA_only}
+            />
+            <InlineDownloadButton
+              mode="download"
+              href={Config.Downloads.MouseTF_only}
+              label="TF Only (105,286)"
+              bordercolor={TF_only}
+            />
+            {/* Box added to align last row */}
+            <Box width={"9rem"}></Box>
+          </Grid2>
+        </Grid2>
+        <Grid2 xs={6}>
+          <Typography variant="h6">Human cCREs by Cell Type</Typography>
+        </Grid2>
+        <Grid2 xs={6}>
+          <Typography variant="h6">Mouse cCREs by Cell Type</Typography>
+        </Grid2>
+        <Grid2 display={"flex"} flexWrap={"wrap"} justifyContent={"space-between"} xs={6}>
+          <InlineDownloadButton mode="search" onClick={handleOpen0} label="Cell Lines (206 Cell Types)" bordercolor={"#333333"} />
+          <InlineDownloadButton
+            mode="search"
+            onClick={handleOpen1}
+            label="Adult Primary Cells and Tissues (1093 cell types)"
+            bordercolor={"#333333"}
           />
-          <BiosampleModals
-            tableTitle="Download cCREs active in human primary cells and tissues"
-            rows={humanAdult}
-            open={open1}
-            handleClose={handleClose1}
+          <InlineDownloadButton
+            mode="search"
+            onClick={handleOpen2}
+            label="Embryonic Tissues (379 cell types)"
+            bordercolor={"#333333"}
           />
-          <BiosampleModals
-            tableTitle="Download cCREs active in human embryonic tissues"
-            rows={humanEmbryo}
-            open={open2}
-            handleClose={handleClose2}
+        </Grid2>
+        <Grid2 display={"flex"} flexWrap={"wrap"} justifyContent={"space-between"} xs={6}>
+          <InlineDownloadButton mode="search" onClick={handleOpen3} label="Cell Lines (27 Cell Types)" bordercolor={"#333333"} />
+          <InlineDownloadButton
+            mode="search"
+            onClick={handleOpen4}
+            label="Adult Primary Cells and Tissues (244 cell types)"
+            bordercolor={"#333333"}
           />
-          <BiosampleModals
-            tableTitle="Download cCREs active in mouse immortalized cell lines"
-            rows={mouseCellLines}
-            open={open3}
-            handleClose={handleClose3}
-          />
-          <BiosampleModals
-            tableTitle="Download cCREs active in mouse primary cells and tissues"
-            rows={mouseAdult}
-            open={open4}
-            handleClose={handleClose4}
-          />
-          <BiosampleModals
-            tableTitle="Download cCREs active in mouse embryonic tissues"
-            rows={mouseEmbryo}
-            open={open5}
-            handleClose={handleClose5}
-          />
-        </div>
-      )}
-    </>
+          <InlineDownloadButton mode="search" onClick={handleOpen5} label="Embryonic Tissues (96 cell types)" bordercolor={"#333333"} />
+        </Grid2>
+      </Grid2>
+      <BiosampleModals
+        tableTitle="Download cCREs active in human immortalized cell lines"
+        rows={humanCellLines}
+        open={open0}
+        handleClose={handleClose0}
+      />
+      <BiosampleModals
+        tableTitle="Download cCREs active in human primary cells and tissues"
+        rows={humanAdult}
+        open={open1}
+        handleClose={handleClose1}
+      />
+      <BiosampleModals
+        tableTitle="Download cCREs active in human embryonic tissues"
+        rows={humanEmbryo}
+        open={open2}
+        handleClose={handleClose2}
+      />
+      <BiosampleModals
+        tableTitle="Download cCREs active in mouse immortalized cell lines"
+        rows={mouseCellLines}
+        open={open3}
+        handleClose={handleClose3}
+      />
+      <BiosampleModals
+        tableTitle="Download cCREs active in mouse primary cells and tissues"
+        rows={mouseAdult}
+        open={open4}
+        handleClose={handleClose4}
+      />
+      <BiosampleModals
+        tableTitle="Download cCREs active in mouse embryonic tissues"
+        rows={mouseEmbryo}
+        open={open5}
+        handleClose={handleClose5}
+      />
+    </div>
   )
 }

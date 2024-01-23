@@ -108,11 +108,12 @@ export type FilterCriteria = {
 export type CellTypeData = {
   byCellType: {
     [key: string]: {
-      assay: string
-      biosample_summary: string
-      biosample_type: string
-      tissue: string
       celltypename: string
+      name: string
+      biosample_summary: string
+      assay: string
+      tissue: string
+      biosample_type: string
       rnaseq: boolean
     }[]
   }
@@ -172,15 +173,80 @@ export type LinkedGenesData = {
   RNAPII_ChIAPET: { name: string, biosample: string }[]
 }
 
-export type rawQueryData = {
-  mainQueryData: ApolloQueryResult<any>,
-  linkedGenesData: {
-    [key: string]: {
-      genes: {
-        geneName: string;
-        linkedBy: "CTCF-ChIAPET" | "RNAPII-ChIAPET";
-        biosample: string;
-      }[];
-    };
+export type MainQueryData = {
+  data: {
+    cCRESCREENSearch: SCREENSearchResult[]
   }
 }
+
+export type RawLinkedGenesData = {
+  [key: string]: {
+    genes: {
+      geneName: string;
+      linkedBy: "CTCF-ChIAPET" | "RNAPII-ChIAPET";
+      biosample: string;
+    }[];
+  };
+}
+
+export type rawQueryData = {
+  mainQueryData: MainQueryData,
+  linkedGenesData: RawLinkedGenesData,
+}
+
+type SCREENCellTypeSpecificResponse = {
+  __typename: "SCREENCellTypeSpecificResponse";
+  ct: null | any; // Replace 'any' with the actual type if 'ct' has a specific type
+  dnase_zscore: null | number;
+  h3k4me3_zscore: null | number;
+  h3k27ac_zscore: null | number;
+  ctcf_zscore: null | number;
+  atac_zscore: null | number;
+};
+
+type CCREInfo = {
+  __typename: "CCREInfo";
+  accession: string;
+  isproximal: boolean;
+  concordant: boolean;
+};
+
+type Gene = {
+  __typename: "Gene";
+  name: string;
+};
+
+type IntersectingGenes = {
+  __typename: "IntersectingGenes";
+  end: number;
+  start: number;
+  chromosome: string;
+  assembly: string;
+  intersecting_genes: Gene[];
+};
+
+type SCREENNearbyGenes = {
+  __typename: "SCREENNearbyGenes";
+  accession: string;
+  all: IntersectingGenes;
+  pc: IntersectingGenes;
+};
+
+export type SCREENSearchResult = {
+  __typename: "SCREENSearchResult";
+  chrom: string;
+  start: number;
+  len: number;
+  pct: string;
+  vertebrates: number;
+  mammals: number;
+  primates: number;
+  ctcf_zscore: number;
+  dnase_zscore: number;
+  enhancer_zscore: number;
+  promoter_zscore: number;
+  atac_zscore: number;
+  ctspecific: SCREENCellTypeSpecificResponse;
+  info: CCREInfo;
+  genesallpc: SCREENNearbyGenes;
+};

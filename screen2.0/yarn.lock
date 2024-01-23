@@ -56,9 +56,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@apollo/experimental-nextjs-app-support@npm:^0.5.1":
-  version: 0.5.2
-  resolution: "@apollo/experimental-nextjs-app-support@npm:0.5.2"
+"@apollo/experimental-nextjs-app-support@npm:^0.6.0":
+  version: 0.6.0
+  resolution: "@apollo/experimental-nextjs-app-support@npm:0.6.0"
   dependencies:
     server-only: ^0.0.1
     superjson: ^1.12.2
@@ -67,7 +67,7 @@ __metadata:
     "@apollo/client": ">=3.8.0-rc || ^3.8.0 || >=3.9.0-alpha || >=3.9.0-beta || >=3.9.0-rc"
     next: ^13.4.1 || ^14.0.0
     react: ^18
-  checksum: e8a168a0cc58cfaf202315a35675c7888561f65b94913f4b59957a6a3bc008f394f3e48d2b18c63049757e617ad05b7e12ad8062e372354c38d462ec26ed06f4
+  checksum: 3d9c806e7d0ceda9ddb3e1b435df418ea4d67a61ecbdae10612e729ada868b8c909c26ea8cc06c4cd37eb83054d147d89fc3ca44ffd55dbde8f63a3bac74712e
   languageName: node
   linkType: hard
 
@@ -6975,7 +6975,7 @@ __metadata:
   resolution: "screen2.0@workspace:."
   dependencies:
     "@apollo/client": alpha
-    "@apollo/experimental-nextjs-app-support": ^0.5.1
+    "@apollo/experimental-nextjs-app-support": ^0.6.0
     "@emotion/react": ^11.11.1
     "@emotion/styled": ^11.11.0
     "@mui/icons-material": ^5.15.2
@@ -8047,11 +8047,11 @@ semantic-ui-react@latest:
 
 "typescript@patch:typescript@5.3.3#~builtin<compat/typescript>":
   version: 5.3.3
-  resolution: "typescript@patch:typescript@npm%3A5.3.3#~builtin<compat/typescript>::version=5.3.3&hash=e012d7"
+  resolution: "typescript@patch:typescript@npm%3A5.3.3#~builtin<compat/typescript>::version=5.3.3&hash=85af82"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 4e604a9e107ce0c23b16a2f8d79d0531d4d8fe9ebbb7a8c395c66998c39892f0e0a071ef0b0d4e66420a8ec2b8d6cfd9cdb29ba24f25b37cba072e9282376df9
+  checksum: f61375590b3162599f0f0d5b8737877ac0a7bc52761dbb585d67e7b8753a3a4c42d9a554c4cc929f591ffcf3a2b0602f65ae3ce74714fd5652623a816862b610
   languageName: node
   linkType: hard
 

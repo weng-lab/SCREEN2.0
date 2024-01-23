@@ -9,6 +9,7 @@ import { DataMatrices } from "./datamatrices"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ApolloQueryResult } from "@apollo/client"
+import { DownloadRange } from "./downloadrange"
 
 function a11yProps(index: number) {
   return {
@@ -57,14 +58,16 @@ export default function DownloadsPage(props: {
               <Tab label="Quick Start" sx={{ textTransform: "none" }} {...a11yProps(0)} />
               <Tab label="Detailed Elements" sx={{ textTransform: "none" }} {...a11yProps(1)} />
               <Tab label="Data Matrices" sx={{ textTransform: "none" }} {...a11yProps(2)} />
+              <Tab label="Download cCREs in Genomic Region" sx={{ textTransform: "none" }} {...a11yProps(3)} />
             </Tabs>
           </Box>
         </Grid2>
         <Grid2 xs={12}>
-          <QuickStart value={page} biosamples={props.biosamples} />
-          <DetailedElements value={page} biosamples={props.biosamples} />
+          {page === 0 && <QuickStart biosamples={props.biosamples} />}
+          {page === 1 && <DetailedElements biosamples={props.biosamples} />}
           {/* Matrices being fed biosamples might be redundant */}
-          <DataMatrices value={page} biosamples={props.biosamples} matrices={props.matrices} searchParams={props.searchParams} />
+          {page === 2 && <DataMatrices matrices={props.matrices} searchParams={props.searchParams} />}
+          {page === 3 && <DownloadRange />}
         </Grid2>
       </Grid2>
     </Container>

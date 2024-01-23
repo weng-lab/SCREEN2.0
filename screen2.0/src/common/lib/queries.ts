@@ -5,6 +5,7 @@
 import { getClient } from "../lib/client"
 import { ApolloQueryResult, gql } from "@apollo/client"
 import Config from "../../config.json"
+import { CellTypeData } from "../../app/search/types"
 
 const cCRE_QUERY = gql`
   query ccreSearchQuery(
@@ -123,7 +124,7 @@ const cCRE_QUERY = gql`
   }
 `
 
-function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: number, end: number, biosample: string, nearbygenesdistancethreshold: number, nearbygeneslimit: number, accessions: string[]) {
+function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: number, end: number, biosample: string, nearbygenesdistancethreshold: number, nearbygeneslimit: number, accessions: string[], noLimit?: boolean) {
   let vars = {
     uuid: null,
     assembly: assembly,
@@ -134,22 +135,23 @@ function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: numbe
     gene_all_end: 5000000,
     gene_pc_start: 0,
     gene_pc_end: 5000000,
-    rank_dnase_start: -10,
-    rank_dnase_end: 10,
-    rank_atac_start: -10,
-    rank_atac_end: 10,
-    rank_promoter_start: -10,
-    rank_promoter_end: 10,
-    rank_enhancer_start: -10,
-    rank_enhancer_end: 10,
-    rank_ctcf_start: -10,
-    rank_ctcf_end: 10,
+    rank_dnase_start: -20,
+    rank_dnase_end: 20,
+    rank_atac_start: -20,
+    rank_atac_end: 20,
+    rank_promoter_start: -20,
+    rank_promoter_end: 20,
+    rank_enhancer_start: -20,
+    rank_enhancer_end: 20,
+    rank_ctcf_start: -20,
+    rank_ctcf_end: 20,
     cellType: biosample,
     element_type: null,
-    limit: 25000,
+    limit: noLimit ? null : 25000,
     nearbygenesdistancethreshold: nearbygenesdistancethreshold,
     nearbygeneslimit: nearbygeneslimit
   }
+  //Can't just null out accessions field if not using due to API functionality as of writing this, so push to vars only if using
   if (accessions) {
     vars["accessions"] = accessions
   }
@@ -247,25 +249,31 @@ export async function fetchLinkedGenes(assembly: "GRCh38" | "mm10", accessions: 
     linkedGenes = await getClient().query({
       query: LINKED_GENES_QUERY,
       variables: { assembly: assembly, accession: accessions },
+      fetchPolicy: "no-cache"
     })
     linkedGenes.data.linkedGenesQuery.forEach((entry) => {
       !geneIDs.includes(entry.gene.split(".")[0]) && geneIDs.push(entry.gene.split(".")[0])
     })
+    console.log(linkedGenes.data)
     //Attempt to lookup gene names
     try {
       geneNames = await getClient().query({
         query: GENE_QUERY,
         variables: { assembly: assembly, name_prefix: geneIDs },
+        fetchPolicy: "no-cache"
       })
-      //If both queries are successful, go through each of linkedGenes.data.linkedGenesQuery, find the accession and (if doesnt exist) add to linkedGenesData along with any gene names matching the ID in queryRes2
+      console.log(geneNames.data)
+      //If both queries are successful, go through each of linkedGenes.data.linkedGenesQuery and assemble return data
       linkedGenes.data.linkedGenesQuery.forEach((entry) => {
-        // if returnData does not have an entry for that accession, and if there is a gene in query2 with an id that matches
-        if (geneNames.data && (!Object.hasOwn(returnData, entry.accession)) && (geneNames.data.gene.find((x) => x.id === entry.gene) !== undefined)) {
-          Object.defineProperty(returnData, entry.accession, { value: { genes: [{ geneName: geneNames.data.gene.find((x) => x.id === entry.gene).name, linkedBy: entry.assay, biosample: entry.celltype }] }, writable: true, enumerable: true, configurable: true })
+        const hasEntry: boolean = Object.hasOwn(returnData, entry.accession)
+        const matchingGeneName = geneNames.data.gene.find((x) => x.id.split('.')[0] === entry.gene.split('.')[0])?.name
+        // If there is no entry for that accession, create new one
+        if (geneNames.data && !hasEntry && matchingGeneName) {
+          returnData[entry.accession] = { genes: [{ geneName: matchingGeneName, linkedBy: entry.assay, biosample: entry.celltype }] }
         }
-        // if returnData does already have a linked gene for that accession, add the linked gene to the existing data
-        else if (geneNames.data && (Object.hasOwn(returnData, entry.accession)) && (geneNames.data.gene.find((x) => x.id === entry.gene) !== undefined)) {
-          Object.defineProperty(returnData[entry.accession], "genes", { value: [...returnData[entry.accession].genes, { geneName: geneNames.data.gene.find((x) => x.id === entry.gene).name, linkedBy: entry.assay, biosample: entry.celltype }], writable: true, enumerable: true, configurable: true })
+        // if entry for accession already exists, add to linked genes
+        else if (geneNames.data && hasEntry && matchingGeneName) {
+          returnData[entry.accession].genes = [...returnData[entry.accession].genes, { geneName: matchingGeneName, linkedBy: entry.assay, biosample: entry.celltype }]
         }
       })
     } catch (error) {
@@ -292,20 +300,23 @@ export async function fetchLinkedGenes(assembly: "GRCh38" | "mm10", accessions: 
  * @param accessions a list of accessions to fetch information on. Set chromosome, start, end to "undefined" if using so they're set to null
  * @returns cCREs matching the search
  */
-export async function MainQuery(assembly: string = null, chromosome: string = null, start: number = null, end: number = null, biosample: string = null, nearbygenesdistancethreshold: number, nearbygeneslimit: number, accessions: string[] = null) {
+export async function MainQuery(assembly: string = null, chromosome: string = null, start: number = null, end: number = null, biosample: string = null, nearbygenesdistancethreshold: number, nearbygeneslimit: number, accessions: string[] = null, noLimit?: boolean) {
   console.log("queried with: " + assembly, chromosome, start, end, biosample + `${accessions ? " with accessions" : " no accessions"}`)
   let data: ApolloQueryResult<any>
   try {
     data = await getClient().query({
       query: cCRE_QUERY,
       variables: cCRE_QUERY_VARIABLES(assembly, chromosome, start, end, biosample, nearbygenesdistancethreshold, nearbygeneslimit, accessions),
+      //Telling it to not cache, next js caches also and for things that exceed the 2mb cache limit it slows down substantially for some reason
+      fetchPolicy: "no-cache",
     })
   } catch (error) {
     console.log("error fetching main cCRE data")
     console.log(error)
-  } finally {
-    return data
+    throw error
   }
+  
+  return data
 }
 
 export async function biosampleQuery() {
@@ -342,9 +353,9 @@ export async function UMAPQuery(assembly: "grch38" | "mm10", assay: "DNase" | "H
 
 /**
  *
- * @returns the shortened byCellType file from https://downloads.wenglab.org/databyct.json
+ * @returns the shortened byCellType file
  */
-export async function getGlobals(assembly: "GRCh38" | "mm10"){
+export async function getGlobals(assembly: "GRCh38" | "mm10"): Promise<CellTypeData>{
   let res: Response
   try {
     if (assembly === "GRCh38") {

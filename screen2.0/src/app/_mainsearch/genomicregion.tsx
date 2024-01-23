@@ -1,8 +1,9 @@
 import { TextField, IconButton, Stack, Select, MenuItem, SelectChangeEvent, FormControl, InputLabel, Typography, FormControlLabel, Radio, RadioGroup } from "@mui/material"
-import { useState, SetStateAction } from "react"
+import { useState, SetStateAction, useEffect, useMemo } from "react"
 import { Search } from "@mui/icons-material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { parseGenomicRegion } from "./parsegenomicregion"
+import Link from "next/link"
 
 //https://mui.com/material-ui/react-text-field/#integration-with-3rd-party-input-libraries
 //For formatting the start/end as it's being entered.
@@ -14,30 +15,34 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
   const [end, setEnd] = useState('')
   const [inputType, setInputType] = useState("UCSC")
 
-  const assembly = props.assembly
 
   const handleChange = (event: { target: { value: SetStateAction<string> } }) => {
     setValue(event.target.value)
   }
 
   //TODO: Better catch errors in input so that invalid values are not passed to api
-  function handleSubmit(): string {
+  function generateURL(value: string, inputType: string, assembly: "mm10" | "GRCh38", chromosome: string, start: string, end: string): string {
     if (inputType === "Separated") {
-      return `/search?assembly=${assembly}&chromosome=${"chr" + chromosome}&start=${start ?? "5205263"}&end=${end ?? "5381894"}`
+      return `/search?assembly=${assembly}&chromosome=${"chr" + chromosome}&start=${start.replace(new RegExp(',', 'g'), "") ?? "5205263"}&end=${end.replace(new RegExp(',', 'g'), "") ?? "5381894"}`
     } else {
       if (!value) {
         return `/search?assembly=${assembly}&chromosome=chr11&start=5205263&end=5381894`
       }
       try {
         const region = parseGenomicRegion(value)
+        // setError(false)
         return `/search?assembly=${assembly}&chromosome=${region.chromosome}&start=${region.start}&end=${region.end}`
       }
-      catch (msg) {
-        window.alert("Error in input format - " + msg)
-        setValue("")
+      catch (error) {
+        //If function can't parse input
+        // setError(true)
       }
     }
   }
+
+  const url = useMemo(() => {
+    return generateURL(value, inputType, props.assembly, chromosome, start, end)
+  }, [value, inputType, props.assembly, chromosome, start, end])
 
   return (
     <Grid2 container spacing={2}>
@@ -83,7 +88,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
                   size={props.header ? "small" : "medium"}
                 >
                   {Array.from({ length: 22 }, (_, i) => i + 1).map((value) => (
-                    (value < 20 || value >= 20 && (assembly === "GRCh38")) && <MenuItem key={value} value={value}>
+                    (value < 20 || value >= 20 && (props.assembly === "GRCh38")) && <MenuItem key={value} value={value}>
                       {value}
                     </MenuItem>
                   ))}
@@ -104,10 +109,10 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
                   setStart(event.target.value)
                 }}
                 onKeyDown={(event) => {
-                  if (event.code === "Enter") {
-                    window.open(handleSubmit(), "_self")
+                  if (event.key === "Enter") {
+                    window.open(url, "_self")
                   }
-                  if (event.code === "Tab" && !start) {
+                  if (event.key === "Tab" && !start) {
                     setStart("5205263")
                   }
                 }}
@@ -132,10 +137,10 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
                   setEnd(event.target.value)
                 }}
                 onKeyDown={(event) => {
-                  if (event.code === "Enter") {
-                    window.open(handleSubmit(), "_self")
+                  if (event.key === "Enter") {
+                    window.open(url, "_self")
                   }
-                  if (event.code === "Tab" && !end) {
+                  if (event.key === "Tab" && !end) {
                     setEnd("5381894")
                   }
                 }}
@@ -159,10 +164,10 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
               value={value}
               onChange={handleChange}
               onKeyDown={(event) => {
-                if (event.code === "Enter") {
-                  window.open(handleSubmit(), "_self")
+                if (event.key === "Enter") {
+                  window.open(url, "_self")
                 }
-                if (event.code === "Tab" && !value) {
+                if (event.key === "Tab" && !value) {
                   setValue("chr11:5205263-5381894")
                 }
               }}
@@ -182,13 +187,12 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
               size={props.header ? "small" : "medium"}
             />
           }
-          <IconButton href={handleSubmit()} aria-label="Search" type="submit" sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
+          <IconButton href={url} aria-label="Search" type="submit" sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
             <Search />
           </IconButton>
         </Stack>
       </Grid2>
     </Grid2>
-
   )
 }
 
