@@ -133,7 +133,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.23.7":
+"@babel/runtime@npm:^7.23.7, @babel/runtime@npm:^7.23.8":
   version: 7.23.8
   resolution: "@babel/runtime@npm:7.23.8"
   dependencies:
@@ -798,7 +798,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/icons-material@npm:^5.11.0, @mui/icons-material@npm:^5.15.2":
+"@mui/icons-material@npm:^5.11.0":
   version: 5.15.2
   resolution: "@mui/icons-material@npm:5.15.2"
   dependencies:
@@ -811,6 +811,22 @@ __metadata:
     "@types/react":
       optional: true
   checksum: f1ff774daaa12b7a2ab7d007bff740a1b936d00cc549fe6ee66e3ff8678ea982d57863a44509446c76b2f1eddb7a5041e27a38ae332045b4fd98f2b39887815c
+  languageName: node
+  linkType: hard
+
+"@mui/icons-material@npm:^5.15.6":
+  version: 5.15.6
+  resolution: "@mui/icons-material@npm:5.15.6"
+  dependencies:
+    "@babel/runtime": ^7.23.8
+  peerDependencies:
+    "@mui/material": ^5.0.0
+    "@types/react": ^17.0.0 || ^18.0.0
+    react: ^17.0.0 || ^18.0.0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: 9e48abacc7dbcf6461a1451aebd92c6f50826a464bc5f5f8251c6e0868025405d865068089878ecd96a941ddc5ca71789d3534705401fe0db72a1c9ab11df0c1
   languageName: node
   linkType: hard
 
@@ -6978,7 +6994,7 @@ __metadata:
     "@apollo/experimental-nextjs-app-support": ^0.6.0
     "@emotion/react": ^11.11.1
     "@emotion/styled": ^11.11.0
-    "@mui/icons-material": ^5.15.2
+    "@mui/icons-material": ^5.15.6
     "@mui/lab": ^5.0.0-alpha.158
     "@mui/material": ^5.15.4
     "@types/node": ^20.10.8
@@ -8047,11 +8063,11 @@ semantic-ui-react@latest:
 
 "typescript@patch:typescript@5.3.3#~builtin<compat/typescript>":
   version: 5.3.3
-  resolution: "typescript@patch:typescript@npm%3A5.3.3#~builtin<compat/typescript>::version=5.3.3&hash=85af82"
+  resolution: "typescript@patch:typescript@npm%3A5.3.3#~builtin<compat/typescript>::version=5.3.3&hash=e012d7"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: f61375590b3162599f0f0d5b8737877ac0a7bc52761dbb585d67e7b8753a3a4c42d9a554c4cc929f591ffcf3a2b0602f65ae3ce74714fd5652623a816862b610
+  checksum: 4e604a9e107ce0c23b16a2f8d79d0531d4d8fe9ebbb7a8c395c66998c39892f0e0a071ef0b0d4e66420a8ec2b8d6cfd9cdb29ba24f25b37cba072e9282376df9
   languageName: node
   linkType: hard
 
