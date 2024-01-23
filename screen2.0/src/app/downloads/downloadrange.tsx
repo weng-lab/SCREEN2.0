@@ -47,7 +47,7 @@ export const DownloadRange: React.FC = () => {
   const [isPending, startTransition] = useTransition()
   const [globals, setGlobals] = useState<CellTypeData>(null)
   const [assembly, setAssembly] = useState<"GRCh38" | "mm10">("GRCh38")
-  const [inputValue, setInputValue] = useState<string>('')
+  const [inputValue, setInputValue] = useState<string>('chr11:5205263-5381894')
   //Only reason this is an array is to easily interface with BiosampleTables
   const [selectedBiosample, setSelectedBiosample] = useState<Biosample[]>([])
   const [bedLoadingPercent, setBedLoadingPercent] = useState<number>(null)
