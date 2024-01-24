@@ -160,6 +160,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@emailjs/browser@npm:^3.12.1":
+  version: 3.12.1
+  resolution: "@emailjs/browser@npm:3.12.1"
+  checksum: 85faf76204cf45b999b3bc93e7a82105f0f046e2f8fa792dc612cc8eb370ed6d8e6b1d8c16b0b2c37cfd1feae3d6d9c89f5e531d190af0f5ed5afd3461860402
+  languageName: node
+  linkType: hard
+
 "@emnapi/runtime@npm:^0.44.0":
   version: 0.44.0
   resolution: "@emnapi/runtime@npm:0.44.0"
@@ -6976,6 +6983,7 @@ __metadata:
   dependencies:
     "@apollo/client": alpha
     "@apollo/experimental-nextjs-app-support": ^0.6.0
+    "@emailjs/browser": ^3.12.1
     "@emotion/react": ^11.11.1
     "@emotion/styled": ^11.11.0
     "@mui/icons-material": ^5.15.2
