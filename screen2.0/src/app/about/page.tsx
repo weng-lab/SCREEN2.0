@@ -50,7 +50,7 @@ export default function About() {
     console.log(form.current);
 
     return new Promise((resolve, reject) => {
-      emailjs.sendForm('service_xgqtw5g', 'SCREEN_contact_form', form.current, 'yIDe01Vwo_y6j_KtV')
+      emailjs.sendForm('service_m0zf8wa', 'template_15g5s3y', form.current, 'VU9U1vX9cAro8XtUK')
         .then((result) => {
           console.log(result.text);
           resolve(result);

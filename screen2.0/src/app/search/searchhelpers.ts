@@ -615,15 +615,15 @@ export function constructFilterCriteriaFromURL(searchParams: { [key: string]: st
   return (
     {
       dnase_s: searchParams.dnase_s ? +(searchParams.dnase_s) : -10,
-      dnase_e: searchParams.dnase_e ? +(searchParams.dnase_e) : 10,
+      dnase_e: searchParams.dnase_e ? +(searchParams.dnase_e) : 11,
       atac_s: searchParams.atac_s ? +(searchParams.atac_s) : -10,
-      atac_e: searchParams.atac_e ? +(searchParams.atac_e) : 10,
+      atac_e: searchParams.atac_e ? +(searchParams.atac_e) : 11,
       h3k4me3_s: searchParams.h3k4me3_s ? +(searchParams.h3k4me3_s) : -10,
-      h3k4me3_e: searchParams.h3k4me3_e ? +(searchParams.h3k4me3_e) : 10,
+      h3k4me3_e: searchParams.h3k4me3_e ? +(searchParams.h3k4me3_e) : 11,
       h3k27ac_s: searchParams.h3k27ac_s ? +(searchParams.h3k27ac_s) : -10,
-      h3k27ac_e: searchParams.h3k27ac_e ? +(searchParams.h3k27ac_e) : 10,
+      h3k27ac_e: searchParams.h3k27ac_e ? +(searchParams.h3k27ac_e) : 11,
       ctcf_s: searchParams.ctcf_s ? +(searchParams.ctcf_s) : -10,
-      ctcf_e: searchParams.ctcf_e ? +(searchParams.ctcf_e) : 10,
+      ctcf_e: searchParams.ctcf_e ? +(searchParams.ctcf_e) : 11,
       prim_s: searchParams.prim_s ? +(searchParams.prim_s) : -2,
       prim_e: searchParams.prim_e ? +(searchParams.prim_e) : 2,
       mamm_s: searchParams.mamm_s ? +(searchParams.mamm_s) : -4,
@@ -670,15 +670,15 @@ export function filtersModified(
     case ("chromatin signals"):
       if (
         f.atac_s === -10 &&
-        f.atac_e === 10 &&
+        f.atac_e === 11 &&
         f.dnase_s === -10 &&
-        f.dnase_e === 10 &&
+        f.dnase_e === 11 &&
         f.ctcf_s === -10 &&
-        f.ctcf_e === 10 &&
+        f.ctcf_e === 11 &&
         f.h3k4me3_s === -10 &&
-        f.h3k4me3_e === 10 &&
+        f.h3k4me3_e === 11 &&
         f.h3k27ac_s === -10 &&
-        f.h3k27ac_e === 10
+        f.h3k27ac_e === 11
       ) return false
       else return true
     case ("conservation"):

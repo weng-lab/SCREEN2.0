@@ -135,16 +135,16 @@ function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: numbe
     gene_all_end: 5000000,
     gene_pc_start: 0,
     gene_pc_end: 5000000,
-    rank_dnase_start: -20,
-    rank_dnase_end: 20,
-    rank_atac_start: -20,
-    rank_atac_end: 20,
-    rank_promoter_start: -20,
-    rank_promoter_end: 20,
-    rank_enhancer_start: -20,
-    rank_enhancer_end: 20,
-    rank_ctcf_start: -20,
-    rank_ctcf_end: 20,
+    rank_dnase_start: -10,
+    rank_dnase_end: 11,
+    rank_atac_start: -10,
+    rank_atac_end: 11,
+    rank_promoter_start: -10,
+    rank_promoter_end: 11,
+    rank_enhancer_start: -10,
+    rank_enhancer_end: 11,
+    rank_ctcf_start: -10,
+    rank_ctcf_end: 11,
     cellType: biosample,
     element_type: null,
     limit: noLimit ? null : 25000,
@@ -254,7 +254,6 @@ export async function fetchLinkedGenes(assembly: "GRCh38" | "mm10", accessions: 
     linkedGenes.data.linkedGenesQuery.forEach((entry) => {
       !geneIDs.includes(entry.gene.split(".")[0]) && geneIDs.push(entry.gene.split(".")[0])
     })
-    console.log(linkedGenes.data)
     //Attempt to lookup gene names
     try {
       geneNames = await getClient().query({
@@ -262,7 +261,6 @@ export async function fetchLinkedGenes(assembly: "GRCh38" | "mm10", accessions: 
         variables: { assembly: assembly, name_prefix: geneIDs },
         fetchPolicy: "no-cache"
       })
-      console.log(geneNames.data)
       //If both queries are successful, go through each of linkedGenes.data.linkedGenesQuery and assemble return data
       linkedGenes.data.linkedGenesQuery.forEach((entry) => {
         const hasEntry: boolean = Object.hasOwn(returnData, entry.accession)

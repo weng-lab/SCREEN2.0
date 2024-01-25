@@ -370,15 +370,15 @@ export function MainResultsFilters(
                         props.setFilterCriteria({
                           ...props.filterCriteria,
                           dnase_s: -10,
-                          dnase_e: 10,
+                          dnase_e: 11,
                           atac_s: -10,
-                          atac_e: 10,
+                          atac_e: 11,
                           h3k4me3_s: -10,
-                          h3k4me3_e: 10,
+                          h3k4me3_e: 11,
                           h3k27ac_s: -10,
-                          h3k27ac_e: 10,
+                          h3k27ac_e: 11,
                           ctcf_s: -10,
-                          ctcf_e: 10
+                          ctcf_e: 11
                         });
                         event.stopPropagation()
                       }}
@@ -405,7 +405,7 @@ export function MainResultsFilters(
                     width="100%"
                     value={[props.filterCriteria.dnase_s, props.filterCriteria.dnase_e]}
                     min={-10}
-                    max={10}
+                    max={11}
                     minDistance={1}
                     step={0.1}
                     onSliderChangeCommitted={(value: number[]) => {
@@ -419,7 +419,7 @@ export function MainResultsFilters(
                     width="100%"
                     value={[props.filterCriteria.h3k4me3_s, props.filterCriteria.h3k4me3_e]}
                     min={-10}
-                    max={10}
+                    max={11}
                     minDistance={1}
                     step={0.1}
                     onSliderChangeCommitted={(value: number[]) => {
@@ -433,7 +433,7 @@ export function MainResultsFilters(
                     width="100%"
                     value={[props.filterCriteria.h3k27ac_s, props.filterCriteria.h3k27ac_e]}
                     min={-10}
-                    max={10}
+                    max={11}
                     minDistance={1}
                     step={0.1}
                     onSliderChangeCommitted={(value: number[]) => {
@@ -447,7 +447,7 @@ export function MainResultsFilters(
                     width="100%"
                     value={[props.filterCriteria.ctcf_s, props.filterCriteria.ctcf_e]}
                     min={-10}
-                    max={10}
+                    max={11}
                     minDistance={1}
                     step={0.1}
                     onSliderChangeCommitted={(value: number[]) => {
@@ -461,7 +461,7 @@ export function MainResultsFilters(
                     width="100%"
                     value={[props.filterCriteria.atac_s, props.filterCriteria.atac_e]}
                     min={-10}
-                    max={10}
+                    max={11}
                     minDistance={1}
                     step={0.1}
                     onSliderChangeCommitted={(value: number[]) => {

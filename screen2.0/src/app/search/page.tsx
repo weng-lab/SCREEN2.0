@@ -557,7 +557,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                       }}
                       endIcon={<Download />}
                     >
-                      Download Search Results (.bed)
+                      Download Unfiltered Search Results (.bed)
                     </Button>
                     {bedLoadingPercent !== null && <CircularProgressWithLabel value={bedLoadingPercent} />}
                   </Stack>
