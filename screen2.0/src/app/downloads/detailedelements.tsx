@@ -1,4 +1,4 @@
-import { Button, ButtonProps, IconButton, Paper, Tooltip, Typography, Modal, Container, Divider } from "@mui/material"
+import { Button, ButtonProps, IconButton, Paper, Tooltip, Typography, Modal, Container, Divider, CircularProgress, CircularProgressProps } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { Box } from "@mui/system"
 import React, { useMemo, useState } from "react"
@@ -56,7 +56,37 @@ const style = {
 }
 
 // Render for URL in modal table
-function bioTableColsRender(row: Biosample, x: "dnase" | "h3k4me3" | "h3k27ac" | "ctcf" | "atac") {
+function BioTableColsRender(row: Biosample, x: "dnase" | "h3k4me3" | "h3k27ac" | "ctcf" | "atac") {
+  const [progress, setProgress] = useState<number>(null)
+  
+  function CircularProgressWithLabel(
+    props: CircularProgressProps & { value: number },
+  ) {
+    return (
+      <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+        <CircularProgress variant="determinate" {...props} />
+        <Box
+          sx={{
+            top: 0,
+            left: 0,
+            bottom: 0,
+            right: 0,
+            position: 'absolute',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Typography
+            variant="caption"
+            component="div"
+            color="text.secondary"
+          >{`${Math.round(props.value)}%`}</Typography>
+        </Box>
+      </Box>
+    );
+  }
+
   if (row[x]) {
     let url: string
     let fileName: string
@@ -83,14 +113,75 @@ function bioTableColsRender(row: Biosample, x: "dnase" | "h3k4me3" | "h3k27ac" |
           break
     }
 
-    const handleDL = () =>
+    const handleDL = () => {
+      // Create a progress callback function
+      const handleProgress = (progress: { loaded: number; total: number }) => {
+        setProgress((progress.loaded / progress.total) * 100)
+      };
+    
+      // Fetch with progress callback
       fetch(url)
-        .then((x) => x.text())
-        .then((x) => {
-          downloadTSV(x, fileName)
+        .then((response) => {
+          // Check if the response is successful
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+    
+          // Use the body stream for progress tracking
+          const reader = response.body!.getReader();
+          const contentLength = +response.headers.get('Content-Length')!;
+    
+          // Read the body and track progress
+          let receivedLength = 0;
+          let chunks: Uint8Array[] = [];
+    
+          function read() {
+            return reader.read().then(({ done, value }) => {
+              if (done) {
+                // All chunks have been received
+                return;
+              }
+    
+              receivedLength += value!.length;
+              chunks.push(value!);
+    
+              // Update progress
+              handleProgress({ loaded: receivedLength, total: contentLength });
+    
+              // Continue reading the next chunk
+              return read();
+            });
+          }
+    
+          // Start reading the body
+          return read().then(() => {
+            // All chunks have been received, concatenate and process the data
+            const dataArray = new Uint8Array(receivedLength);
+            let position = 0;
+            for (const chunk of chunks) {
+              dataArray.set(chunk, position);
+              position += chunk.length;
+            }
+    
+            // Convert Uint8Array to string
+            const dataString = new TextDecoder('utf-8').decode(dataArray);
+    
+            // Call your download function with the processed data
+            downloadTSV(dataString, fileName);
+            setProgress(null)
+          });
         })
+        .catch((error) => {
+          // Handle errors
+          window.alert('Download failed:' + error);
+          setProgress(null)
+        });
+    };
 
     return (
+      progress ?
+      <CircularProgressWithLabel value={progress} />
+      :
       <IconButton onClick={handleDL}>
         <DownloadIcon />
       </IconButton>
@@ -111,27 +202,27 @@ const bioTableCols: DataTableColumn<Biosample>[] = [
   {
     header: "DNase",
     value: (row: Biosample) => row.dnase ?? "",
-    render: (row: Biosample) => bioTableColsRender(row, "dnase"),
+    render: (row: Biosample) => BioTableColsRender(row, "dnase"),
   },
   {
     header: "H3K4me3",
     value: (row: Biosample) => row.h3k4me3 ?? "",
-    render: (row: Biosample) => bioTableColsRender(row, "h3k4me3"),
+    render: (row: Biosample) => BioTableColsRender(row, "h3k4me3"),
   },
   {
     header: "H3K27ac",
     value: (row: Biosample) => row.h3k27ac ?? "",
-    render: (row: Biosample) => bioTableColsRender(row, "h3k27ac"),
+    render: (row: Biosample) => BioTableColsRender(row, "h3k27ac"),
   },
   {
     header: "CTCF",
     value: (row: Biosample) => row.ctcf ?? "",
-    render: (row: Biosample) => bioTableColsRender(row, "ctcf"),
+    render: (row: Biosample) => BioTableColsRender(row, "ctcf"),
   },
   {
     header: "ATAC",
     value: (row: Biosample) => row.atac ?? "",
-    render: (row: Biosample) => bioTableColsRender(row, "atac"),
+    render: (row: Biosample) => BioTableColsRender(row, "atac"),
   },
 ]
 
@@ -178,8 +269,6 @@ export function DetailedElements(props: TabPanelProps) {
   const handleClose5 = () => setOpen5(false)
 
   const biosamples = props.biosamples != -1 ? props.biosamples.data : null
-
-  console.log(biosamples)
 
   //This is written with the assumption there's no lifeStage besides Embryonic and Adult
   const humanCellLines: Biosample[] = useMemo(
