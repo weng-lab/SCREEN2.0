@@ -9,6 +9,7 @@ import { LoadingMessage } from "../../../common/lib/utility"
 
 type cCRERow = {
   ct?: string
+  celltypename: string
   dnase: number
   h3k4me3: number
   h3k27ac: number
@@ -18,12 +19,12 @@ type cCRERow = {
 }
 
 
-const tableCols = (globals, typeC = false) => {
+const tableCols = (typeC = false) => {
   let cols = typeC ? [
     {
       header: "Cell Type",
       value: (row: cCRERow) =>
-        globals.byCellType[row.ct] && globals.byCellType[row.ct][0] ? globals.byCellType[row.ct][0]["biosample_summary"] : "",
+       row.celltypename,
     },
    {
       header: "ATAC Z-score",
@@ -48,8 +49,7 @@ const tableCols = (globals, typeC = false) => {
   ] : [
     {
       header: "Cell Type",
-      value: (row: cCRERow) =>
-        globals.byCellType[row.ct] && globals.byCellType[row.ct][0] ? globals.byCellType[row.ct][0]["biosample_summary"] : "",
+      value: (row: cCRERow) => row.celltypename,
     },
     {
       header: "DNase Z-score",
@@ -142,7 +142,7 @@ const ctAgnosticColumns = () => [
 ]
 
 //Cache is not working as expected when switching between open cCREs
-export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
+export const InSpecificBiosamples = ({ accession, assembly }) => {
 
   const { data: data_toptissues, loading: loading_toptissues, error: error_toptissues } = useQuery(TOP_TISSUES,
     {
@@ -161,7 +161,7 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
       return rs.cCREZScores
         .filter((d) => d.assay.toLowerCase() === "ctcf")
         .map((c) => {
-          return { score: c.score, ct: rs.name, tissue: rs.ontology }
+          return { score: c.score, ct: rs.name, tissue: rs.ontology, celltypename: rs.displayname }
         })
     })
 
@@ -176,7 +176,7 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
       return rs.cCREZScores
         .filter((d) => d.assay.toLowerCase() === "dnase")
         .map((c) => {
-          return { score: c.score, ct: rs.name, tissue: rs.ontology }
+          return { score: c.score, ct: rs.name, tissue: rs.ontology, celltypename: rs.displayname }
         })
     })
 
@@ -191,7 +191,7 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
       return rs.cCREZScores
         .filter((d) => d.assay.toLowerCase() === "h3k4me3")
         .map((c) => {
-          return { score: c.score, ct: rs.name, tissue: rs.ontology }
+          return { score: c.score, ct: rs.name, tissue: rs.ontology, celltypename: rs.displayname }
         })
     })
 
@@ -206,7 +206,7 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
       return rs.cCREZScores
         .filter((d) => d.assay.toLowerCase() === "h3k27ac")
         .map((c) => {
-          return { score: c.score, ct: rs.name, tissue: rs.ontology }
+          return { score: c.score, ct: rs.name, tissue: rs.ontology, celltypename: rs.displayname }
         })
     })
 
@@ -220,6 +220,7 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
     let typedata = r.map((d) => {
       return {
         ct: d.name,
+        celltypename: d.displayname,
         tissue: d.ontology,
         dnase: d.cCREZScores.find((cz) => cz.assay.toLowerCase() === "dnase")
           ? d.cCREZScores.find((cz) => cz.assay.toLowerCase() === "dnase").score
@@ -303,9 +304,9 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
         </Grid2>
         <Grid2 xs={12}>
           {/* Type A */}
-          {typea && globals ? (
+          {typea  ? (
             <DataTable
-              columns={tableCols(globals)}
+              columns={tableCols()}
               tableTitle="Core Collection"
               rows={typea}
               sortColumn={1}
@@ -316,9 +317,9 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
         </Grid2>
         <Grid2 xs={12}>
           {/* Type B & D */}
-          {withdnase && globals ? (
+          {withdnase  ? (
             <DataTable
-              columns={tableCols(globals)}
+              columns={tableCols()}
               sortColumn={1}
               tableTitle="Partial Data Collection"
               rows={withdnase}
@@ -329,9 +330,9 @@ export const InSpecificBiosamples = ({ accession, globals, assembly }) => {
         </Grid2>
         <Grid2 xs={12}>
           {/* Type C */}
-          {typec && globals ? (
+          {typec ? (
             <DataTable
-              columns={tableCols(globals, true)}
+              columns={tableCols(true)}
               tableTitle="Ancillary Collection"
               rows={typec}
               sortColumn={1}

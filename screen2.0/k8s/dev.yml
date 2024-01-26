@@ -24,19 +24,19 @@ spec:
 apiVersion: networking.gke.io/v1
 kind: ManagedCertificate
 metadata:
-  name: nextjs-screen-cert
+  name: nextjs-screen-beta-cert
 spec:
   domains:
-    - screen.2.0.wenglab.org
+    - screen.beta.wenglab.org
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: nextjs-screen
   annotations:
-    kubernetes.io/ingress.global-static-ip-name: screen-new-api-external-ip
+    kubernetes.io/ingress.global-static-ip-name: "screen-test-api-external-ip"
     kubernetes.io/ingress.allow-http: "true"
-    networking.gke.io/managed-certificates: nextjs-screen-cert
+    networking.gke.io/managed-certificates: nextjs-screen-beta-cert
   labels:
     app: nextjs-screen
 spec:

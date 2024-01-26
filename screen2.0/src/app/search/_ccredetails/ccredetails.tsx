@@ -32,7 +32,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
         <Typography variant="h6">{`${region.chrom}:${region.start.toLocaleString("en-US")}-${region.end.toLocaleString("en-US")}`}</Typography>
       </Stack>
       <Divider sx={{mb: 2}}/>
-      {page === 0 && <InSpecificBiosamples accession={accession} globals={globals} assembly={assembly} />}
+      {page === 0 && <InSpecificBiosamples accession={accession} assembly={assembly} />}
       {page === 1 && <LinkedGenes accession={accession} assembly={assembly} />}
       {page === 2 && (
         <NearByGenomicFeatures

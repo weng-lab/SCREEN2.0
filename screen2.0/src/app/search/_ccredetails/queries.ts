@@ -4,6 +4,7 @@ type Data = {
   ccREBiosampleQuery: {
     biosamples: {
       sampleType: string;
+      displayname: string;
       cCREZScores: {
         score: number;
         assay: string;
@@ -33,6 +34,7 @@ export const TOP_TISSUES: TypedDocumentNode<Data, Variables> = gql`
     ccREBiosampleQuery(assembly: $assembly) {
       biosamples {
         sampleType
+        displayname
         cCREZScores(accession: $accession) {
           score
           assay
