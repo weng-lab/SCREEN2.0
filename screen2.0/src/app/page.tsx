@@ -54,9 +54,9 @@ export default function Home() {
             <Grid2 direction="column" flexGrow={0} border={"1px solid LightGray"} borderLeft={"none"} borderRight={"none"}>
               <Typography p={1} align="right">cCRE Count</Typography>
               <Divider />
-              <Typography p={1} align="right">1,063,878</Typography>
+              <Typography p={1} align="right">2,348,854</Typography>
               <Divider />
-              <Typography p={1} align="right">313,838</Typography>
+              <Typography p={1} align="right">926,843</Typography>
             </Grid2>
             <Grid2>
               <Divider orientation="vertical" />
@@ -64,9 +64,9 @@ export default function Home() {
             <Grid2 direction="column" flexGrow={0} border={"1px solid LightGray"} borderLeft={"none"}>
               <Typography p={1} align="right">Cell/Tissue Types Covered</Typography>
               <Divider />
-              <Typography p={1} align="right">1,518</Typography>
+              <Typography p={1} align="right">1,888</Typography>
               <Divider />
-              <Typography p={1} align="right">169</Typography>
+              <Typography p={1} align="right">382</Typography>
             </Grid2>
           </Grid2>
         </Grid2>

@@ -56,7 +56,7 @@ const style = {
 }
 
 // Render for URL in modal table
-function bioTableColsRender(row: Biosample, x: "dnase" | "h3k4me3" | "h3k27ac" | "ctcf") {
+function bioTableColsRender(row: Biosample, x: "dnase" | "h3k4me3" | "h3k27ac" | "ctcf" | "atac") {
   if (row[x]) {
     let url: string
     let fileName: string
@@ -77,6 +77,10 @@ function bioTableColsRender(row: Biosample, x: "dnase" | "h3k4me3" | "h3k27ac" |
         url = `https://downloads.wenglab.org/Registry-V4/Signal-Files/${row.ctcf}-${row.ctcf_signal}.txt`
         fileName = `${row.ctcf}-${row.ctcf_signal}.txt`
         break
+      case "atac":
+        url = `https://downloads.wenglab.org/Registry-V4/Signal-Files/${row.atac}-${row.atac_signal}.txt`
+        fileName = `${row.atac}-${row.atac_signal}.txt`
+          break
     }
 
     const handleDL = () =>
@@ -124,6 +128,11 @@ const bioTableCols: DataTableColumn<Biosample>[] = [
     value: (row: Biosample) => row.ctcf ?? "",
     render: (row: Biosample) => bioTableColsRender(row, "ctcf"),
   },
+  {
+    header: "ATAC",
+    value: (row: Biosample) => row.atac ?? "",
+    render: (row: Biosample) => bioTableColsRender(row, "atac"),
+  },
 ]
 
 // By Cell Type Modal
@@ -169,6 +178,8 @@ export function DetailedElements(props: TabPanelProps) {
   const handleClose5 = () => setOpen5(false)
 
   const biosamples = props.biosamples != -1 ? props.biosamples.data : null
+
+  console.log(biosamples)
 
   //This is written with the assumption there's no lifeStage besides Embryonic and Adult
   const humanCellLines: Biosample[] = useMemo(
@@ -218,7 +229,7 @@ export function DetailedElements(props: TabPanelProps) {
             </Typography>
             {/* These are not showing up because of the flex container */}
             <Divider />
-            <Typography variant="subtitle1">2,348,854 cCREs • 1,678 cell types</Typography>
+            <Typography variant="subtitle1">2,348,854 cCREs • 1,888 cell types</Typography>
           </Grid2>
           <Grid2 xs={2}>
             <Image src={Human} alt={"Human Icon"} height={75} />
@@ -295,49 +306,49 @@ export function DetailedElements(props: TabPanelProps) {
             <InlineDownloadButton
               mode="download"
               href={Config.Downloads.MousePromoters}
-              label={`Promoter-like (PLS) (47,532)`}
+              label={`Promoter-like (PLS) (27,332)`}
               bordercolor={PLS}
             />
             <InlineDownloadButton
               mode="download"
               href={Config.Downloads.MouseProximalEnhancers}
-              label="Proximal enhancer-like (pELS) (249,464)"
+              label="Proximal enhancer-like (pELS) (111,218)"
               bordercolor={pELS}
             />
             <InlineDownloadButton
               mode="download"
               href={Config.Downloads.MouseDistalEnhancers}
-              label="Distal enhancer-like (dELS) (1,469,205)"
+              label="Distal enhancer-like (dELS) (400,783)"
               bordercolor={dELS}
             />
             <InlineDownloadButton
               mode="download"
               href={Config.Downloads.MouseCA_CTCF}
-              label="Chromatin Accessible with CTCF (126,034)"
+              label="Chromatin Accessible with CTCF (45,933)"
               bordercolor={CA_CTCF}
             />
             <InlineDownloadButton
               mode="download"
               href={Config.Downloads.MouseCA_H3K4me3}
-              label="Chromatin Accessible with H3K4me3 (79,246)"
+              label="Chromatin Accessible with H3K4me3 (23,832)"
               bordercolor={CA_H3K4me3}
             />
             <InlineDownloadButton
               mode="download"
               href={Config.Downloads.MouseCA_TF}
-              label="Chromatin Accessible with TF (26,102)"
+              label="Chromatin Accessible with TF (10,707)"
               bordercolor={CA_TF}
             />
             <InlineDownloadButton
               mode="download"
               href={Config.Downloads.MouseCA_only}
-              label="Chromatin Accessible Only (245,985)"
+              label="Chromatin Accessible Only (291,800)"
               bordercolor={CA_only}
             />
             <InlineDownloadButton
               mode="download"
               href={Config.Downloads.MouseTF_only}
-              label="TF Only (105,286)"
+              label="TF Only (15,283)"
               bordercolor={TF_only}
             />
             {/* Box added to align last row */}
@@ -351,11 +362,11 @@ export function DetailedElements(props: TabPanelProps) {
           <Typography variant="h6">Mouse cCREs by Cell Type</Typography>
         </Grid2>
         <Grid2 display={"flex"} flexWrap={"wrap"} justifyContent={"space-between"} xs={6}>
-          <InlineDownloadButton mode="search" onClick={handleOpen0} label="Cell Lines (206 Cell Types)" bordercolor={"#333333"} />
+          <InlineDownloadButton mode="search" onClick={handleOpen0} label="Cell Lines (382 Cell Types)" bordercolor={"#333333"} />
           <InlineDownloadButton
             mode="search"
             onClick={handleOpen1}
-            label="Adult Primary Cells and Tissues (1093 cell types)"
+            label="Adult Primary Cells and Tissues (1142 cell types)"
             bordercolor={"#333333"}
           />
           <InlineDownloadButton
@@ -366,11 +377,11 @@ export function DetailedElements(props: TabPanelProps) {
           />
         </Grid2>
         <Grid2 display={"flex"} flexWrap={"wrap"} justifyContent={"space-between"} xs={6}>
-          <InlineDownloadButton mode="search" onClick={handleOpen3} label="Cell Lines (27 Cell Types)" bordercolor={"#333333"} />
+          <InlineDownloadButton mode="search" onClick={handleOpen3} label="Cell Lines (29 Cell Types)" bordercolor={"#333333"} />
           <InlineDownloadButton
             mode="search"
             onClick={handleOpen4}
-            label="Adult Primary Cells and Tissues (244 cell types)"
+            label="Adult Primary Cells and Tissues (257 cell types)"
             bordercolor={"#333333"}
           />
           <InlineDownloadButton mode="search" onClick={handleOpen5} label="Embryonic Tissues (96 cell types)" bordercolor={"#333333"} />

@@ -7,6 +7,8 @@ export type Biosample = {
   h3k27ac_signal: string | null
   h3k4me3: string | null
   h3k4me3_signal: string | null
+  atac: string | null
+  atac_signal: string | null
   name: string | null
   lifeStage: string
   sampleType: string
