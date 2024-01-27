@@ -2,16 +2,20 @@ import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, Pap
 import Grid2 from "@mui/material/Unstable_Grid2"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { ChangeEvent, Dispatch, SetStateAction, useMemo, useState } from "react"
-import { filterBiosamples, parseByCellType, assayHoverInfo } from "./searchhelpers"
-import { BiosampleTableFilters, CellTypeData, FilteredBiosampleData, Biosample } from "./types"
+import { filterBiosamples, parseBiosamples, assayHoverInfo } from "./searchhelpers"
+import { BiosampleTableFilters, CellTypeData, FilteredBiosampleData, Biosample, RegistryBiosample } from "./types"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
 import { ArrowDropDown, Check, Close } from "@mui/icons-material"
 import { ArrowRight } from "@mui/icons-material"
 import SearchIcon from '@mui/icons-material/Search';
+import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
+import { ApolloQueryResult, TypedDocumentNode, gql } from "@apollo/client"
+import { BIOSAMPLE_Data } from "../../common/lib/queries"
 
 
 interface Props {
-  byCellType: CellTypeData,
+  biosampleData: ApolloQueryResult<BIOSAMPLE_Data>,
+  assembly: "GRCh38" | "mm10"
   selectedBiosamples: Biosample[],
   setSelectedBiosamples: Dispatch<SetStateAction<Biosample[]>>,
   showRNAseq: boolean,
@@ -21,7 +25,8 @@ interface Props {
 }
 
 export const BiosampleTables: React.FC<Props> = ({
-  byCellType,
+  biosampleData,
+  assembly,
   selectedBiosamples,
   setSelectedBiosamples,
   showRNAseq,
@@ -41,6 +46,36 @@ export const BiosampleTables: React.FC<Props> = ({
     Ancillary: { checked: true, label: "Ancillary Collection" },
   })
 
+  type RNA_SEQ_Data = {
+    data: {
+      rnaSeqQuery: {
+        biosample: string
+      }[]
+    }
+  }
+  
+  type RNA_SEQ_Variables = {
+    assembly: "mm10" | "grch38",
+  }
+  
+  const RNA_SEQ_QUERY: TypedDocumentNode<RNA_SEQ_Data, RNA_SEQ_Variables> = gql`
+    query RNASeqQuery($assembly: String!){
+      rnaSeqQuery(assembly:$assembly) {
+        biosample
+      }
+    }
+  `
+
+  const { data: data_rnaseq, loading: loading_rnaseq, error: error_rnaseq } = useQuery(RNA_SEQ_QUERY,
+    {
+      variables: {
+        assembly: assembly.toLowerCase() as ("grch38" | "mm10")
+      },
+      skip: !showRNAseq,
+      fetchPolicy: "cache-first"
+    }
+  )
+
   const sidebar = Boolean(biosampleTableFilters)
 
   //For searching biosample tables
@@ -59,10 +94,10 @@ export const BiosampleTables: React.FC<Props> = ({
   };
 
   const filteredBiosamples: FilteredBiosampleData = useMemo(() => {
-    if (byCellType) {
+    if ((biosampleData.data && (showRNAseq ? data_rnaseq : true))) {
       return (
         filterBiosamples(
-          parseByCellType(byCellType),
+          parseBiosamples(biosampleData.data[assembly === "GRCh38" ? "human": "mouse"].biosamples, data_rnaseq?.data?.rnaSeqQuery || []),
           sidebar ? biosampleTableFilters.Tissue.checked : biosampleTableFiltersInternal.Tissue.checked,
           sidebar ? biosampleTableFilters.PrimaryCell.checked : biosampleTableFiltersInternal.PrimaryCell.checked,
           sidebar ? biosampleTableFilters.CellLine.checked : biosampleTableFiltersInternal.CellLine.checked,
@@ -74,7 +109,9 @@ export const BiosampleTables: React.FC<Props> = ({
         )
       )
     } else return []
-  }, [byCellType, sidebar, biosampleTableFiltersInternal, biosampleTableFilters])
+  }, [biosampleData, assembly, showRNAseq, data_rnaseq, sidebar, biosampleTableFiltersInternal, biosampleTableFilters])
+
+  
 
   //This could be refactored to improve performance in SNP/Gene filters. The onRowClick for each table depends on setting main query params, which the gene/snp filters also modify
   //This is recalculated every time those sliders are moved.
@@ -319,7 +356,7 @@ export const BiosampleTables: React.FC<Props> = ({
       </Grid2>
       <Grid2 xs={12} height={sidebar ? 350 : 500} overflow={"auto"} >
         <Box sx={{ display: 'flex', flexDirection: "column" }}>
-          {byCellType ? biosampleTables : <CircularProgress sx={{ margin: "auto" }} />}
+          {(biosampleData && (showRNAseq ? data_rnaseq : true)) ? biosampleTables : <CircularProgress sx={{ margin: "auto" }} />}
         </Box>
       </Grid2>
     </Grid2>

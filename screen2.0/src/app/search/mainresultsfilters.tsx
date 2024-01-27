@@ -30,13 +30,14 @@ import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
 import Grid2 from "@mui/material/Unstable_Grid2"
 import { RangeSlider, DataTable } from "@weng-lab/psychscreen-ui-components"
 import { Biosample, BiosampleTableFilters, CellTypeData, FilterCriteria, FilteredBiosampleData, MainQueryParams } from "./types"
-import { parseByCellType, filterBiosamples, assayHoverInfo, filtersModified } from "./searchhelpers"
-import { gql } from "@apollo/client"
+import { filterBiosamples, assayHoverInfo, filtersModified } from "./searchhelpers"
+import { ApolloQueryResult, gql } from "@apollo/client"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import GeneAutoComplete from "../applets/gene-expression/geneautocomplete";
 import { InfoOutlined } from "@mui/icons-material";
 import BiosampleTables from "./biosampletables";
 import ClearIcon from '@mui/icons-material/Clear';
+import { BIOSAMPLE_Data } from "../../common/lib/queries";
 
 const snpMarks = [
   {
@@ -117,7 +118,7 @@ export function MainResultsFilters(
     TSSs: number[]
     setTSSs: Dispatch<SetStateAction<number[]>>,
     setTSSranges: Dispatch<SetStateAction<{ start: number, end: number }[]>>
-    byCellType: CellTypeData,
+    biosampleData: ApolloQueryResult<BIOSAMPLE_Data>
     genomeBrowserView: boolean,
     searchParams: { [key: string]: string | undefined },
   }
@@ -338,11 +339,15 @@ export function MainResultsFilters(
             )}
             <Grid2 xs={12}>
               <Box sx={{ display: 'flex', flexDirection: "column" }}>
-                {props.byCellType ?
+                {props.biosampleData?.loading ?
+                  <CircularProgress sx={{ margin: "auto" }} />
+                  :
+                  props.biosampleData?.data ?
                   <BiosampleTables
                     showRNAseq={false}
+                    assembly={props.mainQueryParams.coordinates.assembly}
                     biosampleSelectMode="replace"
-                    byCellType={props.byCellType}
+                    biosampleData={props.biosampleData}
                     selectedBiosamples={[props.mainQueryParams.biosample]}
                     setSelectedBiosamples={(biosample: [Biosample]) => props.setBiosample(biosample[0])}
                     biosampleTableFilters={props.biosampleTableFilters}

@@ -7,11 +7,13 @@ import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import { ArrowDropDown, ArrowRight, EventBusyTwoTone, InfoOutlined } from "@mui/icons-material"
 
 import ConfigureGenomeBrowser from "./_ccredetails/configuregb"
+import { ApolloQueryResult } from "@apollo/client"
+import { BIOSAMPLE_Data } from "../../common/lib/queries"
 
 
 interface MainResultsTableProps extends Partial<DataTableProps<any>> {
   assembly: "GRCh38" | "mm10"
-  byCellType: CellTypeData
+  biosampleData: ApolloQueryResult<BIOSAMPLE_Data>
 }
 
 export function MainResultsTable(props: MainResultsTableProps) {
@@ -308,7 +310,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
               PaperProps={{ sx: { maxWidth: "none" } }}
             >
               <ConfigureGenomeBrowser
-                byCellType={props.byCellType}
+                biosampleData={props.biosampleData}
                 selectedBiosamples={selectedBiosamples}
                 setSelectedBiosamples={setSelectedBiosamples}
                 coordinates={{
@@ -331,7 +333,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
       HeaderRender: () => <strong><p>Conservation</p></strong>
     })
     return cols
-  }, [CTCF_ChIAPET, RNAPII_ChIAPET, distance, props.assembly, props.byCellType, props.rows])
+  }, [CTCF_ChIAPET, RNAPII_ChIAPET, distance, props.assembly, props.biosampleData, props.rows])
 
   const cols = useMemo(() => {
     return columns(setDistance, setCTCF_ChIAPET, setRNAPII_ChIAPET)

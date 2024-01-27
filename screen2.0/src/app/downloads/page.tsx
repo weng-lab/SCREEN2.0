@@ -4,7 +4,7 @@ import { UMAPQuery, biosampleQuery, getGlobals } from "../../common/lib/queries"
 import { CellTypeData } from "../search/types"
 
 export default async function Downloads({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
-  const biosamples: any = await biosampleQuery()
+  const biosamples = await biosampleQuery()
   const assembly = searchParams.assembly === "Mouse" ? "mm10" : "grch38"
   const assay =
     searchParams.assay === "DNase" || searchParams.assay === "H3K4me3" || searchParams.assay === "H3K27ac" || searchParams.assay === "CTCF"

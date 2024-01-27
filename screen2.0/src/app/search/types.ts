@@ -143,6 +143,24 @@ export type Biosample = {
   rnaseq: boolean
 }
 
+export type RegistryBiosample = {
+  name: string;
+  ontology: string;
+  lifeStage: string;
+  sampleType: string;
+  displayname: string;
+  dnase: string | null;
+  h3k4me3: string | null;
+  h3k27ac: string | null;
+  ctcf: string | null;
+  atac: string | null;
+  dnase_signal: string | null;
+  h3k4me3_signal: string | null;
+  h3k27ac_signal: string | null;
+  ctcf_signal: string | null;
+  atac_signal: string | null;
+};
+
 export type MainResultTableRows = MainResultTableRow[]
 
 export type MainResultTableRow = {

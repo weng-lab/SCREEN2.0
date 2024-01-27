@@ -1,5 +1,5 @@
 
-import { cCREData, MainQueryParams, CellTypeData, UnfilteredBiosampleData, FilteredBiosampleData, MainResultTableRows, MainResultTableRow, rawQueryData, FilterCriteria, BiosampleTableFilters, Biosample, MainQueryData, RawLinkedGenesData, SCREENSearchResult } from "./types"
+import { cCREData, MainQueryParams, CellTypeData, UnfilteredBiosampleData, FilteredBiosampleData, MainResultTableRows, MainResultTableRow, rawQueryData, FilterCriteria, BiosampleTableFilters, Biosample, MainQueryData, RawLinkedGenesData, SCREENSearchResult, RegistryBiosample } from "./types"
 import { MainQuery, fetchLinkedGenes } from "../../common/lib/queries"
 import { startTransition } from "react"
 
@@ -354,42 +354,78 @@ function availableAssays(
   return assays
 }
 
+// /**
+//  *
+//  * @param biosampleData
+//  * @param rnaSeqSamples
+//  * @returns an object of sorted biosample types, grouped by tissue type
+//  */
+// export function parseBiosamples1(biosampleData: RegistryBiosample[], rnaSeqSamples: { biosample: string }[]): UnfilteredBiosampleData {
+//   const biosamples: UnfilteredBiosampleData = {}
+//   biosampleData.forEach((entry) => {
+//     // if the tissue catergory hasn't been catalogued, make a new blank array for it
+//     const experiments = entry[1]
+//     let tissueArr: Biosample[] = []
+//     if (!biosamples[experiments[0].tissue]) {
+//       Object.defineProperty(biosamples, experiments[0].tissue, {
+//         value: [],
+//         enumerable: true,
+//         writable: true,
+//       })
+//     }
+//     //The existing tissues
+//     tissueArr = biosamples[experiments[0].tissue]
+//     tissueArr.push({
+//       //display name
+//       summaryName: experiments[0].biosample_summary,
+//       //for filtering
+//       biosampleType: experiments[0].biosample_type,
+//       //for query
+//       queryValue: experiments[0].celltypename,
+//       //for filling in available assay wheels
+//       assays: availableAssays(experiments),
+//       //for displaying tissue category when selected
+//       biosampleTissue: experiments[0].tissue,
+//       rnaseq: experiments[0].rnaseq
+//     })
+//     Object.defineProperty(biosamples, experiments[0].tissue, { value: tissueArr, enumerable: true, writable: true })
+//   })
+//   return biosamples
+// }
+
 /**
- *
- * @param byCellType JSON of byCellType
+ * 
+ * @param biosampleData 
+ * @param rnaSeqSamples 
  * @returns an object of sorted biosample types, grouped by tissue type
  */
-export function parseByCellType(byCellType: CellTypeData): UnfilteredBiosampleData {
-  const biosamples: UnfilteredBiosampleData = {}
-  Object.entries(byCellType.byCellType).forEach((entry) => {
-    // if the tissue catergory hasn't been catalogued, make a new blank array for it
-    const experiments = entry[1]
-    let tissueArr: Biosample[] = []
-    if (!biosamples[experiments[0].tissue]) {
-      Object.defineProperty(biosamples, experiments[0].tissue, {
-        value: [],
-        enumerable: true,
-        writable: true,
-      })
+export function parseBiosamples(biosampleData: RegistryBiosample[], rnaSeqSamples: { biosample: string }[]): UnfilteredBiosampleData{
+  const groupedBiosamples: UnfilteredBiosampleData = {}
+
+  biosampleData.forEach(biosample => {
+    //Is tissue hasn't been catalogued yet, define an entry for it
+    if (!Object.keys(groupedBiosamples).find((tissue) => tissue === biosample.ontology)){
+      groupedBiosamples[biosample.ontology] = []
     }
-    //The existing tissues
-    tissueArr = biosamples[experiments[0].tissue]
-    tissueArr.push({
-      //display name
-      summaryName: experiments[0].biosample_summary,
-      //for filtering
-      biosampleType: experiments[0].biosample_type,
-      //for query
-      queryValue: experiments[0].celltypename,
-      //for filling in available assay wheels
-      assays: availableAssays(experiments),
-      //for displaying tissue category when selected
-      biosampleTissue: experiments[0].tissue,
-      rnaseq: experiments[0].rnaseq
-    })
-    Object.defineProperty(biosamples, experiments[0].tissue, { value: tissueArr, enumerable: true, writable: true })
+    groupedBiosamples[biosample.ontology].push(
+      {
+        summaryName: biosample.displayname,
+        biosampleType: biosample.sampleType,
+        biosampleTissue: biosample.ontology,
+        queryValue: biosample.name,
+        assays: {
+          atac: Boolean(biosample.atac),
+          ctcf: Boolean(biosample.ctcf),
+          dnase: Boolean(biosample.dnase),
+          h3k27ac: Boolean(biosample.h3k27ac),
+          h3k4me3: Boolean(biosample.h3k4me3)
+        },
+        rnaseq: Boolean(rnaSeqSamples.map((sample) => sample.biosample).find(sampleName => biosample.name === sampleName)),
+      }
+    )
   })
-  return biosamples
+
+  return groupedBiosamples
 }
 
 /**

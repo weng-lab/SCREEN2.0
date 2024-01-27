@@ -3,9 +3,9 @@
  */
 'use server'
 import { getClient } from "../lib/client"
-import { ApolloQueryResult, gql } from "@apollo/client"
+import { ApolloQueryResult, TypedDocumentNode, gql } from "@apollo/client"
 import Config from "../../config.json"
-import { CellTypeData } from "../../app/search/types"
+import { CellTypeData, RegistryBiosample } from "../../app/search/types"
 
 const cCRE_QUERY = gql`
   query ccreSearchQuery(
@@ -159,49 +159,6 @@ function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: numbe
   return vars
 }
 
-const BIOSAMPLE_QUERY = gql`
-  query biosamples {
-    human: ccREBiosampleQuery(assembly: "grch38") {
-      biosamples {
-        name
-        ontology
-        lifeStage
-        sampleType
-        displayname
-        dnase: experimentAccession(assay: "DNase")
-        h3k4me3: experimentAccession(assay: "H3K4me3")
-        h3k27ac: experimentAccession(assay: "H3K27ac")
-        ctcf: experimentAccession(assay: "CTCF")
-        atac: experimentAccession(assay: "ATAC")
-        dnase_signal: fileAccession(assay: "DNase")
-        h3k4me3_signal: fileAccession(assay: "H3K4me3")
-        h3k27ac_signal: fileAccession(assay: "H3K27ac")
-        ctcf_signal: fileAccession(assay: "CTCF")
-        atac_signal: fileAccession(assay: "ATAC")
-      }
-    }
-    mouse: ccREBiosampleQuery(assembly: "mm10") {
-      biosamples {
-        name
-        ontology
-        lifeStage
-        sampleType
-        displayname
-        dnase: experimentAccession(assay: "DNase")
-        h3k4me3: experimentAccession(assay: "H3K4me3")
-        h3k27ac: experimentAccession(assay: "H3K27ac")
-        ctcf: experimentAccession(assay: "CTCF")
-        atac: experimentAccession(assay: "ATAC")
-        dnase_signal: fileAccession(assay: "DNase")
-        h3k4me3_signal: fileAccession(assay: "H3K4me3")
-        h3k27ac_signal: fileAccession(assay: "H3K27ac")
-        ctcf_signal: fileAccession(assay: "CTCF")
-        atac_signal: fileAccession(assay: "ATAC")
-      }
-    }
-  }
-`
-
 const UMAP_QUERY = gql`
   query q($assembly: String!, $assay: [String!], $a: String!) {
     ccREBiosampleQuery(assay: $assay, assembly: $assembly) {
@@ -321,16 +278,66 @@ export async function MainQuery(assembly: string = null, chromosome: string = nu
   return data
 }
 
+
+export type BIOSAMPLE_Data = {
+  human: { biosamples: RegistryBiosample[] },
+  mouse: {biosamples: RegistryBiosample[]}
+}
+
+const BIOSAMPLE_QUERY: TypedDocumentNode<BIOSAMPLE_Data> = gql`
+  query biosamples {
+    human: ccREBiosampleQuery(assembly: "grch38") {
+      biosamples {
+        name
+        ontology
+        lifeStage
+        sampleType
+        displayname
+        dnase: experimentAccession(assay: "DNase")
+        h3k4me3: experimentAccession(assay: "H3K4me3")
+        h3k27ac: experimentAccession(assay: "H3K27ac")
+        ctcf: experimentAccession(assay: "CTCF")
+        atac: experimentAccession(assay: "ATAC")
+        dnase_signal: fileAccession(assay: "DNase")
+        h3k4me3_signal: fileAccession(assay: "H3K4me3")
+        h3k27ac_signal: fileAccession(assay: "H3K27ac")
+        ctcf_signal: fileAccession(assay: "CTCF")
+        atac_signal: fileAccession(assay: "ATAC")
+      }
+    }
+    mouse: ccREBiosampleQuery(assembly: "mm10") {
+      biosamples {
+        name
+        ontology
+        lifeStage
+        sampleType
+        displayname
+        dnase: experimentAccession(assay: "DNase")
+        h3k4me3: experimentAccession(assay: "H3K4me3")
+        h3k27ac: experimentAccession(assay: "H3K27ac")
+        ctcf: experimentAccession(assay: "CTCF")
+        atac: experimentAccession(assay: "ATAC")
+        dnase_signal: fileAccession(assay: "DNase")
+        h3k4me3_signal: fileAccession(assay: "H3K4me3")
+        h3k27ac_signal: fileAccession(assay: "H3K27ac")
+        ctcf_signal: fileAccession(assay: "CTCF")
+        atac_signal: fileAccession(assay: "ATAC")
+      }
+    }
+  }
+`
+
 export async function biosampleQuery() {
-  let data: ApolloQueryResult<any> | -1
+  let returnData: ApolloQueryResult<BIOSAMPLE_Data>
   try {
-    data = await getClient().query({
+    const res = await getClient().query({
       query: BIOSAMPLE_QUERY,
     })
+    returnData = { data: res.data, loading: res.loading, networkStatus: res.networkStatus, error: res.error }
   } catch (error) {
     console.log(error)
   } finally {
-    return data
+    return returnData
   }
 }
 

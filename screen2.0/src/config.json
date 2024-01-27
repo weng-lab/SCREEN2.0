@@ -37,7 +37,6 @@
     "GraphqlAPI": "https://ga.staging.wenglab.org/graphql"
   },
   "Downloads": {
-
     "HumanCCREs": "https://downloads.wenglab.org/Registry-V4/GRCh38-cCREs.bed",
     "HumanPromoters": "https://downloads.wenglab.org/Registry-V4/GRCh38-cCREs.PLS.bed",
     "HumanProximalEnhancers": "https://downloads.wenglab.org/Registry-V4/GRCh38-cCREs.pELS.bed",

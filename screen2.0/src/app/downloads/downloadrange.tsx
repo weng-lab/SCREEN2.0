@@ -1,12 +1,13 @@
-import { SetStateAction, startTransition, useEffect, useState, useTransition } from "react"
+import { SetStateAction, useEffect, useState, useTransition } from "react"
 import BiosampleTables from "../search/biosampletables"
-import { Biosample, CellTypeData } from "../search/types"
-import { getGlobals } from "../../common/lib/queries"
+import { Biosample } from "../search/types"
+import { BIOSAMPLE_Data } from "../../common/lib/queries"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { Box, Button, Checkbox, CircularProgress, CircularProgressProps, FormControl, FormControlLabel, FormGroup, FormLabel, IconButton, MenuItem, Radio, RadioGroup, Stack, TextField, Typography } from "@mui/material"
 import { downloadBED } from "../search/searchhelpers"
 import { parseGenomicRegion } from "../_mainsearch/parsegenomicregion"
 import { Close, Download } from "@mui/icons-material"
+import { ApolloQueryResult } from "@apollo/client"
 
 function CircularProgressWithLabel(
   props: CircularProgressProps & { value: number },
@@ -36,6 +37,10 @@ function CircularProgressWithLabel(
   );
 }
 
+interface DownloadRangeProps {
+  biosampleData: ApolloQueryResult<BIOSAMPLE_Data>
+}
+
 /**
  * @todo add linked genes info to query
  * @todo add genome switch to query mouse data. CONSERVATION data not available in mouse
@@ -43,9 +48,8 @@ function CircularProgressWithLabel(
  * @todo make query only request the needed data
  * @todo allow changing the distance of linked genes searched
  */
-export const DownloadRange: React.FC = () => {
+export const DownloadRange: React.FC<DownloadRangeProps> = ({biosampleData}) => {
   const [isPending, startTransition] = useTransition()
-  const [globals, setGlobals] = useState<CellTypeData>(null)
   const [assembly, setAssembly] = useState<"GRCh38" | "mm10">("GRCh38")
   const [inputValue, setInputValue] = useState<string>('chr11:5205263-5381894')
   //Only reason this is an array is to easily interface with BiosampleTables
@@ -88,13 +92,6 @@ export const DownloadRange: React.FC = () => {
     }
   }, [selectedBiosample])
 
-  //fetch globals
-  useEffect(() => {
-    startTransition(async () => {
-      setGlobals(await getGlobals(assembly))
-    })
-  }, [assembly])
-
   const handleDownloadBed = () => {
     const region = parseGenomicRegion(inputValue)
 
@@ -119,7 +116,8 @@ export const DownloadRange: React.FC = () => {
         <BiosampleTables
           showRNAseq={false}
           biosampleSelectMode="replace"
-          byCellType={globals}
+          biosampleData={biosampleData}
+          assembly={assembly}
           selectedBiosamples={selectedBiosample}
           setSelectedBiosamples={setSelectedBiosample}
         />

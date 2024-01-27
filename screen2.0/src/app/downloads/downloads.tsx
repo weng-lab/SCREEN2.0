@@ -10,6 +10,8 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ApolloQueryResult } from "@apollo/client"
 import { DownloadRange } from "./downloadrange"
+import { RegistryBiosample } from "../search/types"
+import { BIOSAMPLE_Data } from "../../common/lib/queries"
 
 function a11yProps(index: number) {
   return {
@@ -19,7 +21,7 @@ function a11yProps(index: number) {
 }
 
 export default function DownloadsPage(props: {
-  biosamples: -1 | ApolloQueryResult<any>
+  biosamples: ApolloQueryResult<BIOSAMPLE_Data>
   matrices: -1 | ApolloQueryResult<any>
   searchParams: { [key: string]: string | string[] | undefined }
 }) {
@@ -67,7 +69,7 @@ export default function DownloadsPage(props: {
           {page === 1 && <DetailedElements biosamples={props.biosamples} />}
           {/* Matrices being fed biosamples might be redundant */}
           {page === 2 && <DataMatrices matrices={props.matrices} searchParams={props.searchParams} />}
-          {page === 3 && <DownloadRange />}
+          {page === 3 && <DownloadRange biosampleData={props.biosamples} />}
         </Grid2>
       </Grid2>
     </Container>

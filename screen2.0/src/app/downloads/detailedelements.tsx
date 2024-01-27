@@ -13,10 +13,11 @@ import Human from "../../../public/Human2.png"
 import Mouse from "../../../public/Mouse2.png"
 import { ApolloQueryResult } from "@apollo/client"
 import { downloadTSV } from "./utils"
+import { BIOSAMPLE_Data } from "../../common/lib/queries"
 
 interface TabPanelProps {
   children?: React.ReactNode
-  biosamples: -1 | ApolloQueryResult<any>
+  biosamples: ApolloQueryResult<BIOSAMPLE_Data>
 }
 
 //For all Human/Mouse cCREs
@@ -268,7 +269,7 @@ export function DetailedElements(props: TabPanelProps) {
   const handleOpen5 = () => setOpen5(true)
   const handleClose5 = () => setOpen5(false)
 
-  const biosamples = props.biosamples != -1 ? props.biosamples.data : null
+  const biosamples = props.biosamples?.data ?? null
 
   //This is written with the assumption there's no lifeStage besides Embryonic and Adult
   const humanCellLines: Biosample[] = useMemo(

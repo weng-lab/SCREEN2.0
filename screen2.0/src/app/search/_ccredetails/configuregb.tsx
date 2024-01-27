@@ -9,6 +9,8 @@ import Config from "../../../config.json"
 import SendIcon from '@mui/icons-material/Send';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DownloadIcon from '@mui/icons-material/Download';
+import { ApolloQueryResult } from "@apollo/client";
+import { BIOSAMPLE_Data } from "../../../common/lib/queries";
 
 const CREATE_TRACKHUB_QUERY = `
   query ($assembly: String!,$uuid: String!,$celltypes: [CellTypeInput]!) {
@@ -18,7 +20,7 @@ const CREATE_TRACKHUB_QUERY = `
 
 //Should I finally use context to pass globals file
 const ConfigureGenomeBrowser = (props: {
-  byCellType: CellTypeData,
+  biosampleData: ApolloQueryResult<BIOSAMPLE_Data>
   selectedBiosamples: Biosample[],
   setSelectedBiosamples: Dispatch<SetStateAction<Biosample[]>>,
   coordinates: {
@@ -128,7 +130,8 @@ const ConfigureGenomeBrowser = (props: {
             <BiosampleTables
               showRNAseq={true}
               biosampleSelectMode="append"
-              byCellType={props.byCellType}
+              biosampleData={props.biosampleData}
+              assembly={props.coordinates.assembly}
               selectedBiosamples={props.selectedBiosamples}
               setSelectedBiosamples={props.setSelectedBiosamples} />
           </Grid2>

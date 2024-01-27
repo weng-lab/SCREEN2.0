@@ -1,7 +1,7 @@
 // Search Results Page
 "use client"
-import { getGlobals } from "../../common/lib/queries"
-import { Biosample, BiosampleTableFilters, CellTypeData, FilterCriteria, MainQueryData, MainQueryParams, SCREENSearchResult } from "./types"
+import { BIOSAMPLE_Data, biosampleQuery, getGlobals } from "../../common/lib/queries"
+import { Biosample, BiosampleTableFilters, CellTypeData, FilterCriteria, MainQueryData, MainQueryParams, RegistryBiosample, SCREENSearchResult } from "./types"
 import { constructBiosampleTableFiltersFromURL, constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, downloadBED, fetchcCREData, fetchLinkedGenesData } from "./searchhelpers"
 import React, { startTransition, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { styled } from '@mui/material/styles';
@@ -25,6 +25,7 @@ import { LoadingMessage } from "../../common/lib/utility"
 import { LoadingButton } from '@mui/lab'
 import { DataArray, Download } from "@mui/icons-material"
 import { B } from "logots-react"
+import { ApolloQueryResult } from "@apollo/client"
 
 /**
  * @todo:
@@ -130,7 +131,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     region: { start: number, end: number, chrom: string },
     linkedGenes: LinkedGenesData
   }[]>([])
-  const [globals, setGlobals] = useState<CellTypeData>(null)
+  // const [globals, setGlobals] = useState<CellTypeData>(null)
+  const [biosampleData, setBiosampleData] = useState<ApolloQueryResult<BIOSAMPLE_Data>>(null)
   const [mainQueryData, setMainQueryData] = useState<MainQueryData>(null)
   const [rawLinkedGenesData, setRawLinkedGenesData] = useState<RawLinkedGenesData>(null)
   //potential performance improvement if I make an initializer function vs passing param here.
@@ -224,7 +226,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   //fetch globals
   useEffect(() => {
     startTransition(async () => {
-      setGlobals(await getGlobals(mainQueryParams.coordinates.assembly))
+      setBiosampleData(await biosampleQuery())
     })
   }, [mainQueryParams.coordinates.assembly])
 
@@ -485,7 +487,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               TSSs={TSSs}
               setTSSs={setTSSs}
               setTSSranges={setTSSranges}
-              byCellType={globals}
+              biosampleData={biosampleData}
               genomeBrowserView={page === 1}
               searchParams={searchParams}
             />
@@ -546,7 +548,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                   itemsPerPage={10}
                   assembly={mainQueryParams.coordinates.assembly}
                   onRowClick={handleTableClick}
-                  byCellType={globals} />
+                  biosampleData={biosampleData} />
                   <Stack direction="row" alignItems={"center"} sx={{mt: 1}}>
                     <Button
                       disabled={typeof bedLoadingPercent === "number"}
@@ -586,7 +588,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               key={opencCREs[page - numberOfDefaultTabs].ID}
               accession={opencCREs[page - numberOfDefaultTabs].ID}
               region={opencCREs[page - numberOfDefaultTabs].region}
-              globals={globals}
+              biosampleData={biosampleData}
               assembly={mainQueryParams.coordinates.assembly}
               genes={opencCREs[page - numberOfDefaultTabs].linkedGenes}
               page={detailsPage}
