@@ -378,7 +378,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       end = TSSs && TSSranges ? Math.max(...TSSs) + mainQueryParams.gene.distance : null
     }
 
-    //This may fail if triggered before biosample info is fetched, which specifies assays
     let assays: {dnase: boolean, atac: boolean, ctcf: boolean, h3k27ac: boolean, h3k4me3: boolean}
     if (mainQueryParams.biosample) {
       assays = {

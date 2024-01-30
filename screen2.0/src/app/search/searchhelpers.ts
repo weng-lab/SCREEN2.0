@@ -394,7 +394,9 @@ export function filterBiosamples(
   Organoid: boolean,
   Core: boolean,
   Partial: boolean,
-  Ancillary: boolean
+  Ancillary: boolean,
+  Embryo: boolean,
+  Adult: boolean,
 ): BiosampleData {
 
   const filteredBiosamples: BiosampleData = {}
@@ -413,6 +415,12 @@ export function filterBiosamples(
       } else if (Organoid && biosample.sampleType === "organoid") {
         passesType = true
       }
+      let passesLifestage = false
+      if (Embryo && biosample.lifeStage === "embryonic") {
+        passesLifestage = true
+      } else if (Adult && biosample.lifeStage === "adult") {
+        passesLifestage = true
+      }
       //Assign to Ancillary as baseline
       let collection = "Ancillary"
       if (biosample.dnase) {
@@ -427,7 +435,7 @@ export function filterBiosamples(
       if ((Core && collection == "Core") || (Partial && collection == "Partial") || (Ancillary && collection == "Ancillary")) {
         passesCollection = true
       }
-      return (passesType && passesCollection)
+      return (passesType && passesLifestage && passesCollection)
     })
   }
 
@@ -499,6 +507,8 @@ export function constructSearchURL(
     + `&Core=${outputT_or_F(newBiosampleTableFilters.Core.checked)}`
     + `&Partial=${outputT_or_F(newBiosampleTableFilters.Partial.checked)}`
     + `&Ancillary=${outputT_or_F(newBiosampleTableFilters.Ancillary.checked)}`
+    + `&Embryo=${outputT_or_F(newBiosampleTableFilters.Embryo.checked)}`
+    + `&Adult=${outputT_or_F(newBiosampleTableFilters.Adult.checked)}`
     + `${newSearchParams.biosample ?
       "&Biosample=" + (newSearchParams.biosample.name)
       + "&BiosampleTissue=" + (newSearchParams.biosample.ontology)
@@ -658,6 +668,8 @@ export function constructBiosampleTableFiltersFromURL(searchParams: { [key: stri
       Core: { checked: searchParams.Core ? checkTrueFalse(searchParams.Core) : true, label: "Core Collection" },
       Partial: { checked: searchParams.Partial ? checkTrueFalse(searchParams.Partial) : true, label: "Partial Data Collection" },
       Ancillary: { checked: searchParams.Ancillary ? checkTrueFalse(searchParams.Ancillary) : true, label: "Ancillary Collection" },
+      Embryo: { checked: searchParams.Ancillary ? checkTrueFalse(searchParams.Embyro) : true, label: "Embryo" },
+      Adult: { checked: searchParams.Ancillary ? checkTrueFalse(searchParams.Adult) : true, label: "Adult" },
     }
   )
 }

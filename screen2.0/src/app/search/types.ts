@@ -71,6 +71,8 @@ export type BiosampleTableFilters = {
   Core: { checked: boolean, label: "Core Collection" },
   Partial: { checked: boolean, label: "Partial Data Collection" },
   Ancillary: { checked: boolean, label: "Ancillary Collection" },
+  Embryo: { checked: boolean, label: "Embryo" }
+  Adult: { checked: boolean, label: "Adult" }
 }
 
 export type FilterCriteria = {

@@ -13,7 +13,24 @@ import { ApolloQueryResult, TypedDocumentNode, gql } from "@apollo/client"
 import { BIOSAMPLE_Data } from "../../common/lib/queries"
 import { downloadTSV } from "../downloads/utils"
 
-// 
+type RNA_SEQ_Data = {
+  rnaSeqQuery: {
+    biosample: string
+  }[]
+}
+
+type RNA_SEQ_Variables = {
+  assembly: "mm10" | "grch38",
+}
+
+const RNA_SEQ_QUERY: TypedDocumentNode<RNA_SEQ_Data, RNA_SEQ_Variables> = gql`
+  query RNASeqQuery($assembly: String!){
+    rnaSeqQuery(assembly:$assembly) {
+      biosample
+    }
+  }
+`
+
 function DownloadBiosamplecCREs(row: RegistryBiosample | RegistryBiosamplePlusRNA, x: "dnase" | "h3k4me3" | "h3k27ac" | "ctcf" | "atac") {
   const [progress, setProgress] = useState<number>(null)
   
@@ -187,25 +204,9 @@ export const BiosampleTables: React.FC<Props> = ({
     Core: { checked: true, label: "Core Collection" },
     Partial: { checked: true, label: "Partial Data Collection" },
     Ancillary: { checked: true, label: "Ancillary Collection" },
+    Embryo: { checked: true, label: "Embryo" },
+    Adult: {checked: true, label: "Adult"}
   })
-
-  type RNA_SEQ_Data = {
-    rnaSeqQuery: {
-      biosample: string
-    }[]
-  }
-  
-  type RNA_SEQ_Variables = {
-    assembly: "mm10" | "grch38",
-  }
-  
-  const RNA_SEQ_QUERY: TypedDocumentNode<RNA_SEQ_Data, RNA_SEQ_Variables> = gql`
-    query RNASeqQuery($assembly: String!){
-      rnaSeqQuery(assembly:$assembly) {
-        biosample
-      }
-    }
-  `
 
   const { data: data_rnaseq, loading: loading_rnaseq, error: error_rnaseq } = useQuery(RNA_SEQ_QUERY,
     {
@@ -255,6 +256,8 @@ export const BiosampleTables: React.FC<Props> = ({
           sidebar ? biosampleTableFilters.Core.checked : biosampleTableFiltersInternal.Core.checked,
           sidebar ? biosampleTableFilters.Partial.checked : biosampleTableFiltersInternal.Partial.checked,
           sidebar ? biosampleTableFilters.Ancillary.checked : biosampleTableFiltersInternal.Ancillary.checked,
+          sidebar ? biosampleTableFilters.Embryo.checked : biosampleTableFiltersInternal.Embryo.checked,
+          sidebar ? biosampleTableFilters.Adult.checked : biosampleTableFiltersInternal.Adult.checked,
         )
       )
     } else return {}
@@ -360,27 +363,27 @@ export const BiosampleTables: React.FC<Props> = ({
         {
           header: "DNase",
           value: (row) => +!!row.dnase,
-          render: (row) => DownloadBiosamplecCREs(row, "dnase"),
+          FunctionalRender: (row) => DownloadBiosamplecCREs(row, "dnase"),
         },
         {
           header: "ATAC",
           value: (row) => +!!row.atac,
-          render: (row) => DownloadBiosamplecCREs(row, "atac"),
+          FunctionalRender: (row) => DownloadBiosamplecCREs(row, "atac"),
         },
         {
           header: "CTCF",
           value: (row) => +!!row.ctcf,
-          render: (row) => DownloadBiosamplecCREs(row, "ctcf"),
+          FunctionalRender: (row) => DownloadBiosamplecCREs(row, "ctcf"),
         },
         {
           header: "H3K27ac",
           value: (row) => +!!row.h3k27ac,
-          render: (row) => DownloadBiosamplecCREs(row, "h3k27ac"),
+          FunctionalRender: (row) => DownloadBiosamplecCREs(row, "h3k27ac"),
         },
         {
           header: "H3K4me3",
           value: (row) => +!!row.h3k4me3,
-          render: (row) => DownloadBiosamplecCREs(row, "h3k4me3"),
+          FunctionalRender: (row) => DownloadBiosamplecCREs(row, "h3k4me3"),
         }
       ]
     }
@@ -518,6 +521,25 @@ export const BiosampleTables: React.FC<Props> = ({
                   onChange={(_, checked: boolean) => setCheckboxStates({ ...checkboxStates, Ancillary: { checked: checked, label: checkboxStates.Ancillary.label } })}
                   control={<Checkbox />}
                   label={checkboxStates.Ancillary.label}
+                />
+              </MenuItem>
+            </FormGroup>
+            <FormLabel component="legend">Lifestage</FormLabel>
+            <FormGroup>
+              <MenuItem>
+                <FormControlLabel
+                  checked={checkboxStates.Embryo.checked}
+                  onChange={(_, checked: boolean) => setCheckboxStates({ ...checkboxStates, Embryo: { checked: checked, label: checkboxStates.Embryo.label } })}
+                  control={<Checkbox />}
+                  label={checkboxStates.Embryo.label}
+                />
+              </MenuItem>
+              <MenuItem>
+                <FormControlLabel
+                  checked={checkboxStates.Adult.checked}
+                  onChange={(_, checked: boolean) => setCheckboxStates({ ...checkboxStates, Adult: { checked: checked, label: checkboxStates.Adult.label } })}
+                  control={<Checkbox />}
+                  label={checkboxStates.Adult.label}
                 />
               </MenuItem>
             </FormGroup>

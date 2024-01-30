@@ -14,6 +14,8 @@ import Mouse from "../../../public/Mouse2.png"
 import { ApolloQueryResult } from "@apollo/client"
 import { downloadTSV } from "./utils"
 import { BIOSAMPLE_Data } from "../../common/lib/queries"
+import BiosampleTables from "../search/biosampletables"
+import { RegistryBiosample, RegistryBiosamplePlusRNA } from "../search/types"
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -452,29 +454,26 @@ export function DetailedElements(props: TabPanelProps) {
           <Typography variant="h6">Mouse cCREs by Cell Type</Typography>
         </Grid2>
         <Grid2 display={"flex"} flexWrap={"wrap"} justifyContent={"space-between"} xs={6}>
-          <InlineDownloadButton mode="search" onClick={handleOpen0} label="Cell Lines (382 Cell Types)" bordercolor={"#333333"} />
-          <InlineDownloadButton
-            mode="search"
-            onClick={handleOpen1}
-            label="Adult Primary Cells and Tissues (1142 cell types)"
-            bordercolor={"#333333"}
-          />
-          <InlineDownloadButton
-            mode="search"
-            onClick={handleOpen2}
-            label="Embryonic Tissues (379 cell types)"
-            bordercolor={"#333333"}
+          <BiosampleTables
+            biosampleData={props.biosamples}
+            assembly={"GRCh38"}
+            selectedBiosamples={[]}
+            setSelectedBiosamples={() => null}
+            showRNAseq={false}
+            showDownloads={true}
+            biosampleSelectMode={"append"}
           />
         </Grid2>
         <Grid2 display={"flex"} flexWrap={"wrap"} justifyContent={"space-between"} xs={6}>
-          <InlineDownloadButton mode="search" onClick={handleOpen3} label="Cell Lines (29 Cell Types)" bordercolor={"#333333"} />
-          <InlineDownloadButton
-            mode="search"
-            onClick={handleOpen4}
-            label="Adult Primary Cells and Tissues (257 cell types)"
-            bordercolor={"#333333"}
+          <BiosampleTables
+            biosampleData={props.biosamples}
+            assembly={"mm10"}
+            selectedBiosamples={[]}
+            setSelectedBiosamples={() => null}
+            showRNAseq={false}
+            showDownloads={true}
+            biosampleSelectMode={"append"}
           />
-          <InlineDownloadButton mode="search" onClick={handleOpen5} label="Embryonic Tissues (96 cell types)" bordercolor={"#333333"} />
         </Grid2>
       </Grid2>
       <BiosampleModals

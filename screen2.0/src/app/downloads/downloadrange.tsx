@@ -114,7 +114,7 @@ export const DownloadRange: React.FC<DownloadRangeProps> = ({biosampleData}) => 
       <Grid2 xs={6}>
         <BiosampleTables
           showRNAseq={false}
-          showDownloads={true}
+          showDownloads={false}
           biosampleSelectMode="replace"
           biosampleData={biosampleData}
           assembly={assembly}
