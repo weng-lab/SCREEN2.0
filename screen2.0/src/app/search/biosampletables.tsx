@@ -1,7 +1,7 @@
-import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, Paper, Box, CircularProgress, FormControlLabel, Accordion, FormGroup, Checkbox, Stack, IconButton, Menu, MenuItem, Button, InputAdornment, FormControl, FormLabel, CircularProgressProps } from "@mui/material"
+import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, Box, CircularProgress, FormControlLabel, Accordion, FormGroup, Checkbox, IconButton, Menu, MenuItem, Button, InputAdornment, FormControl, FormLabel, CircularProgressProps } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
-import { ChangeEvent, Dispatch, SetStateAction, useMemo, useState } from "react"
+import { ChangeEvent, Dispatch, SetStateAction, useEffect, useMemo, useState } from "react"
 import { filterBiosamples, parseBiosamples, assayHoverInfo } from "./searchhelpers"
 import { BiosampleData, BiosampleTableFilters, CellTypeData, RegistryBiosample, RegistryBiosamplePlusRNA } from "./types"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
@@ -31,14 +31,34 @@ const RNA_SEQ_QUERY: TypedDocumentNode<RNA_SEQ_Data, RNA_SEQ_Variables> = gql`
   }
 `
 
-function DownloadBiosamplecCREs(row: RegistryBiosample | RegistryBiosamplePlusRNA, x: "dnase" | "h3k4me3" | "h3k27ac" | "ctcf" | "atac") {
+function DownloadBiosamplecCREs(row: RegistryBiosample | RegistryBiosamplePlusRNA, x: "dnase" | "h3k4me3" | "h3k27ac" | "ctcf" | "atac" | "celltypeccres") {
   const [progress, setProgress] = useState<number>(null)
-  
+  const [hover, setHover] = useState<boolean>(false)
+  const [controller, setController] = useState(null);
+
+  useEffect(() => {
+    return () => {
+      // Cleanup: Abort the fetch request if the component is unmounted
+      if (controller) {
+        controller.abort();
+      }
+    };
+  }, [controller]);
+
+  const handleAbort = () => {
+    // Trigger the abort signal
+    if (controller) {
+      controller.abort();
+    }
+  };
+
   function CircularProgressWithLabel(
-    props: CircularProgressProps & { value: number },
+    props: CircularProgressProps & { value: number},
   ) {
     return (
-      <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+      <Box
+        sx={{ position: 'relative', display: 'inline-flex' }}
+      >
         <CircularProgress variant="determinate" {...props} />
         <Box
           sx={{
@@ -62,7 +82,7 @@ function DownloadBiosamplecCREs(row: RegistryBiosample | RegistryBiosamplePlusRN
     );
   }
 
-  if (row[x]) {
+  if (row[x] || (x === "celltypeccres" && (row.dnase || row.ctcf || row.h3k27ac || row.h3k4me3))) {
     let url: string
     let fileName: string
     switch (x) {
@@ -85,81 +105,109 @@ function DownloadBiosamplecCREs(row: RegistryBiosample | RegistryBiosamplePlusRN
       case "atac":
         url = `https://downloads.wenglab.org/Registry-V4/Signal-Files/${row.atac}-${row.atac_signal}.txt`
         fileName = `${row.atac}-${row.atac_signal}.txt`
-          break
+        break
+      case "celltypeccres":
+        const signalIDs = [
+          row.dnase_signal,
+          row.h3k4me3_signal,
+          row.h3k27ac_signal,
+          row.ctcf_signal
+        ].filter(id => id !== null && id !== undefined);
+        url = `https://downloads.wenglab.org/Registry-V4/${signalIDs.join('_')}.bed`
+        fileName = `${signalIDs.join('_')}.bed`
+        break
     }
 
-    const handleDL = () => {
+    const handleDL = async () => {
+      // Cleanup previous controller if any
+      if (controller) {
+        controller.abort();
+      }
+
+      // Create a new AbortController
+      const newController = new AbortController();
+      setController(newController);
+
       // Create a progress callback function
-      const handleProgress = (progress: { loaded: number; total: number }) => {
-        setProgress((progress.loaded / progress.total) * 100)
+      const handleProgress = (progress) => {
+        setProgress((progress.loaded / progress.total) * 100);
       };
-    
-      // Fetch with progress callback
-      fetch(url)
-        .then((response) => {
-          // Check if the response is successful
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-    
-          // Use the body stream for progress tracking
-          const reader = response.body!.getReader();
-          const contentLength = +response.headers.get('Content-Length')!;
-    
-          // Read the body and track progress
-          let receivedLength = 0;
-          let chunks: Uint8Array[] = [];
-    
-          function read() {
-            return reader.read().then(({ done, value }) => {
-              if (done) {
-                // All chunks have been received
-                return;
-              }
-    
-              receivedLength += value!.length;
-              chunks.push(value!);
-    
-              // Update progress
-              handleProgress({ loaded: receivedLength, total: contentLength });
-    
-              // Continue reading the next chunk
-              return read();
-            });
-          }
-    
-          // Start reading the body
-          return read().then(() => {
-            // All chunks have been received, concatenate and process the data
-            const dataArray = new Uint8Array(receivedLength);
-            let position = 0;
-            for (const chunk of chunks) {
-              dataArray.set(chunk, position);
-              position += chunk.length;
-            }
-    
-            // Convert Uint8Array to string
-            const dataString = new TextDecoder('utf-8').decode(dataArray);
-    
-            // Call your download function with the processed data
-            downloadTSV(dataString, fileName);
-            setProgress(null)
-          });
-        })
-        .catch((error) => {
-          // Handle errors
-          window.alert('Download failed:' + error);
-          setProgress(null)
+
+      try {
+        const response = await fetch(url, {
+          signal: newController.signal, // Pass the signal to the fetch request
         });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const reader = response.body!.getReader();
+        const contentLength = +response.headers.get('Content-Length')!;
+
+        let receivedLength = 0;
+        let chunks = [];
+
+        const read = async () => {
+          const { done, value } = await reader.read();
+
+          if (done) {
+            return;
+          }
+
+          receivedLength += value!.length;
+          chunks.push(value!);
+
+          handleProgress({ loaded: receivedLength, total: contentLength });
+
+          // Continue reading the next chunk unless aborted
+          if (!newController.signal.aborted) {
+            return read();
+          }
+        };
+
+        await read();
+
+        if (!newController.signal.aborted) {
+          const dataArray = new Uint8Array(receivedLength);
+          let position = 0;
+          for (const chunk of chunks) {
+            dataArray.set(chunk, position);
+            position += chunk.length;
+          }
+
+          const dataString = new TextDecoder('utf-8').decode(dataArray);
+
+          downloadTSV(dataString, fileName);
+        }
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          window.alert('Download failed:' + error);
+        }
+      } finally {
+        setController(null);
+        setProgress(null);
+      }
     };
 
     return (
       progress ?
-      <CircularProgressWithLabel value={progress} />
-      :
-      <IconButton onClick={handleDL}>
-        <Download />
-      </IconButton>
+        <Box
+          onMouseEnter={() => setHover(true)}
+          onMouseLeave={() => setHover(false)}
+        >
+          {hover ?
+            <IconButton onClick={handleAbort}>
+              <Close />
+            </IconButton>
+            :
+            <CircularProgressWithLabel value={progress} />
+          }
+        </Box>
+        :
+        <IconButton onClick={handleDL}>
+          <Download />
+        </IconButton>
     )
   } else return null
 }
@@ -168,7 +216,7 @@ interface Props {
   biosampleData: ApolloQueryResult<BIOSAMPLE_Data>,
   assembly: "GRCh38" | "mm10"
   selectedBiosamples: RegistryBiosample[] | RegistryBiosamplePlusRNA[],
-  setSelectedBiosamples: Dispatch<SetStateAction<RegistryBiosample[]| RegistryBiosamplePlusRNA[]>>,
+  setSelectedBiosamples: Dispatch<SetStateAction<RegistryBiosample[] | RegistryBiosamplePlusRNA[]>>,
   showRNAseq: boolean,
   showDownloads: boolean,
   biosampleSelectMode: "replace" | "append"
@@ -205,7 +253,7 @@ export const BiosampleTables: React.FC<Props> = ({
     Partial: { checked: true, label: "Partial Data Collection" },
     Ancillary: { checked: true, label: "Ancillary Collection" },
     Embryo: { checked: true, label: "Embryo" },
-    Adult: {checked: true, label: "Adult"}
+    Adult: { checked: true, label: "Adult" }
   })
 
   const { data: data_rnaseq, loading: loading_rnaseq, error: error_rnaseq } = useQuery(RNA_SEQ_QUERY,
@@ -247,7 +295,7 @@ export const BiosampleTables: React.FC<Props> = ({
       return (
         filterBiosamples(
           //Parse raw data into ontology-grouped biosamples
-          parseBiosamples(biosampleData.data[assembly === "GRCh38" ? "human": "mouse"].biosamples, data_rnaseq?.rnaSeqQuery || []),
+          parseBiosamples(biosampleData.data[assembly === "GRCh38" ? "human" : "mouse"].biosamples, data_rnaseq?.rnaSeqQuery || []),
           sidebar ? biosampleTableFilters.Tissue.checked : biosampleTableFiltersInternal.Tissue.checked,
           sidebar ? biosampleTableFilters.PrimaryCell.checked : biosampleTableFiltersInternal.PrimaryCell.checked,
           sidebar ? biosampleTableFilters.CellLine.checked : biosampleTableFiltersInternal.CellLine.checked,
@@ -263,7 +311,7 @@ export const BiosampleTables: React.FC<Props> = ({
     } else return {}
   }, [biosampleData, assembly, showRNAseq, data_rnaseq, sidebar, biosampleTableFiltersInternal, biosampleTableFilters])
 
-  
+
   const biosampleTables = useMemo(() => {
     let cols: DataTableColumn<RegistryBiosamplePlusRNA>[] = [
       {
@@ -361,27 +409,33 @@ export const BiosampleTables: React.FC<Props> = ({
       cols = [
         ...cols,
         {
-          header: "DNase",
+          header: "cCREs",
+          value: (row) => null,
+          unsortable: true,
+          FunctionalRender: (row) => DownloadBiosamplecCREs(row, "celltypeccres"),
+        },
+        {
+          header: "DNase Signal",
           value: (row) => +!!row.dnase,
           FunctionalRender: (row) => DownloadBiosamplecCREs(row, "dnase"),
         },
         {
-          header: "ATAC",
+          header: "ATAC Signal",
           value: (row) => +!!row.atac,
           FunctionalRender: (row) => DownloadBiosamplecCREs(row, "atac"),
         },
         {
-          header: "CTCF",
+          header: "CTCF Signal",
           value: (row) => +!!row.ctcf,
           FunctionalRender: (row) => DownloadBiosamplecCREs(row, "ctcf"),
         },
         {
-          header: "H3K27ac",
+          header: "H3K27ac Signal",
           value: (row) => +!!row.h3k27ac,
           FunctionalRender: (row) => DownloadBiosamplecCREs(row, "h3k27ac"),
         },
         {
-          header: "H3K4me3",
+          header: "H3K4me3 Signal",
           value: (row) => +!!row.h3k4me3,
           FunctionalRender: (row) => DownloadBiosamplecCREs(row, "h3k4me3"),
         }
@@ -412,12 +466,12 @@ export const BiosampleTables: React.FC<Props> = ({
                   searchable
                   search={searchString}
                   //Rows will always have rnaseq columns, so add on if selected biosample will be missing
-                  highlighted={isRegistryBiosamplePlusRNA(selectedBiosamples[0]) ? selectedBiosamples : selectedBiosamples.map(x => {return {...x, rnaseq: false}})}
+                  highlighted={isRegistryBiosamplePlusRNA(selectedBiosamples[0]) ? selectedBiosamples : selectedBiosamples.map(x => { return { ...x, rnaseq: false } })}
                   sortColumn={1}
                   onRowClick={(row: RegistryBiosamplePlusRNA, i) => {
                     let x = row
                     if (biosampleSelectMode === "append" && !selectedBiosamples.find((x) => x.displayname === row.displayname)) {
-                      if (showRNAseq){
+                      if (showRNAseq) {
                         setSelectedBiosamples([...selectedBiosamples, row])
                       } else {
                         //remove rnaseq data if not using
@@ -435,7 +489,7 @@ export const BiosampleTables: React.FC<Props> = ({
         }
       })
     )
-    
+
   },
     [filteredBiosamples, selectedBiosamples, searchString, setSelectedBiosamples, biosampleSelectMode, showRNAseq, showDownloads]
   )
@@ -443,7 +497,7 @@ export const BiosampleTables: React.FC<Props> = ({
   const Checkboxes = (checkboxStates: BiosampleTableFilters, setCheckboxStates: Dispatch<SetStateAction<BiosampleTableFilters>>) => {
     return (
       <Box>
-        <Button sx={{textTransform: "none"}} fullWidth variant="outlined" size="medium" startIcon={Boolean(anchorEl) ? <ArrowDropDown /> : <ArrowRight />} onClick={handleClick}>Sample Type/Collection</Button>
+        <Button sx={{ textTransform: "none" }} fullWidth variant="outlined" size="medium" startIcon={Boolean(anchorEl) ? <ArrowDropDown /> : <ArrowRight />} onClick={handleClick}>Sample Type/Collection</Button>
         <Menu
           id="basic-menu"
           anchorEl={anchorEl}
