@@ -4,7 +4,6 @@ import TextField from "@mui/material/TextField"
 import Autocomplete from "@mui/material/Autocomplete"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import Typography from "@mui/material/Typography"
-import Config from "../../config.json"
 import { IconButton, Stack } from "@mui/material"
 import { Search } from "@mui/icons-material"
 import { parseGenomicRegion } from "./parsegenomicregion"
@@ -22,7 +21,6 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
   useEffect(() => {
     startTransition(async () => {
       const biosamples = await (await biosampleQuery()).data[props.assembly.toLowerCase() === "grch38" ? "human" : "mouse"].biosamples
-      // setBiosampleData(biosamples)
       setOptions(biosamples)
     })
   }, [props.assembly])
