@@ -227,7 +227,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       const biosamples = await biosampleQuery()
       setBiosampleData(biosamples)
     })
-  }, [mainQueryParams.coordinates.assembly])
+  }, [])
 
   //If a biosample is selected and is missing some data (due to reload), find and attach rest of info
   useEffect(() => {
