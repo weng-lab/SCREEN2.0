@@ -1,9 +1,9 @@
 // Search Results Page
 "use client"
-import { BIOSAMPLE_Data, biosampleQuery, getGlobals } from "../../common/lib/queries"
-import { BiosampleTableFilters, CellTypeData, FilterCriteria, MainQueryData, MainQueryParams, RegistryBiosample, SCREENSearchResult } from "./types"
+import { BIOSAMPLE_Data, biosampleQuery } from "../../common/lib/queries"
+import { BiosampleTableFilters, FilterCriteria, MainQueryData, MainQueryParams, RegistryBiosample } from "./types"
 import { constructBiosampleTableFiltersFromURL, constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, downloadBED, fetchcCREData, fetchLinkedGenesData } from "./searchhelpers"
-import React, { startTransition, useEffect, useMemo, useRef, useState, useTransition } from "react"
+import React, { useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { styled } from '@mui/material/styles';
 import { Divider, IconButton, Tab, Tabs, Typography, Box, Button, CircularProgressProps, CircularProgress, Stack } from "@mui/material"
 import { MainResultsTable } from "./mainresultstable"
@@ -11,7 +11,7 @@ import { MainResultsFilters } from "./mainresultsfilters"
 import { CcreDetails } from "./_ccredetails/ccredetails"
 import { usePathname, useRouter } from "next/navigation"
 import { GenomeBrowserView } from "./_gbview/genomebrowserview"
-import { LinkedGenesData, MainResultTableRow, RawLinkedGenesData, rawQueryData } from "./types"
+import { LinkedGenesData, MainResultTableRow, RawLinkedGenesData } from "./types"
 import { generateFilteredRows } from "./searchhelpers"
 import { Drawer } from "@mui/material"
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar'
@@ -22,9 +22,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import Rampage from "./_ccredetails/rampage";
 import { GeneExpression } from "./_ccredetails/geneexpression";
 import { LoadingMessage } from "../../common/lib/utility"
-import { LoadingButton } from '@mui/lab'
-import { DataArray, Download } from "@mui/icons-material"
-import { B } from "logots-react"
+import { Download } from "@mui/icons-material"
 import { ApolloQueryResult } from "@apollo/client"
 
 /**

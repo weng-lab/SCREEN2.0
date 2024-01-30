@@ -359,27 +359,3 @@ export async function UMAPQuery(assembly: "grch38" | "mm10", assay: "DNase" | "H
     return data
   }
 }
-
-/**
- *
- * @returns the shortened byCellType file
- */
-export async function getGlobals(assembly: "GRCh38" | "mm10"): Promise<CellTypeData>{
-  let res: Response
-  try {
-    if (assembly === "GRCh38") {
-        res = await fetch(Config.API.HumanGlobals)
-      } else if (assembly === "mm10") {
-        res = await fetch(Config.API.MouseGlobals)
-      }
-  } catch (error) {
-    console.log("error fetching " + assembly + " globals")
-    console.log(error)
-  } finally {
-    if (res) {
-      return res.json()
-    } else {
-      return undefined
-    }
-  }
-}
