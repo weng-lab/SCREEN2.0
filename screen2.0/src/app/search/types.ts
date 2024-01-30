@@ -47,7 +47,7 @@ export type MainQueryParams = {
     start: number | null
     end: number | null
   }
-  biosample: Biosample
+  biosample: RegistryBiosample
   snp: {
     rsID: string
     distance: number
@@ -119,27 +119,11 @@ export type CellTypeData = {
   }
 }
 
-export type UnfilteredBiosampleData = {
-  [key: string]: Biosample[]
+export type BiosampleData = {
+  [key: string]: RegistryBiosamplePlusRNA[]
 }
 
-export type FilteredBiosampleData = [
-  string,
-  Biosample[],
-][]
-
-export type Biosample = {
-  summaryName: string;
-  biosampleType: string;
-  biosampleTissue: string;
-  queryValue: string;
-  assays: {
-    atac: boolean;
-    ctcf: boolean;
-    dnase: boolean;
-    h3k27ac: boolean;
-    h3k4me3: boolean;
-  }
+export interface RegistryBiosamplePlusRNA extends RegistryBiosample {
   rnaseq: boolean
 }
 

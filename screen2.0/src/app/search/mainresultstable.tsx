@@ -1,10 +1,9 @@
 "use client"
 import { DataTable, DataTableProps, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
-import React, { useState, Dispatch, SetStateAction, useMemo, use, useCallback } from "react"
-import { Box, Typography, Menu, Checkbox, Stack, MenuItem, FormControlLabel, FormGroup, Tooltip, Button, Modal, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, Paper, Container } from "@mui/material"
-import { MainResultTableRow, ConservationData, CellTypeData, Biosample } from "./types"
-import ArrowRightIcon from '@mui/icons-material/ArrowRight';
-import { ArrowDropDown, ArrowRight, EventBusyTwoTone, InfoOutlined } from "@mui/icons-material"
+import React, { useState, Dispatch, SetStateAction, useMemo, useCallback } from "react"
+import { Box, Typography, Menu, Checkbox, Stack, MenuItem, FormControlLabel, FormGroup, Button, Dialog } from "@mui/material"
+import { MainResultTableRow, ConservationData, RegistryBiosamplePlusRNA } from "./types"
+import { ArrowDropDown, ArrowRight } from "@mui/icons-material"
 
 import ConfigureGenomeBrowser from "./_ccredetails/configuregb"
 import { ApolloQueryResult } from "@apollo/client"
@@ -285,7 +284,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
       },
       FunctionalRender: (row: MainResultTableRow) => {
         const [open, setOpen] = useState(false);
-        const [selectedBiosamples, setSelectedBiosamples] = useState<Biosample[]>([])
+        const [selectedBiosamples, setSelectedBiosamples] = useState<RegistryBiosamplePlusRNA[]>([])
 
         const handleClickOpen = () => {
           setOpen(true);
@@ -350,7 +349,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
         tableTitle={props.tableTitle}
         sortColumn={5}
         showMoreColumns={props.assembly === "GRCh38"}
-        noOfDefaultColumns={cols.length - 1}
+        noOfDefaultColumns={props.assembly === "GRCh38" ? cols.length - 1 : cols.length}
         titleHoverInfo={props.titleHoverInfo}
       />
   )

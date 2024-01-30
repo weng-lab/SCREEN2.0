@@ -29,7 +29,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
 import Grid2 from "@mui/material/Unstable_Grid2"
 import { RangeSlider, DataTable } from "@weng-lab/psychscreen-ui-components"
-import { Biosample, BiosampleTableFilters, CellTypeData, FilterCriteria, FilteredBiosampleData, MainQueryParams } from "./types"
+import { BiosampleTableFilters, CellTypeData, FilterCriteria, MainQueryParams, RegistryBiosample } from "./types"
 import { filterBiosamples, assayHoverInfo, filtersModified } from "./searchhelpers"
 import { ApolloQueryResult, gql } from "@apollo/client"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
@@ -114,7 +114,7 @@ export function MainResultsFilters(
     setFilterCriteria: Dispatch<SetStateAction<FilterCriteria>>,
     biosampleTableFilters: BiosampleTableFilters,
     setBiosampleTableFilters: Dispatch<SetStateAction<BiosampleTableFilters>>,
-    setBiosample: (biosample: Biosample) => void,
+    setBiosample: (biosample: RegistryBiosample) => void,
     TSSs: number[]
     setTSSs: Dispatch<SetStateAction<number[]>>,
     setTSSranges: Dispatch<SetStateAction<{ start: number, end: number }[]>>
@@ -321,7 +321,7 @@ export function MainResultsFilters(
                 <Grid2 xs={12}>
                   <Paper elevation={0}>
                     <Typography>Selected Biosample:</Typography>
-                    <Typography>{props.mainQueryParams.biosample.biosampleTissue[0].toUpperCase() + props.mainQueryParams.biosample.biosampleTissue.slice(1) + " - " + props.mainQueryParams.biosample.summaryName}</Typography>
+                    <Typography>{props.mainQueryParams.biosample.ontology.charAt(0).toUpperCase() + props.mainQueryParams.biosample.ontology.slice(1) + " - " + props.mainQueryParams.biosample.displayname}</Typography>
                   </Paper>
                 </Grid2>
                 <Grid2 xs={12}>
@@ -345,11 +345,12 @@ export function MainResultsFilters(
                   props.biosampleData?.data ?
                   <BiosampleTables
                     showRNAseq={false}
+                    showDownloads={false}
                     assembly={props.mainQueryParams.coordinates.assembly}
                     biosampleSelectMode="replace"
                     biosampleData={props.biosampleData}
                     selectedBiosamples={[props.mainQueryParams.biosample]}
-                    setSelectedBiosamples={(biosample: [Biosample]) => props.setBiosample(biosample[0])}
+                    setSelectedBiosamples={(biosample: [RegistryBiosample]) => props.setBiosample(biosample[0])}
                     biosampleTableFilters={props.biosampleTableFilters}
                     setBiosampleTableFilters={props.setBiosampleTableFilters}
                   />

@@ -1,7 +1,7 @@
 import Grid2 from "@mui/material/Unstable_Grid2";
 import { BiosampleTables } from "../biosampletables";
-import { CellTypeData, Biosample, cCREData, MainQueryParams, MainResultTableRow } from "../types";
-import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import { RegistryBiosamplePlusRNA } from "../types";
+import { Dispatch, SetStateAction, useState } from "react";
 import { Button, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Snackbar, Stack, Tooltip, Typography } from "@mui/material";
 import { Close, CloseOutlined } from "@mui/icons-material";
 import { v4 as uuidv4 } from "uuid"
@@ -21,8 +21,8 @@ const CREATE_TRACKHUB_QUERY = `
 //Should I finally use context to pass globals file
 const ConfigureGenomeBrowser = (props: {
   biosampleData: ApolloQueryResult<BIOSAMPLE_Data>
-  selectedBiosamples: Biosample[],
-  setSelectedBiosamples: Dispatch<SetStateAction<Biosample[]>>,
+  selectedBiosamples: RegistryBiosamplePlusRNA[],
+  setSelectedBiosamples: Dispatch<SetStateAction<RegistryBiosamplePlusRNA[]>>,
   coordinates: {
     assembly: "GRCh38" | "mm10"
     chromosome: string
@@ -32,7 +32,7 @@ const ConfigureGenomeBrowser = (props: {
   accession: string
   handleClose?: () => void
 }) => {
-  const [currentURLs, setCurrentURLs] = useState<{urlUCSC: string, urlTrackhub: string, biosamples: Biosample[]}>(null)
+  const [currentURLs, setCurrentURLs] = useState<{urlUCSC: string, urlTrackhub: string, biosamples: RegistryBiosamplePlusRNA[]}>(null)
   const [open, setOpen] = useState(false);
 
   const handleOpen = () => {
@@ -73,12 +73,12 @@ const ConfigureGenomeBrowser = (props: {
 
   const parsedBiosamples = props.selectedBiosamples.map(s => {
     return s.rnaseq ? {
-      celltype: s.queryValue,
+      celltype: s.name,
       rnaseq: true,
-      celltypedisplayname: s.summaryName
+      celltypedisplayname: s.displayname
     } : {
-      celltype: s.queryValue,
-      celltypedisplayname: s.summaryName
+      celltype: s.name,
+      celltypedisplayname: s.displayname
     }
   })
 
@@ -100,7 +100,7 @@ const ConfigureGenomeBrowser = (props: {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `UCSC-${props.selectedBiosamples.map(x => x.summaryName).join('+')}.txt`);
+      link.setAttribute('download', `UCSC-${props.selectedBiosamples.map(x => x.displayname).join('+')}.txt`);
       link.click();
       URL.revokeObjectURL(url); // Clean up the object URL
     } catch (error) {
@@ -129,6 +129,7 @@ const ConfigureGenomeBrowser = (props: {
           <Grid2 xs={8}>
             <BiosampleTables
               showRNAseq={true}
+              showDownloads={false}
               biosampleSelectMode="append"
               biosampleData={props.biosampleData}
               assembly={props.coordinates.assembly}
@@ -140,10 +141,10 @@ const ConfigureGenomeBrowser = (props: {
             {props.selectedBiosamples.map((biosample, i) => {
               return (
                 <Stack mt={1} width="400px" direction="row" alignItems={"center"} key={i}>
-                  <IconButton onClick={() => props.setSelectedBiosamples(props.selectedBiosamples.filter((x) => x.summaryName !== biosample.summaryName))}>
+                  <IconButton onClick={() => props.setSelectedBiosamples(props.selectedBiosamples.filter((x) => x.displayname !== biosample.displayname))}>
                     <Close />
                   </IconButton>
-                  <Typography>{biosample.summaryName}</Typography>
+                  <Typography>{biosample.displayname}</Typography>
                 </Stack>
               );
             })}

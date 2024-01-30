@@ -1,7 +1,7 @@
 // Search Results Page
 "use client"
 import { BIOSAMPLE_Data, biosampleQuery, getGlobals } from "../../common/lib/queries"
-import { Biosample, BiosampleTableFilters, CellTypeData, FilterCriteria, MainQueryData, MainQueryParams, RegistryBiosample, SCREENSearchResult } from "./types"
+import { BiosampleTableFilters, CellTypeData, FilterCriteria, MainQueryData, MainQueryParams, RegistryBiosample, SCREENSearchResult } from "./types"
 import { constructBiosampleTableFiltersFromURL, constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, downloadBED, fetchcCREData, fetchLinkedGenesData } from "./searchhelpers"
 import React, { startTransition, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { styled } from '@mui/material/styles';
@@ -148,7 +148,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const [bedLoadingPercent, setBedLoadingPercent] = useState<number>(null)
 
   //Used to set just biosample in filters. Used for performance improvement to avoid having entire mainQueryParams in dep array
-  const handleSetBiosample = (biosample: Biosample) => { setMainQueryParams({ ...mainQueryParams, biosample: biosample }) }
+  const handleSetBiosample = (biosample: RegistryBiosample) => { setMainQueryParams({ ...mainQueryParams, biosample: biosample }) }
 
   //using useRef, and then assigning their value in useEffect to prevent accessing sessionStorage on the server
   const intersectWarning = useRef(null);
@@ -223,12 +223,25 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     }
   }, [searchParams, mainQueryParams, filterCriteria, biosampleTableFilters, page, opencCREs, router, basePathname, opencCREsInitialized, loadingFetch])
 
-  //fetch globals
+  //fetch biosample info, populate selected biosample if specified
   useEffect(() => {
     startTransition(async () => {
-      setBiosampleData(await biosampleQuery())
+      const biosamples = await biosampleQuery()
+      setBiosampleData(biosamples)
     })
   }, [mainQueryParams.coordinates.assembly])
+
+  //If a biosample is selected and is missing some data (due to reload), find and attach rest of info
+  useEffect(() => {
+    //NOTE: lifestage is being checked here to determine if data missing. If lifestage is ever set through URL this will break
+    if (mainQueryParams.biosample?.name && !mainQueryParams.biosample?.lifeStage && biosampleData?.data) {
+      setMainQueryParams({
+        ...mainQueryParams,
+        biosample: biosampleData.data[mainQueryParams.coordinates.assembly === "GRCh38" ? "human" : "mouse"].biosamples
+          .find(x => x.name === mainQueryParams.biosample.name)
+      })
+    }
+  }, [mainQueryParams, biosampleData])
 
 
   //Fetch raw cCRE data (main query only to prevent hidden linked genes from slowing down search)
@@ -257,7 +270,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         mainQueryParams.coordinates.chromosome,
         start,
         end,
-        mainQueryParams.biosample ? mainQueryParams.biosample.queryValue : undefined,
+        mainQueryParams.biosample?.name ? mainQueryParams.biosample.name : undefined,
         1000000,
         null,
         mainQueryParams.searchConfig.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined
@@ -266,7 +279,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       setMainQueryData(mainQueryData)
       setLoadingFetch(false)
     })
-  }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample, mainQueryParams.snp.rsID, mainQueryParams.snp.distance, TSSs, TSSranges, mainQueryParams.gene.distance, mainQueryParams.gene.nearTSS])
+  }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample?.name, mainQueryParams.snp.rsID, mainQueryParams.snp.distance, TSSs, TSSranges, mainQueryParams.gene.distance, mainQueryParams.gene.nearTSS])
 
   //Fetch linked genes data.
   useEffect(() => {
@@ -349,6 +362,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)
   }
 
+
   const handleDownloadBed = () => {
     let start = mainQueryParams.coordinates.start
     if (mainQueryParams.snp.rsID) {
@@ -364,13 +378,15 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       end = TSSs && TSSranges ? Math.max(...TSSs) + mainQueryParams.gene.distance : null
     }
 
-    let assays: {dnase: boolean, atac: boolean, ctcf: boolean, h3k27ac: boolean, h3k4me3: boolean};
+    //This may fail if triggered before biosample info is fetched, which specifies assays
+    let assays: {dnase: boolean, atac: boolean, ctcf: boolean, h3k27ac: boolean, h3k4me3: boolean}
     if (mainQueryParams.biosample) {
-      if (mainQueryParams.biosample.assays) {
-        assays = mainQueryParams.biosample.assays
-      } else {
-        const firstCtData = mainQueryData.data.cCRESCREENSearch[0].ctspecific
-        assays = {dnase: !!firstCtData.dnase_zscore, atac: !!firstCtData.atac_zscore, ctcf: !!firstCtData.ctcf_zscore, h3k27ac: !!firstCtData.h3k27ac_zscore, h3k4me3: !!firstCtData.h3k4me3_zscore}
+      assays = {
+        dnase: !!mainQueryParams.biosample.dnase,
+        atac: !!mainQueryParams.biosample.atac,
+        ctcf: !!mainQueryParams.biosample.ctcf,
+        h3k27ac: !!mainQueryParams.biosample.h3k27ac,
+        h3k4me3: !!mainQueryParams.biosample.h3k4me3
       }
     } else {
       assays = {dnase: true, atac: true, ctcf: true, h3k27ac: true, h3k4me3: true}
@@ -571,7 +587,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           {page === 1 && (
             <GenomeBrowserView
               gene={mainQueryParams.gene.name}
-              biosample={mainQueryParams.biosample?.queryValue}
+              biosample={mainQueryParams.biosample?.name}
               assembly={mainQueryParams.coordinates.assembly}
               coordinates={{ start: mainQueryParams.coordinates.start, end: mainQueryParams.coordinates.end, chromosome: mainQueryParams.coordinates.chromosome }}
             />
