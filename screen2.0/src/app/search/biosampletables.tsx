@@ -10,26 +10,8 @@ import { ArrowRight } from "@mui/icons-material"
 import SearchIcon from '@mui/icons-material/Search';
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import { ApolloQueryResult, TypedDocumentNode, gql } from "@apollo/client"
-import { BIOSAMPLE_Data } from "../../common/lib/queries"
+import { BIOSAMPLE_Data, RNA_SEQ_QUERY } from "../../common/lib/queries"
 import { downloadTSV } from "../downloads/utils"
-
-type RNA_SEQ_Data = {
-  rnaSeqQuery: {
-    biosample: string
-  }[]
-}
-
-type RNA_SEQ_Variables = {
-  assembly: "mm10" | "grch38",
-}
-
-const RNA_SEQ_QUERY: TypedDocumentNode<RNA_SEQ_Data, RNA_SEQ_Variables> = gql`
-  query RNASeqQuery($assembly: String!){
-    rnaSeqQuery(assembly:$assembly) {
-      biosample
-    }
-  }
-`
 
 function DownloadBiosamplecCREs(row: RegistryBiosample | RegistryBiosamplePlusRNA, x: "dnase" | "h3k4me3" | "h3k27ac" | "ctcf" | "atac" | "celltypeccres") {
   const [progress, setProgress] = useState<number>(null)
@@ -242,7 +224,6 @@ export const BiosampleTables: React.FC<Props> = ({
   biosampleTableFilters,
   setBiosampleTableFilters }
 ) => {
-  //This is ONLY used in configGB == true situations. Otherwise, use biosampleTableFilters if changes are to be synced to URL
   const [biosampleTableFiltersInternal, setBiosampleTableFiltersInternal] = useState<BiosampleTableFilters>({
     CellLine: { checked: true, label: "Cell Line" },
     PrimaryCell: { checked: true, label: "Primary Cell" },

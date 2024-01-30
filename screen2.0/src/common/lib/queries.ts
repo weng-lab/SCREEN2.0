@@ -359,3 +359,22 @@ export async function UMAPQuery(assembly: "grch38" | "mm10", assay: "DNase" | "H
     return data
   }
 }
+
+
+type RNA_SEQ_Data = {
+  rnaSeqQuery: {
+    biosample: string
+  }[]
+}
+
+type RNA_SEQ_Variables = {
+  assembly: "mm10" | "grch38",
+}
+
+export const RNA_SEQ_QUERY: TypedDocumentNode<RNA_SEQ_Data, RNA_SEQ_Variables> = gql`
+  query RNASeqQuery($assembly: String!){
+    rnaSeqQuery(assembly:$assembly) {
+      biosample
+    }
+  }
+`
