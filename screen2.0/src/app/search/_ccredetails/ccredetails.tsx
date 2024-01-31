@@ -12,18 +12,20 @@ import Rampage from "./rampage"
 import { GeneExpression } from "./geneexpression"
 import { TfSequenceFeatures} from "../_gbview/tfsequencefeatures"
 import ConfigureGBTab from "./configuregbtab"
+import { ApolloQueryResult } from "@apollo/client"
+import { BIOSAMPLE_Data } from "../../../common/lib/queries"
 
 //Passing these props through this file could be done with context to reduce prop drilling
 type CcreDetailsProps = {
   accession: string
   assembly: "GRCh38" | "mm10"
   region: GenomicRegion
-  globals: CellTypeData
+  biosampleData: ApolloQueryResult<BIOSAMPLE_Data>
   genes: LinkedGenesData
   page: number
 }
 
-export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, globals, assembly, genes, page }) => {
+export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, biosampleData, assembly, genes, page }) => {
   let geneList =  [...genes.distancePC.map(g=>g.name), ...genes.distanceAll.map(g=>g.name)]
   return (
     <>
@@ -63,7 +65,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, glo
       }
       {page === 7 &&
         <ConfigureGBTab
-          byCellType={globals}
+          biosampleData={biosampleData}
           coordinates={{
             assembly: assembly,
             chromosome: region.chrom,

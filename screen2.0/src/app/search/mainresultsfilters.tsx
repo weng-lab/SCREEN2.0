@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useMemo, useEffect, Dispatch, SetStateAction } from "react";
+import React, { useState, useEffect, Dispatch, SetStateAction } from "react";
 import {
   Accordion,
   AccordionSummary,
@@ -11,7 +11,6 @@ import {
   FormGroup,
   FormControlLabel,
   Checkbox,
-  TextField,
   Tooltip,
   Box,
   Slider,
@@ -26,17 +25,17 @@ import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControl from '@mui/material/FormControl';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
-import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
 import Grid2 from "@mui/material/Unstable_Grid2"
-import { RangeSlider, DataTable } from "@weng-lab/psychscreen-ui-components"
-import { Biosample, BiosampleTableFilters, CellTypeData, FilterCriteria, FilteredBiosampleData, MainQueryParams } from "./types"
-import { parseByCellType, filterBiosamples, assayHoverInfo, filtersModified } from "./searchhelpers"
-import { gql } from "@apollo/client"
+import { RangeSlider } from "@weng-lab/psychscreen-ui-components"
+import { BiosampleTableFilters, FilterCriteria, MainQueryParams, RegistryBiosample } from "./types"
+import { filtersModified } from "./searchhelpers"
+import { ApolloQueryResult, gql } from "@apollo/client"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import GeneAutoComplete from "../applets/gene-expression/geneautocomplete";
 import { InfoOutlined } from "@mui/icons-material";
 import BiosampleTables from "./biosampletables";
 import ClearIcon from '@mui/icons-material/Clear';
+import { BIOSAMPLE_Data } from "../../common/lib/queries";
 
 const snpMarks = [
   {
@@ -113,11 +112,11 @@ export function MainResultsFilters(
     setFilterCriteria: Dispatch<SetStateAction<FilterCriteria>>,
     biosampleTableFilters: BiosampleTableFilters,
     setBiosampleTableFilters: Dispatch<SetStateAction<BiosampleTableFilters>>,
-    setBiosample: (biosample: Biosample) => void,
+    setBiosample: (biosample: RegistryBiosample) => void,
     TSSs: number[]
     setTSSs: Dispatch<SetStateAction<number[]>>,
     setTSSranges: Dispatch<SetStateAction<{ start: number, end: number }[]>>
-    byCellType: CellTypeData,
+    biosampleData: ApolloQueryResult<BIOSAMPLE_Data>
     genomeBrowserView: boolean,
     searchParams: { [key: string]: string | undefined },
   }
@@ -320,7 +319,7 @@ export function MainResultsFilters(
                 <Grid2 xs={12}>
                   <Paper elevation={0}>
                     <Typography>Selected Biosample:</Typography>
-                    <Typography>{props.mainQueryParams.biosample.biosampleTissue[0].toUpperCase() + props.mainQueryParams.biosample.biosampleTissue.slice(1) + " - " + props.mainQueryParams.biosample.summaryName}</Typography>
+                    <Typography>{props.mainQueryParams.biosample.ontology.charAt(0).toUpperCase() + props.mainQueryParams.biosample.ontology.slice(1) + " - " + props.mainQueryParams.biosample.displayname}</Typography>
                   </Paper>
                 </Grid2>
                 <Grid2 xs={12}>
@@ -338,13 +337,18 @@ export function MainResultsFilters(
             )}
             <Grid2 xs={12}>
               <Box sx={{ display: 'flex', flexDirection: "column" }}>
-                {props.byCellType ?
+                {props.biosampleData?.loading ?
+                  <CircularProgress sx={{ margin: "auto" }} />
+                  :
+                  props.biosampleData?.data ?
                   <BiosampleTables
                     showRNAseq={false}
+                    showDownloads={false}
+                    assembly={props.mainQueryParams.coordinates.assembly}
                     biosampleSelectMode="replace"
-                    byCellType={props.byCellType}
+                    biosampleData={props.biosampleData}
                     selectedBiosamples={[props.mainQueryParams.biosample]}
-                    setSelectedBiosamples={(biosample: [Biosample]) => props.setBiosample(biosample[0])}
+                    setSelectedBiosamples={(biosample: [RegistryBiosample]) => props.setBiosample(biosample[0])}
                     biosampleTableFilters={props.biosampleTableFilters}
                     setBiosampleTableFilters={props.setBiosampleTableFilters}
                   />
@@ -370,15 +374,15 @@ export function MainResultsFilters(
                         props.setFilterCriteria({
                           ...props.filterCriteria,
                           dnase_s: -10,
-                          dnase_e: 10,
+                          dnase_e: 11,
                           atac_s: -10,
-                          atac_e: 10,
+                          atac_e: 11,
                           h3k4me3_s: -10,
-                          h3k4me3_e: 10,
+                          h3k4me3_e: 11,
                           h3k27ac_s: -10,
-                          h3k27ac_e: 10,
+                          h3k27ac_e: 11,
                           ctcf_s: -10,
-                          ctcf_e: 10
+                          ctcf_e: 11
                         });
                         event.stopPropagation()
                       }}
@@ -399,76 +403,76 @@ export function MainResultsFilters(
             </AccordionSummary>
             <AccordionDetails>
               <Grid2 container spacing={3}>
-                <Grid2 xs={6}>
+                {(!props.mainQueryParams.biosample || props.mainQueryParams.biosample.dnase) && <Grid2 xs={6}>
                   <RangeSlider
                     title="DNase"
                     width="100%"
                     value={[props.filterCriteria.dnase_s, props.filterCriteria.dnase_e]}
                     min={-10}
-                    max={10}
+                    max={11}
                     minDistance={1}
                     step={0.1}
                     onSliderChangeCommitted={(value: number[]) => {
                       props.setFilterCriteria({ ...props.filterCriteria, dnase_s: value[0], dnase_e: value[1] })
                     }}
                   />
-                </Grid2>
-                <Grid2 xs={6}>
+                </Grid2>}
+                {(!props.mainQueryParams.biosample || props.mainQueryParams.biosample.h3k4me3) && <Grid2 xs={6}>
                   <RangeSlider
                     title="H3K4me3"
                     width="100%"
                     value={[props.filterCriteria.h3k4me3_s, props.filterCriteria.h3k4me3_e]}
                     min={-10}
-                    max={10}
+                    max={11}
                     minDistance={1}
                     step={0.1}
                     onSliderChangeCommitted={(value: number[]) => {
                       props.setFilterCriteria({ ...props.filterCriteria, h3k4me3_s: value[0], h3k4me3_e: value[1] })
                     }}
                   />
-                </Grid2>
-                <Grid2 xs={6}>
+                </Grid2>}
+                {(!props.mainQueryParams.biosample || props.mainQueryParams.biosample.h3k27ac) && <Grid2 xs={6}>
                   <RangeSlider
                     title="H3K27ac"
                     width="100%"
                     value={[props.filterCriteria.h3k27ac_s, props.filterCriteria.h3k27ac_e]}
                     min={-10}
-                    max={10}
+                    max={11}
                     minDistance={1}
                     step={0.1}
                     onSliderChangeCommitted={(value: number[]) => {
                       props.setFilterCriteria({ ...props.filterCriteria, h3k27ac_s: value[0], h3k27ac_e: value[1] })
                     }}
                   />
-                </Grid2>
-                <Grid2 xs={6}>
+                </Grid2>}
+                {(!props.mainQueryParams.biosample || props.mainQueryParams.biosample.ctcf) && <Grid2 xs={6}>
                   <RangeSlider
                     title="CTCF"
                     width="100%"
                     value={[props.filterCriteria.ctcf_s, props.filterCriteria.ctcf_e]}
                     min={-10}
-                    max={10}
+                    max={11}
                     minDistance={1}
                     step={0.1}
                     onSliderChangeCommitted={(value: number[]) => {
                       props.setFilterCriteria({ ...props.filterCriteria, ctcf_s: value[0], ctcf_e: value[1] })
                     }}
                   />
-                </Grid2>
-                <Grid2 xs={6}>
+                </Grid2>}
+                {(!props.mainQueryParams.biosample || props.mainQueryParams.biosample.atac) && <Grid2 xs={6}>
                   <RangeSlider
                     title="ATAC"
                     width="100%"
                     value={[props.filterCriteria.atac_s, props.filterCriteria.atac_e]}
                     min={-10}
-                    max={10}
+                    max={11}
                     minDistance={1}
                     step={0.1}
                     onSliderChangeCommitted={(value: number[]) => {
                       props.setFilterCriteria({ ...props.filterCriteria, atac_s: value[0], atac_e: value[1] })
                     }}
                   />
-                </Grid2>
+                </Grid2>}
               </Grid2>
             </AccordionDetails>
           </Accordion>

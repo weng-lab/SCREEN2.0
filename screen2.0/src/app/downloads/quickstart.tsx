@@ -17,15 +17,16 @@ import Human from "../../../public/Human2.png"
 import Mouse from "../../../public/Mouse2.png"
 import Config from "../../config.json"
 import { useEffect, useMemo, useState } from "react"
-import { Biosample } from "./types"
 import React from "react"
 import Image from "next/image"
 import { ApolloQueryResult } from "@apollo/client"
 import { downloadTSV } from "./utils"
+import { RegistryBiosample } from "../search/types"
+import { BIOSAMPLE_Data } from "../../common/lib/queries"
 
 interface TabPanelProps {
   children?: React.ReactNode
-  biosamples: -1 | ApolloQueryResult<any>
+  biosamples: ApolloQueryResult<BIOSAMPLE_Data>
 }
 
 const PROMOTER_MESSAGE =
@@ -40,7 +41,7 @@ const LINK_MESSAGE = "cCRE-gene links curated from Hi-C, ChIA-PET, CRISPR pertur
  * @param selected The selected biosample
  * @returns The link to download biosample-specific cCREs
  */
-function generateBiosampleURL(selected: Biosample): URL {
+function generateBiosampleURL(selected: RegistryBiosample): URL {
   const r = [selected.dnase_signal, selected.h3k4me3_signal, selected.h3k27ac_signal, selected.ctcf_signal].filter((x) => !!x)
   return new URL(`https://downloads.wenglab.org/Registry-V4/${r.join("_")}.bed`)
 }
@@ -54,12 +55,12 @@ const DownloadButton = (props: ButtonProps & { label: string }) => {
 }
 
 function ComboBox(props: {
-  options: Biosample[]
+  options: RegistryBiosample[]
   label: string
   mode: "H-promoter" | "H-enhancer" | "H-ctcf" | "M-promoter" | "M-enhancer" | "M-ctcf"
 }): JSX.Element {
   const [toDownload, setToDownload] = useState<URL | null>(null)
-  const [selectedBiosample, setSelectedBiosample] = useState<Biosample | null>(null)
+  const [selectedBiosample, setSelectedBiosample] = useState<RegistryBiosample | null>(null)
 
   //Not sure if this is strictly necessary to use useMemo
   const stringToMatch: string = useMemo(() => {
@@ -111,7 +112,7 @@ function ComboBox(props: {
         sx={{ width: 300 }}
         //This spread is giving a warning. Code comes from MUI. Can't remove it though or doesn't work...
         renderInput={(params) => <TextField {...params} label={props.label} />}
-        getOptionLabel={(biosample: Biosample) =>
+        getOptionLabel={(biosample: RegistryBiosample) =>
           biosample.name.replace(/_/g, " ") +
           " — Exp ID: " +
           (props.mode === "H-promoter" || props.mode === "M-promoter"
@@ -150,31 +151,31 @@ function ComboBox(props: {
 }
 
 export function QuickStart(props: TabPanelProps) {
-  const biosamples = props.biosamples !== -1 && props.biosamples.data
+  const biosamples = props.biosamples?.data
 
   //Filter query return
-  const humanPromoters: Biosample[] = useMemo(
-    () => ((biosamples && biosamples.human && biosamples.human.biosamples) || []).filter((x: Biosample) => x.h3k4me3 !== null),
+  const humanPromoters: RegistryBiosample[] = useMemo(
+    () => ((biosamples && biosamples.human && biosamples.human.biosamples) || []).filter((x: RegistryBiosample) => x.h3k4me3 !== null),
     [biosamples]
   )
-  const humanEnhancers: Biosample[] = useMemo(
-    () => ((biosamples && biosamples.human && biosamples.human.biosamples) || []).filter((x: Biosample) => x.h3k27ac !== null),
+  const humanEnhancers: RegistryBiosample[] = useMemo(
+    () => ((biosamples && biosamples.human && biosamples.human.biosamples) || []).filter((x: RegistryBiosample) => x.h3k27ac !== null),
     [biosamples]
   )
-  const humanCTCF: Biosample[] = useMemo(
-    () => ((biosamples && biosamples.human && biosamples.human.biosamples) || []).filter((x: Biosample) => x.ctcf !== null),
+  const humanCTCF: RegistryBiosample[] = useMemo(
+    () => ((biosamples && biosamples.human && biosamples.human.biosamples) || []).filter((x: RegistryBiosample) => x.ctcf !== null),
     [biosamples]
   )
-  const mousePromoters: Biosample[] = useMemo(
-    () => ((biosamples && biosamples.mouse && biosamples.mouse.biosamples) || []).filter((x: Biosample) => x.h3k4me3 !== null),
+  const mousePromoters: RegistryBiosample[] = useMemo(
+    () => ((biosamples && biosamples.mouse && biosamples.mouse.biosamples) || []).filter((x: RegistryBiosample) => x.h3k4me3 !== null),
     [biosamples]
   )
-  const mouseEnhancers: Biosample[] = useMemo(
-    () => ((biosamples && biosamples.mouse && biosamples.mouse.biosamples) || []).filter((x: Biosample) => x.h3k27ac !== null),
+  const mouseEnhancers: RegistryBiosample[] = useMemo(
+    () => ((biosamples && biosamples.mouse && biosamples.mouse.biosamples) || []).filter((x: RegistryBiosample) => x.h3k27ac !== null),
     [biosamples]
   )
-  const mouseCTCF: Biosample[] = useMemo(
-    () => ((biosamples && biosamples.mouse && biosamples.mouse.biosamples) || []).filter((x: Biosample) => x.ctcf !== null),
+  const mouseCTCF: RegistryBiosample[] = useMemo(
+    () => ((biosamples && biosamples.mouse && biosamples.mouse.biosamples) || []).filter((x: RegistryBiosample) => x.ctcf !== null),
     [biosamples]
   )
 

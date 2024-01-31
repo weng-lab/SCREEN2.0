@@ -1,7 +1,7 @@
 import Grid2 from "@mui/material/Unstable_Grid2";
 import { BiosampleTables } from "../biosampletables";
-import { CellTypeData, Biosample, cCREData, MainQueryParams, MainResultTableRow } from "../types";
-import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import { RegistryBiosamplePlusRNA } from "../types";
+import { Dispatch, SetStateAction, useState } from "react";
 import { Button, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Snackbar, Stack, Tooltip, Typography } from "@mui/material";
 import { Close, CloseOutlined } from "@mui/icons-material";
 import { v4 as uuidv4 } from "uuid"
@@ -9,6 +9,8 @@ import Config from "../../../config.json"
 import SendIcon from '@mui/icons-material/Send';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DownloadIcon from '@mui/icons-material/Download';
+import { ApolloQueryResult } from "@apollo/client";
+import { BIOSAMPLE_Data } from "../../../common/lib/queries";
 
 const CREATE_TRACKHUB_QUERY = `
   query ($assembly: String!,$uuid: String!,$celltypes: [CellTypeInput]!) {
@@ -16,11 +18,10 @@ const CREATE_TRACKHUB_QUERY = `
   }  
 `
 
-//Should I finally use context to pass globals file
 const ConfigureGenomeBrowser = (props: {
-  byCellType: CellTypeData,
-  selectedBiosamples: Biosample[],
-  setSelectedBiosamples: Dispatch<SetStateAction<Biosample[]>>,
+  biosampleData: ApolloQueryResult<BIOSAMPLE_Data>
+  selectedBiosamples: RegistryBiosamplePlusRNA[],
+  setSelectedBiosamples: Dispatch<SetStateAction<RegistryBiosamplePlusRNA[]>>,
   coordinates: {
     assembly: "GRCh38" | "mm10"
     chromosome: string
@@ -30,7 +31,7 @@ const ConfigureGenomeBrowser = (props: {
   accession: string
   handleClose?: () => void
 }) => {
-  const [currentURLs, setCurrentURLs] = useState<{urlUCSC: string, urlTrackhub: string, biosamples: Biosample[]}>(null)
+  const [currentURLs, setCurrentURLs] = useState<{urlUCSC: string, urlTrackhub: string, biosamples: RegistryBiosamplePlusRNA[]}>(null)
   const [open, setOpen] = useState(false);
 
   const handleOpen = () => {
@@ -71,12 +72,12 @@ const ConfigureGenomeBrowser = (props: {
 
   const parsedBiosamples = props.selectedBiosamples.map(s => {
     return s.rnaseq ? {
-      celltype: s.queryValue,
+      celltype: s.name,
       rnaseq: true,
-      celltypedisplayname: s.summaryName
+      celltypedisplayname: s.displayname
     } : {
-      celltype: s.queryValue,
-      celltypedisplayname: s.summaryName
+      celltype: s.name,
+      celltypedisplayname: s.displayname
     }
   })
 
@@ -98,7 +99,7 @@ const ConfigureGenomeBrowser = (props: {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `UCSC-${props.selectedBiosamples.map(x => x.summaryName).join('+')}.txt`);
+      link.setAttribute('download', `UCSC-${props.selectedBiosamples.map(x => x.displayname).join('+')}.txt`);
       link.click();
       URL.revokeObjectURL(url); // Clean up the object URL
     } catch (error) {
@@ -113,7 +114,7 @@ const ConfigureGenomeBrowser = (props: {
         <DialogTitle>Configure UCSC Genome Browser Track Hub</DialogTitle>
         {props.handleClose && <IconButton size="large" onClick={props.handleClose} sx={{mr: 1}}><CloseOutlined fontSize="inherit"/></IconButton>}
       </Stack>
-      <DialogContent>
+      <DialogContent sx={{pt: 0}}>
         <DialogContentText mb={2}>
           {`${props.accession} - ${props.coordinates.chromosome}:${props.coordinates.start.toLocaleString("en-US")}-${props.coordinates.end.toLocaleString("en-US")}`}
         </DialogContentText>
@@ -124,23 +125,25 @@ const ConfigureGenomeBrowser = (props: {
           Note: For best UCSC performance, choose {"<"}10 cell types. Track hubs will be deleted after 24 hours.
         </DialogContentText>
         <Grid2 container spacing={2}>
-          <Grid2 xs={8}>
+          <Grid2 xs={12} lg={7}>
             <BiosampleTables
               showRNAseq={true}
+              showDownloads={false}
               biosampleSelectMode="append"
-              byCellType={props.byCellType}
+              biosampleData={props.biosampleData}
+              assembly={props.coordinates.assembly}
               selectedBiosamples={props.selectedBiosamples}
               setSelectedBiosamples={props.setSelectedBiosamples} />
           </Grid2>
-          <Grid2 xs={4}>
-            <Typography width="400px" visibility={props.selectedBiosamples.length > 0 ? "visible" : "hidden"} mt={2}>Selected Biosamples:</Typography>
+          <Grid2 xs={12} lg={5}>
+            <Typography minWidth={"300px"} visibility={props.selectedBiosamples.length > 0 ? "visible" : "hidden"} mt={2}>Selected Biosamples:</Typography>
             {props.selectedBiosamples.map((biosample, i) => {
               return (
-                <Stack mt={1} width="400px" direction="row" alignItems={"center"} key={i}>
-                  <IconButton onClick={() => props.setSelectedBiosamples(props.selectedBiosamples.filter((x) => x.summaryName !== biosample.summaryName))}>
+                <Stack minWidth={"300px"} mt={1} direction="row" alignItems={"center"} key={i}>
+                  <IconButton onClick={() => props.setSelectedBiosamples(props.selectedBiosamples.filter((x) => x.displayname !== biosample.displayname))}>
                     <Close />
                   </IconButton>
-                  <Typography>{biosample.summaryName}</Typography>
+                  <Typography>{biosample.displayname}</Typography>
                 </Stack>
               );
             })}

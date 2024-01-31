@@ -1,53 +1,35 @@
-import React, { useState, useEffect, SetStateAction } from "react"
+import React, { useState, useEffect, SetStateAction, useTransition } from "react"
 import Box from "@mui/material/Box"
 import TextField from "@mui/material/TextField"
 import Autocomplete from "@mui/material/Autocomplete"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import Typography from "@mui/material/Typography"
-import Config from "../../config.json"
 import { IconButton, Stack } from "@mui/material"
 import { Search } from "@mui/icons-material"
 import { parseGenomicRegion } from "./parsegenomicregion"
+import { biosampleQuery } from "../../common/lib/queries"
+import { RegistryBiosample } from "../search/types"
 
 export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean }> = (props) => {
-  const [valueCellType, setValueCellType] = useState(null)
+  const [valueCellType, setValueCellType] = useState<RegistryBiosample>(null)
   const [valueRegion, setValueRegion] = useState(null)
   const [inputValue, setInputValue] = useState("")
-  const [options, setOptions] = useState([])
-  const [cellTypes, setCelltypes] = useState([])
+  const [options, setOptions] = useState<RegistryBiosample[]>([])
+  const [isPending, startTransition] = useTransition();
 
-
-  //Fetch for the biosample options
+  //fetch biosample info, populate selected biosample if specified
   useEffect(() => {
-    fetch(props.assembly.toLowerCase() === "grch38" ? Config.API.HumanGlobals : Config.API.MouseGlobals)
-      .then((response) => {
-        return response.json()
-      })
-      .then((data) => {
-        let byCt = Object.keys(data.byCellType).map((ct) => {
-          return {
-            value: ct,
-            tissue: data.byCellType[ct][0].tissue,
-            biosample_summary: data.byCellType[ct][0].biosample_summary,
-          }
-        })
-        
-        setOptions(byCt.map((ct) => ct.biosample_summary))
-        setCelltypes(byCt)
-      })
-      .catch((error: Error) => {
-        console.log(error)
-      })
-
+    startTransition(async () => {
+      const biosamples = await (await biosampleQuery()).data[props.assembly.toLowerCase() === "grch38" ? "human" : "mouse"].biosamples
+      setOptions(biosamples)
+    })
   }, [props.assembly])
 
   const handleSubmit = () => {
     if (valueCellType) {
-      console.log(valueCellType,"val ct", cellTypes)
-      const tissue = cellTypes.find((g) => g.biosample_summary === valueCellType)?.tissue
-      const biosample = cellTypes.find((g) => g.biosample_summary === valueCellType)?.value
-      console.log(tissue,biosample)
-      const biosample_summary = valueCellType
+      const tissue = valueCellType.ontology
+      const biosample = valueCellType.name
+      const biosample_summary = valueCellType.displayname
       let region: { chromosome: string, start: string, end: string }
       if (valueRegion) {
         try {
@@ -83,7 +65,7 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
           }
         }}
         value={valueCellType}
-        onChange={(_, newValue: string | null) => {          
+        onChange={(_, newValue: RegistryBiosample) => {          
           setValueCellType(newValue)
         }}
         inputValue={inputValue}
@@ -92,6 +74,7 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
           setInputValue(newInputValue)
         }}
         noOptionsText={props.assembly === "mm10" ? "strain B6NCrl cortical plate tissue male adult (8 weeks)" : "e.g. LNCAP"}
+        getOptionLabel={(option) => option.displayname}
         renderInput={(params) => (
           <TextField
             {...params}
@@ -121,13 +104,11 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
               <Grid2 container alignItems="center">
                 <Grid2 sx={{ width: "100%", wordWrap: "normal" }}>
                   <Box component="span" sx={{ fontWeight: "regular" }}>
-                    {option}
+                    {option.displayname}
                   </Box>
-                  {cellTypes && cellTypes.find((g) => g.biosample_summary === option) && (
-                    <Typography variant="body2" color="text.secondary">
-                      {`${cellTypes.find((g) => g.biosample_summary === option)?.tissue}`}
-                    </Typography>
-                  )}
+                  <Typography variant="body2" color="text.secondary">
+                    {option.ontology}
+                  </Typography>
                 </Grid2>
               </Grid2>
             </li>

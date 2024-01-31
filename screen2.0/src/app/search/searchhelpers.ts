@@ -1,5 +1,5 @@
 
-import { cCREData, MainQueryParams, CellTypeData, UnfilteredBiosampleData, FilteredBiosampleData, MainResultTableRows, MainResultTableRow, rawQueryData, FilterCriteria, BiosampleTableFilters, Biosample, MainQueryData, RawLinkedGenesData, SCREENSearchResult } from "./types"
+import { cCREData, MainQueryParams, CellTypeData, MainResultTableRows, MainResultTableRow, rawQueryData, FilterCriteria, BiosampleTableFilters, MainQueryData, RawLinkedGenesData, SCREENSearchResult, RegistryBiosample, BiosampleData } from "./types"
 import { MainQuery, fetchLinkedGenes } from "../../common/lib/queries"
 import { startTransition } from "react"
 
@@ -355,41 +355,29 @@ function availableAssays(
 }
 
 /**
- *
- * @param byCellType JSON of byCellType
+ * 
+ * @param biosampleData 
+ * @param rnaSeqSamples 
  * @returns an object of sorted biosample types, grouped by tissue type
  */
-export function parseByCellType(byCellType: CellTypeData): UnfilteredBiosampleData {
-  const biosamples: UnfilteredBiosampleData = {}
-  Object.entries(byCellType.byCellType).forEach((entry) => {
-    // if the tissue catergory hasn't been catalogued, make a new blank array for it
-    const experiments = entry[1]
-    let tissueArr: Biosample[] = []
-    if (!biosamples[experiments[0].tissue]) {
-      Object.defineProperty(biosamples, experiments[0].tissue, {
-        value: [],
-        enumerable: true,
-        writable: true,
-      })
+export function parseBiosamples(biosampleData: RegistryBiosample[], rnaSeqSamples: { biosample: string }[]): BiosampleData{
+  const groupedBiosamples: BiosampleData = {}
+
+  biosampleData.forEach(biosample => {
+    //If tissue hasn't been cataloged yet, define an entry for it
+    if (!groupedBiosamples[biosample.ontology]){
+      groupedBiosamples[biosample.ontology] = [];
     }
-    //The existing tissues
-    tissueArr = biosamples[experiments[0].tissue]
-    tissueArr.push({
-      //display name
-      summaryName: experiments[0].biosample_summary,
-      //for filtering
-      biosampleType: experiments[0].biosample_type,
-      //for query
-      queryValue: experiments[0].celltypename,
-      //for filling in available assay wheels
-      assays: availableAssays(experiments),
-      //for displaying tissue category when selected
-      biosampleTissue: experiments[0].tissue,
-      rnaseq: experiments[0].rnaseq
-    })
-    Object.defineProperty(biosamples, experiments[0].tissue, { value: tissueArr, enumerable: true, writable: true })
+    //Add biosample to corresponding entry
+    groupedBiosamples[biosample.ontology].push(
+      {
+        ...biosample,
+        rnaseq: Boolean(rnaSeqSamples.map((sample) => sample.biosample).find(sampleName => biosample.name === sampleName)),
+      }
+    )
   })
-  return biosamples
+
+  return groupedBiosamples
 }
 
 /**
@@ -398,7 +386,7 @@ export function parseByCellType(byCellType: CellTypeData): UnfilteredBiosampleDa
  * @returns The same object but filtered with the current state of Biosample Type filters
  */
 export function filterBiosamples(
-  biosamples: UnfilteredBiosampleData,
+  biosamples: BiosampleData,
   Tissue: boolean,
   PrimaryCell: boolean,
   CellLine: boolean,
@@ -406,29 +394,39 @@ export function filterBiosamples(
   Organoid: boolean,
   Core: boolean,
   Partial: boolean,
-  Ancillary: boolean
-): FilteredBiosampleData {
-  const filteredBiosamples: FilteredBiosampleData = Object.entries(biosamples).map(([str, objArray]) => [
-    str,
-    objArray.filter((biosample) => {
+  Ancillary: boolean,
+  Embryo: boolean,
+  Adult: boolean,
+): BiosampleData {
+
+  const filteredBiosamples: BiosampleData = {}
+
+  for (const ontology in biosamples) {
+    filteredBiosamples[ontology] = biosamples[ontology].filter((biosample) => {
       let passesType: boolean = false
-      if (Tissue && biosample.biosampleType === "tissue") {
+      if (Tissue && biosample.sampleType === "tissue") {
         passesType = true
-      } else if (PrimaryCell && biosample.biosampleType === "primary cell") {
+      } else if (PrimaryCell && biosample.sampleType === "primary cell") {
         passesType = true
-      } else if (CellLine && biosample.biosampleType === "cell line") {
+      } else if (CellLine && biosample.sampleType === "cell line") {
         passesType = true
-      } else if (InVitro && biosample.biosampleType === "in vitro differentiated cells") {
+      } else if (InVitro && biosample.sampleType === "in vitro differentiated cells") {
         passesType = true
-      } else if (Organoid && biosample.biosampleType === "organoid") {
+      } else if (Organoid && biosample.sampleType === "organoid") {
         passesType = true
+      }
+      let passesLifestage = false
+      if (Embryo && biosample.lifeStage === "embryonic") {
+        passesLifestage = true
+      } else if (Adult && biosample.lifeStage === "adult") {
+        passesLifestage = true
       }
       //Assign to Ancillary as baseline
       let collection = "Ancillary"
-      if (biosample.assays.dnase == true) {
+      if (biosample.dnase) {
         //Assign to Partial if at least dnase is available
         collection = "Partial"
-        if (biosample.assays.ctcf && biosample.assays.h3k4me3 && biosample.assays.h3k27ac) {
+        if (biosample.ctcf && biosample.h3k4me3 && biosample.h3k27ac) {
           //If all other marks (ignoring atac) are available, assign to core
           collection = "Core"
         }
@@ -437,9 +435,10 @@ export function filterBiosamples(
       if ((Core && collection == "Core") || (Partial && collection == "Partial") || (Ancillary && collection == "Ancillary")) {
         passesCollection = true
       }
-      return (passesType && passesCollection)
-    }),
-  ])
+      return (passesType && passesLifestage && passesCollection)
+    })
+  }
+
   return filteredBiosamples
 }
 
@@ -500,7 +499,13 @@ export function constructSearchURL(
 
   //Can probably get biosample down to one string, and extract other info when parsing byCellType
   const biosampleFilters =
-    `&Tissue=${outputT_or_F(newBiosampleTableFilters.Tissue.checked)}`
+    `${newSearchParams.biosample ?
+      "&Biosample=" + (newSearchParams.biosample.name)
+      + "&BiosampleTissue=" + (newSearchParams.biosample.ontology)
+      + "&BiosampleSummary=" + (newSearchParams.biosample.displayname)
+      : ""
+    }`
+    + `&Tissue=${outputT_or_F(newBiosampleTableFilters.Tissue.checked)}`
     + `&PrimaryCell=${outputT_or_F(newBiosampleTableFilters.PrimaryCell.checked)}`
     + `&InVitro=${outputT_or_F(newBiosampleTableFilters.InVitro.checked)}`
     + `&Organoid=${outputT_or_F(newBiosampleTableFilters.Organoid.checked)}`
@@ -508,12 +513,8 @@ export function constructSearchURL(
     + `&Core=${outputT_or_F(newBiosampleTableFilters.Core.checked)}`
     + `&Partial=${outputT_or_F(newBiosampleTableFilters.Partial.checked)}`
     + `&Ancillary=${outputT_or_F(newBiosampleTableFilters.Ancillary.checked)}`
-    + `${newSearchParams.biosample ?
-      "&Biosample=" + (newSearchParams.biosample.queryValue)
-      + "&BiosampleTissue=" + (newSearchParams.biosample.biosampleTissue)
-      + "&BiosampleSummary=" + (newSearchParams.biosample.summaryName)
-      : ""
-    }`
+    + `&Embryo=${outputT_or_F(newBiosampleTableFilters.Embryo.checked)}`
+    + `&Adult=${outputT_or_F(newBiosampleTableFilters.Adult.checked)}`
 
   const chromatinFilters =
     `&dnase_s=${newFilterCriteria.dnase_s}`
@@ -584,15 +585,24 @@ export function constructMainQueryParamsFromURL(searchParams: { [key: string]: s
           null : searchParams.end ?
             +(searchParams.end) : 5381894,
       },
-      //If biosampleType, assays, or rnaseq is needed on reload, need to store it in the URL
+      //Incomplete data, will be filled in once biosample query is loaded
       biosample: searchParams.Biosample ?
         {
-          summaryName: searchParams.BiosampleSummary,
-          biosampleType: null,
-          biosampleTissue: searchParams.BiosampleTissue,
-          queryValue: searchParams.Biosample,
-          assays: null,
-          rnaseq: null,
+          displayname: searchParams.BiosampleSummary,
+          ontology: searchParams.BiosampleTissue,
+          name: searchParams.Biosample,
+          lifeStage: null,
+          sampleType: null,
+          dnase: null,
+          h3k4me3: null,
+          h3k27ac: null,
+          ctcf: null,
+          atac: null,
+          dnase_signal: null,
+          h3k4me3_signal: null,
+          h3k27ac_signal: null,
+          ctcf_signal: null,
+          atac_signal: null,
         } : null,
       searchConfig: {
         //Flag for if user-entered bed file intersection accessions to be used from sessionStorage
@@ -615,15 +625,15 @@ export function constructFilterCriteriaFromURL(searchParams: { [key: string]: st
   return (
     {
       dnase_s: searchParams.dnase_s ? +(searchParams.dnase_s) : -10,
-      dnase_e: searchParams.dnase_e ? +(searchParams.dnase_e) : 10,
+      dnase_e: searchParams.dnase_e ? +(searchParams.dnase_e) : 11,
       atac_s: searchParams.atac_s ? +(searchParams.atac_s) : -10,
-      atac_e: searchParams.atac_e ? +(searchParams.atac_e) : 10,
+      atac_e: searchParams.atac_e ? +(searchParams.atac_e) : 11,
       h3k4me3_s: searchParams.h3k4me3_s ? +(searchParams.h3k4me3_s) : -10,
-      h3k4me3_e: searchParams.h3k4me3_e ? +(searchParams.h3k4me3_e) : 10,
+      h3k4me3_e: searchParams.h3k4me3_e ? +(searchParams.h3k4me3_e) : 11,
       h3k27ac_s: searchParams.h3k27ac_s ? +(searchParams.h3k27ac_s) : -10,
-      h3k27ac_e: searchParams.h3k27ac_e ? +(searchParams.h3k27ac_e) : 10,
+      h3k27ac_e: searchParams.h3k27ac_e ? +(searchParams.h3k27ac_e) : 11,
       ctcf_s: searchParams.ctcf_s ? +(searchParams.ctcf_s) : -10,
-      ctcf_e: searchParams.ctcf_e ? +(searchParams.ctcf_e) : 10,
+      ctcf_e: searchParams.ctcf_e ? +(searchParams.ctcf_e) : 11,
       prim_s: searchParams.prim_s ? +(searchParams.prim_s) : -2,
       prim_e: searchParams.prim_e ? +(searchParams.prim_e) : 2,
       mamm_s: searchParams.mamm_s ? +(searchParams.mamm_s) : -4,
@@ -658,6 +668,8 @@ export function constructBiosampleTableFiltersFromURL(searchParams: { [key: stri
       Core: { checked: searchParams.Core ? checkTrueFalse(searchParams.Core) : true, label: "Core Collection" },
       Partial: { checked: searchParams.Partial ? checkTrueFalse(searchParams.Partial) : true, label: "Partial Data Collection" },
       Ancillary: { checked: searchParams.Ancillary ? checkTrueFalse(searchParams.Ancillary) : true, label: "Ancillary Collection" },
+      Embryo: { checked: searchParams.Ancillary ? checkTrueFalse(searchParams.Embyro) : true, label: "Embryo" },
+      Adult: { checked: searchParams.Ancillary ? checkTrueFalse(searchParams.Adult) : true, label: "Adult" },
     }
   )
 }
@@ -670,15 +682,15 @@ export function filtersModified(
     case ("chromatin signals"):
       if (
         f.atac_s === -10 &&
-        f.atac_e === 10 &&
+        f.atac_e === 11 &&
         f.dnase_s === -10 &&
-        f.dnase_e === 10 &&
+        f.dnase_e === 11 &&
         f.ctcf_s === -10 &&
-        f.ctcf_e === 10 &&
+        f.ctcf_e === 11 &&
         f.h3k4me3_s === -10 &&
-        f.h3k4me3_e === 10 &&
+        f.h3k4me3_e === 11 &&
         f.h3k27ac_s === -10 &&
-        f.h3k27ac_e === 10
+        f.h3k27ac_e === 11
       ) return false
       else return true
     case ("conservation"):
@@ -786,7 +798,7 @@ export const downloadBED = async (
   chromosome: string,
   start: number,
   end: number,
-  biosample: Biosample,
+  biosample: RegistryBiosample,
   bedIntersect: boolean = false,
   TSSranges: { start: number, end: number }[] = null,
   assays: { atac: boolean, ctcf: boolean, dnase: boolean, h3k27ac: boolean, h3k4me3: boolean },
@@ -818,7 +830,7 @@ export const downloadBED = async (
           chromosome,
           range.start,
           range.end,
-          biosample ? biosample.queryValue : undefined,
+          biosample ? biosample.name : undefined,
           1000000,
           null,
           bedIntersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined,
@@ -840,7 +852,7 @@ export const downloadBED = async (
       } catch (error) {
         window.alert(
           "There was an error fetching cCRE data, please try again soon. If this error persists, please report it via our 'Contact Us' form on the About page and include this info:\n\n" +
-          `Downloading:\n${assembly}\n${chromosome}\n${start}\n${end}\n${biosample ? biosample.queryValue : undefined}\n` +
+          `Downloading:\n${assembly}\n${chromosome}\n${start}\n${end}\n${biosample ? biosample.name : undefined}\n` +
           error
         );
         setBedLoadingPercent(null)
@@ -881,7 +893,7 @@ export const downloadBED = async (
   // Create a link element to trigger the download
   const link = document.createElement('a');
   link.href = url;
-  link.download = `${assembly}-${chromosome}-${start}-${end}${biosample ? '-' + biosample.summaryName : ''}.bed`; // File name for download
+  link.download = `${assembly}-${chromosome}-${start}-${end}${biosample ? '-' + biosample.displayname : ''}.bed`; // File name for download
   document.body.appendChild(link);
 
   // Simulate a click on the link to initiate download

@@ -31,13 +31,10 @@
     "overrides": {}
   },
   "API": {
-    "HumanGlobals": "https://downloads.wenglab.org/humanglobals.json",
-    "MouseGlobals": "https://downloads.wenglab.org/mouseglobals.json",
     "CcreAPI": "https://factorbook.api.wenglab.org/graphql",
     "GraphqlAPI": "https://ga.staging.wenglab.org/graphql"
   },
   "Downloads": {
-
     "HumanCCREs": "https://downloads.wenglab.org/Registry-V4/GRCh38-cCREs.bed",
     "HumanPromoters": "https://downloads.wenglab.org/Registry-V4/GRCh38-cCREs.PLS.bed",
     "HumanProximalEnhancers": "https://downloads.wenglab.org/Registry-V4/GRCh38-cCREs.pELS.bed",

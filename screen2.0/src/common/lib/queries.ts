@@ -3,9 +3,9 @@
  */
 'use server'
 import { getClient } from "../lib/client"
-import { ApolloQueryResult, gql } from "@apollo/client"
+import { ApolloQueryResult, TypedDocumentNode, gql } from "@apollo/client"
 import Config from "../../config.json"
-import { CellTypeData } from "../../app/search/types"
+import { CellTypeData, RegistryBiosample } from "../../app/search/types"
 
 const cCRE_QUERY = gql`
   query ccreSearchQuery(
@@ -135,16 +135,16 @@ function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: numbe
     gene_all_end: 5000000,
     gene_pc_start: 0,
     gene_pc_end: 5000000,
-    rank_dnase_start: -20,
-    rank_dnase_end: 20,
-    rank_atac_start: -20,
-    rank_atac_end: 20,
-    rank_promoter_start: -20,
-    rank_promoter_end: 20,
-    rank_enhancer_start: -20,
-    rank_enhancer_end: 20,
-    rank_ctcf_start: -20,
-    rank_ctcf_end: 20,
+    rank_dnase_start: -10,
+    rank_dnase_end: 11,
+    rank_atac_start: -10,
+    rank_atac_end: 11,
+    rank_promoter_start: -10,
+    rank_promoter_end: 11,
+    rank_enhancer_start: -10,
+    rank_enhancer_end: 11,
+    rank_ctcf_start: -10,
+    rank_ctcf_end: 11,
     cellType: biosample,
     element_type: null,
     limit: noLimit ? null : 25000,
@@ -158,45 +158,6 @@ function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: numbe
 
   return vars
 }
-
-const BIOSAMPLE_QUERY = gql`
-  query biosamples {
-    human: ccREBiosampleQuery(assembly: "grch38") {
-      biosamples {
-        name
-        ontology
-        lifeStage
-        sampleType
-        displayname
-        dnase: experimentAccession(assay: "DNase")
-        h3k4me3: experimentAccession(assay: "H3K4me3")
-        h3k27ac: experimentAccession(assay: "H3K27ac")
-        ctcf: experimentAccession(assay: "CTCF")
-        dnase_signal: fileAccession(assay: "DNase")
-        h3k4me3_signal: fileAccession(assay: "H3K4me3")
-        h3k27ac_signal: fileAccession(assay: "H3K27ac")
-        ctcf_signal: fileAccession(assay: "CTCF")
-      }
-    }
-    mouse: ccREBiosampleQuery(assembly: "mm10") {
-      biosamples {
-        name
-        ontology
-        lifeStage
-        sampleType
-        displayname
-        dnase: experimentAccession(assay: "DNase")
-        h3k4me3: experimentAccession(assay: "H3K4me3")
-        h3k27ac: experimentAccession(assay: "H3K27ac")
-        ctcf: experimentAccession(assay: "CTCF")
-        dnase_signal: fileAccession(assay: "DNase")
-        h3k4me3_signal: fileAccession(assay: "H3K4me3")
-        h3k27ac_signal: fileAccession(assay: "H3K27ac")
-        ctcf_signal: fileAccession(assay: "CTCF")
-      }
-    }
-  }
-`
 
 const UMAP_QUERY = gql`
   query q($assembly: String!, $assay: [String!], $a: String!) {
@@ -254,7 +215,6 @@ export async function fetchLinkedGenes(assembly: "GRCh38" | "mm10", accessions: 
     linkedGenes.data.linkedGenesQuery.forEach((entry) => {
       !geneIDs.includes(entry.gene.split(".")[0]) && geneIDs.push(entry.gene.split(".")[0])
     })
-    console.log(linkedGenes.data)
     //Attempt to lookup gene names
     try {
       geneNames = await getClient().query({
@@ -262,7 +222,6 @@ export async function fetchLinkedGenes(assembly: "GRCh38" | "mm10", accessions: 
         variables: { assembly: assembly, name_prefix: geneIDs },
         fetchPolicy: "no-cache"
       })
-      console.log(geneNames.data)
       //If both queries are successful, go through each of linkedGenes.data.linkedGenesQuery and assemble return data
       linkedGenes.data.linkedGenesQuery.forEach((entry) => {
         const hasEntry: boolean = Object.hasOwn(returnData, entry.accession)
@@ -319,16 +278,66 @@ export async function MainQuery(assembly: string = null, chromosome: string = nu
   return data
 }
 
+
+export type BIOSAMPLE_Data = {
+  human: { biosamples: RegistryBiosample[] },
+  mouse: {biosamples: RegistryBiosample[]}
+}
+
+const BIOSAMPLE_QUERY: TypedDocumentNode<BIOSAMPLE_Data> = gql`
+  query biosamples {
+    human: ccREBiosampleQuery(assembly: "grch38") {
+      biosamples {
+        name
+        ontology
+        lifeStage
+        sampleType
+        displayname
+        dnase: experimentAccession(assay: "DNase")
+        h3k4me3: experimentAccession(assay: "H3K4me3")
+        h3k27ac: experimentAccession(assay: "H3K27ac")
+        ctcf: experimentAccession(assay: "CTCF")
+        atac: experimentAccession(assay: "ATAC")
+        dnase_signal: fileAccession(assay: "DNase")
+        h3k4me3_signal: fileAccession(assay: "H3K4me3")
+        h3k27ac_signal: fileAccession(assay: "H3K27ac")
+        ctcf_signal: fileAccession(assay: "CTCF")
+        atac_signal: fileAccession(assay: "ATAC")
+      }
+    }
+    mouse: ccREBiosampleQuery(assembly: "mm10") {
+      biosamples {
+        name
+        ontology
+        lifeStage
+        sampleType
+        displayname
+        dnase: experimentAccession(assay: "DNase")
+        h3k4me3: experimentAccession(assay: "H3K4me3")
+        h3k27ac: experimentAccession(assay: "H3K27ac")
+        ctcf: experimentAccession(assay: "CTCF")
+        atac: experimentAccession(assay: "ATAC")
+        dnase_signal: fileAccession(assay: "DNase")
+        h3k4me3_signal: fileAccession(assay: "H3K4me3")
+        h3k27ac_signal: fileAccession(assay: "H3K27ac")
+        ctcf_signal: fileAccession(assay: "CTCF")
+        atac_signal: fileAccession(assay: "ATAC")
+      }
+    }
+  }
+`
+
 export async function biosampleQuery() {
-  let data: ApolloQueryResult<any> | -1
+  let returnData: ApolloQueryResult<BIOSAMPLE_Data>
   try {
-    data = await getClient().query({
+    const res = await getClient().query({
       query: BIOSAMPLE_QUERY,
     })
+    returnData = { data: res.data, loading: res.loading, networkStatus: res.networkStatus, error: res.error }
   } catch (error) {
     console.log(error)
   } finally {
-    return data
+    return returnData
   }
 }
 
@@ -348,29 +357,5 @@ export async function UMAPQuery(assembly: "grch38" | "mm10", assay: "DNase" | "H
     data = -1
   } finally {
     return data
-  }
-}
-
-/**
- *
- * @returns the shortened byCellType file
- */
-export async function getGlobals(assembly: "GRCh38" | "mm10"): Promise<CellTypeData>{
-  let res: Response
-  try {
-    if (assembly === "GRCh38") {
-        res = await fetch(Config.API.HumanGlobals)
-      } else if (assembly === "mm10") {
-        res = await fetch(Config.API.MouseGlobals)
-      }
-  } catch (error) {
-    console.log("error fetching " + assembly + " globals")
-    console.log(error)
-  } finally {
-    if (res) {
-      return res.json()
-    } else {
-      return undefined
-    }
   }
 }

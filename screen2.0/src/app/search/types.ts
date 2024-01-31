@@ -47,7 +47,7 @@ export type MainQueryParams = {
     start: number | null
     end: number | null
   }
-  biosample: Biosample
+  biosample: RegistryBiosample
   snp: {
     rsID: string
     distance: number
@@ -71,6 +71,8 @@ export type BiosampleTableFilters = {
   Core: { checked: boolean, label: "Core Collection" },
   Partial: { checked: boolean, label: "Partial Data Collection" },
   Ancillary: { checked: boolean, label: "Ancillary Collection" },
+  Embryo: { checked: boolean, label: "Embryo" }
+  Adult: { checked: boolean, label: "Adult" }
 }
 
 export type FilterCriteria = {
@@ -119,29 +121,31 @@ export type CellTypeData = {
   }
 }
 
-export type UnfilteredBiosampleData = {
-  [key: string]: Biosample[]
+export type BiosampleData = {
+  [key: string]: RegistryBiosamplePlusRNA[]
 }
 
-export type FilteredBiosampleData = [
-  string,
-  Biosample[],
-][]
-
-export type Biosample = {
-  summaryName: string;
-  biosampleType: string;
-  biosampleTissue: string;
-  queryValue: string;
-  assays: {
-    atac: boolean;
-    ctcf: boolean;
-    dnase: boolean;
-    h3k27ac: boolean;
-    h3k4me3: boolean;
-  }
+export interface RegistryBiosamplePlusRNA extends RegistryBiosample {
   rnaseq: boolean
 }
+
+export type RegistryBiosample = {
+  name: string;
+  ontology: string;
+  lifeStage: string;
+  sampleType: string;
+  displayname: string;
+  dnase: string | null;
+  h3k4me3: string | null;
+  h3k27ac: string | null;
+  ctcf: string | null;
+  atac: string | null;
+  dnase_signal: string | null;
+  h3k4me3_signal: string | null;
+  h3k27ac_signal: string | null;
+  ctcf_signal: string | null;
+  atac_signal: string | null;
+};
 
 export type MainResultTableRows = MainResultTableRow[]
 
