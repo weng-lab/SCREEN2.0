@@ -56,18 +56,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@apollo/experimental-nextjs-app-support@npm:^0.6.0":
-  version: 0.6.0
-  resolution: "@apollo/experimental-nextjs-app-support@npm:0.6.0"
+"@apollo/experimental-nextjs-app-support@npm:^0.7.0":
+  version: 0.7.0
+  resolution: "@apollo/experimental-nextjs-app-support@npm:0.7.0"
   dependencies:
     server-only: ^0.0.1
-    superjson: ^1.12.2
+    superjson: ^1.12.2 || ^2.0.0
     ts-invariant: ^0.10.3
   peerDependencies:
     "@apollo/client": ">=3.8.0-rc || ^3.8.0 || >=3.9.0-alpha || >=3.9.0-beta || >=3.9.0-rc"
     next: ^13.4.1 || ^14.0.0
     react: ^18
-  checksum: 3d9c806e7d0ceda9ddb3e1b435df418ea4d67a61ecbdae10612e729ada868b8c909c26ea8cc06c4cd37eb83054d147d89fc3ca44ffd55dbde8f63a3bac74712e
+  checksum: 03df6454a930dfd19f805d248ecb1507dbdbf920e98b70ec1a3d7b2d7165a05fdfe12f134d55650dbbc897e50c7b946bcae2a0c4a6b1ba99e3c707bde238188e
   languageName: node
   linkType: hard
 
@@ -1684,12 +1684,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@weng-lab/psychscreen-ui-components@npm:^0.8.5":
-  version: 0.8.5
-  resolution: "@weng-lab/psychscreen-ui-components@npm:0.8.5"
+"@weng-lab/psychscreen-ui-components@npm:^0.8.6":
+  version: 0.8.6
+  resolution: "@weng-lab/psychscreen-ui-components@npm:0.8.6"
   peerDependencies:
     react: ">=16"
-  checksum: 39391a29f4b253c0b98f866b81ee54db5cbebe6b39b0de2acd611217bff3c3ec5223052be658f5820ea20106e32bef39a5ff0ee6a8d8fd344e198f015e9e2d9d
+  checksum: 5c8783237c1b7c047020b9f6944bfbf3deca821ae6cf340f5c4427fb0c7957e985ae62863c918ed20662587e32187fb1bc7a5eef88b825053ce8bbc11e48efad
   languageName: node
   linkType: hard
 
@@ -6982,7 +6982,7 @@ __metadata:
   resolution: "screen2.0@workspace:."
   dependencies:
     "@apollo/client": alpha
-    "@apollo/experimental-nextjs-app-support": ^0.6.0
+    "@apollo/experimental-nextjs-app-support": ^0.7.0
     "@emailjs/browser": ^3.12.1
     "@emotion/react": ^11.11.1
     "@emotion/styled": ^11.11.0
@@ -6992,7 +6992,7 @@ __metadata:
     "@types/node": ^20.10.8
     "@types/react": ^18.2.47
     "@types/react-dom": 18.2.18
-    "@weng-lab/psychscreen-ui-components": ^0.8.5
+    "@weng-lab/psychscreen-ui-components": ^0.8.6
     "@weng-lab/ts-ztable": ^4.0.1
     autoprefixer: 10.4.16
     bpnet-ui: ^0.3.8
@@ -7699,12 +7699,12 @@ semantic-ui-react@latest:
   languageName: node
   linkType: hard
 
-"superjson@npm:^1.12.2":
-  version: 1.13.3
-  resolution: "superjson@npm:1.13.3"
+"superjson@npm:^1.12.2 || ^2.0.0":
+  version: 2.2.1
+  resolution: "superjson@npm:2.2.1"
   dependencies:
     copy-anything: ^3.0.2
-  checksum: f5aeb010f24163cb871a4bc402d9164112201c059afc247a75b03131c274aea6eec9cf08be9e4a9465fe4961689009a011584528531d52f7cc91c077e07e5c75
+  checksum: 42f327474a9de80165a70641d66c2afd9ce7f0eb241c32af7e2d5777f893aac6defa6c1584bd35f022658dbdfd2b7bcf0d170acfe62a07e7d1d01238cf5b4a57
   languageName: node
   linkType: hard
 
@@ -8055,11 +8055,11 @@ semantic-ui-react@latest:
 
 "typescript@patch:typescript@5.3.3#~builtin<compat/typescript>":
   version: 5.3.3
-  resolution: "typescript@patch:typescript@npm%3A5.3.3#~builtin<compat/typescript>::version=5.3.3&hash=85af82"
+  resolution: "typescript@patch:typescript@npm%3A5.3.3#~builtin<compat/typescript>::version=5.3.3&hash=e012d7"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: f61375590b3162599f0f0d5b8737877ac0a7bc52761dbb585d67e7b8753a3a4c42d9a554c4cc929f591ffcf3a2b0602f65ae3ce74714fd5652623a816862b610
+  checksum: 4e604a9e107ce0c23b16a2f8d79d0531d4d8fe9ebbb7a8c395c66998c39892f0e0a071ef0b0d4e66420a8ec2b8d6cfd9cdb29ba24f25b37cba072e9282376df9
   languageName: node
   linkType: hard
 

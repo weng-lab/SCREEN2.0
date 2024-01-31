@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@apollo/client": "alpha",
-    "@apollo/experimental-nextjs-app-support": "^0.6.0",
+    "@apollo/experimental-nextjs-app-support": "^0.7.0",
     "@emailjs/browser": "^3.12.1",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
