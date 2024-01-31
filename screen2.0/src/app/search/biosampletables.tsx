@@ -254,6 +254,11 @@ export const BiosampleTables: React.FC<Props> = ({
     Embryo: { checked: true, label: "Embryo" },
     Adult: { checked: true, label: "Adult" }
   })
+//For searching biosample tables
+  const [searchString, setSearchString] = useState<string>("")
+
+  //Anchor for dropdown menu
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
   const { data: data_rnaseq, loading: loading_rnaseq, error: error_rnaseq } = useQuery(RNA_SEQ_QUERY,
     {
@@ -267,11 +272,7 @@ export const BiosampleTables: React.FC<Props> = ({
 
   const sidebar = Boolean(biosampleTableFilters)
 
-  //For searching biosample tables
-  const [searchString, setSearchString] = useState<string>("")
 
-  //Anchor for dropdown menu
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
   const handleClose = () => {
     setAnchorEl(null);
@@ -409,8 +410,7 @@ export const BiosampleTables: React.FC<Props> = ({
         ...cols,
         {
           header: "cCREs",
-          value: (row) => null,
-          unsortable: true,
+          value: (row) => +!!(row.dnase || row.ctcf || row.h3k27ac || row.h3k4me3),
           FunctionalRender: (row) => DownloadBiosamplecCREs(row, "celltypeccres"),
         },
         {
