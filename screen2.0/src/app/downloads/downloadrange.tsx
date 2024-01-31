@@ -49,7 +49,6 @@ interface DownloadRangeProps {
  * @todo allow changing the distance of linked genes searched
  */
 export const DownloadRange: React.FC<DownloadRangeProps> = ({biosampleData}) => {
-  const [isPending, startTransition] = useTransition()
   const [assembly, setAssembly] = useState<"GRCh38" | "mm10">("GRCh38")
   const [inputValue, setInputValue] = useState<string>('chr11:5205263-5381894')
   //Only reason this is an array is to easily interface with BiosampleTables

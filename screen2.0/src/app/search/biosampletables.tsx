@@ -32,9 +32,9 @@ const RNA_SEQ_QUERY: TypedDocumentNode<RNA_SEQ_Data, RNA_SEQ_Variables> = gql`
 `
 
 function DownloadBiosamplecCREs(row: RegistryBiosample | RegistryBiosamplePlusRNA, x: "dnase" | "h3k4me3" | "h3k27ac" | "ctcf" | "atac" | "celltypeccres") {
-  const [progress, setProgress] = useState<number>(null)
-  const [hover, setHover] = useState<boolean>(false)
-  const [controller, setController] = useState(null);
+  const [progress, setProgress] = useState<number>(null) //for progress wheel
+  const [hover, setHover] = useState<boolean>(false) //for tracking if user is hovering over progress wheel
+  const [controller, setController] = useState(null); //used to hold an AbortController created in handleDL, which allows aborting download
 
   useEffect(() => {
     return () => {
@@ -290,7 +290,7 @@ export const BiosampleTables: React.FC<Props> = ({
   }
 
   const filteredBiosamples: BiosampleData = useMemo(() => {
-    if ((biosampleData.data && (showRNAseq ? data_rnaseq : true))) {
+    if ((biosampleData?.data && (showRNAseq ? data_rnaseq : true))) {
       return (
         filterBiosamples(
           //Parse raw data into ontology-grouped biosamples
