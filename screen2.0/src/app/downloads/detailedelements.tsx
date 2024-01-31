@@ -1,21 +1,17 @@
-import { Button, ButtonProps, IconButton, Paper, Tooltip, Typography, Modal, Container, Divider, CircularProgress, CircularProgressProps } from "@mui/material"
+import { Button, ButtonProps, Paper, Typography, Divider } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { Box } from "@mui/system"
-import React, { useMemo, useState } from "react"
+import React from "react"
 import Config from "../../config.json"
 import DownloadIcon from "@mui/icons-material/Download"
 import SearchIcon from "@mui/icons-material/Search"
 import { CA_CTCF, CA_H3K4me3, CA_TF, CA_only, PLS, TF_only, dELS, pELS } from "../../common/lib/colors"
-import { DataTable, DataTableColumn, DataTableProps } from "@weng-lab/psychscreen-ui-components"
-import { Biosample } from "./types"
 import Image from "next/image"
 import Human from "../../../public/Human2.png"
 import Mouse from "../../../public/Mouse2.png"
 import { ApolloQueryResult } from "@apollo/client"
-import { downloadTSV } from "./utils"
 import { BIOSAMPLE_Data } from "../../common/lib/queries"
 import BiosampleTables from "../search/biosampletables"
-import { RegistryBiosample, RegistryBiosamplePlusRNA } from "../search/types"
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -49,7 +45,6 @@ const InlineDownloadButton = (props: ButtonProps & { label: string; bordercolor:
 }
 
 export function DetailedElements(props: TabPanelProps) {
-
   return (
     <div>
       <Grid2 container columnSpacing={6} rowSpacing={3} mt={1}>

@@ -67,7 +67,6 @@ export default function DownloadsPage(props: {
         <Grid2 xs={12}>
           {page === 0 && <QuickStart biosamples={props.biosamples} />}
           {page === 1 && <DetailedElements biosamples={props.biosamples} />}
-          {/* Matrices being fed biosamples might be redundant */}
           {page === 2 && <DataMatrices matrices={props.matrices} searchParams={props.searchParams} />}
           {page === 3 && <DownloadRange biosampleData={props.biosamples} />}
         </Grid2>
