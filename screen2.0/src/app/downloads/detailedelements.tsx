@@ -181,13 +181,8 @@ export function DetailedElements(props: TabPanelProps) {
             <Box width={"9rem"}></Box>
           </Grid2>
         </Grid2>
-        <Grid2 xs={6}>
+        <Grid2 xs={12} md={6}>
           <Typography variant="h6">Human cCREs by Cell Type</Typography>
-        </Grid2>
-        <Grid2 xs={6}>
-          <Typography variant="h6">Mouse cCREs by Cell Type</Typography>
-        </Grid2>
-        <Grid2 display={"flex"} flexWrap={"wrap"} justifyContent={"space-between"} xs={6}>
           <BiosampleTables
             biosampleData={props.biosamples}
             assembly={"GRCh38"}
@@ -198,7 +193,8 @@ export function DetailedElements(props: TabPanelProps) {
             biosampleSelectMode={"append"}
           />
         </Grid2>
-        <Grid2 display={"flex"} flexWrap={"wrap"} justifyContent={"space-between"} xs={6}>
+        <Grid2 xs={12} md={6}>
+          <Typography variant="h6">Mouse cCREs by Cell Type</Typography>
           <BiosampleTables
             biosampleData={props.biosamples}
             assembly={"mm10"}

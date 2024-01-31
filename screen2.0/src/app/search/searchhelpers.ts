@@ -499,7 +499,13 @@ export function constructSearchURL(
 
   //Can probably get biosample down to one string, and extract other info when parsing byCellType
   const biosampleFilters =
-    `&Tissue=${outputT_or_F(newBiosampleTableFilters.Tissue.checked)}`
+    `${newSearchParams.biosample ?
+      "&Biosample=" + (newSearchParams.biosample.name)
+      + "&BiosampleTissue=" + (newSearchParams.biosample.ontology)
+      + "&BiosampleSummary=" + (newSearchParams.biosample.displayname)
+      : ""
+    }`
+    + `&Tissue=${outputT_or_F(newBiosampleTableFilters.Tissue.checked)}`
     + `&PrimaryCell=${outputT_or_F(newBiosampleTableFilters.PrimaryCell.checked)}`
     + `&InVitro=${outputT_or_F(newBiosampleTableFilters.InVitro.checked)}`
     + `&Organoid=${outputT_or_F(newBiosampleTableFilters.Organoid.checked)}`
@@ -509,12 +515,6 @@ export function constructSearchURL(
     + `&Ancillary=${outputT_or_F(newBiosampleTableFilters.Ancillary.checked)}`
     + `&Embryo=${outputT_or_F(newBiosampleTableFilters.Embryo.checked)}`
     + `&Adult=${outputT_or_F(newBiosampleTableFilters.Adult.checked)}`
-    + `${newSearchParams.biosample ?
-      "&Biosample=" + (newSearchParams.biosample.name)
-      + "&BiosampleTissue=" + (newSearchParams.biosample.ontology)
-      + "&BiosampleSummary=" + (newSearchParams.biosample.displayname)
-      : ""
-    }`
 
   const chromatinFilters =
     `&dnase_s=${newFilterCriteria.dnase_s}`

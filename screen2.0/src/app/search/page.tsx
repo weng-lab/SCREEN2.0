@@ -203,6 +203,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     //Check if the URL params representing state are stale
     if (
       opencCREsInitialized && !loadingFetch &&
+      //bug potentially?
       (JSON.stringify(constructMainQueryParamsFromURL(searchParams)) !== JSON.stringify(mainQueryParams)
       || JSON.stringify(constructFilterCriteriaFromURL(searchParams)) !== JSON.stringify(filterCriteria)
       || JSON.stringify(constructBiosampleTableFiltersFromURL(searchParams)) !== JSON.stringify(biosampleTableFilters)
@@ -216,7 +217,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         page,
         opencCREs.map(x => x.ID).join(',')
       )
-      // console.log("pushing new url")
       router.push(newURL)
     }
   }, [searchParams, mainQueryParams, filterCriteria, biosampleTableFilters, page, opencCREs, router, basePathname, opencCREsInitialized, loadingFetch])
@@ -531,7 +531,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           {/* Bumps content below app bar */}
           <DrawerHeader id="DrawerHeader" />
           {page === 0 && (
-            //The issue is that it get's stuck on loadingcCREs = true on reload
             <Box>
               {loadingTable || loadingFetch ?
                 <LoadingMessage />

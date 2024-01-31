@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useMemo, useEffect, Dispatch, SetStateAction } from "react";
+import React, { useState, useEffect, Dispatch, SetStateAction } from "react";
 import {
   Accordion,
   AccordionSummary,
@@ -11,7 +11,6 @@ import {
   FormGroup,
   FormControlLabel,
   Checkbox,
-  TextField,
   Tooltip,
   Box,
   Slider,
@@ -26,11 +25,10 @@ import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControl from '@mui/material/FormControl';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
-import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
 import Grid2 from "@mui/material/Unstable_Grid2"
-import { RangeSlider, DataTable } from "@weng-lab/psychscreen-ui-components"
-import { BiosampleTableFilters, CellTypeData, FilterCriteria, MainQueryParams, RegistryBiosample } from "./types"
-import { filterBiosamples, assayHoverInfo, filtersModified } from "./searchhelpers"
+import { RangeSlider } from "@weng-lab/psychscreen-ui-components"
+import { BiosampleTableFilters, FilterCriteria, MainQueryParams, RegistryBiosample } from "./types"
+import { filtersModified } from "./searchhelpers"
 import { ApolloQueryResult, gql } from "@apollo/client"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import GeneAutoComplete from "../applets/gene-expression/geneautocomplete";
@@ -405,7 +403,7 @@ export function MainResultsFilters(
             </AccordionSummary>
             <AccordionDetails>
               <Grid2 container spacing={3}>
-                <Grid2 xs={6}>
+                {(!props.mainQueryParams.biosample || props.mainQueryParams.biosample.dnase) && <Grid2 xs={6}>
                   <RangeSlider
                     title="DNase"
                     width="100%"
@@ -418,8 +416,8 @@ export function MainResultsFilters(
                       props.setFilterCriteria({ ...props.filterCriteria, dnase_s: value[0], dnase_e: value[1] })
                     }}
                   />
-                </Grid2>
-                <Grid2 xs={6}>
+                </Grid2>}
+                {(!props.mainQueryParams.biosample || props.mainQueryParams.biosample.h3k4me3) && <Grid2 xs={6}>
                   <RangeSlider
                     title="H3K4me3"
                     width="100%"
@@ -432,8 +430,8 @@ export function MainResultsFilters(
                       props.setFilterCriteria({ ...props.filterCriteria, h3k4me3_s: value[0], h3k4me3_e: value[1] })
                     }}
                   />
-                </Grid2>
-                <Grid2 xs={6}>
+                </Grid2>}
+                {(!props.mainQueryParams.biosample || props.mainQueryParams.biosample.h3k27ac) && <Grid2 xs={6}>
                   <RangeSlider
                     title="H3K27ac"
                     width="100%"
@@ -446,8 +444,8 @@ export function MainResultsFilters(
                       props.setFilterCriteria({ ...props.filterCriteria, h3k27ac_s: value[0], h3k27ac_e: value[1] })
                     }}
                   />
-                </Grid2>
-                <Grid2 xs={6}>
+                </Grid2>}
+                {(!props.mainQueryParams.biosample || props.mainQueryParams.biosample.ctcf) && <Grid2 xs={6}>
                   <RangeSlider
                     title="CTCF"
                     width="100%"
@@ -460,8 +458,8 @@ export function MainResultsFilters(
                       props.setFilterCriteria({ ...props.filterCriteria, ctcf_s: value[0], ctcf_e: value[1] })
                     }}
                   />
-                </Grid2>
-                <Grid2 xs={6}>
+                </Grid2>}
+                {(!props.mainQueryParams.biosample || props.mainQueryParams.biosample.atac) && <Grid2 xs={6}>
                   <RangeSlider
                     title="ATAC"
                     width="100%"
@@ -474,7 +472,7 @@ export function MainResultsFilters(
                       props.setFilterCriteria({ ...props.filterCriteria, atac_s: value[0], atac_e: value[1] })
                     }}
                   />
-                </Grid2>
+                </Grid2>}
               </Grid2>
             </AccordionDetails>
           </Accordion>
