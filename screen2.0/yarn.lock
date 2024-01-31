@@ -1352,12 +1352,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^20.10.8":
-  version: 20.10.8
-  resolution: "@types/node@npm:20.10.8"
+"@types/node@npm:^20.11.13":
+  version: 20.11.13
+  resolution: "@types/node@npm:20.11.13"
   dependencies:
     undici-types: ~5.26.4
-  checksum: ce9b7ee545b3605f667be2ea900e38ab58d7b561192a7342443e5d7f61c44fd9d016eac48e95d3011f090ceea65a727e83a31d51fabdd9fc20ff9992edcbc682
+  checksum: 76fbe4dbcce9ecb602c1e0528124bb113e9ece58d417e96710b7ba96dd67cd0bb050272218dc796be36c0d8c29d7c55da44311be429daa4253c3a00f1b3840ff
   languageName: node
   linkType: hard
 
@@ -1684,12 +1684,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@weng-lab/psychscreen-ui-components@npm:^0.8.5":
-  version: 0.8.5
-  resolution: "@weng-lab/psychscreen-ui-components@npm:0.8.5"
+"@weng-lab/psychscreen-ui-components@npm:^0.8.6":
+  version: 0.8.6
+  resolution: "@weng-lab/psychscreen-ui-components@npm:0.8.6"
   peerDependencies:
     react: ">=16"
-  checksum: 39391a29f4b253c0b98f866b81ee54db5cbebe6b39b0de2acd611217bff3c3ec5223052be658f5820ea20106e32bef39a5ff0ee6a8d8fd344e198f015e9e2d9d
+  checksum: 5c8783237c1b7c047020b9f6944bfbf3deca821ae6cf340f5c4427fb0c7957e985ae62863c918ed20662587e32187fb1bc7a5eef88b825053ce8bbc11e48efad
   languageName: node
   linkType: hard
 
@@ -6989,10 +6989,10 @@ __metadata:
     "@mui/icons-material": ^5.15.2
     "@mui/lab": ^5.0.0-alpha.158
     "@mui/material": ^5.15.4
-    "@types/node": ^20.10.8
+    "@types/node": ^20.11.13
     "@types/react": ^18.2.47
     "@types/react-dom": 18.2.18
-    "@weng-lab/psychscreen-ui-components": ^0.8.5
+    "@weng-lab/psychscreen-ui-components": ^0.8.6
     "@weng-lab/ts-ztable": ^4.0.1
     autoprefixer: 10.4.16
     bpnet-ui: ^0.3.8
@@ -8055,11 +8055,11 @@ semantic-ui-react@latest:
 
 "typescript@patch:typescript@5.3.3#~builtin<compat/typescript>":
   version: 5.3.3
-  resolution: "typescript@patch:typescript@npm%3A5.3.3#~builtin<compat/typescript>::version=5.3.3&hash=85af82"
+  resolution: "typescript@patch:typescript@npm%3A5.3.3#~builtin<compat/typescript>::version=5.3.3&hash=e012d7"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: f61375590b3162599f0f0d5b8737877ac0a7bc52761dbb585d67e7b8753a3a4c42d9a554c4cc929f591ffcf3a2b0602f65ae3ce74714fd5652623a816862b610
+  checksum: 4e604a9e107ce0c23b16a2f8d79d0531d4d8fe9ebbb7a8c395c66998c39892f0e0a071ef0b0d4e66420a8ec2b8d6cfd9cdb29ba24f25b37cba072e9282376df9
   languageName: node
   linkType: hard
 
