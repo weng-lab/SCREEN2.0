@@ -1,7 +1,7 @@
 "use client"
 import React, { useRef, useState } from "react"
 import emailjs from '@emailjs/browser';
-import { Box, Button, Link, Stack, TextField, Typography } from "@mui/material"
+import { Box, Button, Divider, Link, Stack, TextField, Typography } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import Image from "next/image"
 import encodeEncyclopedia from "../../../public/assets/about/images/encodeencyclopedia.png"
@@ -70,11 +70,12 @@ export default function About() {
 
   return (
     <main>
-      <Grid2 container spacing={4} sx={{ maxWidth: "min(70%, 1000px)", minWidth: "600px", mr: "auto", ml: "auto", mt: "3rem" }}>
+      <Grid2 container spacing={3} sx={{ maxWidth: "min(70%, 1000px)", minWidth: "600px", mr: "auto", ml: "auto", mt: "3rem" }}>
         {/* Header */}
         <Grid2 xs={12}>
           <Typography variant="h2">About SCREEN</Typography>
-          <Typography variant="body1" paragraph>SCREEN (Search Candidate Regulatory Elements by ENCODE) is a web-based visualization engine designed to allow users to explore and visualize the <b>ENCODE Registry of candidate cis-Regulatory Elements (cCREs)</b> and its connection with other ENCODE Encyclopedia annotations.</Typography>
+          <Divider />
+          <Typography mt={1} variant="body1" paragraph>SCREEN (Search Candidate Regulatory Elements by ENCODE) is a web-based visualization engine designed to allow users to explore and visualize the <b>ENCODE Registry of candidate cis-Regulatory Elements (cCREs)</b> and its connection with other ENCODE Encyclopedia annotations.</Typography>
         </Grid2>
         {/* Encode Encyclopedia */}
         <Grid2 container xs={12}>

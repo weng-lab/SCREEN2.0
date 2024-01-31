@@ -18,7 +18,6 @@ const CREATE_TRACKHUB_QUERY = `
   }  
 `
 
-//Should I finally use context to pass globals file
 const ConfigureGenomeBrowser = (props: {
   biosampleData: ApolloQueryResult<BIOSAMPLE_Data>
   selectedBiosamples: RegistryBiosamplePlusRNA[],
@@ -115,7 +114,7 @@ const ConfigureGenomeBrowser = (props: {
         <DialogTitle>Configure UCSC Genome Browser Track Hub</DialogTitle>
         {props.handleClose && <IconButton size="large" onClick={props.handleClose} sx={{mr: 1}}><CloseOutlined fontSize="inherit"/></IconButton>}
       </Stack>
-      <DialogContent>
+      <DialogContent sx={{pt: 0}}>
         <DialogContentText mb={2}>
           {`${props.accession} - ${props.coordinates.chromosome}:${props.coordinates.start.toLocaleString("en-US")}-${props.coordinates.end.toLocaleString("en-US")}`}
         </DialogContentText>
@@ -126,7 +125,7 @@ const ConfigureGenomeBrowser = (props: {
           Note: For best UCSC performance, choose {"<"}10 cell types. Track hubs will be deleted after 24 hours.
         </DialogContentText>
         <Grid2 container spacing={2}>
-          <Grid2 xs={8}>
+          <Grid2 xs={12} lg={7}>
             <BiosampleTables
               showRNAseq={true}
               showDownloads={false}
@@ -136,11 +135,11 @@ const ConfigureGenomeBrowser = (props: {
               selectedBiosamples={props.selectedBiosamples}
               setSelectedBiosamples={props.setSelectedBiosamples} />
           </Grid2>
-          <Grid2 xs={4}>
-            <Typography width="400px" visibility={props.selectedBiosamples.length > 0 ? "visible" : "hidden"} mt={2}>Selected Biosamples:</Typography>
+          <Grid2 xs={12} lg={5}>
+            <Typography minWidth={"300px"} visibility={props.selectedBiosamples.length > 0 ? "visible" : "hidden"} mt={2}>Selected Biosamples:</Typography>
             {props.selectedBiosamples.map((biosample, i) => {
               return (
-                <Stack mt={1} width="400px" direction="row" alignItems={"center"} key={i}>
+                <Stack minWidth={"300px"} mt={1} direction="row" alignItems={"center"} key={i}>
                   <IconButton onClick={() => props.setSelectedBiosamples(props.selectedBiosamples.filter((x) => x.displayname !== biosample.displayname))}>
                     <Close />
                   </IconButton>

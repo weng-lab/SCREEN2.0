@@ -244,7 +244,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
 
   //Fetch raw cCRE data (main query only to prevent hidden linked genes from slowing down search)
   useEffect(() => {
-    console.log("main fetch effect called")
+    // console.log("main fetch effect called")
     setLoadingFetch(true)
 
     let start = mainQueryParams.coordinates.start
@@ -262,7 +262,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     }
 
     (mainQueryParams.searchConfig.bed_intersect || (start !== null) && (end !== null)) && startTransition(async () => {
-      console.log("transition started")
+      // console.log("transition started")
       const mainQueryData = await fetchcCREData(
         mainQueryParams.coordinates.assembly,
         mainQueryParams.coordinates.chromosome,
@@ -273,7 +273,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         null,
         mainQueryParams.searchConfig.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined
       )
-      console.log("setting main query data")
+      // console.log("setting main query data")
       setMainQueryData(mainQueryData)
       setLoadingFetch(false)
     })
