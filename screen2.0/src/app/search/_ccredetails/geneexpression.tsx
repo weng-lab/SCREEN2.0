@@ -33,6 +33,7 @@ const MenuProps = {
   },
 };
 
+// 2/1/24: Why does this not have organoid? Noticed when fixing error with useSearchParams
 const biosampleTypes = ["cell line", "in vitro differentiated cells", "primary cell", "tissue"];
 
 export function GeneExpression(props: {
