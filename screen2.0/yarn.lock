@@ -805,7 +805,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/icons-material@npm:^5.11.0, @mui/icons-material@npm:^5.15.2":
+"@mui/icons-material@npm:^5.11.0":
   version: 5.15.2
   resolution: "@mui/icons-material@npm:5.15.2"
   dependencies:
@@ -818,6 +818,22 @@ __metadata:
     "@types/react":
       optional: true
   checksum: f1ff774daaa12b7a2ab7d007bff740a1b936d00cc549fe6ee66e3ff8678ea982d57863a44509446c76b2f1eddb7a5041e27a38ae332045b4fd98f2b39887815c
+  languageName: node
+  linkType: hard
+
+"@mui/icons-material@npm:^5.15.7":
+  version: 5.15.7
+  resolution: "@mui/icons-material@npm:5.15.7"
+  dependencies:
+    "@babel/runtime": ^7.23.9
+  peerDependencies:
+    "@mui/material": ^5.0.0
+    "@types/react": ^17.0.0 || ^18.0.0
+    react: ^17.0.0 || ^18.0.0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: 9216d25b2267c1b06357edf761a11b1801861c0158bf53850ae88ab05b6f92128725c43ab8016634db7b8c8a98b42d0ada799ae7c30f9dfe3240c484a4af0036
   languageName: node
   linkType: hard
 
@@ -7006,7 +7022,7 @@ __metadata:
     "@emailjs/browser": ^3.12.1
     "@emotion/react": ^11.11.1
     "@emotion/styled": ^11.11.0
-    "@mui/icons-material": ^5.15.2
+    "@mui/icons-material": ^5.15.7
     "@mui/lab": ^5.0.0-alpha.158
     "@mui/material": ^5.15.7
     "@types/node": ^20.11.16
