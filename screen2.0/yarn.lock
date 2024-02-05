@@ -1404,14 +1404,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:^18.2.47":
-  version: 18.2.47
-  resolution: "@types/react@npm:18.2.47"
+"@types/react@npm:^18.2.52":
+  version: 18.2.52
+  resolution: "@types/react@npm:18.2.52"
   dependencies:
     "@types/prop-types": "*"
     "@types/scheduler": "*"
     csstype: ^3.0.2
-  checksum: 49608f07f73374e535b21f99fee28e6cfd5801d887c6ed88c41b4dc701dbcee9f0c4d289d9af7b2b23114f76dbf203ffe2c9191bfb4958cf18dae5a25daedbd0
+  checksum: 4abc9bd63879e57c3df43a9cacff54c079e21b61ef934d33801e0177c26f582aa7d1d88a0769a740a4fd273168e3b150ff61de23e0fa85d1070e82ddce2b7fd2
   languageName: node
   linkType: hard
 
@@ -7010,7 +7010,7 @@ __metadata:
     "@mui/lab": ^5.0.0-alpha.158
     "@mui/material": ^5.15.4
     "@types/node": ^20.11.16
-    "@types/react": ^18.2.47
+    "@types/react": ^18.2.52
     "@types/react-dom": 18.2.18
     "@weng-lab/psychscreen-ui-components": ^0.8.6
     "@weng-lab/ts-ztable": ^4.0.1
