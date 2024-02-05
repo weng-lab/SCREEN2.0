@@ -56,18 +56,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@apollo/experimental-nextjs-app-support@npm:^0.7.0":
-  version: 0.7.1
-  resolution: "@apollo/experimental-nextjs-app-support@npm:0.7.1"
+"@apollo/experimental-nextjs-app-support@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "@apollo/experimental-nextjs-app-support@npm:0.8.0"
   dependencies:
     server-only: ^0.0.1
     superjson: ^1.12.2 || ^2.0.0
     ts-invariant: ^0.10.3
   peerDependencies:
-    "@apollo/client": ">=3.8.0-rc || ^3.8.0 || >=3.9.0-alpha || >=3.9.0-beta || >=3.9.0-rc || ^3.9.0"
+    "@apollo/client": ^3.9.0
     next: ^13.4.1 || ^14.0.0
     react: ^18
-  checksum: 1c0df9a7da740109ac691e0292d80b9f05689563ffdb8b9ab28a5276006f0d1fb42493dda901b86b25eea71f296033a9934aa1f8cc2df1221efc73d92a425cff
+  checksum: 5062c482d35a0e9343327facaffa70de184f00bb9fba89bb0cc5371d819445e6f4c56d8aedee8914aa5d2908abbe210452fbe5f4424c42bb9b898d47745021ad
   languageName: node
   linkType: hard
 
@@ -7002,7 +7002,7 @@ __metadata:
   resolution: "screen2.0@workspace:."
   dependencies:
     "@apollo/client": alpha
-    "@apollo/experimental-nextjs-app-support": ^0.7.0
+    "@apollo/experimental-nextjs-app-support": ^0.8.0
     "@emailjs/browser": ^3.12.1
     "@emotion/react": ^11.11.1
     "@emotion/styled": ^11.11.0
