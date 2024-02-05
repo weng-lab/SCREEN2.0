@@ -56,18 +56,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@apollo/experimental-nextjs-app-support@npm:^0.7.0":
-  version: 0.7.1
-  resolution: "@apollo/experimental-nextjs-app-support@npm:0.7.1"
+"@apollo/experimental-nextjs-app-support@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "@apollo/experimental-nextjs-app-support@npm:0.8.0"
   dependencies:
     server-only: ^0.0.1
     superjson: ^1.12.2 || ^2.0.0
     ts-invariant: ^0.10.3
   peerDependencies:
-    "@apollo/client": ">=3.8.0-rc || ^3.8.0 || >=3.9.0-alpha || >=3.9.0-beta || >=3.9.0-rc || ^3.9.0"
+    "@apollo/client": ^3.9.0
     next: ^13.4.1 || ^14.0.0
     react: ^18
-  checksum: 1c0df9a7da740109ac691e0292d80b9f05689563ffdb8b9ab28a5276006f0d1fb42493dda901b86b25eea71f296033a9934aa1f8cc2df1221efc73d92a425cff
+  checksum: 5062c482d35a0e9343327facaffa70de184f00bb9fba89bb0cc5371d819445e6f4c56d8aedee8914aa5d2908abbe210452fbe5f4424c42bb9b898d47745021ad
   languageName: node
   linkType: hard
 
@@ -6315,12 +6315,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^3.0.2":
-  version: 3.1.1
-  resolution: "prettier@npm:3.1.1"
+"prettier@npm:^3.2.5":
+  version: 3.2.5
+  resolution: "prettier@npm:3.2.5"
   bin:
     prettier: bin/prettier.cjs
-  checksum: e386855e3a1af86a748e16953f168be555ce66d6233f4ba54eb6449b88eb0c6b2ca79441b11eae6d28a7f9a5c96440ce50864b9d5f6356d331d39d6bb66c648e
+  checksum: 2ee4e1417572372afb7a13bb446b34f20f1bf1747db77cf6ccaf57a9be005f2f15c40f903d41a6b79eec3f57fff14d32a20fb6dee1f126da48908926fe43c311
   languageName: node
   linkType: hard
 
@@ -7002,7 +7002,7 @@ __metadata:
   resolution: "screen2.0@workspace:."
   dependencies:
     "@apollo/client": alpha
-    "@apollo/experimental-nextjs-app-support": ^0.7.0
+    "@apollo/experimental-nextjs-app-support": ^0.8.0
     "@emailjs/browser": ^3.12.1
     "@emotion/react": ^11.11.1
     "@emotion/styled": ^11.11.0
@@ -7027,7 +7027,7 @@ __metadata:
     normalize.css: ^8.0.1
     only: ^0.0.2
     postcss: 8.4.33
-    prettier: ^3.0.2
+    prettier: ^3.2.5
     queryz: ^0.0.3
     react: 18.2.0
     react-dom: 18.2.0
