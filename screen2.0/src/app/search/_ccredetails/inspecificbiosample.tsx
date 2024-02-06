@@ -261,6 +261,13 @@ export const InSpecificBiosamples = ({ accession, assembly }) => {
       if (-11.0 === t.dnase) group = "zunclassified"
       if (t.dnase > 1.64) {
         group = "dnase"
+        if (t.h3k27ac > 1.64) {
+          if (igroup === "pELS") {
+            group = "pELS"
+          } else {
+            group = "dELS"
+          }
+        }
       } else {
         group = "ylowdnase"
       }
