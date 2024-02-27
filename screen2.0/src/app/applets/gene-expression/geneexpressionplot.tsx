@@ -44,12 +44,12 @@ export function PlotGeneExpression(props: {
   let byTissue: { [id: string]: { values: QuantificationData } } = {}
   let byTissueMean: { [id: string]: { values: QuantificationData } } = {}
   let byValueTissues: { [id: string]: { values: QuantificationData } } = {}
-  let byTissueMaxTissues: { [id: string]: { values: QuantificationData } } = {}
+  let byTissueMax: { [id: string]: { values: QuantificationData } } = {}
   let p1: Point2D = { x: 0, y: 0 }
   //Holds the max value in the chart
   let max: number = 0
 
-  //Filter Data to [...]
+  //Iterate through each biosample, and group by tissue type
   props.data.filter(s => s["tissue"]).map((biosample) => {
 
     if (!byTissue[biosample["tissue"]]) {
@@ -77,8 +77,6 @@ export function PlotGeneExpression(props: {
         })
       }
     })
-
-    byTissue[biosample["tissue"]].values.sort((a, b) => b.value - a.value);
   })
 
   if (props.replicates === "mean") {
@@ -103,16 +101,22 @@ export function PlotGeneExpression(props: {
           }
         )
       })
-
     })
     byTissue = byTissueMean
   }
 
-  Object.keys(byTissue).forEach(k => {
-    if (byTissue[k].values.length === 0) {
-      delete byTissue[k];
+  //Sort descending within each tissue group, eliminate any tissues that are empty. Push max value to byTissueMax
+  Object.keys(byTissue).forEach(tissue => {
+    if (byTissue[tissue].values.length === 0) {
+      delete byTissue[tissue]; //eliminate tissue if empty
+    } else {
+      byTissue[tissue].values.sort((a, b) => b.value - a.value) //sort descending
+      byTissueMax[tissue] = {
+        values: [byTissue[tissue].values[0]] //extract max value to put in byTissueMax
+      }
     }
   })
+
   props.range.x.end = max
 
   // returns bar plot for a tissue
@@ -186,19 +190,20 @@ export function PlotGeneExpression(props: {
   })
 
 
-  Object.keys(byTissue).forEach((k) => {
-    byTissueMaxTissues[k] = {
-      values: [byTissue[k].values[0]]
-    }
-  })
-  let tissues: { [id: string]: { values: QuantificationData } } = props.group === "byExperimentTPM" ? byValueTissues : props.group === "byTissueMaxTPM" ? byTissueMaxTissues : byTissue // dict of ftissues
+
+
+  let tissues: { [id: string]: { values: QuantificationData } } = props.group === "byExperimentTPM" ? byValueTissues : props.group === "byTissueMaxTPM" ? byTissueMax : byTissue // dict of ftissues
+
+  const sortedTissues = Object.fromEntries(
+    Object.entries(tissues).sort((tissueA, tissueB) => Math.max(...tissueB[1].values.map(x => x.value)) - Math.max(...tissueA[1].values.map(x => x.value)))
+  );
   
   return (
-    Object.keys(tissues).length === 0 ?
+    Object.keys(sortedTissues).length === 0 ?
       <span>{'No Data Available'}</span>
       :
       <Stack>
-        {Object.entries(tissues).map((entry, index: number) => {
+        {Object.entries(sortedTissues).map((entry, index: number) => {
           let info = entry[1]
           let view: string = "0 0 1200 " + (info.values.length * (props.group === 'byTissueTPM' ? 20 : 3) + 20)
           return (
