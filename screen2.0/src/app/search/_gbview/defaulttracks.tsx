@@ -23,7 +23,7 @@ type DefaultTracksProps = {
   cCREHighlights?: Set<string>
   svgRef?: RefObject<SVGSVGElement>
   assembly: string
-  oncCREClicked?: (accession: any) => void
+  oncCREClicked?: (clickedcCRE: {name: string, coordinates: {chromosome: string, start: number, end: number}}) => void
   oncCREMousedOver?: (coordinates?: GenomicRange) => void
   onTrackLoad?: () => void;
   oncCREMousedOut?: () => void
@@ -43,7 +43,7 @@ export const TitledTrack: React.FC<{
   svgRef?: React.RefObject<SVGSVGElement>
   oncCREMousedOver?: (coordinates?: GenomicRange) => void
   oncCREMousedOut?: () => void
-  oncCREClicked?: (name: any) => void
+  oncCREClicked?: (name) => void
   cCRECoordinateMap?: any
   biosample?: string
 }> = ({
@@ -82,10 +82,7 @@ export const TitledTrack: React.FC<{
           onMouseOver={(x) => oncCREMousedOver && x.name && oncCREMousedOver(cCRECoordinateMap.get(x.name))}
           onMouseOut={oncCREMousedOut}
           onClick={(x) =>  oncCREClicked && x.name && oncCREClicked({name:x.name, coordinates: cCRECoordinateMap.get(x.name) })}
-          /*onClick={(x)=>{
-            console.log(x.name,pathname,createQueryString("accessions",x.name))
-            router.push(`${pathname}?${createQueryString("accessions",x.name)}&page=2`)
-          }}*/
+        
         />
       ) : (
         <FullBigWig
