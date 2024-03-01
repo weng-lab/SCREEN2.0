@@ -1,5 +1,3 @@
-import { ApolloQueryResult } from "@apollo/client"
-
 export type GenomicRegion = {
   chrom: string
   start: number
@@ -56,7 +54,7 @@ export type MainQueryParams = {
     name: string
     distance: number
     nearTSS: boolean
-  }
+  }  
   searchConfig: {
     bed_intersect: boolean
   }

@@ -21,12 +21,12 @@ type CcreDetailsProps = {
   assembly: "GRCh38" | "mm10"
   region: GenomicRegion
   biosampleData: ApolloQueryResult<BIOSAMPLE_Data>
-  genes: LinkedGenesData
+  genes?: LinkedGenesData
   page: number
 }
 
 export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, biosampleData, assembly, genes, page }) => {
-  let geneList =  [...genes.distancePC.map(g=>g.name), ...genes.distanceAll.map(g=>g.name)]
+  let geneList = genes && [...genes.distancePC.map(g=>g.name), ...genes.distanceAll.map(g=>g.name)]
   return (
     <>
       <Stack direction="row" justifyContent={"space-between"} alignItems={"baseline"}>
@@ -48,7 +48,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
         />
       )}
       {page === 3 && <Ortholog accession={accession} assembly={assembly} />}      
-      {page === 4 && <GeneExpression assembly={assembly} genes={geneList} />}
+      {page === 4 && geneList && <GeneExpression assembly={assembly} genes={geneList} />}
       {page === 5 && <FunctionData accession={accession} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }} assembly={assembly} />}
       {page === 6 &&
         <>
