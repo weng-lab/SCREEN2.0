@@ -171,7 +171,7 @@ export default function About() {
               Ancillary Collection
             </Typography>
             <Typography variant="body1" paragraph>
-              For the 354 biosamples lacking DNase data, we do not have the resolution to identify specific elements and we refer to these annotations as the <i>Ancillary Collection</i>. In these biosamples, we simply label cCREs as having a high or low signal for every available assay. We highly suggest that users do not use annotations from the <i>Ancillary Collection</i> unless they are anchoring their analysis on cCREs from the <i>Core Collection</i> or <i>Partial Data Collection</i>.
+              For the 563 biosamples lacking DNase data, we do not have the resolution to identify specific elements and we refer to these annotations as the <i>Ancillary Collection</i>. In these biosamples, we simply label cCREs as having a high or low signal for every available assay. We highly suggest that users do not use annotations from the <i>Ancillary Collection</i> unless they are anchoring their analysis on cCREs from the <i>Core Collection</i> or <i>Partial Data Collection</i>.
             </Typography>
             <Typography variant="body1" paragraph>
               In both SCREEN’s visualization tools and downloadable files, we annotate biosamples based on their collection and available data.
