@@ -7,7 +7,7 @@ import { z_score, GROUP_COLOR_MAP } from "./utils"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { LoadingMessage } from "../../../common/lib/utility"
 
-type cCRERow = {
+export type cCRERow = {
   ct?: string
   celltypename: string
   dnase: number
@@ -154,7 +154,7 @@ export const InSpecificBiosamples = ({ accession, assembly }) => {
     }
   )
 
-  let withdnase, typea, typec;
+  let partialDataCollection: cCRERow[], coreCollection: cCRERow[], ancillaryCollection: cCRERow[];
   if (data_toptissues) {
     let r = data_toptissues.ccREBiosampleQuery.biosamples
     let ctcfdata = r.map((rs) => {
@@ -272,21 +272,21 @@ export const InSpecificBiosamples = ({ accession, assembly }) => {
         group = "ylowdnase"
       }
 
-      let type = ""
+      let type: "core" | "partial" | "ancillary"
+
+      type = "ancillary"
       if (t.dnase !== -11.0) {
-        type = "withdnase"
-      } else {
-        type = "typec"
-      }
-      if (t.dnase !== -11.0 && t.ctcf !== -11.0 && t.h3k27ac !== -11.0 && t.h3k4me3 !== -11.0 && t.atac !== -11.0) {
-        type = "typea"
-      }
+        type = "partial"
+        if (t.ctcf !== -11.0 && t.h3k27ac !== -11.0 && t.h3k4me3 !== -11.0) {
+          type = "core"
+        }
+      } 
       return { ...t, type, group }
     })
 
-    withdnase = ccreCts.filter((c) => c.type === "withdnase")
-    typea = ccreCts.filter((c) => c.type === "typea")
-    typec = ccreCts.filter((c) => c.type === "typec")
+    coreCollection = ccreCts.filter((c) => c.type === "core")
+    partialDataCollection = ccreCts.filter((c) => c.type === "partial")
+    ancillaryCollection = ccreCts.filter((c) => c.type === "ancillary")
 
   }
   return (
@@ -310,12 +310,12 @@ export const InSpecificBiosamples = ({ accession, assembly }) => {
           )}
         </Grid2>
         <Grid2 xs={12}>
-          {/* Type A */}
-          {typea  ? (
+          {/* Core Collection */}
+          {coreCollection  ? (
             <DataTable
               columns={tableCols()}
               tableTitle="Core Collection"
-              rows={typea}
+              rows={coreCollection}
               sortColumn={1}
               itemsPerPage={5}
               searchable
@@ -324,12 +324,12 @@ export const InSpecificBiosamples = ({ accession, assembly }) => {
         </Grid2>
         <Grid2 xs={12}>
           {/* Type B & D */}
-          {withdnase  ? (
+          {partialDataCollection  ? (
             <DataTable
               columns={tableCols()}
               sortColumn={1}
               tableTitle="Partial Data Collection"
-              rows={withdnase}
+              rows={partialDataCollection}
               itemsPerPage={5}
               searchable
             />
@@ -337,11 +337,11 @@ export const InSpecificBiosamples = ({ accession, assembly }) => {
         </Grid2>
         <Grid2 xs={12}>
           {/* Type C */}
-          {typec ? (
+          {ancillaryCollection ? (
             <DataTable
               columns={tableCols(true)}
               tableTitle="Ancillary Collection"
-              rows={typec}
+              rows={ancillaryCollection}
               sortColumn={1}
               itemsPerPage={5}
               searchable
