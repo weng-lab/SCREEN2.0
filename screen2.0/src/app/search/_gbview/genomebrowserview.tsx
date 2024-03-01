@@ -214,7 +214,7 @@ export const GenomeBrowserView: React.FC<GenomeBrowserViewProps> = (props) => {
             )}
             <RulerTrack domain={coordinates} height={30} width={1400} />
             {props.accessions && highlightAccession && props.accessions.map((a)=>(
-              <rect fill="#FAA4A4" fillOpacity={0.5} height={900} x={l(a.start)} width={l(a.end) - l(a.start)} />
+              <rect key={a.accession} fill="#FAA4A4" fillOpacity={0.5} height={900} x={l(a.start)} width={l(a.end) - l(a.start)} />
             ))}
             <EGeneTracks
               genes={groupedTranscripts || []}
