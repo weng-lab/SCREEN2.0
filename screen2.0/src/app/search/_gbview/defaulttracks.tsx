@@ -24,8 +24,7 @@ type DefaultTracksProps = {
   svgRef?: RefObject<SVGSVGElement>
   assembly: string
   oncCREClicked?: (clickedcCRE: {name: string, coordinates: {chromosome: string, start: number, end: number}}) => void
-  oncCREMousedOver?: (coordinates?: GenomicRange) => void
-  onTrackLoad?: () => void;
+  oncCREMousedOver?: (coordinates?: GenomicRange) => void  
   oncCREMousedOut?: () => void
   onSettingsClick?: () => void
 }
@@ -141,13 +140,10 @@ const DefaultTracks: React.FC<DefaultTracksProps> = (props) => {
     [data]
   )
 
-  useEffect(()=>{
-    props.onTrackLoad && props.onTrackLoad()
-  },[])
-
   useEffect(() => {
     
     props.onHeightChanged && props.onHeightChanged(height)
+    
     
   }, [props.onHeightChanged, height, props])
 

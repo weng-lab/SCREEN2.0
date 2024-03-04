@@ -111,7 +111,6 @@ export const GenomeBrowserView: React.FC<GenomeBrowserViewProps> = (props) => {
     nextFetchPolicy: "cache-first",
     client,
   })
-
   const groupedTranscripts = useMemo(
     () =>
       snpResponse.data?.gene.map((x) => ({
@@ -209,13 +208,16 @@ export const GenomeBrowserView: React.FC<GenomeBrowserViewProps> = (props) => {
               }
             }}
           >           
+            
+            <RulerTrack domain={coordinates} height={30} width={1400} />
             {highlight && (
               <rect fill="#8ec7d1" fillOpacity={0.5} height={900} x={l(highlight.start)} width={l(highlight.end) - l(highlight.start)} />
             )}
-            <RulerTrack domain={coordinates} height={30} width={1400} />
-            {props.accessions && highlightAccession && props.accessions.map((a)=>(
+            <>
+             {props.accessions && props.accessions.map((a)=>(
               <rect key={a.accession} fill="#FAA4A4" fillOpacity={0.5} height={900} x={l(a.start)} width={l(a.end) - l(a.start)} />
             ))}
+            </>
             <EGeneTracks
               genes={groupedTranscripts || []}
               expandedCoordinates={coordinates}
@@ -227,8 +229,7 @@ export const GenomeBrowserView: React.FC<GenomeBrowserViewProps> = (props) => {
               oncCREClicked={(x)=>{              
               props.handlecCREClickInTrack && props.handlecCREClickInTrack({ accession: x.name, chromosome: x.coordinates.chromosome,start: x.coordinates.start,end: x.coordinates.end })
               }}
-              oncCREMousedOver={(x) => x && setHighlight(x)}
-              onTrackLoad={() =>  props.accessions && setHighlightAccession(props.coordinates)}
+              oncCREMousedOver={(x) => x && setHighlight(x)}              
               oncCREMousedOut={() => setHighlight(null)}
             />
             {props.biosample && props.assembly != "mm10" && cTracks && (
