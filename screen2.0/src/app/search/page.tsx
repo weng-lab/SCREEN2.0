@@ -126,8 +126,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const [detailsPage, setDetailsPage] = useState(0)
   const [opencCREs, setOpencCREs] = useState<{
     ID: string,
-    region: { start: number, end: number, chrom: string },
-    linkedGenes?: LinkedGenesData
+    region: { start: number, end: number, chrom: string }
   }[]>([])
   // const [globals, setGlobals] = useState<CellTypeData>(null)
   const [biosampleData, setBiosampleData] = useState<ApolloQueryResult<BIOSAMPLE_Data>>(null)
@@ -164,7 +163,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
 
   //Handle opening a cCRE or navigating to its open tab
   const handlecCREClick = (row) => {
-    const newcCRE = { ID: row.accession, region: { start: row.start, end: row.end, chrom: row.chromosome }, linkedGenes: row.linkedGenes }
+    const newcCRE = { ID: row.accession, region: { start: row.start, end: row.end, chrom: row.chromosome } }
     //If cCRE isn't in open cCREs, add and push as current accession.
     if (!opencCREs.find((x) => x.ID === newcCRE.ID)) {
       setOpencCREs([...opencCREs, newcCRE])
@@ -615,8 +614,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               region={opencCREs[page - numberOfDefaultTabs].region}
               biosampleData={biosampleData}
               assembly={mainQueryParams.coordinates.assembly}
-              genes={opencCREs[page - numberOfDefaultTabs].linkedGenes}
               page={detailsPage}
+              handleOpencCRE={handlecCREClick}
             />
             :
             <LoadingMessage/>

@@ -81,8 +81,7 @@ export default function Rampage(props: { gene: string; }) {
   const [peaks, setPeaks] = useState<string[]>([""])
   // fetch rampage data
   useEffect(() => {
-    
-      fetch(Config.API.CcreAPI, {
+      fetch( Config.API.CcreAPI, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
