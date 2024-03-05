@@ -1,5 +1,5 @@
 "use client"
-import React from "react"
+import React, { useEffect, useState, useTransition } from "react"
 import { Typography, Stack, Divider } from "@mui/material"
 import { CellTypeData, GenomicRegion, LinkedGenesData } from "../types"
 import { InSpecificBiosamples } from "./inspecificbiosample"
@@ -12,8 +12,10 @@ import Rampage from "./rampage"
 import { GeneExpression } from "./geneexpression"
 import { TfSequenceFeatures} from "../_gbview/tfsequencefeatures"
 import ConfigureGBTab from "./configuregbtab"
-import { ApolloQueryResult } from "@apollo/client"
-import { BIOSAMPLE_Data } from "../../../common/lib/queries"
+import { ApolloQueryResult, gql } from "@apollo/client"
+import { BIOSAMPLE_Data, fetchLinkedGenes } from "../../../common/lib/queries"
+import { fetchLinkedGenesData } from "../searchhelpers"
+import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 
 //Passing these props through this file could be done with context to reduce prop drilling
 type CcreDetailsProps = {
@@ -21,12 +23,92 @@ type CcreDetailsProps = {
   assembly: "GRCh38" | "mm10"
   region: GenomicRegion
   biosampleData: ApolloQueryResult<BIOSAMPLE_Data>
-  genes?: LinkedGenesData
   page: number
 }
 
-export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, biosampleData, assembly, genes, page }) => {
-  let geneList = genes && [...genes.distancePC.map(g=>g.name), ...genes.distanceAll.map(g=>g.name)]
+export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, biosampleData, assembly, page }) => {
+  const [isPending, startTransition] = useTransition();
+  const [linkedGenes, setLinkedGenes] = useState({
+    distancePC: null,
+    distanceAll: null,
+    CTCF_ChIAPET: null,
+    RNAPII_ChIAPET: null
+  })
+
+  //This is hacky and should be changed once new gene link methods are available
+  //Fetch linked genes data. Use startTransition to server fetch to make it easy
+  useEffect(() => {
+    (!linkedGenes.CTCF_ChIAPET || !linkedGenes.RNAPII_ChIAPET) && startTransition(async () => {
+      const linkedGenesData = await fetchLinkedGenes(assembly, [accession])
+      try {
+        let CTCF_ChIAPET = []
+        let RNAPII_ChIAPET = []
+        linkedGenesData[accession].genes.forEach(gene => {
+          switch (gene.linkedBy) {
+            case ("CTCF-ChIAPET"): CTCF_ChIAPET.push(gene.geneName); break;
+            case ("RNAPII-ChIAPET"): RNAPII_ChIAPET.push(gene.geneName); break;
+          }
+        })
+        setLinkedGenes({...linkedGenes, CTCF_ChIAPET, RNAPII_ChIAPET})
+      } catch (error) {
+        console.log(error)
+      }
+    })
+  }, [assembly, accession, linkedGenes])
+
+  const QUERY = gql`
+    query nearestGenes(
+      $accessions: [String!]
+      $assembly: String!
+    ) {
+      cCRESCREENSearch(accessions: $accessions, assembly: $assembly){
+        info{
+          accession
+        }
+        genesallpc {
+          all {
+            protein_coding
+            intersecting_genes {
+              name
+              strand
+              gene_type
+    
+            }
+          }
+          pc {
+            protein_coding
+            intersecting_genes {
+              name
+              strand
+              gene_type
+            }
+          }
+        }
+      }
+    }
+  `
+
+  //fetch distance linked via main query
+  const { data: data_distanceLinked, loading: loading_distanceLinked, error: error_distanceLinked } = useQuery(
+    QUERY,
+    {
+      variables: {
+        assembly: assembly,
+        accessions: [accession],
+      }
+    }
+  )
+
+  useEffect(() => {
+    data_distanceLinked && (!linkedGenes.RNAPII_ChIAPET || !linkedGenes.CTCF_ChIAPET) && setLinkedGenes({
+    ...linkedGenes,
+     distanceAll: data_distanceLinked.cCRESCREENSearch[0].genesallpc.all.intersecting_genes.map((gene) => gene.name),
+     distancePC: data_distanceLinked.cCRESCREENSearch[0].genesallpc.pc.intersecting_genes.map((gene) => gene.name),
+    })
+  }, [data_distanceLinked])
+
+  
+  
   return (
     <>
       <Stack direction="row" justifyContent={"space-between"} alignItems={"baseline"}>
@@ -48,7 +130,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
         />
       )}
       {page === 3 && <Ortholog accession={accession} assembly={assembly} />}      
-      {page === 4 && geneList && <GeneExpression assembly={assembly} genes={geneList} />}
+      {page === 4 && <GeneExpression assembly={assembly} genes={[... new Set(Object.values(linkedGenes).flat())]} />}
       {page === 5 && <FunctionData accession={accession} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }} assembly={assembly} />}
       {page === 6 &&
         <>
@@ -75,7 +157,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
           accession={accession}
         />
       }
-      {assembly !== "mm10" && page === 8 && <Rampage gene={genes.distancePC[0].name} />}
+      {assembly !== "mm10" && page === 8 && <Rampage gene={Object.values(linkedGenes).flat()[0]} />}
     </>
   )
 }
