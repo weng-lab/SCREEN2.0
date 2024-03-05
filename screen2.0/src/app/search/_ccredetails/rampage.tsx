@@ -25,8 +25,8 @@ import { gql, useQuery } from "@apollo/client"
 import { client } from "./client"
 
 const GENE_QUERY = gql`
-query ($assembly: String!, $name_prefix: [String!], $limit: Int) {
-  gene(assembly: $assembly, name_prefix: $name_prefix, limit: $limit) {
+query ($assembly: String!, $name_prefix: [String!], $limit: Int, $version: Int) {
+  gene(assembly: $assembly, name_prefix: $name_prefix, limit: $limit, version: $version) {
     name
     id
     coordinates {
@@ -82,7 +82,7 @@ export default function Rampage(props: { gene: string; }) {
   // fetch rampage data
   useEffect(() => {
     
-      fetch( Config.API.CcreAPI, {
+      fetch(Config.API.CcreAPI, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -133,7 +133,8 @@ export default function Rampage(props: { gene: string; }) {
   } = useQuery(GENE_QUERY, {
     variables: {
       assembly: "grch38",
-      name_prefix: [props.gene]
+      name_prefix: [props.gene],
+      version: 40
     },
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",

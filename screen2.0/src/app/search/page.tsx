@@ -596,6 +596,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               })}
               gene={mainQueryParams.gene.name}
               biosample={mainQueryParams.biosample?.name}
+              biosampledisplayname={mainQueryParams.biosample?.displayname}
               assembly={mainQueryParams.coordinates.assembly}
               coordinates={{ start: mainQueryParams.coordinates.start, end: mainQueryParams.coordinates.end, chromosome: mainQueryParams.coordinates.chromosome }}
             />

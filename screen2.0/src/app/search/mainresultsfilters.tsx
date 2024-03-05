@@ -84,8 +84,8 @@ const tssMarks = [
 ];
 
 const GENE_TRANSCRIPTS_QUERY = gql`
- query ($assembly: String!, $name: [String!], $limit: Int) {
-   gene(assembly: $assembly, name: $name, limit: $limit) {
+ query ($assembly: String!, $name: [String!], $limit: Int, $version: Int) {
+   gene(assembly: $assembly, name: $name, limit: $limit, version: $version) {
      name
      id
      coordinates {
@@ -128,8 +128,9 @@ export function MainResultsFilters(
     data: geneTranscripts
   } = useQuery(GENE_TRANSCRIPTS_QUERY, {
     variables: {
-      assembly: props.mainQueryParams.coordinates.assembly.toLowerCase(),
-      name: [props.mainQueryParams.gene.name && props.mainQueryParams.gene.name.toUpperCase()]
+      assembly: props.mainQueryParams.coordinates.assembly.toLowerCase(),      
+      name: [props.mainQueryParams.gene.name && props.mainQueryParams.gene.name.toUpperCase()],
+      version: props.mainQueryParams.coordinates.assembly.toLowerCase()==="grch38"? 40: 25,
     },
     skip: !props.mainQueryParams.gene.name,
     fetchPolicy: "cache-and-network",

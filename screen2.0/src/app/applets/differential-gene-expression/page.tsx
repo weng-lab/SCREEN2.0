@@ -1,7 +1,7 @@
 "use client"
 import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ReadonlyURLSearchParams, useSearchParams, usePathname } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { LoadingMessage, ErrorMessage, createLink } from "../../../common/lib/utility"
 import { client } from "../../search/_ccredetails/client"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
@@ -128,10 +128,11 @@ export default function DifferentialGeneExpression({ searchParams }: { searchPar
     data: data_genes,
   } = useQuery(GENE_SEARCH_QUERY, {
     variables: {
-      assembly: assembly,
-      chromosome: chromosome,
+      assembly,
+      chromosome,
       start: slider.min,
       end: slider.max,
+      version: assembly.toLowerCase()==="grch38" ? 40 : 25
     },
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",

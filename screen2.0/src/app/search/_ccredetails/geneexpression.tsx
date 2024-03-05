@@ -9,7 +9,6 @@ import Image from "next/image"
 import { HUMAN_GENE_EXP, MOUSE_GENE_EXP } from "../../applets/gene-expression/const"
 import { GENE_EXP_QUERY, GENE_QUERY } from "../../applets/gene-expression/queries"
 
-
 //Replace this when Gene Autocomplete extracted into componenet
 import GeneAutoComplete from "../../applets/gene-expression/geneautocomplete"
 import GenomeSwitch from "./genomeswitch"
@@ -65,7 +64,8 @@ export function GeneExpression(props: {
   } = useQuery(GENE_QUERY, {
     variables: {
       assembly: "grch38",
-      name: [currentHumanGene && currentHumanGene]
+      name: [currentHumanGene && currentHumanGene],
+      version: 40
     },
     skip: !currentHumanGene,
     fetchPolicy: "cache-and-network",
@@ -79,7 +79,8 @@ export function GeneExpression(props: {
   } = useQuery(GENE_QUERY, {
     variables: {
       assembly: "mm10",
-      name: [currentMouseGene && currentMouseGene]
+      name: [currentMouseGene && currentMouseGene],
+      version: 25
     },
     skip: !currentMouseGene,
     fetchPolicy: "cache-and-network",
