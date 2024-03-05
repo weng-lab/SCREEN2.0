@@ -570,6 +570,7 @@ export function constructSearchURL(
 }
 
 export function constructMainQueryParamsFromURL(searchParams: { [key: string]: string | undefined }): MainQueryParams {
+  
   return (
     {
       coordinates: {

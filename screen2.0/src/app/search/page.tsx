@@ -11,7 +11,7 @@ import { MainResultsFilters } from "./mainresultsfilters"
 import { CcreDetails } from "./_ccredetails/ccredetails"
 import { usePathname, useRouter } from "next/navigation"
 import { GenomeBrowserView } from "./_gbview/genomebrowserview"
-import { LinkedGenesData, MainResultTableRow, RawLinkedGenesData } from "./types"
+import { LinkedGenesData, RawLinkedGenesData } from "./types"
 import { generateFilteredRows } from "./searchhelpers"
 import { Drawer } from "@mui/material"
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar'
@@ -126,8 +126,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const [detailsPage, setDetailsPage] = useState(0)
   const [opencCREs, setOpencCREs] = useState<{
     ID: string,
-    region: { start: number, end: number, chrom: string },
-    linkedGenes: LinkedGenesData
+    region: { start: number, end: number, chrom: string }
   }[]>([])
   // const [globals, setGlobals] = useState<CellTypeData>(null)
   const [biosampleData, setBiosampleData] = useState<ApolloQueryResult<BIOSAMPLE_Data>>(null)
@@ -163,8 +162,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const handleDrawerClose = () => { setOpen(false) }
 
   //Handle opening a cCRE or navigating to its open tab
-  const handleTableClick = (row: MainResultTableRow) => {
-    const newcCRE = { ID: row.accession, region: { start: row.start, end: row.end, chrom: row.chromosome }, linkedGenes: row.linkedGenes }
+  const handlecCREClick = (row) => {
+    const newcCRE = { ID: row.accession, region: { start: row.start, end: row.end, chrom: row.chromosome } }
     //If cCRE isn't in open cCREs, add and push as current accession.
     if (!opencCREs.find((x) => x.ID === newcCRE.ID)) {
       setOpencCREs([...opencCREs, newcCRE])
@@ -173,7 +172,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       setPage(findTabByID(newcCRE.ID, numberOfDefaultTabs))
     }
   }
-
   //Handle closing cCRE, and changing page if needed
   const handleClosecCRE = (closedID: string) => {
     const newOpencCREs = opencCREs.filter((cCRE) => cCRE.ID != closedID)
@@ -355,6 +353,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       return []
     }
   }, [mainQueryData, rawLinkedGenesData, filterCriteria, TSSranges, mainQueryParams.gene.nearTSS])
+
+  
 
   const findTabByID = (id: string, numberOfTable: number = 2) => {
     return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)
@@ -559,7 +559,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                     null}
                   itemsPerPage={10}
                   assembly={mainQueryParams.coordinates.assembly}
-                  onRowClick={handleTableClick}
+                  onRowClick={handlecCREClick}
                   biosampleData={biosampleData} />
                   <Stack direction="row" alignItems={"center"} sx={{mt: 1}}>
                     <Button
@@ -582,6 +582,17 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           )}
           {page === 1 && (
             <GenomeBrowserView
+              handlecCREClickInTrack={handlecCREClick}
+              accessions={opencCREs.map(a=>{
+                
+                return {
+                  accession: a.ID,
+                  chromosome: a.region.chrom,
+                  start: a.region.start,
+                  end: a.region.end
+
+                }
+              })}
               gene={mainQueryParams.gene.name}
               biosample={mainQueryParams.biosample?.name}
               assembly={mainQueryParams.coordinates.assembly}
@@ -602,8 +613,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               region={opencCREs[page - numberOfDefaultTabs].region}
               biosampleData={biosampleData}
               assembly={mainQueryParams.coordinates.assembly}
-              genes={opencCREs[page - numberOfDefaultTabs].linkedGenes}
               page={detailsPage}
+              handleOpencCRE={handlecCREClick}
             />
             :
             <LoadingMessage/>

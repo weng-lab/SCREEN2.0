@@ -9,7 +9,6 @@ import EGeneTracks from "./egenetracks"
 import { client } from "../_ccredetails/client"
 import DefaultTracks from "./defaulttracks"
 import { BiosampleTracks } from "./biosampletracks"
-
 type GenomeBrowserViewProps = {
   coordinates: {
     start: number
@@ -18,7 +17,9 @@ type GenomeBrowserViewProps = {
   }
   biosample?: string
   gene?: string
+  accessions?: {accession: string, chromosome: string, start: number, end: number}[]
   assembly: string
+  handlecCREClickInTrack?: (newcCRE: {accession: string, chromosome: string, start: number, end: number}) => void
 }
 
 const BIOSAMPLE_QUERY = gql`
@@ -97,11 +98,12 @@ export function expandCoordinates(coordinates, l = 20000) {
 }
 
 export const GenomeBrowserView: React.FC<GenomeBrowserViewProps> = (props) => {
-  console.log(props.gene)
+  
   const svgRef = useRef<SVGSVGElement>(null)
   const expandedCoordinates = useMemo(() => expandCoordinates(props.coordinates), [props.coordinates])
   const [coordinates, setCoordinates] = useState<GenomicRange>(expandedCoordinates)
   const [highlight, setHighlight] = useState(null)
+  const [highlightAccession, setHighlightAccession] = useState(null)
   const [cTracks, setTracks] = useState<[string, string, string][] | null>(null)
   const snpResponse = useQuery<SNPQueryResponse>(GENE_QUERY, {
     variables: { ...coordinates, assembly: props.assembly },
@@ -109,7 +111,6 @@ export const GenomeBrowserView: React.FC<GenomeBrowserViewProps> = (props) => {
     nextFetchPolicy: "cache-first",
     client,
   })
-
   const groupedTranscripts = useMemo(
     () =>
       snpResponse.data?.gene.map((x) => ({
@@ -191,12 +192,12 @@ export const GenomeBrowserView: React.FC<GenomeBrowserViewProps> = (props) => {
           </div>
           <br />
           <br />
-          <GenomeBrowser
+          <GenomeBrowser          
             svgRef={svgRef}
             domain={coordinates}
             innerWidth={1400}
             width="100%"
-            noMargin
+            noMargin          
             onDomainChanged={(x) => {
               if (Math.ceil(x.end) - Math.floor(x.start) > 10) {
                 setCoordinates({
@@ -206,21 +207,29 @@ export const GenomeBrowserView: React.FC<GenomeBrowserViewProps> = (props) => {
                 })
               }
             }}
-          >
-            {highlight && (
-              <rect fill="#8ec7d1" fillOpacity={0.5} height={1000} x={l(highlight.start)} width={l(highlight.end) - l(highlight.start)} />
-            )}
+          >           
+            
             <RulerTrack domain={coordinates} height={30} width={1400} />
+            {highlight && (
+              <rect fill="#8ec7d1" fillOpacity={0.5} height={900} x={l(highlight.start)} width={l(highlight.end) - l(highlight.start)} />
+            )}
+            <>
+             {props.accessions && props.accessions.map((a)=>(
+              <rect key={a.accession} fill="#FAA4A4" fillOpacity={0.5} height={900} x={l(a.start)} width={l(a.end) - l(a.start)} />
+            ))}
+            </>
             <EGeneTracks
               genes={groupedTranscripts || []}
               expandedCoordinates={coordinates}
               squish={coordinates.end - coordinates.start >= 500000 ? true : false}
             />
-
             <DefaultTracks
               assembly={props.assembly}
               domain={coordinates}
-              oncCREMousedOver={(x) => x && setHighlight(x)}
+              oncCREClicked={(x)=>{              
+              props.handlecCREClickInTrack && props.handlecCREClickInTrack({ accession: x.name, chromosome: x.coordinates.chromosome,start: x.coordinates.start,end: x.coordinates.end })
+              }}
+              oncCREMousedOver={(x) => x && setHighlight(x)}              
               oncCREMousedOut={() => setHighlight(null)}
             />
             {props.biosample && props.assembly != "mm10" && cTracks && (
@@ -229,7 +238,7 @@ export const GenomeBrowserView: React.FC<GenomeBrowserViewProps> = (props) => {
                 biosample={props.biosample}
                 domain={coordinates}
                 tracks={cTracks}
-                oncCREMousedOver={(x) => x && setHighlight(x)}
+                oncCREMousedOver={(x) => x && setHighlight(x)}              
                 oncCREMousedOut={() => setHighlight(null)}
               />
             )}

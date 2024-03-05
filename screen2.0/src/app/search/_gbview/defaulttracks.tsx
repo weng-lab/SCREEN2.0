@@ -23,8 +23,8 @@ type DefaultTracksProps = {
   cCREHighlights?: Set<string>
   svgRef?: RefObject<SVGSVGElement>
   assembly: string
-  oncCREClicked?: (accession: string) => void
-  oncCREMousedOver?: (coordinates?: GenomicRange) => void
+  oncCREClicked?: (clickedcCRE: {name: string, coordinates: {chromosome: string, start: number, end: number}}) => void
+  oncCREMousedOver?: (coordinates?: GenomicRange) => void  
   oncCREMousedOut?: () => void
   onSettingsClick?: () => void
 }
@@ -42,6 +42,7 @@ export const TitledTrack: React.FC<{
   svgRef?: React.RefObject<SVGSVGElement>
   oncCREMousedOver?: (coordinates?: GenomicRange) => void
   oncCREMousedOut?: () => void
+  oncCREClicked?: (name) => void
   cCRECoordinateMap?: any
   biosample?: string
 }> = ({
@@ -57,9 +58,11 @@ export const TitledTrack: React.FC<{
   color,
   oncCREMousedOver,
   oncCREMousedOut,
+  oncCREClicked,
   cCRECoordinateMap,
   biosample,
 }) => {
+  
   useEffect(() => onHeightChanged && onHeightChanged(height + 40), [height, onHeightChanged])
 
   return (
@@ -77,6 +80,8 @@ export const TitledTrack: React.FC<{
           tooltipContent={(rect) => <CCRETooltip {...rect} assembly={assembly.toLowerCase()} biosample={biosample} />}
           onMouseOver={(x) => oncCREMousedOver && x.name && oncCREMousedOver(cCRECoordinateMap.get(x.name))}
           onMouseOut={oncCREMousedOut}
+          onClick={(x) =>  oncCREClicked && x.name && oncCREClicked({name:x.name, coordinates: cCRECoordinateMap.get(x.name) })}
+        
         />
       ) : (
         <FullBigWig
@@ -98,11 +103,11 @@ const DefaultTracks: React.FC<DefaultTracksProps> = (props) => {
   const [cTracks, setTracks] = useState<[string, string][]>(
     props.assembly.toLowerCase() === "mm10"
       ? [
-          ["All cCREs colored by group", "gs://gcp.wenglab.org/mm10-cCREs.bigBed"],
+          ["All cCREs colored by group", "https://downloads.wenglab.org/mm10-cCREs.DCC.bigBed"],
           ["Aggregated DNase-seq signal, all Registry biosamples", "gs://gcp.wenglab.org/dnase.mm10.sum.bigWig"],
         ]
       : [
-          ["All cCREs colored by group", "gs://gcp.wenglab.org/GRCh38-cCREs.bigBed"],
+          ["All cCREs colored by group", "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed"],
           ["Aggregated DNase-seq signal, all Registry biosamples", "gs://gcp.wenglab.org/dnase.GRCh38.sum.bigWig"],
           ["Aggregated H3K4me3 ChIP-seq signal, all Registry biosamples", "gs://gcp.wenglab.org/h3k4me3.hg38.sum.bigWig"],
           ["Aggregated H3K27ac ChIP-seq signal, all Registry biosamples", "gs://gcp.wenglab.org/h3k27ac.hg38.sum.bigWig"],
@@ -134,8 +139,12 @@ const DefaultTracks: React.FC<DefaultTracksProps> = (props) => {
       ),
     [data]
   )
+
   useEffect(() => {
+    
     props.onHeightChanged && props.onHeightChanged(height)
+    
+    
   }, [props.onHeightChanged, height, props])
 
   const [settingsMousedOver, setSettingsMousedOver] = useState(false)
@@ -153,6 +162,7 @@ const DefaultTracks: React.FC<DefaultTracksProps> = (props) => {
           assembly={props.assembly}
           oncCREMousedOut={props.oncCREMousedOut}
           oncCREMousedOver={props.oncCREMousedOver}
+          oncCREClicked={props.oncCREClicked}
           height={40}
           biosample={undefined}
           url={cTracks[i][1]}
