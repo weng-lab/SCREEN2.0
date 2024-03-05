@@ -24,9 +24,10 @@ type CcreDetailsProps = {
   region: GenomicRegion
   biosampleData: ApolloQueryResult<BIOSAMPLE_Data>
   page: number
+  handleOpencCRE: (row: any) => void
 }
 
-export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, biosampleData, assembly, page }) => {
+export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, biosampleData, assembly, page, handleOpencCRE }) => {
   const [isPending, startTransition] = useTransition();
   const [linkedGenes, setLinkedGenes] = useState({
     distancePC: null,
@@ -127,6 +128,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
             start: +region.start,
             end: +region.end,
           }}
+          handleOpencCRE={handleOpencCRE}
         />
       )}
       {page === 3 && <Ortholog accession={accession} assembly={assembly} />}      

@@ -18,6 +18,11 @@ export type cCRERow = {
   group: string
 }
 
+type InSpecificBiosamplesProps = {
+  accession: string,
+  assembly: "GRCh38" | "mm10",
+}
+
 
 const tableCols = (typeC = false) => {
   let cols = typeC ? [
@@ -142,12 +147,12 @@ const ctAgnosticColumns = () => [
 ]
 
 //Cache is not working as expected when switching between open cCREs
-export const InSpecificBiosamples = ({ accession, assembly }) => {
+export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ accession, assembly }) => {
 
   const { data: data_toptissues, loading: loading_toptissues, error: error_toptissues } = useQuery(TOP_TISSUES,
     {
       variables: {
-        assembly: assembly.toLowerCase(),
+        assembly: assembly.toLowerCase() as "mm10" | "grch38",
         accession: [accession],
       },
       fetchPolicy: "cache-first"

@@ -38,7 +38,8 @@ export const NearByGenomicFeatures: React.FC<{
   assembly: string
   accession: string
   coordinates: { chromosome: string; start: number; end: number }
-}> = ({ assembly, accession, coordinates }) => {
+  handleOpencCRE: (row: any) => void
+}> = ({ assembly, accession, coordinates, handleOpencCRE }) => {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -220,7 +221,9 @@ export const NearByGenomicFeatures: React.FC<{
                       render: (row) => row.distance.toLocaleString("en-US"),
                     },
                   ]}
-                  onRowClick={(row) => window.open(`search?assembly=${assembly}&chromosome=${coordinates.chromosome}&start=${coordinates.start}&end=${coordinates.end}&accessions=${row.name}&page=2`)}
+                  onRowClick={(row) => {
+                    handleOpencCRE({...row, accession: row.name })
+                  }}
                   sortColumn={1}
                   tableTitle="cCREs"
                   rows={ccres.filter(c => c.distance != 0) || []}

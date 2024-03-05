@@ -614,6 +614,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               biosampleData={biosampleData}
               assembly={mainQueryParams.coordinates.assembly}
               page={detailsPage}
+              handleOpencCRE={handlecCREClick}
             />
             :
             <LoadingMessage/>
