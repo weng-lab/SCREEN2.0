@@ -15,6 +15,7 @@ export type EGeneTrackProps = {
   onHeightChanged?: (x: number) => void
   width?: number
   squish?: boolean
+  hideshortlabel?: boolean
 }
 
 const EGeneTracks: React.FC<EGeneTrackProps> = (props) => {
@@ -60,7 +61,7 @@ const EGeneTracks: React.FC<EGeneTrackProps> = (props) => {
         height={height}
         width={15}
         fill="#bf2604"
-        stroke="#000000"
+        stroke={!props.hideshortlabel ? "#000000" : "#bf2604"}
         fillOpacity={settingsMousedOver ? 1 : 0.6}
         onMouseOver={() => setSettingsMousedOver(true)}
         onMouseOut={() => setSettingsMousedOver(false)}
@@ -68,9 +69,9 @@ const EGeneTracks: React.FC<EGeneTrackProps> = (props) => {
         transform="translate(20,0)"
         onClick={props.onSettingsClick}
       />
-      <text transform={`rotate(270) translate(-${height / 2 + 20},12)`} fill="#bf2604">
+      {!props.hideshortlabel && <text transform={`rotate(270) translate(-${height / 2 + 20},12)`} fill="#bf2604">
         Genes
-      </text>
+      </text>}
     </g>
   )
 }
