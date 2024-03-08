@@ -30,8 +30,6 @@ export default function GeneAutoComplete(props: {
   setGene: Dispatch<SetStateAction<any>>
   plusIcon?: boolean
 }) {
-  const router = useRouter()
-
   const [options, setOptions] = useState<string[]>([])
   const [geneDesc, setgeneDesc] = useState<{ name: string; desc: string }[]>()
   const [geneList, setGeneList] = useState<gene[]>([])
@@ -141,6 +139,7 @@ export default function GeneAutoComplete(props: {
             }
           }
         }}
+        value={props.gene} 
         renderInput={(tprops) => <TextField {...tprops} placeholder={"Select a Gene"} />}
         renderOption={(props, opt) => {
           return (

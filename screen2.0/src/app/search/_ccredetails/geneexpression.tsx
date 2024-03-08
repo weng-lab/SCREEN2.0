@@ -32,12 +32,11 @@ const MenuProps = {
   },
 };
 
-// 2/1/24: Why does this not have organoid? Noticed when fixing error with useSearchParams
 const biosampleTypes = ["cell line", "in vitro differentiated cells", "primary cell", "tissue"];
 
 export function GeneExpression(props: {
   assembly: "GRCh38" | "mm10"
-  genes?: string[]
+  genes?: {name: string, linkedBy?: string[]}[]
   applet?: boolean
 }) {
   const searchParams: ReadonlyURLSearchParams = useSearchParams()
@@ -47,8 +46,8 @@ export function GeneExpression(props: {
   const pathname = usePathname()
 
   //Use gene from url if specified
-  const [currentHumanGene, setCurrentHumanGene] = useState<string>(props.genes ? props.genes[0] : (urlAssembly === "GRCh38" && urlGene) ? urlGene : "APOE")
-  const [currentMouseGene, setCurrentMouseGene] = useState<string>(props.genes ? props.genes[0] : (urlAssembly === "mm10" && urlGene) ? urlGene : "Emid1")
+  const [currentHumanGene, setCurrentHumanGene] = useState<string>(props.genes ? props.genes[0].name : (urlAssembly === "GRCh38" && urlGene) ? urlGene : "APOE")
+  const [currentMouseGene, setCurrentMouseGene] = useState<string>(props.genes ? props.genes[0].name : (urlAssembly === "mm10" && urlGene) ? urlGene : "Emid1")
 
   const [biosamples, setBiosamples] = useState<string[]>(["cell line", "in vitro differentiated cells", "primary cell", "tissue"])
   const [group, setGroup] = useState<"byTissueMaxTPM" | "byExperimentTPM" | "byTissueTPM">("byTissueTPM")
@@ -197,16 +196,20 @@ export function GeneExpression(props: {
   return (
     <>
       <Stack mb={3} direction="row" justifyContent={"space-between"}>
-        <Typography alignSelf={"flex-end"} variant={props.applet ? "h4" : "h5"}>{`${assembly === "GRCh38" ? currentHumanGene : currentMouseGene} Gene Expression Profiles by RNA-seq`}</Typography>
+        <Typography
+          alignSelf={"flex-end"}
+          variant={props.applet ? "h4" : "h5"}>
+          {`${assembly === "GRCh38" ? currentHumanGene : currentMouseGene} Gene Expression Profiles by RNA-seq`}
+        </Typography>
         <Stack direction="row" spacing={3}>
-          <Button
+          {/* <Button
             variant="contained"
             href={"https://genome.ucsc.edu/"}
             color="secondary"
             sx={{ minWidth: 125, minHeight: 50 }}
           >
             <Image style={{ objectFit: "contain" }} src="https://genome-euro.ucsc.edu/images/ucscHelixLogo.png" fill alt="ucsc-button" />
-          </Button>
+          </Button> */}
           <Button
             variant="contained"
             href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + `${assembly === "GRCh38" ? currentHumanGene : currentMouseGene}`}
@@ -215,15 +218,6 @@ export function GeneExpression(props: {
           >
             <Image style={{ objectFit: "contain" }} src="https://geneanalytics.genecards.org/media/81632/gc.png" fill alt="gene-card-button" />
           </Button>
-          {/* <Button 
-            variant="contained"
-            color="secondary"
-            // onClick={() => downloadSVG(null, `${current_gene}_gene_expression.svg`)}
-            sx={{ minWidth: 125, minHeight: 50 }}
-            endIcon={<Download />}
-          >
-            Download Figure
-          </Button> */}
         </Stack>
       </Stack>
       <Grid2 container alignItems={"flex-end"} spacing={2}>
@@ -236,9 +230,7 @@ export function GeneExpression(props: {
               />
             </Grid2>
             <Grid2>
-              <Stack>
-                <InputLabel>Gene</InputLabel>
-              </Stack>
+              <InputLabel>Gene</InputLabel>
               <GeneAutoComplete
                 assembly={assembly}
                 gene={assembly === "GRCh38" ? currentHumanGene : currentMouseGene}
@@ -255,22 +247,22 @@ export function GeneExpression(props: {
             </Grid2>
           </>
           :
-          (props.genes && props.genes.length === 1 ? <></> :
-            <Grid2>
-              <Stack>
-                <InputLabel>Gene</InputLabel>
-              </Stack>
-              <TextField select value={assembly === "GRCh38" ? currentHumanGene : currentMouseGene}>
-                {props.genes.map((option: string) => {
-                  return (
-                    <MenuItem key={option} value={option} onClick={() => assembly === "GRCh38" ? setCurrentHumanGene(option) : setCurrentMouseGene(option)}>
-                      {option}
-                    </MenuItem>
-                  )
-                })}
-              </TextField>
-            </Grid2>
-          )
+          <Grid2>
+            <InputLabel>Gene</InputLabel>
+            <Select
+              value={assembly === "GRCh38" ? currentHumanGene : currentMouseGene}
+              renderValue={(value) => (<Typography>{value}</Typography>)}
+            >
+              {props.genes.map((gene) => {
+                return (
+                  <MenuItem sx={{ display: "block" }} key={gene.name} value={gene.name} onClick={() => assembly === "GRCh38" ? setCurrentHumanGene(gene.name) : setCurrentMouseGene(gene.name)}>
+                    <Typography>{gene.name}</Typography>
+                    {gene?.linkedBy && <Typography variant="body2" color={"text.secondary"}>{gene.linkedBy.join(', ')}</Typography>}
+                  </MenuItem>
+                )
+              })}
+            </Select>
+          </Grid2>
         }
         <Grid2>
           {/* Biosample Types */}
