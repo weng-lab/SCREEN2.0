@@ -10,21 +10,21 @@ import { GenomicRange, BigQueryResponse, BigResponseData } from "../_gbview/type
 
 
 export const stateDetails = {
-    ['TssFlnk'] : { description: "Flanking TSS", stateno: "E1" },
-    ['TssFlnkD'] : { description: "Flanking TSS downstream", stateno: "E2" },
-    ['TssFlnkU'] : { description: "Flanking TSS upstream", stateno: "E3" },
-    ['Tss'] : { description: "Active TSS", stateno: "E4" },
-    ['Enh1'] : { description: "Enhancer", stateno: "E5" },
-    ['Enh2'] : { description: "Enhancer", stateno: "E6" },
-    ['EnhG1'] : { description: "Enhancer in gene", stateno: "E7" },
-    ['EnhG2'] : { description: "Enhancer in gene", stateno: "E8" },
-    ['TxWk'] : { description: "Weak transcription", stateno: "E9" },
-    ['Biv'] : { description: "Bivalent", stateno: "E10" },
-    ['ReprPC'] : { description: "Repressed by Polycomb", stateno: "E11" },
-    ['Quies'] : { description: "Quiescent", stateno: "E12" },
-    ['Het'] : { description: "Heterochromatin", stateno: "E13" },
-    ['ZNF/Rpts'] : { description: "ZNF genes repreats", stateno: "E14" },
-    ['Tx'] : { description: "Transcription", stateno: "E15" },
+    ['TssFlnk'] : { description: "Flanking TSS", stateno: "E1", color: "#FF4500" },
+    ['TssFlnkD'] : { description: "Flanking TSS downstream", stateno: "E2", color: "#FF4500"},
+    ['TssFlnkU'] : { description: "Flanking TSS upstream", stateno: "E3", color: "#FF4500" },
+    ['Tss'] : { description: "Active TSS", stateno: "E4", color: "#FF0000" },
+    ['Enh1'] : { description: "Enhancer", stateno: "E5", color: "#FFDF00" },
+    ['Enh2'] : { description: "Enhancer", stateno: "E6", color:"#FFDF00"  },
+    ['EnhG1'] : { description: "Enhancer in gene", stateno: "E7", color: "#AADF07" },
+    ['EnhG2'] : { description: "Enhancer in gene", stateno: "E8", color: "#AADF07" },
+    ['TxWk'] : { description: "Weak transcription", stateno: "E9", color: "#3F9A50" },
+    ['Biv'] : { description: "Bivalent", stateno: "E10" , color: "#CD5C5C" },
+    ['ReprPC'] : { description: "Repressed by Polycomb", stateno: "E11", color:  "#8937DF" },
+    ['Quies'] : { description: "Quiescent", stateno: "E12", color: "#DCDCDC"  },
+    ['Het'] : { description: "Heterochromatin", stateno: "E13", color:  "#4B0082"  },
+    ['ZNF/Rpts'] : { description: "ZNF genes repreats", stateno: "E14", color:  "#68cdaa"},
+    ['Tx'] : { description: "Transcription", stateno: "E15", color:"#008000"  },
 
 }
 
@@ -36,27 +36,21 @@ type HumanChromHmmTracksProps = {
   color: string
   svgRef?: RefObject<SVGSVGElement>
   assembly: string
-  onTrackLoad?: () => void
 }
   
 
 const BigbedTrack: React.FC<{
   data: BigResponseData
-  
   url: string
-  
-  
   height: number
   transform?: string
   onHeightChanged?: (height: number) => void
   domain: GenomicRange
   svgRef?: React.RefObject<SVGSVGElement>
-    biosample?: string
+  biosample?: string
 }> = ({
-  data,
-  
-  url,
-  
+  data,  
+  url,  
   height,
   domain,
   transform,
@@ -66,7 +60,6 @@ const BigbedTrack: React.FC<{
 }) => {
   
   useEffect(() => onHeightChanged && onHeightChanged(height + 40), [height, onHeightChanged])
-
   return (
     <g transform={transform}>      
       
@@ -79,12 +72,9 @@ const BigbedTrack: React.FC<{
           data={data as BigBedData[]}
           svgRef={svgRef}
           tooltipContent={(rect) => <div style={{ border: "1px solid", padding: "0.75em", background: "#ffffff" }}>
-
             <b>{stateDetails[rect.name].description}{"("+stateDetails[rect.name].stateno+")"}</b>{"\n"}{rect.name}<br/><br/>{biosample}
-          </div>
-          
+          </div>          
           }
-        
         />
        
     </g>
@@ -116,9 +106,6 @@ export const HumanChromHmmTracks: React.FC<HumanChromHmmTracksProps> = (props) =
     
   }, [props.onHeightChanged, height, props])
 
-  useEffect(()=>{
-props.onTrackLoad && props.onTrackLoad()
-  },[])
 
   const [settingsMousedOver, setSettingsMousedOver] = useState(false)
 

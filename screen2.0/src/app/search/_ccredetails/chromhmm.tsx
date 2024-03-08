@@ -12,7 +12,7 @@ import { RulerTrack, GenomeBrowser } from "umms-gb"
 import Controls from "../_gbview/controls"
 import { HumanChromHmmTracks, stateDetails } from "./humanchromhmmtracks"
 import { tissueColors } from "../../../common/lib/colors"
-import {  BigQueryResponse, BigResponseData } from "../_gbview/types"
+import {  BigQueryResponse } from "../_gbview/types"
 import { BigBedData } from "bigwig-reader"
 import { styled } from '@mui/material/styles';
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
@@ -20,6 +20,7 @@ import { DataTable } from "@weng-lab/psychscreen-ui-components"
 const StyledTab = styled(Tab)(() => ({
     textTransform: "none",
   }))
+ 
 const GENE_QUERY = gql`
   query s($chromosome: String, $start: Int, $end: Int, $assembly: String!) {
     gene(chromosome: $chromosome, start: $start, end: $end, assembly: $assembly) {
@@ -44,25 +45,6 @@ const GENE_QUERY = gql`
     }
   }
 `
-
-export const COLOR_MAP: Map<string, string> = new Map([
-    ["TssFlnk", "#FF4500"],
-    ["TssFlnkD", "#FF4500"],
-    ["TssFlnkU", "#FF4500"],
-    ["Tss", "#FF0000"],
-    ["Enh1", "#FFDF00"],
-    ["Enh2", "#FFDF00"],
-    ["EnhG1", "#AADF07"],
-    ["EnhG2", "#AADF07"],
-    ["TxWk", "#3F9A50"],
-    ["Biv", "#CD5C5C"],
-    ["ReprPC", "#8937DF"],
-    ["Quies", "#DCDCDC"],
-    ["Het", "#4B0082"],
-    ["ZNF/Rpts", "#68cdaa"],
-    ["Tx", "#008000"],
-  ])
-const States =  ["TssFlnk","TssFlnkD","TssFlnkU","Tss", "Enh1","Enh2","EnhG1","EnhG2","TxWk", "Biv", "ReprPC","Quies","Het", "Tx","ZNF/Rpts"]
 
 export type Transcript = {
   id: string
@@ -89,7 +71,7 @@ export const ChromHMM = (props: { coordinates , assembly, accession }) =>{
     const svgRef = useRef<SVGSVGElement>(null)
     const expandedCoordinates = useMemo(() => expandCoordinates(props.coordinates), [props.coordinates])
     const [coordinates, setCoordinates] = useState<GenomicRange>(expandedCoordinates)
-    const [height, setHeight] = useState(null)
+    
     const [page, setPage] = useState(0)
     const [chromhmm, seChromHmm] = useState(null)
    
@@ -142,40 +124,35 @@ export const ChromHMM = (props: { coordinates , assembly, accession }) =>{
         })),
       [snpResponse,]
     )
-    let chromhmmtrackswithtissue = useMemo(()=>
+    const chromhmmtrackswithtissue = useMemo(()=>
         chromhmm && Object.keys(chromhmm).map(k=>{
         return chromhmm[k].map(c=>{
-            return {tissue:k,url:c[2],biosample: c[1]}
+            return { tissue:k,url:c[2],biosample: c[1]}
         })
     }).flat()
     ,[chromhmm])
 
-    let chromhmmtracks = useMemo(()=>
-    chromhmm && Object.keys(chromhmm).map(k=>{
-    return chromhmm[k].map(c=>{
-        return { chr1: props.coordinates.chromosome!,
-            start: props.coordinates.start,
-            end: props.coordinates.end,
-            preRenderedWidth: 1400,
-            url: c[2],}
-    })
-    }).flat()
-    ,[chromhmm])
-  //  console.log("chromhmmtracks",chromhmmtracks)
+    
     const { data, loading } = useQuery<BigQueryResponse>(BIG_QUERY, {
-        variables: { bigRequests: chromhmmtracks },
+        variables: { bigRequests: chromhmm && Object.keys(chromhmm).map(k=>{
+            return chromhmm[k].map(c=>{
+                return { chr1: props.coordinates.chromosome!,
+                    start: props.coordinates.start,
+                    end: props.coordinates.end,
+                    preRenderedWidth: 1400,
+                    url: c[2],}
+            })
+            }).flat() },
         skip: !chromhmm,
         client,
-      })
-      const handlePageChange = (_, newValue: number) => {
-       
+     })
+
+    const handlePageChange = (_, newValue: number) => {       
         setPage(newValue)
-      }
-    
+    }   
       
-    const tabledata = data && !loading && data.bigRequests.map((b,i)=>{
-        let f: any =b.data[0] 
-        
+    const chromhmmdata = data && !loading && data.bigRequests.map((b,i)=>{
+        let f = b.data[0] as BigBedData        
         return {
             start: f.start,
             end:  f.end,
@@ -187,7 +164,6 @@ export const ChromHMM = (props: { coordinates , assembly, accession }) =>{
 
         }
     })
-    console.log("tabledata",tabledata)
     const onDomainChanged = useCallback(
       (d: GenomicRange) => {
         const chr = d.chromosome === undefined ? props.coordinates.chromosome : d.chromosome
@@ -201,22 +177,12 @@ export const ChromHMM = (props: { coordinates , assembly, accession }) =>{
     )
     const l = useCallback((c) => ((c - coordinates.start) * 1400) / (coordinates.end - coordinates.start), [coordinates])
   
-    return (<>
-    <>
+    return (    
       <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "1rem" }}>
-      <Tabs
-              //Key needed to force scroll buttons to show up properly when child elements change
-             
-              value={page}
-              onChange={handlePageChange}
-            >
-              {/* Hidden empty icon to keep tab height consistent */}
-              <StyledTab  value={0} label="Genome Browser View" />
-              
-              {
-                <StyledTab value={1} label="Table View" />
-              }
-            </Tabs>
+        <Tabs value={page} onChange={handlePageChange}>              
+            <StyledTab  value={0} label="Genome Browser View" />
+            <StyledTab value={1} label="Table View" />
+        </Tabs>
         {page==0 &&<Grid2 xs={12} lg={12}>
           <br />
           <CytobandView innerWidth={1000} height={15} chromosome={coordinates.chromosome!} assembly={props.assembly!=="mm10" ?"hg38" : "mm10"} position={coordinates} />
@@ -227,10 +193,10 @@ export const ChromHMM = (props: { coordinates , assembly, accession }) =>{
           <br />
           <br />
           <svg width="100%" viewBox="0 0 1400 60">
-            {States.map((s, i) => (
+            { Object.keys(stateDetails).map((s, i) => (
               <g transform={`translate(${250 + 75 * (i % 9)},${i >= 9 ? 30 : 0})`} key={s}>
-                <rect y={5} height={15} width={15} fill={COLOR_MAP.get(s)} />
-                <text x={20} y={17} fontSize="12px" color={COLOR_MAP.get(s)}>
+                <rect y={5} height={15} width={15} fill={stateDetails[s].color} />
+                <text x={20} y={17} fontSize="12px" color={stateDetails[s].color}>
                   {s}
                 </text>
               </g>
@@ -256,7 +222,7 @@ export const ChromHMM = (props: { coordinates , assembly, accession }) =>{
             
             <RulerTrack domain={coordinates} height={30} width={1400} />          
             <>
-             {props.accession && chromhmm  &&  
+            {props.accession && chromhmm  &&  
               <rect key={props.accession} fill="#FAA4A4" fillOpacity={0.8} height={3500} x={l(props.coordinates.start)} width={l(props.coordinates.end) - l(props.coordinates.start)} />
             }
             </>
@@ -273,55 +239,50 @@ export const ChromHMM = (props: { coordinates , assembly, accession }) =>{
                     assembly={props.assembly}
                     domain={coordinates}
                     tracks={chromhmm[k]}
-                    tissue={k}
-                    onTrackLoad={()=>{
-                        setHeight(1)
-                    }}
-             
+                    tissue={k}             
                     color={tissueColors[k] ?? tissueColors.missing}
                  />
                 )
-            })
-
-            }
+            })}
           </GenomeBrowser>
         </Grid2>}
-        {page==1 && tabledata && <Grid2 xs={12} lg={12}>
-        <DataTable
-          tableTitle={`ChromHMM states`}
-          columns={[
-            {
-              header: "Tissue",
-              HeaderRender: () => <b>{"Tissue"}</b>,
-              value: (row) => row.tissue,
-            },
-            {
-                header: "Biosample",
-                HeaderRender: () => <b>{"Biosample"}</b>,
-                value: (row) => row.biosample,
-              },
-            {
-              header: "State",
-              HeaderRender: () => <b>{"State"}</b>,
-              value: (row) => <b style={{color: row.color}}>{row.name}</b>,
-            },
-            {
-              header: "Start",
-              HeaderRender: () => <b>{"Start"}</b>,
-              value: (row) => row.start,
-            },
-            {
-              header: "End",
-              HeaderRender: () => <b>{"End"}</b>,
-              value: (row) => row.end,
-            }
-          ]}
-          rows={tabledata || []}
-          sortColumn={1}
-          itemsPerPage={5}
-        />
+        {page==1 && chromhmmdata && <Grid2 xs={12} lg={12}>
+            <DataTable
+            tableTitle={`ChromHMM states`}
+            columns={[
+                {
+                header: "Tissue",
+                HeaderRender: () => <b>Tissue</b>,
+                value: (row) => row.tissue,
+                },
+                {
+                    header: "Biosample",
+                    HeaderRender: () => <b>Biosample</b>,
+                    value: (row) => row.biosample,
+                },
+                {
+                header: "State",
+                HeaderRender: () => <b>States</b>,
+                value: (row) => <b style={{color: row.color}}>{row.name}</b>,
+                },
+                {
+                header: "Start",
+                HeaderRender: () => <b>Start</b>,
+                value: (row) => row.start,
+                },
+                {
+                header: "End",
+                HeaderRender: () => <b>End</b>,
+                value: (row) => row.end,
+                }
+            ]}
+            rows={chromhmmdata || []}
+            sortColumn={0}
+            sortDescending
+            itemsPerPage={5}
+            />
         </Grid2>}
       </Grid2>
-    </>
-    </>)
+    
+    )
 }
