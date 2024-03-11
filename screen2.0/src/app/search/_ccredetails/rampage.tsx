@@ -238,7 +238,6 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
             >
               {peaks.length > 0 ? peaks.map((peak: string) => {
                 const details = data && data?.find(d => d.peakId === peak)
-                console.log(peaks.length)
                 return (
                   <MenuItem sx={{ display: "block" }} key={peak} value={peak}>
                     <Typography>{peak}</Typography>

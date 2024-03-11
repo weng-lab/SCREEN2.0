@@ -57,7 +57,7 @@ export const SnpAutoComplete: React.FC<{ assembly: string, header?: boolean }> =
       let start = snpids.find((g) => g.id === value)?.start
       let end = snpids.find((g) => g.id === value)?.end
       return (
-        `search?assembly=${props.assembly}&chromosome=${chromosome}&start=${Math.max(0, start)}&end=${end}&snpid=${value}&snpDistance=0`
+        `/search?assembly=${props.assembly}&chromosome=${chromosome}&start=${Math.max(0, start)}&end=${end}&snpid=${value}&snpDistance=0`
       )
     }
   }
