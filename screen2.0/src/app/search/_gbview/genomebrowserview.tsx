@@ -16,6 +16,7 @@ type GenomeBrowserViewProps = {
     chromosome?: string
   }
   biosample?: string
+  biosampledisplayname?: string
   gene?: string
   accessions?: {accession: string, chromosome: string, start: number, end: number}[]
   assembly: string
@@ -30,11 +31,12 @@ const BIOSAMPLE_QUERY = gql`
         dnase: experimentAccession(assay: "DNase")
         h3k4me3: experimentAccession(assay: "H3K4me3")
         h3k27ac: experimentAccession(assay: "H3K27ac")
-        ctcf: experimentAccession(assay: "CTCF")
+        ctcf: experimentAccession(assay: "CTCF")        
         dnase_signal: fileAccession(assay: "DNase")
         h3k4me3_signal: fileAccession(assay: "H3K4me3")
         h3k27ac_signal: fileAccession(assay: "H3K27ac")
         ctcf_signal: fileAccession(assay: "CTCF")
+        
       }
     }
     mouse: ccREBiosampleQuery(assembly: "mm10") {
@@ -43,18 +45,19 @@ const BIOSAMPLE_QUERY = gql`
         dnase: experimentAccession(assay: "DNase")
         h3k4me3: experimentAccession(assay: "H3K4me3")
         h3k27ac: experimentAccession(assay: "H3K27ac")
-        ctcf: experimentAccession(assay: "CTCF")
+        ctcf: experimentAccession(assay: "CTCF")        
         dnase_signal: fileAccession(assay: "DNase")
         h3k4me3_signal: fileAccession(assay: "H3K4me3")
         h3k27ac_signal: fileAccession(assay: "H3K27ac")
         ctcf_signal: fileAccession(assay: "CTCF")
+        
       }
     }
   }
 `
 const GENE_QUERY = gql`
-  query s($chromosome: String, $start: Int, $end: Int, $assembly: String!) {
-    gene(chromosome: $chromosome, start: $start, end: $end, assembly: $assembly) {
+  query s($chromosome: String, $start: Int, $end: Int, $assembly: String!, $version: Int) {
+    gene(chromosome: $chromosome, start: $start, end: $end, assembly: $assembly, version: $version) {
       name
       strand
       transcripts {
@@ -102,11 +105,10 @@ export const GenomeBrowserView: React.FC<GenomeBrowserViewProps> = (props) => {
   const svgRef = useRef<SVGSVGElement>(null)
   const expandedCoordinates = useMemo(() => expandCoordinates(props.coordinates), [props.coordinates])
   const [coordinates, setCoordinates] = useState<GenomicRange>(expandedCoordinates)
-  const [highlight, setHighlight] = useState(null)
-  const [highlightAccession, setHighlightAccession] = useState(null)
+  const [highlight, setHighlight] = useState(null)  
   const [cTracks, setTracks] = useState<[string, string, string][] | null>(null)
   const snpResponse = useQuery<SNPQueryResponse>(GENE_QUERY, {
-    variables: { ...coordinates, assembly: props.assembly },
+    variables: { ...coordinates, assembly: props.assembly, version: props.assembly.toLowerCase()==="grch38" ? 40 : 25  },
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
     client,
@@ -150,36 +152,38 @@ export const GenomeBrowserView: React.FC<GenomeBrowserViewProps> = (props) => {
           ? mouseBiosamples.find((m) => m.name === props.biosample)
           : humanBiosamples.find((m) => m.name === props.biosample)
       const r = [result.dnase_signal, result.h3k4me3_signal, result.h3k27ac_signal, result.ctcf_signal].filter((x) => !!x)
+      
       //copy v4 bed files to google bucket
       const bigBedUrl = `https://downloads.wenglab.org/Registry-V4/${r.join("_")}.bigBed`
-      let tracks: [string, string, string][] = [[`cCREs colored by activity in ${props.biosample}`, bigBedUrl, ""]]
+      let tracks: [string, string, string][] = [[`cCREs colored by activity in ${props.biosampledisplayname}`, bigBedUrl, ""]]
       if (result.dnase_signal)
         tracks.push([
-          `DNase-seq signal in ${props.biosample}`,
+          `DNase-seq signal in ${props.biosampledisplayname}`,
           `https://www.encodeproject.org/files/${result.dnase_signal}/@@download/${result.dnase_signal}.bigWig`,
           "DNase",
         ])
       if (result.h3k4me3_signal)
         tracks.push([
-          `H3K4me3 ChIP-seq signal in ${props.biosample}`,
+          `H3K4me3 ChIP-seq signal in ${props.biosampledisplayname}`,
           `https://www.encodeproject.org/files/${result.h3k4me3_signal}/@@download/${result.h3k4me3_signal}.bigWig`,
           "H3K4me3",
         ])
       if (result.h3k27ac_signal)
         tracks.push([
-          `H3K27ac ChIP-seq signal in ${props.biosample}`,
+          `H3K27ac ChIP-seq signal in ${props.biosampledisplayname}`,
           `https://www.encodeproject.org/files/${result.h3k27ac_signal}/@@download/${result.h3k27ac_signal}.bigWig`,
           "H3K27ac",
         ])
       if (result.ctcf_signal)
         tracks.push([
-          `CTCF ChIP-seq signal in ${props.biosample}`,
+          `CTCF ChIP-seq signal in ${props.biosampledisplayname}`,
           `https://www.encodeproject.org/files/${result.ctcf_signal}/@@download/${result.ctcf_signal}.bigWig`,
           "CTCF",
         ])
       setTracks(tracks)
     }
   }, [bdata, props.biosample,props.assembly])
+  
   return (
     <>
       <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "1rem" }}>
@@ -240,6 +244,9 @@ export const GenomeBrowserView: React.FC<GenomeBrowserViewProps> = (props) => {
                 tracks={cTracks}
                 oncCREMousedOver={(x) => x && setHighlight(x)}              
                 oncCREMousedOut={() => setHighlight(null)}
+                oncCREClicked={(x)=>{              
+                  props.handlecCREClickInTrack && props.handlecCREClickInTrack({ accession: x.name, chromosome: x.coordinates.chromosome,start: x.coordinates.start,end: x.coordinates.end })
+                  }}
               />
             )}
           </GenomeBrowser>

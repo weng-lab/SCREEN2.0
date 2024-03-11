@@ -69,6 +69,7 @@ export const NearByGenomicFeatures: React.FC<{
             chromosome: coordinates.chromosome,
             start: coordinates.start - 1000000,
             end: coordinates.end + 1000000,
+            version: 25
           }
           : {
             a: "hg38",
@@ -82,39 +83,13 @@ export const NearByGenomicFeatures: React.FC<{
             chromosome: coordinates.chromosome,
             start: coordinates.start - 1000000,
             end: coordinates.end + 1000000,
+            version: 40
           },
       fetchPolicy: "cache-and-network",
       nextFetchPolicy: "cache-first",
       client,
     }
   )
-
-  console.log(assembly.toLowerCase() === "mm10"
-    ? {
-      b: assembly.toLowerCase(),
-      c: assembly.toLowerCase(),
-      coordinates: {
-        chromosome: coordinates.chromosome,
-        start: coordinates.start - 1000000,
-        end: coordinates.end + 1000000,
-      },
-      chromosome: coordinates.chromosome,
-      start: coordinates.start - 1000000,
-      end: coordinates.end + 1000000,
-    }
-    : {
-      a: "hg38",
-      b: assembly.toLowerCase(),
-      c: assembly.toLowerCase(),
-      coordinates: {
-        chromosome: coordinates.chromosome,
-        start: coordinates.start - 1000000,
-        end: coordinates.end + 1000000,
-      },
-      chromosome: coordinates.chromosome,
-      start: coordinates.start - 1000000,
-      end: coordinates.end + 1000000,
-    })
 
   let genes =
     data &&

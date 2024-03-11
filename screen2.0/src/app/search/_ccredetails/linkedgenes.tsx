@@ -36,8 +36,9 @@ export const LinkedGenes: React.FC<{ accession: string; assembly: string }> = ({
   // gene query
   const { loading: loading_genes, data: data_genes } = useQuery(GENE_NAME, {
     variables: {
-      assembly: assembly,
+      assembly,
       name_prefix: geneIDs(data_linked?.linkedGenesQuery),
+      version: assembly.toLowerCase()==="grch38" ? 40: 25
     },
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",

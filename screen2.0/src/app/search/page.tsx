@@ -128,7 +128,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     ID: string,
     region: { start: number, end: number, chrom: string }
   }[]>([])
-  // const [globals, setGlobals] = useState<CellTypeData>(null)
   const [biosampleData, setBiosampleData] = useState<ApolloQueryResult<BIOSAMPLE_Data>>(null)
   const [mainQueryData, setMainQueryData] = useState<MainQueryData>(null)
   const [rawLinkedGenesData, setRawLinkedGenesData] = useState<RawLinkedGenesData>(null)
@@ -175,17 +174,15 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   //Handle closing cCRE, and changing page if needed
   const handleClosecCRE = (closedID: string) => {
     const newOpencCREs = opencCREs.filter((cCRE) => cCRE.ID != closedID)
-    setOpencCREs(newOpencCREs)
 
-    const closedIndex = opencCREs.findIndex(x => x.ID === closedID)
-    // If you're closing the tab you're on or one to the left:
-    if (closedIndex <= (page - numberOfDefaultTabs)) {
-      if (newOpencCREs.length === 0) {
+
+    const closedPage = opencCREs.findIndex(x => x.ID === closedID) + numberOfDefaultTabs
+    if (newOpencCREs.length === 0 && closedPage === page) {
         setPage(0)
         setDetailsPage(0)
-      }
-      else setPage(page - 1)
-    }
+    } else if (page === opencCREs.length + numberOfDefaultTabs - 1) setPage(page - 1)
+    // If you're closing the tab you're on or one to the left:
+    setOpencCREs(newOpencCREs)
     //No action needed when closing a tab to the right of the page you're on
   }
 
@@ -215,6 +212,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         page,
         opencCREs.map(x => x.ID).join(',')
       )
+      console.log("pushing new url:" + newURL)
       router.push(newURL)
     }
   }, [searchParams, mainQueryParams, filterCriteria, biosampleTableFilters, page, opencCREs, router, basePathname, opencCREsInitialized, loadingFetch])
@@ -354,12 +352,9 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     }
   }, [mainQueryData, rawLinkedGenesData, filterCriteria, TSSranges, mainQueryParams.gene.nearTSS])
 
-  
-
   const findTabByID = (id: string, numberOfTable: number = 2) => {
     return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)
   }
-
 
   const handleDownloadBed = () => {
     let start = mainQueryParams.coordinates.start
@@ -537,6 +532,9 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                 :
                 <><MainResultsTable
                   rows={filteredTableRows}
+                  /**
+                   * @todo this logic is pretty horrific, should move this into it's own function
+                   */
                   tableTitle={mainQueryParams.searchConfig.bed_intersect ?
                     `Intersecting by uploaded .bed file in ${mainQueryParams.coordinates.assembly}${intersectWarning.current === "true" ? " (Partial)" : ""}`
                     :
@@ -595,15 +593,16 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               })}
               gene={mainQueryParams.gene.name}
               biosample={mainQueryParams.biosample?.name}
+              biosampledisplayname={mainQueryParams.biosample?.displayname}
               assembly={mainQueryParams.coordinates.assembly}
               coordinates={{ start: mainQueryParams.coordinates.start, end: mainQueryParams.coordinates.end, chromosome: mainQueryParams.coordinates.chromosome }}
             />
           )}
           {mainQueryParams.gene.name && page === 2 &&
-            <GeneExpression assembly={mainQueryParams.coordinates.assembly} genes={[mainQueryParams.gene.name]} />
+            <GeneExpression assembly={mainQueryParams.coordinates.assembly} genes={[{name: mainQueryParams.gene.name}]} biosampleData={biosampleData} />
           }
           {mainQueryParams.gene.name && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" && page === 3 && (
-            <Rampage gene={mainQueryParams.gene.name} />
+            <Rampage genes={[{name: mainQueryParams.gene.name}]} biosampleData={biosampleData}/>
           )}
           {page >= numberOfDefaultTabs && opencCREs.length > 0 && (
             opencCREs[page - numberOfDefaultTabs] ?

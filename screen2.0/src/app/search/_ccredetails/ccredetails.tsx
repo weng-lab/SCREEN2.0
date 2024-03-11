@@ -27,35 +27,40 @@ type CcreDetailsProps = {
   handleOpencCRE: (row: any) => void
 }
 
+type LinkedBy = "distancePC" | "distanceAll" | "CTCF-ChIAPET" | "RNAPII-ChIAPET"
+
 export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, biosampleData, assembly, page, handleOpencCRE }) => {
   const [isPending, startTransition] = useTransition();
-  const [linkedGenes, setLinkedGenes] = useState({
-    distancePC: null,
-    distanceAll: null,
-    CTCF_ChIAPET: null,
-    RNAPII_ChIAPET: null
-  })
+  const [linkedGenes, setLinkedGenes] = useState<{name: string, linkedBy: LinkedBy[]}[]>([])
+  const [fetched, setFetched] = useState(false)
+  const [distanceAdded, setDistanceAdded] = useState(false)
 
   //This is hacky and should be changed once new gene link methods are available
   //Fetch linked genes data. Use startTransition to server fetch to make it easy
   useEffect(() => {
-    (!linkedGenes.CTCF_ChIAPET || !linkedGenes.RNAPII_ChIAPET) && startTransition(async () => {
+    !fetched && startTransition(async () => {
       const linkedGenesData = await fetchLinkedGenes(assembly, [accession])
       try {
-        let CTCF_ChIAPET = []
-        let RNAPII_ChIAPET = []
+        //make shallow copy
+        let newLinkedGenes = [...linkedGenes]
         linkedGenesData[accession].genes.forEach(gene => {
-          switch (gene.linkedBy) {
-            case ("CTCF-ChIAPET"): CTCF_ChIAPET.push(gene.geneName); break;
-            case ("RNAPII-ChIAPET"): RNAPII_ChIAPET.push(gene.geneName); break;
+          //try to find gene in list
+          if (newLinkedGenes.find(x => x.name === gene.geneName)) {
+            //If gene exists, add linking method
+            newLinkedGenes = [...newLinkedGenes.map(x => x.name === gene.geneName ? { name: gene.geneName, linkedBy: [...new Set([...x.linkedBy, gene.linkedBy])] } : x)]
+          }
+          else {
+            //else add new entry
+            newLinkedGenes = [...newLinkedGenes, { name: gene.geneName, linkedBy: [gene.linkedBy] }]
           }
         })
-        setLinkedGenes({...linkedGenes, CTCF_ChIAPET, RNAPII_ChIAPET})
+        setLinkedGenes(newLinkedGenes)
+        setFetched(true)
       } catch (error) {
         console.log(error)
       }
     })
-  }, [assembly, accession, linkedGenes])
+  }, [assembly, accession, linkedGenes, fetched])
 
   const QUERY = gql`
     query nearestGenes(
@@ -101,14 +106,32 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
   )
 
   useEffect(() => {
-    data_distanceLinked && (!linkedGenes.RNAPII_ChIAPET || !linkedGenes.CTCF_ChIAPET) && setLinkedGenes({
-    ...linkedGenes,
-     distanceAll: data_distanceLinked.cCRESCREENSearch[0].genesallpc.all.intersecting_genes.map((gene) => gene.name),
-     distancePC: data_distanceLinked.cCRESCREENSearch[0].genesallpc.pc.intersecting_genes.map((gene) => gene.name),
-    })
-  }, [data_distanceLinked])
-
-  
+    if (data_distanceLinked && !distanceAdded) {
+      let newLinkedGenes = [...linkedGenes]
+      data_distanceLinked.cCRESCREENSearch[0].genesallpc.pc.intersecting_genes.forEach((gene: {name: string, strand: "+" | "-", gene_type: string}) => {
+        if (newLinkedGenes.find(x => x.name === gene.name)) {
+          //If gene exists, add linking method
+          newLinkedGenes = [...newLinkedGenes.map(x => x.name === gene.name ? { name: gene.name, linkedBy: [...x.linkedBy, "distancePC" as LinkedBy] } : x)]
+        }
+        else {
+          //else add new entry
+          newLinkedGenes = [...newLinkedGenes, { name: gene.name, linkedBy: ["distancePC"] }]
+        }
+      })
+      data_distanceLinked.cCRESCREENSearch[0].genesallpc.all.intersecting_genes.forEach((gene: {name: string, strand: "+" | "-", gene_type: string}) => {
+        if (newLinkedGenes.find(x => x.name === gene.name)) {
+          //If gene exists, add linking method
+          newLinkedGenes = [...newLinkedGenes.map(x => x.name === gene.name ? { name: gene.name, linkedBy: [...x.linkedBy, "distanceAll" as LinkedBy] } : x)]
+        }
+        else {
+          //else add new entry
+          newLinkedGenes = [...newLinkedGenes, { name: gene.name, linkedBy: ["distanceAll"] }]
+        }
+      })
+      setDistanceAdded(true)
+      setLinkedGenes(newLinkedGenes)
+    }
+  }, [data_distanceLinked, linkedGenes])
   
   return (
     <>
@@ -132,7 +155,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
         />
       )}
       {page === 3 && <Ortholog accession={accession} assembly={assembly} />}      
-      {page === 4 && <GeneExpression assembly={assembly} genes={[... new Set(Object.values(linkedGenes).flat())]} />}
+      {page === 4 && linkedGenes.length > 0 && <GeneExpression assembly={assembly} genes={linkedGenes} biosampleData={biosampleData} />}
       {page === 5 && <FunctionData accession={accession} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }} assembly={assembly} />}
       {page === 6 &&
         <>
@@ -159,7 +182,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
           accession={accession}
         />
       }
-      {assembly !== "mm10" && page === 8 && <Rampage gene={Object.values(linkedGenes).flat()[0]} />}
+      {assembly !== "mm10" && page === 8 && linkedGenes.length > 0 && <Rampage genes={linkedGenes} biosampleData={biosampleData} />}
     </>
   )
 }

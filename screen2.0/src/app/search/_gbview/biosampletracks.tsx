@@ -18,7 +18,7 @@ type BiosampleTracksProps = {
   cCREHighlights?: Set<string>
   svgRef?: RefObject<SVGSVGElement>
   assembly: string
-  oncCREClicked?: (accession: string) => void
+  oncCREClicked?: (clickedcCRE: {name: string, coordinates: {chromosome: string, start: number, end: number}}) => void
   oncCREMousedOver?: (coordinates?: GenomicRange) => void
   oncCREMousedOut?: () => void
   onSettingsClick?: () => void
@@ -99,6 +99,7 @@ export const BiosampleTracks: React.FC<BiosampleTracksProps> = (props) => {
           oncCREMousedOver={props.oncCREMousedOver}
           height={40}
           url={cTracks[i][1]}
+          oncCREClicked={props.oncCREClicked}
           domain={props.domain}
           title={cTracks[i][0]}
           svgRef={props.svgRef}

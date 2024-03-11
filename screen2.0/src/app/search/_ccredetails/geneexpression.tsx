@@ -9,11 +9,13 @@ import Image from "next/image"
 import { HUMAN_GENE_EXP, MOUSE_GENE_EXP } from "../../applets/gene-expression/const"
 import { GENE_EXP_QUERY, GENE_QUERY } from "../../applets/gene-expression/queries"
 
-
 //Replace this when Gene Autocomplete extracted into componenet
 import GeneAutoComplete from "../../applets/gene-expression/geneautocomplete"
 import GenomeSwitch from "./genomeswitch"
 import { ReadonlyURLSearchParams, usePathname, useSearchParams, useRouter } from "next/navigation"
+import ConfigureGBModal from "./configuregbmodal"
+import { ApolloQueryResult } from "@apollo/client"
+import { BIOSAMPLE_Data } from "../../../common/lib/queries"
 
 /**
  * @todo
@@ -33,13 +35,13 @@ const MenuProps = {
   },
 };
 
-// 2/1/24: Why does this not have organoid? Noticed when fixing error with useSearchParams
 const biosampleTypes = ["cell line", "in vitro differentiated cells", "primary cell", "tissue"];
 
 export function GeneExpression(props: {
   assembly: "GRCh38" | "mm10"
-  genes?: string[]
+  genes?: {name: string, linkedBy?: string[]}[]
   applet?: boolean
+  biosampleData: ApolloQueryResult<BIOSAMPLE_Data>
 }) {
   const searchParams: ReadonlyURLSearchParams = useSearchParams()
   const urlAssembly = searchParams.get("assembly")
@@ -48,8 +50,8 @@ export function GeneExpression(props: {
   const pathname = usePathname()
 
   //Use gene from url if specified
-  const [currentHumanGene, setCurrentHumanGene] = useState<string>(props.genes ? props.genes[0] : (urlAssembly === "GRCh38" && urlGene) ? urlGene : "APOE")
-  const [currentMouseGene, setCurrentMouseGene] = useState<string>(props.genes ? props.genes[0] : (urlAssembly === "mm10" && urlGene) ? urlGene : "Emid1")
+  const [currentHumanGene, setCurrentHumanGene] = useState<string>(props.genes ? props.genes[0].name : (urlAssembly === "GRCh38" && urlGene) ? urlGene : "APOE")
+  const [currentMouseGene, setCurrentMouseGene] = useState<string>(props.genes ? props.genes[0].name : (urlAssembly === "mm10" && urlGene) ? urlGene : "Emid1")
 
   const [biosamples, setBiosamples] = useState<string[]>(["cell line", "in vitro differentiated cells", "primary cell", "tissue"])
   const [group, setGroup] = useState<"byTissueMaxTPM" | "byExperimentTPM" | "byTissueTPM">("byTissueTPM")
@@ -57,6 +59,11 @@ export function GeneExpression(props: {
   const [scale, setScale] = useState<"linearTPM" | "logTPM">("logTPM")
   const [replicates, setReplicates] = useState<"mean" | "all">("mean")
   const [assembly, setAssembly] = useState<"GRCh38" | "mm10">(((urlAssembly === "GRCh38") || (urlAssembly === "mm10")) ? urlAssembly : props.assembly)
+  const [configGBopen, setConfigGBOpen] = useState(false);
+
+  const handleOpenConfigGB = () => {
+    (assembly === "GRCh38" ? dataHumanGene?.gene[0] : dataMouseGene?.gene[0]) && setConfigGBOpen(true)
+  }
 
   //Fetch Gene info to get ID
   const {
@@ -65,7 +72,8 @@ export function GeneExpression(props: {
   } = useQuery(GENE_QUERY, {
     variables: {
       assembly: "grch38",
-      name: [currentHumanGene && currentHumanGene]
+      name: [currentHumanGene && currentHumanGene],
+      version: 40
     },
     skip: !currentHumanGene,
     fetchPolicy: "cache-and-network",
@@ -79,7 +87,8 @@ export function GeneExpression(props: {
   } = useQuery(GENE_QUERY, {
     variables: {
       assembly: "mm10",
-      name: [currentMouseGene && currentMouseGene]
+      name: [currentMouseGene && currentMouseGene],
+      version: 25
     },
     skip: !currentMouseGene,
     fetchPolicy: "cache-and-network",
@@ -196,13 +205,17 @@ export function GeneExpression(props: {
   return (
     <>
       <Stack mb={3} direction="row" justifyContent={"space-between"}>
-        <Typography alignSelf={"flex-end"} variant={props.applet ? "h4" : "h5"}>{`${assembly === "GRCh38" ? currentHumanGene : currentMouseGene} Gene Expression Profiles by RNA-seq`}</Typography>
+        <Typography
+          alignSelf={"flex-end"}
+          variant={props.applet ? "h4" : "h5"}>
+          {`${assembly === "GRCh38" ? currentHumanGene : currentMouseGene} Gene Expression Profiles by RNA-seq`}
+        </Typography>
         <Stack direction="row" spacing={3}>
           <Button
             variant="contained"
-            href={"https://genome.ucsc.edu/"}
             color="secondary"
             sx={{ minWidth: 125, minHeight: 50 }}
+            onClick={handleOpenConfigGB}
           >
             <Image style={{ objectFit: "contain" }} src="https://genome-euro.ucsc.edu/images/ucscHelixLogo.png" fill alt="ucsc-button" />
           </Button>
@@ -214,15 +227,6 @@ export function GeneExpression(props: {
           >
             <Image style={{ objectFit: "contain" }} src="https://geneanalytics.genecards.org/media/81632/gc.png" fill alt="gene-card-button" />
           </Button>
-          {/* <Button 
-            variant="contained"
-            color="secondary"
-            // onClick={() => downloadSVG(null, `${current_gene}_gene_expression.svg`)}
-            sx={{ minWidth: 125, minHeight: 50 }}
-            endIcon={<Download />}
-          >
-            Download Figure
-          </Button> */}
         </Stack>
       </Stack>
       <Grid2 container alignItems={"flex-end"} spacing={2}>
@@ -235,9 +239,7 @@ export function GeneExpression(props: {
               />
             </Grid2>
             <Grid2>
-              <Stack>
-                <InputLabel>Gene</InputLabel>
-              </Stack>
+              <InputLabel>Gene</InputLabel>
               <GeneAutoComplete
                 assembly={assembly}
                 gene={assembly === "GRCh38" ? currentHumanGene : currentMouseGene}
@@ -254,22 +256,22 @@ export function GeneExpression(props: {
             </Grid2>
           </>
           :
-          (props.genes && props.genes.length === 1 ? <></> :
-            <Grid2>
-              <Stack>
-                <InputLabel>Gene</InputLabel>
-              </Stack>
-              <TextField select value={assembly === "GRCh38" ? currentHumanGene : currentMouseGene}>
-                {props.genes.map((option: string) => {
-                  return (
-                    <MenuItem key={option} value={option} onClick={() => assembly === "GRCh38" ? setCurrentHumanGene(option) : setCurrentMouseGene(option)}>
-                      {option}
-                    </MenuItem>
-                  )
-                })}
-              </TextField>
-            </Grid2>
-          )
+          <Grid2>
+            <InputLabel>Gene</InputLabel>
+            <Select
+              value={assembly === "GRCh38" ? currentHumanGene : currentMouseGene}
+              renderValue={(value) => (<Typography>{value}</Typography>)}
+            >
+              {props.genes.map((gene) => {
+                return (
+                  <MenuItem sx={{ display: "block" }} key={gene.name} value={gene.name} onClick={() => assembly === "GRCh38" ? setCurrentHumanGene(gene.name) : setCurrentMouseGene(gene.name)}>
+                    <Typography>{gene.name}</Typography>
+                    {gene?.linkedBy && <Typography variant="body2" color={"text.secondary"}>{gene.linkedBy.join(', ')}</Typography>}
+                  </MenuItem>
+                )
+              })}
+            </Select>
+          </Grid2>
         }
         <Grid2>
           {/* Biosample Types */}
@@ -429,6 +431,19 @@ export function GeneExpression(props: {
               </Typography>
         }
       </Grid2>
+      {/* Configure Trackhub */}
+      <ConfigureGBModal
+        biosampleData={props.biosampleData}
+        coordinates={{
+          assembly: props.assembly,
+          chromosome: assembly === "GRCh38" ? dataHumanGene?.gene[0]?.coordinates.chromosome : dataMouseGene?.gene[0]?.coordinates.chromosome,
+          start: assembly === "GRCh38" ? dataHumanGene?.gene[0]?.coordinates.start : dataMouseGene?.gene[0]?.coordinates.start,
+          end: assembly === "GRCh38" ? dataHumanGene?.gene[0]?.coordinates.end : dataMouseGene?.gene[0]?.coordinates.end,
+        }}
+        accession={assembly === "GRCh38" ? currentHumanGene : currentMouseGene}
+        open={configGBopen}
+        setOpen={setConfigGBOpen}
+      />
     </>
   )
 }

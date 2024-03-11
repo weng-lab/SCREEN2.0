@@ -137,8 +137,8 @@ query ($coordinates: [GenomicRangeInput!],$assembly: String!) {
 
 `
 export const GENE_NAME = gql`
-  query ($assembly: String!, $name_prefix: [String!]) {
-    gene(assembly: $assembly, name_prefix: $name_prefix) {
+  query ($assembly: String!, $name_prefix: [String!], $version: Int) {
+    gene(assembly: $assembly, name_prefix: $name_prefix, version: $version) {
       name
       id
     }
@@ -160,8 +160,8 @@ export const ORTHOLOG_QUERY = gql`
 `
 
 export const NEARBY_GENOMIC_FEATURES_QUERY = gql`
-  query features($coordinates: [GenomicRangeInput!], $chromosome: String, $start: Int, $end: Int, $b: String!, $c: String!, $a: String!) {
-    gene(chromosome: $chromosome, start: $start, end: $end, assembly: $b) {
+  query features($coordinates: [GenomicRangeInput!], $chromosome: String, $start: Int, $end: Int, $b: String!, $c: String!, $a: String!, $version: Int) {
+    gene(chromosome: $chromosome, start: $start, end: $end, assembly: $b, version: $version) {
       name
       id
       coordinates {
@@ -193,8 +193,8 @@ export const NEARBY_GENOMIC_FEATURES_QUERY = gql`
 `
 
 export const NEARBY_GENOMIC_FEATURES_NOSNPS_QUERY = gql`
-  query features($coordinates: [GenomicRangeInput!], $chromosome: String, $start: Int, $end: Int, $b: String!, $c: String!) {
-    gene(chromosome: $chromosome, start: $start, end: $end, assembly: $b) {
+  query features($coordinates: [GenomicRangeInput!], $chromosome: String, $start: Int, $end: Int, $b: String!, $c: String!, $version: Int) {
+    gene(chromosome: $chromosome, start: $start, end: $end, assembly: $b, version: $version) {
       name
       id
       coordinates {

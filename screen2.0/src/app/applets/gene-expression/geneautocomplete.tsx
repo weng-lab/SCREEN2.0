@@ -11,8 +11,8 @@ import { Add, Search } from "@mui/icons-material"
 
 
 const GENE_AUTOCOMPLETE_QUERY = `
-  query ($assembly: String!, $name_prefix: [String!], $limit: Int) {
-    gene(assembly: $assembly, name_prefix: $name_prefix, limit: $limit) {
+  query ($assembly: String!, $name_prefix: [String!], $limit: Int, $version: Int) {
+    gene(assembly: $assembly, name_prefix: $name_prefix, limit: $limit, version: $version) {
       name
       id
       coordinates {
@@ -30,8 +30,6 @@ export default function GeneAutoComplete(props: {
   setGene: Dispatch<SetStateAction<any>>
   plusIcon?: boolean
 }) {
-  const router = useRouter()
-
   const [options, setOptions] = useState<string[]>([])
   const [geneDesc, setgeneDesc] = useState<{ name: string; desc: string }[]>()
   const [geneList, setGeneList] = useState<gene[]>([])
@@ -74,8 +72,9 @@ export default function GeneAutoComplete(props: {
       body: JSON.stringify({
         query: GENE_AUTOCOMPLETE_QUERY,
         variables: {
-          assembly: assembly,
+          assembly,
           name_prefix: value,
+          version: assembly.toLowerCase()==="grch38" ? 40: 25,
           limit: 100,
         },
       }),
@@ -140,6 +139,7 @@ export default function GeneAutoComplete(props: {
             }
           }
         }}
+        value={props.gene} 
         renderInput={(tprops) => <TextField {...tprops} placeholder={"Select a Gene"} />}
         renderOption={(props, opt) => {
           return (

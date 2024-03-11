@@ -1,8 +1,8 @@
 import { gql } from "@apollo/client"
 
 export const GENE_SEARCH_QUERY = gql`
-  query ($assembly: String!, $chromosome: String, $start: Int, $end: Int, $limit: Int) {
-    gene(assembly: $assembly, chromosome: $chromosome, start: $start, end: $end, limit: $limit) {
+  query ($assembly: String!, $chromosome: String, $start: Int, $end: Int, $limit: Int, $version: Int) {
+    gene(assembly: $assembly, chromosome: $chromosome, start: $start, end: $end, limit: $limit, version: $version) {
       name
       id
       coordinates {

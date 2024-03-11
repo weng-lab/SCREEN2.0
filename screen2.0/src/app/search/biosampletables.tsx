@@ -1,9 +1,9 @@
 import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, Box, CircularProgress, FormControlLabel, Accordion, FormGroup, Checkbox, IconButton, Menu, MenuItem, Button, InputAdornment, FormControl, FormLabel, CircularProgressProps } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
-import { ChangeEvent, Dispatch, SetStateAction, useEffect, useMemo, useState } from "react"
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react"
 import { filterBiosamples, parseBiosamples, assayHoverInfo } from "./searchhelpers"
-import { BiosampleData, BiosampleTableFilters, CellTypeData, RegistryBiosample, RegistryBiosamplePlusRNA } from "./types"
+import { BiosampleData, BiosampleTableFilters, RegistryBiosample, RegistryBiosamplePlusRNA } from "./types"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
 import { ArrowDropDown, Check, Close, Download } from "@mui/icons-material"
 import { ArrowRight } from "@mui/icons-material"
@@ -87,23 +87,23 @@ function DownloadBiosamplecCREs(row: RegistryBiosample | RegistryBiosamplePlusRN
     let fileName: string
     switch (x) {
       case "dnase":
-        url = `https://downloads.wenglab.org/Registry-V4/Signal-Files/${row.dnase}-${row.dnase_signal}.txt`
+        url = `https://downloads.wenglab.org/Registry-V4/SCREEN/Signal-Files/${row.dnase}-${row.dnase_signal}.txt`
         fileName = `${row.dnase}-${row.dnase_signal}.txt`
         break
       case "h3k4me3":
-        url = `https://downloads.wenglab.org/Registry-V4/Signal-Files/${row.h3k4me3}-${row.h3k4me3_signal}.txt`
+        url = `https://downloads.wenglab.org/Registry-V4/SCREEN/Signal-Files/${row.h3k4me3}-${row.h3k4me3_signal}.txt`
         fileName = `${row.h3k4me3}-${row.h3k4me3_signal}.txt`
         break
       case "h3k27ac":
-        url = `https://downloads.wenglab.org/Registry-V4/Signal-Files/${row.h3k27ac}-${row.h3k27ac_signal}.txt`
+        url = `https://downloads.wenglab.org/Registry-V4/SCREEN/Signal-Files/${row.h3k27ac}-${row.h3k27ac_signal}.txt`
         fileName = `${row.h3k27ac}-${row.h3k27ac_signal}.txt`
         break
       case "ctcf":
-        url = `https://downloads.wenglab.org/Registry-V4/Signal-Files/${row.ctcf}-${row.ctcf_signal}.txt`
+        url = `https://downloads.wenglab.org/Registry-V4/SCREEN/Signal-Files/${row.ctcf}-${row.ctcf_signal}.txt`
         fileName = `${row.ctcf}-${row.ctcf_signal}.txt`
         break
       case "atac":
-        url = `https://downloads.wenglab.org/Registry-V4/Signal-Files/${row.atac}-${row.atac_signal}.txt`
+        url = `https://downloads.wenglab.org/Registry-V4/SCREEN/Signal-Files/${row.atac}-${row.atac_signal}.txt`
         fileName = `${row.atac}-${row.atac_signal}.txt`
         break
       case "celltypeccres":

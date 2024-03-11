@@ -1,5 +1,3 @@
-import { useState } from "react";
-import { CellTypeData, RegistryBiosamplePlusRNA } from "../types";
 import ConfigureGenomeBrowser from "./configuregb";
 import { ApolloQueryResult } from "@apollo/client";
 import { BIOSAMPLE_Data } from "../../../common/lib/queries";
@@ -21,13 +19,10 @@ const ConfigureGBTab: React.FC<Props> = ({
   coordinates,
   accession
  }) => {
-  const [selectedBiosamples, setSelectedBiosamples] = useState<RegistryBiosamplePlusRNA[]>([])
 
   return (
     <ConfigureGenomeBrowser
       biosampleData={biosampleData}
-      selectedBiosamples={selectedBiosamples}
-      setSelectedBiosamples={setSelectedBiosamples}
       coordinates={coordinates}
       accession={accession}
     />
