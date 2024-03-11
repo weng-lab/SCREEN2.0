@@ -155,7 +155,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
         />
       )}
       {page === 3 && <Ortholog accession={accession} assembly={assembly} />}      
-      {page === 4 && linkedGenes.length > 0 && <GeneExpression assembly={assembly} genes={linkedGenes} />}
+      {page === 4 && linkedGenes.length > 0 && <GeneExpression assembly={assembly} genes={linkedGenes} biosampleData={biosampleData} />}
       {page === 5 && <FunctionData accession={accession} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }} assembly={assembly} />}
       {page === 6 &&
         <>
@@ -182,7 +182,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
           accession={accession}
         />
       }
-      {assembly !== "mm10" && page === 8 && linkedGenes.length > 0 && <Rampage genes={linkedGenes} />}
+      {assembly !== "mm10" && page === 8 && linkedGenes.length > 0 && <Rampage genes={linkedGenes} biosampleData={biosampleData} />}
     </>
   )
 }

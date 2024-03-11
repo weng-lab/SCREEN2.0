@@ -13,6 +13,9 @@ import { GENE_EXP_QUERY, GENE_QUERY } from "../../applets/gene-expression/querie
 import GeneAutoComplete from "../../applets/gene-expression/geneautocomplete"
 import GenomeSwitch from "./genomeswitch"
 import { ReadonlyURLSearchParams, usePathname, useSearchParams, useRouter } from "next/navigation"
+import ConfigureGBModal from "./configuregbmodal"
+import { ApolloQueryResult } from "@apollo/client"
+import { BIOSAMPLE_Data } from "../../../common/lib/queries"
 
 /**
  * @todo
@@ -38,6 +41,7 @@ export function GeneExpression(props: {
   assembly: "GRCh38" | "mm10"
   genes?: {name: string, linkedBy?: string[]}[]
   applet?: boolean
+  biosampleData: ApolloQueryResult<BIOSAMPLE_Data>
 }) {
   const searchParams: ReadonlyURLSearchParams = useSearchParams()
   const urlAssembly = searchParams.get("assembly")
@@ -55,6 +59,11 @@ export function GeneExpression(props: {
   const [scale, setScale] = useState<"linearTPM" | "logTPM">("logTPM")
   const [replicates, setReplicates] = useState<"mean" | "all">("mean")
   const [assembly, setAssembly] = useState<"GRCh38" | "mm10">(((urlAssembly === "GRCh38") || (urlAssembly === "mm10")) ? urlAssembly : props.assembly)
+  const [configGBopen, setConfigGBOpen] = useState(false);
+
+  const handleOpenConfigGB = () => {
+    (assembly === "GRCh38" ? dataHumanGene?.gene[0] : dataMouseGene?.gene[0]) && setConfigGBOpen(true)
+  }
 
   //Fetch Gene info to get ID
   const {
@@ -202,14 +211,14 @@ export function GeneExpression(props: {
           {`${assembly === "GRCh38" ? currentHumanGene : currentMouseGene} Gene Expression Profiles by RNA-seq`}
         </Typography>
         <Stack direction="row" spacing={3}>
-          {/* <Button
+          <Button
             variant="contained"
-            href={"https://genome.ucsc.edu/"}
             color="secondary"
             sx={{ minWidth: 125, minHeight: 50 }}
+            onClick={handleOpenConfigGB}
           >
             <Image style={{ objectFit: "contain" }} src="https://genome-euro.ucsc.edu/images/ucscHelixLogo.png" fill alt="ucsc-button" />
-          </Button> */}
+          </Button>
           <Button
             variant="contained"
             href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + `${assembly === "GRCh38" ? currentHumanGene : currentMouseGene}`}
@@ -422,6 +431,19 @@ export function GeneExpression(props: {
               </Typography>
         }
       </Grid2>
+      {/* Configure Trackhub */}
+      <ConfigureGBModal
+        biosampleData={props.biosampleData}
+        coordinates={{
+          assembly: props.assembly,
+          chromosome: assembly === "GRCh38" ? dataHumanGene?.gene[0]?.coordinates.chromosome : dataMouseGene?.gene[0]?.coordinates.chromosome,
+          start: assembly === "GRCh38" ? dataHumanGene?.gene[0]?.coordinates.start : dataMouseGene?.gene[0]?.coordinates.start,
+          end: assembly === "GRCh38" ? dataHumanGene?.gene[0]?.coordinates.end : dataMouseGene?.gene[0]?.coordinates.end,
+        }}
+        accession={assembly === "GRCh38" ? currentHumanGene : currentMouseGene}
+        open={configGBopen}
+        setOpen={setConfigGBOpen}
+      />
     </>
   )
 }
