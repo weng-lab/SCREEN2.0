@@ -16,7 +16,7 @@ import {  BigQueryResponse } from "../_gbview/types"
 import { BigBedData } from "bigwig-reader"
 import { styled } from '@mui/material/styles';
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
-
+import config from "../../../config.json"
 const StyledTab = styled(Tab)(() => ({
     textTransform: "none",
   }))
@@ -78,7 +78,7 @@ export const ChromHMM = (props: { coordinates , assembly, accession }) =>{
 
     useEffect(() => {
         
-          fetch("https://downloads.wenglab.org/humanchromhmmchipseq.tsv")
+          fetch(config.ChromHMM.HumanChromHMM)
             .then((x) => x.text())
             .then((x) => {
                 const lines = x.split("\n")
