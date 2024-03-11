@@ -16,6 +16,7 @@ export const BIOSAMPLE_QUERY = gql`
     ccREBiosampleQuery(assembly: $assembly) {
       biosamples {
         name
+        displayname
         dnase: experimentAccession(assay: "DNase")
         h3k4me3: experimentAccession(assay: "H3K4me3")
         h3k27ac: experimentAccession(assay: "H3K27ac")

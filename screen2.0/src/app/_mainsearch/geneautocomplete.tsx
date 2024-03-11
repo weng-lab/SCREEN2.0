@@ -53,6 +53,7 @@ export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
         variables: {
           assembly: assembly.toLowerCase(),
           name_prefix: value,
+          version: assembly.toLowerCase()==="grch38" ? 40 : 25,
           limit: 1000
         },
       }),
@@ -85,7 +86,7 @@ export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
       let chrom = geneids.find((g) => g.name === value)?.chrom
       let start = geneids.find((g) => g.name === value)?.start
       let end = geneids.find((g) => g.name === value)?.end
-      return (`search?assembly=${props.assembly}&chromosome=${chrom}&start=${start}&end=${end}&gene=${value}&tssDistance=0`)
+      return (`/search?assembly=${props.assembly}&chromosome=${chrom}&start=${start}&end=${end}&gene=${value}&tssDistance=0`)
     }
   }
 

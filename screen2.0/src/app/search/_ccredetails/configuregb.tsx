@@ -12,6 +12,7 @@ import DownloadIcon from '@mui/icons-material/Download';
 import { ApolloQueryResult } from "@apollo/client";
 import { BIOSAMPLE_Data } from "../../../common/lib/queries";
 
+
 const CREATE_TRACKHUB_QUERY = `
   query ($assembly: String!,$uuid: String!,$celltypes: [CellTypeInput]!) {
     createTrackhubQuery(uuid: $uuid, celltypes: $celltypes, assembly:$assembly)
@@ -20,8 +21,6 @@ const CREATE_TRACKHUB_QUERY = `
 
 const ConfigureGenomeBrowser = (props: {
   biosampleData: ApolloQueryResult<BIOSAMPLE_Data>
-  selectedBiosamples: RegistryBiosamplePlusRNA[],
-  setSelectedBiosamples: Dispatch<SetStateAction<RegistryBiosamplePlusRNA[]>>,
   coordinates: {
     assembly: "GRCh38" | "mm10"
     chromosome: string
@@ -33,6 +32,7 @@ const ConfigureGenomeBrowser = (props: {
 }) => {
   const [currentURLs, setCurrentURLs] = useState<{urlUCSC: string, urlTrackhub: string, biosamples: RegistryBiosamplePlusRNA[]}>(null)
   const [open, setOpen] = useState(false);
+  const [selectedBiosamples, setSelectedBiosamples] = useState<RegistryBiosamplePlusRNA[]>([])
 
   const handleOpen = () => {
     setOpen(true);
@@ -65,12 +65,12 @@ const ConfigureGenomeBrowser = (props: {
 
     const ucscbrowserurl =  `https://genome.ucsc.edu/cgi-bin/hgTracks?db=${props.coordinates.assembly}&position=${props.coordinates.chromosome}:${start}-${end}&hubClear=${trackhuburl}&highlight=${props.coordinates.assembly}.${props.coordinates.chromosome}%3A${props.coordinates.start}-${props.coordinates.end}`
 
-    setCurrentURLs({urlUCSC: ucscbrowserurl, urlTrackhub: trackhuburl, biosamples: props.selectedBiosamples})
+    setCurrentURLs({urlUCSC: ucscbrowserurl, urlTrackhub: trackhuburl, biosamples: selectedBiosamples})
 
-    return {urlUCSC: ucscbrowserurl, urlTrackhub: trackhuburl, biosamples: props.selectedBiosamples}
+    return {urlUCSC: ucscbrowserurl, urlTrackhub: trackhuburl, biosamples: selectedBiosamples}
   }
 
-  const parsedBiosamples = props.selectedBiosamples.map(s => {
+  const parsedBiosamples = selectedBiosamples.map(s => {
     return s.rnaseq ? {
       celltype: s.name,
       rnaseq: true,
@@ -83,7 +83,7 @@ const ConfigureGenomeBrowser = (props: {
 
   const getURL = async (x: "ucsc" | "trackhub") => {
     //If current urls are outdated, create new ones
-    if (!currentURLs || (JSON.stringify(currentURLs.biosamples) !== JSON.stringify(props.selectedBiosamples))){
+    if (!currentURLs || (JSON.stringify(currentURLs.biosamples) !== JSON.stringify(selectedBiosamples))){
       return x === "ucsc" ? (await createTrackHub(parsedBiosamples)).urlUCSC : (await createTrackHub(parsedBiosamples)).urlTrackhub
     } else {
       return x === "ucsc" ? currentURLs.urlUCSC : currentURLs.urlTrackhub
@@ -99,7 +99,7 @@ const ConfigureGenomeBrowser = (props: {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `UCSC-${props.selectedBiosamples.map(x => x.displayname).join('+')}.txt`);
+      link.setAttribute('download', `UCSC-${selectedBiosamples.map(x => x.displayname).join('+')}.txt`);
       link.click();
       URL.revokeObjectURL(url); // Clean up the object URL
     } catch (error) {
@@ -132,15 +132,15 @@ const ConfigureGenomeBrowser = (props: {
               biosampleSelectMode="append"
               biosampleData={props.biosampleData}
               assembly={props.coordinates.assembly}
-              selectedBiosamples={props.selectedBiosamples}
-              setSelectedBiosamples={props.setSelectedBiosamples} />
+              selectedBiosamples={selectedBiosamples}
+              setSelectedBiosamples={setSelectedBiosamples} />
           </Grid2>
           <Grid2 xs={12} lg={5}>
-            <Typography minWidth={"300px"} visibility={props.selectedBiosamples.length > 0 ? "visible" : "hidden"} mt={2}>Selected Biosamples:</Typography>
-            {props.selectedBiosamples.map((biosample, i) => {
+            <Typography minWidth={"300px"} visibility={selectedBiosamples.length > 0 ? "visible" : "hidden"} mt={2}>Selected Biosamples:</Typography>
+            {selectedBiosamples.map((biosample, i) => {
               return (
                 <Stack minWidth={"300px"} mt={1} direction="row" alignItems={"center"} key={i}>
-                  <IconButton onClick={() => props.setSelectedBiosamples(props.selectedBiosamples.filter((x) => x.displayname !== biosample.displayname))}>
+                  <IconButton onClick={() => setSelectedBiosamples(selectedBiosamples.filter((x) => x.displayname !== biosample.displayname))}>
                     <Close />
                   </IconButton>
                   <Typography>{biosample.displayname}</Typography>
@@ -152,12 +152,12 @@ const ConfigureGenomeBrowser = (props: {
       </DialogContent>
       <DialogActions sx={!props.handleClose && { position: "fixed", bottom: 15, right: 15 }}>
         <Tooltip placement="top" arrow title="Copy link to Trackhub">
-          <IconButton disabled={props.selectedBiosamples.length === 0} onClick={async () => {updateClipboard(await getURL("trackhub")); handleOpen();}}>
+          <IconButton disabled={selectedBiosamples.length === 0} onClick={async () => {updateClipboard(await getURL("trackhub")); handleOpen();}}>
             <ContentCopyIcon />
           </IconButton>
         </Tooltip>
         <Tooltip placement="top" arrow title="Download Trackhub (.txt)" sx={{mr: 1}}>
-          <IconButton disabled={props.selectedBiosamples.length === 0} onClick={async () => handleDownload(await getURL("trackhub"))}>
+          <IconButton disabled={selectedBiosamples.length === 0} onClick={async () => handleDownload(await getURL("trackhub"))}>
             <DownloadIcon />
           </IconButton>
         </Tooltip>
@@ -165,7 +165,7 @@ const ConfigureGenomeBrowser = (props: {
           sx={{textTransform: "none"}}
           endIcon={<SendIcon />}
           variant="contained"
-          disabled={props.selectedBiosamples.length === 0}
+          disabled={selectedBiosamples.length === 0}
           onClick={async () => window.open(await getURL("ucsc"))}
         >
           Open in UCSC

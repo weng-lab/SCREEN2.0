@@ -40,8 +40,8 @@ export function PlotActivityProfiles(props: {
   range: Range2D
   dimensions: Range2D
   peakID: string
+  sort: "byValue" | "byTissueMax" | "byTissue"
 }) {
-  const [sort, setSort] = useState<string>("byValue")
   let tissues: { [id: string]: { sum: number; values: GeneExpEntry[] } } = {} // dict of ftissues
   let byValueTissues: { [id: string]: { sum: number; values: GeneExpEntry[] } } = {} // dict of ftissues
   let byTissueMaxTissues: { [id: string]: { sum: number; values: GeneExpEntry[] } } = {} // dict of ftissues
@@ -64,7 +64,7 @@ export function PlotActivityProfiles(props: {
         color: tissueColors[biosample["tissue"]] ?? tissueColors.missing,
       })
       tissues[biosample["tissue"]].values.sort((a,b)=>b.value-a.value);
-      if (sort === "byTissueMax" && tissues[biosample["tissue"]].sum > max) max = tissues[biosample["tissue"]].sum
+      if (props.sort === "byTissueMax" && tissues[biosample["tissue"]].sum > max) max = tissues[biosample["tissue"]].sum
       else if (biosample["value"] > max) max = biosample["value"]
     }
   })
@@ -106,18 +106,18 @@ export function PlotActivityProfiles(props: {
              {" " + item.biosample_term} 
             {" (" + item.strand + ")"}
           </text>
-          {(sort === 'byValue' || sort === 'byTissueMax') &&
+          {(props.sort === 'byValue' || props.sort === 'byTissueMax') &&
             <text
-              text-anchor="end"
+              textAnchor="end"
               x={140}
               y={y + (i * 20 + 15)}
             >
               {entry[0].split("-")[0]}
             </text>
           }
-          {sort=== 'byTissue' && i === Math.floor(Object.values(info.values).length / 2) &&
+          {props.sort=== 'byTissue' && i === Math.floor(Object.values(info.values).length / 2) &&
             <text
-              text-anchor="end"
+              textAnchor="end"
               x={140}
               // If the tissue has an even number of values, bump up a little
               y={y + (i * 20 + 15) - (((Object.values(info.values).length % 2) !== 0) ? 0 : 12)}
@@ -154,54 +154,28 @@ export function PlotActivityProfiles(props: {
       values : [tissues[k].values[0]]
     }
   })
-const tissueValues = sort==="byValue" ? byValueTissues: sort==="byTissueMax" ? byTissueMaxTissues : tissues;
+  const tissueValues = props.sort === "byValue" ? byValueTissues : props.sort === "byTissueMax" ? byTissueMaxTissues : tissues;
   return (
-    <Box>
-      <Grid2 xs={1} sx={{ ml: 0, mt: 2, display: "flex" }}>
-        <Box>
-          <FormControl key={sort}>
-            <InputLabel id="sort-by-label" sx={{ mb: 10 }}>
-              Sort By
-            </InputLabel>
-            <Select
-              label="Sort By"
-              labelId="sort-by-label"
-              id="sort-by"
-              value={sort}
-              onChange={(event: SelectChangeEvent) => {
-                setSort(event.target.value)
-              }}
-              size="small"
-            >
-              <MenuItem value="byTissue">Tissue</MenuItem>
-              <MenuItem value="byTissueMax">Tissue Max</MenuItem>
-              <MenuItem value="byValue">Value</MenuItem>
-            </Select>
-          </FormControl>
-        </Box>
-      </Grid2>
-      {/* rampage plot */}
-      <Grid2 xs={12}>
-        <Box>
-        {Object.keys(tissueValues).length === 0 ? <span>{'No Data Available'}</span> : 
-           <Stack>
-          {Object.entries(tissueValues).map((entry, index: number) => {
-            let info = entry[1]
-            y += info.values.length * 20 + 20 + 25
-            let view: string = "0 0 1200 " + (info.values.length * 20 +10)
-            return (
-               <svg className="graph" aria-labelledby="title desc" role="img" viewBox={view} key={index}>
-                    <g className="data" data-setname="gene expression plot">
-                      
-                      {plotGeneExp(entry, 5)}
-                    </g>
-                  </svg>
-            )
-          })}
+    // <Grid2 xs={12}>
+      <Box>
+        {Object.keys(tissueValues).length === 0 ? <span>{'No Data Available'}</span> :
+          <Stack>
+            {Object.entries(tissueValues).map((entry, index: number) => {
+              let info = entry[1]
+              y += info.values.length * 20 + 20 + 25
+              let view: string = "0 0 1200 " + (info.values.length * 20 + 10)
+              return (
+                <svg className="graph" aria-labelledby="title desc" role="img" viewBox={view} key={index}>
+                  <g className="data" data-setname="gene expression plot">
+
+                    {plotGeneExp(entry, 5)}
+                  </g>
+                </svg>
+              )
+            })}
           </Stack>}
-        </Box>
-      </Grid2>
-    </Box>
+      </Box>
+    // </Grid2>
   )
 }
 
@@ -213,11 +187,9 @@ export const GROUP_COLOR_MAP: Map<string, string> = new Map([
   ["CA-H3K4me3", "Chromatin Accessible with H3K4me3:#ffaaaa"],
   ["TF", "TF:#d876ec"],
   ["CA", "Chromatin Accessible Only:#06DA93"],
-  ["pELS","Proximal Enhancer-Like Signature:#ffcd00"],
-  ["dELS","Distal Enhancer-Like Signature:#ffcd00"],
-  ["PLS","Promoter-Like Signature:#ff0000"],
-  ["DNase-H3K4me3","DNase-H3K4me3:#ffaaaa"],
-  ["CTCF","CTCF Bound:#00b0f0"],
+  ["pELS","Proximal Enhancer-Like Signature:#FFA700"],
+  ["dELS","Distal Enhancer-Like Signature:#FFCD00"],
+  ["PLS","Promoter-Like Signature:#ff0000"],    
   ["ylowdnase","Low DNase:#8c8c8c"],
   ["zunclassified","zunclassified:#8c8c8c"]  
 ])

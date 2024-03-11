@@ -187,8 +187,8 @@ const LINKED_GENES_QUERY = gql`
 `
 
 const GENE_QUERY = gql`
-  query($assembly: String!, $name_prefix: [String!]) {
-    gene(assembly: $assembly, name_prefix: $name_prefix) {
+  query($assembly: String!, $name_prefix: [String!], $version: Int) {
+    gene(assembly: $assembly, name_prefix: $name_prefix, version: $version) {
       name
       id
     }
@@ -209,7 +209,7 @@ export async function fetchLinkedGenes(assembly: "GRCh38" | "mm10", accessions: 
   try {
     linkedGenes = await getClient().query({
       query: LINKED_GENES_QUERY,
-      variables: { assembly: assembly, accession: accessions },
+      variables: { assembly, accession: accessions },
       fetchPolicy: "no-cache"
     })
     linkedGenes.data.linkedGenesQuery.forEach((entry) => {
@@ -219,7 +219,7 @@ export async function fetchLinkedGenes(assembly: "GRCh38" | "mm10", accessions: 
     try {
       geneNames = await getClient().query({
         query: GENE_QUERY,
-        variables: { assembly: assembly, name_prefix: geneIDs },
+        variables: { assembly, name_prefix: geneIDs, version: assembly.toLowerCase()==="grch38" ? 40: 25 },
         fetchPolicy: "no-cache"
       })
       //If both queries are successful, go through each of linkedGenes.data.linkedGenesQuery and assemble return data

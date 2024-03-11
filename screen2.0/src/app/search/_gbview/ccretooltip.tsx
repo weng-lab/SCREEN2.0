@@ -2,22 +2,7 @@ import { gql, useQuery } from "@apollo/client"
 import React, { useMemo } from "react"
 import { CircularProgress } from "@mui/material"
 import { client } from "../_ccredetails/client"
-
-export const COLORS = new Map([
-  ["PLS", "#ff0000"],
-  ["pELS", "#ffa700"],
-  ["dELS", "#ffcd00"],
-  ["DNase-H3K4me3", "#ffaaaa"],
-  ["CTCF-only", "#00b0f0"],
-])
-
-export const GROUPS = new Map([
-  ["PLS", "promoter-like"],
-  ["pELS", "proximal enhancer-like"],
-  ["dELS", "distal enhancer-like"],
-  ["DNase-H3K4me3", "DNase-H3K4me3"],
-  ["CTCF-only", "CTCF-only"],
-])
+import { GROUP_COLOR_MAP } from "../_ccredetails/utils"
 
 const QUERY = gql`
   query cCRE($assembly: String!, $accession: [String!], $experiments: [String!]) {
@@ -39,18 +24,19 @@ const MAXZ_QUERY = gql`
       h3k4me3: maxZ(assay: "h3k4me3")
       h3k27ac: maxZ(assay: "h3k27ac")
       ctcf: maxZ(assay: "ctcf")
+      atac: maxZ(assay: "atac")
     }
   }
 `
 
-const biosampleExperiments = (x) => [x.dnase, x.h3k4me3, x.h3k27ac, x.ctcf].filter((xx) => !!xx)
+const biosampleExperiments = (x) => [x.dnase, x.h3k4me3, x.h3k27ac, x.ctcf, x.atac].filter((xx) => !!xx)
 
-const MARKS = ["DNase", "H3K4me3", "H3K27ac", "CTCF"]
-const marks = (x) => [x.dnase, x.h3k4me3, x.h3k27ac, x.ctcf].map((x, i) => x && MARKS[i]).filter((xx) => !!xx)
+const MARKS = ["DNase", "H3K4me3", "H3K27ac", "CTCF", "ATAC"]
+const marks = (x) => [x.dnase, x.h3k4me3, x.h3k27ac, x.ctcf, x.atac].map((x, i) => x && MARKS[i]).filter((xx) => !!xx)
 
 const CCRETooltip = (props) => {
   const experiments = useMemo(
-    () => (props.biosample ? biosampleExperiments(props.biosample) : ["dnase", "h3k4me3", "h3k27ac", "ctcf"]),
+    () => (props.biosample ? biosampleExperiments(props.biosample) : ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]),
     [props]
   )
   const { data, loading } = useQuery(props.biosample ? QUERY : MAXZ_QUERY, {
@@ -68,11 +54,15 @@ const CCRETooltip = (props) => {
       ) : (
         <>
           <svg height={18}>
-            <rect width={10} height={10} y={3} fill={COLORS.get(data.cCREQuery[0].group || "") || "#06da93"} />
+            <rect width={10} height={10} y={3} fill={GROUP_COLOR_MAP.get(data.cCREQuery[0].group).split(":")[1] || "#8c8c8c"} />
             <text x={16} y={12}>
-              {props.name} ⸱ {GROUPS.get(data.cCREQuery[0].group || "")}
+              {props.name}
             </text>
           </svg>
+          {GROUP_COLOR_MAP.get(data.cCREQuery[0].group).split(":")[0]}
+          
+          <br/>
+          <br/>
           Click for details about this cCRE
           <br />
           <br />

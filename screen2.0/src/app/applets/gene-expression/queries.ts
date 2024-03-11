@@ -21,8 +21,8 @@ query geneexpression($assembly: String!, $accessions: [String], $gene_id: [Strin
 }
  `
 export const GENE_QUERY = gql`
- query ($assembly: String!, $name: [String!], $limit: Int) {
-   gene(assembly: $assembly, name: $name, limit: $limit) {
+ query ($assembly: String!, $name: [String!], $limit: Int, $version: Int) {
+   gene(assembly: $assembly, name: $name, limit: $limit, version: $version) {
      name
      id
      coordinates {

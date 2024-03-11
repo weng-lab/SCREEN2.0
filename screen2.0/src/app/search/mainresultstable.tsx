@@ -8,6 +8,7 @@ import { ArrowDropDown, ArrowRight } from "@mui/icons-material"
 import ConfigureGenomeBrowser from "./_ccredetails/configuregb"
 import { ApolloQueryResult } from "@apollo/client"
 import { BIOSAMPLE_Data } from "../../common/lib/queries"
+import ConfigureGBModal from "./_ccredetails/configuregbmodal"
 
 
 interface MainResultsTableProps extends Partial<DataTableProps<any>> {
@@ -284,44 +285,25 @@ export function MainResultsTable(props: MainResultsTableProps) {
       },
       FunctionalRender: (row: MainResultTableRow) => {
         const [open, setOpen] = useState(false);
-        const [selectedBiosamples, setSelectedBiosamples] = useState<RegistryBiosamplePlusRNA[]>([])
-
-        const handleClickOpen = () => {
-          setOpen(true);
-        };
-      
-        const handleClose = () => {
-          setOpen(false);
-        };
 
         return (
           //Box's onClick prevents onRowClick from running when interacting with modal
           <Box onClick={(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => { event.stopPropagation() }}>
-            <Button variant="outlined"
-              onClick={handleClickOpen}
-            >
+            <Button variant="outlined" onClick={() => setOpen(true)}>
               UCSC
             </Button>
-            <Dialog
+            <ConfigureGBModal
+              biosampleData={props.biosampleData}
+              coordinates={{
+                assembly: props.assembly,
+                chromosome: row.chromosome,
+                start: row.start,
+                end: row.end,
+              }}
+              accession={row.accession}
               open={open}
-              onClose={handleClose}
-              disableRestoreFocus
-              PaperProps={{ sx: { maxWidth: "none" } }}
-            >
-              <ConfigureGenomeBrowser
-                biosampleData={props.biosampleData}
-                selectedBiosamples={selectedBiosamples}
-                setSelectedBiosamples={setSelectedBiosamples}
-                coordinates={{
-                  assembly: props.assembly,
-                  chromosome: row.chromosome,
-                  start: row.start,
-                  end: row.end,
-                }}
-                accession={row.accession}
-                handleClose={handleClose}
-              />
-            </Dialog>
+              setOpen={setOpen}
+            />
           </Box>
         )
       }
