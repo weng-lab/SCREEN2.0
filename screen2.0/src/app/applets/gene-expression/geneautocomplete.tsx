@@ -107,7 +107,7 @@ export default function GeneAutoComplete(props: {
     <Stack direction="row" alignItems="center">
       <Autocomplete
         disablePortal
-        freeSolo={false}
+        freeSolo={true}
         id="gene-ids"
         noOptionsText={props.assembly === "GRCh38" ? "e.g. SOX4, GAPDH" : "e.g. SCML2, DBT"}
         options={options}
@@ -124,7 +124,7 @@ export default function GeneAutoComplete(props: {
         }}
         onInputChange={(_, value: string) => {
           if (value != "") debounceFn(value, props.assembly)
-          setGeneID(value)
+          value && setGeneID(value)
         }}
         onKeyDown={(e) => {
           if (e.key == "Enter") {

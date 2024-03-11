@@ -212,7 +212,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         page,
         opencCREs.map(x => x.ID).join(',')
       )
-      console.log("pushing new url:" + newURL)
+      // console.log("pushing new url:" + newURL)
       router.push(newURL)
     }
   }, [searchParams, mainQueryParams, filterCriteria, biosampleTableFilters, page, opencCREs, router, basePathname, opencCREsInitialized, loadingFetch])

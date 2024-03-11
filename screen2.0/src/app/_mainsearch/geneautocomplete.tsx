@@ -86,7 +86,7 @@ export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
       let chrom = geneids.find((g) => g.name === value)?.chrom
       let start = geneids.find((g) => g.name === value)?.start
       let end = geneids.find((g) => g.name === value)?.end
-      return (`search?assembly=${props.assembly}&chromosome=${chrom}&start=${start}&end=${end}&gene=${value}&tssDistance=0`)
+      return (`/search?assembly=${props.assembly}&chromosome=${chrom}&start=${start}&end=${end}&gene=${value}&tssDistance=0`)
     }
   }
 

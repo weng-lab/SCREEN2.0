@@ -35,7 +35,7 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
         try {
           region = parseGenomicRegion(valueRegion)
           return (
-            `search?assembly=${props.assembly}&chromosome=${region.chromosome}&start=${Math.max(0, Number(region.start))}&end=${region.end}&BiosampleTissue=${tissue}&BiosampleSummary=${biosample_summary}&Biosample=${biosample}`
+            `/search?assembly=${props.assembly}&chromosome=${region.chromosome}&start=${Math.max(0, Number(region.start))}&end=${region.end}&BiosampleTissue=${tissue}&BiosampleSummary=${biosample_summary}&Biosample=${biosample}`
           )
         }
         catch (msg) {
@@ -45,7 +45,7 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
       } else {
         region = { chromosome: 'chr11', start: "5205263", end: "5381894" }
         return (
-          `search?assembly=${props.assembly}&chromosome=${region.chromosome}&start=${Math.max(0, Number(region.start))}&end=${region.end}&BiosampleTissue=${tissue}&BiosampleSummary=${biosample_summary}&Biosample=${biosample}`
+          `/search?assembly=${props.assembly}&chromosome=${region.chromosome}&start=${Math.max(0, Number(region.start))}&end=${region.end}&BiosampleTissue=${tissue}&BiosampleSummary=${biosample_summary}&Biosample=${biosample}`
         )
       }
     }
