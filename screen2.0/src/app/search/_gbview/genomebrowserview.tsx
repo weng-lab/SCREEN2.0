@@ -105,7 +105,8 @@ export const GenomeBrowserView: React.FC<GenomeBrowserViewProps> = (props) => {
   const svgRef = useRef<SVGSVGElement>(null)
   const expandedCoordinates = useMemo(() => expandCoordinates(props.coordinates), [props.coordinates])
   const [coordinates, setCoordinates] = useState<GenomicRange>(expandedCoordinates)
-  const [highlight, setHighlight] = useState(null)  
+  const [highlight, setHighlight] = useState(null)
+  
   const [cTracks, setTracks] = useState<[string, string, string][] | null>(null)
   const snpResponse = useQuery<SNPQueryResponse>(GENE_QUERY, {
     variables: { ...coordinates, assembly: props.assembly, version: props.assembly.toLowerCase()==="grch38" ? 40 : 25  },

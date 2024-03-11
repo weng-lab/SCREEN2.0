@@ -34,6 +34,9 @@
     "CcreAPI": "https://factorbook.api.wenglab.org/graphql",
     "GraphqlAPI": "https://ga.staging.wenglab.org/graphql"
   },
+  "ChromHMM": {
+    "HumanChromHMM": "https://downloads.wenglab.org/humanchromhmmchipseq.tsv"
+  },
   "Downloads": {
     "HumanCCREs": "https://downloads.wenglab.org/Registry-V4/GRCh38-cCREs.bed",
     "HumanPromoters": "https://downloads.wenglab.org/Registry-V4/GRCh38-cCREs.PLS.bed",

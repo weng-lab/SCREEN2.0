@@ -11,7 +11,7 @@ import { MainResultsFilters } from "./mainresultsfilters"
 import { CcreDetails } from "./_ccredetails/ccredetails"
 import { usePathname, useRouter } from "next/navigation"
 import { GenomeBrowserView } from "./_gbview/genomebrowserview"
-import { LinkedGenesData, RawLinkedGenesData } from "./types"
+import { RawLinkedGenesData } from "./types"
 import { generateFilteredRows } from "./searchhelpers"
 import { Drawer } from "@mui/material"
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar'
@@ -20,6 +20,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import CloseIcon from '@mui/icons-material/Close';
 import Rampage from "./_ccredetails/rampage";
+
 import { GeneExpression } from "./_ccredetails/geneexpression";
 import { LoadingMessage } from "../../common/lib/utility"
 import { Download } from "@mui/icons-material"
@@ -519,6 +520,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               <StyledTab label="TF Motifs and Sequence Features" sx={{ alignSelf: "start" }} />
               <StyledTab label="Configure UCSC Genome Browser" sx={{ alignSelf: "start" }} />
               {mainQueryParams.coordinates.assembly !== "mm10" && <StyledTab label="Associated RAMPAGE Signal" sx={{ alignSelf: "start" }} />}
+              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledTab label="ChromHMM States" sx={{ alignSelf: "start" }} />}
             </Tabs>
           }
         </Drawer>
@@ -604,6 +606,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           {mainQueryParams.gene.name && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" && page === 3 && (
             <Rampage genes={[{name: mainQueryParams.gene.name}]} biosampleData={biosampleData}/>
           )}
+         
           {page >= numberOfDefaultTabs && opencCREs.length > 0 && (
             opencCREs[page - numberOfDefaultTabs] ?
             <CcreDetails
