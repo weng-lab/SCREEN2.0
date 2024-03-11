@@ -128,7 +128,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     ID: string,
     region: { start: number, end: number, chrom: string }
   }[]>([])
-  // const [globals, setGlobals] = useState<CellTypeData>(null)
   const [biosampleData, setBiosampleData] = useState<ApolloQueryResult<BIOSAMPLE_Data>>(null)
   const [mainQueryData, setMainQueryData] = useState<MainQueryData>(null)
   const [rawLinkedGenesData, setRawLinkedGenesData] = useState<RawLinkedGenesData>(null)
@@ -600,10 +599,10 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
             />
           )}
           {mainQueryParams.gene.name && page === 2 &&
-            <GeneExpression assembly={mainQueryParams.coordinates.assembly} genes={[{name: mainQueryParams.gene.name}]} />
+            <GeneExpression assembly={mainQueryParams.coordinates.assembly} genes={[{name: mainQueryParams.gene.name}]} biosampleData={biosampleData} />
           }
           {mainQueryParams.gene.name && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" && page === 3 && (
-            <Rampage genes={[{name: mainQueryParams.gene.name}]} />
+            <Rampage genes={[{name: mainQueryParams.gene.name}]} biosampleData={biosampleData}/>
           )}
           {page >= numberOfDefaultTabs && opencCREs.length > 0 && (
             opencCREs[page - numberOfDefaultTabs] ?
