@@ -108,10 +108,10 @@ const DefaultTracks: React.FC<DefaultTracksProps> = (props) => {
         ]
       : [
           ["All cCREs colored by group", "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed"],
-          ["Aggregated DNase-seq signal, all Registry biosamples", "gs://gcp.wenglab.org/dnase.GRCh38.sum.bigWig"],
-          ["Aggregated H3K4me3 ChIP-seq signal, all Registry biosamples", "gs://gcp.wenglab.org/h3k4me3.hg38.sum.bigWig"],
-          ["Aggregated H3K27ac ChIP-seq signal, all Registry biosamples", "gs://gcp.wenglab.org/h3k27ac.hg38.sum.bigWig"],
-          ["Aggregated CTCF ChIP-seq signal, all Registry biosamples", "gs://gcp.wenglab.org/ctcf.hg38.sum.bigWig"],
+          ["Aggregated DNase-seq signal, all Registry biosamples", "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw"],
+          ["Aggregated H3K4me3 ChIP-seq signal, all Registry biosamples", "https://downloads.wenglab.org/H3K4me3_All_ENCODE_MAR20_2024_merged.bw"],
+          ["Aggregated H3K27ac ChIP-seq signal, all Registry biosamples", "https://downloads.wenglab.org/H3K27ac_All_ENCODE_MAR20_2024_merged.bw"],
+          ["Aggregated CTCF ChIP-seq signal, all Registry biosamples", "https://downloads.wenglab.org/CTCF_All_ENCODE_MAR20_2024_merged.bw"],
         ]
   )
   const height = useMemo(() => cTracks.length * 80, [cTracks])
