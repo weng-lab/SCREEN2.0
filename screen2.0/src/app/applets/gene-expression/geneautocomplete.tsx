@@ -8,6 +8,7 @@ import { QueryResponse } from "../../../../types/types"
 import { Dispatch, SetStateAction } from "react"
 import Config from "../../../config.json"
 import { Add, Search } from "@mui/icons-material"
+import { alphabetMap } from "../../search/_ccredetails/utils"
 
 
 const GENE_AUTOCOMPLETE_QUERY = `
@@ -109,7 +110,7 @@ export default function GeneAutoComplete(props: {
         disablePortal
         freeSolo={true}
         id="gene-ids"
-        noOptionsText={props.assembly === "GRCh38" ? "e.g. SOX4, GAPDH" : "e.g. SCML2, DBT"}
+        noOptionsText={props.assembly === "mm10" ? `e.g., ${"Scml2".split("").map(s=>alphabetMap.get(s)).join("")},${"Dbt".split("").map(s=>alphabetMap.get(s)).join("")}` : `e.g., ${"SOX4".split("").map(s=>alphabetMap.get(s)).join("")},${"GAPDH".split("").map(s=>alphabetMap.get(s)).join("")}`}            
         options={options}
         size="medium"
         sx={{ width: 200 }}
@@ -147,7 +148,7 @@ export default function GeneAutoComplete(props: {
               <Grid2 container alignItems="center">
                 <Grid2 sx={{ width: "calc(100% - 44px)" }}>
                   <Box component="span" sx={{ fontWeight: "regular" }}>
-                    {opt}
+                    <i>{opt}</i>
                   </Box>
                   {geneDesc && geneDesc.find((g) => g.name === opt) && (
                     <Typography variant="body2" color="text.secondary">

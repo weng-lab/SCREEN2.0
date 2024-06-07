@@ -6,7 +6,7 @@ import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown"
 import MenuIcon from "@mui/icons-material/Menu"
 import Link from "next/link"
 import Image from "next/image"
-import screenIcon from "../../public/screenIcon.png"
+import screenIcon from "../../public/screenLogo.png"
 import { MainSearch } from "./_mainsearch/mainsearch"
 
 
@@ -86,31 +86,11 @@ function ResponsiveAppBar() {
     <>
       <AppBar position="fixed">
         <Container maxWidth={false}>
-          <Toolbar disableGutters sx={{ justifyContent: "space-between" }}>
+          <Toolbar sx={{ justifyContent: "space-between" }}>
             {/* Display Icon on left when >=900px */}
             <Link href={"/"}>
-              <Image src={screenIcon} alt="SCREEN Icon" height={40} width={40} />
-            </Link>
-            <Typography
-              variant="h5"
-              noWrap
-              component="a"
-              href={"/"}
-              sx={{
-                mr: 2,
-                ml: 1,
-                display: { xs: "flex" },
-                // flexShrink: 0,
-                flexGrow: { xs: 1, lg: 0 },
-                fontFamily: "monospace",
-                fontWeight: 700,
-                letterSpacing: ".3rem",
-                color: "inherit",
-                textDecoration: "none",
-              }}
-            >
-              SCREEN
-            </Typography>
+              <Image src={screenIcon} alt="SCREEN Icon" height={40} width={90} style={{ marginLeft: "30px", marginRight: "30px" }}/>
+            </Link>         
            
             {/* Main navigation items for desktop */}
             <Box sx={{ flexGrow: 1, flexShrink: 1, display: { xs: "none", lg: "flex" } }}>

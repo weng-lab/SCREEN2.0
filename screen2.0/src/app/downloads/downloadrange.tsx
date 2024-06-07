@@ -137,7 +137,7 @@ export const DownloadRange: React.FC<DownloadRangeProps> = ({biosampleData}) => 
           variant="outlined"
           InputLabelProps={{ shrink: true }}
           label="Enter a genomic region"
-          placeholder="chr11:5205263-5381894"
+          placeholder={`chr11:${(5205263).toLocaleString()}-${(5381894).toLocaleString()}`}
           value={inputValue}
           fullWidth
           onChange={handleChange}

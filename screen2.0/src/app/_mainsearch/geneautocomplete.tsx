@@ -9,6 +9,7 @@ import { GENE_AUTOCOMPLETE_QUERY } from "./queries"
 import Config from "../../config.json"
 import { IconButton, Stack } from "@mui/material"
 import { Search } from "@mui/icons-material"
+import { alphabetMap } from "../search/_ccredetails/utils"
 type QueryResponse = [number, string[], any, [string, string, string, string, string, string][], string[]]
 
 export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> = (props) => {
@@ -120,13 +121,13 @@ export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
 
           setInputValue(newInputValue)
         }}
-        noOptionsText="e.g sox4,gapdh"
+        noOptionsText={props.assembly === "mm10" ? `e.g., ${"Scml2".split("").map(s=>alphabetMap.get(s)).join("")},${"Dbt".split("").map(s=>alphabetMap.get(s)).join("")}` : `e.g., ${"SOX4".split("").map(s=>alphabetMap.get(s)).join("")},${"GAPDH".split("").map(s=>alphabetMap.get(s)).join("")}`}            
         renderInput={(params) => (
           <TextField
             {...params}
             label="Enter a gene name"
             InputLabelProps={{ shrink: true, style: props.header ? {color: "white"} : { color: "black" } }}
-            placeholder={props.assembly === "mm10" ? "e.g Scml2,Dbt" : "e.g sox4,gapdh"}
+            placeholder={props.assembly === "mm10" ? `e.g., ${"Scml2".split("").map(s=>alphabetMap.get(s)).join("")},${"Dbt".split("").map(s=>alphabetMap.get(s)).join("")}` : `e.g., ${"SOX4".split("").map(s=>alphabetMap.get(s)).join("")},${"GAPDH".split("").map(s=>alphabetMap.get(s)).join("")}`}            
             fullWidth
             sx={{
               //Border at rest
@@ -150,7 +151,7 @@ export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
               <Grid2 container alignItems="center">
                 <Grid2 sx={{ width: "100%" }}>
                   <Box component="span" sx={{ fontWeight: "regular" }}>
-                    {option}
+                    <i>{option}</i>
                   </Box>
                   {geneDesc && geneDesc.find((g) => g.name === option) && (
                     <Typography variant="body2" color="text.secondary">

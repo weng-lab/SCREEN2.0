@@ -5,7 +5,7 @@ import { useQuery } from "@apollo/client"
 import { LINKED_GENES, GENE_NAME } from "./queries"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
-import { LoadingMessage, createLink } from "../../../common/lib/utility"
+import { LoadingMessage, createGeneLink } from "../../../common/lib/utility"
 
 type geneRow = {
   gene: string
@@ -80,7 +80,7 @@ export const LinkedGenes: React.FC<{ accession: string; assembly: string }> = ({
                   {
                     header: "Gene",
                     value: (row: geneRow) => row.gene,
-                    render: (row: geneRow) => createLink("http://www.genecards.org/cgi-bin/carddisp.pl?gene=", row.gene),
+                    render: (row: geneRow) => createGeneLink("http://www.genecards.org/cgi-bin/carddisp.pl?gene=", row.gene),
                   },
                   {
                     header: "Biosample",

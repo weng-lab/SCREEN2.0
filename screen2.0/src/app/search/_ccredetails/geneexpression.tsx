@@ -16,6 +16,7 @@ import { ReadonlyURLSearchParams, usePathname, useSearchParams, useRouter } from
 import ConfigureGBModal from "./configuregbmodal"
 import { ApolloQueryResult } from "@apollo/client"
 import { BIOSAMPLE_Data } from "../../../common/lib/queries"
+import { alphabetMap } from "./utils"
 
 /**
  * @todo
@@ -208,7 +209,7 @@ export function GeneExpression(props: {
         <Typography
           alignSelf={"flex-end"}
           variant={props.applet ? "h4" : "h5"}>
-          {`${assembly === "GRCh38" ? currentHumanGene : currentMouseGene} Gene Expression Profiles by RNA-seq`}
+          <i>{assembly === "GRCh38" ? currentHumanGene : currentMouseGene} </i> Gene Expression Profiles by RNA-seq
         </Typography>
         <Stack direction="row" spacing={3}>
           <Button
@@ -242,7 +243,7 @@ export function GeneExpression(props: {
               <InputLabel>Gene</InputLabel>
               <GeneAutoComplete
                 assembly={assembly}
-                gene={assembly === "GRCh38" ? currentHumanGene : currentMouseGene}
+                gene={assembly === "GRCh38" ? currentHumanGene.split("").map(s=>alphabetMap.get(s)).join("") : currentMouseGene.split("").map(s=>alphabetMap.get(s)).join("")}
                 setGene={(gene) => {
                   if (assembly === "GRCh38") {
                     setCurrentHumanGene(gene)
@@ -259,13 +260,13 @@ export function GeneExpression(props: {
           <Grid2>
             <InputLabel>Gene</InputLabel>
             <Select
-              value={assembly === "GRCh38" ? currentHumanGene : currentMouseGene}
+              value={assembly === "GRCh38" ? currentHumanGene.split("").map(s=>alphabetMap.get(s)).join("") : currentMouseGene.split("").map(s=>alphabetMap.get(s)).join("")}
               renderValue={(value) => (<Typography>{value}</Typography>)}
             >
               {props.genes.map((gene) => {
                 return (
                   <MenuItem sx={{ display: "block" }} key={gene.name} value={gene.name} onClick={() => assembly === "GRCh38" ? setCurrentHumanGene(gene.name) : setCurrentMouseGene(gene.name)}>
-                    <Typography>{gene.name}</Typography>
+                    <Typography><i>{gene.name}</i></Typography>
                     {gene?.linkedBy && <Typography variant="body2" color={"text.secondary"}>{gene.linkedBy.join(', ')}</Typography>}
                   </MenuItem>
                 )

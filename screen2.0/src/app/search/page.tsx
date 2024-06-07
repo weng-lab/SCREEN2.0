@@ -25,6 +25,7 @@ import { GeneExpression } from "./_ccredetails/geneexpression";
 import { LoadingMessage } from "../../common/lib/utility"
 import { Download } from "@mui/icons-material"
 import { ApolloQueryResult } from "@apollo/client"
+import { alphabetMap } from "./_ccredetails/utils"
 
 /**
  * @todo:
@@ -433,10 +434,12 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                 <StyledTab value={1} label="Genome Browser View" />
               }
               {mainQueryParams.gene.name &&
-                <StyledTab value={2} label={`${mainQueryParams.gene.name} Gene Expression`} />
+                <StyledTab value={2} 
+                label={<><i>{mainQueryParams.gene.name}</i> Gene Expression</>}
+                />
               }
               {mainQueryParams.gene.name && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" &&
-                <StyledTab value={3} label={`${mainQueryParams.gene.name} RAMPAGE`} />
+                <StyledTab value={3} label={<><i>{mainQueryParams.gene.name}</i> RAMPAGE</>} />
               }
 
               {/* Map opencCREs to tabs */}
@@ -544,7 +547,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                       mainQueryParams.gene.nearTSS ?
                         `cCREs within ${mainQueryParams.gene.distance / 1000}kb of TSSs of ${mainQueryParams.gene.name} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.start.toLocaleString("en-US")}-${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
                         :
-                        `cCREs overlapping ${mainQueryParams.gene.name} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.start.toLocaleString("en-US")}-${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
+                        `cCREs overlapping ${mainQueryParams.gene.name.split('').map(d=>alphabetMap.get(d)).join("")} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.start.toLocaleString("en-US")}-${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
+
                       :
                       mainQueryParams.snp.rsID ?
                         `cCREs within ${mainQueryParams.snp.distance}bp of ${mainQueryParams.snp.rsID} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
