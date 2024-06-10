@@ -10,16 +10,16 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "daily"
       
    # dependencies for Github Actions
   - package-ecosystem: "npm"
     directory: "/screen2.0"
     schedule:
-      interval: "weekly"
+      interval: "daily"
       
    # dependencies for Github Actions
   - package-ecosystem: "composer"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "daily"
