@@ -160,7 +160,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
               variant="outlined"
               InputLabelProps={{ shrink: true, style: props.header ? {color: "white"} : { color: "black" } }}
               label="Enter a genomic region"
-              placeholder="chr11:5205263-5381894"
+              placeholder={`chr11:${(5205263).toLocaleString()}-${(5381894).toLocaleString()}`}
               value={value}
               onChange={handleChange}
               onKeyDown={(event) => {
@@ -168,7 +168,8 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
                   window.open(url, "_self")
                 }
                 if (event.key === "Tab" && !value) {
-                  setValue("chr11:5205263-5381894")
+                  const defaultGenomicRegion = `chr11:${(5205263).toLocaleString()}-${(5381894).toLocaleString()}`
+                  setValue(defaultGenomicRegion)
                 }
               }}
               InputProps={props.header ? { style: { color: "white" } } : {}}

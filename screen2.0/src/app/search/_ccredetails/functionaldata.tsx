@@ -132,6 +132,7 @@ export const FunctionData = ({ coordinates , assembly, accession }) => {
             {
               header: "Log2 FC",
               value: (row) => row.log2fc.toFixed(2),
+              HeaderRender: () => <>Log<sub>2</sub>(Fold Change)</>
             },
             {
                 header: "Experiment",
@@ -192,11 +193,13 @@ export const FunctionData = ({ coordinates , assembly, accession }) => {
             },
             {
               header: "Log2FC",
+              HeaderRender: () => <>Log<sub>2</sub>(Fold Change)</>,
               value: (row) => row.log2fc.toFixed(2),
             },
             {
-              header: "P-value",
+              header: "P",
               value: (row) => row.pvalue.toFixed(2),
+              HeaderRender: () => <i>P</i>
             },
             {
               header: "FDR",
@@ -240,12 +243,14 @@ export const FunctionData = ({ coordinates , assembly, accession }) => {
               value: (row) => row.rna_rep3,
             },
             {
-              header: "Log2FC",
+              header: "Log2(Fold Change)",
+              HeaderRender: () => <>Log<sub>2</sub>(Fold Change)</>,
               value: (row) => row.log2fc.toFixed(2),
             },
             {
-              header: "P-value",
+              header: "P",
               value: (row) => row.pvalue.toFixed(2),
+              HeaderRender: () => <i>P</i>,
             },
             {
               header: "FDR",

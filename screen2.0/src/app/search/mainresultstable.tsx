@@ -208,7 +208,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
               <Typography variant="body2" color="primary" display="inline">
                 {Object.values(row.linkedGenes.distancePC).map((gene: { name: string }, i: number) => (
                   <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${gene.name}`}>
-                    {i < row.linkedGenes.distancePC.length - 1 ? `\u00A0${gene.name},\u00A0` : `\u00A0${gene.name}`}
+                    {i < row.linkedGenes.distancePC.length - 1 ? <i>{`\u00A0${gene.name},\u00A0`}</i> : <i>{`\u00A0${gene.name}`}</i>}
                   </a>
                 ))}
               </Typography>
@@ -220,8 +220,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
               <Typography variant="body2" color="primary" display="inline">
                 {Object.values(row.linkedGenes.distanceAll).map((gene: { name: string }, i: number) => (
                   <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${gene.name}`}>
-                    {i < row.linkedGenes.distanceAll.length - 1 ? `\u00A0${gene.name},\u00A0` : `\u00A0${gene.name}`}
-                    
+                    {i < row.linkedGenes.distanceAll.length - 1 ? <i>{`\u00A0${gene.name},\u00A0`}</i> : <i>{`\u00A0${gene.name}`}</i>}
                   </a>
                 ))}
               </Typography>
@@ -238,9 +237,9 @@ export function MainResultsTable(props: MainResultsTableProps) {
                   .map((gene: { name: string, biosample: string }, i: number) => gene.name)
                   //deduplicate
                   .filter((name, index, self) => { return self.indexOf(name) === index })
-                  .map((name: string, i: number) => (
+                  .map((name: string, i: number, self: string[]) => (
                     <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${name}`}>
-                      {i < row.linkedGenes.CTCF_ChIAPET.length - 1 ? `\u00A0${name},\u00A0` : `\u00A0${name}`}
+                      {i < self.length - 1 ? <i>{`\u00A0${name},\u00A0`}</i> : <i>{`\u00A0${name}`}</i>}
                     </a>
                   ))}
               </Typography>
@@ -257,9 +256,9 @@ export function MainResultsTable(props: MainResultsTableProps) {
                     .map((gene: { name: string, biosample: string }, i: number) => gene.name)
                     //deduplicate
                     .filter((name, index, self) => { return self.indexOf(name) === index })
-                    .map((name: string, i: number) => (
+                    .map((name: string, i: number, self: string[]) => (
                       <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${name}`}>
-                        {i < row.linkedGenes.RNAPII_ChIAPET.length - 1 ? `\u00A0${name},\u00A0` : `\u00A0${name}`}
+                        {i < self.length - 1 ? <i>{`\u00A0${name},\u00A0`}</i> : <i>{`\u00A0${name}`}</i>}
                       </a>
                     ))}
               </Typography>

@@ -6,7 +6,7 @@ import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown"
 import MenuIcon from "@mui/icons-material/Menu"
 import Link from "next/link"
 import Image from "next/image"
-import screenIcon from "../../public/screenIcon.png"
+import screenIcon from "../../public/screenLogo.png"
 import { MainSearch } from "./_mainsearch/mainsearch"
 
 
@@ -87,90 +87,71 @@ function ResponsiveAppBar() {
       <AppBar position="fixed">
         <Container maxWidth={false}>
           <Toolbar disableGutters sx={{ justifyContent: "space-between" }}>
-            {/* Display Icon on left when >=900px */}
-            <Link href={"/"}>
-              <Image src={screenIcon} alt="SCREEN Icon" height={40} width={40} />
-            </Link>
-            <Typography
-              variant="h5"
-              noWrap
-              component="a"
-              href={"/"}
-              sx={{
-                mr: 2,
-                ml: 1,
-                display: { xs: "flex" },
-                // flexShrink: 0,
-                flexGrow: { xs: 1, lg: 0 },
-                fontFamily: "monospace",
-                fontWeight: 700,
-                letterSpacing: ".3rem",
-                color: "inherit",
-                textDecoration: "none",
-              }}
-            >
-              SCREEN
-            </Typography>
-           
-            {/* Main navigation items for desktop */}
-            <Box sx={{ flexGrow: 1, flexShrink: 1, display: { xs: "none", lg: "flex" } }}>
-              {pageLinks.map((page) => (
-                <Box key={page.pageName}>
-                  <Button
-                    sx={{
-                      color: "white",
-                      display: "flex",
-                      textTransform: "none",
-                      "& .MuiButton-endIcon": { ml: 0 },
-                    }}
-                    endIcon={page.subPages && <ArrowDropDownIcon />}
-                    onMouseEnter={page.subPages ? (event) => handleOpenNavMenu_Dropdown(event, page.dropdownID) : undefined}
-                  >
-                    {/* Wrap in next/link to enable dyanic link changing from basePath in next.config.js */}
-                    <Link href={page.link}>
-                      <Typography variant="body1">
-                        {page.pageName}
-                      </Typography>
-                    </Link>
-                  </Button>
-                  {/* Create popup menu if page has subpages */}
-                  {page.subPages && (
-                    <Menu
-                      id={`${page.pageName}-dropdown-appbar`}
-                      // This logic would need to change when adding another dropdown
-                      anchorEl={page.dropdownID == "0" ? anchorElNav_Dropdown0 : anchorElNav_Dropdown1}
-                      anchorOrigin={{
-                        vertical: "top",
-                        horizontal: "left",
+            {/* Logo, and desktop navigation */}
+            <Box display='flex' flexGrow={1}>
+              <Link href={"/"}>
+                <Image src={screenIcon} alt="SCREEN Icon" height={40} width={90} style={{marginRight: '20px'}}/>
+              </Link>
+              {/* Main navigation items for desktop, hide on small screen size */}
+              <Box sx={{ display: { xs: "none", lg: "flex" }, alignItems: 'center' }}>
+                {pageLinks.map((page) => (
+                  <Box key={page.pageName}>
+                    <Button
+                      sx={{
+                        color: "white",
+                        display: "flex",
+                        textTransform: "none",
+                        "& .MuiButton-endIcon": { ml: 0 },
                       }}
-                      keepMounted
-                      transformOrigin={{
-                        vertical: "top",
-                        horizontal: "left",
-                      }}
-                      open={page.dropdownID == "0" ? Boolean(anchorElNav_Dropdown0) : Boolean(anchorElNav_Dropdown1)}
-                      onClose={() => handleCloseNavMenu_Dropdown(page.dropdownID)}
-                      //These are to prevent focus ring from showing up in some browsers, but doesn't work completely
-                      MenuListProps={{ autoFocusItem: false, autoFocus: false }}
-                      slotProps={{ paper: { onMouseLeave: () => handleCloseNavMenu_Dropdown(page.dropdownID), elevation: 0, sx: { backgroundColor: "transparent" } } }}
+                      endIcon={page.subPages && <ArrowDropDownIcon />}
+                      onMouseEnter={page.subPages ? (event) => handleOpenNavMenu_Dropdown(event, page.dropdownID) : undefined}
                     >
-                      {/* This box is here to provide better onMouseLeave behavior, still not ideal */}
-                      <Box width="auto" height="25px"></Box>
-                      <Paper elevation={4} sx={{margin: 0.75}}>
-                        {page.subPages &&
-                          page.subPages.map((subPage) => (
-                            <MenuItem key={subPage.pageName} onClick={() => handleCloseNavMenu_Dropdown(page.dropdownID)}>
-                              {/* Wrap in next/link to enable dyanic link changing from basePath in next.config.js */}
-                              <Link href={subPage.link}>
-                                <Typography textAlign="center">{subPage.pageName}</Typography>
-                              </Link>
-                            </MenuItem>
-                          ))}
-                      </Paper>
-                    </Menu>
-                  )}
-                </Box>
-              ))}
+                      {/* Wrap in next/link to enable dyanic link changing from basePath in next.config.js */}
+                      <Link href={page.link}>
+                        <Typography variant="body1">
+                          {page.pageName}
+                        </Typography>
+                      </Link>
+                    </Button>
+                    {/* Create popup menu if page has subpages */}
+                    {page.subPages && (
+                      <Menu
+                        id={`${page.pageName}-dropdown-appbar`}
+                        // This logic would need to change when adding another dropdown
+                        anchorEl={page.dropdownID == "0" ? anchorElNav_Dropdown0 : anchorElNav_Dropdown1}
+                        anchorOrigin={{
+                          vertical: "top",
+                          horizontal: "left",
+                        }}
+                        keepMounted
+                        transformOrigin={{
+                          vertical: "top",
+                          horizontal: "left",
+                        }}
+                        open={page.dropdownID == "0" ? Boolean(anchorElNav_Dropdown0) : Boolean(anchorElNav_Dropdown1)}
+                        onClose={() => handleCloseNavMenu_Dropdown(page.dropdownID)}
+                        //These are to prevent focus ring from showing up in some browsers, but doesn't work completely
+                        MenuListProps={{ autoFocusItem: false, autoFocus: false }}
+                        slotProps={{ paper: { onMouseLeave: () => handleCloseNavMenu_Dropdown(page.dropdownID), elevation: 0, sx: { backgroundColor: "transparent" } } }}
+                      >
+                        {/* This box is here to provide better onMouseLeave behavior, still not ideal */}
+                        <Box width="auto" height="25px"></Box>
+                        <Paper elevation={4} sx={{ margin: 0.75 }}>
+                          {page.subPages &&
+                            page.subPages.map((subPage) => (
+                              <MenuItem key={subPage.pageName} onClick={() => handleCloseNavMenu_Dropdown(page.dropdownID)}>
+                                {/* Wrap in next/link to enable dyanic link changing from basePath in next.config.js */}
+                                <Link href={subPage.link}>
+                                  <Typography textAlign="center">{subPage.pageName}</Typography>
+                                </Link>
+                              </MenuItem>
+                            ))}
+                        </Paper>
+                      </Menu>
+                    )}
+                  </Box>
+                ))}
+              </Box>
             </Box>
             <Box sx={{ display: { xs: "none", md: "flex" } }}>
               <MainSearch header />

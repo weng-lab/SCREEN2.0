@@ -120,7 +120,7 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
         variant="outlined"
         InputLabelProps={{ shrink: true, style: props.header ? { color: "white" } : { color: "black" } }}
         label="Enter a genomic region"
-        placeholder="chr11:5205263-5381894"
+        placeholder={`chr11:${(5205263).toLocaleString()}-${(5381894).toLocaleString()}`}
         value={valueRegion}
         onChange={(event: { target: { value: SetStateAction<string> } }) => {
           setValueRegion(event.target.value)
@@ -130,7 +130,8 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
             window.open(handleSubmit(), "_self")
           }
           if (event.key === "Tab" && !valueRegion) {
-            setValueRegion("chr11:5205263-5381894")
+            const defaultGenomicRegion = `chr11:${(5205263).toLocaleString()}-${(5381894).toLocaleString()}`
+            setValueRegion(defaultGenomicRegion)
           }
         }}
         InputProps={props.header ? { style: { color: "white" } } : {}}

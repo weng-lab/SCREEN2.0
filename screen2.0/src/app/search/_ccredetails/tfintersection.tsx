@@ -96,7 +96,7 @@ export const TfIntersection: React.FC<{ assembly: string; coordinates: { chromos
                     value: (row) => row.name,
                     render: (row) => (
                       <Link href={`https://www.factorbook.org/tf/human/${row.name}/function`} rel="noopener noreferrer" target="_blank">
-                        <button>{row.name}</button>
+                        <button><i>{row.name}</i></button>
                       </Link>
                     ),
                   },

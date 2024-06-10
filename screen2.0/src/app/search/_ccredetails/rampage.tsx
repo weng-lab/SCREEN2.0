@@ -200,7 +200,7 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
               {props.genes.map((gene) => {
                 return (
                   <MenuItem sx={{ display: "block" }} key={gene.name} value={gene.name} onClick={() => setCurrentGene(gene.name)}>
-                    <Typography>{gene.name}</Typography>
+                    <Typography><i>{gene.name}</i></Typography>
                     {gene?.linkedBy && <Typography variant="body2" color={"text.secondary"}>{gene.linkedBy.join(', ')}</Typography>}
                   </MenuItem>
                 )
