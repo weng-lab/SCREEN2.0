@@ -1,14 +1,12 @@
 "use client"
 import React, { useState, useEffect, useCallback } from "react"
-import { useRouter } from "next/navigation"
-import { Autocomplete, TextField, Box, Button, debounce, Typography, Stack, IconButton } from "@mui/material"
+import { Autocomplete, TextField, Box, debounce, Typography, Stack, IconButton } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { gene } from "./types"
 import { QueryResponse } from "../../../../types/types"
 import { Dispatch, SetStateAction } from "react"
 import Config from "../../../config.json"
 import { Add, Search } from "@mui/icons-material"
-import { alphabetMap } from "../../search/_ccredetails/utils"
 
 
 const GENE_AUTOCOMPLETE_QUERY = `
@@ -110,7 +108,7 @@ export default function GeneAutoComplete(props: {
         disablePortal
         freeSolo={true}
         id="gene-ids"
-        noOptionsText={props.assembly === "mm10" ? `e.g., ${"Scml2".split("").map(s=>alphabetMap.get(s)).join("")},${"Dbt".split("").map(s=>alphabetMap.get(s)).join("")}` : `e.g., ${"SOX4".split("").map(s=>alphabetMap.get(s)).join("")},${"GAPDH".split("").map(s=>alphabetMap.get(s)).join("")}`}            
+        noOptionsText={props.assembly === "mm10" ? "e.g., Scml2, Dbt" :  "e.g., SOX4, GAPDH"}            
         options={options}
         size="medium"
         sx={{ width: 200 }}
@@ -148,7 +146,7 @@ export default function GeneAutoComplete(props: {
               <Grid2 container alignItems="center">
                 <Grid2 sx={{ width: "calc(100% - 44px)" }}>
                   <Box component="span" sx={{ fontWeight: "regular" }}>
-                    <i>{opt}</i>
+                    {opt}
                   </Box>
                   {geneDesc && geneDesc.find((g) => g.name === opt) && (
                     <Typography variant="body2" color="text.secondary">

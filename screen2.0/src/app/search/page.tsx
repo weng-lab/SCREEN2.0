@@ -25,7 +25,6 @@ import { GeneExpression } from "./_ccredetails/geneexpression";
 import { LoadingMessage } from "../../common/lib/utility"
 import { Download } from "@mui/icons-material"
 import { ApolloQueryResult } from "@apollo/client"
-import { alphabetMap } from "./_ccredetails/utils"
 
 /**
  * @todo:
@@ -435,11 +434,11 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               }
               {mainQueryParams.gene.name &&
                 <StyledTab value={2} 
-                label={<p><i>{mainQueryParams.gene.name}</i> Gene Expression</p>}
+                label={`${mainQueryParams.gene.name} Gene Expression` }
                 />
               }
               {mainQueryParams.gene.name && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" &&
-                <StyledTab value={3} label={<p><i>{mainQueryParams.gene.name}</i> RAMPAGE</p>} />
+                <StyledTab value={3} label={`${mainQueryParams.gene.name} RAMPAGE`} />
               }
 
               {/* Map opencCREs to tabs */}
@@ -547,7 +546,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                       mainQueryParams.gene.nearTSS ?
                         `cCREs within ${mainQueryParams.gene.distance / 1000}kb of TSSs of ${mainQueryParams.gene.name} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.start.toLocaleString("en-US")}-${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
                         :
-                        `cCREs overlapping ${mainQueryParams.gene.name.split('').map(d=>alphabetMap.get(d)).join("")} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.start.toLocaleString("en-US")}-${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
+                        `cCREs overlapping ${mainQueryParams.gene.name} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.start.toLocaleString("en-US")}-${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
 
                       :
                       mainQueryParams.snp.rsID ?
