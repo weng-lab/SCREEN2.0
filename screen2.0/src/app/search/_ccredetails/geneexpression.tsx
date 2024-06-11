@@ -3,7 +3,7 @@ import React, { useState } from "react"
 import { LoadingMessage } from "../../../common/lib/utility"
 import { PlotGeneExpression } from "../../applets/gene-expression/geneexpressionplot"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
-import { Button, Typography, Stack, TextField, MenuItem, FormControl, SelectChangeEvent, Checkbox, InputLabel, ListItemText, OutlinedInput, Select, ToggleButton, ToggleButtonGroup, FormLabel, Box } from "@mui/material"
+import { Button, Typography, Stack, MenuItem, FormControl, SelectChangeEvent, Checkbox, InputLabel, ListItemText, OutlinedInput, Select, ToggleButton, ToggleButtonGroup, FormLabel, Box } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import Image from "next/image"
 import { HUMAN_GENE_EXP, MOUSE_GENE_EXP } from "../../applets/gene-expression/const"
@@ -16,7 +16,6 @@ import { ReadonlyURLSearchParams, usePathname, useSearchParams, useRouter } from
 import ConfigureGBModal from "./configuregbmodal"
 import { ApolloQueryResult } from "@apollo/client"
 import { BIOSAMPLE_Data } from "../../../common/lib/queries"
-import { alphabetMap } from "./utils"
 
 /**
  * @todo
@@ -209,7 +208,7 @@ export function GeneExpression(props: {
         <Typography
           alignSelf={"flex-end"}
           variant={props.applet ? "h4" : "h5"}>
-          <i>{assembly === "GRCh38" ? currentHumanGene : currentMouseGene} </i> Gene Expression Profiles by RNA-seq
+          {assembly === "GRCh38" ? currentHumanGene : currentMouseGene} Gene Expression Profiles by RNA-seq
         </Typography>
         <Stack direction="row" spacing={3}>
           <Button
@@ -243,7 +242,7 @@ export function GeneExpression(props: {
               <InputLabel>Gene</InputLabel>
               <GeneAutoComplete
                 assembly={assembly}
-                gene={assembly === "GRCh38" ? currentHumanGene.split("").map(s=>alphabetMap.get(s)).join("") : currentMouseGene.split("").map(s=>alphabetMap.get(s)).join("")}
+                gene={assembly === "GRCh38" ? currentHumanGene : currentMouseGene}
                 setGene={(gene) => {
                   if (assembly === "GRCh38") {
                     setCurrentHumanGene(gene)
@@ -260,13 +259,13 @@ export function GeneExpression(props: {
           <Grid2>
             <InputLabel>Gene</InputLabel>
             <Select
-              value={assembly === "GRCh38" ? currentHumanGene.split("").map(s=>alphabetMap.get(s)).join("") : currentMouseGene.split("").map(s=>alphabetMap.get(s)).join("")}
+              value={assembly === "GRCh38" ? currentHumanGene : currentMouseGene}
               renderValue={(value) => (<Typography>{value}</Typography>)}
             >
               {props.genes.map((gene) => {
                 return (
                   <MenuItem sx={{ display: "block" }} key={gene.name} value={gene.name} onClick={() => assembly === "GRCh38" ? setCurrentHumanGene(gene.name) : setCurrentMouseGene(gene.name)}>
-                    <Typography><i>{gene.name}</i></Typography>
+                    <Typography>{gene.name}</Typography>
                     {gene?.linkedBy && <Typography variant="body2" color={"text.secondary"}>{gene.linkedBy.join(', ')}</Typography>}
                   </MenuItem>
                 )
@@ -331,7 +330,7 @@ export function GeneExpression(props: {
               aria-label="Scale"
               size="medium"
             >
-              <ToggleButton sx={{ textTransform: "none" }} value="logTPM">Log10(TPM + 1)</ToggleButton>
+              <ToggleButton sx={{ textTransform: "none" }} value="logTPM">Log<sub>10</sub>(TPM + 1)</ToggleButton>
               <ToggleButton sx={{ textTransform: "none" }} value="linearTPM">Linear TPM</ToggleButton>
             </ToggleButtonGroup>
           </Stack>

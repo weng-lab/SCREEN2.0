@@ -152,7 +152,7 @@ export const NearByGenomicFeatures: React.FC<{
                           variant="body2"
                           color="primary"
                         >
-                          <i>{row.name}</i>
+                          {row.name}
                         </Typography>,
                     },
                     {
