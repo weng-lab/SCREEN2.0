@@ -101,10 +101,10 @@
   resolved "https://registry.yarnpkg.com/@discoveryjs/json-ext/-/json-ext-0.5.7.tgz#1d572bfbbe14b7704e0ba0f39b74815b84870d70"
   integrity sha512-dBVuXR082gk3jsFp7Rd/JI4kytwGHecnCoTtXFb7DB6CNHp4rg5k1bhg0nWdLGLnOV71lmDzGQaLMy8iPLY0pw==
 
-"@emailjs/browser@^3.12.1":
-  version "3.12.1"
-  resolved "https://registry.yarnpkg.com/@emailjs/browser/-/browser-3.12.1.tgz#c1b058a09b99e5e19fa42911725c0227a8b7c12f"
-  integrity sha512-C5nK07CgSCFx3onsuRt/ZaaMvIi0T3SHHanM7fKozjSvbZu+OjHHP9W608fYpic0OavF7yIlfy4+lRDO33JdbA==
+"@emailjs/browser@^4.3.3":
+  version "4.3.3"
+  resolved "https://registry.yarnpkg.com/@emailjs/browser/-/browser-4.3.3.tgz#edf759fc68f1628d7192bed689b1bb0651890f57"
+  integrity sha512-ltpt2S/WVREIBXptxYAVYBvXb2O6yTUYiRUWF8OLikMxlmiGsIgKpgHppikNd4Df0uAav7jCsQKcOJ3TJFUx5g==
 
 "@emnapi/runtime@^0.45.0":
   version "0.45.0"
