@@ -51,21 +51,6 @@ export const createLink = (url: string, id: string, label?: string) => {
   )
 }
 
-/**
- * Creates a hyperlink to the url + id with the id as the button
- * @param url
- * @param id string to be pasted at the end of the url
- * @returns link anchor to url + id
- */
- export const createGeneLink = (url: string, id: string, label?: string) => {
-  const link = url + id
-  return (
-    <Link href={link} rel="noopener noreferrer" target="_blank">
-      {label ? <button><i>{label}</i></button> : <button><i>{id}</i></button>}
-      {/* <button>{id}</button> */}
-    </Link>
-  )
-}
 
 /**
  * Returns loading wheel
