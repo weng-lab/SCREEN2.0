@@ -261,8 +261,8 @@ export function MainResultsFilters(
                         props.setMainQueryParams({ ...props.mainQueryParams, gene: { ...props.mainQueryParams.gene, nearTSS: value === "tss" } })
                       }}
                     >
-                      <FormControlLabel value="overlappinggene" control={<Radio />} label={<><i>{props.mainQueryParams.gene.name}</i> gene body</>} />
-                      <FormControlLabel value="tss" control={<Radio />} label={<>Within distance of TSS of <i>{props.mainQueryParams.gene.name}</i></>}/>
+                      <FormControlLabel value="overlappinggene" control={<Radio />} label={<>{props.mainQueryParams.gene.name} gene body</>} />
+                      <FormControlLabel value="tss" control={<Radio />} label={<>Within distance of TSS of {props.mainQueryParams.gene.name}</>}/>
                     </RadioGroup>
                   </FormControl>
                 </Grid2>

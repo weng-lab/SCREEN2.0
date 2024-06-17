@@ -37,7 +37,7 @@
   "dependencies": {
     "@apollo/client": "alpha",
     "@apollo/experimental-nextjs-app-support": "^0.8.0",
-    "@emailjs/browser": "^3.12.1",
+    "@emailjs/browser": "^4.3.3",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.15.7",
@@ -55,7 +55,7 @@
     "graphql": "^16.8.1",
     "jubilant-carnival": "^0.6.0",
     "logots-react": "latest",
-    "next": "14.1.0",
+    "next": "14.2.3",
     "normalize.css": "^8.0.1",
     "only": "^0.0.2",
     "postcss": "8.4.33",
