@@ -812,7 +812,7 @@ export const downloadBED = async (
 
   let ranges: { start: number, end: number }[] = []
   const maxRange = 10000000
-  //Divide range into sub ranges so bigger than maxRange
+  //Divide range into sub ranges no bigger than maxRange
   for (let i = start; i <= end; i += maxRange) {
     const rangeEnd = Math.min(i + maxRange - 1, end)
     ranges.push({ start: i, end: rangeEnd })
