@@ -213,7 +213,7 @@ export const NearByGenomicFeatures: React.FC<{
                 <DataTable
                   columns={[
                     {
-                      header: "SNP Id",
+                      header: "SNP ID",
                       value: (row) => row.name,
                       render: (row) =>
                         <Typography

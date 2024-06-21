@@ -5,7 +5,7 @@ import MuiLink from "@mui/material/Link"
 
 export function Footer() {
   return (
-    <Box id="Footer" sx={{ position: "absolute", bottom: "0", textAlign: "center", width: "100%", height: "4rem", zIndex: -9999 }}>
+    <Box id="Footer" sx={{ position: "absolute", bottom: "0", textAlign: "center", width: "100%", height: "4rem" }}>
       <Typography variant="body2" color="text.secondary">
         {"Copyright © "}
         <MuiLink color="inherit" href="https://www.umassmed.edu/zlab/">
