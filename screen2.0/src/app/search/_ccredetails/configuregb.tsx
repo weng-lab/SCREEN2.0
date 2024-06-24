@@ -66,7 +66,7 @@ const ConfigureGenomeBrowser = (props: {
     const start = +(props.coordinates.start) - 7500
     const end = +(props.coordinates.end) + 7500
 
-    const ucscbrowserurl =  `https://genome.ucsc.edu/cgi-bin/hgTracks?db=${props.coordinates.assembly}&position=${props.coordinates.chromosome}:${start}-${end}&hubClear=${trackhuburl}&highlight=${props.coordinates.assembly}.${props.coordinates.chromosome}%3A${props.coordinates.start}-${props.coordinates.end}`
+    const ucscbrowserurl =  `https://genome.ucsc.edu/cgi-bin/hgTracks?db=${props.coordinates.assembly === "GRCh38" ? "hg38" : "mm10"}&position=${props.coordinates.chromosome}:${start}-${end}&hubClear=${trackhuburl}&highlight=${props.coordinates.assembly}.${props.coordinates.chromosome}%3A${props.coordinates.start}-${props.coordinates.end}`
 
     setCurrentURLs({urlUCSC: ucscbrowserurl, urlTrackhub: trackhuburl, biosamples: selectedBiosamples})
 
