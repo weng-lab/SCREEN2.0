@@ -146,7 +146,7 @@ export default function GeneAutoComplete(props: {
               <Grid2 container alignItems="center">
                 <Grid2 sx={{ width: "calc(100% - 44px)" }}>
                   <Box component="span" sx={{ fontWeight: "regular" }}>
-                    {opt}
+                    <i>{opt}</i>
                   </Box>
                   {geneDesc && geneDesc.find((g) => g.name === opt) && (
                     <Typography variant="body2" color="text.secondary">

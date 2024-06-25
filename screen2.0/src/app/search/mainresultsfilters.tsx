@@ -129,7 +129,7 @@ export function MainResultsFilters(
   } = useQuery(GENE_TRANSCRIPTS_QUERY, {
     variables: {
       assembly: props.mainQueryParams.coordinates.assembly.toLowerCase(),      
-      name: [props.mainQueryParams.gene.name && props.mainQueryParams.gene.name.toUpperCase()],
+      name: [props.mainQueryParams.gene.name],
       version: props.mainQueryParams.coordinates.assembly.toLowerCase()==="grch38"? 40: 25,
     },
     skip: !props.mainQueryParams.gene.name,
@@ -261,8 +261,8 @@ export function MainResultsFilters(
                         props.setMainQueryParams({ ...props.mainQueryParams, gene: { ...props.mainQueryParams.gene, nearTSS: value === "tss" } })
                       }}
                     >
-                      <FormControlLabel value="overlappinggene" control={<Radio />} label={<>{props.mainQueryParams.gene.name} gene body</>} />
-                      <FormControlLabel value="tss" control={<Radio />} label={<>Within distance of TSS of {props.mainQueryParams.gene.name}</>}/>
+                      <FormControlLabel value="overlappinggene" control={<Radio />} label={<><i>{props.mainQueryParams.gene.name}</i> gene body</>} />
+                      <FormControlLabel value="tss" control={<Radio />} label={<>Within distance of TSS of <i>{props.mainQueryParams.gene.name}</i></>}/>
                     </RadioGroup>
                   </FormControl>
                 </Grid2>
@@ -716,7 +716,7 @@ export function MainResultsFilters(
               {props.filterCriteria.genesToFind.length > 0 &&
                 <>
                   <Typography>
-                    {"Selected: " + props.filterCriteria.genesToFind.join(', ')}
+                    {"Selected: "} <i>{props.filterCriteria.genesToFind.join(', ')}</i>
                   </Typography>
                   <Button variant="outlined" onClick={() => props.setFilterCriteria({ ...props.filterCriteria, genesToFind: [] })}>
                     Clear Selected Genes
