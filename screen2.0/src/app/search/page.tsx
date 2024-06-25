@@ -434,11 +434,11 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               }
               {mainQueryParams.gene.name &&
                 <StyledTab value={2} 
-                label={`${mainQueryParams.gene.name} Gene Expression` }
+                label={<p><i>{mainQueryParams.gene.name}</i> Gene Expression</p>}
                 />
               }
               {mainQueryParams.gene.name && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" &&
-                <StyledTab value={3} label={`${mainQueryParams.gene.name} RAMPAGE`} />
+                <StyledTab value={3} label={<p><i>{mainQueryParams.gene.name}</i> RAMPAGE</p>} />
               }
 
               {/* Map opencCREs to tabs */}

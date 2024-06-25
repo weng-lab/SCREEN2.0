@@ -139,7 +139,7 @@ export default function GeneAutoComplete(props: {
           }
         }}
         value={props.gene} 
-        renderInput={(tprops) => <TextField {...tprops} placeholder={"Select a Gene"} />}
+        renderInput={(tprops) => <i><TextField {...tprops} placeholder={"Select a Gene"} /></i>}
         renderOption={(props, opt) => {
           return (
             <li {...props} key={props.id}>

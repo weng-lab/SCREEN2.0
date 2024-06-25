@@ -123,7 +123,7 @@ export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
         }}
         noOptionsText={loadingOptions ? "Loading..." : "No Genes Found"}            
         renderInput={(params) => (
-          <TextField
+          <i><TextField
             {...params}
             label="Enter a gene name"
             InputLabelProps={{ shrink: true, style: props.header ? {color: "white"} : { color: "black" } }}
@@ -143,7 +143,7 @@ export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
               //Icon
               '& .MuiSvgIcon-root': props.header && { fill: "white"}
             }}
-          />
+          /></i>
         )}
         renderOption={(props, option) => {
           return (
