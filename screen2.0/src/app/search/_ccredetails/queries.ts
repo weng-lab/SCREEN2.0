@@ -58,12 +58,23 @@ export const TOP_TISSUES: TypedDocumentNode<Data, Variables> = gql`
 export const LINKED_GENES = gql`
   query ($assembly: String!, $accession: [String]!) {
     linkedGenesQuery(assembly: $assembly, accession: $accession) {
-      assembly
-      accession
-      experiment_accession
-      celltype
+      p_val
       gene
+      geneid
+      genetype
+      method
+      accession
+      grnaid
+      effectsize
       assay
+      celltype
+      experiment_accession
+      tissue
+      score
+      variantid
+      source
+      slope
+      tissue
     }
   }
 `

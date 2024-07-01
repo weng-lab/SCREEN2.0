@@ -213,7 +213,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         page,
         opencCREs.map(x => x.ID).join(',')
       )
-      // console.log("pushing new url:" + newURL)
+      console.log("pushing new url:" + newURL)
       router.push(newURL)
     }
   }, [searchParams, mainQueryParams, filterCriteria, biosampleTableFilters, page, opencCREs, router, basePathname, opencCREsInitialized, loadingFetch])
@@ -258,7 +258,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       end = TSSs && TSSranges ? Math.max(...TSSs) + mainQueryParams.gene.distance : null
     }
 
-    (mainQueryParams.searchConfig.bed_intersect || (start !== null) && (end !== null)) && startTransition(async () => {
+    (mainQueryParams.searchConfig.bed_intersect || (start !== null) && (end !== null)) && 
+    startTransition(async () => {
       // console.log("transition started")
       const mainQueryData = await fetchcCREData(
         mainQueryParams.coordinates.assembly,
@@ -284,6 +285,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         mainQueryParams.coordinates.assembly
       )
       // console.log("setting linked genes data")
+      // console.log(linkedGenesData)
       setRawLinkedGenesData(linkedGenesData)
     })
   }, [mainQueryData, mainQueryParams.coordinates.assembly])
@@ -304,13 +306,9 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           null,
           cCREsToFetch
         )
-        const linkedGenesData = await fetchLinkedGenesData(
-          cCREQueryData,
-          mainQueryParams.coordinates.assembly
-        )
         const opencCRE_data = generateFilteredRows(
           cCREQueryData,
-          linkedGenesData,
+          {},
           filterCriteria,
           true
         )
@@ -323,7 +321,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                 end: cCRE.end,
                 chrom: cCRE.chromosome,
               },
-              linkedGenes: cCRE.linkedGenes
             }
           )
         })]
@@ -513,16 +510,16 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                 '& .MuiTabs-scrollButtons': { color: "black" },
                 '& .MuiTabs-scrollButtons.Mui-disabled': { opacity: 0.3 },
               }}>
-              <StyledTab label="In Specific Biosamples" sx={{ alignSelf: "start" }} />
-              <StyledTab label="Linked Genes" sx={{ alignSelf: "start" }} />
-              <StyledTab label="Nearby Genomic Features" sx={{ alignSelf: "start" }} />
-              <StyledTab label="Linked cCREs in other Assemblies" sx={{ alignSelf: "start" }} />
-              <StyledTab label="Associated Gene Expression" sx={{ alignSelf: "start" }} />
-              <StyledTab label="Functional Data" sx={{ alignSelf: "start" }} />
-              <StyledTab label="TF Motifs and Sequence Features" sx={{ alignSelf: "start" }} />
-              <StyledTab label="Configure UCSC Genome Browser" sx={{ alignSelf: "start" }} />
-              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledTab label="Associated RAMPAGE Signal" sx={{ alignSelf: "start" }} />}
-              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledTab label="ChromHMM States" sx={{ alignSelf: "start" }} />}
+              <StyledTab value={0} label="In Specific Biosamples" sx={{ alignSelf: "start" }} />
+              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledTab value={1} label="Linked Genes" sx={{ alignSelf: "start" }} />}
+              <StyledTab value={2} label="Nearby Genomic Features" sx={{ alignSelf: "start" }} />
+              <StyledTab value={3} label="Linked cCREs in other Assemblies" sx={{ alignSelf: "start" }} />
+              <StyledTab value={4} label="Associated Gene Expression" sx={{ alignSelf: "start" }} />
+              <StyledTab value={5} label="Functional Data" sx={{ alignSelf: "start" }} />
+              <StyledTab value={6} label="TF Motifs and Sequence Features" sx={{ alignSelf: "start" }} />
+              <StyledTab value={7} label="Configure UCSC Genome Browser" sx={{ alignSelf: "start" }} />
+              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledTab value={8} label="Associated RAMPAGE Signal" sx={{ alignSelf: "start" }} />}
+              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledTab value={9} label="ChromHMM States" sx={{ alignSelf: "start" }} />}
             </Tabs>
           }
         </Drawer>

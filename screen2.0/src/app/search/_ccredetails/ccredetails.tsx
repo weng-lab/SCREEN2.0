@@ -11,11 +11,10 @@ import { FunctionData } from "./functionaldata"
 import { ChromHMM } from "./chromhmm";
 import Rampage from "./rampage"
 import { GeneExpression } from "./geneexpression"
-import { TfSequenceFeatures} from "../_gbview/tfsequencefeatures"
+import { TfSequenceFeatures } from "../_gbview/tfsequencefeatures"
 import ConfigureGBTab from "./configuregbtab"
 import { ApolloQueryResult, gql } from "@apollo/client"
 import { BIOSAMPLE_Data, fetchLinkedGenes } from "../../../common/lib/queries"
-import { fetchLinkedGenesData } from "../searchhelpers"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 
 //Passing these props through this file could be done with context to reduce prop drilling
@@ -32,7 +31,7 @@ type LinkedBy = "distancePC" | "distanceAll" | "CTCF-ChIAPET" | "RNAPII-ChIAPET"
 
 export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, biosampleData, assembly, page, handleOpencCRE }) => {
   const [isPending, startTransition] = useTransition();
-  const [linkedGenes, setLinkedGenes] = useState<{name: string, linkedBy: LinkedBy[]}[]>([])
+  const [linkedGenes, setLinkedGenes] = useState<{ name: string, linkedBy: LinkedBy[] }[]>([])
   const [fetched, setFetched] = useState(false)
   const [distanceAdded, setDistanceAdded] = useState(false)
 
@@ -109,7 +108,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
   useEffect(() => {
     if (data_distanceLinked && !distanceAdded) {
       let newLinkedGenes = [...linkedGenes]
-      data_distanceLinked.cCRESCREENSearch[0].genesallpc.pc.intersecting_genes.forEach((gene: {name: string, strand: "+" | "-", gene_type: string}) => {
+      data_distanceLinked.cCRESCREENSearch[0].genesallpc.pc.intersecting_genes.forEach((gene: { name: string, strand: "+" | "-", gene_type: string }) => {
         if (newLinkedGenes.find(x => x.name === gene.name)) {
           //If gene exists, add linking method
           newLinkedGenes = [...newLinkedGenes.map(x => x.name === gene.name ? { name: gene.name, linkedBy: [...x.linkedBy, "distancePC" as LinkedBy] } : x)]
@@ -119,7 +118,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
           newLinkedGenes = [...newLinkedGenes, { name: gene.name, linkedBy: ["distancePC"] }]
         }
       })
-      data_distanceLinked.cCRESCREENSearch[0].genesallpc.all.intersecting_genes.forEach((gene: {name: string, strand: "+" | "-", gene_type: string}) => {
+      data_distanceLinked.cCRESCREENSearch[0].genesallpc.all.intersecting_genes.forEach((gene: { name: string, strand: "+" | "-", gene_type: string }) => {
         if (newLinkedGenes.find(x => x.name === gene.name)) {
           //If gene exists, add linking method
           newLinkedGenes = [...newLinkedGenes.map(x => x.name === gene.name ? { name: gene.name, linkedBy: [...x.linkedBy, "distanceAll" as LinkedBy] } : x)]
@@ -133,16 +132,20 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
       setLinkedGenes(newLinkedGenes)
     }
   }, [data_distanceLinked, linkedGenes])
-  
+
   return (
     <>
       <Stack direction="row" justifyContent={"space-between"} alignItems={"baseline"}>
         <Typography variant="h4">{accession}</Typography>
         <Typography variant="h6">{`${region.chrom}:${region.start.toLocaleString("en-US")}-${region.end.toLocaleString("en-US")}`}</Typography>
       </Stack>
-      <Divider sx={{mb: 2}}/>
-      {page === 0 && <InSpecificBiosamples accession={accession} assembly={assembly} />}
-      {page === 1 && <LinkedGenes accession={accession} assembly={assembly} />}
+      <Divider sx={{ mb: 2 }} />
+      {page === 0 &&
+        <InSpecificBiosamples accession={accession} assembly={assembly} />
+      }
+      {page === 1 && assembly !== "mm10" &&
+        <LinkedGenes accession={accession} assembly={assembly} />
+      }
       {page === 2 && (
         <NearByGenomicFeatures
           accession={accession}
@@ -155,9 +158,15 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
           handleOpencCRE={handleOpencCRE}
         />
       )}
-      {page === 3 && <Ortholog accession={accession} assembly={assembly} />}      
-      {page === 4 && linkedGenes.length > 0 && <GeneExpression assembly={assembly} genes={linkedGenes} biosampleData={biosampleData} />}
-      {page === 5 && <FunctionData accession={accession} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }} assembly={assembly} />}
+      {page === 3 &&
+        <Ortholog accession={accession} assembly={assembly} />
+      }
+      {page === 4 &&
+        linkedGenes.length > 0 && <GeneExpression assembly={assembly} genes={linkedGenes} biosampleData={biosampleData} />
+      }
+      {page === 5 &&
+        <FunctionData accession={accession} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }} assembly={assembly} />
+      }
       {page === 6 &&
         <>
           <TfSequenceFeatures assembly={assembly} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }} />
@@ -179,14 +188,16 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
             chromosome: region.chrom,
             start: region.start,
             end: region.end
-          }} 
+          }}
           accession={accession}
         />
       }
-       {assembly !== "mm10" && page === 9 && (
-            <ChromHMM accession={accession} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }} assembly={assembly}  />
-          )}
-      {assembly !== "mm10" && page === 8 && linkedGenes.length > 0 && <Rampage genes={linkedGenes} biosampleData={biosampleData} />}
+      {page === 9 && assembly !== "mm10" && 
+        <ChromHMM accession={accession} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }} assembly={assembly} />
+      }
+      {page === 8 && assembly !== "mm10" &&
+        linkedGenes.length > 0 && <Rampage genes={linkedGenes} biosampleData={biosampleData} />
+      }
     </>
   )
 }

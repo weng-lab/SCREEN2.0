@@ -178,10 +178,17 @@ const UMAP_QUERY = gql`
 const LINKED_GENES_QUERY = gql`
   query ($assembly: String!, $accession: [String]!) {
     linkedGenesQuery(assembly: $assembly, accession: $accession) {
-      assay
-      accession
-      celltype
+      p_val
       gene
+      geneid
+      genetype
+      method
+      accession
+      grnaid
+      effectsize
+      assay
+      celltype
+      experiment_accession
     }
   }
 `
@@ -196,11 +203,11 @@ const GENE_QUERY = gql`
 `
 /**
  * 
- * @param assembly "GRCh38" | "mm10"
+ * @param assembly "GRCh38" | "mm10". Currently mm10 has no linked genes (other than distance), so will get empty result
  * @param accessions string[]
  * @returns an object with key/value pairs of: accession id/linked genes data (non distance-linked)
  */
-export async function fetchLinkedGenes(assembly: "GRCh38" | "mm10", accessions: string[]) {
+export async function fetchLinkedGenes(assembly: "GRCh38" | "mm10", accessions: string[]): Promise<{ [key: string]: { genes: { geneName: string; linkedBy: "CTCF-ChIAPET" | "RNAPII-ChIAPET"; biosample: string} [] } }> {
   let returnData: { [key: string]: { genes: { geneName: string, linkedBy: "CTCF-ChIAPET" | "RNAPII-ChIAPET", biosample: string }[] } } = {}
   let geneIDs: string[] = []
   let linkedGenes: ApolloQueryResult<any>
