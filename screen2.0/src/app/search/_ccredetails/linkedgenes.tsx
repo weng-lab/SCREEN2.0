@@ -1,204 +1,285 @@
 "use client"
 import React from "react"
-import { client } from "./client"
-import { useQuery } from "@apollo/client"
-import { LINKED_GENES, GENE_NAME } from "./queries"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
-import { LoadingMessage, createLink } from "../../../common/lib/utility"
-import { Typography } from "@mui/material"
+import { createLink, toScientificNotationElement } from "../../../common/lib/utility"
+import { Box, Link, Paper, Typography } from "@mui/material"
+import { LinkedGeneInfo } from "./ccredetails"
+import { gql, useLazyQuery, useQuery } from "@apollo/client"
+import { useRouter, useSearchParams } from "next/navigation"
 
-type geneRow = {
-  p_val: number;
-  gene: string;
-  geneid: string;
-  genetype: string;
-  method: string;
-  accession: string;
-  grnaid: string;
-  effectsize: number;
-  assay: string;
-  celltype: string;
-  experiment_accession: string;
-  score: number;
-  variantid: string;
-  source: string;
-  slope: number;
-  tissue: string;
+type props = {
+  linkedGenes: LinkedGeneInfo[]
 }
 
-export const LinkedGenes: React.FC<{ accession: string; assembly: string }> = ({ accession, assembly }) => {
-  // linked genes query
-  const { loading: loading_linked, data: data_linked }: { loading: boolean, data: { linkedGenesQuery: { [key: string]: any; }[] } } = useQuery(LINKED_GENES, {
-    variables: {
-      assembly: assembly.toLowerCase(),
-      accession: [accession],
-    },
-    fetchPolicy: "cache-and-network",
-    nextFetchPolicy: "cache-first",
-    client,
-  })
+export const LinkedGenes: React.FC<props> = (props) => {
+  const HiCLinked = props.linkedGenes.filter((x) => x.assay === "Intact-HiC")
+  const ChIAPETLinked = props.linkedGenes.filter((x) => x.assay === "RNAPII-ChIAPET" || x.assay === "CTCF-ChIAPET")
+  const crisprLinked = props.linkedGenes.filter((x) => x.method === "CRISPR")
+  const eqtlLinked = props.linkedGenes.filter((x) => x.method === "eQTLs")
 
-  const chromatinLinked = data_linked?.linkedGenesQuery.filter((x) => x.method === "Chromatin")
-  const crisprLinked = data_linked?.linkedGenesQuery.filter((x) => x.method === "CRISPR")
-  const eqtlsLinked = data_linked?.linkedGenesQuery.filter((x) => x.method === "eQTLs")
+  const searchParams = useSearchParams()
+  const router = useRouter()
+
+  type EmptyTileProps = {
+    title: string,
+    body: string
+  }
+
+  const EmptyTile: React.FC<EmptyTileProps> = (props: EmptyTileProps) =>
+    <Paper elevation={3}>
+      <Box p={"16px"}>
+        <Typography variant="h5" pb={1}>{props.title}</Typography>
+        <Typography>{props.body}</Typography>
+      </Box>
+    </Paper>
+
+  
+  const GENE_LOCATION = gql`
+    query geneLocation ($name: String!, $assembly: String!, $version: Int!){
+      gene(name: [$name], assembly: $assembly, version: $version){
+        name
+        coordinates {
+          chromosome
+          start
+          end
+        }
+      }
+    }
+  `
+  type GeneLocationVars = {
+    name: string,
+    assembly: "grch38" | "mm10",
+    version: 25 | 40
+  }
+  
+  type GenomicRegion = {
+    chromosome: string
+    start: number
+    end: number
+  }
+
+  type GeneLocationData = {
+    gene: [
+      {
+        name: string
+        coordinates: GenomicRegion
+      }
+    ]
+  }
+  
+  const [getGeneLocation] = useLazyQuery<GeneLocationData, GeneLocationVars>(GENE_LOCATION)
+
+  const openNewGeneSearch = (gene: string) => {
+    const assembly = searchParams.get("assembly") //assuming assembly is correct in url
+    //removing space after gene name due to issue with return data having trailing space
+    getGeneLocation({variables: {name: gene, assembly: assembly.toLowerCase() as ('mm10' | 'grch38'), version: assembly.toLowerCase() === "grch38" ? 40 : 25}})
+    .then((geneLocation) => {
+      const coordinates = geneLocation.data.gene[0].coordinates
+      const gene = geneLocation.data.gene[0].name
+      window.open(`/search?assembly=${assembly}&chromosome=${coordinates.chromosome}&start=${coordinates.start}&end=${coordinates.end}&gene=${gene}&tssDistance=0`, '_blank')
+    })
+    .catch((error) => window.alert("Something went wrong fetching the location of " + gene + ", please try again or start a new search for this gene. Error: " + error))
+  }
 
   return (
-    loading_linked || !data_linked ? (
-      <Grid2 container spacing={3} sx={{ mt: "0rem", mb: "2rem" }}>
-        <Grid2 xs={12} md={12} lg={12}>
-          <LoadingMessage />
-        </Grid2>
+    <Grid2 container spacing={3} sx={{ mt: "0rem", mb: "2rem" }}>
+      <Grid2 xs={12}>
+        {HiCLinked.length > 0 ?
+          <DataTable
+            columns={[
+              {
+                header: "Common Gene Name",
+                value: (row: LinkedGeneInfo) => row.gene,
+                //Bit hacky, using link with nested button to get desired color/mouse/underline
+                render: (row: LinkedGeneInfo) => <Link variant="inherit" onClick={() => openNewGeneSearch(row.gene)}><button><i>{row.gene}</i></button></Link>
+              },
+              {
+                header: "Gene Type",
+                value: (row: LinkedGeneInfo) => row.genetype === 'lncRNA' ? row.genetype : row.genetype.replaceAll('_', ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+              },
+              {
+                header: "Assay Type",
+                value: (row: LinkedGeneInfo) => row.assay,
+              },
+              {
+                header: "Experiment ID",
+                value: (row: LinkedGeneInfo) => row.experiment_accession,
+                render: (row: LinkedGeneInfo) => createLink("https://www.encodeproject.org/experiments/", row.experiment_accession, row.experiment_accession, true)
+              },
+              {
+                header: "Biosample",
+                value: (row: LinkedGeneInfo) => row.displayname,
+                render: (row: LinkedGeneInfo) => <Typography variant="body2" minWidth={'200px'} maxWidth={'400px'}>{row.displayname}</Typography>
+              },
+              {
+                header: "Score",
+                value: (row: LinkedGeneInfo) => row.score,
+              },
+              {
+                header: "P",
+                HeaderRender: (row: LinkedGeneInfo) => <Typography variant="body2"><i>P</i></Typography>,
+                value: (row: LinkedGeneInfo) => row.p_val,
+                render: (row: LinkedGeneInfo) => row.p_val === 0 ? '0' : toScientificNotationElement(row.p_val, 'body2')
+              },
+            ]}
+            tableTitle="Intact-HiC Linked"
+            rows={HiCLinked}
+            sortColumn={6}
+            sortDescending
+            itemsPerPage={5}
+            searchable
+          />
+          :
+          <EmptyTile title="Intact-HiC Linked" body="No Data" />
+        }
       </Grid2>
-    ) : (
-      <>
-        <Grid2 container spacing={3} sx={{ mt: "0rem", mb: "2rem" }}>
-          <Grid2 xs={12}>
-            <DataTable
-              columns={[
-                {
-                  header: "Gene ID",
-                  value: (row: geneRow) => row.geneid,
-                  render: (row: geneRow) => createLink("http://www.genecards.org/cgi-bin/carddisp.pl?gene=", row.geneid)
-                },
-                {
-                  header: "Common Gene Name",
-                  value: (row: geneRow) => row.gene,
-                  render: (row: geneRow) => createLink("http://www.genecards.org/cgi-bin/carddisp.pl?gene=", row.gene)
-                },
-                {
-                  header: "Gene Type",
-                  value: (row: geneRow) => row.genetype === 'lncRNA' ? row.genetype : row.genetype.replaceAll('_', ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
-                },
-                {
-                  header: "Assay Type",
-                  value: (row: geneRow) => row.assay,
-                },
-                {
-                  header: "Experiment ID",
-                  value: (row: geneRow) => row.experiment_accession,
-                },
-                {
-                  header: "Biosample",
-                  value: (row: geneRow) => row.celltype,
-                  render: (row: geneRow) => <Typography variant="body2" minWidth={'200px'} maxWidth={'400px'}>{row.celltype.replaceAll('_', ' ')}</Typography>
-                },
-                {
-                  header: "Score",
-                  value: (row: geneRow) => row.score,
-                },
-                {
-                  header: "P",
-                  HeaderRender: (row: geneRow) => <Typography variant="body2"><i>P</i></Typography>,
-                  value: (row: geneRow) => row.p_val === 0 ? "n/a" : row.p_val, //TODO fix this sort
-                },
-              ]}
-              tableTitle="3D Chromatin Linked"
-              rows={chromatinLinked}
-              sortColumn={6}
-              itemsPerPage={5}
-              searchable
-            />
-          </Grid2>
-          <Grid2 xs={12}>
-            <DataTable
-              columns={[
-                {
-                  header: "Gene ID",
-                  value: (row: geneRow) => row.geneid,
-                  render: (row: geneRow) => createLink("http://www.genecards.org/cgi-bin/carddisp.pl?gene=", row.geneid)
-                },
-                {
-                  header: "Common Gene Name",
-                  value: (row: geneRow) => row.gene,
-                  render: (row: geneRow) => createLink("http://www.genecards.org/cgi-bin/carddisp.pl?gene=", row.gene)
-                },
-                {
-                  header: "Gene Type",
-                  value: (row: geneRow) => row.genetype === 'lncRNA' ? row.genetype : row.genetype.replaceAll('_', ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
-                },
-                {
-                  header: "gRNA ID",
-                  value: (row: geneRow) => row.grnaid,
-                },
-                {
-                  header: "Assay Type",
-                  value: (row: geneRow) => row.assay,
-                },
-                {
-                  header: "Experiment ID",
-                  value: (row: geneRow) => row.experiment_accession,
-                },
-                {
-                  header: "Biosample",
-                  value: (row: geneRow) => row.celltype,
-                  render: (row: geneRow) => <Typography variant="body2" minWidth={'200px'} maxWidth={'400px'}>{row.celltype.replaceAll('_', ' ')}</Typography>
-                },
-                {
-                  header: "Effect Size",
-                  value: (row: geneRow) => row.effectsize,
-                },
-                {
-                  header: "P",
-                  HeaderRender: (row: geneRow) => <Typography variant="body2"><i>P</i></Typography>,
-                  value: (row: geneRow) => row.p_val,
-                },
-              ]}
-              tableTitle="CRISPR Linked"
-              rows={crisprLinked}
-              // sortColumn={7}
-              itemsPerPage={5}
-              searchable
-            />
-          </Grid2>
-          <Grid2 xs={12}>
-            <DataTable
-              columns={[
-                {
-                  header: "Gene ID",
-                  value: (row: geneRow) => row.geneid,
-                  render: (row: geneRow) => createLink("http://www.genecards.org/cgi-bin/carddisp.pl?gene=", row.geneid)
-                },
-                {
-                  header: "Common Gene Name",
-                  value: (row: geneRow) => row.gene,
-                  render: (row: geneRow) => createLink("http://www.genecards.org/cgi-bin/carddisp.pl?gene=", row.gene)
-                },
-                {
-                  header: "Gene Type",
-                  value: (row: geneRow) => row.genetype === 'lncRNA' ? row.genetype : row.genetype.replaceAll('_', ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
-                },
-                {
-                  header: "Variant ID",
-                  value: (row: geneRow) => row.variantid,
-                },
-                {
-                  header: "Source",
-                  value: (row: geneRow) => row.source,
-                },
-                {
-                  header: "Tissue",
-                  value: (row: geneRow) => row.tissue,
-                },
-                {
-                  header: "Slope",
-                  value: (row: geneRow) => row.slope,
-                },
-                {
-                  header: "P",
-                  HeaderRender: () => <Typography variant="body2"><i>P</i></Typography>,
-                  value: (row: geneRow) => row.p_val,
-                },
-              ]}
-              tableTitle="eQTL Linked"
-              rows={eqtlsLinked}
-              // sortColumn={6}
-              itemsPerPage={5}
-              searchable
-            />
-          </Grid2>
-        </Grid2>
-      </>
-    )
+      <Grid2 xs={12}>
+        {ChIAPETLinked.length > 0 ?
+          <DataTable
+            columns={[
+              {
+                header: "Common Gene Name",
+                value: (row: LinkedGeneInfo) => row.gene,
+                //Bit hacky, using link with nested button to get desired color/mouse/underline
+                render: (row: LinkedGeneInfo) => <Link variant="inherit" onClick={() => openNewGeneSearch(row.gene)}><button><i>{row.gene}</i></button></Link>
+              },
+              {
+                header: "Gene Type",
+                value: (row: LinkedGeneInfo) => row.genetype === 'lncRNA' ? row.genetype : row.genetype.replaceAll('_', ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+              },
+              {
+                header: "Assay Type",
+                value: (row: LinkedGeneInfo) => row.assay,
+              },
+              {
+                header: "Experiment ID",
+                value: (row: LinkedGeneInfo) => row.experiment_accession,
+                render: (row: LinkedGeneInfo) => createLink("https://www.encodeproject.org/experiments/", row.experiment_accession, row.experiment_accession, true)
+              },
+              {
+                header: "Biosample",
+                value: (row: LinkedGeneInfo) => row.displayname,
+                render: (row: LinkedGeneInfo) => <Typography variant="body2" minWidth={'200px'} maxWidth={'400px'}>{row.displayname}</Typography>
+              },
+              {
+                header: "Score",
+                value: (row: LinkedGeneInfo) => row.score,
+              },
+            ]}
+            tableTitle="ChIAPET Linked"
+            rows={ChIAPETLinked}
+            sortColumn={5}
+            itemsPerPage={5}
+            searchable
+          />
+          :
+          <EmptyTile title="ChIAPET Linked" body="No Data" />
+        }
+      </Grid2>
+      <Grid2 xs={12}>
+        {crisprLinked.length > 0 ?
+          <DataTable
+            columns={[
+              {
+                header: "Common Gene Name",
+                value: (row: LinkedGeneInfo) => row.gene,
+                //Bit hacky, using link with nested button to get desired color/mouse/underline
+                render: (row: LinkedGeneInfo) => <Link variant="inherit" onClick={() => openNewGeneSearch(row.gene)}><button><i>{row.gene}</i></button></Link>
+              },
+              {
+                header: "Gene Type",
+                value: (row: LinkedGeneInfo) => row.genetype === 'lncRNA' ? row.genetype : row.genetype.replaceAll('_', ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+              },
+              {
+                header: "gRNA ID",
+                value: (row: LinkedGeneInfo) => row.grnaid,
+              },
+              {
+                header: "Assay Type",
+                value: (row: LinkedGeneInfo) => row.assay,
+              },
+              {
+                header: "Experiment ID",
+                value: (row: LinkedGeneInfo) => row.experiment_accession,
+                render: (row: LinkedGeneInfo) => createLink("https://www.encodeproject.org/experiments/", row.experiment_accession, row.experiment_accession, true)
+              },
+              {
+                header: "Biosample",
+                value: (row: LinkedGeneInfo) => row.displayname,
+                render: (row: LinkedGeneInfo) => <Typography variant="body2" minWidth={'200px'} maxWidth={'400px'}>{row.displayname}</Typography>
+              },
+              {
+                header: "Effect Size",
+                value: (row: LinkedGeneInfo) => row.effectsize,
+              },
+              {
+                header: "P",
+                HeaderRender: (row: LinkedGeneInfo) => <Typography variant="body2"><i>P</i></Typography>,
+                value: (row: LinkedGeneInfo) => row.p_val,
+                render: (row: LinkedGeneInfo) => toScientificNotationElement(row.p_val, 'body2')
+              },
+            ]}
+            tableTitle="CRISPR Linked"
+            rows={crisprLinked}
+            emptyText="test"
+            sortColumn={7}
+            sortDescending
+            itemsPerPage={5}
+            searchable
+          />
+          :
+          <EmptyTile title="CRISPR Linked" body="No Data" />
+        }
+      </Grid2>
+      <Grid2 xs={12}>
+        {eqtlLinked.length > 0 ?
+          <DataTable
+            columns={[
+              {
+                header: "Common Gene Name",
+                value: (row: LinkedGeneInfo) => row.gene,
+                //Bit hacky, using link with nested button to get desired color/mouse/underline
+                render: (row: LinkedGeneInfo) => <Link variant="inherit" onClick={() => openNewGeneSearch(row.gene)}><button><i>{row.gene}</i></button></Link>
+              },
+              {
+                header: "Gene Type",
+                value: (row: LinkedGeneInfo) => row.genetype === 'lncRNA' ? row.genetype : row.genetype.replaceAll('_', ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+              },
+              {
+                header: "Variant ID",
+                value: (row: LinkedGeneInfo) => row.variantid,
+              },
+              {
+                header: "Source",
+                value: (row: LinkedGeneInfo) => row.source,
+              },
+              {
+                header: "Tissue",
+                value: (row: LinkedGeneInfo) => row.tissue,
+              },
+              {
+                header: "Slope",
+                value: (row: LinkedGeneInfo) => row.slope,
+              },
+              {
+                header: "P",
+                HeaderRender: () => <Typography variant="body2"><i>P</i></Typography>,
+                value: (row: LinkedGeneInfo) => row.p_val,
+                render: (row: LinkedGeneInfo) => toScientificNotationElement(row.p_val, 'body2')
+              },
+            ]}
+            tableTitle="eQTL Linked"
+            rows={eqtlLinked}
+            sortColumn={6}
+            sortDescending
+            itemsPerPage={5}
+            searchable
+          />
+          :
+          <EmptyTile title="eQTL Linked" body="No Data" />
+        }
+      </Grid2>
+    </Grid2>
   )
 }

@@ -272,3 +272,49 @@ export const TF_INTERSECTION_QUERY = gql`
     }
   }
 `
+export const NEARBY_AND_LINKED_GENES = gql`
+  query nearbyAndLinkedGenes(
+    $accession: String!
+    $assembly: String!
+    $geneChr: String!
+    $geneStart: Int!
+    $geneEnd: Int!
+    $genesVersion: Int!
+  ) {
+    nearbyGenes: gene(
+      chromosome: $geneChr
+      start: $geneStart
+      end: $geneEnd
+      assembly: $assembly
+      version: $genesVersion
+    ) {
+      name
+      id
+      gene_type
+      coordinates {
+        chromosome
+        start
+        end
+      }
+    }
+    linkedGenes: linkedGenesQuery(assembly: $assembly, accession: [$accession]) {
+      p_val
+      gene
+      geneid
+      genetype
+      method
+      accession
+      grnaid
+      effectsize
+      assay
+      celltype
+      experiment_accession
+      tissue
+      variantid
+      source
+      slope
+      score
+      displayname
+    }
+  }
+`

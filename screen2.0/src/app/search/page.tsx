@@ -213,7 +213,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         page,
         opencCREs.map(x => x.ID).join(',')
       )
-      console.log("pushing new url:" + newURL)
+      // console.log("old params: " +  JSON.stringify(searchParams))
+      // console.log("pushing new url:" + newURL)
       router.push(newURL)
     }
   }, [searchParams, mainQueryParams, filterCriteria, biosampleTableFilters, page, opencCREs, router, basePathname, opencCREsInitialized, loadingFetch])
@@ -606,7 +607,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           {mainQueryParams.gene.name && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" && page === 3 && (
             <Rampage genes={[{name: mainQueryParams.gene.name}]} biosampleData={biosampleData}/>
           )}
-         
           {page >= numberOfDefaultTabs && opencCREs.length > 0 && (
             opencCREs[page - numberOfDefaultTabs] ?
             <CcreDetails

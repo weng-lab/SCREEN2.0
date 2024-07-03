@@ -260,13 +260,13 @@ export function GeneExpression(props: {
             <InputLabel>Gene</InputLabel>
             <Select
               value={assembly === "GRCh38" ? currentHumanGene : currentMouseGene}
-              renderValue={(value) => (<Typography><i>{value}</i></Typography>)}
+              size="small"
             >
               {props.genes.map((gene) => {
                 return (
                   <MenuItem sx={{ display: "block" }} key={gene.name} value={gene.name} onClick={() => assembly === "GRCh38" ? setCurrentHumanGene(gene.name) : setCurrentMouseGene(gene.name)}>
                     <Typography><i>{gene.name}</i></Typography>
-                    {gene?.linkedBy && <Typography variant="body2" color={"text.secondary"}>{gene.linkedBy.join(', ')}</Typography>}
+                    {gene?.linkedBy && <Typography variant="body2" color={"text.secondary"}>Linked By: {gene.linkedBy.join(', ')}</Typography>}
                   </MenuItem>
                 )
               })}
