@@ -752,17 +752,6 @@ export function MainResultsFilters(
               </FormGroup>
             </AccordionDetails>
           </Accordion>
-          {/* Functional Characterization */}
-          {/* <Accordion square disableGutters>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel5a-content" id="panel5a-header">
-              <Typography>Functional Characterization</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Typography>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex, sit amet blandit leo lobortis eget.
-              </Typography>
-            </AccordionDetails>
-          </Accordion> */}
         </>
       }
     </Paper>

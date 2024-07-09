@@ -50,8 +50,8 @@ export function GeneExpression(props: {
   const pathname = usePathname()
 
   //Use gene from url if specified
-  const [currentHumanGene, setCurrentHumanGene] = useState<string>(props.genes ? props.genes[0].name : (urlAssembly === "GRCh38" && urlGene) ? urlGene : "APOE")
-  const [currentMouseGene, setCurrentMouseGene] = useState<string>(props.genes ? props.genes[0].name : (urlAssembly === "mm10" && urlGene) ? urlGene : "Emid1")
+  const [currentHumanGene, setCurrentHumanGene] = useState<string>(props.genes ? props?.genes[0]?.name : (urlAssembly === "GRCh38" && urlGene) ? urlGene : "APOE")
+  const [currentMouseGene, setCurrentMouseGene] = useState<string>(props.genes ? props?.genes[0]?.name : (urlAssembly === "mm10" && urlGene) ? urlGene : "Emid1")
 
   const [biosamples, setBiosamples] = useState<string[]>(["cell line", "in vitro differentiated cells", "primary cell", "tissue"])
   const [group, setGroup] = useState<"byTissueMaxTPM" | "byExperimentTPM" | "byTissueTPM">("byTissueTPM")

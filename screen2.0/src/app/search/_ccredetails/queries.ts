@@ -276,25 +276,23 @@ export const NEARBY_AND_LINKED_GENES = gql`
   query nearbyAndLinkedGenes(
     $accession: String!
     $assembly: String!
-    $geneChr: String!
-    $geneStart: Int!
-    $geneEnd: Int!
-    $genesVersion: Int!
+    $coordinates: ChromRange!
+    $nearbyLimit: Int!
   ) {
-    nearbyGenes: gene(
-      chromosome: $geneChr
-      start: $geneStart
-      end: $geneEnd
+    nearestGenes(
       assembly: $assembly
-      version: $genesVersion
+      limit: $nearbyLimit
+      coordinates: [$coordinates]
     ) {
-      name
-      id
-      gene_type
-      coordinates {
-        chromosome
-        start
-        end
+      intersecting_genes {
+        name
+        id
+        gene_type
+        coordinates {
+          start
+          end
+          chromosome
+        }
       }
     }
     linkedGenes: linkedGenesQuery(assembly: $assembly, accession: [$accession]) {

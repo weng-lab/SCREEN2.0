@@ -8,14 +8,15 @@ import { Typography } from "@mui/material"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { LoadingMessage } from "../../../common/lib/utility"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { calculateDistanceFromMiddles } from "./ccredetails"
 
-
+//This produces a "distance" for cCREs which are inside gene bodies
 const genesDistance = (
   coordinates: { chromosome: string; start: number; end: number },
   ccrecoord: { chromosome: string; start: number; end: number }
 ) => {
-  let c = Math.floor((ccrecoord.start + ccrecoord.end) / 2)
-  return Math.min(Math.abs(coordinates.start - c), Math.abs(coordinates.end - c))
+  let c = Math.floor((ccrecoord.start + ccrecoord.end) / 2) //find middle of ccre
+  return Math.min(Math.abs(coordinates.start - c), Math.abs(coordinates.end - c)) //return minimum of: distance to start of gene, distance to end of gene
 }
 
 const cCREDistance = (
@@ -101,7 +102,8 @@ export const NearByGenomicFeatures: React.FC<{
         chrom: g.coordinates.chromosome,
         start: g.coordinates.start,
         stop: g.coordinates.end,
-        distance: genesDistance(g.coordinates, coordinates),
+        // distance: genesDistance(g.coordinates, coordinates),
+        distance: calculateDistanceFromMiddles(g.coordinates, coordinates),
       }
     })
   let ccres =

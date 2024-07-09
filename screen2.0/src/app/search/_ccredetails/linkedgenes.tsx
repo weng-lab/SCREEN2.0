@@ -123,7 +123,7 @@ export const LinkedGenes: React.FC<props> = (props) => {
                 render: (row: LinkedGeneInfo) => row.p_val === 0 ? '0' : toScientificNotationElement(row.p_val, 'body2')
               },
             ]}
-            tableTitle="Intact-HiC Linked"
+            tableTitle="Intact Hi-C Loops"
             rows={HiCLinked}
             sortColumn={6}
             sortDescending
@@ -131,7 +131,7 @@ export const LinkedGenes: React.FC<props> = (props) => {
             searchable
           />
           :
-          <EmptyTile title="Intact-HiC Linked" body="No Data" />
+          <EmptyTile title="Intact Hi-C Loops" body="No intact Hi-C loops overlap this cCRE and the promoter of a gene" />
         }
       </Grid2>
       <Grid2 xs={12}>
@@ -167,14 +167,14 @@ export const LinkedGenes: React.FC<props> = (props) => {
                 value: (row: LinkedGeneInfo) => row.score,
               },
             ]}
-            tableTitle="ChIAPET Linked"
+            tableTitle="ChIA-PET Interactions"
             rows={ChIAPETLinked}
             sortColumn={5}
             itemsPerPage={5}
             searchable
           />
           :
-          <EmptyTile title="ChIAPET Linked" body="No Data" />
+          <EmptyTile title="ChIA-PET Interactions" body="No ChIA-PET interactions overlap this cCRE and the promoter of a gene" />
         }
       </Grid2>
       <Grid2 xs={12}>
@@ -220,7 +220,7 @@ export const LinkedGenes: React.FC<props> = (props) => {
                 render: (row: LinkedGeneInfo) => toScientificNotationElement(row.p_val, 'body2')
               },
             ]}
-            tableTitle="CRISPR Linked"
+            tableTitle="CRISPRi-FlowFISH"
             rows={crisprLinked}
             emptyText="test"
             sortColumn={7}
@@ -229,7 +229,7 @@ export const LinkedGenes: React.FC<props> = (props) => {
             searchable
           />
           :
-          <EmptyTile title="CRISPR Linked" body="No Data" />
+          <EmptyTile title="CRISPRi-FlowFISH" body="This cCRE was not targeted in a CRISPRi-FlowFISH experiment" />
         }
       </Grid2>
       <Grid2 xs={12}>
@@ -269,7 +269,7 @@ export const LinkedGenes: React.FC<props> = (props) => {
                 render: (row: LinkedGeneInfo) => toScientificNotationElement(row.p_val, 'body2')
               },
             ]}
-            tableTitle="eQTL Linked"
+            tableTitle="eQTLs"
             rows={eqtlLinked}
             sortColumn={6}
             sortDescending
@@ -277,7 +277,7 @@ export const LinkedGenes: React.FC<props> = (props) => {
             searchable
           />
           :
-          <EmptyTile title="eQTL Linked" body="No Data" />
+          <EmptyTile title="eQTLs" body="This cCRE does not overlap a variant associated with significant changes in gene expression" />
         }
       </Grid2>
     </Grid2>
