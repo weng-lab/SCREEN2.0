@@ -1,3 +1,4 @@
+import { gql } from "@apollo/client"
 
 export const CCRE_AUTOCOMPLETE_QUERY = `
 query cCREQuery($accession_prefix: [String!], $limit: Int, $assembly: String!) {
@@ -27,15 +28,23 @@ query ($assembly: String!, $name_prefix: [String!], $limit: Int, $version: Int) 
   }  
  `
 
- export const SNP_AUTOCOMPLETE_QUERY = `
- query snpAutocompleteQuery($snpid: String!, $assembly: String!) {
-     snpAutocompleteQuery(snpid: $snpid, assembly: $assembly) {
-         id
-         coordinates {
-             chromosome
-             start
-             end
-         }
-     }
- }
- `
+export const SNP_AUTOCOMPLETE_QUERY = `
+query snpAutocompleteQuery($snpid: String!, $assembly: String!) {
+    snpAutocompleteQuery(snpid: $snpid, assembly: $assembly) {
+        id
+        coordinates {
+            chromosome
+            start
+            end
+        }
+    }
+}
+`
+
+export const BED_INTERSECT_QUERY = gql`
+query bedIntersectCCRE ($user_ccres: [cCRE]) {
+  intersection (
+    userCcres: $user_ccres
+  )
+}
+`

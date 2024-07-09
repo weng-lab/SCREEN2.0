@@ -8,12 +8,17 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { Cancel, Search } from "@mui/icons-material"
 import { LoadingButton } from "@mui/lab"
 import config from "../../config.json"
+import { client } from "../search/_ccredetails/client"
+import { useLazyQuery, NetworkStatus } from "@apollo/client"
+import { BED_INTERSECT_QUERY } from "./queries"
+import { log } from "console"
 
 const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => {
   const router = useRouter()
 
   const [files, setFiles] = useState<File[]>([])
   const [loading, setLoading] = useState(false)
+  const [getOutput] = useLazyQuery(BED_INTERSECT_QUERY)
 
   const onDrop = useCallback(acceptedFiles => {
     // setFiles([...files, ...acceptedFiles])
@@ -21,22 +26,22 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
     setFiles([acceptedFiles[0]])
   }, [])
 
+ 
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
 
-  const getIntersect = (jq, successF, errF) => {
-    //Need to put this url in config file
-    const url = config.BED_intersect.url
-    fetch(url, {
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
+  const getIntersect = (allLines, successF, errF) => {
+    getOutput({
+      variables: {user_ccres: allLines},
+      client: client,
+      fetchPolicy: 'cache-and-network',
+      onCompleted(data) {
+        successF(data)
       },
-      method: "POST",
-      body: jq,
+      onError(error) {
+          errF(error)
+      },
     })
-      .then((response) => response.json())
-      .then(successF)
-      .catch(errF)
   }
 
   //TODO Warn based on file size, support multiple files
@@ -52,18 +57,17 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
         const contents = r.target.result
         const lines = contents.toString().split("\n")
         lines.forEach((e) => {
-          allLines.push(e)
+          allLines.push(e.split("\t"))
         })
       }
       reader.onabort = () => console.log("file reading was aborted")
       reader.onerror = () => console.log("file reading has failed")
       reader.onloadend = (e) => {
-        const j = { uuid: "", assembly: props.assembly, allLines }
-        const jq = JSON.stringify(j)
         getIntersect(
-          jq,
-          (r) => {
-            accessions = r.accessions
+          allLines,
+          (data) => {
+            console.log(data);
+            accessions = data['intersection'].map((elem) => elem[4])
             sessionStorage.setItem("filenames", filenames)
             sessionStorage.setItem("bed intersect", accessions.join(' '))
             if (accessions.length === 1000){
