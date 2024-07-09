@@ -282,7 +282,7 @@ export const NEARBY_AND_LINKED_GENES = gql`
     nearestGenes(
       assembly: $assembly
       limit: $nearbyLimit
-      coordinates: [$coordinates]
+      coordinates: $coordinates
     ) {
       intersecting_genes {
         name

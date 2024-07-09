@@ -261,6 +261,7 @@ export function GeneExpression(props: {
             <Select
               value={assembly === "GRCh38" ? currentHumanGene : currentMouseGene}
               size="small"
+              MenuProps={{sx: {maxHeight: '600px'}}}
             >
               {props.genes.map((gene) => {
                 return (

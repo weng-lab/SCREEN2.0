@@ -196,6 +196,7 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
             <Select
               value={currentGene}
               size="small"
+              MenuProps={{sx: {maxHeight: '600px'}}}
             >
               {props.genes.map((gene) => {
                 return (
