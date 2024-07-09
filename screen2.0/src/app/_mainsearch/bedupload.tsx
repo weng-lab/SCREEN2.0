@@ -68,7 +68,6 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
         getIntersect(
           allLines,
           (data) => {
-            console.log(data);
             accessions = data['intersection'].map((elem) => elem[4])
             sessionStorage.setItem("filenames", filenames)
             sessionStorage.setItem("bed intersect", accessions.join(' '))
