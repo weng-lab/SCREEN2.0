@@ -7,11 +7,9 @@ import { useRouter } from 'next/navigation'
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { Cancel, Search } from "@mui/icons-material"
 import { LoadingButton } from "@mui/lab"
-import config from "../../config.json"
 import { client } from "../search/_ccredetails/client"
-import { useLazyQuery, NetworkStatus } from "@apollo/client"
+import { useLazyQuery } from "@apollo/client"
 import { BED_INTERSECT_QUERY } from "./queries"
-import { log } from "console"
 
 const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => {
   const router = useRouter()
