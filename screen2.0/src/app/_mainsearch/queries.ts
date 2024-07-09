@@ -42,9 +42,11 @@ query snpAutocompleteQuery($snpid: String!, $assembly: String!) {
 `
 
 export const BED_INTERSECT_QUERY = gql`
-query bedIntersectCCRE ($user_ccres: [cCRE]) {
+query bedIntersectCCRE ($user_ccres: [cCRE]!, $assembly: String!, $max_ouput_length: Int) {
   intersection (
-    userCcres: $user_ccres
+    userCcres: $user_ccres,
+    assembly: $assembly,
+    maxOutputLength: $max_ouput_length
   )
 }
 `

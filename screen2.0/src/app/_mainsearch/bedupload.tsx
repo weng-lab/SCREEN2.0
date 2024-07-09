@@ -32,7 +32,11 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
 
   const getIntersect = (allLines, successF, errF) => {
     getOutput({
-      variables: {user_ccres: allLines},
+      variables: {
+        user_ccres: allLines,
+        assembly: props.assembly,
+        maxOutputLength: 1000 // Not required technically as server side defaults to 1000, here if it needs to be changed in the future
+      },
       client: client,
       fetchPolicy: 'cache-and-network',
       onCompleted(data) {
