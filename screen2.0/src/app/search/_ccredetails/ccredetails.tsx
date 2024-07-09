@@ -1,7 +1,7 @@
 "use client"
-import React, { useCallback, useMemo, useState } from "react"
+import React, { useMemo } from "react"
 import { Typography, Stack, Divider, CircularProgress } from "@mui/material"
-import { GenomicRegion, MainQueryParams } from "../types"
+import { GenomicRegion } from "../types"
 import { InSpecificBiosamples } from "./inspecificbiosample"
 import { NearByGenomicFeatures } from "./nearbygenomicfeatures"
 import { LinkedGenes } from "./linkedgenes"
@@ -17,7 +17,7 @@ import { ApolloQueryResult } from "@apollo/client"
 import { BIOSAMPLE_Data } from "../../../common/lib/queries"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import { NEARBY_AND_LINKED_GENES } from "./queries"
-import Error from "../../error"
+import { calcDistToTSS } from "./utils"
 
 //Passing these props through this file could be done with context to reduce prop drilling
 type CcreDetailsProps = {
@@ -61,88 +61,88 @@ type NearbyGeneInfo = {
   name: string
   id: string
   gene_type: string
+  strand: '+' | '-'
   coordinates: Coordinates
+  transcripts: {
+    id: string
+    coordinates: Coordinates
+  }[]
 }
 
-export type NearbyGeneInfoWithDistance = {
-  name: string
-  id: string
-  gene_type: string
-  coordinates: Coordinates
-  distance: number
-}
+export type NearbyGeneInfoWithDistance = NearbyGeneInfo & {distanceToTSS: number}
 
 type NearbyAndLinked = {
-  nearestGenes: [{ intersecting_genes: NearbyGeneInfo[] }]
+  nearbyGenes: NearbyGeneInfo[]
   linkedGenes: LinkedGeneInfo[]
 }
 
 export type NearbyWithDistanceAndLinked = {
-  nearestGenes: [{ intersecting_genes: NearbyGeneInfoWithDistance[] }]
+  nearbyGenes: NearbyGeneInfoWithDistance[]
   linkedGenes: LinkedGeneInfo[]
 }
 
 type NearbyAndLinkedVariables = {
-  assembly: string
-  accession: string
-  coordinates: { chromosome: string, start: number, stop: number }
-  nearbyLimit: number
+  accession: String
+  assembly: String
+  geneSearchStart: Number
+  geneSearchEnd: Number
+  geneSearchChrom: String
+  geneVersion: 40 | 25
 }
-
-function calculateDistanceFromEdges(coord1: Coordinates, coord2: Coordinates): number {
-  if (coord1.end < coord2.start) {
-    return coord2.start - coord1.end;
-  } else if (coord2.end < coord1.start) {
-    return coord1.start - coord2.end;
-  } else {
-    return 0;
-  }
-}
-
-export function calculateDistanceFromMiddles(coord1: Coordinates, coord2: Coordinates): number {
-  const mid1 = (coord1.start + coord1.end) / 2
-  const mid2 = (coord2.start + coord2.end) / 2
-  return Math.floor(Math.abs(mid1 - mid2))
-}
-
 
 export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, biosampleData, assembly, page, handleOpencCRE }) => {
 
-  const { loading: loadingLinkedGenes, data: dataNearbyAndLinked, error: errorNearbyAndLinked, refetch } = useQuery<NearbyAndLinked, NearbyAndLinkedVariables>(NEARBY_AND_LINKED_GENES, {
+  //Fetch linked genes and genes within a 2M bp window around cCRE
+  const { loading: loadingLinkedGenes, data: dataNearbyAndLinked, error: errorNearbyAndLinked } = useQuery<NearbyAndLinked, NearbyAndLinkedVariables>(NEARBY_AND_LINKED_GENES, {
     variables: {
       assembly: assembly.toLowerCase(),
       accession: accession,
-      coordinates: { chromosome: region.chrom, start: region.start - 1000000, stop: region.end + 1000000 },
-      nearbyLimit: 3
+      geneSearchChrom: region.chrom,
+      geneSearchStart: region.start - 1000000,
+      geneSearchEnd: region.end + 1000000,
+      geneVersion: assembly.toLowerCase() === "grch38" ? 40 : 25
     },
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
   })
 
+  //Find distance to nearest TSS for each nearby gene, and only keep the closest 3
   const nearest3AndLinkedGenes: NearbyWithDistanceAndLinked = useMemo(() => {
     return dataNearbyAndLinked ? {
-      linkedGenes: [...dataNearbyAndLinked.linkedGenes.map((g) => { return { ...g, gene: g.gene.split(' ')[0] } })], //remove trailing space in return data
-      nearestGenes: [{
-        intersecting_genes: [...dataNearbyAndLinked.nearestGenes[0].intersecting_genes.map((gene) => {
-          return { ...gene, distance: calculateDistanceFromMiddles({ chromosome: region.chrom, start: region.start, end: region.end }, gene.coordinates) }
-        })]
-      }]
+      //remove trailing space in return data
+      linkedGenes: [...dataNearbyAndLinked.linkedGenes.map((g) => { return { ...g, gene: g.gene.split(' ')[0] } })], 
+      nearbyGenes: [...dataNearbyAndLinked.nearbyGenes.map((gene) => {
+        return {
+          ...gene,
+          distanceToTSS: calcDistToTSS(region, gene.transcripts, gene.strand)
+        }
+      })].sort((a, b) => a.distanceToTSS - b.distanceToTSS).slice(0, 3)
     } : null
-  }, [dataNearbyAndLinked, region.chrom, region.end, region.start])
+  }, [dataNearbyAndLinked, region])
 
-  //Used to pass genes and their linking method to gene expression and RAMPAGE app
+  //Used to pass genes and their linking method to Gene Expression and RAMPAGE pages
   const uniqueGenes: { name: string; linkedBy: string[]; }[] = [];
 
+  //Iterate through each of the genes, and populate uniqueGenes with genes and their linking methods 
   if (nearest3AndLinkedGenes) {
     for (const gene of [
-      ...nearest3AndLinkedGenes.nearestGenes[0].intersecting_genes,
+      ...nearest3AndLinkedGenes.nearbyGenes,
       ...nearest3AndLinkedGenes.linkedGenes
     ]) {
-      const geneName = gene['gene'] ?? gene['name']
-      const methodToPush = gene['distance'] !== undefined ? `Distance - ${gene['distance']} bp` : gene['assay'] ?? gene['method']
+      const isNearbyGene: boolean = !!gene['distanceToTSS']
+      let geneName: string;
+      let methodToPush: string;
+      if (isNearbyGene) {
+        geneName = (gene as NearbyGeneInfoWithDistance).name
+        methodToPush = `Distance to TSS - ${(gene as NearbyGeneInfoWithDistance).distanceToTSS.toLocaleString()} bp`
+      } else {
+        geneName = (gene as LinkedGeneInfo).gene
+        methodToPush = (gene as LinkedGeneInfo).assay ?? (gene as LinkedGeneInfo).method
+      }
       const existingGeneEntry = uniqueGenes.find((uniqueGene) => uniqueGene.name === geneName)
       if (existingGeneEntry) {
-        !existingGeneEntry.linkedBy.find(method => method === methodToPush) && existingGeneEntry.linkedBy.push(methodToPush) //deduplicate for linking methods with multiple tissues
+        //add linking method if duplicate doesn't exist
+        !existingGeneEntry.linkedBy.find(method => method === methodToPush) && existingGeneEntry.linkedBy.push(methodToPush) 
       } else uniqueGenes.push({ name: geneName, linkedBy: [methodToPush] })
     }
   }

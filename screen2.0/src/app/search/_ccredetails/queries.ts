@@ -175,10 +175,19 @@ export const NEARBY_GENOMIC_FEATURES_QUERY = gql`
     gene(chromosome: $chromosome, start: $start, end: $end, assembly: $b, version: $version) {
       name
       id
+      strand
       coordinates {
         chromosome
         start
         end
+      }
+      transcripts {
+        id
+        coordinates {
+          chromosome
+          start
+          end
+        }
       }
     }
 
@@ -208,10 +217,19 @@ export const NEARBY_GENOMIC_FEATURES_NOSNPS_QUERY = gql`
     gene(chromosome: $chromosome, start: $start, end: $end, assembly: $b, version: $version) {
       name
       id
+      strand
       coordinates {
         chromosome
         start
         end
+      }
+      transcripts {
+        id
+        coordinates {
+          chromosome
+          start
+          end
+        }
       }
     }
 
@@ -276,22 +294,33 @@ export const NEARBY_AND_LINKED_GENES = gql`
   query nearbyAndLinkedGenes(
     $accession: String!
     $assembly: String!
-    $coordinates: ChromRange!
-    $nearbyLimit: Int!
+    $geneSearchStart: Int!
+    $geneSearchEnd: Int!
+    $geneSearchChrom: String!
+    $geneVersion: Int!
   ) {
-    nearestGenes(
+    nearbyGenes: gene(
+      chromosome: $geneSearchChrom
+      start: $geneSearchStart
+      end: $geneSearchEnd
       assembly: $assembly
-      limit: $nearbyLimit
-      coordinates: $coordinates
+      version: $geneVersion
     ) {
-      intersecting_genes {
-        name
+      name
+      id
+      gene_type
+      strand
+      coordinates {
+        chromosome
+        start
+        end
+      }
+      transcripts {
         id
-        gene_type
         coordinates {
+          chromosome
           start
           end
-          chromosome
         }
       }
     }
