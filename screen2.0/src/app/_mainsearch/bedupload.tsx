@@ -58,9 +58,19 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
       reader.onload = (r) => {
         const contents = r.target.result
         const lines = contents.toString().split("\n")
-        lines.forEach((e) => {
-          allLines.push(e.split("\t"))
+        lines.forEach((line) => {
+          // The if statement checks if the BED file has a header and does not push those
+          // Also checks for empty lines
+          if (!(line.startsWith("#") || 
+                line.startsWith("browser") || 
+                line.startsWith("track") ||
+                line.length === 0
+              )) {
+            allLines.push(line.split("\t"))
+          }
         })
+        console.log(allLines);
+        
       }
       reader.onabort = () => console.log("file reading was aborted")
       reader.onerror = () => console.log("file reading has failed")
