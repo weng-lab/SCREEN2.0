@@ -821,7 +821,6 @@ export const downloadBED = async (
   let dataArray: MainQueryData[] = []
   let linkedGenesArray: RawLinkedGenesData[] = []
 
-  //@ts-expect-error
   startTransition(async () => {
     for (let i = 0; i < ranges.length; i++) {
       const range = ranges[i];
