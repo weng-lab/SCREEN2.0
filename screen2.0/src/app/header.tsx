@@ -8,6 +8,7 @@ import Link from "next/link"
 import Image from "next/image"
 import screenIcon from "../../public/screenLogo.png"
 import { MainSearch } from "./_mainsearch/mainsearch"
+import { A } from "logots-react"
 
 
 /*  
@@ -89,9 +90,9 @@ function ResponsiveAppBar() {
           <Toolbar disableGutters sx={{ justifyContent: "space-between" }}>
             {/* Logo, and desktop navigation */}
             <Box display='flex' flexGrow={1}>
-              <Link href={"/"}>
+              <a href={"/"}>
                 <Image src={screenIcon} alt="SCREEN Icon" height={40} width={90} style={{marginRight: '20px'}}/>
-              </Link>
+              </a>
               {/* Main navigation items for desktop, hide on small screen size */}
               <Box sx={{ display: { xs: "none", lg: "flex" }, alignItems: 'center' }}>
                 {pageLinks.map((page) => (
@@ -107,11 +108,11 @@ function ResponsiveAppBar() {
                       onMouseEnter={page.subPages ? (event) => handleOpenNavMenu_Dropdown(event, page.dropdownID) : undefined}
                     >
                       {/* Wrap in next/link to enable dyanic link changing from basePath in next.config.js */}
-                      <Link href={page.link}>
+                      <a href={page.link}>
                         <Typography variant="body1">
                           {page.pageName}
                         </Typography>
-                      </Link>
+                      </a>
                     </Button>
                     {/* Create popup menu if page has subpages */}
                     {page.subPages && (
@@ -141,9 +142,9 @@ function ResponsiveAppBar() {
                             page.subPages.map((subPage) => (
                               <MenuItem key={subPage.pageName} onClick={() => handleCloseNavMenu_Dropdown(page.dropdownID)}>
                                 {/* Wrap in next/link to enable dyanic link changing from basePath in next.config.js */}
-                                <Link href={subPage.link}>
+                                <a href={subPage.link}>
                                   <Typography textAlign="center">{subPage.pageName}</Typography>
-                                </Link>
+                                </a>
                               </MenuItem>
                             ))}
                         </Paper>
@@ -192,9 +193,9 @@ function ResponsiveAppBar() {
                 </MenuItem>
                 {pageLinks.map((page) => (
                   <MenuItem key={page.pageName} onClick={handleCloseNavMenu_Hamburger}>
-                    <Link href={page.link}>
+                    <a href={page.link}>
                       <Typography textAlign="center" textTransform="none">{page.pageName}</Typography>
-                    </Link>
+                    </a>
                   </MenuItem>
                 ))}
               </Menu>
