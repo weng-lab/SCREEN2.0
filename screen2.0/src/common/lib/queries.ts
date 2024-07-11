@@ -120,11 +120,10 @@ const cCRE_QUERY = gql`
   }
 `
 
-function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: number, end: number, biosample: string, nearbygenesdistancethreshold: number, nearbygeneslimit: number, accessions: string[], noLimit?: boolean) {
+function cCRE_QUERY_VARIABLES(assembly: string, coordinates: {chromosome: string, start: number, end: number}[], biosample: string, nearbygenesdistancethreshold: number, nearbygeneslimit: number, accessions: string[], noLimit?: boolean) {
   let vars = {
     uuid: null,
     assembly: assembly,
-    coordinates: [{chromosome, start, end}],
     gene_all_start: 0,
     gene_all_end: 5000000,
     gene_pc_start: 0,
@@ -148,6 +147,9 @@ function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: numbe
   //Can't just null out accessions field if not using due to API functionality as of writing this, so push to vars only if using
   if (accessions) {
     vars["accessions"] = accessions
+  }
+  if (coordinates) {
+    vars["coordinates"] = coordinates
   }
 
   return vars
@@ -266,7 +268,7 @@ export async function MainQuery(assembly: string = null, chromosome: string = nu
   try {
     data = await getClient().query({
       query: cCRE_QUERY,
-      variables: cCRE_QUERY_VARIABLES(assembly, chromosome, start, end, biosample, nearbygenesdistancethreshold, nearbygeneslimit, accessions, noLimit),
+      variables: cCRE_QUERY_VARIABLES(assembly, chromosome ? [{chromosome, start, end}] : null, biosample, nearbygenesdistancethreshold, nearbygeneslimit, accessions, noLimit),
       //Telling it to not cache, next js caches also and for things that exceed the 2mb cache limit it slows down substantially for some reason
       fetchPolicy: "no-cache",
     })

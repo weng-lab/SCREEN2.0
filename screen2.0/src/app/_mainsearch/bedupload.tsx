@@ -7,13 +7,16 @@ import { useRouter } from 'next/navigation'
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { Cancel, Search } from "@mui/icons-material"
 import { LoadingButton } from "@mui/lab"
-import config from "../../config.json"
+import { client } from "../search/_ccredetails/client"
+import { useLazyQuery } from "@apollo/client"
+import { BED_INTERSECT_QUERY } from "./queries"
 
 const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => {
   const router = useRouter()
 
   const [files, setFiles] = useState<File[]>([])
   const [loading, setLoading] = useState(false)
+  const [getOutput] = useLazyQuery(BED_INTERSECT_QUERY)
 
   const onDrop = useCallback(acceptedFiles => {
     // setFiles([...files, ...acceptedFiles])
@@ -21,22 +24,26 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
     setFiles([acceptedFiles[0]])
   }, [])
 
+ 
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
 
-  const getIntersect = (jq, successF, errF) => {
-    //Need to put this url in config file
-    const url = config.BED_intersect.url
-    fetch(url, {
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
+  const getIntersect = (allLines, successF, errF) => {
+    getOutput({
+      variables: {
+        user_ccres: allLines,
+        assembly: props.assembly,
+        maxOutputLength: 1000 // Not required technically as server side defaults to 1000, here if it needs to be changed in the future
       },
-      method: "POST",
-      body: jq,
+      client: client,
+      fetchPolicy: 'cache-and-network',
+      onCompleted(data) {
+        successF(data)
+      },
+      onError(error) {
+          errF(error)
+      },
     })
-      .then((response) => response.json())
-      .then(successF)
-      .catch(errF)
   }
 
   //TODO Warn based on file size, support multiple files
@@ -51,19 +58,27 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
       reader.onload = (r) => {
         const contents = r.target.result
         const lines = contents.toString().split("\n")
-        lines.forEach((e) => {
-          allLines.push(e)
+        lines.forEach((line) => {
+          // The if statement checks if the BED file has a header and does not push those
+          // Also checks for empty lines
+          if (!(line.startsWith("#") || 
+                line.startsWith("browser") || 
+                line.startsWith("track") ||
+                line.length === 0
+              )) {
+            allLines.push(line.split("\t"))
+          }
         })
+        console.log(allLines);
+        
       }
       reader.onabort = () => console.log("file reading was aborted")
       reader.onerror = () => console.log("file reading has failed")
       reader.onloadend = (e) => {
-        const j = { uuid: "", assembly: props.assembly, allLines }
-        const jq = JSON.stringify(j)
         getIntersect(
-          jq,
-          (r) => {
-            accessions = r.accessions
+          allLines,
+          (data) => {
+            accessions = data['intersection'].map((elem) => elem[4])
             sessionStorage.setItem("filenames", filenames)
             sessionStorage.setItem("bed intersect", accessions.join(' '))
             if (accessions.length === 1000){
