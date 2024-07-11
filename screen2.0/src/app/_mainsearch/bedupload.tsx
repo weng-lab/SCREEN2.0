@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useCallback, useState } from "react"
-import { Button, Typography, Stack, Container, IconButton } from "@mui/material"
+import { Button, Typography, Stack, Container, IconButton, Alert } from "@mui/material"
 import { useDropzone } from "react-dropzone"
 import { useRouter } from 'next/navigation'
 import UploadFileIcon from '@mui/icons-material/UploadFile';
@@ -16,6 +16,7 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
 
   const [files, setFiles] = useState<File[]>([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState([false, ""]) // status, message
   const [getOutput] = useLazyQuery(BED_INTERSECT_QUERY)
 
   const onDrop = useCallback(acceptedFiles => {
@@ -49,11 +50,19 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
   //TODO Warn based on file size, support multiple files
   const submitFiles = () => {
     setLoading(true)
+    setError([false, ""])
     let allLines = []
     let filenames: string = ''
     let accessions: string[] = []
     files.forEach((f) => {
       filenames += (' ' + f.name)
+      if (f.type !== "bed" && f.name.split('.').pop() !== "bed") {
+        console.error("File type is not bed");
+        setLoading(false)
+        setFiles([])
+        setError([true, "File type is not bed"])
+        return
+      }
       const reader = new FileReader()
       reader.onload = (r) => {
         const contents = r.target.result
@@ -69,8 +78,6 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
             allLines.push(line.split("\t"))
           }
         })
-        console.log(allLines);
-        
       }
       reader.onabort = () => console.log("file reading was aborted")
       reader.onerror = () => console.log("file reading has failed")
@@ -91,7 +98,8 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
           },
           //Error
           (msg) => {
-            console.log("Error", msg)
+            console.error(msg)
+            setError([true, msg])
             setLoading(false)
           }
         )
@@ -112,6 +120,7 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
   //Disallowing other file extensions with accept=".bed" isn't working as expected
   return (
     <Stack direction={props.header ? "row" : "column"}>
+      {error[0] && <Alert variant="filled" severity="error">{error[1]}</Alert>}
       {/* Upload button, only shows when no files uploaded */}
       {props.header ?
         files.length === 0 &&
