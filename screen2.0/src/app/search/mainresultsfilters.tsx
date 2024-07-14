@@ -795,22 +795,32 @@ export function MainResultsFilters(
                 <FormLabel component="legend" sx={{ pt: 2 }}>Linked By</FormLabel>
                 <FormGroup>
                   <FormControlLabel
+                    checked={props.filterCriteria.CTCFChIAPET}
+                    onChange={(_, checked: boolean) => props.setFilterCriteria({ ...props.filterCriteria, CTCFChIAPET: checked })}
                     control={<Checkbox />}
                     label="CTCF ChIA-PET Interaction"
                   />
                   <FormControlLabel
+                    checked={props.filterCriteria.RNAPIIChIAPET}
+                    onChange={(_, checked: boolean) => props.setFilterCriteria({ ...props.filterCriteria, RNAPIIChIAPET: checked })}
                     control={<Checkbox />}
                     label="RNAPII ChIA-PET Interaction"
                   />
                   <FormControlLabel
+                    checked={props.filterCriteria.HiC}
+                    onChange={(_, checked: boolean) => props.setFilterCriteria({ ...props.filterCriteria, HiC: checked })}
                     control={<Checkbox />}
                     label="Intact Hi-C Loops"
                   />
                   <FormControlLabel
+                    checked={props.filterCriteria.CRISPRiFlowFISH}
+                    onChange={(_, checked: boolean) => props.setFilterCriteria({ ...props.filterCriteria, CRISPRiFlowFISH: checked })}
                     control={<Checkbox />}
                     label="CRISPRi-FlowFISH"
                   />
                   <FormControlLabel
+                    checked={props.filterCriteria.eQTLs}
+                    onChange={(_, checked: boolean) => props.setFilterCriteria({ ...props.filterCriteria, eQTLs: checked })}
                     control={<Checkbox />}
                     label="eQTLs"
                   />

@@ -712,8 +712,8 @@ const convertToBED = (
     `${conservation.primate ? '\tprimate_conservation' : ''}`,
     `${conservation.mammal ? '\tmammal_conservation' : ''}`,
     `${conservation.vertebrate ? '\tvertebrate_conservation' : ''}`,
-    'nearest_gene',
-    'nearest_gene_distance',
+    '\tnearest_gene',
+    '\tnearest_gene_distance',
     '\n'
   ].join('')
   let bedContent: string[] = [header];
