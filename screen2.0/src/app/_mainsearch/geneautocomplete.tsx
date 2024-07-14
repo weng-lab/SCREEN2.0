@@ -100,7 +100,7 @@ export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
       <Autocomplete
         size={props.header ? "small" : "medium"}
         id="gene-autocomplete"
-        sx={{ width: 300, paper: { height: 200 } }}
+        sx={{ width: 300 }}
         options={options}
         ListboxProps={{
           style: {

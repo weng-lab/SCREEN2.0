@@ -3,12 +3,12 @@
 import { BIOSAMPLE_Data, biosampleQuery } from "../../common/lib/queries"
 import { BiosampleTableFilters, FilterCriteria, MainQueryData, MainQueryParams, RegistryBiosample } from "./types"
 import { constructBiosampleTableFiltersFromURL, constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, downloadBED, fetchcCREData, fetchLinkedGenesData } from "./searchhelpers"
-import React, { useEffect, useMemo, useRef, useState, useTransition } from "react"
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { styled } from '@mui/material/styles';
 import { Divider, IconButton, Tab, Tabs, Typography, Box, Button, CircularProgressProps, CircularProgress, Stack } from "@mui/material"
 import { MainResultsTable } from "./mainresultstable"
 import { MainResultsFilters } from "./mainresultsfilters"
-import { CcreDetails } from "./_ccredetails/ccredetails"
+import { CcreDetails, LinkedGeneInfo, NearbyAndLinked, NearbyAndLinkedVariables } from "./_ccredetails/ccredetails"
 import { usePathname, useRouter } from "next/navigation"
 import { GenomeBrowserView } from "./_gbview/genomebrowserview"
 import { RawLinkedGenesData } from "./types"
@@ -24,7 +24,8 @@ import Rampage from "./_ccredetails/rampage";
 import { GeneExpression } from "./_ccredetails/geneexpression";
 import { LoadingMessage } from "../../common/lib/utility"
 import { Download } from "@mui/icons-material"
-import { ApolloQueryResult } from "@apollo/client"
+import { ApolloQueryResult, useLazyQuery, useQuery } from "@apollo/client"
+import { LINKED_GENES } from "./_ccredetails/queries"
 
 /**
  * @todo:
@@ -119,6 +120,25 @@ function CircularProgressWithLabel(
   );
 }
 
+export type LinkedGenes = {
+  linkedGenes: LinkedGeneInfo[]
+}
+
+export type LinkedGenesVariables = {
+  assembly: String
+  accessions: String[]
+  methods?: String[]
+  celltypes?: String[]
+}
+
+type LinkedGenesCelltypes = {
+  linkedGenesCelltypes: {
+    celltype: String
+    displayName: String
+    method: String
+  }
+}
+
 export default function Search({ searchParams }: { searchParams: { [key: string]: string | undefined } }) {
   const router = useRouter()
   const basePathname = usePathname()
@@ -141,7 +161,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const [isPending, startTransition] = useTransition();
   const [opencCREsInitialized, setOpencCREsInitialized] = useState(false)
   const [TSSs, setTSSs] = useState<number[]>(null)
-  const [TSSranges, setTSSranges] = useState<{start: number, end: number}[]>(null)
+  const [TSSranges, setTSSranges] = useState<{ start: number, end: number }[]>(null)
   const [bedLoadingPercent, setBedLoadingPercent] = useState<number>(null)
 
   //Used to set just biosample in filters. Used for performance improvement to avoid having entire mainQueryParams in dep array
@@ -179,8 +199,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
 
     const closedPage = opencCREs.findIndex(x => x.ID === closedID) + numberOfDefaultTabs
     if (newOpencCREs.length === 0 && closedPage === page) {
-        setPage(0)
-        setDetailsPage(0)
+      setPage(0)
+      setDetailsPage(0)
     } else if (page === opencCREs.length + numberOfDefaultTabs - 1) setPage(page - 1)
     // If you're closing the tab you're on or one to the left:
     setOpencCREs(newOpencCREs)
@@ -195,17 +215,17 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   }
 
   //Keep URL and state in sync. Prevent from firing initially to allow time for opencCREs to be initialized
+  //J 7/13 this really needs to be made cleaner. This is confusing to read
   useEffect(() => {
     //Check if the URL params representing state are stale
     if (
       opencCREsInitialized && !loadingFetch &&
       //bug potentially?
       (JSON.stringify(constructMainQueryParamsFromURL(searchParams)) !== JSON.stringify(mainQueryParams)
-      || JSON.stringify(constructFilterCriteriaFromURL(searchParams)) !== JSON.stringify(filterCriteria)
-      || JSON.stringify(constructBiosampleTableFiltersFromURL(searchParams)) !== JSON.stringify(biosampleTableFilters)
-      || +searchParams.page !== page
-      || searchParams.accessions !== opencCREs.map(x => x.ID).join(',')))
-     {
+        || JSON.stringify(constructFilterCriteriaFromURL(searchParams)) !== JSON.stringify(filterCriteria)
+        || JSON.stringify(constructBiosampleTableFiltersFromURL(searchParams)) !== JSON.stringify(biosampleTableFilters)
+        || +searchParams.page !== page
+        || searchParams.accessions !== opencCREs.map(x => x.ID).join(','))) {
       const newURL = constructSearchURL(
         mainQueryParams,
         filterCriteria,
@@ -259,24 +279,33 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       end = TSSs && TSSranges ? Math.max(...TSSs) + mainQueryParams.gene.distance : null
     }
 
-    (mainQueryParams.searchConfig.bed_intersect || (start !== null) && (end !== null)) && 
-    startTransition(async () => {
-      // console.log("transition started")
-      const mainQueryData = await fetchcCREData(
-        mainQueryParams.coordinates.assembly,
-        mainQueryParams.coordinates.chromosome,
-        start,
-        end,
-        mainQueryParams.biosample?.name ? mainQueryParams.biosample.name : undefined,
-        1000000,
-        null,
-        mainQueryParams.searchConfig.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined
-      )
-      // console.log("setting main query data")
-      setMainQueryData(mainQueryData)
-      setLoadingFetch(false)
-    })
+    (mainQueryParams.searchConfig.bed_intersect || (start !== null) && (end !== null)) &&
+      startTransition(async () => {
+        const mainQueryData = await fetchcCREData(
+          mainQueryParams.coordinates.assembly,
+          mainQueryParams.coordinates.chromosome,
+          start,
+          end,
+          mainQueryParams.biosample?.name ? mainQueryParams.biosample.name : undefined,
+          null,
+          1,
+          mainQueryParams.searchConfig.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined
+        )
+        setMainQueryData(mainQueryData)
+        setLoadingFetch(false)
+      })
   }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample?.name, mainQueryParams.snp.rsID, mainQueryParams.snp.distance, TSSs, TSSranges, mainQueryParams.gene.distance, mainQueryParams.gene.nearTSS])
+
+  const useLinkedGenes = useLazyQuery<LinkedGenes, LinkedGenesVariables>(LINKED_GENES, {
+    variables: {
+      assembly: mainQueryParams.coordinates.assembly.toLowerCase(),
+      accessions: mainQueryData?.data.cCRESCREENSearch.map((res) => res.info.accession)
+    },
+    fetchPolicy: "cache-and-network",
+    nextFetchPolicy: "cache-first",
+  })
+
+  const [getLinkedGenes, { loading: loadingLinkedGenes, data: dataLinkedGenes, error: errorLinkedGenes }] = useLinkedGenes
 
   //Fetch linked genes data.
   useEffect(() => {
@@ -309,7 +338,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         )
         const opencCRE_data = generateFilteredRows(
           cCREQueryData,
-          {},
+          [],
           filterCriteria,
           true
         )
@@ -343,7 +372,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const filteredTableRows = useMemo(() => {
     setLoadingTable(true)
     if (mainQueryData) {
-      const rows = generateFilteredRows(mainQueryData, rawLinkedGenesData, filterCriteria, false, mainQueryParams.gene.nearTSS ? TSSranges : undefined)
+      const rows = generateFilteredRows(mainQueryData, dataLinkedGenes?.linkedGenes || [], filterCriteria, false, mainQueryParams.gene.nearTSS ? TSSranges : undefined)
       setLoadingTable(false)
       return (rows)
     } else {
@@ -355,6 +384,9 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)
   }
 
+  /**
+   * @todo Make this (and other download tool) properly download new linked genes
+   */
   const handleDownloadBed = () => {
     let start = mainQueryParams.coordinates.start
     if (mainQueryParams.snp.rsID) {
@@ -370,7 +402,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       end = TSSs && TSSranges ? Math.max(...TSSs) + mainQueryParams.gene.distance : null
     }
 
-    let assays: {dnase: boolean, atac: boolean, ctcf: boolean, h3k27ac: boolean, h3k4me3: boolean}
+    let assays: { dnase: boolean, atac: boolean, ctcf: boolean, h3k27ac: boolean, h3k4me3: boolean }
     if (mainQueryParams.biosample) {
       assays = {
         dnase: !!mainQueryParams.biosample.dnase,
@@ -380,9 +412,9 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         h3k4me3: !!mainQueryParams.biosample.h3k4me3
       }
     } else {
-      assays = {dnase: true, atac: true, ctcf: true, h3k27ac: true, h3k4me3: true}
+      assays = { dnase: true, atac: true, ctcf: true, h3k27ac: true, h3k4me3: true }
     }
-    
+
     downloadBED(
       mainQueryParams.coordinates.assembly,
       mainQueryParams.coordinates.chromosome,
@@ -392,15 +424,15 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       mainQueryParams.searchConfig.bed_intersect,
       mainQueryParams.gene.nearTSS ? TSSranges : null,
       assays,
-      {primate: false, mammal: false, vertebrate: false},
-      {distancePC: false, distanceAll: false, ctcfChiaPet: false, rnapiiChiaPet: false},
+      { primate: false, mammal: false, vertebrate: false },
+      { distancePC: false, distanceAll: false, ctcfChiaPet: false, rnapiiChiaPet: false },
       setBedLoadingPercent
     )
   }
 
   return (
-    <main>
-      <Box id="Outer Box" sx={{ display: 'flex' }}>
+    <>
+      <Box id="Outer Box" sx={{ display: 'flex' }} component={'main'}>
         <AppBar id="AppBar" position="fixed" open={open} elevation={1} sx={{ bottom: "auto", top: "auto", backgroundColor: "white" }}>
           <Toolbar>
             <IconButton
@@ -431,8 +463,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                 <StyledTab value={1} label="Genome Browser View" />
               }
               {mainQueryParams.gene.name &&
-                <StyledTab value={2} 
-                label={<p><i>{mainQueryParams.gene.name}</i> Gene Expression</p>}
+                <StyledTab value={2}
+                  label={<p><i>{mainQueryParams.gene.name}</i> Gene Expression</p>}
                 />
               }
               {mainQueryParams.gene.name && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" &&
@@ -499,6 +531,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               biosampleData={biosampleData}
               genomeBrowserView={page === 1}
               searchParams={searchParams}
+              useLinkedGenes={useLinkedGenes}
+              
             />
             :
             <Tabs
@@ -562,11 +596,11 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                   assembly={mainQueryParams.coordinates.assembly}
                   onRowClick={handlecCREClick}
                   biosampleData={biosampleData} />
-                  <Stack direction="row" alignItems={"center"} sx={{mt: 1}}>
+                  <Stack direction="row" alignItems={"center"} sx={{ mt: 1 }}>
                     <Button
                       disabled={typeof bedLoadingPercent === "number"}
                       variant="outlined"
-                      sx={{textTransform: 'none'}}
+                      sx={{ textTransform: 'none' }}
                       onClick={() => {
                         handleDownloadBed()
                       }}
@@ -576,16 +610,16 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                     </Button>
                     {bedLoadingPercent !== null && <CircularProgressWithLabel value={bedLoadingPercent} />}
                   </Stack>
-                  
-                  </>
+
+                </>
               }
             </Box>
           )}
           {page === 1 && (
             <GenomeBrowserView
               handlecCREClickInTrack={handlecCREClick}
-              accessions={opencCREs.map(a=>{
-                
+              accessions={opencCREs.map(a => {
+
                 return {
                   accession: a.ID,
                   chromosome: a.region.chrom,
@@ -602,27 +636,27 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
             />
           )}
           {mainQueryParams.gene.name && page === 2 &&
-            <GeneExpression assembly={mainQueryParams.coordinates.assembly} genes={[{name: mainQueryParams.gene.name}]} biosampleData={biosampleData} />
+            <GeneExpression assembly={mainQueryParams.coordinates.assembly} genes={[{ name: mainQueryParams.gene.name }]} biosampleData={biosampleData} />
           }
           {mainQueryParams.gene.name && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" && page === 3 && (
-            <Rampage genes={[{name: mainQueryParams.gene.name}]} biosampleData={biosampleData}/>
+            <Rampage genes={[{ name: mainQueryParams.gene.name }]} biosampleData={biosampleData} />
           )}
           {page >= numberOfDefaultTabs && opencCREs.length > 0 && (
             opencCREs[page - numberOfDefaultTabs] ?
-            <CcreDetails
-              key={opencCREs[page - numberOfDefaultTabs].ID}
-              accession={opencCREs[page - numberOfDefaultTabs].ID}
-              region={opencCREs[page - numberOfDefaultTabs].region}
-              biosampleData={biosampleData}
-              assembly={mainQueryParams.coordinates.assembly}
-              page={detailsPage}
-              handleOpencCRE={handlecCREClick}
-            />
-            :
-            <LoadingMessage/>
+              <CcreDetails
+                key={opencCREs[page - numberOfDefaultTabs].ID}
+                accession={opencCREs[page - numberOfDefaultTabs].ID}
+                region={opencCREs[page - numberOfDefaultTabs].region}
+                biosampleData={biosampleData}
+                assembly={mainQueryParams.coordinates.assembly}
+                page={detailsPage}
+                handleOpencCRE={handlecCREClick}
+              />
+              :
+              <LoadingMessage />
           )}
         </Main>
       </Box>
-    </main>
+    </>
   )
 }

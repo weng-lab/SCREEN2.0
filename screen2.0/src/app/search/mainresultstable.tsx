@@ -137,137 +137,142 @@ export function MainResultsTable(props: MainResultsTableProps) {
       })
     }
     //Whenever the state of the checkboxes conflicts with the state of the main component, it triggers a rerender
+    // cols.push({
+    //   header: "Linked\u00A0Genes\u00A0(Distance)",
+    //   value: () => "",
+    //   unsortable: true,
+    //   HeaderRender: () => {
+    //     const [checkedState, setCheckedState] = useState([distance, CTCF_ChIAPET, RNAPII_ChIAPET])
+    //     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+
+    //     let open = Boolean(anchorEl);
+
+    //     const handleClose = () => {
+    //       funcSetDistance(checkedState[0])
+    //       funcSetCTCF_ChIAPET(checkedState[1])
+    //       funcSetRNAPII_ChIAPET(checkedState[2])
+    //       setAnchorEl(null);
+    //     };
+
+    //     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    //       setAnchorEl(event.currentTarget);
+    //     };
+
+    //     const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>, value: 0 | 1 | 2) => {
+    //       setCheckedState(checkedState.map((prevValue, index) => {
+    //         if (index === value) {
+    //           return event.target.checked
+    //         } else {
+    //           return prevValue
+    //         }
+    //       }))
+    //     };
+
+    //     return (
+    //       <Box>
+    //         <Stack direction="row" alignItems="center" component="button" onClick={handleClick}>
+    //           {open ? <ArrowDropDown /> : <ArrowRight />}
+    //           <strong><p>Linked Genes</p></strong>
+    //         </Stack>
+    //         <Menu
+    //           id="basic-menu"
+    //           anchorEl={anchorEl}
+    //           open={open}
+    //           onClose={handleClose}
+    //           MenuListProps={{
+    //             'aria-labelledby': 'basic-button',
+    //           }}
+    //         >
+    //           <FormGroup>
+    //             <MenuItem>
+    //               <FormControlLabel control={<Checkbox checked={checkedState[0]} onChange={(event) => handleCheckboxChange(event, 0)} />} label={`Distance`} />
+    //             </MenuItem>
+    //             <MenuItem>
+    //               <FormControlLabel control={<Checkbox checked={checkedState[1]} onChange={(event) => handleCheckboxChange(event, 1)} />} label={`CTCF-ChIAPET`} />
+    //             </MenuItem>
+    //             <MenuItem>
+    //               <FormControlLabel control={<Checkbox checked={checkedState[2]} onChange={(event) => handleCheckboxChange(event, 2)} />} label={`RNAPII-ChIAPET`} />
+    //             </MenuItem>
+    //           </FormGroup>
+    //         </Menu>
+    //       </Box>
+    //     )
+    //   },
+    //   render: (row) => {
+    //     return (
+    //       <>
+    //         {distance && <Box>
+    //           <Typography variant="body2" display="inline">
+    //             {`PC:\u00A0`}
+    //           </Typography>
+    //           <Typography variant="body2" color="primary" display="inline">
+    //             {Object.values(row.linkedGenes.distancePC).map((gene: { name: string }, i: number) => (
+    //               <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${gene.name}`}>
+    //                 {i < row.linkedGenes.distancePC.length - 1 ? `\u00A0${gene.name},\u00A0` : `\u00A0${gene.name}`}
+    //               </a>
+    //             ))}
+    //           </Typography>
+    //         </Box>}
+    //         {distance && <Box>
+    //           <Typography variant="body2" display="inline">
+    //             {`All:\u00A0`}
+    //           </Typography>
+    //           <Typography variant="body2" color="primary" display="inline">
+    //             {Object.values(row.linkedGenes.distanceAll).map((gene: { name: string }, i: number) => (
+    //               <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${gene.name}`}>
+    //                 {i < row.linkedGenes.distanceAll.length - 1 ? `\u00A0${gene.name},\u00A0` : `\u00A0${gene.name}`}
+    //               </a>
+    //             ))}
+    //           </Typography>
+    //         </Box>}
+    //         {CTCF_ChIAPET && <Box>
+    //           <Typography variant="body2" display="inline">
+    //             {`CTCF-ChIAPET:\u00A0`}
+    //           </Typography>
+    //           <Typography variant="body2" color="primary" display="inline">
+    //             {row.linkedGenes.CTCF_ChIAPET.length == 0 ?
+    //               "none"
+    //               :
+    //               Object.values(row.linkedGenes.CTCF_ChIAPET)
+    //               .map((gene: { name: string, biosample: string }, i: number) => gene.name)
+    //               //deduplicate
+    //               .filter((name, index, self) => { return self.indexOf(name) === index })
+    //               .map((name: string, i: number, self: string[]) => (
+    //                 <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${name}`}>
+    //                   {i < self.length - 1 ? <>{`\u00A0${name},\u00A0`}</> : <>{`\u00A0${name}`}</>}
+    //                 </a>
+    //               ))}
+    //           </Typography>
+    //         </Box>}
+    //         {RNAPII_ChIAPET && <Box>
+    //           <Typography variant="body2" display="inline">
+    //             {`RNAPII-ChIAPET:\u00A0`}
+    //           </Typography>
+    //           <Typography variant="body2" color="primary" display="inline">
+    //             {row.linkedGenes.RNAPII_ChIAPET.length == 0 ?
+    //               "none"
+    //               :
+    //               Object.values(row.linkedGenes.RNAPII_ChIAPET)
+    //                 .map((gene: { name: string, biosample: string }, i: number) => gene.name)
+    //                 //deduplicate
+    //                 .filter((name, index, self) => { return self.indexOf(name) === index })
+    //                 .map((name: string, i: number, self: string[]) => (
+    //                   <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${name}`}>
+    //                     {i < self.length - 1 ? <>{`\u00A0${name},\u00A0`}</> : <>{`\u00A0${name}`}</>}
+    //                   </a>
+    //                 ))}
+    //           </Typography>
+    //         </Box>}
+    //       </>
+    //     )
+    //   },
+    // })
     cols.push({
-      header: "Linked\u00A0Genes\u00A0(Distance)",
-      value: () => "",
-      unsortable: true,
-      HeaderRender: () => {
-        const [checkedState, setCheckedState] = useState([distance, CTCF_ChIAPET, RNAPII_ChIAPET])
-        const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-
-        let open = Boolean(anchorEl);
-
-        const handleClose = () => {
-          funcSetDistance(checkedState[0])
-          funcSetCTCF_ChIAPET(checkedState[1])
-          funcSetRNAPII_ChIAPET(checkedState[2])
-          setAnchorEl(null);
-        };
-
-        const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-          setAnchorEl(event.currentTarget);
-        };
-
-        const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>, value: 0 | 1 | 2) => {
-          setCheckedState(checkedState.map((prevValue, index) => {
-            if (index === value) {
-              return event.target.checked
-            } else {
-              return prevValue
-            }
-          }))
-        };
-
-        return (
-          <Box>
-            <Stack direction="row" alignItems="center" component="button" onClick={handleClick}>
-              {open ? <ArrowDropDown /> : <ArrowRight />}
-              <strong><p>Linked Genes</p></strong>
-            </Stack>
-            <Menu
-              id="basic-menu"
-              anchorEl={anchorEl}
-              open={open}
-              onClose={handleClose}
-              MenuListProps={{
-                'aria-labelledby': 'basic-button',
-              }}
-            >
-              <FormGroup>
-                <MenuItem>
-                  <FormControlLabel control={<Checkbox checked={checkedState[0]} onChange={(event) => handleCheckboxChange(event, 0)} />} label={`Distance`} />
-                </MenuItem>
-                <MenuItem>
-                  <FormControlLabel control={<Checkbox checked={checkedState[1]} onChange={(event) => handleCheckboxChange(event, 1)} />} label={`CTCF-ChIAPET`} />
-                </MenuItem>
-                <MenuItem>
-                  <FormControlLabel control={<Checkbox checked={checkedState[2]} onChange={(event) => handleCheckboxChange(event, 2)} />} label={`RNAPII-ChIAPET`} />
-                </MenuItem>
-              </FormGroup>
-            </Menu>
-          </Box>
-        )
-      },
-      render: (row) => {
-        return (
-          <>
-            {distance && <Box>
-              <Typography variant="body2" display="inline">
-                {`PC:\u00A0`}
-              </Typography>
-              <Typography variant="body2" color="primary" display="inline">
-                {Object.values(row.linkedGenes.distancePC).map((gene: { name: string }, i: number) => (
-                  <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${gene.name}`}>
-                    {i < row.linkedGenes.distancePC.length - 1 ? `\u00A0${gene.name},\u00A0` : `\u00A0${gene.name}`}
-                  </a>
-                ))}
-              </Typography>
-            </Box>}
-            {distance && <Box>
-              <Typography variant="body2" display="inline">
-                {`All:\u00A0`}
-              </Typography>
-              <Typography variant="body2" color="primary" display="inline">
-                {Object.values(row.linkedGenes.distanceAll).map((gene: { name: string }, i: number) => (
-                  <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${gene.name}`}>
-                    {i < row.linkedGenes.distanceAll.length - 1 ? `\u00A0${gene.name},\u00A0` : `\u00A0${gene.name}`}
-                  </a>
-                ))}
-              </Typography>
-            </Box>}
-            {CTCF_ChIAPET && <Box>
-              <Typography variant="body2" display="inline">
-                {`CTCF-ChIAPET:\u00A0`}
-              </Typography>
-              <Typography variant="body2" color="primary" display="inline">
-                {row.linkedGenes.CTCF_ChIAPET.length == 0 ?
-                  "none"
-                  :
-                  Object.values(row.linkedGenes.CTCF_ChIAPET)
-                  .map((gene: { name: string, biosample: string }, i: number) => gene.name)
-                  //deduplicate
-                  .filter((name, index, self) => { return self.indexOf(name) === index })
-                  .map((name: string, i: number, self: string[]) => (
-                    <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${name}`}>
-                      {i < self.length - 1 ? <>{`\u00A0${name},\u00A0`}</> : <>{`\u00A0${name}`}</>}
-                    </a>
-                  ))}
-              </Typography>
-            </Box>}
-            {RNAPII_ChIAPET && <Box>
-              <Typography variant="body2" display="inline">
-                {`RNAPII-ChIAPET:\u00A0`}
-              </Typography>
-              <Typography variant="body2" color="primary" display="inline">
-                {row.linkedGenes.RNAPII_ChIAPET.length == 0 ?
-                  "none"
-                  :
-                  Object.values(row.linkedGenes.RNAPII_ChIAPET)
-                    .map((gene: { name: string, biosample: string }, i: number) => gene.name)
-                    //deduplicate
-                    .filter((name, index, self) => { return self.indexOf(name) === index })
-                    .map((name: string, i: number, self: string[]) => (
-                      <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${name}`}>
-                        {i < self.length - 1 ? <>{`\u00A0${name},\u00A0`}</> : <>{`\u00A0${name}`}</>}
-                      </a>
-                    ))}
-              </Typography>
-            </Box>}
-          </>
-        )
-      },
+      header: "Nearest Gene",
+      HeaderRender: () => <strong><p>Nearest&nbsp;Gene</p></strong>,
+      value: (row) => `${row.nearestGenes[0].gene} - ${row.nearestGenes[0].distance}bp`,
     })
-    cols.push({
+    cols.push({ 
       header: "Configure UCSC",
       value: () => "",
       unsearchable: true,

@@ -95,26 +95,9 @@ const cCRE_QUERY = gql`
         isproximal
         concordant
       }
-      genesallpc {
-        accession
-        all {
-          end
-          start
-          chromosome
-          assembly
-          intersecting_genes {
-            name
-          }
-        }
-        pc {
-          end
-          assembly
-          chromosome
-          start
-          intersecting_genes {
-            name
-          }
-        }
+      nearestgenes {
+        gene
+        distance
       }
     }
   }

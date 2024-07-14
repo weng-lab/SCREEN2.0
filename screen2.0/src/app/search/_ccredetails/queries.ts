@@ -56,8 +56,18 @@ export const TOP_TISSUES: TypedDocumentNode<Data, Variables> = gql`
   }
 `
 export const LINKED_GENES = gql`
-  query ($assembly: String!, $accession: [String]!) {
-    linkedGenesQuery(assembly: $assembly, accession: $accession) {
+  query(
+    $assembly: String!
+    $accessions: [String]!
+    $methods: [String]
+    $celltypes: [String]
+  ) {
+    linkedGenes: linkedGenesQuery(
+      assembly: $assembly
+      accession: $accessions
+      method: $methods
+      celltype: $celltypes
+    ) {
       p_val
       gene
       geneid
@@ -292,7 +302,7 @@ export const TF_INTERSECTION_QUERY = gql`
 `
 export const NEARBY_AND_LINKED_GENES = gql`
   query nearbyAndLinkedGenes(
-    $accession: String!
+    $accessions: [String!]!
     $assembly: String!
     $geneSearchStart: Int!
     $geneSearchEnd: Int!
@@ -324,13 +334,13 @@ export const NEARBY_AND_LINKED_GENES = gql`
         }
       }
     }
-    linkedGenes: linkedGenesQuery(assembly: $assembly, accession: [$accession]) {
+    linkedGenes: linkedGenesQuery(assembly: $assembly, accession: $accessions) {
+      accession  
       p_val
       gene
       geneid
       genetype
       method
-      accession
       grnaid
       effectsize
       assay
@@ -342,6 +352,16 @@ export const NEARBY_AND_LINKED_GENES = gql`
       slope
       score
       displayname
+    }
+  }
+`
+
+const LINKED_GENES_CELLTYPES = gql`
+  query getlistofLinkedGenesCelltypes {
+    linkedGenesCelltypes: getLinkedGenesCelltypes {
+      celltype
+      displayname
+      method
     }
   }
 `

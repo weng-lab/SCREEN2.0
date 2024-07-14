@@ -1,42 +1,10 @@
+import { LinkedGeneInfo } from "./_ccredetails/ccredetails"
+
 export type GenomicRegion = {
   chrom: string
   start: number
   end: number
 }
-
-export type cCREData = {
-  info: { accession: string }
-  pct: string
-  chrom: string
-  start: number
-  len: number
-  dnase_zscore?: number
-  atac_zscore?: number  
-  promoter_zscore?: number
-  enhancer_zscore?: number
-  ctcf_zscore?: number
-  vertebrates: number,
-  mammals: number,
-  primates: number,
-  ctspecific?: {
-    ct?: string
-    dnase_zscore?: number
-    h3k4me3_zscore?: number
-    h3k27ac_zscore?: number
-    ctcf_zscore?: number
-    atac_zscore?: number
-  }
-  genesallpc: {
-    all: {
-      intersecting_genes: { name: string }[]
-    }
-    pc: {
-      intersecting_genes: { name: string }[]
-    }
-  }
-
-}
-
 
 export type MainQueryParams = {
   coordinates: {
@@ -158,7 +126,8 @@ export type MainResultTableRow = {
   h3k4me3?: number
   h3k27ac?: number
   ctcf?: number
-  linkedGenes: LinkedGenesData
+  nearestGenes: {gene: string, distance: number}[]
+  linkedGenes: LinkedGeneInfo[]
   conservationData: ConservationData
 }
 
@@ -166,13 +135,6 @@ export type ConservationData = {
   vertebrates: number,
   mammals: number,
   primates: number
-}
-
-export type LinkedGenesData = {
-  distancePC: { name: string }[],
-  distanceAll: { name: string }[],
-  CTCF_ChIAPET: { name: string, biosample: string }[],
-  RNAPII_ChIAPET: { name: string, biosample: string }[]
 }
 
 export type MainQueryData = {
@@ -213,25 +175,9 @@ type CCREInfo = {
   concordant: boolean;
 };
 
-type Gene = {
-  __typename: "Gene";
-  name: string;
-};
-
-type IntersectingGenes = {
-  __typename: "IntersectingGenes";
-  end: number;
-  start: number;
-  chromosome: string;
-  assembly: string;
-  intersecting_genes: Gene[];
-};
-
-type SCREENNearbyGenes = {
-  __typename: "SCREENNearbyGenes";
-  accession: string;
-  all: IntersectingGenes;
-  pc: IntersectingGenes;
+type NearestGene = {
+  gene: string;
+  distance: number;
 };
 
 export type SCREENSearchResult = {
@@ -250,5 +196,5 @@ export type SCREENSearchResult = {
   atac_zscore: number;
   ctspecific: SCREENCellTypeSpecificResponse;
   info: CCREInfo;
-  genesallpc: SCREENNearbyGenes;
+  nearestgenes: NearestGene[]
 };

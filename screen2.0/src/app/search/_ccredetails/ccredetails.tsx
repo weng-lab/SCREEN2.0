@@ -71,7 +71,7 @@ type NearbyGeneInfo = {
 
 export type NearbyGeneInfoWithDistance = NearbyGeneInfo & {distanceToTSS: number}
 
-type NearbyAndLinked = {
+export type NearbyAndLinked = {
   nearbyGenes: NearbyGeneInfo[]
   linkedGenes: LinkedGeneInfo[]
 }
@@ -81,8 +81,8 @@ export type NearbyWithDistanceAndLinked = {
   linkedGenes: LinkedGeneInfo[]
 }
 
-type NearbyAndLinkedVariables = {
-  accession: String
+export type NearbyAndLinkedVariables = {
+  accessions: String[]
   assembly: String
   geneSearchStart: Number
   geneSearchEnd: Number
@@ -96,7 +96,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
   const { loading: loadingLinkedGenes, data: dataNearbyAndLinked, error: errorNearbyAndLinked } = useQuery<NearbyAndLinked, NearbyAndLinkedVariables>(NEARBY_AND_LINKED_GENES, {
     variables: {
       assembly: assembly.toLowerCase(),
-      accession: accession,
+      accessions: [accession],
       geneSearchChrom: region.chrom,
       geneSearchStart: region.start - 1000000,
       geneSearchEnd: region.end + 1000000,
