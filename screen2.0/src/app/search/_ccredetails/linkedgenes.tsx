@@ -70,6 +70,7 @@ export const LinkedGenes: React.FC<props> = (props) => {
   
   const [getGeneLocation] = useLazyQuery<GeneLocationData, GeneLocationVars>(GENE_LOCATION)
 
+  
   const openNewGeneSearch = (gene: string) => {
     const assembly = searchParams.get("assembly") //assuming assembly is correct in url
     //removing space after gene name due to issue with return data having trailing space

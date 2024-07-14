@@ -305,6 +305,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   })
 
   const [getLinkedGenes, { loading: loadingLinkedGenes, data: dataLinkedGenes, error: errorLinkedGenes }] = useLinkedGenes
+  //If linked Genes Filter is set, fetch right away
+  filterCriteria.linkedGenesNames.length > 0 && mainQueryData && (!dataLinkedGenes && !loadingLinkedGenes) && getLinkedGenes()
 
   // Initialize open cCREs on initial load
   useEffect(() => {
@@ -359,13 +361,13 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     setLoadingTable(true)
     if (mainQueryData) {
       //remove trailing space in gene name return data. Hopefully can replace eventually, JF 7/14/24
-      const rows = generateFilteredRows(mainQueryData, dataLinkedGenes?.linkedGenes.map((x) => {return {...x, gene: x.gene.split(' ')[0]}}) || [], filterCriteria, false, mainQueryParams.gene.nearTSS ? TSSranges : undefined)
+      const rows = generateFilteredRows(mainQueryData, dataLinkedGenes ? dataLinkedGenes.linkedGenes.map((x) => {return {...x, gene: x.gene.split(' ')[0]}}) : null, filterCriteria, false, mainQueryParams.gene.nearTSS ? TSSranges : undefined)
       setLoadingTable(false)
       return (rows)
     } else {
       return []
     }
-  }, [mainQueryData, dataLinkedGenes?.linkedGenes, filterCriteria, mainQueryParams.gene.nearTSS, TSSranges])
+  }, [mainQueryData, dataLinkedGenes, filterCriteria, mainQueryParams.gene.nearTSS, TSSranges])
 
   const findTabByID = (id: string, numberOfTable: number = 2) => {
     return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)
@@ -581,7 +583,9 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                   itemsPerPage={10}
                   assembly={mainQueryParams.coordinates.assembly}
                   onRowClick={handlecCREClick}
-                  biosampleData={biosampleData} />
+                  biosampleData={biosampleData}
+                  useLinkedGenes={useLinkedGenes}
+                  />
                   <Stack direction="row" alignItems={"center"} sx={{ mt: 1 }}>
                     <Button
                       disabled={typeof bedLoadingPercent === "number"}

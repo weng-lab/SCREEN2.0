@@ -89,7 +89,7 @@ export function generateFilteredRows(
         ctcf: currentElement.ctcf_zscore,
         atac: currentElement.atac_zscore,
         nearestGenes: currentElement.nearestgenes,
-        linkedGenes: linkedGenesData.filter(gene => gene.accession === currentElement.info.accession),
+        linkedGenes: linkedGenesData ? linkedGenesData.filter(gene => gene.accession === currentElement.info.accession) : null,
         conservationData: { mammals: currentElement.mammals, primates: currentElement.primates, vertebrates: currentElement.vertebrates }
       })
     }
@@ -271,7 +271,8 @@ export function passesLinkedGenesFilter(
   CRISPRiFlowFISH && linkTypes.push("CRISPRi-FlowFISH")
   eQTLs && linkTypes.push("eQTLs")
 
-  if (linkedGenesNames.length > 0) {
+  //if row.linkedGenes is null, it hasn't been fetched yet, so allow row through
+  if (row.linkedGenes && linkedGenesNames.length > 0) {
     if (
       linkedGenesNames.find((filterLinkedGene) =>
         row.linkedGenes.find((rowLinkedGeneInfo) =>

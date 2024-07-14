@@ -774,10 +774,9 @@ export function MainResultsFilters(
                     fullWidth: true,
                   }
                 }
-                onTextBoxClick={() => getLinkedGenes()}
+                onTextBoxClick={() => !dataLinkedGenes && !loadingLinkedGenes && getLinkedGenes()}
                 endIcon="add"
                 colorTheme="light"
-                // onGeneSelected={(gene) => props.setFilterCriteria({ ...props.filterCriteria, linkedGenesNames: [...props.filterCriteria.linkedGenesNames, gene.name] })}
                 onGeneSubmitted={(gene) => props.setFilterCriteria({ ...props.filterCriteria, linkedGenesNames: [...props.filterCriteria.linkedGenesNames, gene.name] })}
                 renderOption={(props, option, descriptions) => handleRenderGeneAutoCompleteOption(props, option, descriptions)}
               />
@@ -786,7 +785,7 @@ export function MainResultsFilters(
                   <Typography>
                     {"Selected: "} <i>{props.filterCriteria.linkedGenesNames.join(', ')}</i>
                   </Typography>
-                  <Button variant="outlined" onClick={() => props.setFilterCriteria({ ...props.filterCriteria, linkedGenesNames: [] })}>
+                  <Button variant="outlined" sx={{textTransform: 'none'}} onClick={() => props.setFilterCriteria({ ...props.filterCriteria, linkedGenesNames: [] })}>
                     Clear Selected Genes
                   </Button>
                 </>
