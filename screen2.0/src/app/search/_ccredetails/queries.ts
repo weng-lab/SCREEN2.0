@@ -85,6 +85,7 @@ export const LINKED_GENES = gql`
       source
       slope
       tissue
+      displayname
     }
   }
 `

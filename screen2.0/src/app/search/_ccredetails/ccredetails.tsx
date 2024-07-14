@@ -29,18 +29,16 @@ type CcreDetailsProps = {
   handleOpencCRE: (row: any) => void
 }
 
-type LinkedBy = "distance (PC)" | "distanceAll" | "CTCF-ChIAPET" | "RNAPII-ChIAPET"
-
 export type LinkedGeneInfo = {
   p_val: number
   gene: string
   geneid: string
   genetype: string
-  method: string
+  method: "CRISPR" | "Chromatin" | "eQTLs"
   accession: string
   grnaid: string
   effectsize: number
-  assay: string
+  assay: "RNAPII-ChIAPET" | "CTCF-ChIAPET" | "Intact-HiC" | "CRISPRi-FlowFISH"
   celltype: string
   experiment_accession: string
   score: number

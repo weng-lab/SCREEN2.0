@@ -66,11 +66,13 @@ export type FilterCriteria = {
   pELS: boolean
   PLS: boolean
   TF: boolean
-  genesToFind: string[]
-  distancePC: boolean
-  distanceAll: boolean
-  CTCF_ChIA_PET: boolean
-  RNAPII_ChIA_PET: boolean
+  linkedGenesNames: string[]
+  linkedGenesBiosamples: string[]
+  CTCFChIAPET: boolean
+  RNAPIIChIAPET: boolean
+  HiC: boolean
+  CRISPRiFlowFISH: boolean
+  eQTLs: boolean
 }
 
 export type CellTypeData = {
@@ -141,21 +143,6 @@ export type MainQueryData = {
   data: {
     cCRESCREENSearch: SCREENSearchResult[]
   }
-}
-
-export type RawLinkedGenesData = {
-  [key: string]: {
-    genes: {
-      geneName: string;
-      linkedBy: "CTCF-ChIAPET" | "RNAPII-ChIAPET";
-      biosample: string;
-    }[];
-  };
-}
-
-export type rawQueryData = {
-  mainQueryData: MainQueryData,
-  linkedGenesData: RawLinkedGenesData,
 }
 
 type SCREENCellTypeSpecificResponse = {

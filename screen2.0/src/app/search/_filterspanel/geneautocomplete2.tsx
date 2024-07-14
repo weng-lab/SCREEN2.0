@@ -173,7 +173,7 @@ export const GeneAutoComplete2 = (
           }
           setInputValue(newInputValue)
         }}
-        onChange={(_, value, reason) => reason === 'selectOption' && onGeneSelected(value)} //Should I just expose the whole onChange function?
+        onChange={(_, value, reason) => reason === 'selectOption' && onGeneSelected && onGeneSelected(value)} //Should I just expose the whole onChange function?
         onKeyDown={(event) => {
           if (event.key === "Enter") {
             attemptSubmit(inputValue)

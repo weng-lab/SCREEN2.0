@@ -4,8 +4,7 @@
 'use server'
 import { getClient } from "../lib/client"
 import { ApolloQueryResult, TypedDocumentNode, gql } from "@apollo/client"
-import Config from "../../config.json"
-import { CellTypeData, RegistryBiosample } from "../../app/search/types"
+import { RegistryBiosample } from "../../app/search/types"
 
 const cCRE_QUERY = gql`
   query ccreSearchQuery(
@@ -153,85 +152,6 @@ const UMAP_QUERY = gql`
     }
   }
 `
-
-const LINKED_GENES_QUERY = gql`
-  query ($assembly: String!, $accession: [String]!) {
-    linkedGenesQuery(assembly: $assembly, accession: $accession) {
-      p_val
-      gene
-      geneid
-      genetype
-      method
-      accession
-      grnaid
-      effectsize
-      assay
-      celltype
-      experiment_accession
-    }
-  }
-`
-
-const GENE_QUERY = gql`
-  query($assembly: String!, $name_prefix: [String!], $version: Int) {
-    gene(assembly: $assembly, name_prefix: $name_prefix, version: $version) {
-      name
-      id
-    }
-  }
-`
-/**
- * 
- * @param assembly "GRCh38" | "mm10". Currently mm10 has no linked genes (other than distance), so will get empty result
- * @param accessions string[]
- * @returns an object with key/value pairs of: accession id/linked genes data (non distance-linked)
- */
-export async function fetchLinkedGenes(assembly: "GRCh38" | "mm10", accessions: string[]): Promise<{ [key: string]: { genes: { geneName: string; linkedBy: "CTCF-ChIAPET" | "RNAPII-ChIAPET"; biosample: string} [] } }> {
-  let returnData: { [key: string]: { genes: { geneName: string, linkedBy: "CTCF-ChIAPET" | "RNAPII-ChIAPET", biosample: string }[] } } = {}
-  let geneIDs: string[] = []
-  let linkedGenes: ApolloQueryResult<any>
-  let geneNames: ApolloQueryResult<any>
-  //Attempt first linked genes query
-  try {
-    linkedGenes = await getClient().query({
-      query: LINKED_GENES_QUERY,
-      variables: { assembly, accession: accessions },
-      fetchPolicy: "no-cache"
-    })
-    linkedGenes.data.linkedGenesQuery.forEach((entry) => {
-      !geneIDs.includes(entry.gene.split(".")[0]) && geneIDs.push(entry.gene.split(".")[0])
-    })
-    //Attempt to lookup gene names
-    try {
-      geneNames = await getClient().query({
-        query: GENE_QUERY,
-        variables: { assembly, name_prefix: geneIDs, version: assembly.toLowerCase()==="grch38" ? 40: 25 },
-        fetchPolicy: "no-cache"
-      })
-      //If both queries are successful, go through each of linkedGenes.data.linkedGenesQuery and assemble return data
-      linkedGenes.data.linkedGenesQuery.forEach((entry) => {
-        const hasEntry: boolean = Object.hasOwn(returnData, entry.accession)
-        const matchingGeneName = geneNames.data.gene.find((x) => x.id.split('.')[0] === entry.gene.split('.')[0])?.name
-        // If there is no entry for that accession, create new one
-        if (geneNames.data && !hasEntry && matchingGeneName) {
-          returnData[entry.accession] = { genes: [{ geneName: matchingGeneName, linkedBy: entry.assay, biosample: entry.celltype }] }
-        }
-        // if entry for accession already exists, add to linked genes
-        else if (geneNames.data && hasEntry && matchingGeneName) {
-          returnData[entry.accession].genes = [...returnData[entry.accession].genes, { geneName: matchingGeneName, linkedBy: entry.assay, biosample: entry.celltype }]
-        }
-      })
-    } catch (error) {
-      console.log("Gene Name Lookup Failed")
-      console.log(error)
-    }
-  } catch (error) {
-    console.log("linked gene query failed:")
-    console.log(error)
-  }
-  //for some reason, the formatting of the data (newlines) aren't consistent. Don't think this has any effect though
-  return returnData
-}
 
 /**
  *

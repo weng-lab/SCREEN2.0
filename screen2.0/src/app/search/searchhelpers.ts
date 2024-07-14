@@ -1,9 +1,8 @@
 
-import { MainQueryParams, CellTypeData, MainResultTableRows, MainResultTableRow, rawQueryData, FilterCriteria, BiosampleTableFilters, MainQueryData, RawLinkedGenesData, SCREENSearchResult, RegistryBiosample, BiosampleData } from "./types"
-import { MainQuery, fetchLinkedGenes } from "../../common/lib/queries"
+import { MainQueryParams, MainResultTableRows, MainResultTableRow, FilterCriteria, BiosampleTableFilters, MainQueryData, SCREENSearchResult, RegistryBiosample, BiosampleData } from "./types"
+import { MainQuery } from "../../common/lib/queries"
 import { startTransition } from "react"
 import { LinkedGeneInfo } from "./_ccredetails/ccredetails"
-import { LinkedGenes } from "./page"
 
 /**
  * 
@@ -57,25 +56,6 @@ export async function fetchcCREData (
   }
   
   return (mainQueryData)
-}
-
-/**
- * 
- * @param mainQueryData data of type MainQueryData
- * @param assembly  "GRCh38" | "mm10"
- * @returns 
- */
-export async function fetchLinkedGenesData (
-  mainQueryData: MainQueryData,
-  assembly: "GRCh38" | "mm10"
-): Promise<RawLinkedGenesData> {
-  const accessions: string[] = []
-  mainQueryData?.data?.cCRESCREENSearch.forEach((currentElement) => {
-    accessions.push(currentElement.info.accession)
-  })
-
-  const linkedGenesData = await fetchLinkedGenes(assembly, accessions)
-  return (linkedGenesData)
 }
 
 /**
@@ -176,13 +156,13 @@ export function passesFilters(
     )
     && passesLinkedGenesFilter(
       row,
-      {
-        genesToFind: filterCriteria.genesToFind,
-        distancePC: filterCriteria.distancePC,
-        distanceAll: filterCriteria.distanceAll,
-        CTCF_ChIA_PET: filterCriteria.CTCF_ChIA_PET,
-        RNAPII_ChIA_PET: filterCriteria.RNAPII_ChIA_PET
-      }
+      filterCriteria.linkedGenesNames,
+      filterCriteria.linkedGenesBiosamples,
+      filterCriteria.CTCFChIAPET,
+      filterCriteria.RNAPIIChIAPET,
+      filterCriteria.HiC,
+      filterCriteria.CRISPRiFlowFISH,
+      filterCriteria.eQTLs
     )
   )
 }
@@ -276,36 +256,33 @@ function passesClassificationFilter(
 
 export function passesLinkedGenesFilter(
   row: MainResultTableRow,
-  linkedGenesFilter: {
-    genesToFind: string[]
-    distancePC: boolean
-    distanceAll: boolean
-    CTCF_ChIA_PET: boolean
-    RNAPII_ChIA_PET: boolean
-  }
+  linkedGenesNames: string[],
+  linkedGenesBiosamples: string[],
+  CTCFChIAPET: boolean,
+  RNAPIIChIAPET: boolean,
+  HiC: boolean,
+  CRISPRiFlowFISH: boolean,
+  eQTLs: boolean
 ): boolean {
-  // let found = false
-  // //If there is a gene to find a match for
-  // if (linkedGenesFilter.genesToFind.length > 0) {
-  //   const genes = row.linkedGenes
-  //   //For each selected checkbox, try to find it in the corresponding spot, mark flag as found
-  //   if (linkedGenesFilter.distancePC && genes.distancePC.find((gene) => linkedGenesFilter.genesToFind.find((x) => x === gene.name))) {
-  //     found = true
-  //   }
-  //   if (linkedGenesFilter.distanceAll && genes.distanceAll.find((gene) => linkedGenesFilter.genesToFind.find((x) => x === gene.name))) {
-  //     found = true
-  //   }
-  //   if (linkedGenesFilter.CTCF_ChIA_PET && genes.CTCF_ChIAPET.find((gene) => linkedGenesFilter.genesToFind.find((x) => x === gene.name))) {
-  //     found = true
-  //   }
-  //   if (linkedGenesFilter.RNAPII_ChIA_PET && genes.RNAPII_ChIAPET.find((gene) => linkedGenesFilter.genesToFind.find((x) => x === gene.name))) {
-  //     found = true
-  //   }
-  //   return found
-  // } else {
-  //   return true
-  // }
-  return true
+  const linkTypes = []
+  CTCFChIAPET && linkTypes.push("CTCF-ChIAPET")
+  RNAPIIChIAPET && linkTypes.push("RNAPII-ChIAPET")
+  HiC && linkTypes.push("Intact-HiC")
+  CRISPRiFlowFISH && linkTypes.push("CRISPRi-FlowFISH")
+  eQTLs && linkTypes.push("eQTLs")
+
+  if (linkedGenesNames.length > 0) {
+    if (
+      linkedGenesNames.find((filterLinkedGene) =>
+        row.linkedGenes.find((rowLinkedGeneInfo) =>
+          rowLinkedGeneInfo.gene === filterLinkedGene && (linkTypes.includes(rowLinkedGeneInfo.assay) || linkTypes.includes(rowLinkedGeneInfo.method))))
+    ) {
+      return true
+    } else return false
+  } else {
+    //return true on no genes specified
+    return true
+  }
 }
 
 /**
@@ -543,11 +520,13 @@ export function constructSearchURL(
     + `&vert_e=${newFilterCriteria.vert_e}`
 
   const linkedGenesFilter =
-    `&genesToFind=${newFilterCriteria.genesToFind.join(',')}`
-    + `&distancePC=${outputT_or_F(newFilterCriteria.distancePC)}`
-    + `&distanceAll=${outputT_or_F(newFilterCriteria.distanceAll)}`
-    + `&CTCF_ChIA_PET=${outputT_or_F(newFilterCriteria.CTCF_ChIA_PET)}`
-    + `&RNAPII_ChIA_PET=${outputT_or_F(newFilterCriteria.RNAPII_ChIA_PET)}`
+    `&linkedGenesNames=${newFilterCriteria.linkedGenesNames.join(',')}`
+    + `&linkedGenesBiosamples=${newFilterCriteria.linkedGenesBiosamples.join(',')}`
+    + `&CTCFChIAPET=${outputT_or_F(newFilterCriteria.CTCFChIAPET)}`
+    + `&RNAPIIChIAPET=${outputT_or_F(newFilterCriteria.RNAPIIChIAPET)}`
+    + `&HiC=${outputT_or_F(newFilterCriteria.HiC)}`
+    + `&CRISPRiFlowFISH=${outputT_or_F(newFilterCriteria.CRISPRiFlowFISH)}`
+    + `&eQTLs=${outputT_or_F(newFilterCriteria.eQTLs)}`
 
   const accessionsAndPage =
     `&accessions=${accessions}`
@@ -559,7 +538,7 @@ export function constructSearchURL(
     + `${chromatinFilters}`
     + `${classificationFilters}`
     + `${conservationFilters}`
-    + `${newFilterCriteria.genesToFind.length > 0 ? linkedGenesFilter : ""}`
+    + `${linkedGenesFilter}`
     + `${accessionsAndPage}`
 
   return url
@@ -645,11 +624,13 @@ export function constructFilterCriteriaFromURL(searchParams: { [key: string]: st
       pELS: searchParams.pELS ? checkTrueFalse(searchParams.pELS) : true,
       PLS: searchParams.PLS ? checkTrueFalse(searchParams.PLS) : true,
       TF: searchParams.TF ? checkTrueFalse(searchParams.TF) : true,
-      genesToFind: searchParams.genesToFind ? searchParams.genesToFind.split(",") : [],
-      distancePC: searchParams.distancePC ? checkTrueFalse(searchParams.distancePC) : true,
-      distanceAll: searchParams.distanceAll ? checkTrueFalse(searchParams.distanceAll) : true,
-      CTCF_ChIA_PET: searchParams.CTCF_ChIA_PET ? checkTrueFalse(searchParams.CTCF_ChIA_PET) : true,
-      RNAPII_ChIA_PET: searchParams.RNAPII_ChIA_PET ? checkTrueFalse(searchParams.RNAPII_ChIA_PET) : true
+      linkedGenesNames: searchParams.linkedGenesNames ? searchParams.linkedGenesNames.split(",") : [],
+      linkedGenesBiosamples: searchParams.linkedGenesBiosamples ? searchParams.linkedGenesBiosamples.split(",") : [],
+      CTCFChIAPET: searchParams.CTCFChIAPET ? checkTrueFalse(searchParams.CTCFChIAPET) : true,
+      RNAPIIChIAPET: searchParams.RNAPIIChIAPET ? checkTrueFalse(searchParams.RNAPIIChIAPET) : true,
+      HiC: searchParams.HiC ? checkTrueFalse(searchParams.HiC) : true,
+      CRISPRiFlowFISH: searchParams.CRISPRiFlowFISH ? checkTrueFalse(searchParams.CRISPRiFlowFISH) : true,
+      eQTLs: searchParams.eQTLs ? checkTrueFalse(searchParams.eQTLs) : true
     }
   )
 }
@@ -787,7 +768,6 @@ const convertToBED = (
   }).join('');
 };
 
-//TODO properly deduplicate even even returned genes are different. Current issue is that there's a bug in returned linked PC genes. Edge cases in split queries are returning with different linked PC genes
 export const downloadBED = async (
   assembly: "GRCh38" | "mm10",
   chromosome: string,
@@ -798,7 +778,6 @@ export const downloadBED = async (
   TSSranges: { start: number, end: number }[] = null,
   assays: { atac: boolean, ctcf: boolean, dnase: boolean, h3k27ac: boolean, h3k4me3: boolean },
   conservation: { primate: boolean, mammal: boolean, vertebrate: boolean },
-  linkedGenes: { distancePC: boolean, distanceAll: boolean, ctcfChiaPet: boolean, rnapiiChiaPet: boolean },
   setBedLoadingPercent?: React.Dispatch<React.SetStateAction<number>>
 ) => {
 
@@ -813,7 +792,6 @@ export const downloadBED = async (
   }
   //For each range, send query and populate dataArray
   let dataArray: MainQueryData[] = []
-  let linkedGenesArray: RawLinkedGenesData[] = []
 
   startTransition(async () => {
     for (let i = 0; i < ranges.length; i++) {

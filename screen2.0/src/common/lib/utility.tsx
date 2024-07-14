@@ -44,12 +44,24 @@ export async function fetchServer<T>(url: string, jq: BodyInit) {
  * @param id string to be pasted at the end of the url
  * @returns link anchor to url + id
  */
-export const createLink = (url: string, id: string, label?: string, showExternalIcon?: boolean, variant?: OverridableStringUnion<Variant | 'inherit', TypographyPropsVariantOverrides>) => {
+export const createLink = (url: string, id: string, label?: string, showExternalIcon?: boolean, variant?: OverridableStringUnion<Variant | 'inherit', TypographyPropsVariantOverrides>, textColor?: string) => {
   const link = url + id
   return (
     <Stack alignItems={"center"} direction="row" gap={0.5}>
-      <Link variant={variant} href={link} rel="noopener noreferrer" target="_blank">
+      <Link variant={variant} href={link} rel="noopener noreferrer" target="_blank" color={textColor}>
         {label ? <button>{label}</button> : <button>{id}</button>}
+      </Link>
+      <Launch fontSize="inherit" /> 
+    </Stack>
+  )
+}
+
+export const CreateLink: React.FC<{linkPrefix: string, linkArg: string, label: string, showExternalIcon?: boolean, variant?: OverridableStringUnion<Variant | 'inherit', TypographyPropsVariantOverrides>, textColor?: string, underline?: "none" | "always" | "hover"}> = (props) => {
+  const link = props.linkPrefix + props.linkArg
+  return (
+    <Stack display={"inline"} alignItems={"center"} direction="row" gap={0.5}>
+      <Link variant={props.variant} href={link} rel="noopener noreferrer" target="_blank" color={props.textColor} underline={props.underline}>
+        {props.label}
       </Link>
       <Launch fontSize="inherit" /> 
     </Stack>

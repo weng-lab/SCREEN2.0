@@ -2,16 +2,15 @@
 "use client"
 import { BIOSAMPLE_Data, biosampleQuery } from "../../common/lib/queries"
 import { BiosampleTableFilters, FilterCriteria, MainQueryData, MainQueryParams, RegistryBiosample } from "./types"
-import { constructBiosampleTableFiltersFromURL, constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, downloadBED, fetchcCREData, fetchLinkedGenesData } from "./searchhelpers"
-import React, { createContext, useContext, useEffect, useMemo, useRef, useState, useTransition } from "react"
+import { constructBiosampleTableFiltersFromURL, constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, downloadBED, fetchcCREData } from "./searchhelpers"
+import React, { useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { styled } from '@mui/material/styles';
 import { Divider, IconButton, Tab, Tabs, Typography, Box, Button, CircularProgressProps, CircularProgress, Stack } from "@mui/material"
 import { MainResultsTable } from "./mainresultstable"
 import { MainResultsFilters } from "./mainresultsfilters"
-import { CcreDetails, LinkedGeneInfo, NearbyAndLinked, NearbyAndLinkedVariables } from "./_ccredetails/ccredetails"
+import { CcreDetails, LinkedGeneInfo, } from "./_ccredetails/ccredetails"
 import { usePathname, useRouter } from "next/navigation"
 import { GenomeBrowserView } from "./_gbview/genomebrowserview"
-import { RawLinkedGenesData } from "./types"
 import { generateFilteredRows } from "./searchhelpers"
 import { Drawer } from "@mui/material"
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar'
@@ -24,7 +23,7 @@ import Rampage from "./_ccredetails/rampage";
 import { GeneExpression } from "./_ccredetails/geneexpression";
 import { LoadingMessage } from "../../common/lib/utility"
 import { Download } from "@mui/icons-material"
-import { ApolloQueryResult, useLazyQuery, useQuery } from "@apollo/client"
+import { ApolloQueryResult, useLazyQuery } from "@apollo/client"
 import { LINKED_GENES } from "./_ccredetails/queries"
 
 /**
@@ -151,7 +150,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   }[]>([])
   const [biosampleData, setBiosampleData] = useState<ApolloQueryResult<BIOSAMPLE_Data>>(null)
   const [mainQueryData, setMainQueryData] = useState<MainQueryData>(null)
-  const [rawLinkedGenesData, setRawLinkedGenesData] = useState<RawLinkedGenesData>(null)
   //potential performance improvement if I make an initializer function vs passing param here.
   const [mainQueryParams, setMainQueryParams] = useState<MainQueryParams>(constructMainQueryParamsFromURL(searchParams))
   const [filterCriteria, setFilterCriteria] = useState<FilterCriteria>(constructFilterCriteriaFromURL(searchParams))
@@ -296,6 +294,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       })
   }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample?.name, mainQueryParams.snp.rsID, mainQueryParams.snp.distance, TSSs, TSSranges, mainQueryParams.gene.distance, mainQueryParams.gene.nearTSS])
 
+  //Fetch Linked Genes
   const useLinkedGenes = useLazyQuery<LinkedGenes, LinkedGenesVariables>(LINKED_GENES, {
     variables: {
       assembly: mainQueryParams.coordinates.assembly.toLowerCase(),
@@ -306,19 +305,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   })
 
   const [getLinkedGenes, { loading: loadingLinkedGenes, data: dataLinkedGenes, error: errorLinkedGenes }] = useLinkedGenes
-
-  //Fetch linked genes data.
-  useEffect(() => {
-    mainQueryData && startTransition(async () => {
-      const linkedGenesData = await fetchLinkedGenesData(
-        mainQueryData,
-        mainQueryParams.coordinates.assembly
-      )
-      // console.log("setting linked genes data")
-      // console.log(linkedGenesData)
-      setRawLinkedGenesData(linkedGenesData)
-    })
-  }, [mainQueryData, mainQueryParams.coordinates.assembly])
 
   // Initialize open cCREs on initial load
   useEffect(() => {
@@ -372,7 +358,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const filteredTableRows = useMemo(() => {
     setLoadingTable(true)
     if (mainQueryData) {
-      const rows = generateFilteredRows(mainQueryData, dataLinkedGenes?.linkedGenes || [], filterCriteria, false, mainQueryParams.gene.nearTSS ? TSSranges : undefined)
+      //remove trailing space in gene name return data. Hopefully can replace eventually, JF 7/14/24
+      const rows = generateFilteredRows(mainQueryData, dataLinkedGenes?.linkedGenes.map((x) => {return {...x, gene: x.gene.split(' ')[0]}}) || [], filterCriteria, false, mainQueryParams.gene.nearTSS ? TSSranges : undefined)
       setLoadingTable(false)
       return (rows)
     } else {
@@ -425,7 +412,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       mainQueryParams.gene.nearTSS ? TSSranges : null,
       assays,
       { primate: false, mammal: false, vertebrate: false },
-      { distancePC: false, distanceAll: false, ctcfChiaPet: false, rnapiiChiaPet: false },
       setBedLoadingPercent
     )
   }

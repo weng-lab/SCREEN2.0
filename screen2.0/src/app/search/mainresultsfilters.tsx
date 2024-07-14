@@ -172,11 +172,24 @@ export function MainResultsFilters(
     return `${value}kb`;
   }
 
-  const linkedGenesNums: {name: string, num: number}[] = useMemo(() => {
-    const genes = [...new Set(dataLinkedGenes?.linkedGenes.map(x => x.gene.split(' ')[0]))]
-    const genesWithNums = []
-    for (const gene of genes) {
-      genesWithNums['gene'] = {name: gene, num: dataLinkedGenes?.linkedGenes.map(x => x.gene.split(' ')[0]).reduce((prevVal, currVal) => currVal === gene ? prevVal += 1 : prevVal , 0)}
+
+  /**
+   * List of linked genes with corresponding linked accessions
+   */
+  const linkedGenesWithNums: { geneName: string, accessions: string[] }[] = useMemo(() => {
+    const genesWithNums: { geneName: string, accessions: string[] }[] = []
+    if (dataLinkedGenes?.linkedGenes) {
+      for (const linkedGene of dataLinkedGenes?.linkedGenes) {
+        const entry = genesWithNums.find(x => (x.geneName === linkedGene.gene.split(' ')[0]))
+        //If entry exists, check if accession already documented. If not, add accession
+        if (entry) {
+          if (!entry.accessions.find(x => x === linkedGene.accession)) {
+            entry.accessions.push(linkedGene.accession)
+          }
+        } else {
+          genesWithNums.push({ geneName: linkedGene.gene.split(' ')[0], accessions: [linkedGene.accession] })
+        }
+      }
     }
     return genesWithNums
   }, [dataLinkedGenes?.linkedGenes])
@@ -188,7 +201,7 @@ export function MainResultsFilters(
       name: string;
       desc: string;
     }[]) => {
-    const geneInfo = linkedGenesNums.find(x => x.name === option.name)
+    const geneInfo = linkedGenesWithNums.find(x => x.geneName === option.name)
     return (
       <li {...props} key={props.id}>
         <Grid2 container alignItems="center">
@@ -207,13 +220,13 @@ export function MainResultsFilters(
               }
             </Box>
             <Typography variant="body2" color="text.secondary">
-              {(geneInfo || loadingLinkedGenes) ? descriptions.find((g) => g.name === option.name)?.desc + ` (Linked: ${geneInfo.num})` : "Not linked to any search results"}
+              {(geneInfo || loadingLinkedGenes) ? descriptions.find((g) => g.name === option.name)?.desc + ` (Linked: ${geneInfo.accessions.length})` : "Not linked to any search results"}
             </Typography>
           </Grid2>
         </Grid2>
       </li>
     )
-  }, [loadingLinkedGenes, linkedGenesNums])
+  }, [loadingLinkedGenes, linkedGenesWithNums])
 
   return (
     <Paper elevation={0}>
@@ -727,13 +740,13 @@ export function MainResultsFilters(
           <Accordion square disableGutters>
             <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel4a-content" id="panel4a-header">
               <Stack direction="row" spacing={1}>
-                {props.filterCriteria.genesToFind.length > 0 ?
+                {props.filterCriteria.linkedGenesNames.length > 0 ?
                   <>
                     <IconButton size="small" sx={{ p: 0 }}
                       onClick={(event) => {
                         props.setFilterCriteria({
                           ...props.filterCriteria,
-                          genesToFind: []
+                          linkedGenesNames: []
                         });
                         event.stopPropagation()
                       }}
@@ -753,32 +766,6 @@ export function MainResultsFilters(
               </Stack>
             </AccordionSummary>
             <AccordionDetails>
-
-              {/* need to check up on what this is actually doing */}
-              {/**
-               * So we are goiung to have a list of all genes.
-               * We need to fetch all linked gene info for all cCREs in order to know which genes are active. This is slowish, but would then make the filtering instant.
-               * So we need to fetch data, which can then be used to filter the rows, I think using the generateFilteredRows function.
-               * Need a component which upon being interacted with, triggers the linked genes information, probably with useLazyQuery.
-               * This would then allow the component to "grey out" the genes which are not linked to the cCREs
-               * And also populate the biosample filter with either only the valid biosamples or all Biosamples -> No maybe
-               * 
-               * *** How do I handle how eQTL tissues are not returned from the api in the case where I want to display all biosamples with some greyed out? Can't Easily Maybe??
-               * 
-               * Gene autocomplete <-- Fetch all Genes / Fed Linked Genes info which is triggered when a user interacts with the componend. Could probably trigger this with a <Box> wrapper
-               * 
-               * Biosample Filter <-- Fetch all
-               * 
-               */}
-               {/* <div onClick={()}>
-
-               </div> */}              
-              {/* <GeneAutoComplete
-                 assembly={props.mainQueryParams.coordinates.assembly}
-                 gene={gene}
-                 setGene={(gene) => { setGene(gene); props.setFilterCriteria({ ...props.filterCriteria, genesToFind: [...props.filterCriteria.genesToFind, gene] }) }}
-                 plusIcon
-              /> */}
               <GeneAutoComplete2
                 assembly={props.mainQueryParams.coordinates.assembly}
                 autocompleteProps={
@@ -790,20 +777,16 @@ export function MainResultsFilters(
                 onTextBoxClick={() => getLinkedGenes()}
                 endIcon="add"
                 colorTheme="light"
-                onGeneSelected={(gene) => props.setFilterCriteria({ ...props.filterCriteria, genesToFind: [...props.filterCriteria.genesToFind, gene.name] })}
-                onGeneSubmitted={(gene) => props.setFilterCriteria({ ...props.filterCriteria, genesToFind: [...props.filterCriteria.genesToFind, gene.name] })}
+                // onGeneSelected={(gene) => props.setFilterCriteria({ ...props.filterCriteria, linkedGenesNames: [...props.filterCriteria.linkedGenesNames, gene.name] })}
+                onGeneSubmitted={(gene) => props.setFilterCriteria({ ...props.filterCriteria, linkedGenesNames: [...props.filterCriteria.linkedGenesNames, gene.name] })}
                 renderOption={(props, option, descriptions) => handleRenderGeneAutoCompleteOption(props, option, descriptions)}
               />
-              <Stack direction="row" spacing={2}>
-
-              </Stack>
-
-              {props.filterCriteria.genesToFind.length > 0 &&
+              {props.filterCriteria.linkedGenesNames.length > 0 &&
                 <>
                   <Typography>
-                    {"Selected: "} <i>{props.filterCriteria.genesToFind.join(', ')}</i>
+                    {"Selected: "} <i>{props.filterCriteria.linkedGenesNames.join(', ')}</i>
                   </Typography>
-                  <Button variant="outlined" onClick={() => props.setFilterCriteria({ ...props.filterCriteria, genesToFind: [] })}>
+                  <Button variant="outlined" onClick={() => props.setFilterCriteria({ ...props.filterCriteria, linkedGenesNames: [] })}>
                     Clear Selected Genes
                   </Button>
                 </>
