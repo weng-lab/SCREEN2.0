@@ -378,7 +378,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     } else {
       return []
     }
-  }, [mainQueryData, rawLinkedGenesData, filterCriteria, TSSranges, mainQueryParams.gene.nearTSS])
+  }, [mainQueryData, dataLinkedGenes?.linkedGenes, filterCriteria, mainQueryParams.gene.nearTSS, TSSranges])
 
   const findTabByID = (id: string, numberOfTable: number = 2) => {
     return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)

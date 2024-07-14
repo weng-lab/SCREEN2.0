@@ -270,7 +270,8 @@ export function MainResultsTable(props: MainResultsTableProps) {
     cols.push({
       header: "Nearest Gene",
       HeaderRender: () => <strong><p>Nearest&nbsp;Gene</p></strong>,
-      value: (row) => `${row.nearestGenes[0].gene} - ${row.nearestGenes[0].distance}bp`,
+      value: (row) => row.nearestGenes[0].distance,
+      render: (row) => <Typography variant="body2"><i>{row.nearestGenes[0].gene}</i> - {row.nearestGenes[0].distance}bp</Typography>
     })
     cols.push({ 
       header: "Configure UCSC",
