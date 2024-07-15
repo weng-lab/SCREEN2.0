@@ -1,7 +1,7 @@
 "use client"
 import { DataTable, DataTableProps, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import React, { useState, Dispatch, SetStateAction, useMemo, useCallback } from "react"
-import { Box, Typography, Stack, Button, Accordion, AccordionSummary, AccordionDetails, Tooltip, CircularProgress } from "@mui/material"
+import { Box, Typography, Stack, Button, Accordion, AccordionSummary, AccordionDetails, Tooltip, CircularProgress, List } from "@mui/material"
 import { MainResultTableRow, ConservationData } from "./types"
 import { ApolloQueryResult, LazyQueryResultTuple } from "@apollo/client"
 import { BIOSAMPLE_Data } from "../../common/lib/queries"
@@ -94,7 +94,17 @@ export function MainResultsTable(props: MainResultsTableProps) {
       tooltip: "Defined by distance to nearest TSS",
       HeaderRender: () => <strong><p>Nearest&nbsp;Gene</p></strong>,
       value: (row) => row.nearestGenes[0].distance,
-      render: (row) => <Typography variant="body2"><i>{row.nearestGenes[0].gene}</i> - {row.nearestGenes[0].distance}bp</Typography>
+      render: (row) => 
+        <Typography variant="body2" onClick={(event) => event.stopPropagation()}>
+          <i>
+            <CreateLink
+              linkPrefix="/applets/gene-expression?assembly=GRCh38&gene="
+              linkArg={row.nearestGenes[0].gene}
+              label={row.nearestGenes[0].gene}
+              underline="hover"
+            />
+          </i> - {row.nearestGenes[0].distance}bp
+        </Typography>
     })
     cols.push({
       header: "Linked Genes",
@@ -119,8 +129,6 @@ export function MainResultsTable(props: MainResultsTableProps) {
         const ChIAPET = row.linkedGenes ? extractUniqueGenes(row.linkedGenes.filter(gene => gene.assay === "CTCF-ChIAPET" || gene.assay === "RNAPII-ChIAPET")) : []
         const CRISPR = row.linkedGenes ? extractUniqueGenes(row.linkedGenes.filter(gene => gene.method === "CRISPR")) : []
         const eQTLs = row.linkedGenes ? extractUniqueGenes(row.linkedGenes.filter(gene => gene.method === "eQTLs")) : []
-
-        //For each gene, I want to display the number of different tissues.
 
         const getNumtissues = (samples: LinkedGeneInfo[]) => {
           return [...new Set(samples.map(x => x.tissue))].length
@@ -149,7 +157,16 @@ export function MainResultsTable(props: MainResultsTableProps) {
                 props.type === "eQTLs" ?
                   //eQTL Linked Gene
                   <Stack direction="row" key={i}>
-                    <Typography variant="inherit"><i>{gene.geneName}</i> ({getNumtissues(gene.samples)} tissue{getNumtissues(gene.samples) > 1 && 's'}, {gene.samples.length} variant{gene.samples.length > 1 && 's'})</Typography>
+                    <Typography variant="inherit">
+                      <i>
+                        <CreateLink
+                          linkPrefix="/applets/gene-expression?assembly=GRCh38&gene="
+                          linkArg={gene.geneName}
+                          label={gene.geneName}
+                          underline="hover"
+                        />
+                      </i> ({getNumtissues(gene.samples)} tissue{getNumtissues(gene.samples) > 1 && 's'}, {gene.samples.length} variant{gene.samples.length > 1 && 's'})
+                    </Typography>
                     <Tooltip
                       title={
                         <div>
@@ -162,14 +179,14 @@ export function MainResultsTable(props: MainResultsTableProps) {
                           <Typography variant="body2">
                             cCRE overlaps {gene.samples.length} eQTL{gene.samples.length > 1 && 's'} in {getNumtissues(gene.samples)} tissue{getNumtissues(gene.samples) > 1 && 's'}:
                           </Typography>
-                          <ul style={{ listStylePosition: 'inside' }}>
+                          <List sx={{ listStyleType: 'disc', listStylePosition: 'inside' }}>
                             {eQTLssamplesByTissues(gene.samples).map((x) =>
                               <Typography component={'li'} variant="body2" key={x.tissue}>
                                 {x.tissue}
                                 {x.variants.map(variant => <Typography variant="body2" key={variant.variantid}>{variant.variantid}</Typography>)}
                               </Typography>
                             )}
-                          </ul>
+                          </List>
                         </div>
                       }
                     >
@@ -179,14 +196,23 @@ export function MainResultsTable(props: MainResultsTableProps) {
                   :
                   //All other
                   <Stack direction="row" key={i}>
-                    <Typography variant="inherit"><i>{gene.geneName}</i> ({gene.samples.length} biosample{gene.samples.length > 1 && 's'})</Typography>
+                    <Typography variant="inherit">
+                      <i>
+                        <CreateLink
+                          linkPrefix="/applets/gene-expression?assembly=GRCh38&gene="
+                          linkArg={gene.geneName}
+                          label={gene.geneName}
+                          underline="hover"
+                        />
+                      </i> ({gene.samples.length} biosample{gene.samples.length > 1 && 's'})
+                    </Typography>
                     <Tooltip
                       title={
                         <div>
                           <Typography variant="body2"><i>{gene.geneName}</i></Typography>
                           <Typography variant="body2">Gene Type: {gene.samples[0].genetype === 'lncRNA' ? gene.samples[0].genetype : gene.samples[0].genetype.replaceAll('_', ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</Typography>
                           <Typography variant="body2">Linked in {gene.samples.length} biosample{gene.samples.length > 1 && 's'}:</Typography>
-                          <ul style={{ listStylePosition: 'inside', listStyleType: 'disc' }}>
+                          <List sx={{ listStyleType: 'disc', listStylePosition: 'inside' }}>
                             {gene.samples.map((x) =>
                               <Typography component={"li"} variant="body2" key={x.displayname}>
                                 <CreateLink
@@ -200,7 +226,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
                                 : {x.displayname}
                               </Typography>
                             )}
-                          </ul>
+                          </List>
                         </div>
                       }
                     >

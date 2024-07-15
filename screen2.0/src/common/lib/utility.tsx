@@ -63,7 +63,7 @@ export const CreateLink: React.FC<{linkPrefix: string, linkArg: string, label: s
       <Link variant={props.variant} href={link} rel="noopener noreferrer" target="_blank" color={props.textColor} underline={props.underline}>
         {props.label}
       </Link>
-      <Launch fontSize="inherit" /> 
+      {props.showExternalIcon && <Launch fontSize="inherit" /> }
     </Stack>
   )
 }
