@@ -102,14 +102,14 @@ export function MainResultsTable(props: MainResultsTableProps) {
       value: (row) => 0,
       unsortable: true,
       render: (row) => {
-        const extractUniqueGenes = (list: LinkedGeneInfo[]): { name: string, samples: LinkedGeneInfo[] }[] => {
-          const genesToDisplay: { name: string, samples: LinkedGeneInfo[] }[] = []
+        const extractUniqueGenes = (list: LinkedGeneInfo[]): { geneName: string, samples: LinkedGeneInfo[] }[] => {
+          const genesToDisplay: { geneName: string, samples: LinkedGeneInfo[] }[] = []
           for (const biosample of list) {
-            const entry = genesToDisplay.find(x => x.name === biosample.gene.split(' ')[0])
+            const entry = genesToDisplay.find(x => x.geneName === biosample.gene.split(' ')[0])
             if (entry) {
               entry.samples.push(biosample)
             } else {
-              genesToDisplay.push({ name: biosample.gene.split(' ')[0], samples: [biosample] })
+              genesToDisplay.push({ geneName: biosample.gene.split(' ')[0], samples: [biosample] })
             }
           }
           return genesToDisplay
@@ -120,23 +120,53 @@ export function MainResultsTable(props: MainResultsTableProps) {
         const CRISPR = row.linkedGenes ? extractUniqueGenes(row.linkedGenes.filter(gene => gene.method === "CRISPR")) : []
         const eQTLs = row.linkedGenes ? extractUniqueGenes(row.linkedGenes.filter(gene => gene.method === "eQTLs")) : []
 
-        const LinkedGeneList: React.FC<{ genes: { name: string, samples: LinkedGeneInfo[] }[], type: "Intact-HiC" | "ChIAPET" | "CRISPR" | "eQTLs" }> = (props) => {
+        //For each gene, I want to display the number of different tissues.
+
+        const getNumtissues = (samples: LinkedGeneInfo[]) => {
+          return [...new Set(samples.map(x => x.tissue))].length
+        }
+
+        const eQTLssamplesByTissues = (samples: LinkedGeneInfo[]): ({ tissue: string, variants: LinkedGeneInfo[] }[]) => {
+          const samplesByTissue: { [key: string]: LinkedGeneInfo[] } = {};
+
+          samples.forEach(sample => {
+            if (!samplesByTissue[sample.tissue]) {
+              samplesByTissue[sample.tissue] = [];
+            }
+            samplesByTissue[sample.tissue].push(sample);
+          });
+
+          return Object.keys(samplesByTissue).map(tissue => ({
+            tissue,
+            variants: samplesByTissue[tissue]
+          }));
+        }
+
+        const LinkedGeneList: React.FC<{ genes: { geneName: string, samples: LinkedGeneInfo[] }[], type: "Intact-HiC" | "ChIAPET" | "CRISPR" | "eQTLs" }> = (props) => {
           return (
             <Stack spacing={1}>
               {props.genes.map((gene, i) =>
                 props.type === "eQTLs" ?
+                  //eQTL Linked Gene
                   <Stack direction="row" key={i}>
-                    <Typography variant="inherit"><i>{gene.name}</i> ({gene.samples.length} variant{gene.samples.length > 1 && 's'})</Typography>
+                    <Typography variant="inherit"><i>{gene.geneName}</i> ({getNumtissues(gene.samples)} tissue{getNumtissues(gene.samples) > 1 && 's'}, {gene.samples.length} variant{gene.samples.length > 1 && 's'})</Typography>
                     <Tooltip
                       title={
                         <div>
-                          <Typography variant="body2"><i>{gene.name}</i></Typography>
-                          <Typography variant="body2">Gene Type: {gene.samples[0].genetype === 'lncRNA' ? gene.samples[0].genetype : gene.samples[0].genetype.replaceAll('_', ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</Typography>
-                          <Typography variant="body2">cCRE overlaps {gene.samples.length} eQTL{gene.samples.length > 1 && 's'}:</Typography>
+                          <Typography variant="body2">
+                            <i>{gene.geneName}</i>
+                          </Typography>
+                          <Typography variant="body2">
+                            Gene Type: {gene.samples[0].genetype === 'lncRNA' ? gene.samples[0].genetype : gene.samples[0].genetype.replaceAll('_', ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                          </Typography>
+                          <Typography variant="body2">
+                            cCRE overlaps {gene.samples.length} eQTL{gene.samples.length > 1 && 's'} in {getNumtissues(gene.samples)} tissue{getNumtissues(gene.samples) > 1 && 's'}:
+                          </Typography>
                           <ul style={{ listStylePosition: 'inside' }}>
-                            {gene.samples.map((x) =>
-                              <Typography component={'li'} variant="body2" key={x.displayname}>
-                                {x.tissue} - {x.variantid}
+                            {eQTLssamplesByTissues(gene.samples).map((x) =>
+                              <Typography component={'li'} variant="body2" key={x.tissue}>
+                                {x.tissue}
+                                {x.variants.map(variant => <Typography variant="body2" key={variant.variantid}>{variant.variantid}</Typography>)}
                               </Typography>
                             )}
                           </ul>
@@ -147,15 +177,16 @@ export function MainResultsTable(props: MainResultsTableProps) {
                     </Tooltip>
                   </Stack>
                   :
+                  //All other
                   <Stack direction="row" key={i}>
-                    <Typography variant="inherit"><i>{gene.name}</i> ({gene.samples.length} biosample{gene.samples.length > 1 && 's'})</Typography>
+                    <Typography variant="inherit"><i>{gene.geneName}</i> ({gene.samples.length} biosample{gene.samples.length > 1 && 's'})</Typography>
                     <Tooltip
                       title={
                         <div>
-                          <Typography variant="body2"><i>{gene.name}</i></Typography>
+                          <Typography variant="body2"><i>{gene.geneName}</i></Typography>
                           <Typography variant="body2">Gene Type: {gene.samples[0].genetype === 'lncRNA' ? gene.samples[0].genetype : gene.samples[0].genetype.replaceAll('_', ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</Typography>
                           <Typography variant="body2">Linked in {gene.samples.length} biosample{gene.samples.length > 1 && 's'}:</Typography>
-                          <ul style={{ listStylePosition: 'inside' }}>
+                          <ul style={{ listStylePosition: 'inside', listStyleType: 'disc' }}>
                             {gene.samples.map((x) =>
                               <Typography component={"li"} variant="body2" key={x.displayname}>
                                 <CreateLink
