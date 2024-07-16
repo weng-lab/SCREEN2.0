@@ -279,7 +279,6 @@ export const BiosampleTables: React.FC<Props> = ({
   };
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    console.log("clicked")
     setAnchorEl(event.currentTarget);
   };
 

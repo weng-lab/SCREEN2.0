@@ -7,52 +7,16 @@ import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { Typography } from "@mui/material"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { LoadingMessage } from "../../../common/lib/utility"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { calcDistRegionToPosition, calcDistRegionToRegion } from "./utils"
+import { calcDistToTSS } from "./utils"
 
-
-const genesDistance = (
-  coordinates: { chromosome: string; start: number; end: number },
-  ccrecoord: { chromosome: string; start: number; end: number }
-) => {
-  let c = Math.floor((ccrecoord.start + ccrecoord.end) / 2)
-  return Math.min(Math.abs(coordinates.start - c), Math.abs(coordinates.end - c))
-}
-
-const cCREDistance = (
-  coordinates: { chromosome: string; start: number; end: number },
-  ccrecoord: { chromosome: string; start: number; end: number }
-) => {
-  let c = Math.floor((ccrecoord.start + ccrecoord.end) / 2)
-  let g = Math.floor((coordinates.start + coordinates.end) / 2)
-  return Math.abs(g - c)
-}
-
-const snpDistance = (
-  coordinates: { chromosome: string; start: number; end: number },
-  ccrecoord: { chromosome: string; start: number; end: number }
-) => {
-  let c = Math.floor((ccrecoord.start + ccrecoord.end) / 2)
-  return Math.abs(c - coordinates.start)
-}
 export const NearByGenomicFeatures: React.FC<{
   assembly: string
   accession: string
   coordinates: { chromosome: string; start: number; end: number }
   handleOpencCRE: (row: any) => void
 }> = ({ assembly, accession, coordinates, handleOpencCRE }) => {
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
 
-  const createQueryString = React.useCallback(
-    (name: string, value: string) => {
-      const params = new URLSearchParams(searchParams)
-      params.set(name, value)
-      console.log("called")
-      return params.toString()
-    },
-    [searchParams]
-  )
   const { loading, data } = useQuery(
     assembly.toLowerCase() === "mm10" ? NEARBY_GENOMIC_FEATURES_NOSNPS_QUERY : NEARBY_GENOMIC_FEATURES_QUERY,
     {
@@ -101,7 +65,7 @@ export const NearByGenomicFeatures: React.FC<{
         chrom: g.coordinates.chromosome,
         start: g.coordinates.start,
         stop: g.coordinates.end,
-        distance: genesDistance(g.coordinates, coordinates),
+        distance: calcDistToTSS({...coordinates, chrom: coordinates.chromosome}, g.transcripts, g.strand)
       }
     })
   let ccres =
@@ -110,7 +74,7 @@ export const NearByGenomicFeatures: React.FC<{
     data.cCREQuery.map((c) => {
       return {
         name: c.accession,
-        distance: cCREDistance(c.coordinates, coordinates),
+        distance: calcDistRegionToRegion({start: c.coordinates.start, end: c.coordinates.end}, {start: coordinates.start, end: coordinates.end}),
         chromosome: c.coordinates.chromosome,
         start: c.coordinates.start,
         end: c.coordinates.end
@@ -126,7 +90,7 @@ export const NearByGenomicFeatures: React.FC<{
         chrom: coordinates.chromosome,
         cre_start: coordinates.start,
         cre_end: coordinates.end,
-        distance: snpDistance(s.coordinates, coordinates),
+        distance: calcDistRegionToPosition(coordinates.start, coordinates.end, "closest", s.coordinates.start),
         name: s.id,
         snp_start: s.coordinates.start,
         snp_end: s.coordinates.end,
@@ -152,20 +116,20 @@ export const NearByGenomicFeatures: React.FC<{
                           variant="body2"
                           color="primary"
                         >
-                          {row.name}
+                          <i>{row.name}</i>
                         </Typography>,
                     },
                     {
-                      header: "Distance (in bp)",
+                      header: "Distance to Nearest TSS (in bp)",
                       value: (row) => row.distance,
                       render: (row) => row.distance.toLocaleString("en-US"),
                     },
                   ]}
                   onRowClick={(row) => {
-                    window.open(`http://www.genecards.org/cgi-bin/carddisp.pl?gene=${row.name}`, "_blank")
+                    window.open(`/applets/gene-expression?assembly=${assembly}&gene=${row.name}`, "_blank")
                   }}
                   sortColumn={1}
-                  tableTitle="Genes"
+                  tableTitle="Nearby Genes"
                   rows={genes || []}
                   itemsPerPage={10}
                   searchable
@@ -200,7 +164,7 @@ export const NearByGenomicFeatures: React.FC<{
                     handleOpencCRE({...row, accession: row.name })
                   }}
                   sortColumn={1}
-                  tableTitle="cCREs"
+                  tableTitle="Nearby cCREs"
                   rows={ccres.filter(c => c.distance != 0) || []}
                   itemsPerPage={10}
                   searchable
@@ -213,7 +177,7 @@ export const NearByGenomicFeatures: React.FC<{
                 <DataTable
                   columns={[
                     {
-                      header: "SNP Id",
+                      header: "SNP ID",
                       value: (row) => row.name,
                       render: (row) =>
                         <Typography
@@ -234,7 +198,7 @@ export const NearByGenomicFeatures: React.FC<{
                     window.open(`http://ensembl.org/${row.assembly.toLowerCase() === "grch38" ? "Homo_sapiens" : "Mus_musculus"}/Variation/Explore?vdb=variation;v=${row.name}`, "_blank")
                   }}
                   sortColumn={1}
-                  tableTitle="SNPs"
+                  tableTitle="Nearby SNPs"
                   rows={snps || []}
                   itemsPerPage={10}
                   searchable

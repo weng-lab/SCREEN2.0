@@ -15,6 +15,7 @@ import { GeneExpEntry } from "../../applets/gene-expression/types"
 import { tissueColors } from "../../../common/lib/colors"
 import { RampagePeak } from "./rampage"
 import { Stack } from "@mui/material"
+import { GenomicRegion } from "../types"
 
 export const stringToColour = (str: string) => {
   let hash = 0;
@@ -194,3 +195,65 @@ export const GROUP_COLOR_MAP: Map<string, string> = new Map([
   ["zunclassified","zunclassified:#8c8c8c"]  
 ])
 
+/**
+ * 
+ * @param start Start of Region
+ * @param end End of Region
+ * @param anchor The anchor of region to be used: start, end, middle, or closest (finds minimum of all anchors)
+ * @param point Point to Find Distance to
+ * @returns The distance from the anchor specified to the position
+ */
+export function calcDistRegionToPosition(start: number, end: number, anchor: 'closest' | 'start' | 'end' | 'middle', point: number ): number {
+  const distToStart = Math.abs(start - point)
+  const distToEnd = Math.abs(end - point)
+  const distToMiddle = Math.abs(((start + end) / 2) - point)
+
+  if (start <= point && point <= end) {
+    return 0
+  }
+
+  switch(anchor) {
+    case ('start'): return distToStart
+    case ('end'): return distToEnd
+    case ('middle'): return distToMiddle
+    case ('closest'): return Math.min(distToStart, distToEnd, distToMiddle)
+  }
+}
+
+/**
+ * 
+ * @param coord1 
+ * @param coord2 
+ * @returns the smallest distance from any point in either region
+ */
+export function calcDistRegionToRegion(coord1: { start: number, end: number }, coord2: { start: number, end: number }): number {
+  if (coord1.end < coord2.start) {
+    return coord2.start - coord1.end;
+  } else if (coord2.end < coord1.start) {
+    return coord1.start - coord2.end;
+  } else {
+    return 0;
+  }
+}
+
+type Coordinates = {
+  chromosome: string
+  start: number
+  end: number
+}
+
+/**
+ * 
+ * @param region 
+ * @param transcripts 
+ * @returns distance to nearest TSS from any point in inputted region. 
+ */
+export function calcDistToTSS(region: GenomicRegion, transcripts: { id: string, coordinates: Coordinates }[], strand: '+' | '-'): number {
+  const distances: number [] = transcripts.map((transcript) => calcDistRegionToPosition(
+    region.start,
+    region.end,
+    "closest",
+    strand === "+" ? transcript.coordinates.start : transcript.coordinates.end
+  ))
+  return Math.min(...distances)
+}

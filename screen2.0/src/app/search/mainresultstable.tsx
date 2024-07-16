@@ -1,31 +1,29 @@
 "use client"
 import { DataTable, DataTableProps, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import React, { useState, Dispatch, SetStateAction, useMemo, useCallback } from "react"
-import { Box, Typography, Menu, Checkbox, Stack, MenuItem, FormControlLabel, FormGroup, Button, Dialog } from "@mui/material"
-import { MainResultTableRow, ConservationData, RegistryBiosamplePlusRNA } from "./types"
-import { ArrowDropDown, ArrowRight } from "@mui/icons-material"
-
-import ConfigureGenomeBrowser from "./_ccredetails/configuregb"
-import { ApolloQueryResult } from "@apollo/client"
+import { Box, Typography, Stack, Button, Accordion, AccordionSummary, AccordionDetails, Tooltip, CircularProgress, List } from "@mui/material"
+import { MainResultTableRow, ConservationData } from "./types"
+import { ApolloQueryResult, LazyQueryResultTuple } from "@apollo/client"
 import { BIOSAMPLE_Data } from "../../common/lib/queries"
 import ConfigureGBModal from "./_ccredetails/configuregbmodal"
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { LinkedGeneInfo } from "./_ccredetails/ccredetails"
+import { InfoOutlined } from "@mui/icons-material"
+import { CreateLink, createLink } from "../../common/lib/utility"
+import { LinkedGenes, LinkedGenesVariables } from "./page"
 
 
 interface MainResultsTableProps extends Partial<DataTableProps<any>> {
   assembly: "GRCh38" | "mm10"
   biosampleData: ApolloQueryResult<BIOSAMPLE_Data>
+  useLinkedGenes: LazyQueryResultTuple<LinkedGenes, LinkedGenesVariables> //Is this a proper usage of a custom hook?
 }
 
 export function MainResultsTable(props: MainResultsTableProps) {
-  const [distance, setDistance] = useState<boolean>(true)
-  const [CTCF_ChIAPET, setCTCF_ChIAPET] = useState<boolean>(false)
-  const [RNAPII_ChIAPET, setRNAPII_ChIAPET] = useState<boolean>(false)
 
-  const columns = useCallback((
-    funcSetDistance: Dispatch<SetStateAction<boolean>>,
-    funcSetCTCF_ChIAPET: Dispatch<SetStateAction<boolean>>,
-    funcSetRNAPII_ChIAPET: Dispatch<SetStateAction<boolean>>
-  ) => {
+  const [getLinkedGenes, { loading: loadingLinkedGenes, data: dataLinkedGenes, error: errorLinkedGenes }] = props.useLinkedGenes
+
+  const columns = useMemo(() => {
     let cols: DataTableColumn<MainResultTableRow>[] = [
       {
         header: "Accession",
@@ -55,233 +53,278 @@ export function MainResultsTable(props: MainResultsTableProps) {
         HeaderRender: () => <strong><p>End</p></strong>
       }
     ]
-   
+
     if (props.rows[0] && props.rows[0].dnase !== null) {
       cols.push({
         header: "DNase",
         value: (row) => (row.dnase && row.dnase.toFixed(2)) || 0,
-        HeaderRender: () => {
-          return (
-            <Stack direction="row" alignItems={"center"}>
-              <strong><p>DNase</p></strong>
-              {/* <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
-                <InfoOutlined fontSize="small" />
-              </Tooltip> */}
-            </Stack>
-          )
-        }
+        HeaderRender: () => <strong><p>DNase</p></strong>
       })
     }
     if (props.rows[0] && props.rows[0].atac !== null) {
       cols.push({
         header: "ATAC",
         value: (row) => (row.atac && row.atac.toFixed(2)) || 0,
-        HeaderRender: () => {
-          return (
-            <Stack direction="row" alignItems={"center"}>
-              <strong><p>ATAC</p></strong>
-              {/* <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
-                <InfoOutlined fontSize="small" />
-              </Tooltip> */}
-            </Stack>
-          )
-        }
+        HeaderRender: () => <strong><p>ATAC</p></strong>
       })
     }
     if (props.rows[0] && props.rows[0].ctcf !== null) {
       cols.push({
         header: "CTCF",
         value: (row) => (row.ctcf && row.ctcf.toFixed(2)) || 0,
-        HeaderRender: () => {
-          return (
-            <Stack direction="row" alignItems={"center"}>
-              <strong><p>CTCF</p></strong>
-              {/* <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
-                <InfoOutlined fontSize="small" />
-              </Tooltip> */}
-            </Stack>
-          )
-        }
+        HeaderRender: () => <strong><p>CTCF</p></strong>
       })
     }
     if (props.rows[0] && props.rows[0].h3k27ac != null) {
       cols.push({
         header: "H3K27ac",
         value: (row) => (row.h3k27ac && row.h3k27ac.toFixed(2)) || 0,
-        HeaderRender: () => {
-          return (
-            <Stack direction="row" alignItems={"center"}>
-            <strong><p>H3K27ac</p></strong>
-            {/* <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
-              <InfoOutlined fontSize="small" />
-            </Tooltip> */}
-          </Stack>
-          )
-        }
+        HeaderRender: () => <strong><p>H3K27ac</p></strong>
       })
     }
     if (props.rows[0] && props.rows[0].h3k4me3 != null) {
       cols.push({
         header: "H3K4me3",
         value: (row) => (row.h3k4me3 && row.h3k4me3.toFixed(2)) || 0,
-        HeaderRender: () => {
-          return (
-            <Stack direction="row" alignItems={"center"}>
-            <strong><p>H3K4me3</p></strong>
-            {/* <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
-              <InfoOutlined fontSize="small" />
-            </Tooltip> */}
-          </Stack>
-          )
-        }
+        HeaderRender: () => <strong><p>H3K4me3</p></strong>
       })
     }
-    //Whenever the state of the checkboxes conflicts with the state of the main component, it triggers a rerender
     cols.push({
-      header: "Linked\u00A0Genes\u00A0(Distance)",
-      value: () => "",
-      unsortable: true,
-      HeaderRender: () => {
-        const [checkedState, setCheckedState] = useState([distance, CTCF_ChIAPET, RNAPII_ChIAPET])
-        const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-
-        let open = Boolean(anchorEl);
-
-        const handleClose = () => {
-          funcSetDistance(checkedState[0])
-          funcSetCTCF_ChIAPET(checkedState[1])
-          funcSetRNAPII_ChIAPET(checkedState[2])
-          setAnchorEl(null);
-        };
-
-        const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-          setAnchorEl(event.currentTarget);
-        };
-
-        const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>, value: 0 | 1 | 2) => {
-          setCheckedState(checkedState.map((prevValue, index) => {
-            if (index === value) {
-              return event.target.checked
+      header: "Nearest Gene",
+      tooltip: "Defined by distance to nearest TSS",
+      HeaderRender: () => <strong><p>Nearest&nbsp;Gene</p></strong>,
+      value: (row) => row.nearestGenes[0].distance,
+      render: (row) => 
+        <Typography variant="body2" onClick={(event) => event.stopPropagation()}>
+          <i>
+            <CreateLink
+              linkPrefix="/applets/gene-expression"
+              linkArg={`?assembly=${props.assembly}&gene=${row.nearestGenes[0].gene}`}
+              label={row.nearestGenes[0].gene}
+              underline="hover"
+            />
+          </i> - {row.nearestGenes[0].distance}bp
+        </Typography>
+    })
+    props.assembly === "GRCh38" && cols.push({
+      header: "Linked Genes",
+      HeaderRender: () => <strong><p>Linked&nbsp;Genes</p></strong>,
+      value: (row) => [...new Set(row.linkedGenes?.map(x => x.gene))].length,
+      render: (row) => {
+        const extractUniqueGenes = (list: LinkedGeneInfo[]): { geneName: string, samples: LinkedGeneInfo[] }[] => {
+          const genesToDisplay: { geneName: string, samples: LinkedGeneInfo[] }[] = []
+          for (const biosample of list) {
+            const entry = genesToDisplay.find(x => x.geneName === biosample.gene.split(' ')[0])
+            if (entry) {
+              entry.samples.push(biosample)
             } else {
-              return prevValue
+              genesToDisplay.push({ geneName: biosample.gene.split(' ')[0], samples: [biosample] })
             }
-          }))
-        };
+          }
+          return genesToDisplay
+        }
+
+        const IntactHiC = row.linkedGenes ? extractUniqueGenes(row.linkedGenes.filter(gene => gene.assay === "Intact-HiC")) : []
+        const ChIAPET = row.linkedGenes ? extractUniqueGenes(row.linkedGenes.filter(gene => gene.assay === "CTCF-ChIAPET" || gene.assay === "RNAPII-ChIAPET")) : []
+        const CRISPR = row.linkedGenes ? extractUniqueGenes(row.linkedGenes.filter(gene => gene.method === "CRISPR")) : []
+        const eQTLs = row.linkedGenes ? extractUniqueGenes(row.linkedGenes.filter(gene => gene.method === "eQTLs")) : []
+
+        const getNumtissues = (samples: LinkedGeneInfo[]) => {
+          return [...new Set(samples.map(x => x.tissue))].length
+        }
+
+        const eQTLssamplesByTissues = (samples: LinkedGeneInfo[]): ({ tissue: string, variants: LinkedGeneInfo[] }[]) => {
+          const samplesByTissue: { [key: string]: LinkedGeneInfo[] } = {};
+
+          samples.forEach(sample => {
+            if (!samplesByTissue[sample.tissue]) {
+              samplesByTissue[sample.tissue] = [];
+            }
+            samplesByTissue[sample.tissue].push(sample);
+          });
+
+          return Object.keys(samplesByTissue).map(tissue => ({
+            tissue,
+            variants: samplesByTissue[tissue]
+          }));
+        }
+
+
+
+        const LinkedGeneList: React.FC<{ genes: { geneName: string, samples: LinkedGeneInfo[] }[], type: "Intact-HiC" | "ChIAPET" | "CRISPR" | "eQTLs" }> = (props) => {
+          return (
+            <Stack spacing={1}>
+              {props.genes.map((gene, i) =>
+                props.type === "eQTLs" ?
+                  //eQTL Linked Gene
+                  <Box key={i}>
+                    <Typography display="inline" variant="inherit">
+                      <i>
+                        <CreateLink
+                          linkPrefix="/applets/gene-expression?assembly=GRCh38&gene="
+                          linkArg={gene.geneName}
+                          label={gene.geneName}
+                          underline="hover"
+                        />
+                      </i> ({getNumtissues(gene.samples)} tissue{getNumtissues(gene.samples) > 1 && 's'}, {gene.samples.length} variant{gene.samples.length > 1 && 's'})
+                    </Typography>
+                    <Tooltip
+                      sx={{display: "inline"}}
+                      title={
+                        <div>
+                          <Typography variant="body2">
+                            <i>{gene.geneName}</i>
+                          </Typography>
+                          <Typography variant="body2">
+                            Gene Type: {gene.samples[0].genetype === 'lncRNA' ? gene.samples[0].genetype : gene.samples[0].genetype.replaceAll('_', ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                          </Typography>
+                          <Typography variant="body2">
+                            cCRE overlaps {gene.samples.length} eQTL{gene.samples.length > 1 && 's'} in {getNumtissues(gene.samples)} tissue{getNumtissues(gene.samples) > 1 && 's'}:
+                          </Typography>
+                          <List sx={{ listStyleType: 'disc', listStylePosition: 'inside' }}>
+                            {eQTLssamplesByTissues(gene.samples).map((x) =>
+                              <Typography component={'li'} variant="body2" key={x.tissue}>
+                                {x.tissue}
+                                {x.variants.map(variant => <Typography variant="body2" key={variant.variantid}>{variant.variantid}</Typography>)}
+                              </Typography>
+                            )}
+                          </List>
+                        </div>
+                      }
+                    >
+                      <InfoOutlined fontSize="small" />
+                    </Tooltip>
+                  </Box>
+                  :
+                  //All other
+                  <Box key={i}>
+                    <Typography display="inline" variant="inherit" mr={0.5}>
+                      <i>
+                        <CreateLink
+                          linkPrefix="/applets/gene-expression?assembly=GRCh38&gene="
+                          linkArg={gene.geneName}
+                          label={gene.geneName}
+                          underline="hover"
+                        />
+                      </i> ({gene.samples.length} biosample{gene.samples.length > 1 && 's'})
+                    </Typography>
+                    <Tooltip
+                      sx={{display: 'inline'}}
+                      title={
+                        <div>
+                          <Typography variant="body2"><i>{gene.geneName}</i></Typography>
+                          <Typography variant="body2">Gene Type: {gene.samples[0].genetype === 'lncRNA' ? gene.samples[0].genetype : gene.samples[0].genetype.replaceAll('_', ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</Typography>
+                          <Typography variant="body2">Linked in {gene.samples.length} biosample{gene.samples.length > 1 && 's'}:</Typography>
+                          <List sx={{ listStyleType: 'disc', listStylePosition: 'inside' }}>
+                            {gene.samples.map((x) =>
+                              <Typography component={"li"} variant="body2" key={x.displayname}>
+                                <CreateLink
+                                  linkPrefix="https://www.encodeproject.org/experiments/"
+                                  linkArg={x.experiment_accession}
+                                  label={x.experiment_accession}
+                                  showExternalIcon
+                                  textColor="#FFFFFF"
+                                  underline="always"
+                                />
+                                : {x.displayname}
+                              </Typography>
+                            )}
+                          </List>
+                        </div>
+                      }
+                    >
+                      <InfoOutlined fontSize="small" />
+                    </Tooltip>
+                  </Box>
+              )}
+            </Stack>
+          )
+        }
 
         return (
-          <Box>
-            <Stack direction="row" alignItems="center" component="button" onClick={handleClick}>
-              {open ? <ArrowDropDown /> : <ArrowRight />}
-              <strong><p>Linked Genes</p></strong>
-            </Stack>
-            <Menu
-              id="basic-menu"
-              anchorEl={anchorEl}
-              open={open}
-              onClose={handleClose}
-              MenuListProps={{
-                'aria-labelledby': 'basic-button',
-              }}
-            >
-              <FormGroup>
-                <MenuItem>
-                  <FormControlLabel control={<Checkbox checked={checkedState[0]} onChange={(event) => handleCheckboxChange(event, 0)} />} label={`Distance`} />
-                </MenuItem>
-                <MenuItem>
-                  <FormControlLabel control={<Checkbox checked={checkedState[1]} onChange={(event) => handleCheckboxChange(event, 1)} />} label={`CTCF-ChIAPET`} />
-                </MenuItem>
-                <MenuItem>
-                  <FormControlLabel control={<Checkbox checked={checkedState[2]} onChange={(event) => handleCheckboxChange(event, 2)} />} label={`RNAPII-ChIAPET`} />
-                </MenuItem>
-              </FormGroup>
-            </Menu>
+          //If linked genes data hasn't been fetched, fetch
+          <Box onClick={(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => { event.stopPropagation(); !row.linkedGenes && getLinkedGenes() }} key={row.accession}>
+            <Accordion>
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+              >
+                {row.linkedGenes ? "Linked Genes (" + [...new Set(row.linkedGenes.map(x => x.gene))].length + " unique)" : 'Find Linked Genes'}
+              </AccordionSummary>
+              {!row.linkedGenes ?
+                <AccordionDetails>
+                  <CircularProgress />
+                </AccordionDetails>
+                :
+                <AccordionDetails>
+                  <Accordion>
+                    <AccordionSummary
+                      expandIcon={<ExpandMoreIcon />}
+                    >
+                      Intact Hi-C Loops ({IntactHiC.length})
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      {IntactHiC.length > 0 ?
+                        <LinkedGeneList genes={IntactHiC} type="Intact-HiC" />
+                        :
+                        "No intact Hi-C loops overlap this cCRE and the promoter of a gene"
+                      }
+                    </AccordionDetails>
+                  </Accordion>
+                  <Accordion>
+                    <AccordionSummary
+                      expandIcon={<ExpandMoreIcon />}
+                    >
+                      ChIA-PET Interactions ({ChIAPET.length})
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      {ChIAPET.length > 0 ?
+                        <LinkedGeneList genes={ChIAPET} type="ChIAPET" />
+                        :
+                        "No ChIA-PET interactions overlap this cCRE and the promoter of a gene"
+                      }
+                    </AccordionDetails>
+                  </Accordion>
+                  <Accordion>
+                    <AccordionSummary
+                      expandIcon={<ExpandMoreIcon />}
+                    >
+                      CRISPRi-FlowFISH ({CRISPR.length})
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      {CRISPR.length > 0 ?
+                        <LinkedGeneList genes={CRISPR} type="CRISPR" />
+                        :
+                        "This cCRE was not targeted in a CRISPRi-FlowFISH experiment"
+                      }
+                    </AccordionDetails>
+                  </Accordion>
+                  <Accordion>
+                    <AccordionSummary
+                      expandIcon={<ExpandMoreIcon />}
+                    >
+                      eQTLs ({eQTLs.length})
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      {eQTLs.length > 0 ?
+                        <LinkedGeneList genes={eQTLs} type="eQTLs" />
+                        :
+                        "This cCRE does not overlap a variant associated with significant changes in gene expression"
+                      }
+                    </AccordionDetails>
+                  </Accordion>
+                </AccordionDetails>
+              }
+            </Accordion>
           </Box>
         )
-      },
-      render: (row) => {
-        return (
-          <>
-            {distance && <Box>
-              <Typography variant="body2" display="inline">
-                {`PC:\u00A0`}
-              </Typography>
-              <Typography variant="body2" color="primary" display="inline">
-                {Object.values(row.linkedGenes.distancePC).map((gene: { name: string }, i: number) => (
-                  <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${gene.name}`}>
-                    {i < row.linkedGenes.distancePC.length - 1 ? `\u00A0${gene.name},\u00A0` : `\u00A0${gene.name}`}
-                  </a>
-                ))}
-              </Typography>
-            </Box>}
-            {distance && <Box>
-              <Typography variant="body2" display="inline">
-                {`All:\u00A0`}
-              </Typography>
-              <Typography variant="body2" color="primary" display="inline">
-                {Object.values(row.linkedGenes.distanceAll).map((gene: { name: string }, i: number) => (
-                  <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${gene.name}`}>
-                    {i < row.linkedGenes.distanceAll.length - 1 ? `\u00A0${gene.name},\u00A0` : `\u00A0${gene.name}`}
-                  </a>
-                ))}
-              </Typography>
-            </Box>}
-            {CTCF_ChIAPET && <Box>
-              <Typography variant="body2" display="inline">
-                {`CTCF-ChIAPET:\u00A0`}
-              </Typography>
-              <Typography variant="body2" color="primary" display="inline">
-                {row.linkedGenes.CTCF_ChIAPET.length == 0 ?
-                  "none"
-                  :
-                  Object.values(row.linkedGenes.CTCF_ChIAPET)
-                  .map((gene: { name: string, biosample: string }, i: number) => gene.name)
-                  //deduplicate
-                  .filter((name, index, self) => { return self.indexOf(name) === index })
-                  .map((name: string, i: number, self: string[]) => (
-                    <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${name}`}>
-                      {i < self.length - 1 ? <>{`\u00A0${name},\u00A0`}</> : <>{`\u00A0${name}`}</>}
-                    </a>
-                  ))}
-              </Typography>
-            </Box>}
-            {RNAPII_ChIAPET && <Box>
-              <Typography variant="body2" display="inline">
-                {`RNAPII-ChIAPET:\u00A0`}
-              </Typography>
-              <Typography variant="body2" color="primary" display="inline">
-                {row.linkedGenes.RNAPII_ChIAPET.length == 0 ?
-                  "none"
-                  :
-                  Object.values(row.linkedGenes.RNAPII_ChIAPET)
-                    .map((gene: { name: string, biosample: string }, i: number) => gene.name)
-                    //deduplicate
-                    .filter((name, index, self) => { return self.indexOf(name) === index })
-                    .map((name: string, i: number, self: string[]) => (
-                      <a key={i} target="_blank" rel="noopener noreferrer" href={`/applets/gene-expression?assembly=${props.assembly}&gene=${name}`}>
-                        {i < self.length - 1 ? <>{`\u00A0${name},\u00A0`}</> : <>{`\u00A0${name}`}</>}
-                      </a>
-                    ))}
-              </Typography>
-            </Box>}
-          </>
-        )
-      },
+      }
     })
     cols.push({
       header: "Configure UCSC",
       value: () => "",
       unsearchable: true,
       unsortable: true,
-      HeaderRender: () => {
-        return (
-          <Stack direction="column" alignItems={"center"}>
-            <strong><p>Track&nbsp;Hub</p></strong>
-            {/* <Tooltip sx={{ml: 0.5}} arrow title="This will be populated with more info soon">
-                <InfoOutlined fontSize="small" />
-              </Tooltip> */}
-          </Stack>
-        )
-      },
+      HeaderRender: () => <strong><p>Track&nbsp;Hub</p></strong>,
       FunctionalRender: (row: MainResultTableRow) => {
         const [open, setOpen] = useState(false);
 
@@ -309,29 +352,25 @@ export function MainResultsTable(props: MainResultsTableProps) {
     })
     props.assembly === "GRCh38" && cols.push({
       header: "Conservation",
-      value: (row: { conservationData: ConservationData }) => `Primates:\u00A0${row.conservationData.primates?.toFixed(2) ?? "unavailable"} Mammals:\u00A0${row.conservationData.mammals?.toFixed(2) ?? "unavailable"} Vertebrates:\u00A0${row.conservationData.vertebrates?.toFixed(2) ?? "unavailable"}` , 
+      value: (row: { conservationData: ConservationData }) => `Primates:\u00A0${row.conservationData.primates?.toFixed(2) ?? "unavailable"} Mammals:\u00A0${row.conservationData.mammals?.toFixed(2) ?? "unavailable"} Vertebrates:\u00A0${row.conservationData.vertebrates?.toFixed(2) ?? "unavailable"}`,
       HeaderRender: () => <strong><p>Conservation</p></strong>
     })
     return cols
-  }, [CTCF_ChIAPET, RNAPII_ChIAPET, distance, props.assembly, props.biosampleData, props.rows])
-
-  const cols = useMemo(() => {
-    return columns(setDistance, setCTCF_ChIAPET, setRNAPII_ChIAPET)
-  }, [setDistance, setCTCF_ChIAPET, setRNAPII_ChIAPET, columns])
+  }, [props.assembly, props.biosampleData, props.rows, getLinkedGenes, loadingLinkedGenes])
 
   return (
-      <DataTable
-        key={props.rows[0] && props.rows[0].dnase + props.rows[0].ctcf + props.rows[0].h3k27ac + props.rows[0].h3k4me3 +  props.rows[0].atac  + columns.toString() + distance + CTCF_ChIAPET + RNAPII_ChIAPET}
-        rows={props.rows}
-        columns={cols}
-        itemsPerPage={props.itemsPerPage}
-        searchable
-        onRowClick={props.onRowClick}
-        tableTitle={props.tableTitle}
-        sortColumn={5}
-        showMoreColumns={props.assembly === "GRCh38"}
-        noOfDefaultColumns={props.assembly === "GRCh38" ? cols.length - 1 : cols.length}
-        titleHoverInfo={props.titleHoverInfo}
-      />
+    <DataTable
+      key={props.rows[0] && props.rows[0].dnase + props.rows[0].ctcf + props.rows[0].h3k27ac + props.rows[0].h3k4me3 + props.rows[0].atac + columns.toString()}
+      rows={props.rows}
+      columns={columns}
+      itemsPerPage={props.itemsPerPage}
+      searchable
+      onRowClick={props.onRowClick}
+      tableTitle={props.tableTitle}
+      sortColumn={5}
+      showMoreColumns={props.assembly === "GRCh38"}
+      noOfDefaultColumns={props.assembly === "GRCh38" ? columns.length - 1 : columns.length}
+      titleHoverInfo={props.titleHoverInfo}
+    />
   )
 }

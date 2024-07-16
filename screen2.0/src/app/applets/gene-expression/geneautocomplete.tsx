@@ -139,14 +139,14 @@ export default function GeneAutoComplete(props: {
           }
         }}
         value={props.gene} 
-        renderInput={(tprops) => <TextField {...tprops} placeholder={"Select a Gene"} />}
+        renderInput={(tprops) => <i><TextField {...tprops} placeholder={"Select a Gene"} /></i>}
         renderOption={(props, opt) => {
           return (
             <li {...props} key={props.id}>
               <Grid2 container alignItems="center">
                 <Grid2 sx={{ width: "calc(100% - 44px)" }}>
                   <Box component="span" sx={{ fontWeight: "regular" }}>
-                    {opt}
+                    <i>{opt}</i>
                   </Box>
                   {geneDesc && geneDesc.find((g) => g.name === opt) && (
                     <Typography variant="body2" color="text.secondary">

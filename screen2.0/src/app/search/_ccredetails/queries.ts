@@ -56,14 +56,36 @@ export const TOP_TISSUES: TypedDocumentNode<Data, Variables> = gql`
   }
 `
 export const LINKED_GENES = gql`
-  query ($assembly: String!, $accession: [String]!) {
-    linkedGenesQuery(assembly: $assembly, accession: $accession) {
-      assembly
-      accession
-      experiment_accession
-      celltype
+  query(
+    $assembly: String!
+    $accessions: [String]!
+    $methods: [String]
+    $celltypes: [String]
+  ) {
+    linkedGenes: linkedGenesQuery(
+      assembly: $assembly
+      accession: $accessions
+      method: $methods
+      celltype: $celltypes
+    ) {
+      p_val
       gene
+      geneid
+      genetype
+      method
+      accession
+      grnaid
+      effectsize
       assay
+      celltype
+      experiment_accession
+      tissue
+      score
+      variantid
+      source
+      slope
+      tissue
+      displayname
     }
   }
 `
@@ -164,10 +186,19 @@ export const NEARBY_GENOMIC_FEATURES_QUERY = gql`
     gene(chromosome: $chromosome, start: $start, end: $end, assembly: $b, version: $version) {
       name
       id
+      strand
       coordinates {
         chromosome
         start
         end
+      }
+      transcripts {
+        id
+        coordinates {
+          chromosome
+          start
+          end
+        }
       }
     }
 
@@ -197,10 +228,19 @@ export const NEARBY_GENOMIC_FEATURES_NOSNPS_QUERY = gql`
     gene(chromosome: $chromosome, start: $start, end: $end, assembly: $b, version: $version) {
       name
       id
+      strand
       coordinates {
         chromosome
         start
         end
+      }
+      transcripts {
+        id
+        coordinates {
+          chromosome
+          start
+          end
+        }
       }
     }
 
@@ -258,6 +298,71 @@ export const TF_INTERSECTION_QUERY = gql`
           total
         }
       }
+    }
+  }
+`
+export const NEARBY_AND_LINKED_GENES = gql`
+  query nearbyAndLinkedGenes(
+    $accessions: [String!]!
+    $assembly: String!
+    $geneSearchStart: Int!
+    $geneSearchEnd: Int!
+    $geneSearchChrom: String!
+    $geneVersion: Int!
+  ) {
+    nearbyGenes: gene(
+      chromosome: $geneSearchChrom
+      start: $geneSearchStart
+      end: $geneSearchEnd
+      assembly: $assembly
+      version: $geneVersion
+    ) {
+      name
+      id
+      gene_type
+      strand
+      coordinates {
+        chromosome
+        start
+        end
+      }
+      transcripts {
+        id
+        coordinates {
+          chromosome
+          start
+          end
+        }
+      }
+    }
+    linkedGenes: linkedGenesQuery(assembly: $assembly, accession: $accessions) {
+      accession  
+      p_val
+      gene
+      geneid
+      genetype
+      method
+      grnaid
+      effectsize
+      assay
+      celltype
+      experiment_accession
+      tissue
+      variantid
+      source
+      slope
+      score
+      displayname
+    }
+  }
+`
+
+const LINKED_GENES_CELLTYPES = gql`
+  query getlistofLinkedGenesCelltypes {
+    linkedGenesCelltypes: getLinkedGenesCelltypes {
+      celltype
+      displayname
+      method
     }
   }
 `
