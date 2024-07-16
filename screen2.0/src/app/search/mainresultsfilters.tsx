@@ -244,7 +244,7 @@ export function MainResultsFilters(
               }
             </Box>
             <Typography variant="body2" color="text.secondary">
-              {(geneInfo || loadingLinkedGenes) ? descriptions.find((g) => g.name === option.name)?.desc + ` (Linked: ${geneInfo.accessions.length})` : descriptions.find((g) => g.name === option.name)?.desc + " (Not linked to any search results)"}
+              {(geneInfo || loadingLinkedGenes) ? descriptions.find((g) => g.name === option.name)?.desc + ` (Linked: ${geneInfo?.accessions.length})` : descriptions.find((g) => g.name === option.name)?.desc + " (Not linked to any search results)"}
             </Typography>
           </Grid2>
         </Grid2>
@@ -791,33 +791,44 @@ export function MainResultsFilters(
                 </Stack>
               </AccordionSummary>
               <AccordionDetails>
-                <GeneAutoComplete2
-                  assembly={props.mainQueryParams.coordinates.assembly}
-                  autocompleteProps={
-                    {
-                      size: "small",
-                      fullWidth: true,
-                      defaultValue: props.filterCriteria.linkedGenesNames[0] ?
-                        {
-                          name: props.filterCriteria.linkedGenesNames[0],
-                          id: '',
-                          coordinates: {
-                            chromosome: '',
-                            start: 0,
-                            end: 0
-                          },
-                          description: ''
+                {/* Gene Input */}
+                <FormControl sx={{ width: '100%' }}>
+                  <FormLabel component="legend">Gene</FormLabel>
+                  <FormGroup>
+                    <Box sx={{ mt: 1 }}>
+                      {/* This does not properly accept adjusting padding/margin through sx, need to fix*/}
+                      <GeneAutoComplete2
+                        assembly={props.mainQueryParams.coordinates.assembly}
+                        autocompleteProps={
+                          {
+                            size: "small",
+                            sx: { mt: 4 },
+                            fullWidth: true,
+                            defaultValue: props.filterCriteria.linkedGenesNames[0] ?
+                              {
+                                name: props.filterCriteria.linkedGenesNames[0],
+                                id: '',
+                                coordinates: {
+                                  chromosome: '',
+                                  start: 0,
+                                  end: 0
+                                },
+                                description: ''
+                              }
+                              :
+                              null,
+                          }
                         }
-                        :
-                        null
-                    }
-                  }
-                  onTextBoxClick={() => !dataLinkedGenes && !loadingLinkedGenes && getLinkedGenes()}
-                  endIcon="add"
-                  colorTheme="light"
-                  onGeneSelected={(gene) => props.setFilterCriteria({ ...props.filterCriteria, linkedGenesNames: gene !== null ? [gene.name] : [] })}
-                  renderOption={(props, option, descriptions) => handleRenderGeneAutoCompleteOption(props, option, descriptions)}
-                />
+                        onTextBoxClick={() => !dataLinkedGenes && !loadingLinkedGenes && getLinkedGenes()}
+                        endIcon="none"
+                        colorTheme="light"
+                        onGeneSelected={(gene) => props.setFilterCriteria({ ...props.filterCriteria, linkedGenesNames: gene !== null ? [gene.name] : [] })}
+                        renderOption={(props, option, descriptions) => handleRenderGeneAutoCompleteOption(props, option, descriptions)}
+                      />
+                    </Box>
+                  </FormGroup>
+                </FormControl>
+                {/* Linked-by Checkboxes */}
                 <FormControl>
                   <FormLabel component="legend" sx={{ pt: 2 }}>Linked By</FormLabel>
                   <FormGroup>
@@ -853,19 +864,20 @@ export function MainResultsFilters(
                     />
                   </FormGroup>
                 </FormControl>
-                <FormControl sx={{ width: '82.5%' }}>
+                {/* Biosample input */}
+                <FormControl sx={{ width: '100%' }}>
                   <FormLabel component="legend" sx={{ pt: 2 }}>In Biosample/Tissue:</FormLabel>
-                  <FormGroup sx={{ width: '100%' }}>
+                  <FormGroup>
                     {/* Remember to use either tissue or displayname when setting biosample filter */}
                     <Autocomplete
-                      sx={{mt: 1, mb: 3}}
+                      sx={{ mt: 1, mb: 3 }}
                       disablePortal
                       id="combo-box-demo"
                       fullWidth
                       onChange={(_, value) => props.setFilterCriteria({ ...props.filterCriteria, linkedGenesBiosamples: [value] })}
                       defaultValue={props.filterCriteria.linkedGenesBiosamples[0]}
                       //Combine biosamples from query and eQTL tissues
-                      options={errorLGBiosamples ? ['Error fetching biosamples'] : [...new Set(dataLGLGBiosamples?.linkedGenesCelltypes.map(x => x.displayname))].concat(eQTLsTissues.map(x => x + " (eQTL\u2011only)") ).sort()}
+                      options={errorLGBiosamples ? ['Error fetching biosamples'] : [...new Set(dataLGLGBiosamples?.linkedGenesCelltypes.map(x => x.displayname))].concat(eQTLsTissues.map(x => x + " (eQTL\u2011only)")).sort()}
                       size="small"
                       renderInput={(params) =>
                         <TextField

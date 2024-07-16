@@ -109,8 +109,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
     props.assembly === "GRCh38" && cols.push({
       header: "Linked Genes",
       HeaderRender: () => <strong><p>Linked&nbsp;Genes</p></strong>,
-      value: (row) => 0,
-      unsortable: true,
+      value: (row) => [...new Set(row.linkedGenes?.map(x => x.gene))].length,
       render: (row) => {
         const extractUniqueGenes = (list: LinkedGeneInfo[]): { geneName: string, samples: LinkedGeneInfo[] }[] => {
           const genesToDisplay: { geneName: string, samples: LinkedGeneInfo[] }[] = []
@@ -158,8 +157,8 @@ export function MainResultsTable(props: MainResultsTableProps) {
               {props.genes.map((gene, i) =>
                 props.type === "eQTLs" ?
                   //eQTL Linked Gene
-                  <Stack direction="row" key={i}>
-                    <Typography variant="inherit">
+                  <Box key={i}>
+                    <Typography display="inline" variant="inherit">
                       <i>
                         <CreateLink
                           linkPrefix="/applets/gene-expression?assembly=GRCh38&gene="
@@ -170,6 +169,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
                       </i> ({getNumtissues(gene.samples)} tissue{getNumtissues(gene.samples) > 1 && 's'}, {gene.samples.length} variant{gene.samples.length > 1 && 's'})
                     </Typography>
                     <Tooltip
+                      sx={{display: "inline"}}
                       title={
                         <div>
                           <Typography variant="body2">
@@ -194,11 +194,11 @@ export function MainResultsTable(props: MainResultsTableProps) {
                     >
                       <InfoOutlined fontSize="small" />
                     </Tooltip>
-                  </Stack>
+                  </Box>
                   :
                   //All other
-                  <Stack direction="row" key={i}>
-                    <Typography variant="inherit">
+                  <Box key={i}>
+                    <Typography display="inline" variant="inherit" mr={0.5}>
                       <i>
                         <CreateLink
                           linkPrefix="/applets/gene-expression?assembly=GRCh38&gene="
@@ -209,6 +209,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
                       </i> ({gene.samples.length} biosample{gene.samples.length > 1 && 's'})
                     </Typography>
                     <Tooltip
+                      sx={{display: 'inline'}}
                       title={
                         <div>
                           <Typography variant="body2"><i>{gene.geneName}</i></Typography>
@@ -234,7 +235,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
                     >
                       <InfoOutlined fontSize="small" />
                     </Tooltip>
-                  </Stack>
+                  </Box>
               )}
             </Stack>
           )
@@ -247,7 +248,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
               <AccordionSummary
                 expandIcon={<ExpandMoreIcon />}
               >
-                Linked Genes
+                {row.linkedGenes ? "Linked Genes (" + [...new Set(row.linkedGenes.map(x => x.gene))].length + " unique)" : 'Find Linked Genes'}
               </AccordionSummary>
               {!row.linkedGenes ?
                 <AccordionDetails>

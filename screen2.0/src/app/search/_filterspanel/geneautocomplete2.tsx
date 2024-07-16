@@ -165,7 +165,7 @@ export const GeneAutoComplete2 = (
       <Autocomplete
         multiple={false} //How can I easily support this
         ListboxProps={mergedListboxProps}
-        options={options.sort((a, b) => a.name.charCodeAt(0) - b.name.charCodeAt(0))} //How do I type this properly?
+        options={options.sort((a, b) => (a.name <= b.name) ? -1 : 1 )} //How do I type this properly?
         inputValue={inputValue}
         onInputChange={(_, newInputValue) => {
           if (newInputValue != "") {
