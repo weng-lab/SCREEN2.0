@@ -276,7 +276,13 @@ export function passesLinkedGenesFilter(
     if (
       linkedGenesNames.find((filterLinkedGene) =>
         row.linkedGenes.find((rowLinkedGeneInfo) =>
-          rowLinkedGeneInfo.gene === filterLinkedGene && (linkTypes.includes(rowLinkedGeneInfo.assay) || linkTypes.includes(rowLinkedGeneInfo.method))))
+          rowLinkedGeneInfo.gene === filterLinkedGene &&
+          //checkboxes
+          (linkTypes.includes(rowLinkedGeneInfo.assay) || linkTypes.includes(rowLinkedGeneInfo.method)) &&
+          //biosample
+          (linkedGenesBiosamples.length === 0 || linkedGenesBiosamples.includes(rowLinkedGeneInfo.tissue) || linkedGenesBiosamples.includes(rowLinkedGeneInfo.displayname))
+        )
+      )
     ) {
       return true
     } else return false
@@ -868,3 +874,55 @@ export const downloadBED = async (
   setBedLoadingPercent(null)
 }
 
+//This should be moved to a constants folder
+export const eQTLsTissues = [
+  "Adipose Subcutaneous",
+  "Adipose Visceral Omentum",
+  "Adrenal Gland",
+  "Artery Aorta",
+  "Artery Coronary",
+  "Artery Tibial",
+  "Brain Amygdala",
+  "Brain Anterior cingulate cortex BA24",
+  "Brain Caudate basal ganglia",
+  "Brain Cerebellar Hemisphere",
+  "Brain Cerebellum",
+  "Brain Cortex",
+  "Brain Frontal Cortex BA9",
+  "Brain Hippocampus",
+  "Brain Hypothalamus",
+  "Brain Nucleus accumbens basal ganglia",
+  "Brain Putamen basal ganglia",
+  "Brain Spinal cord cervical c-1",
+  "Brain Substantia nigra",
+  "Breast Mammary Tissue",
+  "Cells Cultured fibroblasts",
+  "Cells EBV-transformed lymphocytes",
+  "Colon Sigmoid",
+  "Colon Transverse",
+  "Esophagus Gastroesophageal Junction",
+  "Esophagus Mucosa",
+  "Esophagus Muscularis",
+  "Heart Atrial Appendage",
+  "Heart Left Ventricle",
+  "Kidney Cortex",
+  "Liver",
+  "Lung",
+  "Minor Salivary Gland",
+  "Muscle Skeletal",
+  "Nerve Tibial",
+  "Ovary",
+  "Pancreas",
+  "Pituitary",
+  "Prostate",
+  "Skin Not Sun Exposed Suprapubic",
+  "Skin Sun Exposed Lower leg",
+  "Small Intestine Terminal Ileum",
+  "Spleen",
+  "Stomach",
+  "Testis",
+  "Thyroid",
+  "Uterus",
+  "Vagina",
+  "Whole Blood"
+]

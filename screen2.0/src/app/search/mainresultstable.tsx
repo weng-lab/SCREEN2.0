@@ -98,15 +98,15 @@ export function MainResultsTable(props: MainResultsTableProps) {
         <Typography variant="body2" onClick={(event) => event.stopPropagation()}>
           <i>
             <CreateLink
-              linkPrefix="/applets/gene-expression?assembly=GRCh38&gene="
-              linkArg={row.nearestGenes[0].gene}
+              linkPrefix="/applets/gene-expression"
+              linkArg={`?assembly=${props.assembly}&gene=${row.nearestGenes[0].gene}`}
               label={row.nearestGenes[0].gene}
               underline="hover"
             />
           </i> - {row.nearestGenes[0].distance}bp
         </Typography>
     })
-    cols.push({
+    props.assembly === "GRCh38" && cols.push({
       header: "Linked Genes",
       HeaderRender: () => <strong><p>Linked&nbsp;Genes</p></strong>,
       value: (row) => 0,
@@ -149,6 +149,8 @@ export function MainResultsTable(props: MainResultsTableProps) {
             variants: samplesByTissue[tissue]
           }));
         }
+
+
 
         const LinkedGeneList: React.FC<{ genes: { geneName: string, samples: LinkedGeneInfo[] }[], type: "Intact-HiC" | "ChIAPET" | "CRISPR" | "eQTLs" }> = (props) => {
           return (

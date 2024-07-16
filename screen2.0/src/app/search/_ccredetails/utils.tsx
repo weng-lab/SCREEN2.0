@@ -203,10 +203,15 @@ export const GROUP_COLOR_MAP: Map<string, string> = new Map([
  * @param point Point to Find Distance to
  * @returns The distance from the anchor specified to the position
  */
-export function calcDistRegionToPosition(start: number, end: number, anchor: 'closest' | 'start' | 'end' | 'middle', point: number, ): number {
+export function calcDistRegionToPosition(start: number, end: number, anchor: 'closest' | 'start' | 'end' | 'middle', point: number ): number {
   const distToStart = Math.abs(start - point)
   const distToEnd = Math.abs(end - point)
-  const distToMiddle = Math.abs(Math.floor((start + end) / 2) - point)
+  const distToMiddle = Math.abs(((start + end) / 2) - point)
+
+  if (start <= point && point <= end) {
+    return 0
+  }
+
   switch(anchor) {
     case ('start'): return distToStart
     case ('end'): return distToEnd

@@ -126,7 +126,7 @@ export const NearByGenomicFeatures: React.FC<{
                     },
                   ]}
                   onRowClick={(row) => {
-                    window.open(`/applets/gene-expression?assembly=GRCh38&gene=${row.name}`, "_blank")
+                    window.open(`/applets/gene-expression?assembly=${assembly}&gene=${row.name}`, "_blank")
                   }}
                   sortColumn={1}
                   tableTitle="Nearby Genes"

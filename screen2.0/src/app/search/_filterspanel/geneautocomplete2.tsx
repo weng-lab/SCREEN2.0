@@ -165,7 +165,7 @@ export const GeneAutoComplete2 = (
       <Autocomplete
         multiple={false} //How can I easily support this
         ListboxProps={mergedListboxProps}
-        options={options} //How do I type this properly?
+        options={options.sort((a, b) => a.name.charCodeAt(0) - b.name.charCodeAt(0))} //How do I type this properly?
         inputValue={inputValue}
         onInputChange={(_, newInputValue) => {
           if (newInputValue != "") {
@@ -173,7 +173,7 @@ export const GeneAutoComplete2 = (
           }
           setInputValue(newInputValue)
         }}
-        onChange={(_, value, reason) => reason === 'selectOption' && onGeneSelected && onGeneSelected(value)} //Should I just expose the whole onChange function?
+        onChange={(_, value, reason) => onGeneSelected && onGeneSelected(value)} //Should I just expose the whole onChange function?
         onKeyDown={(event) => {
           if (event.key === "Enter") {
             attemptSubmit(inputValue)
@@ -181,27 +181,30 @@ export const GeneAutoComplete2 = (
         }}
         noOptionsText={loadingOptions ? "Loading..." : "No Genes Found"} //Maybe expose?
         renderInput={(params) => (
-          <i><TextField
-            {...params}
-            label="Enter a gene name"
-            // InputLabelProps={{ shrink: true, style: props.header ? {color: "white"} : { color: "black" } }}
-            placeholder={props.assembly === "mm10" ? "e.g., Scml2, Dbt" : "e.g., SOX4, GAPDH"}
-            fullWidth
-            onClick={onTextBoxClick}
-            sx={{
-              //Border at rest
-              fieldset: colorTheme === "dark" ? { borderColor: "white" } : { borderColor: "black" },
-              '& .MuiOutlinedInput-root': {
-                //hover border color
-                '&:hover fieldset': colorTheme === "dark" ? { borderColor: "white" } : { borderColor: "black" },
-                //focused border color
-                '&.Mui-focused fieldset': colorTheme === "dark" ? { borderColor: "white" } : { borderColor: "black" },
-              },
-              //Text
-              '& .MuiOutlinedInput-input': colorTheme === "dark" && { color: "white" },
-              //Icon
-              '& .MuiSvgIcon-root': colorTheme === "dark" && { fill: "white" }
-            }} /></i>
+          <i>
+            <TextField
+              {...params}
+              label="Enter a gene name"
+              // InputLabelProps={{ shrink: true, style: props.header ? {color: "white"} : { color: "black" } }}
+              placeholder={props.assembly === "mm10" ? "e.g., Scml2, Dbt" : "e.g., SOX4, GAPDH"}
+              fullWidth
+              onClick={onTextBoxClick}
+              sx={{
+                //Border at rest
+                fieldset: colorTheme === "dark" && { borderColor: "white" },
+                '& .MuiOutlinedInput-root': {
+                  //hover border color
+                  '&:hover fieldset': colorTheme === "dark" && { borderColor: "white" },
+                  //focused border color
+                  '&.Mui-focused fieldset': colorTheme === "dark" && { borderColor: "white" },
+                },
+                //Text
+                '& .MuiOutlinedInput-input': colorTheme === "dark" && { color: "white" },
+                //Icon
+                '& .MuiSvgIcon-root': colorTheme === "dark" && { fill: "white" }
+              }}
+            />
+          </i>
         )}
         getOptionLabel={option => option.name}
         isOptionEqualToValue={(a, b) => a.name === b.name}

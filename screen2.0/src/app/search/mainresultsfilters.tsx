@@ -19,6 +19,8 @@ import {
   CircularProgress,
   IconButton,
   Divider,
+  Autocomplete,
+  TextField,
 } from "@mui/material/"
 
 import Radio from '@mui/material/Radio';
@@ -29,15 +31,15 @@ import Grid2 from "@mui/material/Unstable_Grid2"
 import { RangeSlider } from "@weng-lab/psychscreen-ui-components"
 import { BiosampleTableFilters, FilterCriteria, MainQueryParams, RegistryBiosample } from "./types"
 import { filtersModified } from "./searchhelpers"
-import { ApolloQueryResult, LazyQueryExecFunction, LazyQueryResultTuple, gql } from "@apollo/client"
+import { ApolloQueryResult, LazyQueryResultTuple, gql, useLazyQuery } from "@apollo/client"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import { InfoOutlined } from "@mui/icons-material";
 import BiosampleTables from "./biosampletables";
 import ClearIcon from '@mui/icons-material/Clear';
 import { BIOSAMPLE_Data } from "../../common/lib/queries";
 import { GeneAutoComplete2, GeneInfo } from "./_filterspanel/geneautocomplete2";
-import { NearbyAndLinked } from "./_ccredetails/ccredetails";
 import { LinkedGenes, LinkedGenesVariables } from "./page";
+import { eQTLsTissues } from "./searchhelpers";
 
 const snpMarks = [
   {
@@ -106,6 +108,16 @@ const GENE_TRANSCRIPTS_QUERY = gql`
    }
  } `
 
+const GET_LG_BIOSAMPLE = gql`
+  query getlistofLinkedGenesCelltypes {
+    linkedGenesCelltypes: getLinkedGenesCelltypes {
+      celltype
+      displayname
+      method
+    }
+  }
+`
+
 export function MainResultsFilters(
   props: {
     mainQueryParams: MainQueryParams,
@@ -126,6 +138,18 @@ export function MainResultsFilters(
 ): JSX.Element {
 
   const [getLinkedGenes, { loading: loadingLinkedGenes, data: dataLinkedGenes, error: errorLinkedGenes }] = props.useLinkedGenes
+
+  type returnData = {
+    linkedGenesCelltypes: {
+      celltype: string,
+      displayname: string,
+      method: string
+    }[]
+  }
+
+  const [getLGBiosamples, { loading: loadingLGBiosamples, data: dataLGLGBiosamples, error: errorLGBiosamples }] = useLazyQuery<returnData, {}>(
+    GET_LG_BIOSAMPLE,
+  )
 
   const {
     data: geneTranscripts
@@ -220,7 +244,7 @@ export function MainResultsFilters(
               }
             </Box>
             <Typography variant="body2" color="text.secondary">
-              {(geneInfo || loadingLinkedGenes) ? descriptions.find((g) => g.name === option.name)?.desc + ` (Linked: ${geneInfo.accessions.length})` : "Not linked to any search results"}
+              {(geneInfo || loadingLinkedGenes) ? descriptions.find((g) => g.name === option.name)?.desc + ` (Linked: ${geneInfo.accessions.length})` : descriptions.find((g) => g.name === option.name)?.desc + " (Not linked to any search results)"}
             </Typography>
           </Grid2>
         </Grid2>
@@ -737,96 +761,125 @@ export function MainResultsFilters(
             </AccordionDetails>
           </Accordion>}
           {/* Linked Genes */}
-          <Accordion square disableGutters>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel4a-content" id="panel4a-header">
-              <Stack direction="row" spacing={1}>
-                {props.filterCriteria.linkedGenesNames.length > 0 ?
-                  <>
-                    <IconButton size="small" sx={{ p: 0 }}
-                      onClick={(event) => {
-                        props.setFilterCriteria({
-                          ...props.filterCriteria,
-                          linkedGenesNames: []
-                        });
-                        event.stopPropagation()
-                      }}
-                    >
-                      <Tooltip placement="top" title={"Clear Filter"}>
-                        <ClearIcon />
-                      </Tooltip>
-                    </IconButton>
-                    <i><Typography sx={{ fontWeight: "bold" }}>Linked Genes</Typography></i>
-                  </>
-                  :
-                  <Typography>Linked Genes</Typography>
-                }
-                <Tooltip arrow placement="right-end" title={"Filter results based on genes linked by ChIA-PET Interactions, Intact Hi-C Loops, CRISPRi-FlowFISH, or eQTLs"}>
-                  <InfoOutlined fontSize="small" />
-                </Tooltip>
-              </Stack>
-            </AccordionSummary>
-            <AccordionDetails>
-              <GeneAutoComplete2
-                assembly={props.mainQueryParams.coordinates.assembly}
-                autocompleteProps={
-                  {
-                    size: "small",
-                    fullWidth: true,
+          {props.mainQueryParams.coordinates.assembly === "GRCh38" &&
+            <Accordion square disableGutters>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls="panel4a-content" id="panel4a-header">
+                <Stack direction="row" spacing={1}>
+                  {props.filterCriteria.linkedGenesNames.length > 0 ?
+                    <>
+                      <IconButton size="small" sx={{ p: 0 }}
+                        onClick={(event) => {
+                          props.setFilterCriteria({
+                            ...props.filterCriteria,
+                            linkedGenesNames: []
+                          });
+                          event.stopPropagation()
+                        }}
+                      >
+                        <Tooltip placement="top" title={"Clear Filter"}>
+                          <ClearIcon />
+                        </Tooltip>
+                      </IconButton>
+                      <i><Typography sx={{ fontWeight: "bold" }}>Linked Genes</Typography></i>
+                    </>
+                    :
+                    <Typography>Linked Genes</Typography>
                   }
-                }
-                onTextBoxClick={() => !dataLinkedGenes && !loadingLinkedGenes && getLinkedGenes()}
-                endIcon="add"
-                colorTheme="light"
-                onGeneSubmitted={(gene) => props.setFilterCriteria({ ...props.filterCriteria, linkedGenesNames: [...props.filterCriteria.linkedGenesNames, gene.name] })}
-                renderOption={(props, option, descriptions) => handleRenderGeneAutoCompleteOption(props, option, descriptions)}
-              />
-              {props.filterCriteria.linkedGenesNames.length > 0 &&
-                <>
-                  <Typography>
-                    {"Selected: "} <i>{props.filterCriteria.linkedGenesNames.join(', ')}</i>
-                  </Typography>
-                  <Button variant="outlined" sx={{textTransform: 'none'}} onClick={() => props.setFilterCriteria({ ...props.filterCriteria, linkedGenesNames: [] })}>
-                    Clear Selected Genes
-                  </Button>
-                </>
-              }
-              <FormControl>
-                <FormLabel component="legend" sx={{ pt: 2 }}>Linked By</FormLabel>
-                <FormGroup>
-                  <FormControlLabel
-                    checked={props.filterCriteria.CTCFChIAPET}
-                    onChange={(_, checked: boolean) => props.setFilterCriteria({ ...props.filterCriteria, CTCFChIAPET: checked })}
-                    control={<Checkbox />}
-                    label="CTCF ChIA-PET Interaction"
-                  />
-                  <FormControlLabel
-                    checked={props.filterCriteria.RNAPIIChIAPET}
-                    onChange={(_, checked: boolean) => props.setFilterCriteria({ ...props.filterCriteria, RNAPIIChIAPET: checked })}
-                    control={<Checkbox />}
-                    label="RNAPII ChIA-PET Interaction"
-                  />
-                  <FormControlLabel
-                    checked={props.filterCriteria.HiC}
-                    onChange={(_, checked: boolean) => props.setFilterCriteria({ ...props.filterCriteria, HiC: checked })}
-                    control={<Checkbox />}
-                    label="Intact Hi-C Loops"
-                  />
-                  <FormControlLabel
-                    checked={props.filterCriteria.CRISPRiFlowFISH}
-                    onChange={(_, checked: boolean) => props.setFilterCriteria({ ...props.filterCriteria, CRISPRiFlowFISH: checked })}
-                    control={<Checkbox />}
-                    label="CRISPRi-FlowFISH"
-                  />
-                  <FormControlLabel
-                    checked={props.filterCriteria.eQTLs}
-                    onChange={(_, checked: boolean) => props.setFilterCriteria({ ...props.filterCriteria, eQTLs: checked })}
-                    control={<Checkbox />}
-                    label="eQTLs"
-                  />
-                </FormGroup>
-              </FormControl>
-            </AccordionDetails>
-          </Accordion>
+                  <Tooltip arrow placement="right-end" title={"Filter results based on genes linked by ChIA-PET Interactions, Intact Hi-C Loops, CRISPRi-FlowFISH, or eQTLs"}>
+                    <InfoOutlined fontSize="small" />
+                  </Tooltip>
+                </Stack>
+              </AccordionSummary>
+              <AccordionDetails>
+                <GeneAutoComplete2
+                  assembly={props.mainQueryParams.coordinates.assembly}
+                  autocompleteProps={
+                    {
+                      size: "small",
+                      fullWidth: true,
+                      defaultValue: props.filterCriteria.linkedGenesNames[0] ?
+                        {
+                          name: props.filterCriteria.linkedGenesNames[0],
+                          id: '',
+                          coordinates: {
+                            chromosome: '',
+                            start: 0,
+                            end: 0
+                          },
+                          description: ''
+                        }
+                        :
+                        null
+                    }
+                  }
+                  onTextBoxClick={() => !dataLinkedGenes && !loadingLinkedGenes && getLinkedGenes()}
+                  endIcon="add"
+                  colorTheme="light"
+                  onGeneSelected={(gene) => props.setFilterCriteria({ ...props.filterCriteria, linkedGenesNames: gene !== null ? [gene.name] : [] })}
+                  renderOption={(props, option, descriptions) => handleRenderGeneAutoCompleteOption(props, option, descriptions)}
+                />
+                <FormControl>
+                  <FormLabel component="legend" sx={{ pt: 2 }}>Linked By</FormLabel>
+                  <FormGroup>
+                    <FormControlLabel
+                      checked={props.filterCriteria.CTCFChIAPET}
+                      onChange={(_, checked: boolean) => props.setFilterCriteria({ ...props.filterCriteria, CTCFChIAPET: checked })}
+                      control={<Checkbox />}
+                      label="CTCF ChIA-PET Interaction"
+                    />
+                    <FormControlLabel
+                      checked={props.filterCriteria.RNAPIIChIAPET}
+                      onChange={(_, checked: boolean) => props.setFilterCriteria({ ...props.filterCriteria, RNAPIIChIAPET: checked })}
+                      control={<Checkbox />}
+                      label="RNAPII ChIA-PET Interaction"
+                    />
+                    <FormControlLabel
+                      checked={props.filterCriteria.HiC}
+                      onChange={(_, checked: boolean) => props.setFilterCriteria({ ...props.filterCriteria, HiC: checked })}
+                      control={<Checkbox />}
+                      label="Intact Hi-C Loops"
+                    />
+                    <FormControlLabel
+                      checked={props.filterCriteria.CRISPRiFlowFISH}
+                      onChange={(_, checked: boolean) => props.setFilterCriteria({ ...props.filterCriteria, CRISPRiFlowFISH: checked })}
+                      control={<Checkbox />}
+                      label="CRISPRi-FlowFISH"
+                    />
+                    <FormControlLabel
+                      checked={props.filterCriteria.eQTLs}
+                      onChange={(_, checked: boolean) => props.setFilterCriteria({ ...props.filterCriteria, eQTLs: checked })}
+                      control={<Checkbox />}
+                      label="eQTLs"
+                    />
+                  </FormGroup>
+                </FormControl>
+                <FormControl sx={{ width: '82.5%' }}>
+                  <FormLabel component="legend" sx={{ pt: 2 }}>In Biosample/Tissue:</FormLabel>
+                  <FormGroup sx={{ width: '100%' }}>
+                    {/* Remember to use either tissue or displayname when setting biosample filter */}
+                    <Autocomplete
+                      sx={{mt: 1, mb: 3}}
+                      disablePortal
+                      id="combo-box-demo"
+                      fullWidth
+                      onChange={(_, value) => props.setFilterCriteria({ ...props.filterCriteria, linkedGenesBiosamples: [value] })}
+                      defaultValue={props.filterCriteria.linkedGenesBiosamples[0]}
+                      //Combine biosamples from query and eQTL tissues
+                      options={errorLGBiosamples ? ['Error fetching biosamples'] : [...new Set(dataLGLGBiosamples?.linkedGenesCelltypes.map(x => x.displayname))].concat(eQTLsTissues.map(x => x + " (eQTL\u2011only)") ).sort()}
+                      size="small"
+                      renderInput={(params) =>
+                        <TextField
+                          onClick={() => (!dataLGLGBiosamples && !loadingLGBiosamples && getLGBiosamples())}
+                          {...params}
+                          label="Tissue"
+                        />
+                      }
+                    />
+                  </FormGroup>
+                </FormControl>
+              </AccordionDetails>
+            </Accordion>
+          }
         </>
       }
     </Paper>
