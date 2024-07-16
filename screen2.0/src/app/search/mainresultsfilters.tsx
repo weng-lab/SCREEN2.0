@@ -877,7 +877,7 @@ export function MainResultsFilters(
                       onChange={(_, value) => props.setFilterCriteria({ ...props.filterCriteria, linkedGenesBiosamples: [value] })}
                       defaultValue={props.filterCriteria.linkedGenesBiosamples[0]}
                       //Combine biosamples from query and eQTL tissues
-                      options={errorLGBiosamples ? ['Error fetching biosamples'] : [...new Set(dataLGLGBiosamples?.linkedGenesCelltypes.map(x => x.displayname))].concat(eQTLsTissues.map(x => x + " (eQTL\u2011only)")).sort()}
+                      options={errorLGBiosamples ? ['Error fetching biosamples'] : [...new Set(dataLGLGBiosamples?.linkedGenesCelltypes.map(x => x.displayname))].concat(eQTLsTissues).sort()}
                       size="small"
                       renderInput={(params) =>
                         <TextField
