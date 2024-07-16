@@ -1,7 +1,8 @@
 
-import { cCREData, MainQueryParams, CellTypeData, MainResultTableRows, MainResultTableRow, rawQueryData, FilterCriteria, BiosampleTableFilters, MainQueryData, RawLinkedGenesData, SCREENSearchResult, RegistryBiosample, BiosampleData } from "./types"
-import { MainQuery, fetchLinkedGenes } from "../../common/lib/queries"
+import { MainQueryParams, MainResultTableRows, MainResultTableRow, FilterCriteria, BiosampleTableFilters, MainQueryData, SCREENSearchResult, RegistryBiosample, BiosampleData } from "./types"
+import { MainQuery } from "../../common/lib/queries"
 import { startTransition } from "react"
+import { LinkedGeneInfo } from "./_ccredetails/ccredetails"
 
 /**
  * 
@@ -31,7 +32,7 @@ export async function fetchcCREData (
 ): Promise<MainQueryData> {
   
   //cCRESearchQuery
-  const mainQueryData = await MainQuery(
+  let mainQueryData: MainQueryData = await MainQuery(
     assembly,
     chromosome,
     start,
@@ -42,11 +43,9 @@ export async function fetchcCREData (
     intersectedAccessions,
     noLimit
   )
-
   //If biosample-specific data returned, sync z-scores with ctspecific to avoid having to select ctspecific later
-  let cCRE_data: cCREData[] = mainQueryData?.data?.cCRESCREENSearch
   if (biosample) {
-    cCRE_data = cCRE_data.map(cCRE => {
+    mainQueryData.data.cCRESCREENSearch = mainQueryData.data.cCRESCREENSearch.map(cCRE => {
       cCRE.dnase_zscore = cCRE.ctspecific.dnase_zscore;
       cCRE.atac_zscore = cCRE.ctspecific.atac_zscore;
       cCRE.enhancer_zscore = cCRE.ctspecific.h3k27ac_zscore;
@@ -60,49 +59,24 @@ export async function fetchcCREData (
 }
 
 /**
- * 
- * @param mainQueryData data of type MainQueryData
- * @param assembly  "GRCh38" | "mm10"
- * @returns 
+ * @param mainQueryData 
+ * @param linkedGenesData 
+ * @param filterCriteria 
+ * @param unfiltered 
+ * @param TSSranges 
+ * @returns filtered rows
  */
-export async function fetchLinkedGenesData (
-  mainQueryData: MainQueryData,
-  assembly: "GRCh38" | "mm10"
-): Promise<RawLinkedGenesData> {
-  const accessions: string[] = []
-  mainQueryData?.data?.cCRESCREENSearch.forEach((currentElement) => {
-    accessions.push(currentElement.info.accession)
-  })
-
-  const linkedGenesData = await fetchLinkedGenes(assembly, accessions)
-  return (linkedGenesData)
-}
-
 export function generateFilteredRows(
   mainQueryData: MainQueryData,
-  linkedGenesData: RawLinkedGenesData,
+  linkedGenesData: LinkedGeneInfo[],
   filterCriteria: FilterCriteria,
   unfiltered?: boolean,
   TSSranges?: {start: number, end: number}[]
 ): MainResultTableRows {
-  const cCRE_data: cCREData[] = mainQueryData.data.cCRESCREENSearch
-  const otherLinked = linkedGenesData
   const rows: MainResultTableRows = []
   //Assemble unfiltered rows, if TSS ranges passed check to make sure it's in one of them
-  cCRE_data.forEach((currentElement) => {
+  mainQueryData.data.cCRESCREENSearch.forEach((currentElement) => {
     if (!TSSranges || TSSranges && TSSranges.find((TSSrange) => currentElement.start <= TSSrange.end && TSSrange.start <= (currentElement.start + currentElement.len))) {
-      const genesToAdd = otherLinked ? otherLinked[currentElement.info.accession] : null
-      const CTCF_ChIAPET_ToAdd: { name: string, biosample: string }[] = []
-      const RNAPII_ChIAPET_ToAdd: { name: string, biosample: string }[] = []
-      //Gather lists of CTCF-ChIAPET and RNAPII-ChIAPET linked genes
-      genesToAdd && genesToAdd.genes.forEach(gene => {
-        if (gene.linkedBy === "CTCF-ChIAPET") {
-          CTCF_ChIAPET_ToAdd.push({ name: gene.geneName, biosample: gene.biosample })
-        }
-        else if (gene.linkedBy === "RNAPII-ChIAPET") {
-          RNAPII_ChIAPET_ToAdd.push({ name: gene.geneName, biosample: gene.biosample })
-        }
-      })
       rows.push({
         accession: currentElement.info.accession,
         class: currentElement.pct,
@@ -114,7 +88,8 @@ export function generateFilteredRows(
         h3k27ac: currentElement.enhancer_zscore,
         ctcf: currentElement.ctcf_zscore,
         atac: currentElement.atac_zscore,
-        linkedGenes: { distancePC: currentElement.genesallpc.pc.intersecting_genes, distanceAll: currentElement.genesallpc.all.intersecting_genes, CTCF_ChIAPET: CTCF_ChIAPET_ToAdd, RNAPII_ChIAPET: RNAPII_ChIAPET_ToAdd },
+        nearestGenes: currentElement.nearestgenes,
+        linkedGenes: linkedGenesData ? linkedGenesData.filter(gene => gene.accession === currentElement.info.accession) : null,
         conservationData: { mammals: currentElement.mammals, primates: currentElement.primates, vertebrates: currentElement.vertebrates }
       })
     }
@@ -181,13 +156,13 @@ export function passesFilters(
     )
     && passesLinkedGenesFilter(
       row,
-      {
-        genesToFind: filterCriteria.genesToFind,
-        distancePC: filterCriteria.distancePC,
-        distanceAll: filterCriteria.distanceAll,
-        CTCF_ChIA_PET: filterCriteria.CTCF_ChIA_PET,
-        RNAPII_ChIA_PET: filterCriteria.RNAPII_ChIA_PET
-      }
+      filterCriteria.linkedGenesNames,
+      filterCriteria.linkedGenesBiosamples,
+      filterCriteria.CTCFChIAPET,
+      filterCriteria.RNAPIIChIAPET,
+      filterCriteria.HiC,
+      filterCriteria.CRISPRiFlowFISH,
+      filterCriteria.eQTLs
     )
   )
 }
@@ -281,33 +256,38 @@ function passesClassificationFilter(
 
 export function passesLinkedGenesFilter(
   row: MainResultTableRow,
-  linkedGenesFilter: {
-    genesToFind: string[]
-    distancePC: boolean
-    distanceAll: boolean
-    CTCF_ChIA_PET: boolean
-    RNAPII_ChIA_PET: boolean
-  }
+  linkedGenesNames: string[],
+  linkedGenesBiosamples: string[],
+  CTCFChIAPET: boolean,
+  RNAPIIChIAPET: boolean,
+  HiC: boolean,
+  CRISPRiFlowFISH: boolean,
+  eQTLs: boolean
 ): boolean {
-  let found = false
-  //If there is a gene to find a match for
-  if (linkedGenesFilter.genesToFind.length > 0) {
-    const genes = row.linkedGenes
-    //For each selected checkbox, try to find it in the corresponding spot, mark flag as found
-    if (linkedGenesFilter.distancePC && genes.distancePC.find((gene) => linkedGenesFilter.genesToFind.find((x) => x === gene.name))) {
-      found = true
-    }
-    if (linkedGenesFilter.distanceAll && genes.distanceAll.find((gene) => linkedGenesFilter.genesToFind.find((x) => x === gene.name))) {
-      found = true
-    }
-    if (linkedGenesFilter.CTCF_ChIA_PET && genes.CTCF_ChIAPET.find((gene) => linkedGenesFilter.genesToFind.find((x) => x === gene.name))) {
-      found = true
-    }
-    if (linkedGenesFilter.RNAPII_ChIA_PET && genes.RNAPII_ChIAPET.find((gene) => linkedGenesFilter.genesToFind.find((x) => x === gene.name))) {
-      found = true
-    }
-    return found
+  const linkTypes = []
+  CTCFChIAPET && linkTypes.push("CTCF-ChIAPET")
+  RNAPIIChIAPET && linkTypes.push("RNAPII-ChIAPET")
+  HiC && linkTypes.push("Intact-HiC")
+  CRISPRiFlowFISH && linkTypes.push("CRISPRi-FlowFISH")
+  eQTLs && linkTypes.push("eQTLs")
+
+  //if row.linkedGenes is null, it hasn't been fetched yet, so allow row through
+  if (row.linkedGenes && linkedGenesNames.length > 0) {
+    if (
+      linkedGenesNames.find((filterLinkedGene) =>
+        row.linkedGenes.find((rowLinkedGeneInfo) =>
+          rowLinkedGeneInfo.gene === filterLinkedGene &&
+          //checkboxes
+          (linkTypes.includes(rowLinkedGeneInfo.assay) || linkTypes.includes(rowLinkedGeneInfo.method)) &&
+          //biosample
+          (linkedGenesBiosamples.length === 0 || linkedGenesBiosamples.includes(rowLinkedGeneInfo.tissue) || linkedGenesBiosamples.includes(rowLinkedGeneInfo.displayname))
+        )
+      )
+    ) {
+      return true
+    } else return false
   } else {
+    //return true on no genes specified
     return true
   }
 }
@@ -547,11 +527,13 @@ export function constructSearchURL(
     + `&vert_e=${newFilterCriteria.vert_e}`
 
   const linkedGenesFilter =
-    `&genesToFind=${newFilterCriteria.genesToFind.join(',')}`
-    + `&distancePC=${outputT_or_F(newFilterCriteria.distancePC)}`
-    + `&distanceAll=${outputT_or_F(newFilterCriteria.distanceAll)}`
-    + `&CTCF_ChIA_PET=${outputT_or_F(newFilterCriteria.CTCF_ChIA_PET)}`
-    + `&RNAPII_ChIA_PET=${outputT_or_F(newFilterCriteria.RNAPII_ChIA_PET)}`
+    `&linkedGenesNames=${newFilterCriteria.linkedGenesNames.join(',')}`
+    + `&linkedGenesBiosamples=${newFilterCriteria.linkedGenesBiosamples.join(',')}`
+    + `&CTCFChIAPET=${outputT_or_F(newFilterCriteria.CTCFChIAPET)}`
+    + `&RNAPIIChIAPET=${outputT_or_F(newFilterCriteria.RNAPIIChIAPET)}`
+    + `&HiC=${outputT_or_F(newFilterCriteria.HiC)}`
+    + `&CRISPRiFlowFISH=${outputT_or_F(newFilterCriteria.CRISPRiFlowFISH)}`
+    + `&eQTLs=${outputT_or_F(newFilterCriteria.eQTLs)}`
 
   const accessionsAndPage =
     `&accessions=${accessions}`
@@ -563,7 +545,7 @@ export function constructSearchURL(
     + `${chromatinFilters}`
     + `${classificationFilters}`
     + `${conservationFilters}`
-    + `${newFilterCriteria.genesToFind.length > 0 ? linkedGenesFilter : ""}`
+    + `${linkedGenesFilter}`
     + `${accessionsAndPage}`
 
   return url
@@ -649,11 +631,13 @@ export function constructFilterCriteriaFromURL(searchParams: { [key: string]: st
       pELS: searchParams.pELS ? checkTrueFalse(searchParams.pELS) : true,
       PLS: searchParams.PLS ? checkTrueFalse(searchParams.PLS) : true,
       TF: searchParams.TF ? checkTrueFalse(searchParams.TF) : true,
-      genesToFind: searchParams.genesToFind ? searchParams.genesToFind.split(",") : [],
-      distancePC: searchParams.distancePC ? checkTrueFalse(searchParams.distancePC) : true,
-      distanceAll: searchParams.distanceAll ? checkTrueFalse(searchParams.distanceAll) : true,
-      CTCF_ChIA_PET: searchParams.CTCF_ChIA_PET ? checkTrueFalse(searchParams.CTCF_ChIA_PET) : true,
-      RNAPII_ChIA_PET: searchParams.RNAPII_ChIA_PET ? checkTrueFalse(searchParams.RNAPII_ChIA_PET) : true
+      linkedGenesNames: searchParams.linkedGenesNames ? searchParams.linkedGenesNames.split(",") : [],
+      linkedGenesBiosamples: searchParams.linkedGenesBiosamples ? searchParams.linkedGenesBiosamples.split(",") : [],
+      CTCFChIAPET: searchParams.CTCFChIAPET ? checkTrueFalse(searchParams.CTCFChIAPET) : true,
+      RNAPIIChIAPET: searchParams.RNAPIIChIAPET ? checkTrueFalse(searchParams.RNAPIIChIAPET) : true,
+      HiC: searchParams.HiC ? checkTrueFalse(searchParams.HiC) : true,
+      CRISPRiFlowFISH: searchParams.CRISPRiFlowFISH ? checkTrueFalse(searchParams.CRISPRiFlowFISH) : true,
+      eQTLs: searchParams.eQTLs ? checkTrueFalse(searchParams.eQTLs) : true
     }
   )
 }
@@ -711,14 +695,18 @@ export function filtersModified(
       else return true
   }
 }
-
-// Convert the results to a BED file string
+/**
+ * @todo download linked genes data in bed file
+ * @param mainQueryData 
+ * @param assays 
+ * @param conservation 
+ * @param linkedGenes 
+ * @returns BED file
+ */
 const convertToBED = (
   mainQueryData: MainQueryData,
-  linkedGenesData: RawLinkedGenesData,
   assays: { atac: boolean, ctcf: boolean, dnase: boolean, h3k27ac: boolean, h3k4me3: boolean },
   conservation: { primate: boolean, mammal: boolean, vertebrate: boolean },
-  linkedGenes: { distancePC: boolean, distanceAll: boolean, ctcfChiaPet: boolean, rnapiiChiaPet: boolean }
 ): string => {
   //Create header comment for the file
   let header = [
@@ -731,10 +719,8 @@ const convertToBED = (
     `${conservation.primate ? '\tprimate_conservation' : ''}`,
     `${conservation.mammal ? '\tmammal_conservation' : ''}`,
     `${conservation.vertebrate ? '\tvertebrate_conservation' : ''}`,
-    `${linkedGenes.distancePC ? '\tdistance_protein_coding' : ''}`,
-    `${linkedGenes.distanceAll ? '\tdistance_all' : ''}`,
-    `${linkedGenes.ctcfChiaPet ? '\tCTCF-ChIAPET' : ''}`,
-    `${linkedGenes.rnapiiChiaPet ? '\tRNAPII-ChIAPET' : ''}`,
+    '\tnearest_gene',
+    '\tnearest_gene_distance',
     '\n'
   ].join('')
   let bedContent: string[] = [header];
@@ -753,10 +739,8 @@ const convertToBED = (
     const primate = item.primates;
     const mammal = item.mammals;
     const vertebrate = item.vertebrates;
-    const distancePC = item.genesallpc.pc.intersecting_genes.map(gene => gene.name).join();
-    const distanceAll = item.genesallpc.all.intersecting_genes.map(gene => gene.name).join();
-    const ctcfChiaPet = [...new Set(linkedGenesData[item.info.accession]?.genes.filter(gene => gene.linkedBy === "CTCF-ChIAPET").map(gene => gene.geneName))].join();
-    const rnapiiChiaPet = [...new Set(linkedGenesData[item.info.accession]?.genes.filter(gene => gene.linkedBy === "RNAPII-ChIAPET").map(gene => gene.geneName))].join();
+    const nearestGene = item.nearestgenes[0].gene
+    const nearestGeneDistance = item.nearestgenes[0].distance
 
     // Construct tab separated row, ends with newline
     const bedRow = [
@@ -773,10 +757,8 @@ const convertToBED = (
       `${conservation.primate ? '\t' + primate : ''}`,
       `${conservation.mammal ? '\t' + mammal : ''}`,
       `${conservation.vertebrate ? '\t' + vertebrate : ''}`,
-      `${linkedGenes.distancePC ? '\t' + distancePC : ''}`,
-      `${linkedGenes.distanceAll ? '\t' + distanceAll : ''}`,
-      `${linkedGenes.ctcfChiaPet ? '\t' + (ctcfChiaPet ? ctcfChiaPet : '.') : ''}`,
-      `${linkedGenes.rnapiiChiaPet ? '\t' + (rnapiiChiaPet ? rnapiiChiaPet : '.') : ''}`,
+      `\t${nearestGene}`,
+      `\t${nearestGeneDistance}`,
       '\n'
     ].join('')
     // Append to the content string
@@ -793,7 +775,6 @@ const convertToBED = (
   }).join('');
 };
 
-//TODO properly deduplicate even even returned genes are different. Current issue is that there's a bug in returned linked PC genes. Edge cases in split queries are returning with different linked PC genes
 export const downloadBED = async (
   assembly: "GRCh38" | "mm10",
   chromosome: string,
@@ -804,7 +785,6 @@ export const downloadBED = async (
   TSSranges: { start: number, end: number }[] = null,
   assays: { atac: boolean, ctcf: boolean, dnase: boolean, h3k27ac: boolean, h3k4me3: boolean },
   conservation: { primate: boolean, mammal: boolean, vertebrate: boolean },
-  linkedGenes: { distancePC: boolean, distanceAll: boolean, ctcfChiaPet: boolean, rnapiiChiaPet: boolean },
   setBedLoadingPercent?: React.Dispatch<React.SetStateAction<number>>
 ) => {
 
@@ -812,14 +792,13 @@ export const downloadBED = async (
 
   let ranges: { start: number, end: number }[] = []
   const maxRange = 10000000
-  //Divide range into sub ranges so bigger than maxRange
+  //Divide range into sub ranges no bigger than maxRange
   for (let i = start; i <= end; i += maxRange) {
     const rangeEnd = Math.min(i + maxRange - 1, end)
     ranges.push({ start: i, end: rangeEnd })
   }
   //For each range, send query and populate dataArray
   let dataArray: MainQueryData[] = []
-  let linkedGenesArray: RawLinkedGenesData[] = []
 
   startTransition(async () => {
     for (let i = 0; i < ranges.length; i++) {
@@ -836,15 +815,6 @@ export const downloadBED = async (
           bedIntersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined,
           true
         )
-        let linkedGenesData: RawLinkedGenesData = null;
-        //If ChIAPET linked genes requested, fetch them
-        if (linkedGenes.ctcfChiaPet || linkedGenes.rnapiiChiaPet) {
-          linkedGenesData = await fetchLinkedGenesData(
-            data,
-            assembly
-          )
-          linkedGenesArray.push(linkedGenesData)
-        }
         dataArray.push(data)
         setBedLoadingPercent(dataArray.length / ranges.length * 100)
         //Wait one second before sending the next query to reduce load on service
@@ -880,10 +850,8 @@ export const downloadBED = async (
     },
   };
 
-  const combinedLinkedGenes: RawLinkedGenesData = Object.assign({}, ...linkedGenesArray)
-
   //generate BED string
-  const bedContents = convertToBED(deduplicatedResults, combinedLinkedGenes, assays, conservation, linkedGenes)
+  const bedContents = convertToBED(deduplicatedResults, assays, conservation)
 
   const blob = new Blob([bedContents], { type: 'text/plain' });
 
@@ -906,3 +874,55 @@ export const downloadBED = async (
   setBedLoadingPercent(null)
 }
 
+//This should be moved to a constants folder
+export const eQTLsTissues = [
+  "Adipose Subcutaneous",
+  "Adipose Visceral Omentum",
+  "Adrenal Gland",
+  "Artery Aorta",
+  "Artery Coronary",
+  "Artery Tibial",
+  "Brain Amygdala",
+  "Brain Anterior cingulate cortex BA24",
+  "Brain Caudate basal ganglia",
+  "Brain Cerebellar Hemisphere",
+  "Brain Cerebellum",
+  "Brain Cortex",
+  "Brain Frontal Cortex BA9",
+  "Brain Hippocampus",
+  "Brain Hypothalamus",
+  "Brain Nucleus accumbens basal ganglia",
+  "Brain Putamen basal ganglia",
+  "Brain Spinal cord cervical c-1",
+  "Brain Substantia nigra",
+  "Breast Mammary Tissue",
+  "Cells Cultured fibroblasts",
+  "Cells EBV-transformed lymphocytes",
+  "Colon Sigmoid",
+  "Colon Transverse",
+  "Esophagus Gastroesophageal Junction",
+  "Esophagus Mucosa",
+  "Esophagus Muscularis",
+  "Heart Atrial Appendage",
+  "Heart Left Ventricle",
+  "Kidney Cortex",
+  "Liver",
+  "Lung",
+  "Minor Salivary Gland",
+  "Muscle Skeletal",
+  "Nerve Tibial",
+  "Ovary",
+  "Pancreas",
+  "Pituitary",
+  "Prostate",
+  "Skin Not Sun Exposed Suprapubic",
+  "Skin Sun Exposed Lower leg",
+  "Small Intestine Terminal Ileum",
+  "Spleen",
+  "Stomach",
+  "Testis",
+  "Thyroid",
+  "Uterus",
+  "Vagina",
+  "Whole Blood"
+]

@@ -56,7 +56,7 @@ export const DownloadRange: React.FC<DownloadRangeProps> = ({biosampleData}) => 
   const [bedLoadingPercent, setBedLoadingPercent] = useState<number>(null)
   const [selectedAssays, setSelectedAssays] = useState<{ atac: boolean, ctcf: boolean, dnase: boolean, h3k27ac: boolean, h3k4me3: boolean }>({ atac: true, ctcf: true, dnase: true, h3k27ac: true, h3k4me3: true })
   const [selectedConservation, setSelectedConservation] = useState<{ primate: boolean, mammal: boolean, vertebrate: boolean }>({ primate: true, mammal: true, vertebrate: true })
-  const [linkedGenes, setLinkedGenes] = useState<{ distancePC: boolean, distanceAll: boolean, ctcfChiaPet: boolean, rnapiiChiaPet: boolean }>({ distancePC: true, distanceAll: true, ctcfChiaPet: true, rnapiiChiaPet: true })
+  // const [linkedGenes, setLinkedGenes] = useState<{ distancePC: boolean, distanceAll: boolean, ctcfChiaPet: boolean, rnapiiChiaPet: boolean }>({ distancePC: true, distanceAll: true, ctcfChiaPet: true, rnapiiChiaPet: true })
 
   const handleChange = (event: { target: { value: SetStateAction<string> } }) => {
     setInputValue(event.target.value)
@@ -65,10 +65,10 @@ export const DownloadRange: React.FC<DownloadRangeProps> = ({biosampleData}) => 
   const handleSetAssembly = (value: string) => {
     if (value === "mm10") {
       setSelectedConservation({ primate: null, mammal: null, vertebrate: null })
-      setLinkedGenes({ ...linkedGenes, ctcfChiaPet: null, rnapiiChiaPet: null })
+      // setLinkedGenes({ ...linkedGenes, ctcfChiaPet: null, rnapiiChiaPet: null })
     } else {
       setSelectedConservation({ primate: true, mammal: true, vertebrate: true })
-      setLinkedGenes({ distancePC: true, distanceAll: true, ctcfChiaPet: true, rnapiiChiaPet: true })
+      // setLinkedGenes({ distancePC: true, distanceAll: true, ctcfChiaPet: true, rnapiiChiaPet: true })
     }
     setSelectedBiosample([]);
     (value === "GRCh38" || value === "mm10") && setAssembly(value)
@@ -103,7 +103,6 @@ export const DownloadRange: React.FC<DownloadRangeProps> = ({biosampleData}) => 
       null,
       selectedAssays,
       selectedConservation,
-      linkedGenes,
       setBedLoadingPercent
     )
   }
@@ -262,7 +261,7 @@ export const DownloadRange: React.FC<DownloadRangeProps> = ({biosampleData}) => 
               />
             </Box>
           </div>
-          <div>
+          {/* <div>
             <FormControlLabel
               label="Linked Genes"
               control={
@@ -316,7 +315,7 @@ export const DownloadRange: React.FC<DownloadRangeProps> = ({biosampleData}) => 
                 disabled={linkedGenes.rnapiiChiaPet === null || assembly === "mm10"}
               />
             </Box>
-          </div>
+          </div> */}
         </Stack>
         <Stack direction="row" alignItems={"center"} sx={{ mt: 1 }}>
           <Button

@@ -50,8 +50,8 @@ export function GeneExpression(props: {
   const pathname = usePathname()
 
   //Use gene from url if specified
-  const [currentHumanGene, setCurrentHumanGene] = useState<string>(props.genes ? props.genes[0].name : (urlAssembly === "GRCh38" && urlGene) ? urlGene : "APOE")
-  const [currentMouseGene, setCurrentMouseGene] = useState<string>(props.genes ? props.genes[0].name : (urlAssembly === "mm10" && urlGene) ? urlGene : "Emid1")
+  const [currentHumanGene, setCurrentHumanGene] = useState<string>(props.genes ? props?.genes[0]?.name : (urlAssembly === "GRCh38" && urlGene) ? urlGene : "APOE")
+  const [currentMouseGene, setCurrentMouseGene] = useState<string>(props.genes ? props?.genes[0]?.name : (urlAssembly === "mm10" && urlGene) ? urlGene : "Emid1")
 
   const [biosamples, setBiosamples] = useState<string[]>(["cell line", "in vitro differentiated cells", "primary cell", "tissue"])
   const [group, setGroup] = useState<"byTissueMaxTPM" | "byExperimentTPM" | "byTissueTPM">("byTissueTPM")
@@ -260,13 +260,14 @@ export function GeneExpression(props: {
             <InputLabel>Gene</InputLabel>
             <Select
               value={assembly === "GRCh38" ? currentHumanGene : currentMouseGene}
-              renderValue={(value) => (<Typography>{value}</Typography>)}
+              size="small"
+              MenuProps={{sx: {maxHeight: '600px'}}}
             >
               {props.genes.map((gene) => {
                 return (
                   <MenuItem sx={{ display: "block" }} key={gene.name} value={gene.name} onClick={() => assembly === "GRCh38" ? setCurrentHumanGene(gene.name) : setCurrentMouseGene(gene.name)}>
-                    <Typography>{gene.name}</Typography>
-                    {gene?.linkedBy && <Typography variant="body2" color={"text.secondary"}>{gene.linkedBy.join(', ')}</Typography>}
+                    <Typography><i>{gene.name}</i></Typography>
+                    {gene?.linkedBy && <Typography variant="body2" color={"text.secondary"}>Linked By: {gene.linkedBy.join(', ')}</Typography>}
                   </MenuItem>
                 )
               })}

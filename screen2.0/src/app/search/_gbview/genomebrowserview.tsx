@@ -226,7 +226,7 @@ export const GenomeBrowserView: React.FC<GenomeBrowserViewProps> = (props) => {
             <EGeneTracks
               genes={groupedTranscripts || []}
               expandedCoordinates={coordinates}
-              squish={coordinates.end - coordinates.start >= 500000 ? true : false}
+              squish={true}
             />
             <DefaultTracks
               assembly={props.assembly}

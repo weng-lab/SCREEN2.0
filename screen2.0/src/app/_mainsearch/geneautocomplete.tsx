@@ -13,11 +13,10 @@ import { Search } from "@mui/icons-material"
 type QueryResponse = [number, string[], any, [string, string, string, string, string, string][], string[]]
 
 export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> = (props) => {
-  console.log(props.assembly,"assembly")
-  const [value, setValue] = useState(null)
   const [inputValue, setInputValue] = useState("")
   const [options, setOptions] = useState<string[]>([])
   const [geneids, setGeneIds] = useState<{ chrom: string; start: number; end: number; id: string; name: string }[]>([])
+  const [loadingOptions, setLoadingOptions] = useState<boolean>(false)
 
   const [geneDesc, setgeneDesc] = useState<{ name: string; desc: string }[]>()
 
@@ -47,6 +46,7 @@ export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
 
   const onSearchChange = async (value: string, assembly: string) => {
     setOptions([])
+    setLoadingOptions(true)
     const response = await fetch(Config.API.GraphqlAPI, {
       method: "POST",
       body: JSON.stringify({
@@ -78,25 +78,29 @@ export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
       setOptions([])
       setGeneIds([])
     }
+    setLoadingOptions(false)
   }
 
-  const debounceFn = useCallback(debounce(onSearchChange, 500), [])
-
-  const handleSubmit = () => {
-    if (value) {
-      let chrom = geneids.find((g) => g.name === value)?.chrom
-      let start = geneids.find((g) => g.name === value)?.start
-      let end = geneids.find((g) => g.name === value)?.end
-      return (`/search?assembly=${props.assembly}&chromosome=${chrom}&start=${start}&end=${end}&gene=${value}&tssDistance=0`)
+  const onSubmit = () => {
+    const inputStr = inputValue.toLowerCase()
+    const submittedGene = geneids.find((g) => g.name.toLowerCase() === inputStr)
+    if (submittedGene) {
+      let chrom = submittedGene.chrom
+      let start = submittedGene.start
+      let end = submittedGene.end
+      let name = submittedGene.name
+      return (`/search?assembly=${props.assembly}&chromosome=${chrom}&start=${start}&end=${end}&gene=${name}&tssDistance=0`)
     }
   }
+
+  const debounceFn = useCallback(debounce(onSearchChange, 500), [])  
 
   return (
     <Stack direction="row" spacing={2}>
       <Autocomplete
         size={props.header ? "small" : "medium"}
         id="gene-autocomplete"
-        sx={{ width: 300, paper: { height: 200 } }}
+        sx={{ width: 300 }}
         options={options}
         ListboxProps={{
           style: {
@@ -106,12 +110,8 @@ export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
         onKeyDown={(event) => {
           if (event.key === "Enter") {
             event.defaultPrevented = true
-            window.open(handleSubmit(), "_self")
+            window.open(onSubmit(), "_self")
           }
-        }}
-        value={value}
-        onChange={(_, newValue: string | null) => {
-          setValue(newValue)
         }}
         inputValue={inputValue}
         onInputChange={(_, newInputValue) => {
@@ -121,9 +121,9 @@ export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
 
           setInputValue(newInputValue)
         }}
-        noOptionsText={props.assembly === "mm10" ? "e.g., Scml2, Dbt" : "e.g., SOX4, GAPDH"}            
+        noOptionsText={loadingOptions ? "Loading..." : "No Genes Found"}            
         renderInput={(params) => (
-          <TextField
+          <i><TextField
             {...params}
             label="Enter a gene name"
             InputLabelProps={{ shrink: true, style: props.header ? {color: "white"} : { color: "black" } }}
@@ -143,7 +143,7 @@ export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
               //Icon
               '& .MuiSvgIcon-root': props.header && { fill: "white"}
             }}
-          />
+          /></i>
         )}
         renderOption={(props, option) => {
           return (
@@ -151,7 +151,7 @@ export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
               <Grid2 container alignItems="center">
                 <Grid2 sx={{ width: "100%" }}>
                   <Box component="span" sx={{ fontWeight: "regular" }}>
-                    {option}
+                    <i>{option}</i>
                   </Box>
                   {geneDesc && geneDesc.find((g) => g.name === option) && (
                     <Typography variant="body2" color="text.secondary">
@@ -164,7 +164,7 @@ export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
           )
         }}
       />
-      <IconButton aria-label="Search" type="submit" href={handleSubmit()} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
+      <IconButton aria-label="Search" type="submit" href={onSubmit()} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
         <Search />
       </IconButton>
     </Stack>

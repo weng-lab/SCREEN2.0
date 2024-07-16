@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Tabs, Tab, Box, Container} from "@mui/material"
+import { Tabs, Tab, Box, Container, Divider} from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { QuickStart } from "./quickstart"
 import { DetailedElements } from "./detailedelements"
@@ -10,13 +10,24 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ApolloQueryResult } from "@apollo/client"
 import { DownloadRange } from "./downloadrange"
-import { RegistryBiosample } from "../search/types"
 import { BIOSAMPLE_Data } from "../../common/lib/queries"
 
 function a11yProps(index: number) {
   return {
     id: `simple-tab-${index}`,
     "aria-controls": `simple-tabpanel-${index}`,
+  }
+}
+
+export const fetchFileSize = async (url: string, setFileSize: React.Dispatch<React.SetStateAction<number>>) => {
+  try {
+    const response = await fetch(url, { method: 'HEAD' });
+    const contentLength = response.headers.get('Content-Length');
+    if (contentLength) {
+      setFileSize(parseInt(contentLength, 10));
+    }
+  } catch (error) {
+    console.log("error fetching file size for ", url)
   }
 }
 
@@ -55,14 +66,13 @@ export default function DownloadsPage(props: {
     <Container>
       <Grid2 mt={2} container spacing={2}>
         <Grid2 xs={12}>
-          <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-            <Tabs value={page} onChange={handleChange} aria-label="basic tabs example">
-              <Tab label="Quick Start" sx={{ textTransform: "none" }} {...a11yProps(0)} />
-              <Tab label="Detailed Elements" sx={{ textTransform: "none" }} {...a11yProps(1)} />
-              <Tab label="Data Matrices" sx={{ textTransform: "none" }} {...a11yProps(2)} />
-              <Tab label="Download cCREs in Genomic Region" sx={{ textTransform: "none" }} {...a11yProps(3)} />
-            </Tabs>
-          </Box>
+          <Tabs value={page} onChange={handleChange} aria-label="basic tabs example" variant="scrollable" allowScrollButtonsMobile>
+            <Tab label="Quick Start" sx={{ textTransform: "none" }} {...a11yProps(0)} />
+            <Tab label="Detailed Elements" sx={{ textTransform: "none" }} {...a11yProps(1)} />
+            <Tab label="Data Matrices" sx={{ textTransform: "none" }} {...a11yProps(2)} />
+            <Tab label="Download cCREs in Genomic Region" sx={{ textTransform: "none" }} {...a11yProps(3)} />
+          </Tabs>
+          <Divider />
         </Grid2>
         <Grid2 xs={12}>
           {page === 0 && <QuickStart biosamples={props.biosamples} />}

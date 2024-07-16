@@ -28,6 +28,9 @@ const ConfigureGenomeBrowser = (props: {
     end: number
   }
   accession: string
+  /**
+   * Specifying this also moves the copy/DL/Open button group to bottom right, as it assumes it's being used in cCRE details
+   */
   handleClose?: () => void
 }) => {
   const [currentURLs, setCurrentURLs] = useState<{urlUCSC: string, urlTrackhub: string, biosamples: RegistryBiosamplePlusRNA[]}>(null)
@@ -63,7 +66,7 @@ const ConfigureGenomeBrowser = (props: {
     const start = +(props.coordinates.start) - 7500
     const end = +(props.coordinates.end) + 7500
 
-    const ucscbrowserurl =  `https://genome.ucsc.edu/cgi-bin/hgTracks?db=${props.coordinates.assembly}&position=${props.coordinates.chromosome}:${start}-${end}&hubClear=${trackhuburl}&highlight=${props.coordinates.assembly}.${props.coordinates.chromosome}%3A${props.coordinates.start}-${props.coordinates.end}`
+    const ucscbrowserurl =  `https://genome.ucsc.edu/cgi-bin/hgTracks?db=${props.coordinates.assembly === "GRCh38" ? "hg38" : "mm10"}&position=${props.coordinates.chromosome}:${start}-${end}&hubClear=${trackhuburl}&highlight=${props.coordinates.assembly}.${props.coordinates.chromosome}%3A${props.coordinates.start}-${props.coordinates.end}`
 
     setCurrentURLs({urlUCSC: ucscbrowserurl, urlTrackhub: trackhuburl, biosamples: selectedBiosamples})
 
@@ -150,7 +153,7 @@ const ConfigureGenomeBrowser = (props: {
           </Grid2>
         </Grid2>
       </DialogContent>
-      <DialogActions sx={!props.handleClose && { position: "fixed", bottom: 15, right: 15 }}>
+      <DialogActions sx={!props.handleClose && { position: "fixed", bottom: 15, right: 15, zIndex: 1 }}>
         <Tooltip placement="top" arrow title="Copy link to Trackhub">
           <IconButton disabled={selectedBiosamples.length === 0} onClick={async () => {updateClipboard(await getURL("trackhub")); handleOpen();}}>
             <ContentCopyIcon />

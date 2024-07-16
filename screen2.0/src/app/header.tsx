@@ -22,11 +22,7 @@ const pageLinks = [
     dropdownID: "0",
     subPages: [
       { pageName: "Overview", link: "/about" },
-      // { pageName: "Tutorials", link: "/about#tutorials" },
-      // { pageName: "API Documentation", link: "/about#api-documentation" },
-      // { pageName: "Versions", link: "/about#versions" },
-      // { pageName: "UCSC Genome Browser", link: "/about#ucsc-genome-browser" },
-      { pageName: "Contact US", link: "/about#contact-us" },
+      { pageName: "Contact Us", link: "/about#contact-us" },
     ],
   },
   {
@@ -38,16 +34,12 @@ const pageLinks = [
     link: "/applets",
     dropdownID: "1",
     subPages: [
-      // disable GWAS and DEG App for now
-      //{ pageName: "GWAS", link: "/applets/gwas" },
       { pageName: "Gene Expression", link: "/applets/gene-expression " },
-      // { pageName: "Differential Gene Expression", link: "/applets/differential-gene-expression" },
     ],
   },
 ]
 
 function ResponsiveAppBar() {
-  const [open, setState] = useState<boolean>(false)
   // Hamburger Menu, deals with setting its position
   const [anchorElNav_Hamburger, setAnchorElNav_Hamburger] = useState<null | HTMLElement>(null)
 

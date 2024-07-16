@@ -83,7 +83,6 @@ const GenomeSwitch: React.FC<GenomeSwitchProps> = (props: GenomeSwitchProps) => 
     <Stack direction="row" alignItems="center" margin={1}>
       <Typography>GRCh38</Typography>
       <StyledSwitch
-        //false = human, true = mouse
         checked={checked}
         onChange={handleChange}
         color="primary"
