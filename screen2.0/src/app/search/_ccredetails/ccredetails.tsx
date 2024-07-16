@@ -118,32 +118,36 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
     } : null
   }, [dataNearbyAndLinked, region])
 
-  //Used to pass genes and their linking method to Gene Expression and RAMPAGE pages
-  const uniqueGenes: { name: string; linkedBy: string[]; }[] = [];
+  console.log(nearest3AndLinkedGenes)
 
-  //Iterate through each of the genes, and populate uniqueGenes with genes and their linking methods 
-  if (nearest3AndLinkedGenes) {
-    for (const gene of [
-      ...nearest3AndLinkedGenes.nearbyGenes,
-      ...nearest3AndLinkedGenes.linkedGenes
-    ]) {
-      const isNearbyGene: boolean = !!gene['distanceToTSS']
-      let geneName: string;
-      let methodToPush: string;
-      if (isNearbyGene) {
-        geneName = (gene as NearbyGeneInfoWithDistance).name
-        methodToPush = `Distance to TSS - ${(gene as NearbyGeneInfoWithDistance).distanceToTSS.toLocaleString()} bp`
-      } else {
-        geneName = (gene as LinkedGeneInfo).gene
-        methodToPush = (gene as LinkedGeneInfo).assay ?? (gene as LinkedGeneInfo).method
+  //Used to pass genes and their linking method to Gene Expression and RAMPAGE pages
+  const uniqueGenes: { name: string; linkedBy: string[]; }[] = useMemo(() => {
+    const uniqueGenes: { name: string; linkedBy: string[]; }[] = [];
+    if (nearest3AndLinkedGenes) {
+      for (const gene of [
+        ...nearest3AndLinkedGenes.nearbyGenes,
+        ...nearest3AndLinkedGenes.linkedGenes
+      ]) {
+        console.log(gene)
+        const isNearbyGene: boolean = Object.hasOwn(gene, 'distanceToTSS')
+        let geneName: string;
+        let methodToPush: string;
+        if (isNearbyGene) {
+          geneName = (gene as NearbyGeneInfoWithDistance).name
+          methodToPush = `Distance to TSS - ${(gene as NearbyGeneInfoWithDistance).distanceToTSS.toLocaleString()} bp`
+        } else {
+          geneName = (gene as LinkedGeneInfo).gene
+          methodToPush = (gene as LinkedGeneInfo).assay ?? (gene as LinkedGeneInfo).method
+        }
+        const existingGeneEntry = uniqueGenes.find((uniqueGene) => uniqueGene.name === geneName)
+        if (existingGeneEntry) {
+          //add linking method if duplicate doesn't exist
+          !existingGeneEntry.linkedBy.find(method => method === methodToPush) && existingGeneEntry.linkedBy.push(methodToPush)
+        } else uniqueGenes.push({ name: geneName, linkedBy: [methodToPush] })
       }
-      const existingGeneEntry = uniqueGenes.find((uniqueGene) => uniqueGene.name === geneName)
-      if (existingGeneEntry) {
-        //add linking method if duplicate doesn't exist
-        !existingGeneEntry.linkedBy.find(method => method === methodToPush) && existingGeneEntry.linkedBy.push(methodToPush) 
-      } else uniqueGenes.push({ name: geneName, linkedBy: [methodToPush] })
     }
-  }
+    return uniqueGenes
+  }, [nearest3AndLinkedGenes])
 
   return (
     <>
@@ -220,13 +224,13 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
         <ChromHMM accession={accession} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }} assembly={assembly} />
       }
       {(page === 8 && assembly !== "mm10") &&
-      (loadingLinkedGenes ?
+      (!dataNearbyAndLinked || loadingLinkedGenes ?
         <CircularProgress />
         :
         errorNearbyAndLinked ?
           <Typography>{`Issue fetching Linked Genes for ${accession}.`}</Typography> 
           :
-          <Rampage genes={uniqueGenes || []} biosampleData={biosampleData} />)
+          <Rampage genes={uniqueGenes.length > 0 ? uniqueGenes : []} biosampleData={biosampleData} />)
       }
     </>
   )
