@@ -34,7 +34,8 @@ const pageLinks = [
     link: "/applets",
     dropdownID: "1",
     subPages: [
-      { pageName: "Gene Expression", link: "/applets/gene-expression " },
+      { pageName: "Gene Expression", link: "/applets/gene-expression" },
+      { pageName: "ARGO", link: "/applets/argo" }
     ],
   },
 ]

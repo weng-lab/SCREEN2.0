@@ -11,7 +11,7 @@ import { client } from "../search/_ccredetails/client"
 import { useLazyQuery } from "@apollo/client"
 import { BED_INTERSECT_QUERY } from "./queries"
 
-const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => {
+const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean, applet?:boolean }) => {
   const router = useRouter()
 
   const [files, setFiles] = useState<File[]>([])
@@ -24,8 +24,6 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
     // Currently only accepting 1 file
     setFiles([acceptedFiles[0]])
   }, [])
-
- 
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
 
@@ -54,6 +52,7 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
     let allLines = []
     let filenames: string = ''
     let accessions: string[] = []
+    let userIDs: string[] = []
     files.forEach((f) => {
       filenames += (' ' + f.name)
       if (f.type !== "bed" && f.name.split('.').pop() !== "bed") {
@@ -86,14 +85,22 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
           allLines,
           (data) => {
             accessions = data['intersection'].map((elem) => elem[4])
+            userIDs = data['intersection'].map((elem) => `${elem[0]}_${elem[1]}_${elem[2]}`)
             sessionStorage.setItem("filenames", filenames)
             sessionStorage.setItem("bed intersect", accessions.join(' '))
+            sessionStorage.setItem("user ids", userIDs.join(' '))
             if (accessions.length === 1000){
               sessionStorage.setItem("warning", "true")
             } else {
               sessionStorage.setItem("warning", "false")
             }
-            window.open(`/search?intersect=t&assembly=${props.assembly}`, "_self")
+            if (!props.applet) {
+              window.open(`/search?intersect=t&assembly=${props.assembly}`, "_self")
+            }
+            else {
+              dispatchEvent(new Event("storage"))
+              setLoading(false)
+            }
 
           },
           //Error
