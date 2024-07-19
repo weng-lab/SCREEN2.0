@@ -1,5 +1,5 @@
 "use client"
-import React from "react"
+import React, { useCallback } from "react"
 import {useState } from "react"
 import { Stack, Typography, Box, TextField, Button, Alert, FormGroup, Checkbox, FormControlLabel } from "@mui/material"
 import MenuItem from "@mui/material/MenuItem"
@@ -12,17 +12,30 @@ import { useLazyQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
 import { ZScores } from "./types"
 
-export default function Argo(props: {header?: false}) {
+export default function Argo(props: {header?: false, optionalFunction?: Function}) {
     const [assembly, setAssembly] = useState<"GRCh38" | "mm10">("GRCh38")
     const [selectedSearch, setSelectedSearch] = useState<string>("BED File")
     const [error, setError] = useState([false, ""]) // status, message
     const [scores, setScores] = useState<ZScores[]>([])
+    const [key, setKey] = useState<string>()
+    const [columns, setColumns] = useState([])
     const [getOutput] = useLazyQuery(Z_SCORES_QUERY)
     const scoreNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac" ]
+
+    let allColumns = [{ header: "DNase", value: (row) => row.dnase, render: (row) => row.dnase.toFixed(2) },
+    { header: "DNase Rank", value: (row) => row.dnase_rank },
+    { header: "H3K4me3", value: (row) => row.h3k4me3, render: (row) => row.h3k4me3.toFixed(2) },
+    { header: "H3K4me3 Rank", value: (row) => row.h3k4me3_rank },
+    { header: "H3K27ac", value: (row) => row.h3k27ac, render: (row) => row.h3k27ac.toFixed(2) },
+    { header: "H3K27ac Rank", value: (row) => row.h3k27ac_rank },
+    { header: "CTCF", value: (row) => row.ctcf, render: (row) => row.ctcf.toFixed(2) },
+    { header: "CTCF Rank", value: (row) => row.ctcf_rank },
+    { header: "ATAC", value: (row) => row.atac, render: (row) => row.atac.toFixed(2) },
+    { header: "ATAC Rank", value: (row) => row.atac_rank }]
     
-    addEventListener("storage", () => {
-        let accessions = sessionStorage.getItem('bed intersect').split(" ")
-        let userIDs = sessionStorage.getItem('user ids').split(" ")
+    function appletCallback(dataAPI) {
+        let accessions = dataAPI.map((e) => e[4])
+        let mapFunc = (e) => `${e[6]}_${e[7]}_${e[8]}${ (e[9] && e[10]) ? '_'+e[9]: ''}`
         getOutput({
             variables: {
               assembly: assembly,
@@ -30,11 +43,11 @@ export default function Argo(props: {header?: false}) {
             },
             client: client,
             fetchPolicy: 'cache-and-network',
-            onCompleted(d) {       
+            onCompleted(d) {
                 let data: ZScores[] = d['cCRESCREENSearch'].map((r) => {
                     return {
                         accession: r.info.accession,
-                        user_id: userIDs[accessions.indexOf(r.info.accession)],
+                        user_id: dataAPI.filter((e) => e[4] == r.info.accession).map(mapFunc).join(', ') ,
                         dnase: r.dnase_zscore,
                         h3k4me3: r.promoter_zscore,
                         h3k27ac: r.enhancer_zscore,
@@ -42,7 +55,8 @@ export default function Argo(props: {header?: false}) {
                         atac: r.atac_zscore
                     }
                 })
-                
+                setKey(scoreNames.join(' '))
+                setColumns(allColumns)
                 setScores(evaluateRankings(data))
             },
             onError(error) {
@@ -50,7 +64,7 @@ export default function Argo(props: {header?: false}) {
                 setError([true, error.message])
             },
         })
-    })
+    }
 
     const handleSearchChange = (event: SelectChangeEvent) => {
         setSelectedSearch(event.target.value)
@@ -74,8 +88,10 @@ export default function Argo(props: {header?: false}) {
     function handleCheckBoxChange(e) {
         let scoresToInclude = Array.from(document.getElementsByName("scoresToInclude"))
         scoresToInclude = scoresToInclude.filter((e) => e.checked).map((e) => e.value)
-        console.log(scoresToInclude);
-        
+        setKey(scoresToInclude.join(' '))
+        setColumns(allColumns.filter(
+            (e) => scoresToInclude.indexOf(e.header.toLowerCase().split(' ')[0]) !== -1
+        ))
         setScores(calculateAggregateRank([...scores], scoresToInclude))
     }
 
@@ -99,6 +115,7 @@ export default function Argo(props: {header?: false}) {
         variant="h4">
             <b>A</b>ggregate <b>R</b>ank <b>G</b>enerat<b>o</b>r
         </Typography>
+        {error[0] && <Alert variant="filled" severity="error">{error[1]}</Alert>}
         <Stack direction={props.header ? "row" : "column"} spacing={3} mt="10px">
             <Stack direction={"row"} alignItems={"center"} flexWrap={"wrap"}>
                 {!props.header && <Typography variant={"h5"} mr={1} alignSelf="center">Upload Through</Typography>}
@@ -157,27 +174,23 @@ export default function Argo(props: {header?: false}) {
                         <BedUpload
                             assembly = {assembly}
                             header={props.header}
-                            applet={true}
+                            appletCallback={appletCallback}
                         />
                 ):
                 <FormControl fullWidth>
-                    <TextField
-                    multiline
-                    fullWidth
-                    rows={5}
+                    <TextField multiline fullWidth rows={5} 
                     placeholder="Copy and paste your data from Excel here"
                     ></TextField>
                     <Button type="submit" size="medium" variant="outlined"
                     >Submit</Button>
                 </FormControl>
                 }   
-            </Box>  
-    {error[0] && <Alert variant="filled" severity="error">{error[1]}</Alert>}
+            </Box>
     {scores.length > 0 && 
     <Box mt="20px">
         <Stack direction="row" maxHeight={"50px"}>
             <FormGroup onChange={handleCheckBoxChange}>
-                <Typography variant="h6" lineHeight={"50px"}>
+                <Typography variant="h6" lineHeight={"50px"} mr={"10px"}>
                     Include in scores: 
                 </Typography>
                 <FormControlLabel label="DNase" control={<Checkbox  defaultChecked name="scoresToInclude" value="dnase"></Checkbox>}></FormControlLabel>
@@ -189,27 +202,16 @@ export default function Argo(props: {header?: false}) {
         </Stack>
         
         <DataTable
-        columns={[
-            { header: "Accessions", value: (row) => row.accession },
-            { header: "Chr Start End", value: (row) => row.user_id },
-            { header: "Aggregate Rank", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) },
-            { header: "DNase", value: (row) => row.dnase, render: (row) => row.dnase.toFixed(2) },
-            { header: "DNase Rank", value: (row) => row.dnase_rank },
-            { header: "H3K4me3", value: (row) => row.h3k4me3, render: (row) => row.h3k4me3.toFixed(2) },
-            { header: "H3K4me3 Rank", value: (row) => row.h3k4me3_rank },
-            { header: "H3K27ac", value: (row) => row.h3k27ac, render: (row) => row.h3k27ac.toFixed(2) },
-            { header: "H3K27ac Rank", value: (row) => row.h3k27ac_rank },
-            { header: "CTCF", value: (row) => row.ctcf, render: (row) => row.ctcf.toFixed(2) },
-            { header: "CTCF Rank", value: (row) => row.ctcf_rank },
-            { header: "ATAC", value: (row) => row.atac, render: (row) => row.atac.toFixed(2) },
-            { header: "ATAC Rank", value: (row) => row.atac_rank },
-        ]}
+        key={key}
+        columns={[{ header: "Accessions", value: (row) => row.accession },
+            { header: "User ID", value: (row) => row.user_id },
+            { header: "Aggregate Rank", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) }].concat(columns)}
         rows={scores}
         sortColumn={2}
         sortDescending
         itemsPerPage={100}
         >
-    </DataTable>
+        </DataTable>
     
     </Box>
     }

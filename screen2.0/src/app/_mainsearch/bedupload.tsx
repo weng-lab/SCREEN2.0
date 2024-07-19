@@ -11,7 +11,7 @@ import { client } from "../search/_ccredetails/client"
 import { useLazyQuery } from "@apollo/client"
 import { BED_INTERSECT_QUERY } from "./queries"
 
-const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean, applet?:boolean }) => {
+const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean, appletCallback?: Function }) => {
   const router = useRouter()
 
   const [files, setFiles] = useState<File[]>([])
@@ -94,11 +94,11 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean, apple
             } else {
               sessionStorage.setItem("warning", "false")
             }
-            if (!props.applet) {
+            if (props.appletCallback === undefined) {
               window.open(`/search?intersect=t&assembly=${props.assembly}`, "_self")
             }
             else {
-              dispatchEvent(new Event("storage"))
+              props.appletCallback(data['intersection'])
               setLoading(false)
             }
 
