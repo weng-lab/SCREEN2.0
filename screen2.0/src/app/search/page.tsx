@@ -536,7 +536,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               <StyledTab value={0} label="Biosample Activity" sx={{ alignSelf: "start" }} />
               {mainQueryParams.coordinates.assembly !== "mm10" && <StyledTab value={1} label="Linked Genes" sx={{ alignSelf: "start" }} />}
               <StyledTab value={2} label="Nearby Genomic Features" sx={{ alignSelf: "start" }} />
-              <StyledTab value={3} label="Linked cCREs in other Assemblies" sx={{ alignSelf: "start" }} />
+              <StyledTab value={3} label="Orthologous cCREs in Other Species" sx={{ alignSelf: "start" }} />
               <StyledTab value={4} label="Associated Gene Expression" sx={{ alignSelf: "start" }} />
               <StyledTab value={5} label="Functional Data" sx={{ alignSelf: "start" }} />
               <StyledTab value={6} label="TF Motifs and Sequence Features" sx={{ alignSelf: "start" }} />
