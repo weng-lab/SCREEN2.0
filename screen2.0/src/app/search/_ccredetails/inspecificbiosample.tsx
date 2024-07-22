@@ -85,6 +85,7 @@ const tableCols = (typeC = false) => {
       header: "Group",
       value: (row: cCRERow) =>  GROUP_COLOR_MAP[row.group] ? GROUP_COLOR_MAP[row.group] : "DNase only",
       render: (row: cCRERow) => {
+        console.log(row.group)
         let group = row.group.split(",")[0]
         let colormap = GROUP_COLOR_MAP.get(group)
         return colormap ?
