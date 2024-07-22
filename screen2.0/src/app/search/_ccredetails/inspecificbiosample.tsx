@@ -82,13 +82,8 @@ const tableCols = (typeC = false) => {
       render: (row: cCRERow) => z_score(row.ctcf),
     },
     {
-<<<<<<< HEAD
       header: "Classification",
-      value: (row: cCRERow) =>  GROUP_COLOR_MAP[row.group] ? GROUP_COLOR_MAP[row.group] : "DNase only",
-=======
-      header: "Group",
       value: (row: cCRERow) =>  GROUP_COLOR_MAP.get(row.group) ? GROUP_COLOR_MAP.get(row.group).split(":")[0] : "DNase only",
->>>>>>> 55644158befefb672504d097c1603c976d013adf
       render: (row: cCRERow) => {
         let group = row.group.split(",")[0]
         let colormap = GROUP_COLOR_MAP.get(group)
