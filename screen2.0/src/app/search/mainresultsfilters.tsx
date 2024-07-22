@@ -269,6 +269,7 @@ export function MainResultsFilters(
       CRISPRiFlowFISH: [],
       eQTLs: []
     }
+    const uniqueeQTLcCREs: string[] = []
     if (dataLinkedGenes?.linkedGenes) {
       for (const linkedGene of dataLinkedGenes?.linkedGenes) {
         //fetched data has trailing space to strip
@@ -303,7 +304,10 @@ export function MainResultsFilters(
               validBiosamples.CRISPRiFlowFISH.push({ name: linkedGene.displayname, count: 1 })
             }
             break;
-          case null: //use tissue instead of displayname for eQTLs only
+          case null: //use tissue instead of displayname for eQTLs only. This logic needs cleanup
+            if (uniqueeQTLcCREs.find(x => x === linkedGene.accession)) {
+              continue
+            } else {uniqueeQTLcCREs.push(linkedGene.accession)}
             if (validBiosamples.eQTLs.find(x => x.name === linkedGene.tissue)) {
               validBiosamples.eQTLs.find(x => x.name === linkedGene.tissue).count += 1
             } else {
@@ -364,6 +368,7 @@ export function MainResultsFilters(
       case "CRISPRi-FlowFISH": validOptions = validBiosamples.CRISPRiFlowFISH; break;
       case "eQTLs": validOptions = validBiosamples.eQTLs; break;
     }
+    console.log(validOptions)
 
     const allOtherOptions: { name: string; count: number; }[] =
       dataLGBiosamples?.linkedGenesCelltypes.map(x => { return { name: x.displayname, count: 0 } })
@@ -1104,6 +1109,12 @@ export function MainResultsFilters(
                       checked={props.filterCriteria.CRISPRiFlowFISH.checked}
                       onChange={(_, checked: boolean) => props.setFilterCriteria({ ...props.filterCriteria, CRISPRiFlowFISH: { ...props.filterCriteria.CRISPRiFlowFISH, checked } })}
                       control={<Checkbox />}
+                      sx={{
+                        alignItems: 'flex-start',
+                        mr: 0,
+                        '& .MuiPaper-root': { boxShadow: 'none' },
+                        '& .MuiTypography-root': { flexGrow: 1 }
+                      }}
                       label={
                         <Accordion disableGutters onClick={(event => { event.preventDefault(); event.stopPropagation() })}>
                           <AccordionSummary sx={{ px: 0 }} expandIcon={<ExpandMoreIcon />}>
@@ -1141,6 +1152,12 @@ export function MainResultsFilters(
                       checked={props.filterCriteria.eQTLs.checked}
                       onChange={(_, checked: boolean) => props.setFilterCriteria({ ...props.filterCriteria, eQTLs: { ...props.filterCriteria.eQTLs, checked } })}
                       control={<Checkbox />}
+                      sx={{
+                        alignItems: 'flex-start',
+                        mr: 0,
+                        '& .MuiPaper-root': { boxShadow: 'none' },
+                        '& .MuiTypography-root': { flexGrow: 1 }
+                      }}
                       label={
                         <Accordion disableGutters onClick={(event => { event.preventDefault(); event.stopPropagation() })}>
                           <AccordionSummary sx={{ px: 0 }} expandIcon={<ExpandMoreIcon />}>
@@ -1157,7 +1174,7 @@ export function MainResultsFilters(
                               defaultValue={props.filterCriteria.eQTLs.biosample ?
                                 { name: props.filterCriteria.eQTLs.biosample, count: -1 } : null
                               }
-                              options={validatedAutocompleteOptions("CRISPRi-FlowFISH")}
+                              options={validatedAutocompleteOptions("eQTLs")}
                               getOptionLabel={option => option.name}
                               getOptionDisabled={option => !validBiosamples.eQTLs.find(x => x.name === option.name)}
                               size="small"
