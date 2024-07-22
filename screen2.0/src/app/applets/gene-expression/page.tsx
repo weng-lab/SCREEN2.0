@@ -16,6 +16,7 @@ export default function GeneExpressionApplet() {
     })
   }, [])
   
+  console.log("biosampleData",biosampleData)
   return (
     <Box maxWidth="95%" margin="auto" marginTop={3}>
       <Suspense>
