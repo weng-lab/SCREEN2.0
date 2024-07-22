@@ -538,11 +538,11 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               <StyledTab value={2} label="Nearby Genomic Features" sx={{ alignSelf: "start" }} />
               <StyledTab value={3} label="Orthologous cCREs in Other Species" sx={{ alignSelf: "start" }} />
               <StyledTab value={4} label="Associated Gene Expression" sx={{ alignSelf: "start" }} />
+              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledTab value={8} label="Associated Transcript Expression" sx={{ alignSelf: "start" }} />}
               <StyledTab value={5} label="Functional Data" sx={{ alignSelf: "start" }} />
               <StyledTab value={6} label="TF Motifs and Sequence Features" sx={{ alignSelf: "start" }} />
-              <StyledTab value={7} label="Configure UCSC Genome Browser" sx={{ alignSelf: "start" }} />
-              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledTab value={8} label="Associated RAMPAGE Signal" sx={{ alignSelf: "start" }} />}
               {mainQueryParams.coordinates.assembly !== "mm10" && <StyledTab value={9} label="ChromHMM States" sx={{ alignSelf: "start" }} />}
+              <StyledTab value={7} label="Configure UCSC Genome Browser" sx={{ alignSelf: "start" }} />
             </Tabs>
           }
         </Drawer>
