@@ -533,7 +533,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                 '& .MuiTabs-scrollButtons': { color: "black" },
                 '& .MuiTabs-scrollButtons.Mui-disabled': { opacity: 0.3 },
               }}>
-              <StyledTab value={0} label="In Specific Biosamples" sx={{ alignSelf: "start" }} />
+              <StyledTab value={0} label="Biosample Activity" sx={{ alignSelf: "start" }} />
               {mainQueryParams.coordinates.assembly !== "mm10" && <StyledTab value={1} label="Linked Genes" sx={{ alignSelf: "start" }} />}
               <StyledTab value={2} label="Nearby Genomic Features" sx={{ alignSelf: "start" }} />
               <StyledTab value={3} label="Linked cCREs in other Assemblies" sx={{ alignSelf: "start" }} />

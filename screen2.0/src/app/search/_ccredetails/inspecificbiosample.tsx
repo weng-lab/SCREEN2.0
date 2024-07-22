@@ -82,7 +82,7 @@ const tableCols = (typeC = false) => {
       render: (row: cCRERow) => z_score(row.ctcf),
     },
     {
-      header: "Group",
+      header: "Classification",
       value: (row: cCRERow) =>  GROUP_COLOR_MAP[row.group] ? GROUP_COLOR_MAP[row.group] : "DNase only",
       render: (row: cCRERow) => {
         let group = row.group.split(",")[0]
@@ -129,7 +129,7 @@ const ctAgnosticColumns = () => [
     render: (row: cCRERow) => z_score(row.ctcf),
   },
   {
-    header: "Group",
+    header: "Classification",
     value: (row: cCRERow) =>  GROUP_COLOR_MAP[row.group] ? GROUP_COLOR_MAP[row.group] : "DNase only",
     render: (row: cCRERow) => {
       let group =  row.group.split(",")[0]
