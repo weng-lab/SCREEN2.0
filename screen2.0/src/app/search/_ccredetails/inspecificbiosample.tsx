@@ -33,22 +33,22 @@ const tableCols = (typeC = false) => {
     },
    {
       header: "ATAC Z-score",
-      value: (row: cCRERow) => row.atac,
+      value: (row: cCRERow) => z_score(row.atac),
       render: (row: cCRERow) => z_score(row.atac),
     },
     {
       header: "H3K4me3 Z-score",
-      value: (row: cCRERow) => row.h3k4me3,
+      value: (row: cCRERow) => z_score(row.h3k4me3),
       render: (row: cCRERow) => z_score(row.h3k4me3),
     },
     {
       header: "H3K27ac Z-score",
-      value: (row: cCRERow) => row.h3k27ac,
+      value: (row: cCRERow) => z_score(row.h3k27ac),
       render: (row: cCRERow) => z_score(row.h3k27ac),
     },
     {
       header: "CTCF Z-score",
-      value: (row: cCRERow) => row.ctcf,
+      value: (row: cCRERow) => z_score(row.ctcf),
       render: (row: cCRERow) => z_score(row.ctcf),
     }
   ] : [
@@ -82,8 +82,13 @@ const tableCols = (typeC = false) => {
       render: (row: cCRERow) => z_score(row.ctcf),
     },
     {
+<<<<<<< HEAD
       header: "Classification",
       value: (row: cCRERow) =>  GROUP_COLOR_MAP[row.group] ? GROUP_COLOR_MAP[row.group] : "DNase only",
+=======
+      header: "Group",
+      value: (row: cCRERow) =>  GROUP_COLOR_MAP.get(row.group) ? GROUP_COLOR_MAP.get(row.group).split(":")[0] : "DNase only",
+>>>>>>> 55644158befefb672504d097c1603c976d013adf
       render: (row: cCRERow) => {
         let group = row.group.split(",")[0]
         let colormap = GROUP_COLOR_MAP.get(group)
@@ -105,32 +110,32 @@ const ctAgnosticColumns = () => [
   { header: "Cell Type", value: () => "cell type agnostic" },
   {
     header: "DNase max-Z",
-    value: (row: cCRERow) => row.dnase,
+    value: (row: cCRERow) => z_score(row.dnase),
     render: (row: cCRERow) => z_score(row.dnase),
   },
   {
     header: "ATAC max-Z",
-    value: (row: cCRERow) => row.atac,
+    value: (row: cCRERow) => z_score(row.atac),
     render: (row: cCRERow) => z_score(row.atac),
   },
   {
     header: "H3K4me3 max-Z",
-    value: (row: cCRERow) => row.h3k4me3,
+    value: (row: cCRERow) => z_score(row.h3k4me3),
     render: (row: cCRERow) => z_score(row.h3k4me3),
   },
   {
     header: "H3K27ac max-Z",
-    value: (row: cCRERow) => row.h3k27ac,
+    value: (row: cCRERow) => z_score(row.h3k27ac),
     render: (row: cCRERow) => z_score(row.h3k27ac),
   },
   {
     header: "CTCF max-Z",
-    value: (row: cCRERow) => row.ctcf,
+    value: (row: cCRERow) => z_score(row.ctcf),
     render: (row: cCRERow) => z_score(row.ctcf),
   },
   {
     header: "Classification",
-    value: (row: cCRERow) =>  GROUP_COLOR_MAP[row.group] ? GROUP_COLOR_MAP[row.group] : "DNase only",
+    value: (row: cCRERow) =>  GROUP_COLOR_MAP.get(row.group) ? GROUP_COLOR_MAP.get(row.group).split(":")[0] : "DNase only",
     render: (row: cCRERow) => {
       let group =  row.group.split(",")[0]
       
@@ -246,12 +251,14 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
     })
 
     let igroup = data_toptissues?.cCREQuery[0]?.group
+    
     let ccreCts = typedata.map((t) => {
-      let group = igroup
+      let group = igroup      
       if (t.dnase <= 1.64 && t.dnase != -11.0) group = "ylowdnase"
       if (igroup == "PLS") {
         if (t.h3k4me3 > 1.64) group = "PLS"
         if (t.h3k27ac > 1.64) group = "pELS"
+        
       } else {
         if (t.h3k27ac > 1.64) {
           if (igroup === "pELS") {
@@ -266,16 +273,20 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
       if (-11.0 === t.dnase) group = "zunclassified"
       if (t.dnase > 1.64) {
         group = "dnase"
-        if (t.h3k27ac > 1.64) {
+        if (t.h3k27ac > 1.64) {          
           if (igroup === "pELS") {
             group = "pELS"
-          } else {
+          } else if(igroup === "PLS") {
+            group = "PLS"
+          } 
+          else {
             group = "dELS"
           }
         }
       } else {
         group = "ylowdnase"
       }
+     
 
       let type: "core" | "partial" | "ancillary"
 
