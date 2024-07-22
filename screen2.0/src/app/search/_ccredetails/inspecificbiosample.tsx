@@ -63,7 +63,7 @@ const tableCols = (typeC = false) => {
     },
    {
       header: "ATAC Z-score",
-      value: (row: cCRERow) => row.atac,
+      value: (row: cCRERow) => z_score(row.atac),
       render: (row: cCRERow) => z_score(row.atac),
     },
     {
@@ -311,6 +311,7 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
               columns={ctAgnosticColumns()}
               sortColumn={1}
               searchable
+              downloadFileName={`${assembly} ${accession} - Cell type agnostic classification.tsv`}
             />
           )}
         </Grid2>
@@ -324,6 +325,7 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
               sortColumn={1}
               itemsPerPage={5}
               searchable
+              downloadFileName={`${assembly} ${accession} - Core Collection.tsv`}
             />
           ) : <LoadingMessage />}
         </Grid2>
@@ -337,6 +339,7 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
               rows={partialDataCollection}
               itemsPerPage={5}
               searchable
+              downloadFileName={`${assembly} ${accession} - Partial Data Collection.tsv`}
             />
           ) : <LoadingMessage />}
         </Grid2>
@@ -350,6 +353,7 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
               sortColumn={1}
               itemsPerPage={5}
               searchable
+              downloadFileName={`${assembly} ${accession} - Ancillary Collection.tsv`}
             />
           ) : <LoadingMessage />}
         </Grid2>
