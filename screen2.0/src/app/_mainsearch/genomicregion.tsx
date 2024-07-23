@@ -1,4 +1,17 @@
-import { TextField, IconButton, Stack, Select, MenuItem, SelectChangeEvent, FormControl, InputLabel, Typography, FormControlLabel, Radio, RadioGroup } from "@mui/material"
+import {
+  TextField,
+  IconButton,
+  Stack,
+  Select,
+  MenuItem,
+  SelectChangeEvent,
+  FormControl,
+  InputLabel,
+  Typography,
+  FormControlLabel,
+  Radio,
+  RadioGroup,
+} from "@mui/material"
 import { useState, SetStateAction, useEffect, useMemo } from "react"
 import { Search } from "@mui/icons-material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
@@ -8,22 +21,97 @@ import Link from "next/link"
 //https://mui.com/material-ui/react-text-field/#integration-with-3rd-party-input-libraries
 //For formatting the start/end as it's being entered.
 
-const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => {
-  const [value, setValue] = useState('')
-  const [chromosome, setChromosome] = useState('11')
-  const [start, setStart] = useState('')
-  const [end, setEnd] = useState('')
+const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean }) => {
+  const [value, setValue] = useState("")
+  const [chromosome, setChromosome] = useState("11")
+  const [start, setStart] = useState("")
+  const [end, setEnd] = useState("")
   const [inputType, setInputType] = useState("UCSC")
-
+  const [error, setError] = useState(false)
+  const [sepErr, setSepErr] = useState(false)
+  const [sepErrStart, setSepErrStart] = useState(false)
+  const [sepErrEnd, setSepErrEnd] = useState(false)
 
   const handleChange = (event: { target: { value: SetStateAction<string> } }) => {
     setValue(event.target.value)
+    validateInput(event.target.value.toString())
+  }
+
+  const validateInput = (input: string) => {
+    const expression = /^chr(\d+|X|Y):[0-9,]*-[0-9,]*$/
+    const match = input.match(/^chr(\d+|X|Y):/)
+    let isValid = false
+
+    if (expression.test(input)) {
+      const chromosome = match ? match[1] : null
+      const coordinates = input.split(":")[1]?.split("-")
+      const startInt = coordinates?.[0] ? parseInt(coordinates[0].replace(/,/g, "")) : null
+      const endInt = coordinates?.[1] ? parseInt(coordinates[1].replace(/,/g, "")) : null
+
+      if (chromosome && startInt !== null && endInt !== null) {
+        if (chromosome in chromosomeLengths && startInt < endInt && startInt > 0 && endInt <= chromosomeLengths[chromosome]) {
+          isValid = true
+        }
+      }
+    }
+
+    setError(!isValid)
+  }
+
+  const validateSeparatedInput = (start: string, end: string, chromosome: string) => {
+    const startInt = start ? parseInt(start.replace(/,/g, "")) : null
+    const endInt = end ? parseInt(end.replace(/,/g, "")) : null
+
+    if (startInt !== null && startInt < endInt && startInt > 0) {
+      setSepErrStart(false)
+    } else {
+      setSepErrStart(true)
+    }
+    if (endInt !== null && startInt < endInt && chromosome in chromosomeLengths && endInt <= chromosomeLengths[chromosome]) {
+      setSepErrEnd(false)
+    } else {
+      setSepErrEnd(true)
+    }
+  }
+
+  const chromosomeLengths: { [key: string]: number } = {
+    "1": 248956422,
+    "2": 242193529,
+    "3": 198295559,
+    "4": 190214555,
+    "5": 181538259,
+    "6": 170805979,
+    "7": 159345973,
+    "8": 145138636,
+    "9": 138394717,
+    "10": 133797422,
+    "11": 135086622,
+    "12": 133275309,
+    "13": 114364328,
+    "14": 107043718,
+    "15": 101991189,
+    "16": 90338345,
+    "17": 83257441,
+    "18": 80373285,
+    "19": 58617616,
+    "20": 64444167,
+    "21": 46709983,
+    "22": 50818468,
+    X: 156040895,
+    Y: 57227415,
   }
 
   //TODO: Better catch errors in input so that invalid values are not passed to api
-  function generateURL(value: string, inputType: string, assembly: "mm10" | "GRCh38", chromosome: string, start: string, end: string): string {
+  function generateURL(
+    value: string,
+    inputType: string,
+    assembly: "mm10" | "GRCh38",
+    chromosome: string,
+    start: string,
+    end: string
+  ): string {
     if (inputType === "Separated") {
-      return `/search?assembly=${assembly}&chromosome=${"chr" + chromosome}&start=${start.replace(new RegExp(',', 'g'), "") ?? "5205263"}&end=${end.replace(new RegExp(',', 'g'), "") ?? "5381894"}`
+      return `/search?assembly=${assembly}&chromosome=${"chr" + chromosome}&start=${start.replace(new RegExp(",", "g"), "") ?? "5205263"}&end=${end.replace(new RegExp(",", "g"), "") ?? "5381894"}`
     } else {
       if (!value) {
         return `/search?assembly=${assembly}&chromosome=chr11&start=5205263&end=5381894`
@@ -32,8 +120,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
         const region = parseGenomicRegion(value)
         // setError(false)
         return `/search?assembly=${assembly}&chromosome=${region.chromosome}&start=${region.start}&end=${region.end}`
-      }
-      catch (error) {
+      } catch (error) {
         //If function can't parse input
         // setError(true)
       }
@@ -46,27 +133,28 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
 
   return (
     <Grid2 container spacing={2}>
-      {!props.header && <Grid2 xs={12} pt={0}>
-        <FormControl>
-          {/* <FormLabel id="demo-row-radio-buttons-group-label">Input Format</FormLabel> */}
-          <RadioGroup
-            row
-            aria-labelledby="input-format"
-            name="row-radio-buttons-group"
-            value={inputType}
-            onChange={(event) => setInputType(event.target.value)}
-          >
-            <FormControlLabel value="UCSC" control={<Radio />} label="chr:start-end" />
-            <FormControlLabel value="Separated" control={<Radio />} label="Individual Inputs" />
-          </RadioGroup>
-        </FormControl>
-      </Grid2>}
+      {!props.header && (
+        <Grid2 xs={12} pt={0}>
+          <FormControl>
+            {/* <FormLabel id="demo-row-radio-buttons-group-label">Input Format</FormLabel> */}
+            <RadioGroup
+              row
+              aria-labelledby="input-format"
+              name="row-radio-buttons-group"
+              value={inputType}
+              onChange={(event) => setInputType(event.target.value)}
+            >
+              <FormControlLabel value="UCSC" control={<Radio />} label="chr:start-end" />
+              <FormControlLabel value="Separated" control={<Radio />} label="Individual Inputs" />
+            </RadioGroup>
+          </FormControl>
+        </Grid2>
+      )}
       <Grid2 xs={12}>
         <Stack direction="row" alignItems="center">
-          {inputType === "Separated" ?
-            //Separated Input
+          {inputType === "Separated" ? (
             <>
-              <FormControl sx={{minWidth: "auto !important"}}>
+              <FormControl sx={{ minWidth: "auto !important" }}>
                 <InputLabel id="demo-simple-select-standard-label">Chr</InputLabel>
                 <Select
                   MenuProps={{
@@ -80,20 +168,22 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
                   onChange={(event: SelectChangeEvent) => setChromosome(event.target.value)}
                   label="Chr"
                   sx={
-                    props.header ?
-                      { '& .MuiOutlinedInput-notchedOutline': { borderColor: 'white' } }
-                      :
-                      { '& .MuiOutlinedInput-notchedOutline': { borderColor: 'black' } }
+                    props.header
+                      ? { "& .MuiOutlinedInput-notchedOutline": { borderColor: "white" } }
+                      : { "& .MuiOutlinedInput-notchedOutline": { borderColor: "black" } }
                   }
                   size={props.header ? "small" : "medium"}
                 >
-                  {Array.from({ length: 22 }, (_, i) => i + 1).map((value) => (
-                    (value < 20 || value >= 20 && (props.assembly === "GRCh38")) && <MenuItem key={value} value={value}>
-                      {value}
-                    </MenuItem>
-                  ))}
-                  <MenuItem value={'X'}>X</MenuItem>
-                  <MenuItem value={'Y'}>Y</MenuItem>
+                  {Array.from({ length: 22 }, (_, i) => i + 1).map(
+                    (value) =>
+                      (value < 20 || (value >= 20 && props.assembly === "GRCh38")) && (
+                        <MenuItem key={value} value={value}>
+                          {value}
+                        </MenuItem>
+                      )
+                  )}
+                  <MenuItem value={"X"}>X</MenuItem>
+                  <MenuItem value={"Y"}>Y</MenuItem>
                 </Select>
               </FormControl>
               <Typography sx={{ justifySelf: "center" }} ml="0.5rem">
@@ -107,6 +197,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
                 value={start}
                 onChange={(event: { target: { value: SetStateAction<string> } }) => {
                   setStart(event.target.value)
+                  validateSeparatedInput(event.target.value.toString(), end, chromosome)
                 }}
                 onKeyDown={(event) => {
                   if (event.key === "Enter") {
@@ -117,16 +208,25 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
                   }
                 }}
                 sx={
-                  props.header ?
-                    { mr: "0.5rem", ml: "0.5rem", fieldset: { borderColor: "white" }, maxWidth: "7rem" }
-                    :
-                    { mr: "0.5rem", ml: "0.5rem", fieldset: { borderColor: "black" }, maxWidth: "7rem" }
+                  props.header
+                    ? {
+                        mr: "0.5rem",
+                        ml: "0.5rem",
+                        fieldset: sepErrStart ? { borderColor: "red" } : { borderColor: "white" },
+                        maxWidth: "7rem",
+                      }
+                    : {
+                        mr: "0.5rem",
+                        ml: "0.5rem",
+                        fieldset: sepErrStart ? { borderColor: "red" } : { borderColor: "black" },
+                        maxWidth: "7rem",
+                      }
                 }
                 size={props.header ? "small" : "medium"}
+                error={sepErrStart}
+                helperText={sepErrStart ? (props.header ? "" : "Invalid format or range.") : ""}
               />
-              <Typography sx={{ justifySelf: "center" }}>
-                –
-              </Typography>
+              <Typography sx={{ justifySelf: "center" }}>–</Typography>
               <TextField
                 variant="outlined"
                 InputLabelProps={{ shrink: true }}
@@ -135,6 +235,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
                 value={end}
                 onChange={(event: { target: { value: SetStateAction<string> } }) => {
                   setEnd(event.target.value)
+                  validateSeparatedInput(start, event.target.value.toString(), chromosome)
                 }}
                 onKeyDown={(event) => {
                   if (event.key === "Enter") {
@@ -144,27 +245,41 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
                     setEnd("5381894")
                   }
                 }}
-                
                 sx={
-                  props.header ?
-                    { mr: "1rem", ml: "0.5rem", fieldset: { borderColor: "white" }, maxWidth: "7rem" }
-                    :
-                    { mr: {xs: "0rem", sm: "1rem"}, ml: "0.5rem", fieldset: { borderColor: "black" }, maxWidth: "7rem" }
+                  props.header
+                    ? {
+                        mr: "1rem",
+                        ml: "0.5rem",
+                        fieldset: sepErrEnd ? { borderColor: "red" } : { borderColor: "white" },
+                        maxWidth: "7rem",
+                      }
+                    : {
+                        mr: { xs: "0rem", sm: "1rem" },
+                        ml: "0.5rem",
+                        fieldset: sepErrEnd ? { borderColor: "red" } : { borderColor: "black" },
+                        maxWidth: "7rem",
+                      }
                 }
                 size={props.header ? "small" : "medium"}
+                error={sepErrEnd}
+                helperText={sepErrEnd ? (props.header ? "" : "Invalid format or range.") : ""}
               />
             </>
-            :
+          ) : (
             //UCSC Input
             <TextField
               variant="outlined"
-              InputLabelProps={{ shrink: true, style: props.header ? {color: "white"} : { color: "black" } }}
+              InputLabelProps={{
+                shrink: true,
+                htmlFor: error ? "component-error" : "component-simple",
+                style: error ? null : props.header ? { color: "white" } : { color: "black" },
+              }}
               label="Enter a genomic region"
               placeholder={`chr11:${(5205263).toLocaleString()}-${(5381894).toLocaleString()}`}
               value={value}
               onChange={handleChange}
               onKeyDown={(event) => {
-                if (event.key === "Enter") {
+                if (event.key === "Enter" && !error) {
                   window.open(url, "_self")
                 }
                 if (event.key === "Tab" && !value) {
@@ -176,18 +291,21 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean })
               sx={{
                 mr: "1rem",
                 minWidth: "16rem",
-                //Border at rest
-                fieldset: props.header ? { borderColor: "white" } : { borderColor: "black" },
-                '& .MuiOutlinedInput-root': {
-                  //hover border color
-                  '&:hover fieldset': props.header ? { borderColor: "white" } : { borderColor: "black" },
-                  //focused border color
-                  '&.Mui-focused fieldset': props.header ? { borderColor: "white" } : { borderColor: "black" },
+                fieldset: error ? { borderColor: "error" } : props.header ? { borderColor: "white" } : { borderColor: "black" },
+                "& .MuiOutlinedInput-root": {
+                  "&:hover fieldset": error ? { borderColor: "error" } : props.header ? { borderColor: "white" } : { borderColor: "black" },
+                  "&.Mui-focused fieldset": error
+                    ? { borderColor: "error" }
+                    : props.header
+                      ? { borderColor: "white" }
+                      : { borderColor: "black" },
                 },
               }}
               size={props.header ? "small" : "medium"}
+              error={error}
+              helperText={error ? (props.header ? "" : "Invalid format or range.") : ""}
             />
-          }
+          )}
           <IconButton href={url} aria-label="Search" type="submit" sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
             <Search />
           </IconButton>
