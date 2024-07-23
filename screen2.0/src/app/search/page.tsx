@@ -162,6 +162,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const [TSSranges, setTSSranges] = useState<{ start: number, end: number }[]>(null)
   const [bedLoadingPercent, setBedLoadingPercent] = useState<number>(null)
 
+
   //Used to set just biosample in filters. Used for performance improvement to avoid having entire mainQueryParams in dep array
   const handleSetBiosample = (biosample: RegistryBiosample) => { setMainQueryParams({ ...mainQueryParams, biosample: biosample }) }
 
@@ -306,7 +307,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
 
   const [getLinkedGenes, { loading: loadingLinkedGenes, data: dataLinkedGenes, error: errorLinkedGenes }] = useLinkedGenes
   //If linked Genes Filter is set, fetch right away
-  filterCriteria.linkedGenesNames.length > 0 && mainQueryData && (!dataLinkedGenes && !loadingLinkedGenes) && getLinkedGenes()
+  filterCriteria.linkedGeneName && mainQueryData && (!dataLinkedGenes && !loadingLinkedGenes) && getLinkedGenes()
 
   // Initialize open cCREs on initial load
   useEffect(() => {
