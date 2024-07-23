@@ -180,7 +180,8 @@ export function PlotActivityProfiles(props: {
   )
 }
 
-export const z_score = (d) => (d === -11.0 || d === "--" || d === undefined || d === 0 ? "--" : d ? d.toFixed(2): 0)
+export const z_score = (d) => (d === -11.0 || d === "--" || d === undefined || d === 0 ? "NA" : d ? d.toFixed(2): 0)
+export const z_score_render = (d) => (d === -11.0 || d === "--" || d === undefined || d === "NA" || d === 0 ? "--" : d ? d.toFixed(2): 0)
 
 export const GROUP_COLOR_MAP: Map<string, string> = new Map([
   ["CA-CTCF", "Chromatin Accessible with CTCF:#00B0F0"],
@@ -188,9 +189,9 @@ export const GROUP_COLOR_MAP: Map<string, string> = new Map([
   ["CA-H3K4me3", "Chromatin Accessible with H3K4me3:#ffaaaa"],
   ["TF", "TF:#d876ec"],
   ["CA", "Chromatin Accessible Only:#06DA93"],
-  ["pELS","Proximal Enhancer-Like Signature:#FFA700"],
-  ["dELS","Distal Enhancer-Like Signature:#FFCD00"],
-  ["PLS","Promoter-Like Signature:#ff0000"],    
+  ["pELS","Proximal Enhancer:#FFA700"],
+  ["dELS","Distal Enhancer:#FFCD00"],
+  ["PLS","Promoter:#ff0000"],    
   ["ylowdnase","Low DNase:#8c8c8c"],
   ["zunclassified","zunclassified:#8c8c8c"]  
 ])

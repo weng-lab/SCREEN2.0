@@ -151,7 +151,7 @@ export const GeneAutoComplete2 = (
     ...autocompleteProps?.ListboxProps,
     style: {
       ...(autocompleteProps?.ListboxProps?.style || {}),
-      maxHeight: '180px',
+      maxHeight: '250px',
     },
   };
   
@@ -165,7 +165,7 @@ export const GeneAutoComplete2 = (
       <Autocomplete
         multiple={false} //How can I easily support this
         ListboxProps={mergedListboxProps}
-        options={options.sort((a, b) => (a.name <= b.name) ? -1 : 1 )} //How do I type this properly?
+        options={options.sort((a, b) => a.name.localeCompare(b.name))} //How do I type this properly?
         inputValue={inputValue}
         onInputChange={(_, newInputValue) => {
           if (newInputValue != "") {
@@ -173,7 +173,7 @@ export const GeneAutoComplete2 = (
           }
           setInputValue(newInputValue)
         }}
-        onChange={(_, value, reason) => onGeneSelected && onGeneSelected(value)} //Should I just expose the whole onChange function?
+        onChange={(_, value) => onGeneSelected && onGeneSelected(value)} //Should I just expose the whole onChange function?
         onKeyDown={(event) => {
           if (event.key === "Enter") {
             attemptSubmit(inputValue)

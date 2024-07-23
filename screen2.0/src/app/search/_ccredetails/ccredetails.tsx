@@ -118,8 +118,6 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
     } : null
   }, [dataNearbyAndLinked, region])
 
-  console.log(nearest3AndLinkedGenes)
-
   //Used to pass genes and their linking method to Gene Expression and RAMPAGE pages
   const uniqueGenes: { name: string; linkedBy: string[]; }[] = useMemo(() => {
     const uniqueGenes: { name: string; linkedBy: string[]; }[] = [];
@@ -128,7 +126,6 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
         ...nearest3AndLinkedGenes.nearbyGenes,
         ...nearest3AndLinkedGenes.linkedGenes
       ]) {
-        console.log(gene)
         const isNearbyGene: boolean = Object.hasOwn(gene, 'distanceToTSS')
         let geneName: string;
         let methodToPush: string;

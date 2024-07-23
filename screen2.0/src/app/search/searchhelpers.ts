@@ -156,13 +156,7 @@ export function passesFilters(
     )
     && passesLinkedGenesFilter(
       row,
-      filterCriteria.linkedGenesNames,
-      filterCriteria.linkedGenesBiosamples,
-      filterCriteria.CTCFChIAPET,
-      filterCriteria.RNAPIIChIAPET,
-      filterCriteria.HiC,
-      filterCriteria.CRISPRiFlowFISH,
-      filterCriteria.eQTLs
+      filterCriteria
     )
   )
 }
@@ -254,42 +248,39 @@ function passesClassificationFilter(
   }
 }
 
+function linkedGeneIsMatch(rowInfo: LinkedGeneInfo, gene: string, filters: FilterCriteria): boolean {
+  if (rowInfo.gene !== gene) return false
+  //check if assay of linked gene is checked in filter
+  //As of writing this, the eQTLs method is the only which has no assay field. If this changes, this will break
+  switch (rowInfo.assay) {
+    case "CTCF-ChIAPET":
+      return filters.CTCFChIAPET.checked && (filters.CTCFChIAPET.biosample ? filters.CTCFChIAPET.biosample === rowInfo.displayname : true)
+    case "RNAPII-ChIAPET":
+      return filters.RNAPIIChIAPET.checked && (filters.RNAPIIChIAPET.biosample ? filters.RNAPIIChIAPET.biosample === rowInfo.displayname : true)
+    case "Intact-HiC":
+      return filters.HiC.checked && (filters.HiC.biosample ? filters.HiC.biosample === rowInfo.displayname : true)
+    case "CRISPRi-FlowFISH":
+      return filters.CRISPRiFlowFISH.checked && (filters.CRISPRiFlowFISH.biosample ? filters.CRISPRiFlowFISH.biosample === rowInfo.displayname : true)
+    //Currently this means that the method is eQTLs
+    case null:
+      return filters.eQTLs.checked && (filters.eQTLs.biosample ? filters.eQTLs.biosample === rowInfo.tissue : true)
+  }
+}
+
 export function passesLinkedGenesFilter(
   row: MainResultTableRow,
-  linkedGenesNames: string[],
-  linkedGenesBiosamples: string[],
-  CTCFChIAPET: boolean,
-  RNAPIIChIAPET: boolean,
-  HiC: boolean,
-  CRISPRiFlowFISH: boolean,
-  eQTLs: boolean
+  filterCriteria: FilterCriteria
 ): boolean {
-  const linkTypes = []
-  CTCFChIAPET && linkTypes.push("CTCF-ChIAPET")
-  RNAPIIChIAPET && linkTypes.push("RNAPII-ChIAPET")
-  HiC && linkTypes.push("Intact-HiC")
-  CRISPRiFlowFISH && linkTypes.push("CRISPRi-FlowFISH")
-  eQTLs && linkTypes.push("eQTLs")
+  const gene = filterCriteria.linkedGeneName
 
   //if row.linkedGenes is null, it hasn't been fetched yet, so allow row through
-  if (row.linkedGenes && linkedGenesNames.length > 0) {
-    if (
-      linkedGenesNames.find((filterLinkedGene) =>
-        row.linkedGenes.find((rowLinkedGeneInfo) =>
-          rowLinkedGeneInfo.gene === filterLinkedGene &&
-          //checkboxes
-          (linkTypes.includes(rowLinkedGeneInfo.assay) || linkTypes.includes(rowLinkedGeneInfo.method)) &&
-          //biosample
-          (linkedGenesBiosamples.length === 0 || linkedGenesBiosamples.includes(rowLinkedGeneInfo.tissue) || linkedGenesBiosamples.includes(rowLinkedGeneInfo.displayname))
-        )
-      )
-    ) {
-      return true
-    } else return false
-  } else {
-    //return true on no genes specified
+  //or if no genes specified do the same
+  if (!row.linkedGenes || !gene) {
     return true
   }
+  for (const linkedGenes of row.linkedGenes) {
+    if (linkedGeneIsMatch(linkedGenes, gene, filterCriteria)) return true
+  } return false
 }
 
 /**
@@ -527,13 +518,12 @@ export function constructSearchURL(
     + `&vert_e=${newFilterCriteria.vert_e}`
 
   const linkedGenesFilter =
-    `&linkedGenesNames=${newFilterCriteria.linkedGenesNames.join(',')}`
-    + `&linkedGenesBiosamples=${newFilterCriteria.linkedGenesBiosamples.join(',')}`
-    + `&CTCFChIAPET=${outputT_or_F(newFilterCriteria.CTCFChIAPET)}`
-    + `&RNAPIIChIAPET=${outputT_or_F(newFilterCriteria.RNAPIIChIAPET)}`
-    + `&HiC=${outputT_or_F(newFilterCriteria.HiC)}`
-    + `&CRISPRiFlowFISH=${outputT_or_F(newFilterCriteria.CRISPRiFlowFISH)}`
-    + `&eQTLs=${outputT_or_F(newFilterCriteria.eQTLs)}`
+    `&linkedGeneName=${newFilterCriteria.linkedGeneName ?? ''}`
+    + `&CTCFChIAPET=${outputT_or_F(newFilterCriteria.CTCFChIAPET.checked)}_${newFilterCriteria.CTCFChIAPET.biosample ?? ''}`
+    + `&RNAPIIChIAPET=${outputT_or_F(newFilterCriteria.RNAPIIChIAPET.checked)}_${newFilterCriteria.RNAPIIChIAPET.biosample ?? ''}`
+    + `&HiC=${outputT_or_F(newFilterCriteria.HiC.checked)}_${newFilterCriteria.HiC.biosample ?? ''}`
+    + `&CRISPRiFlowFISH=${outputT_or_F(newFilterCriteria.CRISPRiFlowFISH.checked)}_${newFilterCriteria.CRISPRiFlowFISH.biosample ?? ''}`
+    + `&eQTLs=${outputT_or_F(newFilterCriteria.eQTLs.checked)}_${newFilterCriteria.eQTLs.biosample ?? ''}`
 
   const accessionsAndPage =
     `&accessions=${accessions}`
@@ -605,39 +595,40 @@ export function constructMainQueryParamsFromURL(searchParams: { [key: string]: s
 }
 
 export function constructFilterCriteriaFromURL(searchParams: { [key: string]: string | undefined }): FilterCriteria {
+  const sP = searchParams
   return (
     {
-      dnase_s: searchParams.dnase_s ? +(searchParams.dnase_s) : -10,
-      dnase_e: searchParams.dnase_e ? +(searchParams.dnase_e) : 11,
-      atac_s: searchParams.atac_s ? +(searchParams.atac_s) : -10,
-      atac_e: searchParams.atac_e ? +(searchParams.atac_e) : 11,
-      h3k4me3_s: searchParams.h3k4me3_s ? +(searchParams.h3k4me3_s) : -10,
-      h3k4me3_e: searchParams.h3k4me3_e ? +(searchParams.h3k4me3_e) : 11,
-      h3k27ac_s: searchParams.h3k27ac_s ? +(searchParams.h3k27ac_s) : -10,
-      h3k27ac_e: searchParams.h3k27ac_e ? +(searchParams.h3k27ac_e) : 11,
-      ctcf_s: searchParams.ctcf_s ? +(searchParams.ctcf_s) : -10,
-      ctcf_e: searchParams.ctcf_e ? +(searchParams.ctcf_e) : 11,
-      prim_s: searchParams.prim_s ? +(searchParams.prim_s) : -2,
-      prim_e: searchParams.prim_e ? +(searchParams.prim_e) : 2,
-      mamm_s: searchParams.mamm_s ? +(searchParams.mamm_s) : -4,
-      mamm_e: searchParams.mamm_e ? +(searchParams.mamm_e) : 8,
-      vert_s: searchParams.vert_s ? +(searchParams.vert_s) : -3,
-      vert_e: searchParams.vert_e ? +(searchParams.vert_e) : 8,
-      CA: searchParams.CA ? checkTrueFalse(searchParams.CA) : true,
-      CA_CTCF: searchParams.CA_CTCF ? checkTrueFalse(searchParams.CA_CTCF) : true,
-      CA_H3K4me3: searchParams.CA_H3K4me3 ? checkTrueFalse(searchParams.CA_H3K4me3) : true,
-      CA_TF: searchParams.CA_TF ? checkTrueFalse(searchParams.CA_TF) : true,
-      dELS: searchParams.dELS ? checkTrueFalse(searchParams.dELS) : true,
-      pELS: searchParams.pELS ? checkTrueFalse(searchParams.pELS) : true,
-      PLS: searchParams.PLS ? checkTrueFalse(searchParams.PLS) : true,
-      TF: searchParams.TF ? checkTrueFalse(searchParams.TF) : true,
-      linkedGenesNames: searchParams.linkedGenesNames ? searchParams.linkedGenesNames.split(",") : [],
-      linkedGenesBiosamples: searchParams.linkedGenesBiosamples ? searchParams.linkedGenesBiosamples.split(",") : [],
-      CTCFChIAPET: searchParams.CTCFChIAPET ? checkTrueFalse(searchParams.CTCFChIAPET) : true,
-      RNAPIIChIAPET: searchParams.RNAPIIChIAPET ? checkTrueFalse(searchParams.RNAPIIChIAPET) : true,
-      HiC: searchParams.HiC ? checkTrueFalse(searchParams.HiC) : true,
-      CRISPRiFlowFISH: searchParams.CRISPRiFlowFISH ? checkTrueFalse(searchParams.CRISPRiFlowFISH) : true,
-      eQTLs: searchParams.eQTLs ? checkTrueFalse(searchParams.eQTLs) : true
+      dnase_s: sP.dnase_s ? +(sP.dnase_s) : -10,
+      dnase_e: sP.dnase_e ? +(sP.dnase_e) : 11,
+      atac_s: sP.atac_s ? +(sP.atac_s) : -10,
+      atac_e: sP.atac_e ? +(sP.atac_e) : 11,
+      h3k4me3_s: sP.h3k4me3_s ? +(sP.h3k4me3_s) : -10,
+      h3k4me3_e: sP.h3k4me3_e ? +(sP.h3k4me3_e) : 11,
+      h3k27ac_s: sP.h3k27ac_s ? +(sP.h3k27ac_s) : -10,
+      h3k27ac_e: sP.h3k27ac_e ? +(sP.h3k27ac_e) : 11,
+      ctcf_s: sP.ctcf_s ? +(sP.ctcf_s) : -10,
+      ctcf_e: sP.ctcf_e ? +(sP.ctcf_e) : 11,
+      prim_s: sP.prim_s ? +(sP.prim_s) : -2,
+      prim_e: sP.prim_e ? +(sP.prim_e) : 2,
+      mamm_s: sP.mamm_s ? +(sP.mamm_s) : -4,
+      mamm_e: sP.mamm_e ? +(sP.mamm_e) : 8,
+      vert_s: sP.vert_s ? +(sP.vert_s) : -3,
+      vert_e: sP.vert_e ? +(sP.vert_e) : 8,
+      CA: sP.CA ? checkTrueFalse(sP.CA) : true,
+      CA_CTCF: sP.CA_CTCF ? checkTrueFalse(sP.CA_CTCF) : true,
+      CA_H3K4me3: sP.CA_H3K4me3 ? checkTrueFalse(sP.CA_H3K4me3) : true,
+      CA_TF: sP.CA_TF ? checkTrueFalse(sP.CA_TF) : true,
+      dELS: sP.dELS ? checkTrueFalse(sP.dELS) : true,
+      pELS: sP.pELS ? checkTrueFalse(sP.pELS) : true,
+      PLS: sP.PLS ? checkTrueFalse(sP.PLS) : true,
+      TF: sP.TF ? checkTrueFalse(sP.TF) : true,
+      linkedGeneName: sP.linkedGeneName ? sP.linkedGeneName : null,
+      //For these, with be 't' or 'f', a comma, and then the biosample if specified. Splitting to separate check state from it's biosample. Default to checked, no biosample
+      CTCFChIAPET: sP.CTCFChIAPET ? {checked: checkTrueFalse(sP.CTCFChIAPET.split('_')[0]), biosample: sP.CTCFChIAPET.split('_')[1]} : {checked: true, biosample: null},
+      RNAPIIChIAPET: sP.RNAPIIChIAPET ? {checked: checkTrueFalse(sP.RNAPIIChIAPET.split('_')[0]), biosample: sP.RNAPIIChIAPET.split('_')[1]} : {checked: true, biosample: null},
+      HiC: sP.HiC ? {checked: checkTrueFalse(sP.HiC.split('_')[0]), biosample: sP.HiC.split('_')[1]} : {checked: true, biosample: null},
+      CRISPRiFlowFISH: sP.CRISPRiFlowFISH ? {checked: checkTrueFalse(sP.CRISPRiFlowFISH.split('_')[0]), biosample: sP.CRISPRiFlowFISH.split('_')[1]} : {checked: true, biosample: null},
+      eQTLs: sP.eQTLs ? {checked: checkTrueFalse(sP.eQTLs.split('_')[0]), biosample: sP.eQTLs.split('_')[1]} : {checked: true, biosample: null}
     }
   )
 }

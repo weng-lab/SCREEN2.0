@@ -54,9 +54,9 @@ export function GeneExpression(props: {
   const [currentMouseGene, setCurrentMouseGene] = useState<string>(props.genes ? props?.genes[0]?.name : (urlAssembly === "mm10" && urlGene) ? urlGene : "Emid1")
 
   const [biosamples, setBiosamples] = useState<string[]>(["cell line", "in vitro differentiated cells", "primary cell", "tissue"])
-  const [group, setGroup] = useState<"byTissueMaxTPM" | "byExperimentTPM" | "byTissueTPM">("byTissueTPM")
+  const [group, setGroup] = useState<"byTissueMaxTPM" | "byExperimentTPM" | "byTissueTPM">("byExperimentTPM")
   const [RNAtype, setRNAType] = useState<"all" | "polyA plus RNA-seq" | "total RNA-seq">("total RNA-seq")
-  const [scale, setScale] = useState<"linearTPM" | "logTPM">("logTPM")
+  const [scale, setScale] = useState<"linearTPM" | "logTPM">("linearTPM")
   const [replicates, setReplicates] = useState<"mean" | "all">("mean")
   const [assembly, setAssembly] = useState<"GRCh38" | "mm10">(((urlAssembly === "GRCh38") || (urlAssembly === "mm10")) ? urlAssembly : props.assembly)
   const [configGBopen, setConfigGBOpen] = useState(false);
@@ -331,8 +331,8 @@ export function GeneExpression(props: {
               aria-label="Scale"
               size="medium"
             >
-              <ToggleButton sx={{ textTransform: "none" }} value="logTPM">Log<sub>10</sub>(TPM + 1)</ToggleButton>
               <ToggleButton sx={{ textTransform: "none" }} value="linearTPM">Linear TPM</ToggleButton>
+              <ToggleButton sx={{ textTransform: "none" }} value="logTPM">Log<sub>10</sub>(TPM + 1)</ToggleButton>
             </ToggleButtonGroup>
           </Stack>
         </Grid2>
@@ -348,9 +348,9 @@ export function GeneExpression(props: {
               aria-label="View By"
               size="medium"
             >
+              <ToggleButton sx={{ textTransform: "none" }} value="byExperimentTPM">Experiment</ToggleButton>
               <ToggleButton sx={{ textTransform: "none" }} value="byTissueTPM">Tissue</ToggleButton>
               <ToggleButton sx={{ textTransform: "none" }} value="byTissueMaxTPM">Tissue Max</ToggleButton>
-              <ToggleButton sx={{ textTransform: "none" }} value="byExperimentTPM">Experiment</ToggleButton>
             </ToggleButtonGroup>
           </Stack>
         </Grid2>
