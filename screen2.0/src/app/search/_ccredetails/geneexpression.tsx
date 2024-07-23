@@ -222,6 +222,8 @@ export function GeneExpression(props: {
           <Button
             variant="contained"
             href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + `${assembly === "GRCh38" ? currentHumanGene : currentMouseGene}`}
+            target="_blank"
+            rel="noopener noreferrer"
             color="secondary"
             sx={{ minWidth: 125, minHeight: 50 }}
           >
