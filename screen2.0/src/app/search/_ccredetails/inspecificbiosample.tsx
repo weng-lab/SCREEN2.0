@@ -3,7 +3,7 @@ import React from "react"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import { TOP_TISSUES } from "./queries"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
-import { z_score, GROUP_COLOR_MAP } from "./utils"
+import { z_score, z_score_render, GROUP_COLOR_MAP } from "./utils"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { LoadingMessage } from "../../../common/lib/utility"
 
@@ -34,22 +34,22 @@ const tableCols = (typeC = false) => {
    {
       header: "ATAC Z-score",
       value: (row: cCRERow) => z_score(row.atac),
-      render: (row: cCRERow) => z_score(row.atac),
+      render: (row: cCRERow) => z_score_render(row.atac),
     },
     {
       header: "H3K4me3 Z-score",
       value: (row: cCRERow) => z_score(row.h3k4me3),
-      render: (row: cCRERow) => z_score(row.h3k4me3),
+      render: (row: cCRERow) => z_score_render(row.h3k4me3),
     },
     {
       header: "H3K27ac Z-score",
       value: (row: cCRERow) => z_score(row.h3k27ac),
-      render: (row: cCRERow) => z_score(row.h3k27ac),
+      render: (row: cCRERow) => z_score_render(row.h3k27ac),
     },
     {
       header: "CTCF Z-score",
       value: (row: cCRERow) => z_score(row.ctcf),
-      render: (row: cCRERow) => z_score(row.ctcf),
+      render: (row: cCRERow) => z_score_render(row.ctcf),
     }
   ] : [
     {
@@ -59,30 +59,30 @@ const tableCols = (typeC = false) => {
     {
       header: "DNase Z-score",
       value: (row: cCRERow) => z_score(row.dnase),
-      render: (row: cCRERow) => z_score(row.dnase),
+      render: (row: cCRERow) => z_score_render(row.dnase),
     },
    {
       header: "ATAC Z-score",
       value: (row: cCRERow) => z_score(row.atac),
-      render: (row: cCRERow) => z_score(row.atac),
+      render: (row: cCRERow) => z_score_render(row.atac),
     },
     {
       header: "H3K4me3 Z-score",
       value: (row: cCRERow) => z_score(row.h3k4me3),
-      render: (row: cCRERow) => z_score(row.h3k4me3),
+      render: (row: cCRERow) => z_score_render(row.h3k4me3),
     },
     {
       header: "H3K27ac Z-score",
       value: (row: cCRERow) => z_score(row.h3k27ac),
-      render: (row: cCRERow) => z_score(row.h3k27ac),
+      render: (row: cCRERow) => z_score_render(row.h3k27ac),
     },
     {
       header: "CTCF Z-score",
       value: (row: cCRERow) => z_score(row.ctcf),
-      render: (row: cCRERow) => z_score(row.ctcf),
+      render: (row: cCRERow) => z_score_render(row.ctcf),
     },
     {
-      header: "Group",
+      header: "Classification",
       value: (row: cCRERow) =>  GROUP_COLOR_MAP.get(row.group) ? GROUP_COLOR_MAP.get(row.group).split(":")[0] : "DNase only",
       render: (row: cCRERow) => {
         console.log(row.group)
@@ -107,30 +107,30 @@ const ctAgnosticColumns = () => [
   {
     header: "DNase max-Z",
     value: (row: cCRERow) => z_score(row.dnase),
-    render: (row: cCRERow) => z_score(row.dnase),
+    render: (row: cCRERow) => z_score_render(row.dnase),
   },
   {
     header: "ATAC max-Z",
     value: (row: cCRERow) => z_score(row.atac),
-    render: (row: cCRERow) => z_score(row.atac),
+    render: (row: cCRERow) => z_score_render(row.atac),
   },
   {
     header: "H3K4me3 max-Z",
     value: (row: cCRERow) => z_score(row.h3k4me3),
-    render: (row: cCRERow) => z_score(row.h3k4me3),
+    render: (row: cCRERow) => z_score_render(row.h3k4me3),
   },
   {
     header: "H3K27ac max-Z",
     value: (row: cCRERow) => z_score(row.h3k27ac),
-    render: (row: cCRERow) => z_score(row.h3k27ac),
+    render: (row: cCRERow) => z_score_render(row.h3k27ac),
   },
   {
     header: "CTCF max-Z",
     value: (row: cCRERow) => z_score(row.ctcf),
-    render: (row: cCRERow) => z_score(row.ctcf),
+    render: (row: cCRERow) => z_score_render(row.ctcf),
   },
   {
-    header: "Group",
+    header: "Classification",
     value: (row: cCRERow) =>  GROUP_COLOR_MAP.get(row.group) ? GROUP_COLOR_MAP.get(row.group).split(":")[0] : "DNase only",
     render: (row: cCRERow) => {
       let group =  row.group.split(",")[0]
@@ -318,6 +318,7 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
               columns={ctAgnosticColumns()}
               sortColumn={1}
               searchable
+              downloadFileName={`${assembly} ${accession} - Cell type agnostic classification.tsv`}
             />
           )}
         </Grid2>
@@ -331,6 +332,7 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
               sortColumn={1}
               itemsPerPage={5}
               searchable
+              downloadFileName={`${assembly} ${accession} - Core Collection.tsv`}
             />
           ) : <LoadingMessage />}
         </Grid2>
@@ -344,6 +346,7 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
               rows={partialDataCollection}
               itemsPerPage={5}
               searchable
+              downloadFileName={`${assembly} ${accession} - Partial Data Collection.tsv`}
             />
           ) : <LoadingMessage />}
         </Grid2>
@@ -357,6 +360,7 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
               sortColumn={1}
               itemsPerPage={5}
               searchable
+              downloadFileName={`${assembly} ${accession} - Ancillary Collection.tsv`}
             />
           ) : <LoadingMessage />}
         </Grid2>
