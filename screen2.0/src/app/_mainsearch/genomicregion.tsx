@@ -9,10 +9,12 @@ import Link from "next/link"
 //For formatting the start/end as it's being entered.
 
 const GenomicRegion = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => {
-  const [value, setValue] = useState('')
+  const [value, setValue] = useState('')//UCSC
+
   const [chromosome, setChromosome] = useState('11')
   const [start, setStart] = useState('')
   const [end, setEnd] = useState('')
+
   const [inputType, setInputType] = useState("UCSC")
 
 

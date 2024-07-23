@@ -94,7 +94,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
       tooltip: "Defined by distance to nearest TSS",
       HeaderRender: () => <strong><p>Nearest&nbsp;Gene</p></strong>,
       value: (row) => row.nearestGenes[0].distance,
-      render: (row) => 
+      render: (row) =>
         <Typography variant="body2" onClick={(event) => event.stopPropagation()}>
           <i>
             <CreateLink
@@ -103,7 +103,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
               label={row.nearestGenes[0].gene}
               underline="hover"
             />
-          </i> - {row.nearestGenes[0].distance}bp
+          </i> - {row.nearestGenes[0].distance.toLocaleString()} bp
         </Typography>
     })
     props.assembly === "GRCh38" && cols.push({
@@ -149,8 +149,6 @@ export function MainResultsTable(props: MainResultsTableProps) {
           }));
         }
 
-
-
         const LinkedGeneList: React.FC<{ genes: { geneName: string, samples: LinkedGeneInfo[] }[], type: "Intact-HiC" | "ChIAPET" | "CRISPR" | "eQTLs" }> = (props) => {
           return (
             <Stack spacing={1}>
@@ -169,7 +167,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
                       </i> ({getNumtissues(gene.samples)} tissue{getNumtissues(gene.samples) > 1 && 's'}, {gene.samples.length} variant{gene.samples.length > 1 && 's'})
                     </Typography>
                     <Tooltip
-                      sx={{display: "inline"}}
+                      sx={{ display: "inline" }}
                       title={
                         <div>
                           <Typography variant="body2">
@@ -209,7 +207,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
                       </i> ({gene.samples.length} biosample{gene.samples.length > 1 && 's'})
                     </Typography>
                     <Tooltip
-                      sx={{display: 'inline'}}
+                      sx={{ display: 'inline' }}
                       title={
                         <div>
                           <Typography variant="body2"><i>{gene.geneName}</i></Typography>
@@ -226,7 +224,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
                                   textColor="#FFFFFF"
                                   underline="always"
                                 />
-                                : {x.displayname}
+                                : {x.displayname + ((x.assay === "RNAPII-ChIAPET" || x.assay === "CTCF-ChIAPET") ? ` (${x.assay})` : '')}
                               </Typography>
                             )}
                           </List>
