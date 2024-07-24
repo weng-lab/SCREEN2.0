@@ -1,5 +1,5 @@
 "use client"
-import React, { useCallback } from "react"
+import React, { startTransition, useCallback, useEffect, JSX } from "react"
 import {useState } from "react"
 import { Stack, Typography, Box, TextField, Button, Alert, FormGroup, Checkbox, FormControlLabel } from "@mui/material"
 import MenuItem from "@mui/material/MenuItem"
@@ -8,21 +8,93 @@ import Select, { SelectChangeEvent } from "@mui/material/Select"
 import BedUpload from "../../_mainsearch/bedupload"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { Z_SCORES_QUERY } from "./queries"
-import { useLazyQuery } from "@apollo/client"
+import { ApolloQueryResult, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
 import { ZScores } from "./types"
+import BiosampleTables from "../../search/biosampletables"
+import { BIOSAMPLE_Data, biosampleQuery } from "../../../common/lib/queries"
+import { RegistryBiosample } from "../../search/types"
 
 export default function Argo(props: {header?: false, optionalFunction?: Function}) {
     const [assembly, setAssembly] = useState<"GRCh38" | "mm10">("GRCh38")
     const [selectedSearch, setSelectedSearch] = useState<string>("BED File")
-    const [error, setError] = useState([false, ""]) // status, message
+    const [error, setError] = useState<[boolean, string]>([false, ""]) // status, message
+    const [dataAPI, setDataAPI] = useState<[]>([])
     const [scores, setScores] = useState<ZScores[]>([])
     const [key, setKey] = useState<string>()
     const [columns, setColumns] = useState([])
-    const [getOutput] = useLazyQuery(Z_SCORES_QUERY)
+    const [biosampleData, setBiosampleData] = useState<ApolloQueryResult<BIOSAMPLE_Data>>(null)
+    const [selectedBiosample, setSelectedBiosample] = useState<RegistryBiosample[]>([])
+    const [availableScores, setAvailableScores] = useState({"dnase": true, "h3k4me3": true, "h3k27ac": true, "ctcf": true, "atac": true})
     const scoreNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac" ]
+    
+    const {loading: loading_scores, error: error_scores, data: data_scores} = useQuery(Z_SCORES_QUERY, {
+        variables: {
+            assembly: assembly,
+            accessions: scores.length > 0 ? scores.map((s) => s.accession): dataAPI.map((r) => r[4]) ,
+            cellType: selectedBiosample.length > 0 ? selectedBiosample[0].name: null
+          },
+          client: client,
+          fetchPolicy: 'cache-and-network',
+          onCompleted(d) {            
+            let mapFunc = null
+            if (selectedBiosample.length > 0) { 
+                mapFunc = (r) => {
+                    return {
+                        accession: r.info.accession,
+                        user_id: scores.find((e) => e.accession == r.info.accession).user_id,
+                        dnase: r.ctspecific.dnase_zscore,
+                        h3k4me3: r.ctspecific.h3k4me3_zscore,
+                        h3k27ac: r.ctspecific.h3k27ac_zscore,
+                        ctcf: r.ctspecific.ctcf_zscore,
+                        atac: r.ctspecific.atac_zscore
+                    }
+                } 
+            }
+            else {
+                // The else statement is the first time the query is run so scores is null
+                let userIDMap = (e) => `${e[6]}_${e[7]}_${e[8]}${ (e[9] && e[10]) ? '_'+e[9]: ''}`
+                mapFunc = (r) => {
+                    return {
+                        accession: r.info.accession,
+                        user_id: dataAPI.filter((e) => e[4] == r.info.accession).map(userIDMap).join(', '),
+                        dnase: r.dnase_zscore,
+                        h3k4me3: r.promoter_zscore,
+                        h3k27ac: r.enhancer_zscore,
+                        ctcf: r.ctcf_zscore,
+                        atac: r.atac_zscore
+                    }
+                }
+            }
+            let data: ZScores[] = d['cCRESCREENSearch'].map(mapFunc)
+            
+            let scoresToInclude = selectedBiosample.length > 0 ? scoreNames.filter((s) => selectedBiosample[0][s]): scoreNames
+            let availableScoresCopy = {...availableScores}
 
-    let allColumns = [{ header: "DNase", value: (row) => row.dnase, render: (row) => row.dnase.toFixed(2) },
+            scoreNames.forEach( (s) => {
+                if (scoresToInclude.indexOf(s) == -1) {
+                    availableScoresCopy[s] = false
+                }
+                else {
+                    availableScoresCopy[s] = true
+                }
+                
+            })
+            setAvailableScores(availableScoresCopy)
+            setScores(evaluateRankings(data, availableScoresCopy))
+            setKey(scoresToInclude.join(' '))
+            setColumns(allColumns.filter(
+                (e) => scoresToInclude.indexOf(e.header.toLowerCase().split(' ')[0]) !== -1
+            ))
+          },
+          onError(error) {
+              console.error(error.message)
+              setError([true, error.message])
+          }
+        }
+    )
+    
+    const allColumns = [{ header: "DNase", value: (row) => row.dnase, render: (row) => row.dnase.toFixed(2) },
     { header: "DNase Rank", value: (row) => row.dnase_rank },
     { header: "H3K4me3", value: (row) => row.h3k4me3, render: (row) => row.h3k4me3.toFixed(2) },
     { header: "H3K4me3 Rank", value: (row) => row.h3k4me3_rank },
@@ -32,39 +104,13 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     { header: "CTCF Rank", value: (row) => row.ctcf_rank },
     { header: "ATAC", value: (row) => row.atac, render: (row) => row.atac.toFixed(2) },
     { header: "ATAC Rank", value: (row) => row.atac_rank }]
-    
-    function appletCallback(dataAPI) {
-        let accessions = dataAPI.map((e) => e[4])
-        let mapFunc = (e) => `${e[6]}_${e[7]}_${e[8]}${ (e[9] && e[10]) ? '_'+e[9]: ''}`
-        getOutput({
-            variables: {
-              assembly: assembly,
-              accessions: accessions
-            },
-            client: client,
-            fetchPolicy: 'cache-and-network',
-            onCompleted(d) {
-                let data: ZScores[] = d['cCRESCREENSearch'].map((r) => {
-                    return {
-                        accession: r.info.accession,
-                        user_id: dataAPI.filter((e) => e[4] == r.info.accession).map(mapFunc).join(', ') ,
-                        dnase: r.dnase_zscore,
-                        h3k4me3: r.promoter_zscore,
-                        h3k27ac: r.enhancer_zscore,
-                        ctcf: r.ctcf_zscore,
-                        atac: r.atac_zscore
-                    }
-                })
-                setKey(scoreNames.join(' '))
-                setColumns(allColumns)
-                setScores(evaluateRankings(data))
-            },
-            onError(error) {
-                console.error(error.message)
-                setError([true, error.message])
-            },
+
+    useEffect(() => {
+        startTransition(async () => {
+          const biosamples = await biosampleQuery()
+          setBiosampleData(biosamples)
         })
-    }
+      }, [])
 
     const handleSearchChange = (event: SelectChangeEvent) => {
         setSelectedSearch(event.target.value)
@@ -74,25 +120,16 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         ((event.target.value === "GRCh38") || (event.target.value === "mm10")) && setAssembly(event.target.value)
     }
 
-    function evaluateRankings(data) { 
-        scoreNames.forEach((scoreName) => {
+    function evaluateRankings(data, available) { 
+        let scoresToInclude = scoreNames.filter((s) => available[s])
+        scoresToInclude.forEach((scoreName) => {
             let score_column = data.map((r, i) => [i, r[scoreName]])
             score_column.sort((a,b) => b[1] - a[1])
             score_column.forEach((row, i) => {
                 data[row[0]][`${scoreName}_rank`] = i + 1
             })
         })
-        return calculateAggregateRank(data, scoreNames)
-    }
-
-    function handleCheckBoxChange(e) {
-        let scoresToInclude = Array.from(document.getElementsByName("scoresToInclude"))
-        scoresToInclude = scoresToInclude.filter((e) => e.checked).map((e) => e.value)
-        setKey(scoresToInclude.join(' '))
-        setColumns(allColumns.filter(
-            (e) => scoresToInclude.indexOf(e.header.toLowerCase().split(' ')[0]) !== -1
-        ))
-        setScores(calculateAggregateRank([...scores], scoresToInclude))
+        return calculateAggregateRank(data, scoresToInclude)
     }
 
     function calculateAggregateRank(data, scoresToInclude) {
@@ -106,6 +143,16 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
             row.aggRank = sum / count
         })
         return data
+    }
+
+    function handleCheckBoxChange(e) {
+        let scoresToInclude = Array.from(document.getElementsByName("scoresToInclude"))
+        scoresToInclude = scoresToInclude.filter((e) => !e.disabled && e.checked).map((e) => e.value)
+        setScores(calculateAggregateRank([...scores], scoresToInclude))
+        setKey(scoresToInclude.join(' '))
+        setColumns(allColumns.filter(
+            (e) => scoresToInclude.indexOf(e.header.toLowerCase().split(' ')[0]) !== -1
+        ))
     }
 
     return (
@@ -174,7 +221,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                         <BedUpload
                             assembly = {assembly}
                             header={props.header}
-                            appletCallback={appletCallback}
+                            appletCallback={setDataAPI}
                         />
                 ):
                 <FormControl fullWidth>
@@ -193,25 +240,41 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                 <Typography variant="h6" lineHeight={"50px"} mr={"10px"}>
                     Include in scores: 
                 </Typography>
-                <FormControlLabel label="DNase" control={<Checkbox  defaultChecked name="scoresToInclude" value="dnase"></Checkbox>}></FormControlLabel>
-                <FormControlLabel label="H3K4me3" control={<Checkbox  defaultChecked name="scoresToInclude" value="h3k4me3"></Checkbox>}></FormControlLabel>
-                <FormControlLabel label="H3K27ac" control={<Checkbox  defaultChecked name="scoresToInclude" value="h3k27ac"></Checkbox>}></FormControlLabel>
-                <FormControlLabel label="CTCF" control={<Checkbox  defaultChecked name="scoresToInclude" value="ctcf"></Checkbox>}></FormControlLabel>
-                <FormControlLabel label="ATAC" control={<Checkbox  defaultChecked name="scoresToInclude" value="atac"></Checkbox>}></FormControlLabel>
+                <FormControlLabel label="DNase" control={<Checkbox disabled={!availableScores.dnase} defaultChecked name="scoresToInclude" value="dnase"></Checkbox>}></FormControlLabel>
+                <FormControlLabel label="H3K4me3" control={<Checkbox disabled={!availableScores.h3k4me3} defaultChecked name="scoresToInclude" value="h3k4me3"></Checkbox>}></FormControlLabel>
+                <FormControlLabel label="H3K27ac" control={<Checkbox disabled={!availableScores.h3k27ac} defaultChecked name="scoresToInclude" value="h3k27ac"></Checkbox>}></FormControlLabel>
+                <FormControlLabel label="CTCF" control={<Checkbox disabled={!availableScores.ctcf} defaultChecked name="scoresToInclude" value="ctcf"></Checkbox>}></FormControlLabel>
+                <FormControlLabel label="ATAC" control={<Checkbox disabled={!availableScores.atac} defaultChecked name="scoresToInclude" value="atac"></Checkbox>}></FormControlLabel>
+
             </FormGroup>
         </Stack>
-        
-        <DataTable
-        key={key}
-        columns={[{ header: "Accessions", value: (row) => row.accession },
-            { header: "User ID", value: (row) => row.user_id },
-            { header: "Aggregate Rank", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) }].concat(columns)}
-        rows={scores}
-        sortColumn={2}
-        sortDescending
-        itemsPerPage={100}
-        >
-        </DataTable>
+        <Stack direction={"row"} spacing={1}>
+            <Box width={"30%"} height={"100%"}>
+                <BiosampleTables
+                    biosampleData={biosampleData}
+                    selectedBiosamples={selectedBiosample}
+                    setSelectedBiosamples={setSelectedBiosample} 
+                    biosampleSelectMode="replace"
+                    showRNAseq={false}
+                    showDownloads={false}
+                    assembly={assembly}
+                />
+            </Box>
+            <Box width={"70%"}>
+                <DataTable
+                key={key}
+                columns={[{ header: "Accessions", value: (row) => row.accession },
+                    { header: "User ID", value: (row) => row.user_id },
+                    { header: "Aggregate Rank", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) }].concat(columns)}
+                rows={scores}
+                sortColumn={2}
+                sortDescending
+                itemsPerPage={7}
+                >
+                </DataTable>
+            </Box>
+            
+        </Stack>
     
     </Box>
     }
