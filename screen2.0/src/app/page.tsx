@@ -7,6 +7,7 @@ import homeImage from "../../public/homeImage.png"
 import Image from "next/image"
 import humanIcon from "../../public/humanDark.png"
 import mouseIcon from "../../public/mouseDark.png"
+import Link from 'next/link'
 
 export default function Home() {
   return (
@@ -54,6 +55,7 @@ export default function Home() {
         </Grid2>
         <Grid2 xs={12} lg={6}>
           <Image src={homeImage} alt={"SCREEN home image"} />
+          <Link href={{href: '/search', query: ['Accession1', 'Accession2', 'Accession3'].join()}}>This is a link to search</Link>
         </Grid2>
       </Grid2>
     </main>

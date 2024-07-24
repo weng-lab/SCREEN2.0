@@ -56,15 +56,15 @@ export const createLink = (url: string, id: string, label?: string, showExternal
   )
 }
 
-export const CreateLink: React.FC<{linkPrefix: string, linkArg: string, label: string, showExternalIcon?: boolean, variant?: OverridableStringUnion<Variant | 'inherit', TypographyPropsVariantOverrides>, textColor?: string, underline?: "none" | "always" | "hover"}> = (props) => {
+export const CreateLink: React.FC<{ linkPrefix: string, linkArg: string, label: string, showExternalIcon?: boolean, variant?: OverridableStringUnion<Variant | 'inherit', TypographyPropsVariantOverrides>, textColor?: string, underline?: "none" | "always" | "hover" }> = (props) => {
   const link = props.linkPrefix + props.linkArg
   return (
-    <Stack display={"inline"} alignItems={"center"} direction="row" gap={0.5}>
+    <>
       <Link variant={props.variant} href={link} rel="noopener noreferrer" target="_blank" color={props.textColor} underline={props.underline}>
         {props.label}
+        {props.showExternalIcon && <Launch sx={{ml: 0.5}} color="inherit" fontSize="inherit" />}
       </Link>
-      {props.showExternalIcon && <Launch fontSize="inherit" /> }
-    </Stack>
+    </>
   )
 }
 
