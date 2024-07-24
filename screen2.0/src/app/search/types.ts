@@ -66,13 +66,12 @@ export type FilterCriteria = {
   pELS: boolean
   PLS: boolean
   TF: boolean
-  linkedGenesNames: string[]
-  linkedGenesBiosamples: string[]
-  CTCFChIAPET: boolean
-  RNAPIIChIAPET: boolean
-  HiC: boolean
-  CRISPRiFlowFISH: boolean
-  eQTLs: boolean
+  linkedGeneName: string
+  CTCFChIAPET: {checked: boolean, biosample: string}
+  RNAPIIChIAPET: {checked: boolean, biosample: string}
+  HiC: {checked: boolean, biosample: string}
+  CRISPRiFlowFISH: {checked: boolean, biosample: string}
+  eQTLs: {checked: boolean, biosample: string}
 }
 
 export type CellTypeData = {

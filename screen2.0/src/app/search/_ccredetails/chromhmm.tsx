@@ -4,7 +4,7 @@ import { BIG_QUERY } from "../_gbview/queries"
 import React, { useMemo, useState, useRef, useCallback, useEffect } from "react"
 import EGeneTracks from "../_gbview/egenetracks"
 import { gql, useQuery } from "@apollo/client"
-import {  Tab, Tabs } from "@mui/material"
+import {  Tab, Tabs, CircularProgress, Box } from "@mui/material"
 import CytobandView, { GenomicRange } from "../_gbview/cytobandview"
 import { client } from "./client"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
@@ -246,6 +246,7 @@ export const ChromHMM = (props: { coordinates , assembly, accession }) =>{
             })}
           </GenomeBrowser>
         </Grid2>}
+        {loading && <Box display="flex" height="100%" width="100%" justifyContent="center" alignItems="center"> <CircularProgress></CircularProgress> </Box>}
         {page==1 && chromhmmdata && <Grid2 xs={12} lg={12}>
             <DataTable
             tableTitle={`ChromHMM states`}
@@ -266,6 +267,11 @@ export const ChromHMM = (props: { coordinates , assembly, accession }) =>{
                 value: (row) => <b style={{color: row.color}}>{row.name}</b>,
                 },
                 {
+                header: "Chromosome",
+                HeaderRender: () => <b>Chromosome</b>,
+                value: (row) => row.chr,
+                },
+                {
                 header: "Start",
                 HeaderRender: () => <b>Start</b>,
                 value: (row) => row.start,
@@ -279,7 +285,7 @@ export const ChromHMM = (props: { coordinates , assembly, accession }) =>{
             rows={chromhmmdata || []}
             sortColumn={0}
             sortDescending
-            itemsPerPage={5}
+            itemsPerPage={10}
             />
         </Grid2>}
       </Grid2>
