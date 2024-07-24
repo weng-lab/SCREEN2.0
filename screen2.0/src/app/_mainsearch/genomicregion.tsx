@@ -17,6 +17,7 @@ import { Search } from "@mui/icons-material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { parseGenomicRegion } from "./parsegenomicregion"
 import Link from "next/link"
+import Error from "next/error"
 
 //https://mui.com/material-ui/react-text-field/#integration-with-3rd-party-input-libraries
 //For formatting the start/end as it's being entered.
@@ -28,7 +29,6 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
   const [end, setEnd] = useState("")
   const [inputType, setInputType] = useState("UCSC")
   const [error, setError] = useState(false)
-  const [sepErr, setSepErr] = useState(false)
   const [sepErrStart, setSepErrStart] = useState(false)
   const [sepErrEnd, setSepErrEnd] = useState(false)
 
@@ -37,19 +37,97 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
     validateInput(event.target.value.toString())
   }
 
+  const chromosomeLengths: { [key: string]: { [key: string]: number } } = {
+    GRCh38: {
+      "1": 248956422,
+      "2": 242193529,
+      "3": 198295559,
+      "4": 190214555,
+      "5": 181538259,
+      "6": 170805979,
+      "7": 159345973,
+      "8": 145138636,
+      "9": 138394717,
+      "10": 133797422,
+      "11": 135086622,
+      "12": 133275309,
+      "13": 114364328,
+      "14": 107043718,
+      "15": 101991189,
+      "16": 90338345,
+      "17": 83257441,
+      "18": 80373285,
+      "19": 58617616,
+      "20": 64444167,
+      "21": 46709983,
+      "22": 50818468,
+      X: 156040895,
+      Y: 57227415,
+    },
+    mm10: {
+      "1": 195471971,
+      "2": 182113224,
+      "3": 160039680,
+      "4": 156508116,
+      "5": 151834684,
+      "6": 149736546,
+      "7": 145441459,
+      "8": 129401213,
+      "9": 124595110,
+      "10": 130694993,
+      "11": 122082543,
+      "12": 120129022,
+      "13": 120421639,
+      "14": 124902244,
+      "15": 104043685,
+      "16": 98207768,
+      "17": 94987271,
+      "18": 90702639,
+      "19": 61431566,
+      X: 171031299,
+      Y: 91744698,
+    },
+  }
+
+  useEffect(() => {
+    if (!value) {
+      setError(false)
+    }
+    if (!start) {
+      setSepErrStart(false)
+    }
+    if (!end) {
+      setSepErrEnd(false)
+    }
+  }, [value, start, end])
+
   const validateInput = (input: string) => {
     const expression = /^chr(\d+|X|Y):[0-9,]*-[0-9,]*$/
-    const match = input.match(/^chr(\d+|X|Y):/)
     let isValid = false
 
+    if (input.includes("\t")) {
+      const inputArr = input.split("\t")
+      const c = inputArr[0]
+      const s = inputArr[1].replace(/,/g, "")
+      const e = inputArr[2].replace(/,/g, "")
+      input = `${c}:${s}-${e}`
+    }
+
+    const match = input.match(/^chr(\d+|X|Y):/)
+
     if (expression.test(input)) {
-      const chromosome = match ? match[1] : null
+      const c = match ? match[1] : null
       const coordinates = input.split(":")[1]?.split("-")
       const startInt = coordinates?.[0] ? parseInt(coordinates[0].replace(/,/g, "")) : null
       const endInt = coordinates?.[1] ? parseInt(coordinates[1].replace(/,/g, "")) : null
 
-      if (chromosome && startInt !== null && endInt !== null) {
-        if (chromosome in chromosomeLengths && startInt < endInt && startInt > 0 && endInt <= chromosomeLengths[chromosome]) {
+      if (c && startInt !== null && endInt !== null) {
+        if (
+          c in chromosomeLengths[props.assembly] &&
+          startInt < endInt &&
+          startInt >= 0 &&
+          endInt <= chromosomeLengths[props.assembly][c]
+        ) {
           isValid = true
         }
       }
@@ -62,43 +140,21 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
     const startInt = start ? parseInt(start.replace(/,/g, "")) : null
     const endInt = end ? parseInt(end.replace(/,/g, "")) : null
 
-    if (startInt !== null && startInt < endInt && startInt > 0) {
+    if (startInt !== null && startInt < endInt && startInt >= 0) {
       setSepErrStart(false)
     } else {
       setSepErrStart(true)
     }
-    if (endInt !== null && startInt < endInt && chromosome in chromosomeLengths && endInt <= chromosomeLengths[chromosome]) {
+    if (
+      endInt !== null &&
+      startInt < endInt &&
+      chromosome in chromosomeLengths[props.assembly] &&
+      endInt <= chromosomeLengths[props.assembly][chromosome]
+    ) {
       setSepErrEnd(false)
     } else {
       setSepErrEnd(true)
     }
-  }
-
-  const chromosomeLengths: { [key: string]: number } = {
-    "1": 248956422,
-    "2": 242193529,
-    "3": 198295559,
-    "4": 190214555,
-    "5": 181538259,
-    "6": 170805979,
-    "7": 159345973,
-    "8": 145138636,
-    "9": 138394717,
-    "10": 133797422,
-    "11": 135086622,
-    "12": 133275309,
-    "13": 114364328,
-    "14": 107043718,
-    "15": 101991189,
-    "16": 90338345,
-    "17": 83257441,
-    "18": 80373285,
-    "19": 58617616,
-    "20": 64444167,
-    "21": 46709983,
-    "22": 50818468,
-    X: 156040895,
-    Y: 57227415,
   }
 
   //TODO: Better catch errors in input so that invalid values are not passed to api
@@ -165,7 +221,14 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
                   labelId="demo-simple-select-standard-label"
                   id="demo-simple-select-standard"
                   value={chromosome}
-                  onChange={(event: SelectChangeEvent) => setChromosome(event.target.value)}
+                  onChange={(event: SelectChangeEvent) => {
+                    setChromosome(event.target.value)
+                    validateSeparatedInput(start, end, event.target.value)
+                    if (!start && !end) {
+                      setSepErrEnd(false)
+                      setSepErrStart(false)
+                    }
+                  }}
                   label="Chr"
                   sx={
                     props.header
@@ -224,7 +287,6 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
                 }
                 size={props.header ? "small" : "medium"}
                 error={sepErrStart}
-                helperText={sepErrStart ? (props.header ? "" : "Invalid format or range.") : ""}
               />
               <Typography sx={{ justifySelf: "center" }}>–</Typography>
               <TextField
@@ -262,7 +324,6 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
                 }
                 size={props.header ? "small" : "medium"}
                 error={sepErrEnd}
-                helperText={sepErrEnd ? (props.header ? "" : "Invalid format or range.") : ""}
               />
             </>
           ) : (
@@ -279,8 +340,10 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
               value={value}
               onChange={handleChange}
               onKeyDown={(event) => {
-                if (event.key === "Enter" && !error) {
-                  window.open(url, "_self")
+                if (event.key === "Enter") {
+                  if (!error) {
+                    window.open(url, "_self")
+                  }
                 }
                 if (event.key === "Tab" && !value) {
                   const defaultGenomicRegion = `chr11:${(5205263).toLocaleString()}-${(5381894).toLocaleString()}`
@@ -306,7 +369,16 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
               helperText={error ? (props.header ? "" : "Invalid format or range.") : ""}
             />
           )}
-          <IconButton href={url} aria-label="Search" type="submit" sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
+          <IconButton
+            aria-label="Search"
+            type="submit"
+            sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}
+            onClick={() => {
+              if ((inputType !== "Separated" && !error) || (inputType === "Separated" && !sepErrStart && !sepErrEnd)) {
+                window.open(url, "_self")
+              }
+            }}
+          >
             <Search />
           </IconButton>
         </Stack>
