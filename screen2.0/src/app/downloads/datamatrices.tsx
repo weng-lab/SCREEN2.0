@@ -16,6 +16,7 @@ import {
   Typography,
   Box,
   Stack,
+  CircularProgress,
 } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { ArrowForward, Clear, Download, ExpandMore, Visibility } from "@mui/icons-material"
@@ -113,7 +114,7 @@ export function DataMatrices(props: TabPanelProps) {
     }
   })
   const [bounds, setBounds] = useState(undefined)
-  const [data, setData] = useState<{ ccREBiosampleQuery: { biosamples: BiosampleUMAP[] } }>(props.matrices != -1 ? props.matrices.data : {})
+  const [data, setData] = useState<{ ccREBiosampleQuery: { biosamples: BiosampleUMAP[] } }>(props.matrices != -1 ? props.matrices.data : {})  
   const [lifeStage, setLifeStage] = useState("all")
   const [colorBy, setColorBy] = useState("sampleType")
   const [tSelected, setTSelected] = useState(new Set([]))
@@ -129,10 +130,12 @@ export function DataMatrices(props: TabPanelProps) {
   const handleCloseModal = () => setOpen(false)
 
   const router = useRouter()
+  
+  useEffect(()=> setBiosamples([]) ,[selectedAssay])
 
   //Update data state variable whenever the data changes
   useEffect(() => setData(props.matrices != -1 ? props.matrices.data : {}), [props.matrices])
-
+  
   // Direct copy from old SCREEN
   const [scMap, scc] = useMemo(
     () =>
@@ -203,8 +206,7 @@ export function DataMatrices(props: TabPanelProps) {
           }))) ||
       [],
     [fData, scMap, colorBy, searched, oMap, xMin, xMax, yMin, yMax]
-  )
-
+  )  
   // Direct copy from old SCREEN
   const [legendEntries, height] = useMemo(() => {
     const g = colorBy === "sampleType" ? scMap : oMap
@@ -395,6 +397,7 @@ export function DataMatrices(props: TabPanelProps) {
               id="combo-box-demo"
               options={fData}
               renderInput={(params) => <TextField {...params} label={"Search for a Biosample"} />}
+              groupBy={(option) => option.ontology}
               getOptionLabel={(biosample: BiosampleUMAP) => biosample.displayname + " — Exp ID: " + biosample.experimentAccession}
               blurOnSelect
               onChange={(_, value: any) => setSearched(value)}
@@ -409,8 +412,8 @@ export function DataMatrices(props: TabPanelProps) {
                 sx={{ mb: 2 }}
                 onChange={(event: ChangeEvent<HTMLInputElement>, value: string) => setColorBy(value)}
               >
-                <FormControlLabel value="sampleType" control={<Radio />} label="Sample Type" />
-                <FormControlLabel value="ontology" control={<Radio />} label="Ontology" />
+                <FormControlLabel value="sampleType" control={<Radio />} label="Biosample type" />
+                <FormControlLabel value="ontology" control={<Radio />} label="Tissue/Organ" />
               </RadioGroup>
             </FormControl>
             <FormControl>
