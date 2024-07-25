@@ -18,13 +18,13 @@ import {
   Stack,
   CircularProgress,
 } from "@mui/material"
+import { useQuery } from "@apollo/client"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
-import { ArrowForward, Clear, Download, ExpandMore, Visibility } from "@mui/icons-material"
+import { ArrowForward, Download, ExpandMore, Visibility } from "@mui/icons-material"
 import Image from "next/image"
 import Human from "../../../public/Human2.png"
 import Mouse from "../../../public/Mouse2.png"
-import { useRouter } from "next/navigation"
-import { Chart, Scatter, Legend, Annotation, Range2D } from "jubilant-carnival"
+import { Chart, Scatter, Annotation, Range2D } from "jubilant-carnival"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import Config from "../../config.json"
 import { BiosampleUMAP } from "./types"
@@ -32,15 +32,9 @@ import { DNase_seq } from "../../common/lib/colors"
 import { H3K4me3 } from "../../common/lib/colors"
 import { H3K27ac } from "../../common/lib/colors"
 import { CA_CTCF } from "../../common/lib/colors"
-import { ApolloQueryResult } from "@apollo/client"
 import { tissueColors } from "../../common/lib/colors"
-
-//Need to type these
-interface TabPanelProps {
-  children?: React.ReactNode
-  matrices: -1 | ApolloQueryResult<any>
-  searchParams: { [key: string]: string | string[] | undefined }
-}
+import { client } from "../search/_ccredetails/client"
+import { UMAP_QUERY } from "./queries"
 
 type Selected = {
   assembly: "Human" | "Mouse"
@@ -57,13 +51,6 @@ function nearest5(x, low?) {
 function fiveRange(min, max) {
   const r = []
   for (let i = min; i <= max; i += 5) r.push(i)
-  return r
-}
-
-// Direct copy from old SCREEN
-function tenRange(min, max) {
-  const r = []
-  for (let i = min; i <= max; i += 10) r.push(i)
   return r
 }
 
@@ -99,22 +86,16 @@ const style = {
   boxShadow: 24,
 }
 
-export function DataMatrices(props: TabPanelProps) {
-  const [selectedAssay, setSelectedAssay] = useState<Selected>(() => {
-    if (
-      (props.searchParams.assembly === "Human" || props.searchParams.assembly === "Mouse") &&
-      (props.searchParams.assay === "DNase" ||
-        props.searchParams.assay === "H3K4me3" ||
-        props.searchParams.assay === "H3K27ac" ||
-        props.searchParams.assay === "CTCF")
-    ) {
-      return { assembly: props.searchParams.assembly, assay: props.searchParams.assay }
-    } else {
-      return { assembly: "Human", assay: "DNase" }
-    }
-  })
+export function DataMatrices() {
+  const [selectedAssay, setSelectedAssay] = useState<Selected>({assembly: "Human", assay: "DNase" })
+  
+  const {data: umapData, loading: umapLoading} = useQuery(UMAP_QUERY, {
+    variables: { assembly: selectedAssay.assembly==="Human" ? "grch38" :"mm10", assay: selectedAssay.assay, a:  selectedAssay.assay.toLowerCase() },
+    fetchPolicy: "cache-and-network",
+    nextFetchPolicy: "cache-first",
+    client,
+  })  
   const [bounds, setBounds] = useState(undefined)
-  const [data, setData] = useState<{ ccREBiosampleQuery: { biosamples: BiosampleUMAP[] } }>(props.matrices != -1 ? props.matrices.data : {})  
   const [lifeStage, setLifeStage] = useState("all")
   const [colorBy, setColorBy] = useState("sampleType")
   const [tSelected, setTSelected] = useState(new Set([]))
@@ -123,19 +104,16 @@ export function DataMatrices(props: TabPanelProps) {
   const [selectMode, setSelectMode] = useState<"select" | "zoom">("select")
   const [tooltip, setTooltip] = useState(-1)
 
+  const data = umapData && umapData.ccREBiosampleQuery.biosamples.length>0 ? umapData: {}  
+
   const [open, setOpen] = useState(false)
   const handleOpenModal = () => {
     biosamples.length !== 0 && setOpen(true)
   }
   const handleCloseModal = () => setOpen(false)
-
-  const router = useRouter()
   
   useEffect(()=> setBiosamples([]) ,[selectedAssay])
 
-  //Update data state variable whenever the data changes
-  useEffect(() => setData(props.matrices != -1 ? props.matrices.data : {}), [props.matrices])
-  
   // Direct copy from old SCREEN
   const [scMap, scc] = useMemo(
     () =>
@@ -256,10 +234,10 @@ export function DataMatrices(props: TabPanelProps) {
         variant="outlined"
         fullWidth
         onClick={() => {
-          if ((selectedAssay && selectedAssay.assembly !== variant.assembly) || selectedAssay.assay !== variant.assay) {
-            router.push(`/downloads?tab=2&assembly=${variant.assembly}&assay=${variant.assay}`)
+          //if ((selectedAssay && selectedAssay.assembly !== variant.assembly) || selectedAssay.assay !== variant.assay) {
+          //  router.push(`/downloads?tab=2&assembly=${variant.assembly}&assay=${variant.assay}`)
             setSelectedAssay(variant)
-          }
+          //}
         }}
         endIcon={
           selectedAssay && selectedAssay.assembly === variant.assembly && selectedAssay.assay === variant.assay ? <ArrowForward /> : null
@@ -442,9 +420,9 @@ export function DataMatrices(props: TabPanelProps) {
                 <FormControlLabel value="zoom" control={<Radio />} label="Zoom In" />
               </RadioGroup>
             </FormControl>
-            {bounds && <Button onClick={() => setBounds(undefined)}>Reset Zoom</Button>}
+            {bounds && <Button variant="contained" onClick={() => setBounds(undefined)}>Reset Zoom</Button>}
           </Grid2>
-          <Grid2 xs={8}>
+          <Grid2 xs={8} position={"relative"} padding={2}>
             <Chart
               domain={{ x: { start: xMin, end: xMax }, y: { start: yMin, end: yMax } }}
               innerSize={{ width: 1000, height: 1000 }}
@@ -499,6 +477,23 @@ export function DataMatrices(props: TabPanelProps) {
                 })}
               </AccordionDetails>
             </Accordion>
+            {umapLoading &&
+              <Box
+                  position={"absolute"}
+                  top={0}
+                  left={0}
+                  width={'100%'}
+                  height={'100%'}
+                  display={'flex'}
+                  justifyContent={"center"}
+                  alignItems={"center"}
+                  sx={{
+                      backdropFilter: 'blur(3px)'
+                  }}
+              >
+                  <CircularProgress />
+              </Box>
+           }
           </Grid2>
         </Grid2>
       </Grid2>
