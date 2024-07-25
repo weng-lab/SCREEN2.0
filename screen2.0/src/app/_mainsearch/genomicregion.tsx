@@ -101,6 +101,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
     }
   }, [value, start, end])
 
+  // for chr:start-end
   const validateInput = (input: string) => {
     const expression = /^chr(\d+|X|Y):[0-9,]*-[0-9,]*$/
     let isValid = false
@@ -130,7 +131,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
 
     setError(!isValid)
   }
-
+  // for individual input
   const validateSeparatedInput = (start: string, end: string, chromosome: string) => {
     const startInt = start ? parseInt(start.replace(/,/g, "")) : null
     const endInt = end ? parseInt(end.replace(/,/g, "")) : null
@@ -151,6 +152,17 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
       setSepErrEnd(true)
     }
   }
+
+  // revalidate on assembly change
+  useEffect(() => {
+    if (value) {
+      validateInput(value)
+    }
+    if (chromosome && start && end) {
+      validateSeparatedInput(start, end, chromosome)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chromosome, end, props.assembly, start, value])
 
   //TODO: Better catch errors in input so that invalid values are not passed to api
   function generateURL(
