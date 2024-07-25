@@ -122,12 +122,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
       const endInt = coordinates?.[1] ? parseInt(coordinates[1].replace(/,/g, "")) : null
 
       if (c && startInt !== null && endInt !== null) {
-        if (
-          c in chromosomeLengths[props.assembly] &&
-          startInt < endInt &&
-          startInt >= 0 &&
-          endInt <= chromosomeLengths[props.assembly][c]
-        ) {
+        if (c in chromosomeLengths[props.assembly] && startInt < endInt && startInt > 0 && endInt <= chromosomeLengths[props.assembly][c]) {
           isValid = true
         }
       }
@@ -140,7 +135,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
     const startInt = start ? parseInt(start.replace(/,/g, "")) : null
     const endInt = end ? parseInt(end.replace(/,/g, "")) : null
 
-    if (startInt !== null && startInt < endInt && startInt >= 0) {
+    if (startInt !== null && startInt < endInt && startInt > 0) {
       setSepErrStart(false)
     } else {
       setSepErrStart(true)
