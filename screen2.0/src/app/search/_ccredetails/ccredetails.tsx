@@ -8,7 +8,7 @@ import { LinkedGenes } from "./linkedgenes"
 import { Ortholog } from "./linkedccres"
 import { TfIntersection } from "./tfintersection"
 import { FunctionData } from "./functionaldata"
-import { ChromHMM } from "./chromhmm";
+import { ChromHMM } from "./chromhmm"
 import Rampage from "./rampage"
 import { GeneExpression } from "./geneexpression"
 import { TfSequenceFeatures } from "../_gbview/tfsequencefeatures"
@@ -18,6 +18,7 @@ import { BIOSAMPLE_Data } from "../../../common/lib/queries"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import { NEARBY_AND_LINKED_GENES } from "./queries"
 import { calcDistToTSS } from "./utils"
+import GraphComponent from "./graphcomponent"
 
 //Passing these props through this file could be done with context to reduce prop drilling
 type CcreDetailsProps = {
@@ -59,7 +60,7 @@ type NearbyGeneInfo = {
   name: string
   id: string
   gene_type: string
-  strand: '+' | '-'
+  strand: "+" | "-"
   coordinates: Coordinates
   transcripts: {
     id: string
@@ -67,7 +68,7 @@ type NearbyGeneInfo = {
   }[]
 }
 
-export type NearbyGeneInfoWithDistance = NearbyGeneInfo & {distanceToTSS: number}
+export type NearbyGeneInfoWithDistance = NearbyGeneInfo & { distanceToTSS: number }
 
 export type NearbyAndLinked = {
   nearbyGenes: NearbyGeneInfo[]
@@ -89,16 +90,19 @@ export type NearbyAndLinkedVariables = {
 }
 
 export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, biosampleData, assembly, page, handleOpencCRE }) => {
-
   //Fetch linked genes and genes within a 2M bp window around cCRE
-  const { loading: loadingLinkedGenes, data: dataNearbyAndLinked, error: errorNearbyAndLinked } = useQuery<NearbyAndLinked, NearbyAndLinkedVariables>(NEARBY_AND_LINKED_GENES, {
+  const {
+    loading: loadingLinkedGenes,
+    data: dataNearbyAndLinked,
+    error: errorNearbyAndLinked,
+  } = useQuery<NearbyAndLinked, NearbyAndLinkedVariables>(NEARBY_AND_LINKED_GENES, {
     variables: {
       assembly: assembly.toLowerCase(),
       accessions: [accession],
       geneSearchChrom: region.chrom,
       geneSearchStart: region.start - 1000000,
       geneSearchEnd: region.end + 1000000,
-      geneVersion: assembly.toLowerCase() === "grch38" ? 40 : 25
+      geneVersion: assembly.toLowerCase() === "grch38" ? 40 : 25,
     },
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
@@ -106,29 +110,36 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
 
   //Find distance to nearest TSS for each nearby gene, and only keep the closest 3
   const nearest3AndLinkedGenes: NearbyWithDistanceAndLinked = useMemo(() => {
-    return dataNearbyAndLinked ? {
-      //remove trailing space in return data
-      linkedGenes: [...dataNearbyAndLinked.linkedGenes.map((g) => { return { ...g, gene: g.gene.split(' ')[0] } })], 
-      nearbyGenes: [...dataNearbyAndLinked.nearbyGenes.map((gene) => {
-        return {
-          ...gene,
-          distanceToTSS: calcDistToTSS(region, gene.transcripts, gene.strand)
+    return dataNearbyAndLinked
+      ? {
+          //remove trailing space in return data
+          linkedGenes: [
+            ...dataNearbyAndLinked.linkedGenes.map((g) => {
+              return { ...g, gene: g.gene.split(" ")[0] }
+            }),
+          ],
+          nearbyGenes: [
+            ...dataNearbyAndLinked.nearbyGenes.map((gene) => {
+              return {
+                ...gene,
+                distanceToTSS: calcDistToTSS(region, gene.transcripts, gene.strand),
+              }
+            }),
+          ]
+            .sort((a, b) => a.distanceToTSS - b.distanceToTSS)
+            .slice(0, 3),
         }
-      })].sort((a, b) => a.distanceToTSS - b.distanceToTSS).slice(0, 3)
-    } : null
+      : null
   }, [dataNearbyAndLinked, region])
 
   //Used to pass genes and their linking method to Gene Expression and RAMPAGE pages
-  const uniqueGenes: { name: string; linkedBy: string[]; }[] = useMemo(() => {
-    const uniqueGenes: { name: string; linkedBy: string[]; }[] = [];
+  const uniqueGenes: { name: string; linkedBy: string[] }[] = useMemo(() => {
+    const uniqueGenes: { name: string; linkedBy: string[] }[] = []
     if (nearest3AndLinkedGenes) {
-      for (const gene of [
-        ...nearest3AndLinkedGenes.nearbyGenes,
-        ...nearest3AndLinkedGenes.linkedGenes
-      ]) {
-        const isNearbyGene: boolean = Object.hasOwn(gene, 'distanceToTSS')
-        let geneName: string;
-        let methodToPush: string;
+      for (const gene of [...nearest3AndLinkedGenes.nearbyGenes, ...nearest3AndLinkedGenes.linkedGenes]) {
+        const isNearbyGene: boolean = Object.hasOwn(gene, "distanceToTSS")
+        let geneName: string
+        let methodToPush: string
         if (isNearbyGene) {
           geneName = (gene as NearbyGeneInfoWithDistance).name
           methodToPush = `Distance to TSS - ${(gene as NearbyGeneInfoWithDistance).distanceToTSS.toLocaleString()} bp`
@@ -139,7 +150,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
         const existingGeneEntry = uniqueGenes.find((uniqueGene) => uniqueGene.name === geneName)
         if (existingGeneEntry) {
           //add linking method if duplicate doesn't exist
-          !existingGeneEntry.linkedBy.find(method => method === methodToPush) && existingGeneEntry.linkedBy.push(methodToPush)
+          !existingGeneEntry.linkedBy.find((method) => method === methodToPush) && existingGeneEntry.linkedBy.push(methodToPush)
         } else uniqueGenes.push({ name: geneName, linkedBy: [methodToPush] })
       }
     }
@@ -153,18 +164,16 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
         <Typography variant="h6">{`${region.chrom}:${region.start.toLocaleString("en-US")}-${region.end.toLocaleString("en-US")}`}</Typography>
       </Stack>
       <Divider sx={{ mb: 2 }} />
-      {page === 0 &&
-        <InSpecificBiosamples accession={accession} assembly={assembly} />
-      }
-      {(page === 1 && assembly !== "mm10") &&
-        (loadingLinkedGenes ?
-        <CircularProgress />
-        :
-        errorNearbyAndLinked ?
+      {page === 0 && <InSpecificBiosamples accession={accession} assembly={assembly} />}
+      {page === 1 &&
+        assembly !== "mm10" &&
+        (loadingLinkedGenes ? (
+          <CircularProgress />
+        ) : errorNearbyAndLinked ? (
           <Typography>{`Issue fetching Linked Genes for ${accession}.`}</Typography>
-          :
-          <LinkedGenes linkedGenes={nearest3AndLinkedGenes?.linkedGenes || []} />)
-      }
+        ) : (
+          <LinkedGenes linkedGenes={nearest3AndLinkedGenes?.linkedGenes || []} />
+        ))}
       {page === 2 && (
         <NearByGenomicFeatures
           accession={accession}
@@ -177,22 +186,23 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
           handleOpencCRE={handleOpencCRE}
         />
       )}
-      {page === 3 &&
-        <Ortholog accession={accession} assembly={assembly} />
-      }
-      {(page === 4) &&
-        (loadingLinkedGenes ?
-        <CircularProgress />
-        :
-        errorNearbyAndLinked ?
-          <Typography>{`Issue fetching Linked Genes for ${accession}. Please use our Gene Expression Applet`}</Typography> 
-          :
-          <GeneExpression assembly={assembly} genes={uniqueGenes || []} biosampleData={biosampleData} />)
-      }
-      {page === 5 &&
-        <FunctionData accession={accession} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }} assembly={assembly} />
-      }
-      {page === 6 &&
+      {page === 3 && <Ortholog accession={accession} assembly={assembly} />}
+      {page === 4 &&
+        (loadingLinkedGenes ? (
+          <CircularProgress />
+        ) : errorNearbyAndLinked ? (
+          <Typography>{`Issue fetching Linked Genes for ${accession}. Please use our Gene Expression Applet`}</Typography>
+        ) : (
+          <GeneExpression assembly={assembly} genes={uniqueGenes || []} biosampleData={biosampleData} />
+        ))}
+      {page === 5 && (
+        <FunctionData
+          accession={accession}
+          coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }}
+          assembly={assembly}
+        />
+      )}
+      {page === 6 && (
         <>
           <TfSequenceFeatures assembly={assembly} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }} />
           <TfIntersection
@@ -204,31 +214,37 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
             }}
           />
         </>
-      }
-      {page === 7 &&
+      )}
+      {page === 7 && (
         <ConfigureGBTab
           biosampleData={biosampleData}
           coordinates={{
             assembly: assembly,
             chromosome: region.chrom,
             start: region.start,
-            end: region.end
+            end: region.end,
           }}
           accession={accession}
         />
-      }
-      {page === 9 && assembly !== "mm10" &&
-        <ChromHMM accession={accession} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }} assembly={assembly} />
-      }
-      {(page === 8 && assembly !== "mm10") &&
-      (!dataNearbyAndLinked || loadingLinkedGenes ?
-        <CircularProgress />
-        :
-        errorNearbyAndLinked ?
-          <Typography>{`Issue fetching Linked Genes for ${accession}.`}</Typography> 
-          :
-          <Rampage genes={uniqueGenes.length > 0 ? uniqueGenes : []} biosampleData={biosampleData} />)
-      }
+      )}
+      {page === 9 && assembly !== "mm10" && (
+        <ChromHMM
+          accession={accession}
+          coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }}
+          assembly={assembly}
+        />
+      )}
+      {page === 8 &&
+        assembly !== "mm10" &&
+        (!dataNearbyAndLinked || loadingLinkedGenes ? (
+          <CircularProgress />
+        ) : errorNearbyAndLinked ? (
+          <Typography>{`Issue fetching Linked Genes for ${accession}.`}</Typography>
+        ) : (
+          <Rampage genes={uniqueGenes.length > 0 ? uniqueGenes : []} biosampleData={biosampleData} />
+        ))}
+
+      {page === 10 && assembly !== "mm10" && <GraphComponent accession={accession} />}
     </>
   )
 }
