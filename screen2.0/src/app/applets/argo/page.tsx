@@ -1,8 +1,9 @@
 "use client"
 import React, { startTransition, useCallback, useEffect, JSX } from "react"
 import {useState } from "react"
-import { Stack, Typography, Box, TextField, Button, Alert, FormGroup, Checkbox, FormControlLabel, CircularProgress } from "@mui/material"
+import { Stack, Typography, Box, TextField, Button, Alert, FormGroup, Checkbox, FormControlLabel, CircularProgress, Paper, IconButton, Tooltip } from "@mui/material"
 import MenuItem from "@mui/material/MenuItem"
+import ClearIcon from '@mui/icons-material/Clear';
 import FormControl from "@mui/material/FormControl"
 import Select, { SelectChangeEvent } from "@mui/material/Select"
 import BedUpload from "../../_mainsearch/bedupload"
@@ -257,7 +258,17 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
             </FormGroup>
         </Stack>
         <Stack direction={"row"} spacing={1}>
-            <Box width={"30%"} height={"100%"}>
+            <Box width={"30%"}>
+                {selectedBiosample.length > 0 &&
+                    <Paper elevation={0}>
+                        <IconButton size="small" sx={{ p: 0 }} onClick={(event) => { setSelectedBiosample([]); event.stopPropagation() }}>
+                            <Tooltip placement="top" title={"Clear Biosample"}>
+                                <ClearIcon />
+                            </Tooltip>
+                            <Typography>{selectedBiosample[0].ontology.charAt(0).toUpperCase() + selectedBiosample[0].ontology.slice(1) + " - " + selectedBiosample[0].displayname}</Typography>
+                        </IconButton>
+                    </Paper>
+                }
                 <BiosampleTables
                     biosampleData={biosampleData}
                     selectedBiosamples={selectedBiosample}
