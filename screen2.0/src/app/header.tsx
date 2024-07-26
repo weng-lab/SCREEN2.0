@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
-import { AppBar, Box, Toolbar, IconButton, Typography, Menu, Container, Button, MenuItem, Paper } from "@mui/material"
+import { AppBar, Box, Toolbar, IconButton, Typography, Menu, Container, Button, MenuItem, Paper, ListSubheader } from "@mui/material"
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown"
 import MenuIcon from "@mui/icons-material/Menu"
 import Link from "next/link"
@@ -73,6 +73,25 @@ function ResponsiveAppBar() {
       setAnchorElNav_Dropdown0(null)
     } else if (dropdownID == "1") {
       setAnchorElNav_Dropdown1(null)
+    }
+  }
+
+  function menuItem(page) {
+    return (
+      <MenuItem key={page.pageName} onClick={handleCloseNavMenu_Hamburger}>
+        <a href={page.link}>
+          <Typography textAlign="center" textTransform="none">{page.pageName}</Typography>
+        </a>
+      </MenuItem>
+    )
+  }
+
+  function handleMenuPagesMapFunc(page) {
+    if (page.subPages) {
+      return ([menuItem(page), <ListSubheader key={"random"}>{page.subPages.map(menuItem)}</ListSubheader>])
+    }
+    else {
+      return (menuItem(page))
     }
   }
 
@@ -179,18 +198,7 @@ function ResponsiveAppBar() {
                   display: { xs: "block", lg: "none" },
                 }}
               >
-                <MenuItem onClick={handleCloseNavMenu_Hamburger}>
-                  <Typography component="a" href={"/"} textAlign="center">
-                    Home
-                  </Typography>
-                </MenuItem>
-                {pageLinks.map((page) => (
-                  <MenuItem key={page.pageName} onClick={handleCloseNavMenu_Hamburger}>
-                    <a href={page.link}>
-                      <Typography textAlign="center" textTransform="none">{page.pageName}</Typography>
-                    </a>
-                  </MenuItem>
-                ))}
+                {pageLinks.map(handleMenuPagesMapFunc)}
               </Menu>
             </Box>
           </Toolbar>
