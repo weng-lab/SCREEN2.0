@@ -23,32 +23,6 @@ export interface Node {
   }
 }
 
-export interface GraphProps {
-  data: {
-    edge: Edge[]
-    node: Node[]
-    centered: { id: string }
-  }
-  id: number | string
-  title?: string
-  width?: string
-  height?: string
-  scale?: (n: number) => number
-  getLabel?: (node: Node) => string
-  getColor?: (node: Node | Edge) => string
-  legendToggle?: (node: Node | Edge) => string
-  legendNodeLabel?: string
-  legendEdgeLabel?: string
-  order?: string[]
-}
-
-interface GraphPropsWithData {
-  accession: string
-  celltype: string
-  degreeOfSeparation: number
-  id: number
-}
-
 type NewEdge = {
   source: string
   destination: string
