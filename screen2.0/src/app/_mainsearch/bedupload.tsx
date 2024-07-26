@@ -11,10 +11,10 @@ import { client } from "../search/_ccredetails/client"
 import { useLazyQuery } from "@apollo/client"
 import { BED_INTERSECT_QUERY } from "./queries"
 
-const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean, appletCallback?: Function }) => {
+const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean, appletCallback?: Function, appletFiles?: File[] }) => {
   const router = useRouter()
 
-  const [files, setFiles] = useState<File[]>([])
+  const [files, setFiles] = useState<File[]>((props.appletFiles && props.appletFiles.length > 0) ? props.appletFiles: [])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState([false, ""]) // status, message
   const [getOutput] = useLazyQuery(BED_INTERSECT_QUERY)

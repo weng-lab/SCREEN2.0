@@ -1,19 +1,20 @@
 "use client"
 import React, { startTransition, useCallback, useEffect, JSX } from "react"
 import {useState } from "react"
-import { Stack, Typography, Box, TextField, Button, Alert, FormGroup, Checkbox, FormControlLabel } from "@mui/material"
+import { Stack, Typography, Box, TextField, Button, Alert, FormGroup, Checkbox, FormControlLabel, CircularProgress } from "@mui/material"
 import MenuItem from "@mui/material/MenuItem"
 import FormControl from "@mui/material/FormControl"
 import Select, { SelectChangeEvent } from "@mui/material/Select"
 import BedUpload from "../../_mainsearch/bedupload"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { Z_SCORES_QUERY } from "./queries"
-import { ApolloQueryResult, useQuery } from "@apollo/client"
+import { ApolloQueryResult, useQuery, useLazyQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
 import { ZScores } from "./types"
 import BiosampleTables from "../../search/biosampletables"
 import { BIOSAMPLE_Data, biosampleQuery } from "../../../common/lib/queries"
 import { RegistryBiosample } from "../../search/types"
+
 
 export default function Argo(props: {header?: false, optionalFunction?: Function}) {
     const [assembly, setAssembly] = useState<"GRCh38" | "mm10">("GRCh38")
@@ -23,6 +24,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     const [scores, setScores] = useState<ZScores[]>([])
     const [key, setKey] = useState<string>()
     const [columns, setColumns] = useState([])
+    const [textUploaded, setTextUploaded] = useState<File[]>([])
     const [biosampleData, setBiosampleData] = useState<ApolloQueryResult<BIOSAMPLE_Data>>(null)
     const [selectedBiosample, setSelectedBiosample] = useState<RegistryBiosample[]>([])
     const [availableScores, setAvailableScores] = useState({"dnase": true, "h3k4me3": true, "h3k27ac": true, "ctcf": true, "atac": true})
@@ -82,10 +84,11 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
             })
             setAvailableScores(availableScoresCopy)
             setScores(evaluateRankings(data, availableScoresCopy))
-            setKey(scoresToInclude.join(' '))
+            let random_string = Math.random().toString(36).slice(2, 10)
             setColumns(allColumns.filter(
                 (e) => scoresToInclude.indexOf(e.header.toLowerCase().split(' ')[0]) !== -1
             ))
+            setKey(random_string)
           },
           onError(error) {
               console.error(error.message)
@@ -149,10 +152,24 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         let scoresToInclude = Array.from(document.getElementsByName("scoresToInclude"))
         scoresToInclude = scoresToInclude.filter((e) => !e.disabled && e.checked).map((e) => e.value)
         setScores(calculateAggregateRank([...scores], scoresToInclude))
-        setKey(scoresToInclude.join(' '))
         setColumns(allColumns.filter(
             (e) => scoresToInclude.indexOf(e.header.toLowerCase().split(' ')[0]) !== -1
         ))
+        setKey(scoresToInclude.join(' '))
+    }
+
+    function handleTextUpload(event) {
+        let uploadedData = event.get("textUploadFile")
+        let random_string = Math.random().toString(36).slice(2, 10)
+        let temp_file = new File([uploadedData], `${random_string}.bed`)
+        setKey(random_string)
+        setTextUploaded([...[temp_file]])
+    }
+
+    function appletCallBack(data) {
+        setSelectedBiosample([])
+        setDataAPI(data)
+        setScores([])
     }
 
     return (
@@ -167,17 +184,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
             <Stack direction={"row"} alignItems={"center"} flexWrap={"wrap"}>
                 {!props.header && <Typography variant={"h5"} mr={1} alignSelf="center">Upload Through</Typography>}
                 <Stack direction={"row"} alignItems={"center"} flexWrap={props.header ? "nowrap" : "wrap"}>
-                    <FormControl variant="standard" size="medium" sx={
-                        props.header ?
-                        {
-                            '& .MuiInputBase-root': { color: "white" },
-                            '& .MuiInputBase-root::before': { borderColor: "white" },
-                            '&:hover .MuiInputBase-root::before': { borderColor: "white" },
-                            '& .MuiInputBase-root::after': { borderColor: "white" },
-                            '& .MuiSvgIcon-root': { fill: "white" }
-                        }
-                        :
-                        { '& .MuiInputBase-root': { fontSize: '1.5rem' } }}>
+                    <FormControl variant="standard" size="medium" sx={{ '& .MuiInputBase-root': { fontSize: '1.5rem' } }}>
                         <Select
                         fullWidth
                         id="select-search"
@@ -191,17 +198,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                         </Select>
                     </FormControl>
                     <Typography variant={props.header ? "body1" : "h5"} ml={1} mr={1} alignSelf="center">in</Typography>
-                    <FormControl variant="standard" size="medium" sx={
-                        props.header ?
-                        {
-                            '& .MuiInputBase-root': { color: "white" },
-                            '& .MuiInputBase-root::before': { borderColor: "white" },
-                            '&:hover .MuiInputBase-root::before': { borderColor: "white" },
-                            '& .MuiInputBase-root::after': { borderColor: "white" },
-                            '& .MuiSvgIcon-root': { fill: "white" }
-                        }
-                        :
-                        { '& .MuiInputBase-root': { fontSize: '1.5rem' } }}>
+                    <FormControl variant="standard" size="medium" sx={{ '& .MuiInputBase-root': { fontSize: '1.5rem' } }}>
                         <Select
                         fullWidth
                         id="select-search"
@@ -220,17 +217,28 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                 {selectedSearch === "BED File" ? (
                         <BedUpload
                             assembly = {assembly}
-                            header={props.header}
-                            appletCallback={setDataAPI}
+                            appletCallback={appletCallBack}
                         />
                 ):
                 <FormControl fullWidth>
-                    <TextField multiline fullWidth rows={5} 
-                    placeholder="Copy and paste your data from Excel here"
-                    ></TextField>
-                    <Button type="submit" size="medium" variant="outlined"
-                    >Submit</Button>
+                    <form action={handleTextUpload}>
+                        <TextField name="textUploadFile" multiline fullWidth rows={5} 
+                        placeholder="Copy and paste your data from Excel here"
+                        ></TextField>
+                        <Button type="submit" size="medium" variant="outlined">Submit</Button>
+                    </form>
+                    <Box id="hidden_bed_upload">
+                    { textUploaded.length > 0 && 
+                        <BedUpload
+                            key={key}
+                            assembly = {assembly}
+                            appletFiles={textUploaded}
+                            appletCallback={appletCallBack}
+                        />
+                    }
+                    </Box>
                 </FormControl>
+                
                 }   
             </Box>
     {scores.length > 0 && 
@@ -261,6 +269,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                 />
             </Box>
             <Box width={"70%"}>
+                {loading_scores ? <CircularProgress/>:
                 <DataTable
                 key={key}
                 columns={[{ header: "Accessions", value: (row) => row.accession },
@@ -272,6 +281,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                 itemsPerPage={7}
                 >
                 </DataTable>
+                } 
             </Box>
             
         </Stack>
