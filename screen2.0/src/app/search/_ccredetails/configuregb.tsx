@@ -34,7 +34,7 @@ const ConfigureGenomeBrowser = (props: {
   handleClose?: () => void
 }) => {
   const [currentURLs, setCurrentURLs] = useState<{urlUCSC: string, urlTrackhub: string, biosamples: RegistryBiosamplePlusRNA[]}>(null)
-  const [open, setOpen] = useState(false);
+  const [openCopyConfirm, setOpenCopyConfirm] = useState(false);
   const [selectedBiosamples, setSelectedBiosamples] = useState<RegistryBiosamplePlusRNA[]>([])
 
   const handleClose = (event: React.SyntheticEvent | Event, reason?: string) => {
@@ -42,7 +42,7 @@ const ConfigureGenomeBrowser = (props: {
       return;
     }
 
-    setOpen(false);
+    setOpenCopyConfirm(false);
   };
 
   const createTrackHub = async (value) => {
@@ -105,14 +105,12 @@ const ConfigureGenomeBrowser = (props: {
     }  
   }
 
-  const updateClipboard = (newClip: string) => { 
-    //In safari this is getting blocked on the first click
-    navigator.clipboard.writeText(newClip) 
-  }
-
   const handleCopyToClipboard = async () => {
     const url = await getURL("trackhub")
-    updateClipboard(url)
+    //setTimeout used as quick fix to make this work in safari, https://stackoverflow.com/questions/62327358/javascript-clipboard-api-safari-ios-notallowederror-message
+    setTimeout(() => {
+      navigator.clipboard.writeText(url).then(() => setOpenCopyConfirm(true))
+    }, 0)
   }
 
   return (
@@ -159,14 +157,18 @@ const ConfigureGenomeBrowser = (props: {
       </DialogContent>
       <DialogActions sx={!props.handleClose && { position: "fixed", bottom: 15, right: 15, zIndex: 1 }}>
         <Tooltip placement="top" arrow title="Copy link to Trackhub">
-          <IconButton disabled={selectedBiosamples.length === 0} onClick={handleCopyToClipboard}>
+          <span>
+            <IconButton disabled={selectedBiosamples.length === 0} onClick={handleCopyToClipboard}>
             <ContentCopyIcon />
           </IconButton>
+          </span>
         </Tooltip>
         <Tooltip placement="top" arrow title="Download Trackhub (.txt)" sx={{mr: 1}}>
-          <IconButton disabled={selectedBiosamples.length === 0} onClick={async () => handleDownload(await getURL("trackhub"))}>
+          <span>
+            <IconButton disabled={selectedBiosamples.length === 0} onClick={async () => handleDownload(await getURL("trackhub"))}>
             <DownloadIcon />
           </IconButton>
+          </span>
         </Tooltip>
         <Button
           sx={{textTransform: "none"}}
@@ -180,7 +182,7 @@ const ConfigureGenomeBrowser = (props: {
       </DialogActions>
       <Snackbar
         sx={{ "& .MuiSnackbarContent-message": {margin: "auto"}}}
-        open={open}
+        open={openCopyConfirm}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         autoHideDuration={2000}
         onClose={handleClose}
