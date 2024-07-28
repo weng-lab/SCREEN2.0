@@ -369,7 +369,6 @@ export function MainResultsFilters(
       case "CRISPRi-FlowFISH": validOptions = validBiosamples.CRISPRiFlowFISH; break;
       case "eQTLs": validOptions = validBiosamples.eQTLs; break;
     }
-    console.log(validOptions)
 
     const allOtherOptions: { name: string; count: number; }[] =
       dataLGBiosamples?.linkedGenesCelltypes.map(x => { return { name: x.displayname, count: 0 } })

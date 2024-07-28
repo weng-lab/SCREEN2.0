@@ -32,3 +32,24 @@ export const GENE_QUERY = gql`
      }
    }
  } ` 
+
+export type GET_ORTHOLOG_VARS = {
+  name: string[],
+  assembly: 'grch38' | 'mm10'
+}
+
+export type GET_ORTHOLOG_DATA = {
+  geneOrthologQuery: {
+    humanGene: string,
+    mouseGene: string
+  }[]
+}
+
+export const GET_ORTHOLOG = gql`
+  query geneOrthologQuery($name: [String]!, $assembly: String!) {
+    geneOrthologQuery: geneorthologQuery(name: $name, assembly: $assembly) {
+      humanGene: external_gene_name
+      mouseGene: mmusculus_homolog_associated_gene_name
+    }
+  }
+`

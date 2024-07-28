@@ -55,7 +55,6 @@ export default function Home() {
         </Grid2>
         <Grid2 xs={12} lg={6}>
           <Image src={homeImage} alt={"SCREEN home image"} />
-          <Link href={{href: '/search', query: ['Accession1', 'Accession2', 'Accession3'].join()}}>This is a link to search</Link>
         </Grid2>
       </Grid2>
     </main>
