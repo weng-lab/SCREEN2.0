@@ -1,15 +1,11 @@
+/* eslint-disable @next/next/no-img-element */
 "use client"
 
 import React, { useState } from "react"
-import { AppBar, Box, Toolbar, IconButton, Typography, Menu, Container, Button, MenuItem, Paper, ListSubheader } from "@mui/material"
+import { AppBar, Box, Toolbar, IconButton, Typography, Menu, Container, Button, MenuItem, Paper } from "@mui/material"
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown"
 import MenuIcon from "@mui/icons-material/Menu"
-import Link from "next/link"
-import Image from "next/image"
-import screenIcon from "../../public/screenLogo.png"
 import { MainSearch } from "./_mainsearch/mainsearch"
-import { A } from "logots-react"
-
 
 /*  
   Links for the AppBar. If adding another page with subpages, you need to add another 
@@ -76,19 +72,23 @@ function ResponsiveAppBar() {
     }
   }
 
-  function menuItem(page) {
-    return (
-      <MenuItem key={page.pageName} onClick={handleCloseNavMenu_Hamburger}>
-        <a href={page.link}>
-          <Typography textAlign="center" textTransform="none">{page.pageName}</Typography>
-        </a>
-      </MenuItem>
-    )
-  }
+  const menuItem = (page, isSubPage = false) =>
+    <MenuItem key={page.pageName} onClick={handleCloseNavMenu_Hamburger} >
+      <Typography
+        pl={isSubPage && 2}
+        color={isSubPage && "rgba(0, 0, 0, 0.6)"}
+        component='a'
+        href={page.link}
+        textAlign="center"
+        textTransform="none">
+        {page.pageName}
+      </Typography>
+    </MenuItem>
+  
 
   function handleMenuPagesMapFunc(page) {
     if (page.subPages) {
-      return ([menuItem(page), <ListSubheader key={"random"}>{page.subPages.map(menuItem)}</ListSubheader>])
+      return ([menuItem(page), page.subPages.map(x => menuItem(x, true))])
     }
     else {
       return (menuItem(page))
@@ -103,7 +103,7 @@ function ResponsiveAppBar() {
             {/* Logo, and desktop navigation */}
             <Box display='flex' flexGrow={1}>
               <a href={"/"}>
-                <Image src={screenIcon} alt="SCREEN Icon" height={40} width={90} style={{marginRight: '20px'}}/>
+                <img src={'/screenLogo.png'} alt="SCREEN Icon" height={40} width={90} style={{marginRight: '20px'}}/>
               </a>
               {/* Main navigation items for desktop, hide on small screen size */}
               <Box sx={{ display: { xs: "none", lg: "flex" }, alignItems: 'center' }}>

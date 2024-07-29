@@ -142,12 +142,12 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const router = useRouter()
   const basePathname = usePathname()
   const [open, setOpen] = useState(true);
-  const [page, setPage] = useState(searchParams.page ? Number(searchParams.page) : 0)
+  const [page, setPage] = useState<number>(searchParams.page ? +searchParams.page : 0)
   const [detailsPage, setDetailsPage] = useState(0)
   const [opencCREs, setOpencCREs] = useState<{
     ID: string,
     region: { start: number, end: number, chrom: string }
-  }[]>([])
+  }[]>(searchParams.accessions ? searchParams.accessions.split(',').map(x => {return {ID: x, region: null}}) : [])
   const [biosampleData, setBiosampleData] = useState<ApolloQueryResult<BIOSAMPLE_Data>>(null)
   const [mainQueryData, setMainQueryData] = useState<MainQueryData>(null)
   //potential performance improvement if I make an initializer function vs passing param here.
