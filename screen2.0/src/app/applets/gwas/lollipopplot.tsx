@@ -38,6 +38,7 @@ export type EnrichmentLollipopPlot = {
  */
 export type EnrichmentData = {
   celltype: string
+  ontology: string
   displayname: string
   fdr: number
   pval: number
@@ -49,9 +50,7 @@ export type EnrichmentData = {
 /**
  * 
  * @todo
- * - Legend for FDR radius size
  * - Tissue Categories? How to handle with various sorting modes?
- * - More elegant scrolling container
  */
 
 export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
@@ -155,6 +154,7 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
           id="shade-top"
           style={{
             position: 'absolute',
+            display: 'none',
             left: 0,
             right: 0,
             height: '80px',
@@ -271,6 +271,9 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
         >
           <div>
             <Typography>{tooltipData.displayname}</Typography>
+          </div>
+          <div>
+            <Typography>{tooltipData.ontology}</Typography>
           </div>
           <div>
             <Typography variant='body2'><i>P</i>: {tooltipData.pval}</Typography>

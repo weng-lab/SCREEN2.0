@@ -22,6 +22,7 @@ import { EnrichmentLollipopPlot, EnrichmentData } from "./lollipopplot"
 const enrichmentData: EnrichmentData[] = testData.map(x => {
   return {
     celltype: x.celltype,
+    ontology: 'Tissue',
     displayname: x.celltype, //Need to fetch displayname with ccREBiosampleQuery if not included in data
     fdr: +x.fdr,
     pval: +x.pval,
@@ -58,7 +59,6 @@ export default function GWAS() {
   const {
     data: gwasstudies, loading: gwasstudiesLoading
   } = useQuery(GET_ALL_GWAS_STUDIES, {
-
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
     client,
@@ -168,21 +168,21 @@ export default function GWAS() {
 
     if (selectedBiosample && selectedBiosample.length > 0 && cCREsIntersectionData && cCREsIntersectionData[0].ctspecific) {
       if (selectedBiosample[0].dnase) {
-        cols.push({ header: "DNase Zscore", value: (row: any) => row.ctspecific.dnase_zscore.toFixed(2) })
+        cols.push({ header: "DNase Zscore", value: (row: any) => row.ctspecific.dnase_zscore?.toFixed(2) })
       }
       if (selectedBiosample[0].atac) {
-        cols.push({ header: "ATAC Zscore", value: (row: any) => row.ctspecific.atac_zscore.toFixed(2) })
+        cols.push({ header: "ATAC Zscore", value: (row: any) => row.ctspecific.atac_zscore?.toFixed(2) })
       }
       if (selectedBiosample[0].ctcf) {
-        cols.push({ header: "CTCF Zscore", value: (row: any) => row.ctspecific.ctcf_zscore.toFixed(2) })
+        cols.push({ header: "CTCF Zscore", value: (row: any) => row.ctspecific.ctcf_zscore?.toFixed(2) })
       }
 
       if (selectedBiosample[0].h3k27ac) {
-        cols.push({ header: "H3k27ac Zscore", value: (row: any) => row.ctspecific.enhancer_zscore.toFixed(2) })
+        cols.push({ header: "H3k27ac Zscore", value: (row: any) => row.ctspecific.enhancer_zscore?.toFixed(2) })
       }
 
       if (selectedBiosample[0].h3k4me3) {
-        cols.push({ header: "H3k4me3 Zscore", value: (row: any) => row.ctspecific.promoter_zscore.toFixed(2) })
+        cols.push({ header: "H3k4me3 Zscore", value: (row: any) => row.ctspecific.promoter_zscore?.toFixed(2) })
       }
 
 
@@ -200,54 +200,49 @@ export default function GWAS() {
   //   gwas_study: study
   // }))
 
-  // console.log(studies)
-  // console.log(data)
+  //Todo, make each tile have a const definition, and then have two different entirely different layout
+  
 
   return (
     <main>
-      <Grid2 container spacing={2} sx={{ mt: "2rem" }}>
+      <Grid2 container spacing={2}>
         <Grid2 xs={4}>
-          <Box ml={1}>
             {gwasstudiesLoading
               ? LoadingMessage()
               : gwasstudies &&
               gwasstudies.getAllGwasStudies.length > 0 && (
-                <DataTable
-                  tableTitle="GWAS Studies"
-                  rows={gwasstudies.getAllGwasStudies}
-                  columns={[
-                    {
-                      header: "Study", value: (row) => {
-                        return row.studyname
-                      }
-                    },
-                    { header: "Author", value: (row) => row.author },
-                    { header: "Pubmed", value: (row) => row.pubmedid, render: (row: any) => createLink("https://pubmed.ncbi.nlm.nih.gov/", row.pubmedid) },
-                  ]}
-                  onRowClick={(row: any) => {
-                    setStudy(row)
-                    setSelectedBiosample([])
-                  }}
-                  sortDescending={true}
-                  itemsPerPage={10}
-                  searchable={true}
-                />
+                <Accordion defaultExpanded>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    Select a GWAS Study
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <DataTable
+                      tableTitle="GWAS Studies"
+                      rows={gwasstudies.getAllGwasStudies}
+                      columns={[
+                        {
+                          header: "Study", value: (row) => {
+                            return row.studyname
+                          }
+                        },
+                        { header: "Author", value: (row) => row.author },
+                        { header: "Pubmed", value: (row) => row.pubmedid, render: (row: any) => createLink("https://pubmed.ncbi.nlm.nih.gov/", row.pubmedid) },
+                      ]}
+                      onRowClick={(row: any) => {
+                        setStudy(row)
+                        setSelectedBiosample([])
+                      }}
+                      sortDescending={true}
+                      itemsPerPage={10}
+                      searchable={true}
+                    />
+                  </AccordionDetails>
+                </Accordion>
               )}
-          </Box>
         </Grid2>
         <Grid2 xs={8}>
-          <Box mb={1}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "left",
-                alignItems: "center",
-              }}
-            >
-              {gwasstudiesLoading && !study ? <div></div> : <Typography variant="h5">{study && study.studyname}</Typography>}
-            </div>
-          </Box>
-          {<Box mb={2} mr={1}>
+          {gwasstudiesLoading && !study ? <div></div> : <Typography variant="h5">{study && study.studyname}</Typography>}
+          {<Box>
             {!study && gwasstudies
               ? <Typography>{'Please select a study'}</Typography>
               : study && cCREIntersections && overlappingldblocks && (
@@ -263,7 +258,7 @@ export default function GWAS() {
                 />
               )}
           </Box>}
-          <Box mr={1}>
+          <Box>
             {selectedBiosample && selectedBiosample.length > 0 && <div
               style={{
                 display: "flex",
@@ -290,27 +285,32 @@ export default function GWAS() {
           </Box>
         </Grid2>
         <Grid2 xs={4}>
-          <Box sx={{ display: 'flex', flexDirection: "column" }}>
             {biosampleData?.loading && gwasstudies &&
               gwasstudies.getAllGwasStudies.length > 0 ?
               <CircularProgress sx={{ margin: "auto" }} />
               :
-              biosampleData?.data ?
-                <BiosampleTables
-                  showRNAseq={false}
-                  showDownloads={false}
-                  biosampleSelectMode="replace"
-                  biosampleData={{ data: { human: { biosamples: biosampleData.data['human'].biosamples.filter(b => b.dnase) }, mouse: biosampleData.data['mouse'] }, loading: biosampleData.loading, networkStatus: biosampleData.networkStatus }}
-                  assembly={"GRCh38"}
-                  selectedBiosamples={selectedBiosample}
-                  setSelectedBiosamples={setSelectedBiosample}
-                /> :
-                <CircularProgress sx={{ margin: "auto" }} />
+              <Accordion defaultExpanded>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  Select a Biosample
+                </AccordionSummary>
+                <AccordionDetails>
+                  {biosampleData?.data ?
+                    <BiosampleTables
+                      showRNAseq={false}
+                      showDownloads={false}
+                      biosampleSelectMode="replace"
+                      biosampleData={{ data: { human: { biosamples: biosampleData.data['human'].biosamples.filter(b => b.dnase) }, mouse: biosampleData.data['mouse'] }, loading: biosampleData.loading, networkStatus: biosampleData.networkStatus }}
+                      assembly={"GRCh38"}
+                      selectedBiosamples={selectedBiosample}
+                      setSelectedBiosamples={setSelectedBiosample}
+                    /> :
+                    <CircularProgress sx={{ margin: "auto" }} />}
+                </AccordionDetails>
+              </Accordion>
             }
-          </Box>
         </Grid2>
         <Grid2 xs={8}>
-          {/* I tried to put this in an accordion but the tooltip no longer worked */}
+          {/* I tried to put this in an accordion but the tooltip positioning no longer worked */}
           {/* <Accordion>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
               Suggestions
@@ -321,7 +321,6 @@ export default function GWAS() {
             height={700}
             width={1100}
             onSuggestionClicked={(selected) => console.log(selected)}
-            
           />
           {/* </AccordionDetails>
           </Accordion> */}
