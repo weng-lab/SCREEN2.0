@@ -16,8 +16,6 @@ import { useState, SetStateAction, useEffect, useMemo } from "react"
 import { Search } from "@mui/icons-material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { parseGenomicRegion } from "./parsegenomicregion"
-import Link from "next/link"
-import Error from "next/error"
 
 //https://mui.com/material-ui/react-text-field/#integration-with-3rd-party-input-libraries
 //For formatting the start/end as it's being entered.
@@ -339,9 +337,10 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
               variant="outlined"
               InputLabelProps={{
                 shrink: true,
-                htmlFor: error ? "component-error" : "component-simple",
+                htmlFor: "region-input",
                 style: error ? null : props.header ? { color: "white" } : { color: "black" },
               }}
+              id="region-input"
               label="Enter a genomic region"
               placeholder={`chr11:${(5205263).toLocaleString()}-${(5381894).toLocaleString()}`}
               value={value}

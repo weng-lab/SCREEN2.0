@@ -54,7 +54,7 @@ export default function Home() {
           </Grid2>
         </Grid2>
         <Grid2 xs={12} lg={6}>
-          <Image src={homeImage} alt={"SCREEN home image"} />
+          <Image priority src={homeImage} alt={"SCREEN home image"} />
         </Grid2>
       </Grid2>
     </main>
