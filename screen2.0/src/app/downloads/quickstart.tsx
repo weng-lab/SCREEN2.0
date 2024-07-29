@@ -248,13 +248,13 @@ export function QuickStart(props: TabPanelProps) {
           </Grid2>
           <Grid2 xs={5}>
             <Stack spacing={2}>
-              <DownloadButton href={Config.Downloads.HumanProximalEnhancers} label="Download Human Candidate Enhancers" />
+              <DownloadButton href={Config.Downloads.HumanEnhancers} label="Download Human Candidate Enhancers" />
               <ComboBox options={humanEnhancers} label="Search for a Biosample" mode="H-enhancer" />
             </Stack>
           </Grid2>
           <Grid2 xs={5}>
             <Stack spacing={2}>
-              <DownloadButton href={Config.Downloads.MouseProximalEnhancers} label="Download Mouse Candidate Enhancers" />
+              <DownloadButton href={Config.Downloads.MouseEnhancers} label="Download Mouse Candidate Enhancers" />
               <ComboBox options={mouseEnhancers} label="Search for a Biosample" mode="M-enhancer" />
             </Stack>
           </Grid2>
