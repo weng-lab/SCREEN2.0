@@ -134,6 +134,8 @@ export function DataMatrices() {
       ),
     [data]
   )
+
+  
   const fData = useMemo(() => {
     return (
       data &&
@@ -420,7 +422,7 @@ export function DataMatrices() {
                 <FormControlLabel value="zoom" control={<Radio />} label="Zoom In" />
               </RadioGroup>
             </FormControl>
-            {bounds && <Button variant="contained" onClick={() => setBounds(undefined)}>Reset Zoom</Button>}
+             <Button disabled={!bounds} variant="contained" onClick={() => setBounds(undefined)}>Reset Zoom</Button>
           </Grid2>
           <Grid2 xs={8} position={"relative"} padding={2}>
             <Chart
@@ -446,10 +448,10 @@ export function DataMatrices() {
                 //X and Y attributes added due to error. Not sure if setting to zero has unintended consequences
                 <Annotation notScaled notTranslated x={0} y={0}>
                   <rect x={35} y={100} width={740} height={120} strokeWidth={2} stroke="#000000" fill="#ffffffdd" />
-                  <rect x={55} y={120} width={740 * 0.04} height={740 * 0.04} strokeWidth={1} stroke="#000000" fill="#00b0d0" />
+                  <rect x={55} y={120} width={740 * 0.04} height={740 * 0.04} strokeWidth={1} stroke="#000000" fill={(colorBy === "sampleType" ? scMap : oMap)[colorBy === "sampleType" ? fData[tooltip].sampleType : fData[tooltip].ontology]} />
                   <text x={100} y={140} fontSize="26px" fontWeight="bold">
-                    {fData[tooltip].name.replace(/_/g, " ").slice(0, 45)}
-                    {fData[tooltip].name.length > 45 ? "..." : ""}
+                    {fData[tooltip].displayname.replace(/_/g, " ").slice(0, 45)}
+                    {fData[tooltip].displayname.length > 45 ? "..." : ""}
                   </text>
                   <text x={55} y={185} fontSize="24px">
                     {fData[tooltip].experimentAccession}
