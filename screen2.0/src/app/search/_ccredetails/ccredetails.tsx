@@ -19,6 +19,7 @@ import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import { NEARBY_AND_LINKED_GENES } from "./queries"
 import { calcDistToTSS } from "./utils"
 import GraphComponent from "./graphcomponent"
+import { LoadingMessage } from "../../../common/lib/utility"
 
 //Passing these props through this file could be done with context to reduce prop drilling
 type CcreDetailsProps = {
@@ -104,6 +105,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
       geneSearchEnd: region.end + 1000000,
       geneVersion: assembly.toLowerCase() === "grch38" ? 40 : 25,
     },
+    skip: !region,
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
   })
@@ -157,7 +159,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
     return uniqueGenes
   }, [nearest3AndLinkedGenes])
 
-  return (
+  return region ? (
     <>
       <Stack direction="row" justifyContent={"space-between"} alignItems={"baseline"}>
         <Typography variant="h4">{accession}</Typography>
@@ -246,5 +248,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
 
       {page === 10 && assembly !== "mm10" && <GraphComponent accession={accession} />}
     </>
+  ) : (
+    <LoadingMessage />
   )
 }

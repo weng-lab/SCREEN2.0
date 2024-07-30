@@ -90,7 +90,7 @@ function ComboBox(props: {
               .split("\n")
               .filter((x) => x.includes(stringToMatch))
               .join("\n"),
-            `${selectedBiosample.name}.${
+            `${selectedBiosample.displayname}.${
               props.mode === "H-promoter" || props.mode === "M-promoter"
                 ? "promoters"
                 : props.mode === "H-enhancer" || props.mode === "M-enhancer"
@@ -113,7 +113,7 @@ function ComboBox(props: {
         //This spread is giving a warning. Code comes from MUI. Can't remove it though or doesn't work...
         renderInput={(params) => <TextField {...params} label={props.label} />}
         getOptionLabel={(biosample: RegistryBiosample) =>
-          biosample.name.replace(/_/g, " ") +
+          biosample.displayname +
           " — Exp ID: " +
           (props.mode === "H-promoter" || props.mode === "M-promoter"
             ? biosample.h3k4me3
@@ -142,7 +142,7 @@ function ComboBox(props: {
                 : props.mode === "H-enhancer" || props.mode === "M-enhancer"
                   ? "enhancers"
                   : "CTCF-bound cCREs"
-              } active in ${selectedBiosample.name.replace(/_/g, " ")}`}
+              } active in ${selectedBiosample.displayname.replace(/_/g, " ")}`}
           </span>
         </LoadingButton>
       )}
@@ -248,13 +248,13 @@ export function QuickStart(props: TabPanelProps) {
           </Grid2>
           <Grid2 xs={5}>
             <Stack spacing={2}>
-              <DownloadButton href={Config.Downloads.HumanProximalEnhancers} label="Download Human Candidate Enhancers" />
+              <DownloadButton href={Config.Downloads.HumanEnhancers} label="Download Human Candidate Enhancers" />
               <ComboBox options={humanEnhancers} label="Search for a Biosample" mode="H-enhancer" />
             </Stack>
           </Grid2>
           <Grid2 xs={5}>
             <Stack spacing={2}>
-              <DownloadButton href={Config.Downloads.MouseProximalEnhancers} label="Download Mouse Candidate Enhancers" />
+              <DownloadButton href={Config.Downloads.MouseEnhancers} label="Download Mouse Candidate Enhancers" />
               <ComboBox options={mouseEnhancers} label="Search for a Biosample" mode="M-enhancer" />
             </Stack>
           </Grid2>
