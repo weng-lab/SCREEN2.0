@@ -48,7 +48,7 @@
     "HumanCA_TF": "https://downloads.wenglab.org/Registry-V4/GRCh38-cCREs.CA-TF.bed",
     "HumanCA_only": "https://downloads.wenglab.org/Registry-V4/GRCh38-cCREs.CA.bed",
     "HumanTF_only": "https://downloads.wenglab.org/Registry-V4/GRCh38-cCREs.TF.bed",
-    "HumanGeneLinks": "https://downloads.wenglab.org/GRCh38-Gene-Links.tar.gz",
+    "HumanGeneLinks": "https://downloads.wenglab.org/Human-Gene-Links.zip",
 
     "MouseCCREs": "https://downloads.wenglab.org/Registry-V4/mm10-cCREs.bed",
     "MousePromoters": "https://downloads.wenglab.org/Registry-V4/mm10-cCREs.PLS.bed",
