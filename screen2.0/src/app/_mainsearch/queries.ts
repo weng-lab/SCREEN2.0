@@ -1,6 +1,6 @@
 import { gql } from "@apollo/client"
 
-export const CCRE_AUTOCOMPLETE_QUERY = `
+export const CCRE_AUTOCOMPLETE_QUERY = gql`
 query cCREQuery($accession_prefix: [String!], $limit: Int, $assembly: String!) {
     cCREQuery(accession_prefix: $accession_prefix, assembly: $assembly, limit: $limit) {
         accession

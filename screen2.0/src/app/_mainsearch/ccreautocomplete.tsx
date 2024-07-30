@@ -9,6 +9,8 @@ import { CCRE_AUTOCOMPLETE_QUERY } from "./queries"
 import Config from "../../config.json"
 import { IconButton, Stack } from "@mui/material"
 import { Search } from "@mui/icons-material"
+import { useQuery } from "@apollo/client"
+import { client } from "../search/_ccredetails/client"
 
 export const CcreAutoComplete: React.FC<{ assembly: string, header?: boolean }> = (props) => {
   const [value, setValue] = useState(null)
@@ -16,40 +18,36 @@ export const CcreAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
   const [options, setOptions] = useState([])
   const [ccreAccessions, setCcreAccessions] = useState([])
 
-  const onSearchChange = async (value: string) => {
-    setOptions([])
-    const response = await fetch(Config.API.CcreAPI, {
-      method: "POST",
-      body: JSON.stringify({
-        query: CCRE_AUTOCOMPLETE_QUERY,
-        variables: {
-          assembly: props.assembly,
-          accession_prefix: [value],
-          limit: 100
-        },
-      }),
-      headers: { "Content-Type": "application/json" },
-    })
-    const ccreSuggestion = (await response.json()).data?.cCREQuery
-    if (ccreSuggestion && ccreSuggestion.length > 0) {
-      const r = ccreSuggestion.map((g: { accession: string }) => g.accession)
-      const ccres = ccreSuggestion.map((g: { accession: string, coordinates: { start: number, end: number, chromosome: string } }) => {
-        return {
-          chrom: g.coordinates.chromosome,
-          start: g.coordinates.start,
-          end: g.coordinates.end,
-          ccreaccession: g.accession,
+  const {loading: loadingOptions, data: dataOptions, error: errorOptions} = useQuery(CCRE_AUTOCOMPLETE_QUERY, 
+    {
+      variables: {
+        assembly: props.assembly,
+        accession_prefix: [inputValue],
+        limit: 100
+      },
+      client: client,
+      fetchPolicy: 'cache-and-network',
+      onCompleted(data) {
+        const ccreSuggestion = data.cCREQuery
+        if (ccreSuggestion && ccreSuggestion.length > 0) {
+          const r = ccreSuggestion.map((g: { accession: string }) => g.accession)
+          const ccres = ccreSuggestion.map((g: { accession: string, coordinates: { start: number, end: number, chromosome: string } }) => {
+            return {
+              chrom: g.coordinates.chromosome,
+              start: g.coordinates.start,
+              end: g.coordinates.end,
+              ccreaccession: g.accession,
+            }
+          })
+          setOptions(r)
+          setCcreAccessions(ccres)
+        } else if (ccreSuggestion && ccreSuggestion.length === 0) {
+          setOptions([])
+          setCcreAccessions([])
         }
-      })
-      setOptions(r)
-      setCcreAccessions(ccres)
-    } else if (ccreSuggestion && ccreSuggestion.length === 0) {
-      setOptions([])
-      setCcreAccessions([])
+      }
     }
-  }
-
-  const debounceFn = useCallback(debounce(onSearchChange, 500), [])
+  )
 
   const handleSubmit = () => {
     if (value) {
@@ -84,13 +82,9 @@ export const CcreAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
           }}
           inputValue={inputValue}
           onInputChange={(event, newInputValue) => {
-            if (newInputValue != "") {
-              debounceFn(newInputValue)
-            }
-
             setInputValue(newInputValue)
           }}
-          noOptionsText={props.assembly === "mm10" ? "e.g EM10E0000207" : "e.g. EH38E0001314"}
+          noOptionsText={loadingOptions ? "Loading..." : props.assembly === "mm10" ? "e.g EM10E0000207" : "e.g. EH38E0001314"}
           renderInput={(params) => (
             <TextField
               {...params}
