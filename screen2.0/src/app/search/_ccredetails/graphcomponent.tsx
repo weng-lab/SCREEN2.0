@@ -31,7 +31,7 @@ async function fetchList(accession: string): Promise<string[]> {
 export const GraphComponent = ({ accession }) => {
   const [cellType, setCellType] = useState<string | null>(null)
   const [cellTypes, setCellTypes] = useState<string[]>([])
-  const [degreeOfSeparation, setDegree] = useState<number>(2)
+  const [degreeOfSeparation, setDegree] = useState<number>(1)
 
   useEffect(() => {
     try {

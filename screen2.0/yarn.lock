@@ -919,10 +919,10 @@
   resolved "https://registry.npmjs.org/@webpack-cli/serve/-/serve-2.0.5.tgz"
   integrity sha512-lqaoKnRYBdo1UgDX8uF24AfGMifWK19TxPmM5FHc2vAGxrJ/qtyUyFBWoY1tISZdelsQ5fBcOusifo5o5wSJxQ==
 
-"@weng-lab/psychscreen-ui-components@^0.9.3":
-  version "0.9.3"
-  resolved "https://registry.npmjs.org/@weng-lab/psychscreen-ui-components/-/psychscreen-ui-components-0.9.3.tgz"
-  integrity sha512-Ya4zZuJq6xn/N05iSJ1IfGyAe/NDOopktbLbk2rL/NfV65wXJaq0OJCCrnhTizIYTtY8y5lmCOkJmYAPkvhuCA==
+"@weng-lab/psychscreen-ui-components@^0.9.5":
+  version "0.9.5"
+  resolved "https://registry.npmjs.org/@weng-lab/psychscreen-ui-components/-/psychscreen-ui-components-0.9.5.tgz"
+  integrity sha512-kfM8gFJKfY3tmue97U/7Dj7MymZjjGs+yY1CsAck1cC9oLwK4UTrqUlpZH6tN7FLs0atHFHXXP/lSzsVs2KUeQ==
   dependencies:
     "@visx/tooltip" "^3.3.0"
     cytoscape "^3.29.2"

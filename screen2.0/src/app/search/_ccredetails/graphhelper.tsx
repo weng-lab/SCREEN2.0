@@ -214,7 +214,6 @@ export const GraphHelper = ({ accession, celltype, degreeOfSeparation, id }) => 
       try {
         const fetchedData = await fetchData(accession, celltype, degreeOfSeparation)
         const convertedData = convertData(fetchedData.ccrelinks, fetchedData.ccrenodegroups, accession)
-        console.log(fetchedData)
         setData(convertedData)
       } catch (error) {
         console.error("Error loading data:", error)
@@ -227,18 +226,16 @@ export const GraphHelper = ({ accession, celltype, degreeOfSeparation, id }) => 
   if (!data) {
     return <div>Loading...</div>
   }
-  console.log(data)
 
   return (
     <Graph
       data={data.data}
       id={id}
-      height="90vh"
       scale={(n: number) => 0.5 * Math.log(n)}
       legendNodeLabel="cCRE Type"
       legendToggle={convertToSimple}
       getColor={setColor}
-      order={["PLS", "pELS", "dELS", "CA-H3K4me3", "CA-CTCF", "CA-TF", "CA", "TF", "Low-DNase"]}
+      order={["PLS", "pELS", "dELS", "CA-H3K4me3", "CA-CTCF", "CA-TF", "CA-only", "TF", "Low-DNase"]}
     />
   )
 }
