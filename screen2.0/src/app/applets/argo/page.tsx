@@ -28,8 +28,8 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     const [textUploaded, setTextUploaded] = useState<File[]>([])
     const [biosampleData, setBiosampleData] = useState<ApolloQueryResult<BIOSAMPLE_Data>>(null)
     const [selectedBiosample, setSelectedBiosample] = useState<RegistryBiosample[]>([])
-    const [availableScores, setAvailableScores] = useState({"dnase": true, "h3k4me3": true, "h3k27ac": true, "ctcf": true, "atac": true})
-    const scoreNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac" ]
+    const [availableScores, setAvailableScores] = useState({"dnase": true, "h3k4me3": true, "h3k27ac": true, "ctcf": true, "atac": true, "vertebrates": true, "mammals": true, "primates": true})
+    const scoreNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac", "vertebrates", "mammals", "primates"]
     
     const {loading: loading_scores, error: error_scores, data: data_scores} = useQuery(Z_SCORES_QUERY, {
         variables: {
@@ -50,7 +50,10 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                         h3k4me3: r.ctspecific.h3k4me3_zscore,
                         h3k27ac: r.ctspecific.h3k27ac_zscore,
                         ctcf: r.ctspecific.ctcf_zscore,
-                        atac: r.ctspecific.atac_zscore
+                        atac: r.ctspecific.atac_zscore,
+                        vertebrates: r.vertebrates,
+                        mammals: r.mammals,
+                        primates: r.primates
                     }
                 } 
             }
@@ -65,7 +68,10 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                         h3k4me3: r.promoter_zscore,
                         h3k27ac: r.enhancer_zscore,
                         ctcf: r.ctcf_zscore,
-                        atac: r.atac_zscore
+                        atac: r.atac_zscore,
+                        vertebrates: r.vertebrates,
+                        mammals: r.mammals,
+                        primates: r.primates
                     }
                 }
             }
@@ -107,7 +113,13 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     { header: "CTCF", value: (row) => row.ctcf, render: (row) => row.ctcf.toFixed(2) },
     { header: "CTCF Rank", value: (row) => row.ctcf_rank },
     { header: "ATAC", value: (row) => row.atac, render: (row) => row.atac.toFixed(2) },
-    { header: "ATAC Rank", value: (row) => row.atac_rank }]
+    { header: "ATAC Rank", value: (row) => row.atac_rank },
+    { header: "Vertebrates", value: (row) => row.vertebrates, render: (row) => row.vertebrates.toFixed(2) },
+    { header: "Vertebrates Rank", value: (row) => row.vertebrates_rank },
+    { header: "Mammals", value: (row) => row.mammals, render: (row) => row.mammals.toFixed(2) },
+    { header: "Mammals Rank", value: (row) => row.mammals_rank },
+    { header: "Primates", value: (row) => row.primates, render: (row) => row.primates.toFixed(2) },
+    { header: "Primates Rank", value: (row) => row.primates_rank }]
 
     useEffect(() => {
         startTransition(async () => {
@@ -254,6 +266,12 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                 <FormControlLabel label="H3K27ac" control={<Checkbox disabled={!availableScores.h3k27ac} defaultChecked name="scoresToInclude" value="h3k27ac"></Checkbox>}></FormControlLabel>
                 <FormControlLabel label="CTCF" control={<Checkbox disabled={!availableScores.ctcf} defaultChecked name="scoresToInclude" value="ctcf"></Checkbox>}></FormControlLabel>
                 <FormControlLabel label="ATAC" control={<Checkbox disabled={!availableScores.atac} defaultChecked name="scoresToInclude" value="atac"></Checkbox>}></FormControlLabel>
+                <Typography variant="h6" lineHeight={"50px"} mr={"10px"}>
+                    Conservation:
+                </Typography>
+                <FormControlLabel label="Vertebrates" control={<Checkbox disabled={!availableScores.vertebrates} defaultChecked name="scoresToInclude" value="vertebrates"></Checkbox>}></FormControlLabel>
+                <FormControlLabel label="Mammals" control={<Checkbox disabled={!availableScores.mammals} defaultChecked name="scoresToInclude" value="mammals"></Checkbox>}></FormControlLabel>
+                <FormControlLabel label="Primates" control={<Checkbox disabled={!availableScores.primates} defaultChecked name="scoresToInclude" value="primates"></Checkbox>}></FormControlLabel>
 
             </FormGroup>
         </Stack>

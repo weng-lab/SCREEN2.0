@@ -7,7 +7,10 @@ query ccreSearchQuery($assembly: String!, $accessions: [String!], $cellType: Str
       promoter_zscore      
       enhancer_zscore
       ctcf_zscore
-      atac_zscore   
+      atac_zscore
+      vertebrates
+      mammals
+      primates 
       info {
         accession
       } 
