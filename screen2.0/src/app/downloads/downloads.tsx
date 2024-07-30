@@ -32,33 +32,11 @@ export const fetchFileSize = async (url: string, setFileSize: React.Dispatch<Rea
 }
 
 export default function DownloadsPage(props: {
-  biosamples: ApolloQueryResult<BIOSAMPLE_Data>
-  matrices: -1 | ApolloQueryResult<any>
+  biosamples: ApolloQueryResult<BIOSAMPLE_Data>  
   searchParams: { [key: string]: string | string[] | undefined }
 }) {
   const [page, setPage] = useState(props.searchParams.tab ? Number(props.searchParams.tab) : 0)
-  const [matricesState, setMatricesState] = useState<{
-    assembly: "Human" | "Mouse"
-    assay: "DNase" | "H3K4me3" | "H3K27ac" | "CTCF"
-  } | null>(null)
-
-  const router = useRouter()
-
-  const handleChange = (_, newValue: number) => {
-    if (
-      (props.searchParams.assembly === "Human" || props.searchParams.assembly === "Mouse") &&
-      (props.searchParams.assay === "DNase" ||
-        props.searchParams.assay === "H3K4me3" ||
-        props.searchParams.assay === "H3K27ac" ||
-        props.searchParams.assay === "CTCF")
-    ) {
-      setMatricesState({ assembly: props.searchParams.assembly, assay: props.searchParams.assay })
-    }
-    if (newValue === 2 && matricesState !== null) {
-      router.push(`/downloads?tab=${newValue}&assembly=${matricesState.assembly}&assay=${matricesState.assay}`)
-    } else {
-      router.push(`/downloads?tab=${newValue}`)
-    }
+  const handleChange = (_, newValue: number) => {    
     setPage(newValue)
   }
 
@@ -77,7 +55,7 @@ export default function DownloadsPage(props: {
         <Grid2 xs={12}>
           {page === 0 && <QuickStart biosamples={props.biosamples} />}
           {page === 1 && <DetailedElements biosamples={props.biosamples} />}
-          {page === 2 && <DataMatrices matrices={props.matrices} searchParams={props.searchParams} />}
+          {page === 2 && <DataMatrices/>}
           {page === 3 && <DownloadRange biosampleData={props.biosamples} />}
         </Grid2>
       </Grid2>

@@ -105,9 +105,9 @@ export const tissueColors = {
   //Added as fallback
   missing: "#000000",
   //Sample Types
-  "cell line": "#993333",
-  "primary cell": "#859933",
-  "in vitro differentiated cells": "#33995C",
-  tissue: "#335C99",
-  organoid: "#853399",
+  "cell line": "#4964c6",
+  "primary cell": "#e4973f",
+  "in vitro differentiated cells": "#852795",
+  tissue: "#bf4a27",
+  organoid: "#eec54d",
 }
