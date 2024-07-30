@@ -50,7 +50,13 @@ export type EnrichmentData = {
 /**
  * 
  * @todo
- * - Tissue Categories? How to handle with various sorting modes?
+ * - Tissue Categories? How to handle with various sorting modes? -> see figure Jill sent in #screen-iscreen
+ * - Responsive sizing: https://airbnb.io/visx/docs/responsive -> useParentSize().
+ *    - Want plot to be able to fill it's parent container
+ *    - Not sure if we want it to always fill it's parent container or if it's helpful to have some way to manually set size too
+ * - CSS is a mess here, between my inline CSS and the example code for the Legend. Need to clean up
+ * - Support negative values in fold enrichment. Can't just adjust min value of domain for xScale. Bar coordinates need to be reworked to support this.
+ * - If possible, would be nice to rework tooltip placement to support placing plot in an MUI Accordion. Breaks for some reason.
  */
 
 export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
@@ -267,7 +273,7 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
         <TooltipWithBounds
           top={tooltipTop}
           left={tooltipLeft}
-          style={{ ...defaultTooltipStyles, backgroundColor: '#283238', color: 'white' }}
+          style={{ ...defaultTooltipStyles, backgroundColor: '#283238', color: 'white', zIndex: 1000 }}
         >
           <div>
             <Typography>{tooltipData.displayname}</Typography>

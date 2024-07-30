@@ -1,10 +1,10 @@
 "use client"
-import { Accordion, AccordionDetails, AccordionSummary, Typography } from "@mui/material"
+import { Accordion, AccordionDetails, AccordionSummary, Stack, Typography, useMediaQuery, useTheme } from "@mui/material"
 
 import React, { useState, useEffect, useTransition, useMemo } from "react"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { createLink, LoadingMessage } from "../../../common/lib/utility"
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import Grid from "@mui/material/Unstable_Grid2/Grid2"
 import { Box, CircularProgress } from "@mui/material"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import { client } from "../../search/_ccredetails/client"
@@ -200,132 +200,153 @@ export default function GWAS() {
   //   gwas_study: study
   // }))
 
-  //Todo, make each tile have a const definition, and then have two different entirely different layout
-  
+  const StudySelection = () => {
+    return gwasstudiesLoading ? LoadingMessage() : gwasstudies && gwasstudies.getAllGwasStudies.length > 0 &&
+      <Accordion defaultExpanded>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          Select a GWAS Study
+        </AccordionSummary>
+        <AccordionDetails>
+          <DataTable
+            tableTitle="GWAS Studies"
+            rows={gwasstudies.getAllGwasStudies}
+            columns={[
+              {
+                header: "Study", value: (row) => {
+                  return row.studyname
+                }
+              },
+              { header: "Author", value: (row) => row.author },
+              { header: "Pubmed", value: (row) => row.pubmedid, render: (row: any) => createLink("https://pubmed.ncbi.nlm.nih.gov/", row.pubmedid) },
+            ]}
+            onRowClick={(row: any) => {
+              setStudy(row)
+              setSelectedBiosample([])
+            }}
+            sortDescending={true}
+            itemsPerPage={10}
+            searchable={true}
+          />
+        </AccordionDetails>
+      </Accordion>
+  }
+
+  const BiosampleSelection = () => {
+    return biosampleData?.loading && gwasstudies && gwasstudies.getAllGwasStudies.length > 0 ?
+      <CircularProgress sx={{ margin: "auto" }} />
+      :
+      <Accordion defaultExpanded>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          Select a Biosample
+        </AccordionSummary>
+        <AccordionDetails>
+          {biosampleData?.data ?
+            <BiosampleTables
+              showRNAseq={false}
+              showDownloads={false}
+              biosampleSelectMode="replace"
+              biosampleData={{ data: { human: { biosamples: biosampleData.data['human'].biosamples.filter(b => b.dnase) }, mouse: biosampleData.data['mouse'] }, loading: biosampleData.loading, networkStatus: biosampleData.networkStatus }}
+              assembly={"GRCh38"}
+              selectedBiosamples={selectedBiosample}
+              setSelectedBiosamples={setSelectedBiosample}
+            /> :
+            <CircularProgress sx={{ margin: "auto" }} />}
+        </AccordionDetails>
+      </Accordion>
+  }
+
+  const LdBlocks = () => {
+    return (
+      study && cCREIntersections && overlappingldblocks && (
+        <Accordion defaultExpanded>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            LD Blocks
+          </AccordionSummary>
+          <AccordionDetails>
+            <DataTable
+              rows={[{ totalLDblocks: study.totalldblocks, overlappingldblocks: Math.ceil((overlappingldblocks.size / +study.totalldblocks) * 100), numCresOverlap: accessions.size }]}
+              columns={[
+                { header: "Total LD blocks", value: (row: any) => row.totalLDblocks },
+                { header: "# of LD blocks overlapping cCREs", value: (row: any) => overlappingldblocks.size + " (" + row.overlappingldblocks + "%)" },
+                { header: "# of overlapping cCREs", value: (row: any) => row.numCresOverlap },
+              ]}
+              sortDescending={true}
+              hidePageMenu={true}
+            />
+          </AccordionDetails>
+        </Accordion>
+      )
+    )
+  }
+
+  const IntersectingcCREs = () => {
+    return (
+      cCREsIntersectionData && cCREsIntersectionData.length > 0 && (
+        <Accordion defaultExpanded>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            Intersecting cCREs
+          </AccordionSummary>
+          <AccordionDetails>
+            <DataTable
+              key={cCREsIntersectionData[0] && cCREsIntersectionData[0].gene + cCREsIntersectionData[0].accession + cCREsIntersectionData[0].snpid + cCREsIntersectionData[0].ldblocksnpid + cCREsIntersectionData[0].ldblock + cCREsIntersectionData[0].rsquare + columns.toString()}
+              rows={cCREsIntersectionData}
+              tableTitle={selectedBiosample.length > 0 ? selectedBiosample[0].displayname + " Specific Data" : "Cell Type Agnostic Data"}
+              columns={columns}
+              sortDescending={true}
+              itemsPerPage={10}
+              searchable={true}
+            />
+          </AccordionDetails>
+        </Accordion>
+
+      )
+    )
+  }
+
+  //Tried putting this in an accordion but then the tooltip stopped working
+  const SuggestionsPlot = () => useMemo(() => {
+    return (
+      <EnrichmentLollipopPlot
+        data={enrichmentData}
+        height={700}
+        width={1100}
+        onSuggestionClicked={(selected) => console.log(selected)}
+      />
+    )
+  }, [])
+
+  const theme = useTheme()
+  const isLg = useMediaQuery(theme.breakpoints.down('lg'))
 
   return (
     <main>
-      <Grid2 container spacing={2}>
-        <Grid2 xs={4}>
-            {gwasstudiesLoading
-              ? LoadingMessage()
-              : gwasstudies &&
-              gwasstudies.getAllGwasStudies.length > 0 && (
-                <Accordion defaultExpanded>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    Select a GWAS Study
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <DataTable
-                      tableTitle="GWAS Studies"
-                      rows={gwasstudies.getAllGwasStudies}
-                      columns={[
-                        {
-                          header: "Study", value: (row) => {
-                            return row.studyname
-                          }
-                        },
-                        { header: "Author", value: (row) => row.author },
-                        { header: "Pubmed", value: (row) => row.pubmedid, render: (row: any) => createLink("https://pubmed.ncbi.nlm.nih.gov/", row.pubmedid) },
-                      ]}
-                      onRowClick={(row: any) => {
-                        setStudy(row)
-                        setSelectedBiosample([])
-                      }}
-                      sortDescending={true}
-                      itemsPerPage={10}
-                      searchable={true}
-                    />
-                  </AccordionDetails>
-                </Accordion>
-              )}
-        </Grid2>
-        <Grid2 xs={8}>
-          {gwasstudiesLoading && !study ? <div></div> : <Typography variant="h5">{study && study.studyname}</Typography>}
-          {<Box>
-            {!study && gwasstudies
-              ? <Typography>{'Please select a study'}</Typography>
-              : study && cCREIntersections && overlappingldblocks && (
-                <DataTable
-                  rows={[{ totalLDblocks: study.totalldblocks, overlappingldblocks: Math.ceil((overlappingldblocks.size / +study.totalldblocks) * 100), numCresOverlap: accessions.size }]}
-                  columns={[
-                    { header: "Total LD blocks", value: (row: any) => row.totalLDblocks },
-                    { header: "# of LD blocks overlapping cCREs", value: (row: any) => overlappingldblocks.size + " (" + row.overlappingldblocks + "%)" },
-                    { header: "# of overlapping cCREs", value: (row: any) => row.numCresOverlap },
-                  ]}
-                  sortDescending={true}
-                  hidePageMenu={true}
-                />
-              )}
-          </Box>}
-          <Box>
-            {selectedBiosample && selectedBiosample.length > 0 && <div
-              style={{
-                display: "flex",
-                justifyContent: "left",
-                alignItems: "center",
-              }}
-            >
-              <Typography variant="h5">{selectedBiosample[0].displayname}</Typography>
-            </div>}
-            {cCREIntersectionsLoading ? (
-              <div></div>
-            ) : (
-              cCREsIntersectionData && cCREsIntersectionData.length > 0 && (
-                <DataTable
-                  key={cCREsIntersectionData[0] && cCREsIntersectionData[0].gene + cCREsIntersectionData[0].accession + cCREsIntersectionData[0].snpid + cCREsIntersectionData[0].ldblocksnpid + cCREsIntersectionData[0].ldblock + cCREsIntersectionData[0].rsquare + columns.toString()}
-                  rows={cCREsIntersectionData}
-                  columns={columns}
-                  sortDescending={true}
-                  itemsPerPage={10}
-                  searchable={true}
-                />
-              )
-            )}
-          </Box>
-        </Grid2>
-        <Grid2 xs={4}>
-            {biosampleData?.loading && gwasstudies &&
-              gwasstudies.getAllGwasStudies.length > 0 ?
-              <CircularProgress sx={{ margin: "auto" }} />
-              :
-              <Accordion defaultExpanded>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  Select a Biosample
-                </AccordionSummary>
-                <AccordionDetails>
-                  {biosampleData?.data ?
-                    <BiosampleTables
-                      showRNAseq={false}
-                      showDownloads={false}
-                      biosampleSelectMode="replace"
-                      biosampleData={{ data: { human: { biosamples: biosampleData.data['human'].biosamples.filter(b => b.dnase) }, mouse: biosampleData.data['mouse'] }, loading: biosampleData.loading, networkStatus: biosampleData.networkStatus }}
-                      assembly={"GRCh38"}
-                      selectedBiosamples={selectedBiosample}
-                      setSelectedBiosamples={setSelectedBiosample}
-                    /> :
-                    <CircularProgress sx={{ margin: "auto" }} />}
-                </AccordionDetails>
-              </Accordion>
+      <Grid container spacing={2} padding={5}>
+        <Grid xs={12}>
+          <Typography variant="h4">GWAS Applet</Typography>
+          <Typography>Selected Study: {study?.studyname}</Typography>
+          <Typography>Selected Sample: {selectedBiosample.length > 0 && selectedBiosample[0].displayname}</Typography>
+        </Grid>
+        <Grid xs={12} lg={4}>
+          <Stack spacing={2}>
+            <StudySelection />
+            <BiosampleSelection />
+            {isLg &&
+              <>
+                <LdBlocks />
+                <IntersectingcCREs />
+                <SuggestionsPlot />
+              </>
             }
-        </Grid2>
-        <Grid2 xs={8}>
-          {/* I tried to put this in an accordion but the tooltip positioning no longer worked */}
-          {/* <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              Suggestions
-            </AccordionSummary>
-            <AccordionDetails> */}
-          <EnrichmentLollipopPlot
-            data={enrichmentData}
-            height={700}
-            width={1100}
-            onSuggestionClicked={(selected) => console.log(selected)}
-          />
-          {/* </AccordionDetails>
-          </Accordion> */}
-        </Grid2>
-      </Grid2>
+          </Stack>
+        </Grid>
+        <Grid lg={8} display={{ xs: 'none', lg: 'block' }}>
+          <Stack spacing={2}>
+            <LdBlocks />
+            <IntersectingcCREs />
+            <SuggestionsPlot />
+          </Stack>
+        </Grid>
+      </Grid>
     </main>
   )
 }
