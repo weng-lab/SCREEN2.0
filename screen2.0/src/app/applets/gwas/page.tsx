@@ -309,7 +309,7 @@ export default function GWAS() {
       <EnrichmentLollipopPlot
         data={enrichmentData}
         height={700}
-        width={1100}
+        width={800}
         onSuggestionClicked={(selected) => console.log(selected)}
       />
     )
