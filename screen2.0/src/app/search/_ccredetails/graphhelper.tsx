@@ -206,7 +206,7 @@ async function fetchData(accession: string, celltype: string, degreeOfSeparation
   return result.data.getcCRELinksQuery
 }
 
-export const GraphHelper = ({ accession, celltype, degreeOfSeparation, id }) => {
+export const GraphHelper = ({ accession, celltype, degreeOfSeparation, id, handleOpencCRE }) => {
   const [data, setData] = useState<OldFormat | null>(null)
 
   useEffect(() => {
@@ -226,7 +226,6 @@ export const GraphHelper = ({ accession, celltype, degreeOfSeparation, id }) => 
   if (!data) {
     return <div>Loading...</div>
   }
-
   return (
     <Graph
       data={data.data}
@@ -236,6 +235,7 @@ export const GraphHelper = ({ accession, celltype, degreeOfSeparation, id }) => 
       legendToggle={convertToSimple}
       getColor={setColor}
       order={["PLS", "pELS", "dELS", "CA-H3K4me3", "CA-CTCF", "CA-TF", "CA-only", "TF", "Low-DNase"]}
+      onNodeClick={handleOpencCRE}
     />
   )
 }

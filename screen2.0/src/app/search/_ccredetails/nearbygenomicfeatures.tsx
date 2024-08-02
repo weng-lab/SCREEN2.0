@@ -16,39 +16,38 @@ export const NearByGenomicFeatures: React.FC<{
   coordinates: { chromosome: string; start: number; end: number }
   handleOpencCRE: (row: any) => void
 }> = ({ assembly, accession, coordinates, handleOpencCRE }) => {
-
   const { loading, data } = useQuery(
     assembly.toLowerCase() === "mm10" ? NEARBY_GENOMIC_FEATURES_NOSNPS_QUERY : NEARBY_GENOMIC_FEATURES_QUERY,
     {
       variables:
         assembly.toLowerCase() === "mm10"
           ? {
-            b: assembly.toLowerCase(),
-            c: assembly.toLowerCase(),
-            coordinates: {
+              b: assembly.toLowerCase(),
+              c: assembly.toLowerCase(),
+              coordinates: {
+                chromosome: coordinates.chromosome,
+                start: coordinates.start - 1000000,
+                end: coordinates.end + 1000000,
+              },
               chromosome: coordinates.chromosome,
               start: coordinates.start - 1000000,
               end: coordinates.end + 1000000,
-            },
-            chromosome: coordinates.chromosome,
-            start: coordinates.start - 1000000,
-            end: coordinates.end + 1000000,
-            version: 25
-          }
+              version: 25,
+            }
           : {
-            a: "hg38",
-            b: assembly.toLowerCase(),
-            c: assembly.toLowerCase(),
-            coordinates: {
+              a: "hg38",
+              b: assembly.toLowerCase(),
+              c: assembly.toLowerCase(),
+              coordinates: {
+                chromosome: coordinates.chromosome,
+                start: coordinates.start - 1000000,
+                end: coordinates.end + 1000000,
+              },
               chromosome: coordinates.chromosome,
               start: coordinates.start - 1000000,
               end: coordinates.end + 1000000,
+              version: 40,
             },
-            chromosome: coordinates.chromosome,
-            start: coordinates.start - 1000000,
-            end: coordinates.end + 1000000,
-            version: 40
-          },
       fetchPolicy: "cache-and-network",
       nextFetchPolicy: "cache-first",
       client,
@@ -65,7 +64,7 @@ export const NearByGenomicFeatures: React.FC<{
         chrom: g.coordinates.chromosome,
         start: g.coordinates.start,
         stop: g.coordinates.end,
-        distance: calcDistToTSS({...coordinates, chrom: coordinates.chromosome}, g.transcripts, g.strand)
+        distance: calcDistToTSS({ ...coordinates, chrom: coordinates.chromosome }, g.transcripts, g.strand),
       }
     })
   let ccres =
@@ -74,10 +73,13 @@ export const NearByGenomicFeatures: React.FC<{
     data.cCREQuery.map((c) => {
       return {
         name: c.accession,
-        distance: calcDistRegionToRegion({start: c.coordinates.start, end: c.coordinates.end}, {start: coordinates.start, end: coordinates.end}),
+        distance: calcDistRegionToRegion(
+          { start: c.coordinates.start, end: c.coordinates.end },
+          { start: coordinates.start, end: coordinates.end }
+        ),
         chromosome: c.coordinates.chromosome,
         start: c.coordinates.start,
-        end: c.coordinates.end
+        end: c.coordinates.end,
       }
     })
   let snps =
@@ -110,14 +112,11 @@ export const NearByGenomicFeatures: React.FC<{
                     {
                       header: "Symbol",
                       value: (row) => row.name,
-                      render: (row) =>
-                        <Typography
-                          component="a"
-                          variant="body2"
-                          color="primary"
-                        >
+                      render: (row) => (
+                        <Typography component="a" variant="body2" color="primary">
                           <i>{row.name}</i>
-                        </Typography>,
+                        </Typography>
+                      ),
                     },
                     {
                       header: "Distance to Nearest TSS (in bp)",
@@ -145,11 +144,7 @@ export const NearByGenomicFeatures: React.FC<{
                       header: "Accession",
                       value: (row) => row.name,
                       render: (row) => (
-                        <Typography
-                          component="a"
-                          variant="body2"
-                          color="primary"
-                        >
+                        <Typography component="a" variant="body2" color="primary">
                           {row.name}
                         </Typography>
                       ),
@@ -161,11 +156,11 @@ export const NearByGenomicFeatures: React.FC<{
                     },
                   ]}
                   onRowClick={(row) => {
-                    handleOpencCRE({...row, accession: row.name })
+                    handleOpencCRE({ ...row, accession: row.name })
                   }}
                   sortColumn={1}
                   tableTitle="Nearby cCREs"
-                  rows={ccres.filter(c => c.distance != 0) || []}
+                  rows={ccres.filter((c) => c.distance != 0) || []}
                   itemsPerPage={10}
                   searchable
                   sortDescending={true}
@@ -179,14 +174,11 @@ export const NearByGenomicFeatures: React.FC<{
                     {
                       header: "SNP ID",
                       value: (row) => row.name,
-                      render: (row) =>
-                        <Typography
-                          component="a"
-                          variant="body2"
-                          color="primary"
-                        >
+                      render: (row) => (
+                        <Typography component="a" variant="body2" color="primary">
                           {row.name}
-                        </Typography>,
+                        </Typography>
+                      ),
                     },
                     {
                       header: "Distance (in bp)",
@@ -195,7 +187,10 @@ export const NearByGenomicFeatures: React.FC<{
                     },
                   ]}
                   onRowClick={(row) => {
-                    window.open(`http://ensembl.org/${row.assembly.toLowerCase() === "grch38" ? "Homo_sapiens" : "Mus_musculus"}/Variation/Explore?vdb=variation;v=${row.name}`, "_blank")
+                    window.open(
+                      `http://ensembl.org/${row.assembly.toLowerCase() === "grch38" ? "Homo_sapiens" : "Mus_musculus"}/Variation/Explore?vdb=variation;v=${row.name}`,
+                      "_blank"
+                    )
                   }}
                   sortColumn={1}
                   tableTitle="Nearby SNPs"

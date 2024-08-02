@@ -246,7 +246,9 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
           <Rampage genes={uniqueGenes.length > 0 ? uniqueGenes : []} biosampleData={biosampleData} />
         ))}
 
-      {page === 10 && assembly !== "mm10" && <GraphComponent accession={accession} />}
+      {page === 10 && assembly !== "mm10" && (
+        <GraphComponent accession={accession} handleOpencCRE={handleOpencCRE} />
+      )}
     </>
   ) : (
     <LoadingMessage />

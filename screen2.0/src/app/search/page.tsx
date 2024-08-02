@@ -191,7 +191,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   }
 
   //Handle opening a cCRE or navigating to its open tab
-  const handlecCREClick = (row) => {
+  const handlecCREClick = (row: { accession: string; start: number; end: number; chromosome: string }) => {
     const newcCRE = { ID: row.accession, region: { start: row.start, end: row.end, chrom: row.chromosome } }
     //If cCRE isn't in open cCREs, add and push as current accession.
     if (!opencCREs.find((x) => x.ID === newcCRE.ID)) {

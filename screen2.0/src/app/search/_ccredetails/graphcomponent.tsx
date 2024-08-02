@@ -28,7 +28,7 @@ async function fetchList(accession: string): Promise<string[]> {
   return result.data.getcCRENodeCelltypes
 }
 
-export const GraphComponent = ({ accession }) => {
+export const GraphComponent = ({ accession, handleOpencCRE }) => {
   const [cellType, setCellType] = useState<string | null>(null)
   const [cellTypes, setCellTypes] = useState<string[]>([])
   const [degreeOfSeparation, setDegree] = useState<number>(1)
@@ -86,7 +86,15 @@ export const GraphComponent = ({ accession }) => {
         />
       </div>
 
-      {cellType && <GraphHelper accession={accession} celltype={cellType} degreeOfSeparation={degreeOfSeparation} id={Math.random()} />}
+      {cellType && (
+        <GraphHelper
+          accession={accession}
+          celltype={cellType}
+          degreeOfSeparation={degreeOfSeparation}
+          id={Math.random()}
+          handleOpencCRE={handleOpencCRE}
+        />
+      )}
     </div>
   )
 }
