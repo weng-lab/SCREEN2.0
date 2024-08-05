@@ -238,7 +238,8 @@ export function DataMatrices() {
         onClick={() => {
           //if ((selectedAssay && selectedAssay.assembly !== variant.assembly) || selectedAssay.assay !== variant.assay) {
           //  router.push(`/downloads?tab=2&assembly=${variant.assembly}&assay=${variant.assay}`)
-            setSelectedAssay(variant)
+          setBounds(undefined)  
+          setSelectedAssay(variant)
           //}
         }}
         endIcon={
@@ -439,9 +440,13 @@ export function DataMatrices() {
             >
               <Scatter
                 data={scatterData}
-                pointStyle={{ r: bounds ? 6 : 4 }}
-                onPointMouseOver={setTooltip}
-                onPointMouseOut={() => setTooltip(-1)}
+                pointStyle={{ r: bounds ? 8 : 6 }}
+                onPointMouseOver={(i,_)=> setTimeout(() => {
+                  setTooltip(i)
+                }, 100)}
+                onPointMouseOut={() => setTimeout(() => {
+                  setTooltip(-1)
+                }, 100)}
                 onPointClick={(i) => setBiosamples([fData[i]])}
               />
               {tooltip !== -1 && (
@@ -472,7 +477,7 @@ export function DataMatrices() {
               <AccordionDetails>
                 {legendEntries.map((element, index) => {
                   return (
-                    <Typography key={index} borderLeft={`0.2rem solid ${element.color}`} paddingLeft={1}>
+                    <Typography key={index} borderLeft={`0.7rem solid ${element.color}`} paddingLeft={1}>
                       {`${element.label}: ${element.value}`}
                     </Typography>
                   )

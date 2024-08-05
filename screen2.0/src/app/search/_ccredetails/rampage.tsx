@@ -276,7 +276,7 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
             {peak && `${peak}: ${peakDetails?.chrom + ":" + peakDetails?.start.toLocaleString() + "-" + peakDetails?.end.toLocaleString()}`}
           </Typography>
         </Grid2>
-        <Grid2 xs={12}>
+        <Grid2 xs={10}>
           {data && data.length == 0 ? (<Typography>No data available</Typography>) :
             <PlotActivityProfiles
               data={data}
