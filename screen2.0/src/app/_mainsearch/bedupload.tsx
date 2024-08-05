@@ -69,8 +69,6 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
             allLines.push(line.split("\t"))
           }
         })
-        console.log(allLines);
-        
       }
       reader.onabort = () => console.log("file reading was aborted")
       reader.onerror = () => console.log("file reading has failed")

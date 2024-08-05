@@ -57,7 +57,7 @@ export default function About() {
     return new Promise((resolve, reject) => {
       emailjs.sendForm('service_m0zf8wa', 'template_15g5s3y', form.current, 'VU9U1vX9cAro8XtUK')
         .then((result) => {
-          console.log(result.text);
+          // console.log(result.text);
           resolve(result);
         })
         .catch((error) => {

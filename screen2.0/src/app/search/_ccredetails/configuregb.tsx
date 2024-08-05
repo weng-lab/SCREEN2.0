@@ -34,19 +34,15 @@ const ConfigureGenomeBrowser = (props: {
   handleClose?: () => void
 }) => {
   const [currentURLs, setCurrentURLs] = useState<{urlUCSC: string, urlTrackhub: string, biosamples: RegistryBiosamplePlusRNA[]}>(null)
-  const [open, setOpen] = useState(false);
+  const [openCopyConfirm, setOpenCopyConfirm] = useState(false);
   const [selectedBiosamples, setSelectedBiosamples] = useState<RegistryBiosamplePlusRNA[]>([])
-
-  const handleOpen = () => {
-    setOpen(true);
-  };
 
   const handleClose = (event: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === 'clickaway') {
       return;
     }
 
-    setOpen(false);
+    setOpenCopyConfirm(false);
   };
 
   const createTrackHub = async (value) => {
@@ -84,17 +80,6 @@ const ConfigureGenomeBrowser = (props: {
     }
   })
 
-  const getURL = async (x: "ucsc" | "trackhub") => {
-    //If current urls are outdated, create new ones
-    if (!currentURLs || (JSON.stringify(currentURLs.biosamples) !== JSON.stringify(selectedBiosamples))){
-      return x === "ucsc" ? (await createTrackHub(parsedBiosamples)).urlUCSC : (await createTrackHub(parsedBiosamples)).urlTrackhub
-    } else {
-      return x === "ucsc" ? currentURLs.urlUCSC : currentURLs.urlTrackhub
-    }  
-  }
-
-  const updateClipboard = (newClip) => { navigator.clipboard.writeText(newClip) }
-
   const handleDownload = async (urlTrackhub: string) => {
     try {
       const response = await fetch(urlTrackhub);
@@ -109,6 +94,23 @@ const ConfigureGenomeBrowser = (props: {
       console.error('Error downloading Trackhub: ', error);
       window.alert("Error fetching trackhub: " + error)
     }
+  }
+
+  const getURL = async (x: "ucsc" | "trackhub"): Promise<string> => {
+    //If current urls are outdated, create new ones
+    if (!currentURLs || (JSON.stringify(currentURLs.biosamples) !== JSON.stringify(selectedBiosamples))){
+      return x === "ucsc" ? (await createTrackHub(parsedBiosamples)).urlUCSC : (await createTrackHub(parsedBiosamples)).urlTrackhub
+    } else {
+      return x === "ucsc" ? currentURLs.urlUCSC : currentURLs.urlTrackhub
+    }  
+  }
+
+  const handleCopyToClipboard = async () => {
+    const url = await getURL("trackhub")
+    //setTimeout used as quick fix to make this work in safari, https://stackoverflow.com/questions/62327358/javascript-clipboard-api-safari-ios-notallowederror-message
+    setTimeout(() => {
+      navigator.clipboard.writeText(url).then(() => setOpenCopyConfirm(true))
+    }, 0)
   }
 
   return (
@@ -155,14 +157,18 @@ const ConfigureGenomeBrowser = (props: {
       </DialogContent>
       <DialogActions sx={!props.handleClose && { position: "fixed", bottom: 15, right: 15, zIndex: 1 }}>
         <Tooltip placement="top" arrow title="Copy link to Trackhub">
-          <IconButton disabled={selectedBiosamples.length === 0} onClick={async () => {updateClipboard(await getURL("trackhub")); handleOpen();}}>
+          <span>
+            <IconButton disabled={selectedBiosamples.length === 0} onClick={handleCopyToClipboard}>
             <ContentCopyIcon />
           </IconButton>
+          </span>
         </Tooltip>
         <Tooltip placement="top" arrow title="Download Trackhub (.txt)" sx={{mr: 1}}>
-          <IconButton disabled={selectedBiosamples.length === 0} onClick={async () => handleDownload(await getURL("trackhub"))}>
+          <span>
+            <IconButton disabled={selectedBiosamples.length === 0} onClick={async () => handleDownload(await getURL("trackhub"))}>
             <DownloadIcon />
           </IconButton>
+          </span>
         </Tooltip>
         <Button
           sx={{textTransform: "none"}}
@@ -176,7 +182,7 @@ const ConfigureGenomeBrowser = (props: {
       </DialogActions>
       <Snackbar
         sx={{ "& .MuiSnackbarContent-message": {margin: "auto"}}}
-        open={open}
+        open={openCopyConfirm}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         autoHideDuration={2000}
         onClose={handleClose}

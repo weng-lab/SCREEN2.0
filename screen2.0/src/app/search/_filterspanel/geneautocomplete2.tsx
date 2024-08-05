@@ -78,6 +78,7 @@ export const GeneAutoComplete2 = (
     } = props;
 
   const [inputValue, setInputValue] = useState("")
+  // const [value, setValue] = useState<GeneInfo>()
   const [options, setOptions] = useState<GeneInfo[]>([])
   const [descriptions, setDescriptions] = useState<{ name: string; desc: string }[]>([])
   const [loadingOptions, setLoadingOptions] = useState<boolean>(false)
@@ -156,8 +157,10 @@ export const GeneAutoComplete2 = (
   };
   
   const attemptSubmit = (inputVal: string) => {
-    const gene = options.find(x => x.name === inputVal)
-    gene && onGeneSubmitted(gene)
+    const gene = options.find(x => x.name.toLowerCase() === inputVal.toLowerCase())
+    gene && onGeneSubmitted && onGeneSubmitted(gene)
+    gene && setInputValue(gene.name)
+    // gene && setValue(gene)
   }
 
   return (
@@ -167,6 +170,7 @@ export const GeneAutoComplete2 = (
         ListboxProps={mergedListboxProps}
         options={options.sort((a, b) => a.name.localeCompare(b.name))} //How do I type this properly?
         inputValue={inputValue}
+        // value={value}
         onInputChange={(_, newInputValue) => {
           if (newInputValue != "") {
             debounceFn(newInputValue, assembly) // This triggers sending new request for genes

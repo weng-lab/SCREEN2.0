@@ -265,7 +265,6 @@ export const GenePoint = (props: { point: Gene; i: number; range: Range2D; dimen
     size = 7
   }
   let tmp: number = (props.range.y.end - props.range.y.start) / props.size
-  console.log(tmp)
 
   // transform
   p1 = linearTransform2D(props.range, props.dimensions)({ x: x1, y: (props.i + props.range.y.start) * tmp })

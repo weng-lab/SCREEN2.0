@@ -196,6 +196,28 @@ export const GROUP_COLOR_MAP: Map<string, string> = new Map([
   ["zunclassified","zunclassified:#8c8c8c"]  
 ])
 
+type Coordinates = {
+  chromosome: string
+  start: number
+  end: number
+}
+
+/**
+ * 
+ * @param region {chrom, start, end}
+ * @param transcripts 
+ * @returns distance to nearest TSS from any point in inputted region. 
+ */
+export function calcDistToTSS(region: GenomicRegion, transcripts: { id: string, coordinates: Coordinates }[], strand: '+' | '-'): number {
+  const distances: number [] = transcripts.map((transcript) => calcDistRegionToPosition(
+    region.start,
+    region.end,
+    "closest",
+    strand === "+" ? transcript.coordinates.start : transcript.coordinates.end
+  ))
+  return Math.min(...distances)
+}
+
 /**
  * 
  * @param start Start of Region
@@ -235,26 +257,4 @@ export function calcDistRegionToRegion(coord1: { start: number, end: number }, c
   } else {
     return 0;
   }
-}
-
-type Coordinates = {
-  chromosome: string
-  start: number
-  end: number
-}
-
-/**
- * 
- * @param region 
- * @param transcripts 
- * @returns distance to nearest TSS from any point in inputted region. 
- */
-export function calcDistToTSS(region: GenomicRegion, transcripts: { id: string, coordinates: Coordinates }[], strand: '+' | '-'): number {
-  const distances: number [] = transcripts.map((transcript) => calcDistRegionToPosition(
-    region.start,
-    region.end,
-    "closest",
-    strand === "+" ? transcript.coordinates.start : transcript.coordinates.end
-  ))
-  return Math.min(...distances)
 }
