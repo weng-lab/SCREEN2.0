@@ -102,31 +102,31 @@ export function DetailedElements(props: TabPanelProps) {
           <InlineDownloadButton
             mode="download"
             href={Config.Downloads.HumanCA_CTCF}
-            label="Chromatin Accessible with CTCF (126,034)"
+            label="Chromatin Accessible with CTCF (CA-CTCF) (126,034)"
             bordercolor={CA_CTCF}
           />
           <InlineDownloadButton
             mode="download"
             href={Config.Downloads.HumanCA_H3K4me3}
-            label="Chromatin Accessible with H3K4me3 (79,246)"
+            label="Chromatin Accessible with H3K4me3 (CA-H3K4me3) (79,246)"
             bordercolor={CA_H3K4me3}
           />
           <InlineDownloadButton
             mode="download"
             href={Config.Downloads.HumanCA_TF}
-            label="Chromatin Accessible with TF (26,102)"
+            label="Chromatin Accessible with TF (CA-TF) (26,102)"
             bordercolor={CA_TF}
           />
           <InlineDownloadButton
             mode="download"
             href={Config.Downloads.HumanCA_only}
-            label="Chromatin Accessible Only (245,985)"
+            label="Chromatin Accessible Only (CA) (245,985)"
             bordercolor={CA_only}
           />
           <InlineDownloadButton
             mode="download"
             href={Config.Downloads.HumanTF_only}
-            label="TF Only (105,286)"
+            label="TF Only (TF) (105,286)"
             bordercolor={TF_only}
           />
         </Stack>
@@ -162,37 +162,37 @@ export function DetailedElements(props: TabPanelProps) {
           <InlineDownloadButton
             mode="download"
             href={Config.Downloads.MouseCA_CTCF}
-            label="Chromatin Accessible with CTCF (45,933)"
+            label="Chromatin Accessible with CTCF (CA-CTCF) (45,933)"
             bordercolor={CA_CTCF}
           />
           <InlineDownloadButton
             mode="download"
             href={Config.Downloads.MouseCA_H3K4me3}
-            label="Chromatin Accessible with H3K4me3 (23,832)"
+            label="Chromatin Accessible with H3K4me3 (CA-H3K4me3) (23,832)"
             bordercolor={CA_H3K4me3}
           />
           <InlineDownloadButton
             mode="download"
             href={Config.Downloads.MouseCA_TF}
-            label="Chromatin Accessible with TF (10,707)"
+            label="Chromatin Accessible with TF (CA-TF) (10,707)"
             bordercolor={CA_TF}
           />
           <InlineDownloadButton
             mode="download"
             href={Config.Downloads.MouseCA_only}
-            label="Chromatin Accessible Only (291,800)"
+            label="Chromatin Accessible Only (CA) (291,800)"
             bordercolor={CA_only}
           />
           <InlineDownloadButton
             mode="download"
             href={Config.Downloads.MouseTF_only}
-            label="TF Only (15,283)"
+            label="TF Only (TF) (15,283)"
             bordercolor={TF_only}
           />
         </Stack>
       </Grid2>
       <Grid2 xs={12} md={6} order={{ xs: 2, md: 3 }}>
-        <Typography variant="h6">Human cCREs by Cell Type</Typography>
+        <Typography variant="h6">Human cCREs by cell and tissue types</Typography>
         <BiosampleTables
           biosampleData={props.biosamples}
           assembly={"GRCh38"}
@@ -204,7 +204,7 @@ export function DetailedElements(props: TabPanelProps) {
         />
       </Grid2>
       <Grid2 xs={12} md={6} order={{ xs: 3, md: 3 }}>
-        <Typography variant="h6">Mouse cCREs by Cell Type</Typography>
+        <Typography variant="h6">Mouse cCREs by cell and tissue types</Typography>
         <BiosampleTables
           biosampleData={props.biosamples}
           assembly={"mm10"}
