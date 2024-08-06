@@ -25,3 +25,54 @@ query ccreSearchQuery($assembly: String!, $accessions: [String!], $cellType: Str
    }
 }
 `
+
+export const LINKED_GENES = gql`
+  query(
+    $assembly: String!
+    $accessions: [String]!
+    $methods: [String]
+    $celltypes: [String]
+  ) {
+    linkedGenes: linkedGenesQuery(
+      assembly: $assembly
+      accession: $accessions
+      method: $methods
+      celltype: $celltypes
+    ) {
+      p_val
+      gene
+      geneid
+      genetype
+      method
+      accession
+      grnaid
+      effectsize
+      assay
+      celltype
+      experiment_accession
+      tissue
+      score
+      variantid
+      source
+      slope
+      tissue
+      displayname
+    }
+  }
+`
+
+export const GENE_EXP_QUERY = gql`
+query geneexpression($assembly: String!, $accessions: [String], $gene_id: [String]) {
+  gene_dataset(accession: $accessions) {  
+    gene_quantification_files(assembly: $assembly) {
+      quantifications(gene_id_prefix: $gene_id) {
+        gene { id }
+        tpm
+        file_accession
+        fpkm
+      }
+    }
+  }
+}
+ `
+
