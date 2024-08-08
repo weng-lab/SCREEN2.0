@@ -5049,7 +5049,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jiti@npm:^1.19.1":
+"jiti@npm:^1.21.0":
   version: 1.21.6
   resolution: "jiti@npm:1.21.6"
   bin:
@@ -7152,7 +7152,7 @@ __metadata:
     semantic-ui-react: latest
     server: ^1.0.38
     sharp: ^0.33.1
-    tailwindcss: 3.4.1
+    tailwindcss: 3.4.8
     typescript: 5.3.3
     umap-js: 1.3.3
     umms-gb: ^3.10.0
@@ -7920,9 +7920,9 @@ semantic-ui-react@latest:
   languageName: node
   linkType: hard
 
-"tailwindcss@npm:3.4.1":
-  version: 3.4.1
-  resolution: "tailwindcss@npm:3.4.1"
+"tailwindcss@npm:3.4.8":
+  version: 3.4.8
+  resolution: "tailwindcss@npm:3.4.8"
   dependencies:
     "@alloc/quick-lru": ^5.2.0
     arg: ^5.0.2
@@ -7932,7 +7932,7 @@ semantic-ui-react@latest:
     fast-glob: ^3.3.0
     glob-parent: ^6.0.2
     is-glob: ^4.0.3
-    jiti: ^1.19.1
+    jiti: ^1.21.0
     lilconfig: ^2.1.0
     micromatch: ^4.0.5
     normalize-path: ^3.0.0
@@ -7949,7 +7949,7 @@ semantic-ui-react@latest:
   bin:
     tailwind: lib/cli.js
     tailwindcss: lib/cli.js
-  checksum: ef5a587dd32bb4e91e1549ead6162f85f0b78d3e6ffd8b4e8eeb15585b7b886cb3af6ae9df5092ed8ccb7e590608d1b3eec79ca08c862b07cd9ff7e72f73104b
+  checksum: c9ffff3bd04faec4acacaef863b46caf92c5d378e68e3f22d3c300fc71adcfb73f1aaac67541ba99aa19fb1323218c91c9e86630cb9bd016b6c282c4ad4506c7
   languageName: node
   linkType: hard
 
