@@ -344,7 +344,7 @@ export const GraphHelper = ({ accession, celltype, degreeOfSeparation, id, handl
       getColor={setColor}
       order={["PLS", "pELS", "dELS", "CA-H3K4me3", "CA-CTCF", "CA-TF", "CA-only", "TF", "Low-DNase"]}
       onNodeClick={handleOpencCRE}
-      directional={true}
+      directional={false}
       scaleLabel={"0.5 + ((n - min) / (max - min)) * 4.5"}
     />
   )
