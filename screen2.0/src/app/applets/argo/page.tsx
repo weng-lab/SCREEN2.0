@@ -1,5 +1,5 @@
 "use client"
-import React, { startTransition, useCallback, useEffect, JSX } from "react"
+import React, { startTransition, useEffect } from "react"
 import {useState } from "react"
 import { Stack, Typography, Box, TextField, Button, Alert, FormGroup, Checkbox, FormControlLabel, CircularProgress, Paper, IconButton, Tooltip, Accordion, AccordionSummary, AccordionDetails } from "@mui/material"
 import MenuItem from "@mui/material/MenuItem"
@@ -9,13 +9,12 @@ import Select, { SelectChangeEvent } from "@mui/material/Select"
 import BedUpload from "../../_mainsearch/bedupload"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { GENE_EXP_QUERY, LINKED_GENES, Z_SCORES_QUERY } from "./queries"
-import { ApolloQueryResult, useQuery, useLazyQuery } from "@apollo/client"
+import { ApolloQueryResult, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
 import { ZScores, LinkedGenes } from "./types"
 import BiosampleTables from "../../search/biosampletables"
 import { BIOSAMPLE_Data, biosampleQuery } from "../../../common/lib/queries"
 import { RegistryBiosample } from "../../search/types"
-import { HUMAN_GENE_EXP, MOUSE_GENE_EXP } from "../gene-expression/const"
 import FilterListIcon from '@mui/icons-material/FilterList';
 
 
@@ -29,8 +28,11 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     const [textUploaded, setTextUploaded] = useState<File[]>([])
     const [biosampleData, setBiosampleData] = useState<ApolloQueryResult<BIOSAMPLE_Data>>(null)
     const [selectedBiosample, setSelectedBiosample] = useState<RegistryBiosample[]>([])
-    const [availableScores, setAvailableScores] = useState({"dnase": true, "h3k4me3": true, "h3k27ac": true, "ctcf": true, "atac": true, "vertebrates": true, "mammals": true, "primates": true})
-    const scoreNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac", "vertebrates", "mammals", "primates"]
+    const [availableScores, setAvailableScores] = useState({})
+    const scoreNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
+    const conservationNames = ["vertebrates", "mammals", "primates"]
+    const linkedGenesMethods = ["Intact-HiC", "CTCF-ChIAPET", "RNAPII-ChIAPET", "CRISPRi-FlowFISH", "eQTLs"]
+    const allScoreNames = scoreNames.concat(conservationNames).concat(linkedGenesMethods)
     
     const {loading: loading_scores, error: error_scores, data: data_scores} = useQuery(Z_SCORES_QUERY, {
         variables: {
@@ -40,7 +42,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         },
         client: client,
         fetchPolicy: 'cache-and-network',
-        onCompleted(d) {   
+        onCompleted(d) {
             let data = d['cCRESCREENSearch']
             let result = null
             if (selectedBiosample.length > 0) {
@@ -88,23 +90,21 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
             
             let scoresToInclude = selectedBiosample.length > 0 ? scoreNames.filter((s) => selectedBiosample[0][s]): scoreNames
             let availableScoresCopy = {...availableScores}
+            
+            if (assembly != "mm10") {
+                scoresToInclude = scoresToInclude.concat(conservationNames) // Including conservation scores if assemblys is not mouse
+            }
 
-            scoreNames.forEach( (s) => {
-                if (scoresToInclude.indexOf(s) == -1) {
-                    availableScoresCopy[s] = false
-                }
-                else {
+            scoreNames.concat(conservationNames).forEach( (s) => {
+                if (scoresToInclude.indexOf(s) !== -1) {
                     availableScoresCopy[s] = true
                 }
-                
+                else {
+                    availableScoresCopy[s] = false
+                }
             })
             setAvailableScores(availableScoresCopy)
             setScores(evaluateRankings(result, availableScoresCopy))
-            let random_string = Math.random().toString(36).slice(2, 10)
-            setColumns(allColumns.filter(
-                (e) => scoresToInclude.indexOf(e.header.toLowerCase().split(' ')[0]) !== -1
-            ))
-            setKey(random_string)
         }
     })
 
@@ -116,22 +116,24 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         client: client,
         fetchPolicy: 'cache-and-network',
         onCompleted(data) {
-            setScores(scores.map((obj) => {
-                let objCopy = {...obj}
-                let matchingObjs = data.linkedGenes.filter((e) => e.accession == obj.accession)
-                let linkedGenes: LinkedGenes[] = matchingObjs.map((e) => {
-                    return {gene_id: e.geneid, method: e.method, tpm: 0}
-                })
-                objCopy.linked_genes = linkedGenes
-                return objCopy
-            }))  
+            if (data.linkedGenes.length > 0) {
+                setScores(scores.map((obj) => {
+                    let objCopy = {...obj}
+                    let matchingObjs = data.linkedGenes.filter((e) => e.accession == obj.accession)
+                    let linkedGenes: LinkedGenes[] = matchingObjs.map((e) => {
+                        return {gene_id: e.geneid, method: e.method == "Chromatin" ? e.assay: e.method, tpm: 0}
+                    })
+                    objCopy.linked_genes = linkedGenes
+                    return objCopy
+                }))
+            } 
         },
     })
 
     const {loading: loading_quantifications, error: error_quantifications, data: data_quantifications} = useQuery(GENE_EXP_QUERY, {
         variables: {
             assembly: assembly,
-            accessions: assembly === "GRCh38" ? HUMAN_GENE_EXP : MOUSE_GENE_EXP,
+            biosample_value: selectedBiosample.length > 0 ? selectedBiosample[0].name: "",
             gene_id: Array.from(scores.reduce((acc, e) => acc.union(new Set(e.linked_genes.map((e) => e.gene_id))), new Set([])))
         },
         client: client,
@@ -144,37 +146,49 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                 }
             )
             })
-            console.log(listGenes);
-            
-            setScores(scores.map((obj) => {
-                let objCopy = {...obj}
-                objCopy.linked_genes.map((gene) => {
-                    let geneCopy = {...gene}
-                    let matchingGene = listGenes.find((o) => o.gene.id.split(".")[0] == gene.gene_id)
-                    geneCopy.tpm = matchingGene ? matchingGene.tpm: 0
-                    return geneCopy
+            if (listGenes.length > 0) {
+                let availableScoresCopy = {...availableScores}
+                linkedGenesMethods.forEach((m) => availableScoresCopy[m] = false)
+                let newScores = scores.map((obj) => {
+                    let objCopy = {...obj}
+                    objCopy.linked_genes = objCopy.linked_genes.map((gene) => {
+                        let geneCopy = {...gene}
+                        let matchingGenes = listGenes.filter((o) => o.gene.id.split(".")[0] == gene.gene_id)
+                        
+                        let max_tpm = 0
+                        matchingGenes.forEach((matchingGene) => {
+                            availableScoresCopy[`${gene.method}`] = true
+                            
+                            if (matchingGene.tpm > max_tpm) {
+                                max_tpm = matchingGene.tpm
+                            }
+                        })
+                        geneCopy.tpm = max_tpm
+                        return geneCopy
+                    })
+                    objCopy = evaluateMaxTPM(objCopy)
+                    return objCopy
                 })
-                return objCopy
-            })) 
+                setAvailableScores(availableScoresCopy)
+                setScores(evaluateRankings(newScores, availableScoresCopy))
+            }
         },
     })
     
-    const allColumns = [{ header: "DNase", value: (row) => row.dnase, render: (row) => row.dnase.toFixed(2) },
-    // { header: "DNase Rank", value: (row) => row.dnase_rank },
+    const allColumns = [
+    { header: "DNase", value: (row) => row.dnase, render: (row) => row.dnase.toFixed(2) },
     { header: "H3K4me3", value: (row) => row.h3k4me3, render: (row) => row.h3k4me3.toFixed(2) },
-    // { header: "H3K4me3 Rank", value: (row) => row.h3k4me3_rank },
     { header: "H3K27ac", value: (row) => row.h3k27ac, render: (row) => row.h3k27ac.toFixed(2) },
-    // { header: "H3K27ac Rank", value: (row) => row.h3k27ac_rank },
     { header: "CTCF", value: (row) => row.ctcf, render: (row) => row.ctcf.toFixed(2) },
-    // { header: "CTCF Rank", value: (row) => row.ctcf_rank },
     { header: "ATAC", value: (row) => row.atac, render: (row) => row.atac.toFixed(2) },
-    // { header: "ATAC Rank", value: (row) => row.atac_rank },
     { header: "Vertebrates", value: (row) => row.vertebrates, render: (row) => row.vertebrates.toFixed(2) },
-    // { header: "Vertebrates Rank", value: (row) => row.vertebrates_rank },
     { header: "Mammals", value: (row) => row.mammals, render: (row) => row.mammals.toFixed(2) },
-    // { header: "Mammals Rank", value: (row) => row.mammals_rank },
     { header: "Primates", value: (row) => row.primates, render: (row) => row.primates.toFixed(2) },
-    // { header: "Primates Rank", value: (row) => row.primates_rank }
+    { header: "Intact-HiC", value: (row) => row["Intact-HiC"], render: (row) => row["Intact-HiC"].toFixed(2) },
+    { header: "CTCF-ChIAPET", value: (row) => row["CTCF-ChIAPET"], render: (row) => row["CTCF-ChIAPET"].toFixed(2) },
+    { header: "RNAPII-ChIAPET", value: (row) => row["RNAPII-ChIAPET"], render: (row) => row["RNAPII-ChIAPET"].toFixed(2) },
+    { header: "CRISPRi-FlowFISH", value: (row) => row["CRISPRi-FlowFISH"], render: (row) => row["CRISPRi-FlowFISH"].toFixed(2) },
+    { header: "eQTLs", value: (row) => row.eQTLs, render: (row) => row.eQTLs.toFixed(2) },
     ]
 
     useEffect(() => {
@@ -185,15 +199,27 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
       }, [])
 
     const handleSearchChange = (event: SelectChangeEvent) => {
+        setDataAPI([])
+        setAvailableScores({})
+        setSelectedBiosample([])
+        setScores([])
+        setColumns([])
         setSelectedSearch(event.target.value)
     }
 
     const handleAssemblyChange = (event: SelectChangeEvent) => {
-        ((event.target.value === "GRCh38") || (event.target.value === "mm10")) && setAssembly(event.target.value)
+        setDataAPI([])
+        setAvailableScores({})
+        setSelectedBiosample([])
+        setScores([])
+        setColumns([])
+        if ((event.target.value === "GRCh38") || (event.target.value === "mm10")) {
+            setAssembly(event.target.value)
+        }  
     }
 
     function evaluateRankings(data, available) { 
-        let scoresToInclude = scoreNames.filter((s) => available[s])
+        let scoresToInclude = allScoreNames.filter((s) => available[s])
         scoresToInclude.forEach((scoreName) => {
             let score_column = data.map((r, i) => [i, r[scoreName]])
             score_column.sort((a,b) => b[1] - a[1])
@@ -201,7 +227,23 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                 data[row[0]][`${scoreName}_rank`] = i + 1
             })
         })
+        setColumns(allColumns.filter(
+            (e) => available[e.header.toLowerCase()] || available[e.header]
+        ))
+        let random_string = Math.random().toString(36).slice(2, 10)
+        setKey(random_string)
         return calculateAggregateRank(data, scoresToInclude)
+    }
+
+    function evaluateMaxTPM(score: ZScores) {
+        let scoreCopy = {...score}
+        linkedGenesMethods.forEach((method) => {
+            let maxTPM = 0
+            let method_genes = scoreCopy.linked_genes.filter( (gene) => gene.method == method)
+            method_genes.forEach((e) => maxTPM = e.tpm > maxTPM ? e.tpm: maxTPM)
+            scoreCopy[method] = maxTPM
+        })
+        return scoreCopy
     }
 
     function calculateAggregateRank(data, scoresToInclude) {
@@ -222,7 +264,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         scoresToInclude = scoresToInclude.filter((e) => !e.disabled && e.checked).map((e) => e.value)
         setScores(calculateAggregateRank([...scores], scoresToInclude))
         setColumns(allColumns.filter(
-            (e) => scoresToInclude.indexOf(e.header.toLowerCase().split(' ')[0]) !== -1
+            (e) => scoresToInclude.indexOf(e.header.toLowerCase().split(' ')[0]) !== -1 || scoresToInclude.indexOf(e.header) !== -1
         ))
         setKey(scoresToInclude.join(' '))
     }
@@ -251,7 +293,6 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         {error_scores && <Alert variant="filled" severity="error">{error_scores.message}</Alert>}
         {error_genes && <Alert variant="filled" severity="error">{error_genes.message}</Alert>}
         {error_quantifications && <Alert variant="filled" severity="error">{error_quantifications.message}</Alert>}
-        { scores.length == 0 &&
         <Box>
         <Stack direction={props.header ? "row" : "column"} spacing={3} mt="10px">
             <Stack direction={"row"} alignItems={"center"} flexWrap={"wrap"}>
@@ -315,16 +356,14 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                 }   
             </Box>
         </Box>
-    }
     {scores.length > 0 && 
     <Box mt="20px">
-
         <Accordion style={{"border": "1px solid", "marginBottom": "15px"}}>
             <AccordionSummary expandIcon={<FilterListIcon />}>Filters</AccordionSummary>
             <AccordionDetails>
-                <Stack direction="row" spacing="3%" height="40vh">
-                    <Box width="30%" overflow="scroll">
-                        <Typography lineHeight={"50px"} mr={"10px"}>Select Biosample</Typography>
+                <Stack direction="row" spacing="7%" height="32vh">
+                    <Box width="40%" overflow="scroll">
+                    <Typography lineHeight={"40px"}>Within a Biosample</Typography>
                         {selectedBiosample.length > 0 &&
                             <Paper elevation={0}>
                                 <IconButton size="small" sx={{ p: 0 }} onClick={(event) => { setSelectedBiosample([]); event.stopPropagation() }}>
@@ -345,24 +384,37 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                             assembly={assembly}
                         />
                     </Box>
-                        <Stack direction="column">
-                            <Typography lineHeight={"40px"}>Assays</Typography>
-                            <FormGroup onChange={handleCheckBoxChange}>
-                                <FormControlLabel label="DNase" control={<Checkbox disabled={!availableScores.dnase} defaultChecked name="scoresToInclude" value="dnase"></Checkbox>}></FormControlLabel>
-                                <FormControlLabel label="H3K4me3" control={<Checkbox disabled={!availableScores.h3k4me3} defaultChecked name="scoresToInclude" value="h3k4me3"></Checkbox>}></FormControlLabel>
-                                <FormControlLabel label="H3K27ac" control={<Checkbox disabled={!availableScores.h3k27ac} defaultChecked name="scoresToInclude" value="h3k27ac"></Checkbox>}></FormControlLabel>
-                                <FormControlLabel label="CTCF" control={<Checkbox disabled={!availableScores.ctcf} defaultChecked name="scoresToInclude" value="ctcf"></Checkbox>}></FormControlLabel>
-                                <FormControlLabel label="ATAC" control={<Checkbox disabled={!availableScores.atac} defaultChecked name="scoresToInclude" value="atac"></Checkbox>}></FormControlLabel>
-                            </FormGroup>
-
-                            <Typography lineHeight={"40px"}>Conservation</Typography>
-                            <FormGroup onChange={handleCheckBoxChange}>
-                                <FormControlLabel label="Vertebrates" control={<Checkbox disabled={!availableScores.vertebrates} defaultChecked name="scoresToInclude" value="vertebrates"></Checkbox>}></FormControlLabel>
-                                <FormControlLabel label="Mammals" control={<Checkbox disabled={!availableScores.mammals} defaultChecked name="scoresToInclude" value="mammals"></Checkbox>}></FormControlLabel>
-                                <FormControlLabel label="Primates" control={<Checkbox disabled={!availableScores.primates} defaultChecked name="scoresToInclude" value="primates"></Checkbox>}></FormControlLabel>
-                            </FormGroup>
-                            
+                    <Stack>
+                        <Typography lineHeight={"40px"}>Assays</Typography>
+                        <FormGroup onChange={handleCheckBoxChange}>
+                            <FormControlLabel label="DNase" control={<Checkbox disabled={!availableScores.dnase} name="scoresToInclude" value="dnase"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="H3K4me3" control={<Checkbox disabled={!availableScores.h3k4me3} defaultChecked={availableScores.h3k4me3} name="scoresToInclude" value="h3k4me3"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="H3K27ac" control={<Checkbox disabled={!availableScores.h3k27ac} defaultChecked={availableScores.h3k27ac} name="scoresToInclude" value="h3k27ac"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="CTCF" control={<Checkbox disabled={!availableScores.ctcf} defaultChecked={availableScores.ctcf} name="scoresToInclude" value="ctcf"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="ATAC" control={<Checkbox disabled={!availableScores.atac} defaultChecked={availableScores.atac} name="scoresToInclude" value="atac"></Checkbox>}></FormControlLabel>
+                        </FormGroup>
                     </Stack>
+                    <Stack>
+                        <Typography lineHeight={"40px"}>Conservation</Typography>
+                        <FormGroup onChange={handleCheckBoxChange}>
+                            <FormControlLabel label="Vertebrates" control={<Checkbox disabled={!availableScores.vertebrates} defaultChecked name="scoresToInclude" value="vertebrates"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="Mammals" control={<Checkbox disabled={!availableScores.mammals} defaultChecked name="scoresToInclude" value="mammals"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="Primates" control={<Checkbox disabled={!availableScores.primates} defaultChecked name="scoresToInclude" value="primates"></Checkbox>}></FormControlLabel>
+                        </FormGroup>
+                    </Stack>
+                    <Stack>
+                        <Typography lineHeight={"40px"}>Linked Genes</Typography>
+                        <FormGroup onChange={handleCheckBoxChange}>
+                            <FormControlLabel label="Intact Hi-C Loops" control={<Checkbox disabled={selectedBiosample.length == 0 || !availableScores["Intact-HiC"]} defaultChecked name="scoresToInclude" value="Intact-HiC"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="CTCF ChIA-PET Interaction" control={<Checkbox disabled={selectedBiosample.length == 0 || !availableScores["CTCF-ChIAPET"]} defaultChecked name="scoresToInclude" value="CTCF-ChIAPET"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="RNAPII ChIA-PET Interaction" control={<Checkbox disabled={selectedBiosample.length == 0 || !availableScores["RNAPII-ChIAPET"]} defaultChecked name="scoresToInclude" value="RNAPII-ChIAPET"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="CRISPRi-FlowFISH" control={<Checkbox disabled={selectedBiosample.length == 0 || !availableScores["CRISPRi-FlowFISH"]} defaultChecked name="scoresToInclude" value="CRISPRi-FlowFISH"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="eQTLs" control={<Checkbox disabled={selectedBiosample.length == 0 || !availableScores["eQTLs"]} defaultChecked name="scoresToInclude" value="eQTLs"></Checkbox>}></FormControlLabel>
+                        </FormGroup>
+                    </Stack>
+                    
+
+
                 </Stack>
             </AccordionDetails>
         </Accordion>
@@ -372,8 +424,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         key={key}
         columns={[{ header: "Accession", value: (row) => row.accession },
             { header: "User ID", value: (row) => row.user_id },
-            { header: "Aggregate Rank", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) },
-            { header: "TPM Max", value: (row) => row.linked_genes.reduce((acc, e) => acc + e.tpm, 0)}]
+            { header: "Aggregate Rank", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) }]
             .concat(columns)}
         rows={scores}
         sortColumn={2}

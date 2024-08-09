@@ -62,8 +62,8 @@ export const LINKED_GENES = gql`
 `
 
 export const GENE_EXP_QUERY = gql`
-query geneexpression($assembly: String!, $accessions: [String], $gene_id: [String]) {
-  gene_dataset(accession: $accessions) {  
+query geneexpression($assembly: String!, $biosample_value: [String], $gene_id: [String]) {
+  gene_dataset(biosample_value: $biosample_value) {  
     gene_quantification_files(assembly: $assembly) {
       quantifications(gene_id_prefix: $gene_id) {
         gene { id }
