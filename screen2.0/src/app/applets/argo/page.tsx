@@ -95,7 +95,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                 scoresToInclude = scoresToInclude.concat(conservationNames) // Including conservation scores if assemblys is not mouse
             }
 
-            scoreNames.concat(conservationNames).forEach( (s) => {
+            allScoreNames.forEach( (s) => {
                 if (scoresToInclude.indexOf(s) !== -1) {
                     availableScoresCopy[s] = true
                 }
@@ -387,7 +387,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                     <Stack>
                         <Typography lineHeight={"40px"}>Assays</Typography>
                         <FormGroup onChange={handleCheckBoxChange}>
-                            <FormControlLabel label="DNase" control={<Checkbox disabled={!availableScores.dnase} name="scoresToInclude" value="dnase"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="DNase" control={<Checkbox disabled={!availableScores.dnase} defaultChecked={availableScores.dnase} name="scoresToInclude" value="dnase"></Checkbox>}></FormControlLabel>
                             <FormControlLabel label="H3K4me3" control={<Checkbox disabled={!availableScores.h3k4me3} defaultChecked={availableScores.h3k4me3} name="scoresToInclude" value="h3k4me3"></Checkbox>}></FormControlLabel>
                             <FormControlLabel label="H3K27ac" control={<Checkbox disabled={!availableScores.h3k27ac} defaultChecked={availableScores.h3k27ac} name="scoresToInclude" value="h3k27ac"></Checkbox>}></FormControlLabel>
                             <FormControlLabel label="CTCF" control={<Checkbox disabled={!availableScores.ctcf} defaultChecked={availableScores.ctcf} name="scoresToInclude" value="ctcf"></Checkbox>}></FormControlLabel>
@@ -430,6 +430,8 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         sortColumn={2}
         sortDescending
         itemsPerPage={10}
+        searchable
+        tableTitle="User Uploaded cCREs Ranked By Scores"
         >
         </DataTable>
         } 
