@@ -134,7 +134,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         variables: {
             assembly: assembly,
             biosample_value: selectedBiosample.length > 0 ? selectedBiosample[0].name: "",
-            gene_id: Array.from(scores.reduce((acc, e) => acc.union(new Set(e.linked_genes.map((e) => e.gene_id))), new Set([])))
+            gene_id: Array.from(scores.reduce((acc, e) => { e.linked_genes.map((e) => e.gene_id).forEach((el) => acc.add(el)); return acc }, new Set([])))
         },
         client: client,
         fetchPolicy: 'cache-and-network',
