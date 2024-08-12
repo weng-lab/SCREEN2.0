@@ -29,6 +29,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     const [biosampleData, setBiosampleData] = useState<ApolloQueryResult<BIOSAMPLE_Data>>(null)
     const [selectedBiosample, setSelectedBiosample] = useState<RegistryBiosample[]>([])
     const [availableScores, setAvailableScores] = useState({})
+    const [checkedScores, setCheckedScores] = useState({})
     const scoreNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
     const conservationNames = ["vertebrates", "mammals", "primates"]
     const linkedGenesMethods = ["Intact-HiC", "CTCF-ChIAPET", "RNAPII-ChIAPET", "CRISPRi-FlowFISH", "eQTLs"]
@@ -104,6 +105,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                 }
             })
             setAvailableScores(availableScoresCopy)
+            setCheckedScores(availableScoresCopy)
             setScores(evaluateRankings(result, availableScoresCopy))
         }
     })
@@ -170,6 +172,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                     return objCopy
                 })
                 setAvailableScores(availableScoresCopy)
+                setCheckedScores(availableScoresCopy)
                 setScores(evaluateRankings(newScores, availableScoresCopy))
             }
         },
@@ -201,6 +204,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     const handleSearchChange = (event: SelectChangeEvent) => {
         setDataAPI([])
         setAvailableScores({})
+        setCheckedScores({})
         setSelectedBiosample([])
         setScores([])
         setColumns([])
@@ -210,6 +214,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     const handleAssemblyChange = (event: SelectChangeEvent) => {
         setDataAPI([])
         setAvailableScores({})
+        setCheckedScores({})
         setSelectedBiosample([])
         setScores([])
         setColumns([])
@@ -259,12 +264,16 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         return data
     }
 
-    function handleCheckBoxChange(e) {
-        let scoresToInclude = Array.from(document.getElementsByName("scoresToInclude"))
-        scoresToInclude = scoresToInclude.filter((e) => !e.disabled && e.checked).map((e) => e.value)
+    function handleCheckBoxChange(event) {
+        let checkedCopy = {...checkedScores}
+        checkedCopy[event.target.value] = event.target.checked
+        setCheckedScores(checkedCopy)
+        
+        // scoresToInclude = scoresToInclude.filter((e) => !e.disabled && e.checked).map((e) => e.value)
+        let scoresToInclude = Object.keys(checkedCopy).filter((e) => checkedCopy[e])
         setScores(calculateAggregateRank([...scores], scoresToInclude))
         setColumns(allColumns.filter(
-            (e) => scoresToInclude.indexOf(e.header.toLowerCase().split(' ')[0]) !== -1 || scoresToInclude.indexOf(e.header) !== -1
+            (e) => checkedCopy[e.header.toLowerCase().split(' ')[0]] || checkedCopy[e.header]
         ))
         setKey(scoresToInclude.join(' '))
     }
@@ -386,30 +395,30 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                     </Box>
                     <Stack>
                         <Typography lineHeight={"40px"}>Assays</Typography>
-                        <FormGroup onChange={handleCheckBoxChange}>
-                            <FormControlLabel label="DNase" control={<Checkbox disabled={!availableScores.dnase} defaultChecked={availableScores.dnase} name="scoresToInclude" value="dnase"></Checkbox>}></FormControlLabel>
-                            <FormControlLabel label="H3K4me3" control={<Checkbox disabled={!availableScores.h3k4me3} defaultChecked={availableScores.h3k4me3} name="scoresToInclude" value="h3k4me3"></Checkbox>}></FormControlLabel>
-                            <FormControlLabel label="H3K27ac" control={<Checkbox disabled={!availableScores.h3k27ac} defaultChecked={availableScores.h3k27ac} name="scoresToInclude" value="h3k27ac"></Checkbox>}></FormControlLabel>
-                            <FormControlLabel label="CTCF" control={<Checkbox disabled={!availableScores.ctcf} defaultChecked={availableScores.ctcf} name="scoresToInclude" value="ctcf"></Checkbox>}></FormControlLabel>
-                            <FormControlLabel label="ATAC" control={<Checkbox disabled={!availableScores.atac} defaultChecked={availableScores.atac} name="scoresToInclude" value="atac"></Checkbox>}></FormControlLabel>
+                        <FormGroup>
+                            <FormControlLabel label="DNase" control={<Checkbox onChange={handleCheckBoxChange} disabled={!availableScores.dnase} checked={checkedScores.dnase} value="dnase"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="H3K4me3" control={<Checkbox onChange={handleCheckBoxChange} disabled={!availableScores.h3k4me3} checked={checkedScores.h3k4me3} value="h3k4me3"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="H3K27ac" control={<Checkbox onChange={handleCheckBoxChange} disabled={!availableScores.h3k27ac} checked={checkedScores.h3k27ac} value="h3k27ac"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="CTCF" control={<Checkbox onChange={handleCheckBoxChange} disabled={!availableScores.ctcf} checked={checkedScores.ctcf} value="ctcf"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="ATAC" control={<Checkbox onChange={handleCheckBoxChange} disabled={!availableScores.atac} checked={checkedScores.atac} value="atac"></Checkbox>}></FormControlLabel>
                         </FormGroup>
                     </Stack>
                     <Stack>
                         <Typography lineHeight={"40px"}>Conservation</Typography>
-                        <FormGroup onChange={handleCheckBoxChange}>
-                            <FormControlLabel label="Vertebrates" control={<Checkbox disabled={!availableScores.vertebrates} defaultChecked name="scoresToInclude" value="vertebrates"></Checkbox>}></FormControlLabel>
-                            <FormControlLabel label="Mammals" control={<Checkbox disabled={!availableScores.mammals} defaultChecked name="scoresToInclude" value="mammals"></Checkbox>}></FormControlLabel>
-                            <FormControlLabel label="Primates" control={<Checkbox disabled={!availableScores.primates} defaultChecked name="scoresToInclude" value="primates"></Checkbox>}></FormControlLabel>
+                        <FormGroup>
+                            <FormControlLabel label="Vertebrates" control={<Checkbox onChange={handleCheckBoxChange} disabled={!availableScores.vertebrates} checked={checkedScores.vertebrates} value="vertebrates"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="Mammals" control={<Checkbox onChange={handleCheckBoxChange} disabled={!availableScores.mammals} checked={checkedScores.vertebrates} value="mammals"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="Primates" control={<Checkbox onChange={handleCheckBoxChange} disabled={!availableScores.primates} checked={checkedScores.vertebrates} value="primates"></Checkbox>}></FormControlLabel>
                         </FormGroup>
                     </Stack>
                     <Stack>
                         <Typography lineHeight={"40px"}>Linked Genes</Typography>
-                        <FormGroup onChange={handleCheckBoxChange}>
-                            <FormControlLabel label="Intact Hi-C Loops" control={<Checkbox disabled={selectedBiosample.length == 0 || !availableScores["Intact-HiC"]} defaultChecked name="scoresToInclude" value="Intact-HiC"></Checkbox>}></FormControlLabel>
-                            <FormControlLabel label="CTCF ChIA-PET Interaction" control={<Checkbox disabled={selectedBiosample.length == 0 || !availableScores["CTCF-ChIAPET"]} defaultChecked name="scoresToInclude" value="CTCF-ChIAPET"></Checkbox>}></FormControlLabel>
-                            <FormControlLabel label="RNAPII ChIA-PET Interaction" control={<Checkbox disabled={selectedBiosample.length == 0 || !availableScores["RNAPII-ChIAPET"]} defaultChecked name="scoresToInclude" value="RNAPII-ChIAPET"></Checkbox>}></FormControlLabel>
-                            <FormControlLabel label="CRISPRi-FlowFISH" control={<Checkbox disabled={selectedBiosample.length == 0 || !availableScores["CRISPRi-FlowFISH"]} defaultChecked name="scoresToInclude" value="CRISPRi-FlowFISH"></Checkbox>}></FormControlLabel>
-                            <FormControlLabel label="eQTLs" control={<Checkbox disabled={selectedBiosample.length == 0 || !availableScores["eQTLs"]} defaultChecked name="scoresToInclude" value="eQTLs"></Checkbox>}></FormControlLabel>
+                        <FormGroup>
+                            <FormControlLabel label="Intact Hi-C Loops" control={<Checkbox onChange={handleCheckBoxChange} disabled={selectedBiosample.length == 0 || !availableScores["Intact-HiC"]} checked={checkedScores["Intact-HiC"]} value="Intact-HiC"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="CTCF ChIA-PET Interaction" control={<Checkbox onChange={handleCheckBoxChange} disabled={selectedBiosample.length == 0 || !availableScores["CTCF-ChIAPET"]} checked={checkedScores["CTCF-ChIAPET"]} value="CTCF-ChIAPET"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="RNAPII ChIA-PET Interaction" control={<Checkbox onChange={handleCheckBoxChange} disabled={selectedBiosample.length == 0 || !availableScores["RNAPII-ChIAPET"]} checked={checkedScores["RNAPII-ChIAPET"]} value="RNAPII-ChIAPET"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="CRISPRi-FlowFISH" control={<Checkbox onChange={handleCheckBoxChange} disabled={selectedBiosample.length == 0 || !availableScores["CRISPRi-FlowFISH"]} checked={checkedScores[["CRISPRi-FlowFISH"]]} value="CRISPRi-FlowFISH"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="eQTLs" control={<Checkbox onChange={handleCheckBoxChange} disabled={selectedBiosample.length == 0 || !availableScores["eQTLs"]} checked={checkedScores["eQTLs"]} value="eQTLs"></Checkbox>}></FormControlLabel>
                         </FormGroup>
                     </Stack>
                     
