@@ -28,12 +28,13 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     const [textUploaded, setTextUploaded] = useState<File[]>([])
     const [biosampleData, setBiosampleData] = useState<ApolloQueryResult<BIOSAMPLE_Data>>(null)
     const [selectedBiosample, setSelectedBiosample] = useState<RegistryBiosample[]>([])
-    const [availableScores, setAvailableScores] = useState({})
-    const [checkedScores, setCheckedScores] = useState({})
     const scoreNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
     const conservationNames = ["vertebrates", "mammals", "primates"]
     const linkedGenesMethods = ["Intact-HiC", "CTCF-ChIAPET", "RNAPII-ChIAPET", "CRISPRi-FlowFISH", "eQTLs"]
     const allScoreNames = scoreNames.concat(conservationNames).concat(linkedGenesMethods)
+    const allScoresObj = {"dnase": false, "h3k4me3": false, "h3k27ac": false, "ctcf": false, "atac": false, "vertebrates": false, "mammals": false, "primates": false, "Intact-HiC": false, "CTCF-ChIAPET": false, "RNAPII-ChIAPET": false, "CRISPRi-FlowFISH" : false, "eQTLs": false}
+    const [availableScores, setAvailableScores] = useState(allScoresObj)
+    const [checkedScores, setCheckedScores] = useState(allScoresObj)
     
     const {loading: loading_scores, error: error_scores, data: data_scores} = useQuery(Z_SCORES_QUERY, {
         variables: {
@@ -203,8 +204,8 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
 
     const handleSearchChange = (event: SelectChangeEvent) => {
         setDataAPI([])
-        setAvailableScores({})
-        setCheckedScores({})
+        setAvailableScores(allScoresObj)
+        setCheckedScores(allScoresObj)
         setSelectedBiosample([])
         setScores([])
         setColumns([])
@@ -213,8 +214,8 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
 
     const handleAssemblyChange = (event: SelectChangeEvent) => {
         setDataAPI([])
-        setAvailableScores({})
-        setCheckedScores({})
+        setAvailableScores(allScoresObj)
+        setCheckedScores(allScoresObj)
         setSelectedBiosample([])
         setScores([])
         setColumns([])
@@ -417,7 +418,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                             <FormControlLabel label="Intact Hi-C Loops" control={<Checkbox onChange={handleCheckBoxChange} disabled={selectedBiosample.length == 0 || !availableScores["Intact-HiC"]} checked={checkedScores["Intact-HiC"]} value="Intact-HiC"></Checkbox>}></FormControlLabel>
                             <FormControlLabel label="CTCF ChIA-PET Interaction" control={<Checkbox onChange={handleCheckBoxChange} disabled={selectedBiosample.length == 0 || !availableScores["CTCF-ChIAPET"]} checked={checkedScores["CTCF-ChIAPET"]} value="CTCF-ChIAPET"></Checkbox>}></FormControlLabel>
                             <FormControlLabel label="RNAPII ChIA-PET Interaction" control={<Checkbox onChange={handleCheckBoxChange} disabled={selectedBiosample.length == 0 || !availableScores["RNAPII-ChIAPET"]} checked={checkedScores["RNAPII-ChIAPET"]} value="RNAPII-ChIAPET"></Checkbox>}></FormControlLabel>
-                            <FormControlLabel label="CRISPRi-FlowFISH" control={<Checkbox onChange={handleCheckBoxChange} disabled={selectedBiosample.length == 0 || !availableScores["CRISPRi-FlowFISH"]} checked={checkedScores[["CRISPRi-FlowFISH"]]} value="CRISPRi-FlowFISH"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="CRISPRi-FlowFISH" control={<Checkbox onChange={handleCheckBoxChange} disabled={selectedBiosample.length == 0 || !availableScores["CRISPRi-FlowFISH"]} checked={checkedScores["CRISPRi-FlowFISH"]} value="CRISPRi-FlowFISH"></Checkbox>}></FormControlLabel>
                             <FormControlLabel label="eQTLs" control={<Checkbox onChange={handleCheckBoxChange} disabled={selectedBiosample.length == 0 || !availableScores["eQTLs"]} checked={checkedScores["eQTLs"]} value="eQTLs"></Checkbox>}></FormControlLabel>
                         </FormGroup>
                     </Stack>
