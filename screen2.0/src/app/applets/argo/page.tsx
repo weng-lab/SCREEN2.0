@@ -114,7 +114,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     const {loading: loading_genes, error: error_genes, data: data_genes} = useQuery(LINKED_GENES, {
         variables: {
             assembly: assembly.toLowerCase(),
-            accessions: scores.length > 0 ? scores.map((s) => s.accession): [],
+            accessions: (scores.length > 0 && selectedBiosample.length > 0) ? scores.map((s) => s.accession): [],
         },
         client: client,
         fetchPolicy: 'cache-and-network',
