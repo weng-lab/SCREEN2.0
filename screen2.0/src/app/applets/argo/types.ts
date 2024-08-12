@@ -18,5 +18,15 @@ export type ZScores = {
     ctcf_rank: number
     atac: number
     atac_rank: number
+    "Intact-HiC": number
+    "Intact-HiC_rank": number
+    "CTCF-ChIAPET": number
+    "CTCF-ChIAPET_rank": number
+    "RNAPII-ChIAPET": number
+    "RNAPII-ChIAPET_rank": number
+    "CRISPRi-FlowFISH": number
+    "CRISPRi-FlowFISH_rank": number
+    "eQTLs": number
+    "eQTLs_rank": number
     aggRank?: number
 }
