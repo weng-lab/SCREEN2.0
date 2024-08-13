@@ -408,8 +408,8 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                         <Typography lineHeight={"40px"}>Conservation</Typography>
                         <FormGroup>
                             <FormControlLabel label="Vertebrates" control={<Checkbox onChange={handleCheckBoxChange} disabled={!availableScores.vertebrates} checked={checkedScores.vertebrates} value="vertebrates"></Checkbox>}></FormControlLabel>
-                            <FormControlLabel label="Mammals" control={<Checkbox onChange={handleCheckBoxChange} disabled={!availableScores.mammals} checked={checkedScores.vertebrates} value="mammals"></Checkbox>}></FormControlLabel>
-                            <FormControlLabel label="Primates" control={<Checkbox onChange={handleCheckBoxChange} disabled={!availableScores.primates} checked={checkedScores.vertebrates} value="primates"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="Mammals" control={<Checkbox onChange={handleCheckBoxChange} disabled={!availableScores.mammals} checked={checkedScores.mammals} value="mammals"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="Primates" control={<Checkbox onChange={handleCheckBoxChange} disabled={!availableScores.primates} checked={checkedScores.primates} value="primates"></Checkbox>}></FormControlLabel>
                         </FormGroup>
                     </Stack>
                     <Stack>
