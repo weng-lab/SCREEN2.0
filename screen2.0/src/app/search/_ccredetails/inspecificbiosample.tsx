@@ -35,21 +35,25 @@ const tableCols = (typeC = false) => {
       header: "ATAC Z-score",
       value: (row: cCRERow) => z_score(row.atac),
       render: (row: cCRERow) => z_score_render(row.atac),
+      sort: (a:cCRERow, b: cCRERow) => a.atac - b.atac
     },
     {
       header: "H3K4me3 Z-score",
       value: (row: cCRERow) => z_score(row.h3k4me3),
       render: (row: cCRERow) => z_score_render(row.h3k4me3),
+      sort: (a:cCRERow, b: cCRERow) => a.h3k4me3 - b.h3k4me3
     },
     {
       header: "H3K27ac Z-score",
       value: (row: cCRERow) => z_score(row.h3k27ac),
       render: (row: cCRERow) => z_score_render(row.h3k27ac),
+      sort: (a:cCRERow, b: cCRERow) => a.h3k27ac - b.h3k27ac
     },
     {
       header: "CTCF Z-score",
       value: (row: cCRERow) => z_score(row.ctcf),
       render: (row: cCRERow) => z_score_render(row.ctcf),
+      sort: (a:cCRERow, b: cCRERow) => a.ctcf - b.ctcf
     }
   ] : [
     {
@@ -60,26 +64,31 @@ const tableCols = (typeC = false) => {
       header: "DNase Z-score",
       value: (row: cCRERow) => z_score(row.dnase),
       render: (row: cCRERow) => z_score_render(row.dnase),
+      sort: (a:cCRERow, b: cCRERow) => a.dnase - b.dnase
     },
    {
       header: "ATAC Z-score",
       value: (row: cCRERow) => z_score(row.atac),
       render: (row: cCRERow) => z_score_render(row.atac),
+      sort: (a:cCRERow, b: cCRERow) => a.atac - b.atac
     },
     {
       header: "H3K4me3 Z-score",
       value: (row: cCRERow) => z_score(row.h3k4me3),
       render: (row: cCRERow) => z_score_render(row.h3k4me3),
+      sort: (a:cCRERow, b: cCRERow) => a.h3k4me3 - b.h3k4me3
     },
     {
       header: "H3K27ac Z-score",
       value: (row: cCRERow) => z_score(row.h3k27ac),
       render: (row: cCRERow) => z_score_render(row.h3k27ac),
+      sort: (a:cCRERow, b: cCRERow) => a.h3k27ac - b.h3k27ac
     },
     {
       header: "CTCF Z-score",
       value: (row: cCRERow) => z_score(row.ctcf),
       render: (row: cCRERow) => z_score_render(row.ctcf),
+      sort: (a:cCRERow, b: cCRERow) => a.ctcf - b.ctcf
     },
     {
       header: "Classification",
