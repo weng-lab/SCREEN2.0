@@ -44,31 +44,32 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
 
     const [assembly, setAssembly] = useState<"GRCh38" | "mm10">("GRCh38")
     const [selectedSearch, setSelectedSearch] = useState<string>("BED File")
-    const [dataAPI, setDataAPI] = useState<[]>([])
-    const [scores, setScores] = useState<ZScores[]>([])
+    const [dataAPI, setDataAPI] = useState<[]>([]) // The intersection data returned from BedUpload component
+    const [rows, setRows] = useState<ZScores[]>([]) // The main data displayed on the table
     const [key, setKey] = useState<string>()
-    const [columns, setColumns] = useState([])
+    const [columns, setColumns] = useState([]) // State variable used to display the columns in the DataTable
     const [biosampleData, setBiosampleData] = useState<ApolloQueryResult<BIOSAMPLE_Data>>(null)
     const [selectedBiosample, setSelectedBiosample] = useState<RegistryBiosample[]>([])
-    const [availableScores, setAvailableScores] = useState(allScoresObj) // This is all the scores available according to the query
-    const [checkedScores, setCheckedScores] = useState(allScoresObj) // This is the scores the user has selected, checkbox control
+    const [availableScores, setAvailableScores] = useState(allScoresObj) // This is all the scores available according to the query, all false scores are disabled checkboxes below
+    const [checkedScores, setCheckedScores] = useState(allScoresObj) // This is the scores the user has selected, used for checkbox control
     
     const [getOutput] = useLazyQuery(BED_INTERSECT_QUERY)
     
-    const {loading: loading_scores, error: error_scores, data: data_scores} = useQuery(Z_SCORES_QUERY, {
+    const {loading: loading_scores, error: error_scores} = useQuery(Z_SCORES_QUERY, {
         variables: {
             assembly: assembly,
-            accessions: scores.length > 0 ? scores.map((s) => s.accession): dataAPI.map((r) => r[4]) ,
+            accessions: rows.length > 0 ? rows.map((s) => s.accession): dataAPI.map((r) => r[4]) ,
             cellType: selectedBiosample.length > 0 ? selectedBiosample[0].name: null
         },
-        skip: scores.length == 0 && dataAPI.length == 0,
+        skip: rows.length == 0 && dataAPI.length == 0,
         client: client,
         fetchPolicy: 'cache-and-network',
         onCompleted(d) {
             let data = d['cCRESCREENSearch']
             let result = null
             if (selectedBiosample.length > 0) {
-                result = scores.map((obj) => {
+                // This makes a copy of the existing row and just updates the scores to ctspecific
+                result = rows.map((obj) => {
                     let o = {...obj}
                     let matchingObj = data.find((e) => o.accession == e.info.accession)
                     o.dnase = matchingObj.ctspecific.dnase_zscore
@@ -81,6 +82,8 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                 )
             }
             else {
+                // The else is only for when the query runs the first time
+                // This is done so that if a biosample is deselected, the linked genes data is not lost
                 let mapFunc = (obj) => {
                     let o = {...obj}
                     let matchingObj = data.find((e) => o.accession == e.info.accession)
@@ -94,13 +97,18 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                     o.primates = matchingObj.primates
                     return o
                 }
-                if (scores.length > 0) {
-                    result = scores.map(mapFunc)
+                if (rows.length > 0) {
+                    result = rows.map(mapFunc)
                 }
                 else {
                     result = dataAPI
                         .map((e) => {
                             return {
+                                // This is annoying because currently an array of objects is not being returned
+                                // The order of the array is the same as the order of the ccre file
+                                // Index 4 is accessions, 6 is chr, 7 is start, 8 is stop 
+                                // chr, start, stop should be of user uploaded file and not of our files hence not index 0,1,2
+
                                 accession: e[4],
                                 user_id: `${e[6]}_${e[7]}_${e[8]}${ (e[9] && e[10]) ? '_'+e[9]: ''}`,
                                 linked_genes: []
@@ -114,9 +122,11 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
             let availableScoresCopy = {...availableScores}
             
             if (assembly != "mm10") {
-                scoresToInclude = scoresToInclude.concat(conservationNames) // Including conservation scores if assemblys is not mouse
+                // Including conservation scores if assembly is not mouse
+                scoresToInclude = scoresToInclude.concat(conservationNames)
             }
 
+            // Linked genes is by default unavailable and disabled, it is made available inside the query below
             allScoreNames.forEach( (s) => {
                 if (scoresToInclude.indexOf(s) !== -1) {
                     availableScoresCopy[s] = true
@@ -127,7 +137,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
             })
             setAvailableScores(availableScoresCopy)
             setCheckedScores(availableScoresCopy)
-            setScores(evaluateRankings(result, availableScoresCopy))
+            setRows(evaluateRankings(result, availableScoresCopy))
         }
     })
     
@@ -135,17 +145,18 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     const {loading: loading_genes, error: error_genes} = useQuery(LINKED_GENES, {
         variables: {
             assembly: assembly.toLowerCase(),
-            accessions: (scores.length > 0 && selectedBiosample.length > 0) ? scores.map((s) => s.accession): [],
+            accessions: (rows.length > 0 && selectedBiosample.length > 0) ? rows.map((s) => s.accession): [],
         },
-        skip: scores.length == 0 || selectedBiosample.length == 0,
+        skip: rows.length == 0 || selectedBiosample.length == 0,
         client: client,
         fetchPolicy: 'cache-and-network',
         onCompleted(data) {
             if (data.linkedGenes.length > 0) {
-                setScores(scores.map((obj) => {
+                setRows(rows.map((obj) => {
                     let objCopy = {...obj}
                     let matchingObjs = data.linkedGenes.filter((e) => e.accession == obj.accession)
                     let linkedGenes: LinkedGenes[] = matchingObjs.map((e) => {
+                        // The Chromatin part is because Chromatin has sub-methods which is present in the assay field
                         return {gene_id: e.geneid, method: e.method == "Chromatin" ? e.assay: e.method, tpm: 0}
                     })
                     objCopy.linked_genes = linkedGenes
@@ -159,9 +170,9 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         variables: {
             assembly: assembly,
             biosample_value: selectedBiosample.length > 0 ? selectedBiosample[0].name: "",
-            gene_id: Array.from(scores.reduce((acc, e) => { e.linked_genes.map((e) => e.gene_id).forEach((el) => acc.add(el)); return acc }, new Set([]))) // Using Set to avoid duplicates
+            gene_id: Array.from(rows.reduce((acc, e) => { e.linked_genes.map((e) => e.gene_id).forEach((el) => acc.add(el)); return acc }, new Set([]))) // Using Set to avoid duplicates
         },
-        skip: selectedBiosample.length == 0 || scores.length == 0,
+        skip: selectedBiosample.length == 0 || rows.length == 0,
         client: client,
         fetchPolicy: 'cache-and-network',
         onCompleted(data) {
@@ -175,7 +186,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
             if (listGenes.length > 0) {
                 let availableScoresCopy = {...availableScores}
                 linkedGenesMethods.forEach((m) => availableScoresCopy[m] = false)
-                let newScores = scores.map((obj) => {
+                let newScores = rows.map((obj) => {
                     let objCopy = {...obj}
                     objCopy.linked_genes = objCopy.linked_genes.map((gene) => {
                         let geneCopy = {...gene}
@@ -183,6 +194,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                         
                         let max_tpm = 0
                         matchingGenes.forEach((matchingGene) => {
+                            // If a matching gene is found for any method, the method is made available to select
                             availableScoresCopy[`${gene.method}`] = true
                             
                             if (matchingGene.tpm > max_tpm) {
@@ -197,7 +209,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                 })
                 setAvailableScores(availableScoresCopy)
                 setCheckedScores(availableScoresCopy)
-                setScores(evaluateRankings(newScores, availableScoresCopy))
+                setRows(evaluateRankings(newScores, availableScoresCopy))
             }
         },
     })
@@ -214,7 +226,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         setAvailableScores(allScoresObj)
         setCheckedScores(allScoresObj)
         setSelectedBiosample([])
-        setScores([])
+        setRows([])
         setColumns([])
         setSelectedSearch(event.target.value)
     }
@@ -224,7 +236,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         setAvailableScores(allScoresObj)
         setCheckedScores(allScoresObj)
         setSelectedBiosample([])
-        setScores([])
+        setRows([])
         setColumns([])
         if ((event.target.value === "GRCh38") || (event.target.value === "mm10")) {
             setAssembly(event.target.value)
@@ -234,23 +246,17 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     function appletCallBack(data) {
         setSelectedBiosample([])
         setDataAPI(data)
-        setScores([])
+        setRows([])
     }
 
     function handleTextUpload(event) {
         let uploadedData = event.get("textUploadFile").toString()
-        
         getIntersect(getOutput, parseDataInput(uploadedData), assembly, appletCallBack, console.error)
-        
-        // let random_string = Math.random().toString(36).slice(2, 10)
-        // let temp_file = new File([uploadedData], `${random_string}.bed`)
-        // setKey(random_string)
-        // setTextUploaded([...[temp_file]])
     }
 
-    
-
     function evaluateRankings(data, available) { 
+        // This below code is inspired from this link to create a ranking column for each score for every row
+        // https://stackoverflow.com/questions/60989105/ranking-numbers-in-an-array-using-javascript
         let scoresToInclude = allScoreNames.filter((s) => available[s])
         scoresToInclude.forEach((scoreName) => {
             let score_column = data.map((r, i) => [i, r[scoreName]])
@@ -263,11 +269,12 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
             (e) => available[e.header.toLowerCase()] || available[e.header]
         ))
         let random_string = Math.random().toString(36).slice(2, 10)
-        setKey(random_string)
+        setKey(random_string) // Setting a key to force update the DataTable component to refresh with the new columns
         return calculateAggregateRank(data, scoresToInclude)
     }
 
     function evaluateMaxTPM(score: ZScores) {
+        // This finds the Max TPM for each method in a given row
         let scoreCopy = {...score}
         linkedGenesMethods.forEach((method) => {
             let maxTPM = 0
@@ -279,6 +286,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     }
 
     function calculateAggregateRank(data, scoresToInclude) {
+        // This finds the Aggregate Rank depending on which scores are checked by the user
         data.forEach( (row) => {
             let count = 0;
             let sum = 0;
@@ -292,13 +300,14 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     }
 
     function handleCheckBoxChange(event) {
+        // This function updates the checkedScores state variable and also updates columns to reflect the same
         let checkedCopy = {...checkedScores}
         checkedCopy[event.target.value] = event.target.checked
         setCheckedScores(checkedCopy)
         
         // scoresToInclude = scoresToInclude.filter((e) => !e.disabled && e.checked).map((e) => e.value)
         let scoresToInclude = Object.keys(checkedCopy).filter((e) => checkedCopy[e])
-        setScores(calculateAggregateRank([...scores], scoresToInclude))
+        setRows(calculateAggregateRank([...rows], scoresToInclude))
         setColumns(allColumns.filter(
             (e) => checkedCopy[e.header.toLowerCase().split(' ')[0]] || checkedCopy[e.header]
         ))
@@ -368,7 +377,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                 }   
             </Box>
         </Box>
-    {scores.length > 0 && 
+    {rows.length > 0 && 
     <Box mt="20px">
         <Accordion style={{"border": "1px solid", "marginBottom": "15px"}}>
             <AccordionSummary expandIcon={<FilterListIcon />}>Filters</AccordionSummary>
@@ -424,9 +433,6 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                             <FormControlLabel label="eQTLs" control={<Checkbox onChange={handleCheckBoxChange} disabled={selectedBiosample.length == 0 || !availableScores["eQTLs"]} checked={checkedScores["eQTLs"]} value="eQTLs"></Checkbox>}></FormControlLabel>
                         </FormGroup>
                     </Stack>
-                    
-
-
                 </Stack>
             </AccordionDetails>
         </Accordion>
@@ -438,7 +444,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
             { header: "User ID", value: (row) => row.user_id },
             { header: "Aggregate Rank", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) }]
             .concat(columns)}
-        rows={scores}
+        rows={rows}
         sortColumn={2}
         sortDescending
         itemsPerPage={10}
