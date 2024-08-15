@@ -6,35 +6,54 @@ import MenuItem from "@mui/material/MenuItem"
 import ClearIcon from '@mui/icons-material/Clear'
 import FormControl from "@mui/material/FormControl"
 import Select, { SelectChangeEvent } from "@mui/material/Select"
-import BedUpload from "../../_mainsearch/bedupload"
+import BedUpload, { getIntersect, parseDataInput } from "../../_mainsearch/bedupload"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { GENE_EXP_QUERY, LINKED_GENES, Z_SCORES_QUERY } from "./queries"
-import { ApolloQueryResult, useQuery } from "@apollo/client"
+import { ApolloQueryResult, useLazyQuery, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
 import { ZScores, LinkedGenes } from "./types"
 import BiosampleTables from "../../search/biosampletables"
 import { BIOSAMPLE_Data, biosampleQuery } from "../../../common/lib/queries"
 import { RegistryBiosample } from "../../search/types"
 import FilterListIcon from '@mui/icons-material/FilterList';
+import { BED_INTERSECT_QUERY } from "../../_mainsearch/queries"
 
 
 export default function Argo(props: {header?: false, optionalFunction?: Function}) {
+    const scoreNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
+    const conservationNames = ["vertebrates", "mammals", "primates"]
+    const linkedGenesMethods = ["Intact-HiC", "CTCF-ChIAPET", "RNAPII-ChIAPET", "CRISPRi-FlowFISH", "eQTLs"]
+    const allScoreNames = scoreNames.concat(conservationNames).concat(linkedGenesMethods)
+    const allScoresObj = {"dnase": false, "h3k4me3": false, "h3k27ac": false, "ctcf": false, "atac": false, "vertebrates": false, "mammals": false, "primates": false, "Intact-HiC": false, "CTCF-ChIAPET": false, "RNAPII-ChIAPET": false, "CRISPRi-FlowFISH" : false, "eQTLs": false}
+
+    const allColumns = [
+        { header: "DNase", value: (row) => row.dnase, render: (row) => row.dnase.toFixed(2) },
+        { header: "H3K4me3", value: (row) => row.h3k4me3, render: (row) => row.h3k4me3.toFixed(2) },
+        { header: "H3K27ac", value: (row) => row.h3k27ac, render: (row) => row.h3k27ac.toFixed(2) },
+        { header: "CTCF", value: (row) => row.ctcf, render: (row) => row.ctcf.toFixed(2) },
+        { header: "ATAC", value: (row) => row.atac, render: (row) => row.atac.toFixed(2) },
+        { header: "Vertebrates", value: (row) => row.vertebrates, render: (row) => row.vertebrates.toFixed(2) },
+        { header: "Mammals", value: (row) => row.mammals, render: (row) => row.mammals.toFixed(2) },
+        { header: "Primates", value: (row) => row.primates, render: (row) => row.primates.toFixed(2) },
+        { header: "Intact-HiC", value: (row) => row["Intact-HiC"], render: (row) => row["Intact-HiC"].toFixed(2) },
+        { header: "CTCF-ChIAPET", value: (row) => row["CTCF-ChIAPET"], render: (row) => row["CTCF-ChIAPET"].toFixed(2) },
+        { header: "RNAPII-ChIAPET", value: (row) => row["RNAPII-ChIAPET"], render: (row) => row["RNAPII-ChIAPET"].toFixed(2) },
+        { header: "CRISPRi-FlowFISH", value: (row) => row["CRISPRi-FlowFISH"], render: (row) => row["CRISPRi-FlowFISH"].toFixed(2) },
+        { header: "eQTLs", value: (row) => row.eQTLs, render: (row) => row.eQTLs.toFixed(2) },
+    ]
+
     const [assembly, setAssembly] = useState<"GRCh38" | "mm10">("GRCh38")
     const [selectedSearch, setSelectedSearch] = useState<string>("BED File")
     const [dataAPI, setDataAPI] = useState<[]>([])
     const [scores, setScores] = useState<ZScores[]>([])
     const [key, setKey] = useState<string>()
     const [columns, setColumns] = useState([])
-    const [textUploaded, setTextUploaded] = useState<File[]>([])
     const [biosampleData, setBiosampleData] = useState<ApolloQueryResult<BIOSAMPLE_Data>>(null)
     const [selectedBiosample, setSelectedBiosample] = useState<RegistryBiosample[]>([])
-    const scoreNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
-    const conservationNames = ["vertebrates", "mammals", "primates"]
-    const linkedGenesMethods = ["Intact-HiC", "CTCF-ChIAPET", "RNAPII-ChIAPET", "CRISPRi-FlowFISH", "eQTLs"]
-    const allScoreNames = scoreNames.concat(conservationNames).concat(linkedGenesMethods)
-    const allScoresObj = {"dnase": false, "h3k4me3": false, "h3k27ac": false, "ctcf": false, "atac": false, "vertebrates": false, "mammals": false, "primates": false, "Intact-HiC": false, "CTCF-ChIAPET": false, "RNAPII-ChIAPET": false, "CRISPRi-FlowFISH" : false, "eQTLs": false}
-    const [availableScores, setAvailableScores] = useState(allScoresObj)
-    const [checkedScores, setCheckedScores] = useState(allScoresObj)
+    const [availableScores, setAvailableScores] = useState(allScoresObj) // This is all the scores available according to the query
+    const [checkedScores, setCheckedScores] = useState(allScoresObj) // This is the scores the user has selected, checkbox control
+    
+    const [getOutput] = useLazyQuery(BED_INTERSECT_QUERY)
     
     const {loading: loading_scores, error: error_scores, data: data_scores} = useQuery(Z_SCORES_QUERY, {
         variables: {
@@ -42,6 +61,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
             accessions: scores.length > 0 ? scores.map((s) => s.accession): dataAPI.map((r) => r[4]) ,
             cellType: selectedBiosample.length > 0 ? selectedBiosample[0].name: null
         },
+        skip: scores.length == 0 && dataAPI.length == 0,
         client: client,
         fetchPolicy: 'cache-and-network',
         onCompleted(d) {
@@ -110,12 +130,14 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
             setScores(evaluateRankings(result, availableScoresCopy))
         }
     })
+    
 
-    const {loading: loading_genes, error: error_genes, data: data_genes} = useQuery(LINKED_GENES, {
+    const {loading: loading_genes, error: error_genes} = useQuery(LINKED_GENES, {
         variables: {
             assembly: assembly.toLowerCase(),
             accessions: (scores.length > 0 && selectedBiosample.length > 0) ? scores.map((s) => s.accession): [],
         },
+        skip: scores.length == 0 || selectedBiosample.length == 0,
         client: client,
         fetchPolicy: 'cache-and-network',
         onCompleted(data) {
@@ -133,12 +155,13 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         },
     })
 
-    const {loading: loading_quantifications, error: error_quantifications, data: data_quantifications} = useQuery(GENE_EXP_QUERY, {
+    const {loading: loading_quantifications, error: error_quantifications} = useQuery(GENE_EXP_QUERY, {
         variables: {
             assembly: assembly,
             biosample_value: selectedBiosample.length > 0 ? selectedBiosample[0].name: "",
-            gene_id: Array.from(scores.reduce((acc, e) => { e.linked_genes.map((e) => e.gene_id).forEach((el) => acc.add(el)); return acc }, new Set([])))
+            gene_id: Array.from(scores.reduce((acc, e) => { e.linked_genes.map((e) => e.gene_id).forEach((el) => acc.add(el)); return acc }, new Set([]))) // Using Set to avoid duplicates
         },
+        skip: selectedBiosample.length == 0 || scores.length == 0,
         client: client,
         fetchPolicy: 'cache-and-network',
         onCompleted(data) {
@@ -179,22 +202,6 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         },
     })
     
-    const allColumns = [
-    { header: "DNase", value: (row) => row.dnase, render: (row) => row.dnase.toFixed(2) },
-    { header: "H3K4me3", value: (row) => row.h3k4me3, render: (row) => row.h3k4me3.toFixed(2) },
-    { header: "H3K27ac", value: (row) => row.h3k27ac, render: (row) => row.h3k27ac.toFixed(2) },
-    { header: "CTCF", value: (row) => row.ctcf, render: (row) => row.ctcf.toFixed(2) },
-    { header: "ATAC", value: (row) => row.atac, render: (row) => row.atac.toFixed(2) },
-    { header: "Vertebrates", value: (row) => row.vertebrates, render: (row) => row.vertebrates.toFixed(2) },
-    { header: "Mammals", value: (row) => row.mammals, render: (row) => row.mammals.toFixed(2) },
-    { header: "Primates", value: (row) => row.primates, render: (row) => row.primates.toFixed(2) },
-    { header: "Intact-HiC", value: (row) => row["Intact-HiC"], render: (row) => row["Intact-HiC"].toFixed(2) },
-    { header: "CTCF-ChIAPET", value: (row) => row["CTCF-ChIAPET"], render: (row) => row["CTCF-ChIAPET"].toFixed(2) },
-    { header: "RNAPII-ChIAPET", value: (row) => row["RNAPII-ChIAPET"], render: (row) => row["RNAPII-ChIAPET"].toFixed(2) },
-    { header: "CRISPRi-FlowFISH", value: (row) => row["CRISPRi-FlowFISH"], render: (row) => row["CRISPRi-FlowFISH"].toFixed(2) },
-    { header: "eQTLs", value: (row) => row.eQTLs, render: (row) => row.eQTLs.toFixed(2) },
-    ]
-
     useEffect(() => {
         startTransition(async () => {
           const biosamples = await biosampleQuery()
@@ -223,6 +230,25 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
             setAssembly(event.target.value)
         }  
     }
+
+    function appletCallBack(data) {
+        setSelectedBiosample([])
+        setDataAPI(data)
+        setScores([])
+    }
+
+    function handleTextUpload(event) {
+        let uploadedData = event.get("textUploadFile").toString()
+        
+        getIntersect(getOutput, parseDataInput(uploadedData), assembly, appletCallBack, console.error)
+        
+        // let random_string = Math.random().toString(36).slice(2, 10)
+        // let temp_file = new File([uploadedData], `${random_string}.bed`)
+        // setKey(random_string)
+        // setTextUploaded([...[temp_file]])
+    }
+
+    
 
     function evaluateRankings(data, available) { 
         let scoresToInclude = allScoreNames.filter((s) => available[s])
@@ -277,20 +303,6 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
             (e) => checkedCopy[e.header.toLowerCase().split(' ')[0]] || checkedCopy[e.header]
         ))
         setKey(scoresToInclude.join(' '))
-    }
-
-    function handleTextUpload(event) {
-        let uploadedData = event.get("textUploadFile")
-        let random_string = Math.random().toString(36).slice(2, 10)
-        let temp_file = new File([uploadedData], `${random_string}.bed`)
-        setKey(random_string)
-        setTextUploaded([...[temp_file]])
-    }
-
-    function appletCallBack(data) {
-        setSelectedBiosample([])
-        setDataAPI(data)
-        setScores([])
     }
 
     return (
@@ -351,16 +363,6 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                         ></TextField>
                         <Button type="submit" size="medium" variant="outlined">Submit</Button>
                     </form>
-                    <Box id="hidden_bed_upload">
-                    { textUploaded.length > 0 && 
-                        <BedUpload
-                            key={key}
-                            assembly = {assembly}
-                            appletFiles={textUploaded}
-                            appletCallback={appletCallBack}
-                        />
-                    }
-                    </Box>
                 </FormControl>
                 
                 }   

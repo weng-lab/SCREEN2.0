@@ -11,10 +11,44 @@ import { client } from "../search/_ccredetails/client"
 import { useLazyQuery } from "@apollo/client"
 import { BED_INTERSECT_QUERY } from "./queries"
 
-const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean, appletCallback?: Function, appletFiles?: File[] }) => {
+export function parseDataInput(data) {
+  let allLines = []
+  data.split("\n").forEach((line) => {
+    // The if statement checks if the BED file has a header and does not push those
+    // Also checks for empty lines
+    if (!(line.startsWith("#") || 
+          line.startsWith("browser") || 
+          line.startsWith("track") ||
+          line.length === 0
+        )) {
+      allLines.push(line.split("\t"))
+    }
+  })
+  return allLines
+}
+
+export function getIntersect(getOutput, inputData, assembly, successF, errF) {
+  getOutput({
+    variables: {
+      user_ccres: inputData,
+      assembly: assembly,
+      maxOutputLength: 1000 // Not required technically as server side defaults to 1000, here if it needs to be changed in the future
+    },
+    client: client,
+    fetchPolicy: 'cache-and-network',
+    onCompleted(data) {
+      successF(data['intersection'])
+    },
+    onError(error) {
+        errF(error)
+    },
+  })
+}
+
+const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean, appletCallback?: Function}) => {
   const router = useRouter()
 
-  const [files, setFiles] = useState<File[]>((props.appletFiles && props.appletFiles.length > 0) ? props.appletFiles: [])
+  const [files, setFiles] = useState<File[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState([false, ""]) // status, message
   const [getOutput] = useLazyQuery(BED_INTERSECT_QUERY)
@@ -27,24 +61,6 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean, apple
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
 
-  const getIntersect = (allLines, successF, errF) => {
-    getOutput({
-      variables: {
-        user_ccres: allLines,
-        assembly: props.assembly,
-        maxOutputLength: 1000 // Not required technically as server side defaults to 1000, here if it needs to be changed in the future
-      },
-      client: client,
-      fetchPolicy: 'cache-and-network',
-      onCompleted(data) {
-        successF(data)
-      },
-      onError(error) {
-          errF(error)
-      },
-    })
-  }
-
   //TODO Warn based on file size, support multiple files
   const submitFiles = () => {
     setLoading(true)
@@ -52,7 +68,6 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean, apple
     let allLines = []
     let filenames: string = ''
     let accessions: string[] = []
-    let userIDs: string[] = []
     files.forEach((f) => {
       filenames += (' ' + f.name)
       if (f.type !== "bed" && f.name.split('.').pop() !== "bed") {
@@ -65,30 +80,20 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean, apple
       const reader = new FileReader()
       reader.onload = (r) => {
         const contents = r.target.result
-        const lines = contents.toString().split("\n")
-        lines.forEach((line) => {
-          // The if statement checks if the BED file has a header and does not push those
-          // Also checks for empty lines
-          if (!(line.startsWith("#") || 
-                line.startsWith("browser") || 
-                line.startsWith("track") ||
-                line.length === 0
-              )) {
-            allLines.push(line.split("\t"))
-          }
-        })
+        const lines = contents.toString()
+        allLines = parseDataInput(lines)
       }
       reader.onabort = () => console.log("file reading was aborted")
       reader.onerror = () => console.log("file reading has failed")
       reader.onloadend = (e) => {
         getIntersect(
+          getOutput,
           allLines,
+          props.assembly,
           (data) => {
-            accessions = data['intersection'].map((elem) => elem[4])
-            userIDs = data['intersection'].map((elem) => `${elem[0]}_${elem[1]}_${elem[2]}`)
+            accessions = data.map((elem) => elem[4])
             sessionStorage.setItem("filenames", filenames)
             sessionStorage.setItem("bed intersect", accessions.join(' '))
-            sessionStorage.setItem("user ids", userIDs.join(' '))
             if (accessions.length === 1000){
               sessionStorage.setItem("warning", "true")
             } else {
@@ -98,7 +103,7 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean, apple
               window.open(`/search?intersect=t&assembly=${props.assembly}`, "_self")
             }
             else {
-              props.appletCallback(data['intersection'])
+              props.appletCallback(data)
               setLoading(false)
             }
 
@@ -172,7 +177,7 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean, apple
           {!props.header && <Typography mb={1} variant="h5">Uploaded:</Typography>}
           <Stack direction="row" alignItems="center">
             <Typography>{`${props.header ? truncateFileName(files[0].name, 20) : truncateFileName(files[0].name, 40)}\u00A0-\u00A0${(files[0].size / 1000000).toFixed(1)}\u00A0mb`}</Typography>
-            <IconButton color={props.header ? "secondary" : "primary"} onClick={() => setFiles([])}>
+            <IconButton color={props.header ? "secondary" : "primary"} onClick={() => {setFiles([]); props.appletCallback([]); }}>
               <Cancel />
             </IconButton>
           </Stack>
