@@ -278,19 +278,22 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
         </Grid2>
         <Grid2 xs={12}>
           {data && data.length == 0 ? (<Typography>No data available</Typography>) :
-            <PlotActivityProfiles
-              data={data}
-              sort={sort}
-              range={{
-                x: { start: 0, end: 4 },
-                y: { start: 0, end: 0 },
-              }}
-              dimensions={{
-                x: { start: 125, end: 650 },
-                y: { start: 4900, end: 100 },
-              }}
-              peakID={peak}
-            />}
+            <Box maxWidth={{ xl: '75%', xs: '100%' }}>
+              <PlotActivityProfiles
+                data={data}
+                sort={sort}
+                range={{
+                  x: { start: 0, end: 4 },
+                  y: { start: 0, end: 0 },
+                }}
+                dimensions={{
+                  x: { start: 0, end: 650 },
+                  y: { start: 200, end: 0 },
+                }}
+                peakID={peak}
+              />
+            </Box>
+          }
         </Grid2>
         {/* Configure Trackhub */}
         <ConfigureGBModal
