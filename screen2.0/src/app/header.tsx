@@ -102,7 +102,7 @@ function ResponsiveAppBar() {
             {/* Logo, and desktop navigation */}
             <Box display='flex' flexGrow={1}>
               <a href={"/"}>
-                <img src={'/screenLogo.png'} alt="SCREEN Icon" height={40} width={90} style={{marginRight: '20px'}}/>
+                <img src={'screenLogo.png'} alt="SCREEN Icon" height={40} width={90} style={{marginRight: '20px'}}/>
               </a>
               {/* Main navigation items for desktop, hide on small screen size */}
               <Box sx={{ display: { xs: "none", lg: "flex" }, alignItems: 'center' }}>
