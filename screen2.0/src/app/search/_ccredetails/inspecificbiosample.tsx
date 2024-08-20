@@ -1,7 +1,7 @@
 "use client"
 import React from "react"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
-import { TOP_TISSUES } from "./queries"
+import { TOP_TISSUES, GET_CCRE_CT_TF } from "./queries"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { z_score, z_score_render, GROUP_COLOR_MAP } from "./utils"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
@@ -16,6 +16,7 @@ export type cCRERow = {
   ctcf: number
   atac: number
   group: string
+  tf?: string
 }
 
 type InSpecificBiosamplesProps = {
@@ -54,7 +55,11 @@ const tableCols = (typeC = false) => {
       value: (row: cCRERow) => z_score(row.ctcf),
       render: (row: cCRERow) => z_score_render(row.ctcf),
       sort: (a:cCRERow, b: cCRERow) => a.ctcf - b.ctcf
-    }
+    },
+    {  
+      header: "TF",
+      value: (row: cCRERow) => (row.tf===undefined ? "--" : row.tf==='1' ? "Yes": "No")
+    },
   ] : [
     {
       header: "Cell Type",
@@ -89,6 +94,11 @@ const tableCols = (typeC = false) => {
       value: (row: cCRERow) => z_score(row.ctcf),
       render: (row: cCRERow) => z_score_render(row.ctcf),
       sort: (a:cCRERow, b: cCRERow) => a.ctcf - b.ctcf
+    },    
+    {  
+      header: "TF",
+      value: (row: cCRERow) => (row.tf===undefined ? "--" : row.tf==='1' ? "Yes": "No"),
+
     },
     {
       header: "Classification",
@@ -104,7 +114,7 @@ const tableCols = (typeC = false) => {
           <span style={{ color: "#06da93" }}>
             <strong>DNase only</strong>
           </span>
-      },
+      }
     }
   ]
   return cols
@@ -168,6 +178,19 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
     }
   )
 
+  
+  const { data: data_ccre_tf, loading: loading_ccre_tf, error: error_ccre_tf } = useQuery(GET_CCRE_CT_TF,
+    {
+      variables: {
+        assembly: assembly.toLowerCase()==="mm10" ?  "mm10" : "GRCh38",
+        accession: accession,
+      },
+      fetchPolicy: "cache-first"
+    }
+  )
+  
+  
+
   let partialDataCollection: cCRERow[], coreCollection: cCRERow[], ancillaryCollection: cCRERow[];
   if (data_toptissues) {
     let r = data_toptissues.ccREBiosampleQuery.biosamples
@@ -219,7 +242,7 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
     let h3k27acdata = r.map((rs) => {
       return rs.cCREZScores
         .filter((d) => d.assay.toLowerCase() === "h3k27ac")
-        .map((c) => {
+        .map((c) => {          
           return { score: c.score, ct: rs.name, tissue: rs.ontology, celltypename: rs.displayname }
         })
     })
@@ -234,6 +257,7 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
     let typedata = r.map((d) => {
       return {
         ct: d.name,
+        tf: data_ccre_tf && data_ccre_tf.getcCRETFQuery.length>0 ? data_ccre_tf.getcCRETFQuery.find(a=> d.name===a.celltype)?.tf.toString(): undefined ,
         celltypename: d.displayname,
         tissue: d.ontology,
         dnase: d.cCREZScores.find((cz) => cz.assay.toLowerCase() === "dnase")
@@ -307,7 +331,6 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
     coreCollection = ccreCts.filter((c) => c.type === "core")
     partialDataCollection = ccreCts.filter((c) => c.type === "partial")
     ancillaryCollection = ccreCts.filter((c) => c.type === "ancillary")
-
   }
   return (
     loading_toptissues || error_toptissues ? (
