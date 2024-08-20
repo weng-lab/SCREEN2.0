@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useMemo, useState } from "react"
+import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react"
 import {
   Accordion,
   AccordionDetails,
@@ -97,7 +97,7 @@ export function DataMatrices() {
   })  
   const [bounds, setBounds] = useState(undefined)
   const [lifeStage, setLifeStage] = useState("all")
-  const [colorBy, setColorBy] = useState("sampleType")
+  const [colorBy, setColorBy] = useState<"ontology" | "sampleType">("ontology")
   const [tSelected, setTSelected] = useState(new Set([]))
   const [searched, setSearched] = useState<BiosampleUMAP>(null)
   const [biosamples, setBiosamples] = useState<BiosampleUMAP[]>([])
@@ -114,28 +114,6 @@ export function DataMatrices() {
   
   useEffect(()=> setBiosamples([]) ,[selectedAssay])
 
-  // Direct copy from old SCREEN
-  const [scMap, scc] = useMemo(
-    () =>
-      colorMap(
-        (data && data.ccREBiosampleQuery &&
-          data.ccREBiosampleQuery.biosamples.filter((x) => x.umap_coordinates).map((x) => x.sampleType)) ||
-        []
-      ),
-    [data]
-  )
-  const [oMap, occ] = useMemo(
-    () =>
-      colorMap(
-        (data && data.ccREBiosampleQuery &&
-          //Check if umap coordinates exist, then map each entry to it's ontology (tissue type). This array of strings is passed to colorMap
-          data.ccREBiosampleQuery.biosamples.filter((x) => x.umap_coordinates).map((x) => x.ontology)) ||
-        []
-      ),
-    [data]
-  )
-
-  
   const fData = useMemo(() => {
     return (
       data &&
@@ -145,6 +123,7 @@ export function DataMatrices() {
         .filter((x) => (lifeStage === "all" || lifeStage === x.lifeStage) && (tSelected.size === 0 || tSelected.has(x[colorBy])))
     )
   }, [data, lifeStage, colorBy, tSelected])
+
   const xMin = useMemo(
     () => (bounds ? Math.floor(bounds.x.start) : nearest5(Math.min(...((fData && fData.map((x) => x.umap_coordinates[0])) || [0])), true)),
     [fData, bounds]
@@ -161,38 +140,63 @@ export function DataMatrices() {
     () => (bounds ? Math.ceil(bounds.y.end) : nearest5(Math.max(...((fData && fData.map((x) => x.umap_coordinates[1])) || [0])))),
     [fData, bounds]
   )
+
+  const isInbounds = useCallback((x) => {
+    return (
+      xMin <= x.umap_coordinates[0] &&
+      x.umap_coordinates[0] <= xMax &&
+      yMin <= x.umap_coordinates[1] &&
+      x.umap_coordinates[1] <= yMax
+    )
+  }, [xMax, xMin, yMax, yMin])
+
+  const [sampleTypeColors, sampleTypeCounts] = useMemo(
+    () =>
+      colorMap(
+        (data && data.ccREBiosampleQuery &&
+          data.ccREBiosampleQuery.biosamples.filter((x) => x.umap_coordinates && isInbounds(x)).map((x) => x.sampleType)) ||
+        []
+      ),
+    [data, isInbounds]
+  )
+  const [ontologyColors, ontologyCounts] = useMemo(
+    () =>
+      colorMap(
+        (data && data.ccREBiosampleQuery &&
+          //Check if umap coordinates exist, then map each entry to it's ontology (tissue type). This array of strings is passed to colorMap
+          data.ccREBiosampleQuery.biosamples.filter((x) => x.umap_coordinates && isInbounds(x)).map((x) => x.ontology)) ||
+        []
+      ),
+    [data, isInbounds]
+  )
+
   const scatterData = useMemo(
     () =>
       (fData &&
         fData
-          .filter(
-            (x) =>
-              xMin <= x.umap_coordinates[0] &&
-              x.umap_coordinates[0] <= xMax &&
-              yMin <= x.umap_coordinates[1] &&
-              x.umap_coordinates[1] <= yMax
-          )
           .map((x) => ({
             x: x.umap_coordinates[0],
             y: x.umap_coordinates[1],
             svgProps: {
-              r: searched && x.experimentAccession === searched.experimentAccession ? 10 : 3,
+              r: searched && x.experimentAccession === searched.experimentAccession ? 10 : 4,
               fill:
                 searched === null || x.experimentAccession === searched.experimentAccession
-                  ? (colorBy === "sampleType" ? scMap : oMap)[x[colorBy]]
+                  ? (colorBy === "sampleType" ? sampleTypeColors : ontologyColors)[x[colorBy]]
                   : "#aaaaaa",
-              fillOpacity: searched === null || x.experimentAccession === searched.experimentAccession ? 1 : 0.2,
+              fillOpacity: isInbounds(x) ? (searched === null || x.experimentAccession === searched.experimentAccession ? 1 : 0.2) : 0,
             },
           }))) ||
       [],
-    [fData, scMap, colorBy, searched, oMap, xMin, xMax, yMin, yMax]
+    [fData, searched, colorBy, sampleTypeColors, ontologyColors, isInbounds]
   )  
   // Direct copy from old SCREEN
   const [legendEntries, height] = useMemo(() => {
-    const g = colorBy === "sampleType" ? scMap : oMap
-    const gc = colorBy === "sampleType" ? scc : occ
-    return [Object.keys(g).map((x) => ({ label: x, color: g[x], value: `${gc[x]} experiments` })), Object.keys(g).length * 50]
-  }, [scMap, oMap, colorBy, occ, scc])
+    const g = colorBy === "sampleType" ? sampleTypeColors : ontologyColors
+    const gc = colorBy === "sampleType" ? sampleTypeCounts : ontologyCounts
+    return [Object.keys(g).map((x) => ({ label: x, color: g[x], value: gc[x] })).sort((a,b) => b.value - a.value), Object.keys(g).length * 50]
+  }, [colorBy, sampleTypeColors, ontologyColors, sampleTypeCounts, ontologyCounts])
+
+  console.log(fData)
 
   /**
    * Checks and reverses the order of coordinates provided by Jubilant Carnival selection if needed, then calls setBounds()
@@ -387,13 +391,13 @@ export function DataMatrices() {
               <FormLabel id="demo-radio-buttons-group-label">Color By:</FormLabel>
               <RadioGroup
                 aria-labelledby="demo-radio-buttons-group-label"
-                defaultValue="sampleType"
                 name="radio-buttons-group"
                 sx={{ mb: 2 }}
-                onChange={(event: ChangeEvent<HTMLInputElement>, value: string) => setColorBy(value)}
+                onChange={(_, value: "ontology" | "sampleType") => setColorBy(value)}
+                value={colorBy}
               >
-                <FormControlLabel value="sampleType" control={<Radio />} label="Biosample type" />
                 <FormControlLabel value="ontology" control={<Radio />} label="Tissue/Organ" />
+                <FormControlLabel value="sampleType" control={<Radio />} label="Biosample type" />
               </RadioGroup>
             </FormControl>
             <FormControl>
@@ -439,7 +443,7 @@ export function DataMatrices() {
             >
               <Scatter
                 data={scatterData}
-                pointStyle={{ r: bounds ? 6 : 4 }}
+                pointStyle={{ r: bounds ? 16 : 14 }}
                 onPointMouseOver={setTooltip}
                 onPointMouseOut={() => setTooltip(-1)}
                 onPointClick={(i) => setBiosamples([fData[i]])}
@@ -448,7 +452,7 @@ export function DataMatrices() {
                 //X and Y attributes added due to error. Not sure if setting to zero has unintended consequences
                 <Annotation notScaled notTranslated x={0} y={0}>
                   <rect x={35} y={100} width={740} height={120} strokeWidth={2} stroke="#000000" fill="#ffffffdd" />
-                  <rect x={55} y={120} width={740 * 0.04} height={740 * 0.04} strokeWidth={1} stroke="#000000" fill={(colorBy === "sampleType" ? scMap : oMap)[colorBy === "sampleType" ? fData[tooltip].sampleType : fData[tooltip].ontology]} />
+                  <rect x={55} y={120} width={740 * 0.04} height={740 * 0.04} strokeWidth={1} stroke="#000000" fill={(colorBy === "sampleType" ? sampleTypeColors : ontologyColors)[colorBy === "sampleType" ? fData[tooltip].sampleType : fData[tooltip].ontology]} />
                   <text x={100} y={140} fontSize="26px" fontWeight="bold">
                     {fData[tooltip].displayname.replace(/_/g, " ").slice(0, 45)}
                     {fData[tooltip].displayname.length > 45 ? "..." : ""}
@@ -473,7 +477,7 @@ export function DataMatrices() {
                 {legendEntries.map((element, index) => {
                   return (
                     <Typography key={index} borderLeft={`0.2rem solid ${element.color}`} paddingLeft={1}>
-                      {`${element.label}: ${element.value}`}
+                      {`${element.label}: ${element.value} experiments`}
                     </Typography>
                   )
                 })}
