@@ -97,7 +97,7 @@ export function DataMatrices() {
   })  
   const [bounds, setBounds] = useState(undefined)
   const [lifeStage, setLifeStage] = useState("all")
-  const [colorBy, setColorBy] = useState<"ontology" | "sampleType">("sampleType")
+  const [colorBy, setColorBy] = useState<"ontology" | "sampleType">("ontology")
   const [tSelected, setTSelected] = useState(new Set([]))
   const [searched, setSearched] = useState<BiosampleUMAP>(null)
   const [biosamples, setBiosamples] = useState<BiosampleUMAP[]>([])
@@ -391,13 +391,13 @@ export function DataMatrices() {
               <FormLabel id="demo-radio-buttons-group-label">Color By:</FormLabel>
               <RadioGroup
                 aria-labelledby="demo-radio-buttons-group-label"
-                defaultValue="sampleType"
                 name="radio-buttons-group"
                 sx={{ mb: 2 }}
-                onChange={(event: ChangeEvent<HTMLInputElement>, value: "ontology" | "sampleType") => setColorBy(value)}
+                onChange={(_, value: "ontology" | "sampleType") => setColorBy(value)}
+                value={colorBy}
               >
-                <FormControlLabel value="sampleType" control={<Radio />} label="Biosample type" />
                 <FormControlLabel value="ontology" control={<Radio />} label="Tissue/Organ" />
+                <FormControlLabel value="sampleType" control={<Radio />} label="Biosample type" />
               </RadioGroup>
             </FormControl>
             <FormControl>
