@@ -1,5 +1,5 @@
 "use client"
-import { Accordion, AccordionDetails, AccordionSummary, Stack, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { Accordion, AccordionDetails, AccordionSummary, FormControl, FormLabel, InputLabel, Stack, ToggleButton, ToggleButtonGroup, Typography, useMediaQuery, useTheme } from "@mui/material"
 
 import React, { useState, useEffect, useTransition, useMemo } from "react"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
@@ -17,20 +17,25 @@ import { RegistryBiosample } from "../../search/types"
 
 import testData from "./gwastestdata.json"
 import { EnrichmentLollipopPlot, EnrichmentData } from "./lollipopplot"
+import { tissueColors } from "../../../common/lib/colors"
 
+const tissues = Object.entries(tissueColors)
 
 const enrichmentData: EnrichmentData[] = testData.map(x => {
+  const randomIndex = Math.floor(Math.random() * tissues.length);
+
   return {
     celltype: x.celltype,
-    ontology: 'Tissue',
+    ontology: tissues[randomIndex][0],
     displayname: x.celltype, //Need to fetch displayname with ccREBiosampleQuery if not included in data
-    fdr: +x.fdr,
+    neglog10fdr: -Math.log10(+x.fdr),
     pval: +x.pval,
-    foldenrichment: +x.foldenrichment,
+    // log2foldenrichment: +x.foldenrichment,
+    log2foldenrichment: Math.log2(+x.foldenrichment),
     study: x.study,
-    color: '#' + Math.floor(Math.random() * 16777215).toString(16)
+    color: tissues[randomIndex][1]
   }
-}).sort((a, b) => b.foldenrichment - a.foldenrichment)
+})
 
 type GWASStudy = {
   studyname: string,
@@ -45,6 +50,16 @@ export default function GWAS() {
   const [selectedBiosample, setSelectedBiosample] = useState<RegistryBiosample[]>([])
   const [isPending, startTransition] = useTransition();
   const [biosampleData, setBiosampleData] = useState<ApolloQueryResult<BIOSAMPLE_Data>>(null)
+  const [sortBy, setSortBy] = useState<"FDR" | "foldEnrichment">("foldEnrichment")
+
+  const handleSortBy = (
+    event: React.MouseEvent<HTMLElement>,
+    newSort: string | null,
+  ) => {
+    if (newSort === "FDR" || newSort === "foldEnrichment") {
+      setSortBy(newSort);
+    }
+  };
 
   // console.log("selectedBiosample", selectedBiosample)
   useEffect(() => {
@@ -306,12 +321,30 @@ export default function GWAS() {
   //Tried putting this in an accordion but then the tooltip stopped working
   const SuggestionsPlot = () => useMemo(() => {
     return (
-      <EnrichmentLollipopPlot
-        data={enrichmentData}
-        height={700}
-        width={800}
-        onSuggestionClicked={(selected) => console.log(selected)}
-      />
+      <Stack direction={"column"} spacing={2}>
+        <FormControl>
+          <FormLabel>Sort By</FormLabel>
+          <ToggleButtonGroup
+            value={sortBy}
+            exclusive
+            onChange={handleSortBy}
+            aria-label="text alignment"
+          >
+            <ToggleButton value="foldEnrichment" aria-label="fold enrichment" sx={{textTransform: 'none'}}>
+              Log<sub>2</sub>(Fold Enrichment)
+            </ToggleButton>
+            <ToggleButton value="FDR" aria-label="FDR" sx={{textTransform: 'none'}}>
+              -Log<sub>10</sub>(FDR)
+            </ToggleButton>
+          </ToggleButtonGroup>
+        </FormControl>
+        <EnrichmentLollipopPlot
+          data={enrichmentData.sort((a, b) => sortBy === "foldEnrichment" ? b.log2foldenrichment - a.log2foldenrichment : a.neglog10fdr - b.neglog10fdr)}
+          height={700}
+          width={800}
+          onSuggestionClicked={(selected) => console.log(selected)}
+        />
+      </Stack>
     )
   }, [])
 

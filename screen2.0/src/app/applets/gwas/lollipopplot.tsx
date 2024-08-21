@@ -40,9 +40,9 @@ export type EnrichmentData = {
   celltype: string
   ontology: string
   displayname: string
-  fdr: number
+  neglog10fdr: number
   pval: number
-  foldenrichment: number
+  log2foldenrichment: number
   study: string
   color: string
 }
@@ -69,13 +69,16 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
   const innerPaddingY = 10
   const innerPaddingX = 10
 
+  const xMin = spaceForCellNames
   const xMax = props.width - spaceForCellNames - paddingRightOfMaxVal - (2 * innerPaddingX) //If adding tissue categories, need to add a space for it here
   const yMax = props.data.length * 27
 
-  // xScale used for the width (value) of bars. The greater the input, the smaller the output. Width calculated by taking xMax - xScale(fold enrichment)
+
+
+  // xScale used for the width (value) of bars
   const xScale = useMemo(() =>
     scaleLinear<number>({
-      domain: [0, Math.max(...props.data.map(x => x.foldenrichment))],
+      domain: [Math.min(0, Math.min(...props.data.map(x => x.log2foldenrichment))), Math.max(0, Math.max(...props.data.map(x => x.log2foldenrichment)))], //Accounts for values not crossing zero, always include zero as anchor for scores
       range: [0, xMax],
       round: true,
     }),
@@ -96,8 +99,8 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
   // rScale used for the radius of the circle
   const rScale = useMemo(() =>
     scaleLinear<number>({
-      domain: [Math.min(...props.data.map(x => x.fdr)), Math.max(...props.data.map(x => x.fdr))], // Min/Max of fdr values in data
-      range: [3, 10],
+      domain: [Math.min(...props.data.map(x => x.neglog10fdr)), Math.max(...props.data.map(x => x.neglog10fdr))], // Min/Max of fdr values in data
+      range: [10, 3],
       round: true,
     }),
     [props.data]
@@ -131,7 +134,7 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
   function LegendDemo({ children }: { children: React.ReactNode }) {
     return (
       <div className="legend">
-        <div className="title">Log<sub>10</sub>(FDR)</div>
+        <div className="title">-Log<sub>10</sub>(FDR)</div>
         {children}
         <style>{`
           .legend {
@@ -209,11 +212,25 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
           <svg id="sugestions-plot" width={props.width - (2 * innerPaddingX)} height={yMax + (2 * innerPaddingY)}>
             <Group id="bars-goup" top={innerPaddingY}>
               {props.data.map((x) => {
-                const barWidth = xScale(x.foldenrichment)
+
+                let barStart: number;
+                let barWidth: number;
+                let circleX: number;
+
                 const barHeight = yScale.bandwidth()
-                const barX = spaceForCellNames
                 const barY = yScale(x.celltype)
-                const radiusFDR = rScale(x.fdr)
+                const radiusFDR = rScale(x.neglog10fdr)
+
+                if (x.log2foldenrichment < 0) { //bar is to the left of 0
+                  barStart = xMin + xScale(x.log2foldenrichment)
+                  barWidth = xScale(0) - xScale(x.log2foldenrichment)
+                  circleX = barStart
+                } else { //bar is to the right of 0
+                  barStart = xMin + xScale(0)
+                  barWidth = xScale(x.log2foldenrichment) - xScale(0)
+                  circleX = barStart + barWidth
+                }
+
                 return (
                   <Group
                     key={`bar-${x.celltype}`}
@@ -228,19 +245,19 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
                       hideTooltip()
                     }}
                     onClick={() => props.onSuggestionClicked && props.onSuggestionClicked(x)}
-                    cursor={"pointer"}
+                    cursor={props.onSuggestionClicked && "pointer"}
                   >
                     <Text
                       fontSize={12}
                       textAnchor='end'
                       verticalAnchor='middle'
-                      x={barX - 5}
+                      x={spaceForCellNames - 5}
                       y={barY + (0.5 * barHeight)}
                     >
                       {x.displayname.length > 25 ? x.displayname.slice(0, 23) + '...' : x.displayname}
                     </Text>
                     <Bar
-                      x={barX}
+                      x={barStart}
                       y={barY}
                       width={barWidth}
                       height={barHeight}
@@ -248,13 +265,13 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
                     />
                     <Circle
                       r={radiusFDR}
-                      cx={barX + barWidth}
+                      cx={circleX}
                       cy={barY + (0.5 * barHeight)}
                       fill={x.color}
                     />
                     <Circle
-                      r={radiusFDR - 2}
-                      cx={barX + barWidth}
+                      r={radiusFDR - 1.5}
+                      cx={circleX}
                       cy={barY + (0.5 * barHeight)}
                       fill='black'
                     />
@@ -262,12 +279,12 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
                 )
               })}
             </Group>
+            <line stroke='black' x1={xMin + xScale(0)} y1={0} x2={xMin + xScale(0)} y2={yMax + (2 * innerPaddingY)} />
           </svg >
-
         </div>
       </div>
       <svg id="axis-container" width={props.width} height={spaceForBottomAxis}>
-        <AxisBottom left={spaceForCellNames} top={5} scale={xScale} label='Log2(Fold Enrichment)' />
+        <AxisBottom left={xMin} top={5} scale={xScale} label='Log2(Fold Enrichment)' />
       </svg>
       {tooltipOpen && tooltipData && (
         <TooltipWithBounds
@@ -285,10 +302,10 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
             <Typography variant='body2'><i>P</i>: {tooltipData.pval}</Typography>
           </div>
           <div>
-            <Typography variant='body2'>Log<sub>2</sub>(Fold Enrichment): {tooltipData.foldenrichment}</Typography>
+            <Typography variant='body2'>Log<sub>2</sub>(Fold Enrichment): {tooltipData.log2foldenrichment}</Typography>
           </div>
           <div>
-            <Typography variant='body2'>Log<sub>10</sub>(FDR): {tooltipData.fdr}</Typography>
+            <Typography variant='body2'>-Log<sub>10</sub>(FDR): {tooltipData.neglog10fdr}</Typography>
           </div>
         </TooltipWithBounds>
       )}
