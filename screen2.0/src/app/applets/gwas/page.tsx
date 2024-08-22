@@ -1,11 +1,11 @@
 "use client"
-import { Accordion, AccordionDetails, AccordionSummary, FormControl, FormLabel, InputLabel, Stack, ToggleButton, ToggleButtonGroup, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { Accordion, AccordionDetails, AccordionSummary, FormControl, FormLabel, Stack, ToggleButton, ToggleButtonGroup, Typography, useMediaQuery, useTheme } from "@mui/material"
 
 import React, { useState, useEffect, useTransition, useMemo } from "react"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { createLink, LoadingMessage } from "../../../common/lib/utility"
 import Grid from "@mui/material/Unstable_Grid2/Grid2"
-import { Box, CircularProgress } from "@mui/material"
+import { CircularProgress } from "@mui/material"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import { client } from "../../search/_ccredetails/client"
 import { useQuery } from "@apollo/client"
@@ -14,26 +14,18 @@ import { ApolloQueryResult } from "@apollo/client"
 import { BIOSAMPLE_Data, biosampleQuery } from "../../../common/lib/queries"
 import BiosampleTables from "../../search/biosampletables"
 import { RegistryBiosample } from "../../search/types"
-
 import testData from "./gwastestdata.json"
-import { EnrichmentLollipopPlot, EnrichmentData } from "./lollipopplot"
-import { tissueColors } from "../../../common/lib/colors"
+import { EnrichmentLollipopPlot } from "./lollipopplot"
 
-const tissues = Object.entries(tissueColors)
-
-const enrichmentData: EnrichmentData[] = testData.map(x => {
-  const randomIndex = Math.floor(Math.random() * tissues.length);
+const enrichmentData = testData.map(x => {
 
   return {
     celltype: x.celltype,
-    ontology: tissues[randomIndex][0],
     displayname: x.celltype, //Need to fetch displayname with ccREBiosampleQuery if not included in data
-    neglog10fdr: -Math.log10(+x.fdr),
+    fdr: +x.fdr,
     pval: +x.pval,
-    // log2foldenrichment: +x.foldenrichment,
-    log2foldenrichment: Math.log2(+x.foldenrichment),
+    foldenrichment: +x.foldenrichment,
     study: x.study,
-    color: tissues[randomIndex][1]
   }
 })
 
@@ -50,16 +42,6 @@ export default function GWAS() {
   const [selectedBiosample, setSelectedBiosample] = useState<RegistryBiosample[]>([])
   const [isPending, startTransition] = useTransition();
   const [biosampleData, setBiosampleData] = useState<ApolloQueryResult<BIOSAMPLE_Data>>(null)
-  const [sortBy, setSortBy] = useState<"FDR" | "foldEnrichment">("foldEnrichment")
-
-  const handleSortBy = (
-    event: React.MouseEvent<HTMLElement>,
-    newSort: string | null,
-  ) => {
-    if (newSort === "FDR" || newSort === "foldEnrichment") {
-      setSortBy(newSort);
-    }
-  };
 
   // console.log("selectedBiosample", selectedBiosample)
   useEffect(() => {
@@ -109,7 +91,7 @@ export default function GWAS() {
     skip: gwasstudySNPsLoading || (gwasstudySNPs && gwasstudySNPs.getSNPsforGWASStudies.length === 0) || (!snpsRegions) || (snpsRegions.length === 0),
     client,
   })
-  // console.log("cCREIntersection", cCREIntersections, cCREIntersectionsLoading)
+  
 
   let cCREsIntersectionData = cCREIntersections && cCREIntersections.intersection.map((c) => {
 
@@ -122,11 +104,9 @@ export default function GWAS() {
     }
   })
 
-  // console.log(cCREsIntersectionData, "cCREsIntersections", cCREsIntersectionData && cCREsIntersectionData.map(c => { return +(c.ldblock) }))
-
   let overlappingldblocks = cCREsIntersectionData && new Set([...cCREsIntersectionData.map(c => { return (+c.ldblock) })])
   let accessions = cCREsIntersectionData && new Set([...cCREsIntersectionData.map(c => { return (c.accession) })])
-  // console.log("accessions", accessions)
+
   const {
     data: cCREDetails, loading: cCREDetailsLoading
   } = useQuery(CCRE_SEARCH, {
@@ -140,8 +120,6 @@ export default function GWAS() {
     skip: !(accessions && accessions.size > 0),
     client,
   })
-
-  // console.log(cCREDetails, cCREDetailsLoading)
 
   let ccreGenes = {}
 
@@ -159,10 +137,6 @@ export default function GWAS() {
 
     }
   })
-  // console.log(ccreGenes)
-
-  // console.log(study, overlappingldblocks && overlappingldblocks.size, "overlappingldblocks")
-
 
   const columns = useMemo(() => {
 
@@ -205,15 +179,6 @@ export default function GWAS() {
     }
     return cols;
   }, [selectedBiosample, cCREsIntersectionData])
-  // fetch list of studies
-
-
-  // fetch study
-  // const data = await fetchServer("https://screen-beta-api.wenglab.org/gwasws/main", study)
-  // const data = await fetchServer("https://screen-beta-api.wenglab.org/gwasws/main", JSON.stringify({
-  //   assembly: "GRCh38",
-  //   gwas_study: study
-  // }))
 
   const StudySelection = () => {
     return gwasstudiesLoading ? LoadingMessage() : gwasstudies && gwasstudies.getAllGwasStudies.length > 0 &&
@@ -319,34 +284,16 @@ export default function GWAS() {
   }
 
   //Tried putting this in an accordion but then the tooltip stopped working
-  const SuggestionsPlot = () => useMemo(() => {
+  const SuggestionsPlot = () => {
     return (
-      <Stack direction={"column"} spacing={2}>
-        <FormControl>
-          <FormLabel>Sort By</FormLabel>
-          <ToggleButtonGroup
-            value={sortBy}
-            exclusive
-            onChange={handleSortBy}
-            aria-label="text alignment"
-          >
-            <ToggleButton value="foldEnrichment" aria-label="fold enrichment" sx={{textTransform: 'none'}}>
-              Log<sub>2</sub>(Fold Enrichment)
-            </ToggleButton>
-            <ToggleButton value="FDR" aria-label="FDR" sx={{textTransform: 'none'}}>
-              -Log<sub>10</sub>(FDR)
-            </ToggleButton>
-          </ToggleButtonGroup>
-        </FormControl>
         <EnrichmentLollipopPlot
-          data={enrichmentData.sort((a, b) => sortBy === "foldEnrichment" ? b.log2foldenrichment - a.log2foldenrichment : a.neglog10fdr - b.neglog10fdr)}
+          data={enrichmentData}
           height={700}
           width={800}
           onSuggestionClicked={(selected) => console.log(selected)}
         />
-      </Stack>
     )
-  }, [])
+  }
 
   const theme = useTheme()
   const isLg = useMediaQuery(theme.breakpoints.down('lg'))
