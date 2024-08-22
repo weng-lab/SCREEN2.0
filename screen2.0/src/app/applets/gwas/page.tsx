@@ -26,6 +26,7 @@ const enrichmentData = testData.map(x => {
     pval: +x.pval,
     foldenrichment: +x.foldenrichment,
     study: x.study,
+    expID: 'ENCSR123456789'
   }
 })
 
@@ -43,15 +44,12 @@ export default function GWAS() {
   const [isPending, startTransition] = useTransition();
   const [biosampleData, setBiosampleData] = useState<ApolloQueryResult<BIOSAMPLE_Data>>(null)
 
-  // console.log("selectedBiosample", selectedBiosample)
   useEffect(() => {
     startTransition(async () => {
       const biosamples = await biosampleQuery()
       setBiosampleData(biosamples)
     })
   }, [])
-
-  // console.log("biosampleData- gwas", biosampleData)
 
   const {
     data: gwasstudies, loading: gwasstudiesLoading

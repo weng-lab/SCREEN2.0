@@ -6,7 +6,7 @@ import { scaleBand, scaleLinear } from '@visx/scale';
 import { AxisBottom } from '@visx/axis'
 import { Text } from '@visx/text'
 import { defaultStyles as defaultTooltipStyles, useTooltip, TooltipWithBounds } from '@visx/tooltip';
-import { FormControl, FormLabel, Paper, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
+import { Container, FormControl, FormLabel, Paper, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { KeyboardDoubleArrowUp } from '@mui/icons-material';
 import {
   LegendSize,
@@ -42,6 +42,7 @@ export type RawEnrichmentData = {
   pval: number
   foldenrichment: number
   study: string
+  expID: string
 }
 
 export type TransformedEnrichmentData = RawEnrichmentData & {
@@ -95,6 +96,48 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
     }
   };
 
+  /**
+   * Filtered, log transformed, and sorted enrichment data. Includes grouped and ungrouped data
+   */
+  const plotData: {grouped: {[key: string]: TransformedEnrichmentData[]}} & {ungrouped: TransformedEnrichmentData[]} = useMemo(() => {
+    const tissues = Object.entries(tissueColors) //temporary
+
+    const data: {grouped: {[key: string]: TransformedEnrichmentData[]}} & {ungrouped: TransformedEnrichmentData[]} = {grouped: {}, ungrouped: []}
+
+    props.data.forEach((x: RawEnrichmentData) => {
+      const randomIndex = Math.floor(Math.random() * tissues.length)
+      const transformedData: TransformedEnrichmentData = {
+        ...x,
+        ontology: tissues[randomIndex][0], //temporary
+        neglog10fdr: -Math.log10(x.fdr),
+        log2foldenrichment: Math.log2(x.foldenrichment),
+        color: tissues[randomIndex][1], //temporary
+      }
+      if (!FDRcutoff || (FDRcutoff && x.fdr < 0.05)) {
+        data.ungrouped.push(transformedData)
+        if (!data.grouped[transformedData.ontology]) {
+          data.grouped[transformedData.ontology] = []
+        }
+        data.grouped[transformedData.ontology].push(transformedData)
+      }
+    })
+
+    data.ungrouped.sort((a, b) => sortBy === "foldEnrichment" ? b.log2foldenrichment - a.log2foldenrichment : a.neglog10fdr - b.neglog10fdr)
+
+    const sortedGroups = Object.entries(data.grouped)
+    //Sort each tissue's values by specified sort
+    .map((x: [string, TransformedEnrichmentData[]]) => {x[1].sort((a, b) => sortBy === "foldEnrichment" ? b.log2foldenrichment - a.log2foldenrichment : a.neglog10fdr - b.neglog10fdr); return x})
+    //Sort the tissues
+    .sort((a, b) => {
+      //check first index since it should be the largest of that tissue
+      return sortBy === "foldEnrichment" ? b[1][0].log2foldenrichment - a[1][0].log2foldenrichment : a[1][0].neglog10fdr - b[1][0].neglog10fdr
+      });
+
+    data.grouped = Object.fromEntries(sortedGroups)
+
+    return data
+  }, [FDRcutoff, props.data, sortBy])
+
   const { tooltipOpen, tooltipLeft, tooltipTop, tooltipData, hideTooltip, showTooltip, updateTooltip } = useTooltip<TransformedEnrichmentData>();
 
   const paddingRightOfMaxVal = props.width * 0.10
@@ -103,39 +146,18 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
   const innerPaddingY = 10
   const innerPaddingX = 10
 
+  const gapBetweenTissues = 40
+
   const xMin = spaceForCellNames
   const xMax = props.width - spaceForCellNames - paddingRightOfMaxVal - (2 * innerPaddingX) //If adding tissue categories, need to add a space for it here
-  const yMax = props.data.length * 27
-
-  /**
-   * Filtered, log transformed, and sorted enrichment data
-   */
-  const plotData: TransformedEnrichmentData[] = useMemo(() => {
-    const tissues = Object.entries(tissueColors) //temporary
-
-    return (
-      props.data
-        .filter(x => FDRcutoff ? x.fdr < 0.05 : true)
-        .map(x => {
-          const randomIndex = Math.floor(Math.random() * tissues.length);
-
-          return {
-            ...x,
-            ontology: tissues[randomIndex][0], //temporary
-            neglog10fdr: -Math.log10(x.fdr),
-            log2foldenrichment: Math.log2(x.foldenrichment),
-            color: tissues[randomIndex][1], //temporary
-          }
-        })
-        .sort((a, b) => sortBy === "foldEnrichment" ? b.log2foldenrichment - a.log2foldenrichment : a.neglog10fdr - b.neglog10fdr)
-    )
-  }, [FDRcutoff, props.data, sortBy])
-
+  
+  const yMax = plotData.ungrouped.length * 27
+  // const yMax = groupTissues ? (plotData.ungrouped.length * 27) + ((Object.keys(plotData.grouped).length - 1) * gapBetweenTissues) : plotData.ungrouped.length * 27
 
   // xScale used for the width (value) of bars
   const xScale = useMemo(() =>
     scaleLinear<number>({
-      domain: [Math.min(0, Math.min(...plotData.map(x => x.log2foldenrichment))), Math.max(0, Math.max(...plotData.map(x => x.log2foldenrichment)))], //Accounts for values not crossing zero, always include zero as anchor for scores
+      domain: [Math.min(0, Math.min(...plotData.ungrouped.map(x => x.log2foldenrichment))), Math.max(0, Math.max(...plotData.ungrouped.map(x => x.log2foldenrichment)))], //Accounts for values not crossing zero, always include zero as anchor for scores
       range: [0, xMax],
       round: true,
     }),
@@ -145,18 +167,18 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
   // yScale used for the vertical placement and height (thickness) of the bars
   const yScale = useMemo(() =>
     scaleBand<string>({
-      domain: plotData.map(x => x.celltype),
+      domain: groupTissues ? Object.values(plotData.grouped).flat().map(x => x.celltype) : plotData.ungrouped.map(x => x.celltype),
       range: [0, yMax],
       round: true,
       paddingInner: 0.85
     }),
-    [yMax, plotData]
+    [yMax, plotData, groupTissues]
   )
 
   // rScale used for the radius of the circle
   const rScale = useMemo(() =>
     scaleLinear<number>({
-      domain: [Math.min(...plotData.map(x => x.neglog10fdr)), Math.max(...plotData.map(x => x.neglog10fdr))], // Min/Max of fdr values in data
+      domain: [Math.min(...plotData.ungrouped.map(x => x.neglog10fdr)), Math.max(...plotData.ungrouped.map(x => x.neglog10fdr))], // Min/Max of fdr values in data
       range: [10, 3],
       round: true,
     }),
@@ -266,134 +288,139 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
         </FormControl>
       </Stack>
       <Paper sx={{ width: props.width }}>
-        <div id="scroll-container-wrapper" style={{ position: 'relative', maxHeight: props.height - spaceForBottomAxis }}>
-          <div
-            id="shade-top"
-            style={{
-              position: 'absolute',
-              display: 'none',
-              left: 0,
-              right: 0,
-              height: '80px',
-              pointerEvents: 'none',
-              background: "linear-gradient(to bottom, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0))",
-              justifyContent: 'center',
-            }}
-          >
-            <KeyboardDoubleArrowUp fontSize='large' sx={{ mt: 1, pointerEvents: 'auto', cursor: 'pointer' }} onClick={scrollToTop} />
-          </div>
-          <div
-            id="shade-bottom"
-            style={{
-              position: 'absolute',
-              left: 0,
-              right: 0,
-              top: 'auto',
-              bottom: 0,
-              height: '80px',
-              pointerEvents: 'none',
-              background: "linear-gradient(to top, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0))",
-            }}
-          />
-          <LegendDemo>
-            <LegendSize scale={rScale}>
-              {(labels) =>
-                labels.map((label) => {
-                  const size = rScale(label.datum) ?? 0;
-                  return (
-                    <LegendItem
-                      key={`legend-${label.text}-${label.index}`}
-                    >
-                      <svg width={size * 2} height={size * 2} style={{ margin: '5px 0' }}>
-                        <circle r={size} cx={size} cy={size} />
-                      </svg>
-                      <LegendLabel align="left" margin="0 4px">
-                        {(+label.text).toFixed(2)}
-                      </LegendLabel>
-                    </LegendItem>
-                  );
-                })
-              }
-            </LegendSize>
-          </LegendDemo>
-          <div onScroll={updateShading} id="scroll-container" style={{ maxHeight: props.height - spaceForBottomAxis, overflowY: 'auto' }}>
-            <svg id="sugestions-plot" width={props.width - (2 * innerPaddingX)} height={yMax + (2 * innerPaddingY)}>
-              <Group id="bars-goup" top={innerPaddingY}>
-                {plotData.map((x) => {
-
-                  let barStart: number;
-                  let barWidth: number;
-                  let circleX: number;
-
-                  const barHeight = yScale.bandwidth()
-                  const barY = yScale(x.celltype)
-                  const radiusFDR = rScale(x.neglog10fdr)
-
-                  if (x.log2foldenrichment < 0) { //bar is to the left of 0
-                    barStart = xMin + xScale(x.log2foldenrichment)
-                    barWidth = xScale(0) - xScale(x.log2foldenrichment)
-                    circleX = barStart
-                  } else { //bar is to the right of 0
-                    barStart = xMin + xScale(0)
-                    barWidth = xScale(x.log2foldenrichment) - xScale(0)
-                    circleX = barStart + barWidth
+        {plotData.ungrouped.length < 1 ?
+          <Typography m={2}>No Data to Display</Typography>
+          :
+          <div>
+            <div id="scroll-container-wrapper" style={{ position: 'relative', maxHeight: props.height - spaceForBottomAxis }}>
+              <div
+                id="shade-top"
+                style={{
+                  position: 'absolute',
+                  display: 'none',
+                  left: 0,
+                  right: 0,
+                  height: '80px',
+                  pointerEvents: 'none',
+                  background: "linear-gradient(to bottom, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0))",
+                  justifyContent: 'center',
+                }}
+              >
+                <KeyboardDoubleArrowUp fontSize='large' sx={{ mt: 1, pointerEvents: 'auto', cursor: 'pointer' }} onClick={scrollToTop} />
+              </div>
+              <div
+                id="shade-bottom"
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  right: 0,
+                  top: 'auto',
+                  bottom: 0,
+                  height: '80px',
+                  pointerEvents: 'none',
+                  background: "linear-gradient(to top, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0))",
+                }}
+              />
+              <LegendDemo>
+                <LegendSize scale={rScale}>
+                  {(labels) =>
+                    labels.map((label) => {
+                      const size = rScale(label.datum) ?? 0;
+                      return (
+                        <LegendItem
+                          key={`legend-${label.text}-${label.index}`}
+                        >
+                          <svg width={size * 2} height={size * 2} style={{ margin: '5px 0' }}>
+                            <circle r={size} cx={size} cy={size} />
+                          </svg>
+                          <LegendLabel align="left" margin="0 4px">
+                            {(+label.text).toFixed(2)}
+                          </LegendLabel>
+                        </LegendItem>
+                      );
+                    })
                   }
+                </LegendSize>
+              </LegendDemo>
+              <div onScroll={updateShading} id="scroll-container" style={{ maxHeight: props.height - spaceForBottomAxis, overflowY: 'auto' }}>
+                <svg id="sugestions-plot" width={props.width - (2 * innerPaddingX)} height={yMax + (2 * innerPaddingY)}>
+                  <Group id="bars-goup" top={innerPaddingY}>
+                    {(groupTissues ? Object.values(plotData.grouped).flat() : plotData.ungrouped).map((x) => {
+                      let barStart: number;
+                      let barWidth: number;
+                      let circleX: number;
 
-                  return (
-                    <Group
-                      key={`bar-${x.celltype}`}
-                      onMouseMove={(event) => {
-                        showTooltip({
-                          tooltipTop: event.pageY,
-                          tooltipLeft: event.pageX,
-                          tooltipData: x
-                        })
-                      }}
-                      onMouseLeave={() => {
-                        hideTooltip()
-                      }}
-                      onClick={() => props.onSuggestionClicked && props.onSuggestionClicked(x)}
-                      cursor={props.onSuggestionClicked && "pointer"}
-                    >
-                      <Text
-                        fontSize={12}
-                        textAnchor='end'
-                        verticalAnchor='middle'
-                        x={spaceForCellNames - 5}
-                        y={barY + (0.5 * barHeight)}
-                      >
-                        {x.displayname.length > 25 ? x.displayname.slice(0, 23) + '...' : x.displayname}
-                      </Text>
-                      <Bar
-                        x={barStart}
-                        y={barY}
-                        width={barWidth}
-                        height={barHeight}
-                        fill={x.color}
-                      />
-                      <Circle
-                        r={radiusFDR}
-                        cx={circleX}
-                        cy={barY + (0.5 * barHeight)}
-                        fill={x.color}
-                      />
-                      <Circle
-                        r={radiusFDR - 1.5}
-                        cx={circleX}
-                        cy={barY + (0.5 * barHeight)}
-                        fill='black'
-                      />
-                    </Group>
-                  )
-                })}
-              </Group>
-              <line stroke='black' x1={xMin + xScale(0)} y1={0} x2={xMin + xScale(0)} y2={yMax + (2 * innerPaddingY)} />
-            </svg >
+                      const barHeight = yScale.bandwidth()
+                      const barY = yScale(x.celltype)
+                      const radiusFDR = rScale(x.neglog10fdr)
+
+                      if (x.log2foldenrichment < 0) { //bar is to the left of 0
+                        barStart = xMin + xScale(x.log2foldenrichment)
+                        barWidth = xScale(0) - xScale(x.log2foldenrichment)
+                        circleX = barStart
+                      } else { //bar is to the right of 0
+                        barStart = xMin + xScale(0)
+                        barWidth = xScale(x.log2foldenrichment) - xScale(0)
+                        circleX = barStart + barWidth
+                      }
+
+                      return (
+                        <Group
+                          key={`bar-${x.celltype}`}
+                          onMouseMove={(event) => {
+                            showTooltip({
+                              tooltipTop: event.pageY,
+                              tooltipLeft: event.pageX,
+                              tooltipData: x
+                            })
+                          }}
+                          onMouseLeave={() => {
+                            hideTooltip()
+                          }}
+                          onClick={() => props.onSuggestionClicked && props.onSuggestionClicked(x)}
+                          cursor={props.onSuggestionClicked && "pointer"}
+                        >
+                          <Text
+                            fontSize={12}
+                            textAnchor='end'
+                            verticalAnchor='middle'
+                            x={spaceForCellNames - 5}
+                            y={barY + (0.5 * barHeight)}
+                          >
+                            {x.displayname.length > 25 ? x.displayname.slice(0, 23) + '...' : x.displayname}
+                          </Text>
+                          <Bar
+                            x={barStart}
+                            y={barY}
+                            width={barWidth}
+                            height={barHeight}
+                            fill={x.color}
+                          />
+                          <Circle
+                            r={radiusFDR}
+                            cx={circleX}
+                            cy={barY + (0.5 * barHeight)}
+                            fill={x.color}
+                          />
+                          <Circle
+                            r={radiusFDR - 1.5}
+                            cx={circleX}
+                            cy={barY + (0.5 * barHeight)}
+                            fill='black'
+                          />
+                        </Group>
+                      )
+                    })}
+                  </Group>
+                  <line stroke='black' x1={xMin + xScale(0)} y1={0} x2={xMin + xScale(0)} y2={yMax + (2 * innerPaddingY)} />
+                </svg >
+              </div>
+            </div>
+            <svg id="axis-container" width={props.width} height={spaceForBottomAxis}>
+              <AxisBottom left={xMin} top={5} scale={xScale} label='Log2(Fold Enrichment)' />
+            </svg>
           </div>
-        </div>
-        <svg id="axis-container" width={props.width} height={spaceForBottomAxis}>
-          <AxisBottom left={xMin} top={5} scale={xScale} label='Log2(Fold Enrichment)' />
-        </svg>
+        }
         {tooltipOpen && tooltipData && (
           <TooltipWithBounds
             top={tooltipTop}
@@ -405,6 +432,9 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
             </div>
             <div>
               <Typography>{tooltipData.ontology}</Typography>
+            </div>
+            <div>
+              <Typography>{tooltipData.expID}</Typography>
             </div>
             <div>
               <Typography variant='body2'><i>P</i>: {tooltipData.pval}</Typography>
