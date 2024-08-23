@@ -5,8 +5,8 @@ import { Group } from '@visx/group';
 import { scaleBand, scaleLinear } from '@visx/scale';
 import { AxisBottom } from '@visx/axis'
 import { Text } from '@visx/text'
-import { defaultStyles as defaultTooltipStyles, useTooltip, TooltipWithBounds } from '@visx/tooltip';
-import { Checkbox, Container, FormControl, FormControlLabel, FormGroup, FormLabel, Paper, Radio, RadioGroup, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
+import { defaultStyles as defaultTooltipStyles, useTooltip, TooltipWithBounds, Portal } from '@visx/tooltip';
+import { Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, Paper, Radio, RadioGroup, Stack, Typography } from '@mui/material';
 import { KeyboardDoubleArrowUp } from '@mui/icons-material';
 import {
   LegendSize,
@@ -14,6 +14,7 @@ import {
   LegendLabel,
 } from '@visx/legend';
 import { tissueColors } from '../../../common/lib/colors';
+import { localPoint } from '@visx/event';
 
 export type EnrichmentLollipopPlot = {
   /**
@@ -123,7 +124,8 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
     return data
   }, [FDRcutoff, props.data, sortBy])
 
-  const { tooltipOpen, tooltipLeft, tooltipTop, tooltipData, hideTooltip, showTooltip, updateTooltip } = useTooltip<TransformedEnrichmentData>();
+  const { tooltipOpen, tooltipLeft, tooltipTop, tooltipData, hideTooltip, showTooltip } = useTooltip<TransformedEnrichmentData>();
+
 
   const paddingRightOfMaxVal = props.width * 0.10
   const spaceForCellNames = 200
@@ -208,6 +210,9 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
             position: absolute;
             bottom: 0;
             right: 0;
+            background-color: rgba(255, 255, 255, 0.3); /* White with 30% transparency */
+            backdrop-filter: blur(3px); /* Apply blur to the content behind */
+            -webkit-backdrop-filter: blur(3px); /* Safari support */
           }
           .title {
             font-size: 12px;
@@ -241,6 +246,8 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
       <Group
         key={`bar-${x.celltype}`}
         onMouseMove={(event) => {
+          const coords = localPoint(event);
+          console.log(coords)
           showTooltip({
             tooltipTop: event.pageY,
             tooltipLeft: event.pageX,
@@ -408,31 +415,33 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
             </svg>
           </div>
         }
-        {tooltipOpen && tooltipData && (
-          <TooltipWithBounds
-            top={tooltipTop}
-            left={tooltipLeft}
-            style={{ ...defaultTooltipStyles, backgroundColor: '#283238', color: 'white', zIndex: 1000 }}
-          >
-            <div>
-              <Typography>{tooltipData.displayname}</Typography>
-            </div>
-            <div>
-              <Typography>{tooltipData.ontology}</Typography>
-            </div>
-            <div>
-              <Typography>{tooltipData.expID}</Typography>
-            </div>
-            <div>
-              <Typography variant='body2'><i>P</i>: {tooltipData.pval}</Typography>
-            </div>
-            <div>
-              <Typography variant='body2'>Log<sub>2</sub>(Fold Enrichment): {tooltipData.log2foldenrichment}</Typography>
-            </div>
-            <div>
-              <Typography variant='body2'>-Log<sub>10</sub>(FDR): {tooltipData.neglog10fdr}</Typography>
-            </div>
-          </TooltipWithBounds>
+        {tooltipOpen && (
+          <Portal>
+            <TooltipWithBounds
+              top={tooltipTop}
+              left={tooltipLeft}
+              style={{ ...defaultTooltipStyles, backgroundColor: '#283238', color: 'white' }}
+            >
+              <div>
+                <Typography>{tooltipData.displayname}</Typography>
+              </div>
+              <div>
+                <Typography>{tooltipData.ontology}</Typography>
+              </div>
+              <div>
+                <Typography>{tooltipData.expID}</Typography>
+              </div>
+              <div>
+                <Typography variant='body2'><i>P</i>: {tooltipData.pval}</Typography>
+              </div>
+              <div>
+                <Typography variant='body2'>Log<sub>2</sub>(Fold Enrichment): {tooltipData.log2foldenrichment}</Typography>
+              </div>
+              <div>
+                <Typography variant='body2'>-Log<sub>10</sub>(FDR): {tooltipData.neglog10fdr}</Typography>
+              </div>
+            </TooltipWithBounds>
+          </Portal>
         )}
       </Paper>
     </Stack>

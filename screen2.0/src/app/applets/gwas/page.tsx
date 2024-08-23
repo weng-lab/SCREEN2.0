@@ -276,20 +276,25 @@ export default function GWAS() {
             />
           </AccordionDetails>
         </Accordion>
-
       )
     )
   }
 
-  //Tried putting this in an accordion but then the tooltip stopped working
   const SuggestionsPlot = () => {
     return (
-        <EnrichmentLollipopPlot
-          data={enrichmentData}
-          height={700}
-          width={800}
-          onSuggestionClicked={(selected) => console.log(selected)}
-        />
+      <Accordion defaultExpanded  sx={{backgroundColor: "rgb(255, 210, 141)"}}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          Suggestions
+        </AccordionSummary>
+        <AccordionDetails sx={{backgroundColor: "rgb(255, 235, 204)"}}>
+          <EnrichmentLollipopPlot
+            data={enrichmentData}
+            height={700}
+            width={800}
+            onSuggestionClicked={(selected) => console.log(selected)}
+          />
+        </AccordionDetails>
+      </Accordion>
     )
   }
 
