@@ -89,7 +89,7 @@ export default function GWAS() {
     skip: gwasstudySNPsLoading || (gwasstudySNPs && gwasstudySNPs.getSNPsforGWASStudies.length === 0) || (!snpsRegions) || (snpsRegions.length === 0),
     client,
   })
-  
+
 
   let cCREsIntersectionData = cCREIntersections && cCREIntersections.intersection.map((c) => {
 
@@ -180,11 +180,12 @@ export default function GWAS() {
 
   const StudySelection = () => {
     return gwasstudiesLoading ? LoadingMessage() : gwasstudies && gwasstudies.getAllGwasStudies.length > 0 &&
-      <Accordion defaultExpanded>
+    <div>
+      <Accordion defaultExpanded sx={{ backgroundColor: "rgb(210, 239, 255)" }}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           Select a GWAS Study
         </AccordionSummary>
-        <AccordionDetails>
+        <AccordionDetails sx={{ backgroundColor: "rgb(235, 248, 255)" }}>
           <DataTable
             tableTitle="GWAS Studies"
             rows={gwasstudies.getAllGwasStudies}
@@ -207,52 +208,57 @@ export default function GWAS() {
           />
         </AccordionDetails>
       </Accordion>
+    </div>
   }
 
   const BiosampleSelection = () => {
     return biosampleData?.loading && gwasstudies && gwasstudies.getAllGwasStudies.length > 0 ?
       <CircularProgress sx={{ margin: "auto" }} />
       :
-      <Accordion defaultExpanded>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          Select a Biosample
-        </AccordionSummary>
-        <AccordionDetails>
-          {biosampleData?.data ?
-            <BiosampleTables
-              showRNAseq={false}
-              showDownloads={false}
-              biosampleSelectMode="replace"
-              biosampleData={{ data: { human: { biosamples: biosampleData.data['human'].biosamples.filter(b => b.dnase) }, mouse: biosampleData.data['mouse'] }, loading: biosampleData.loading, networkStatus: biosampleData.networkStatus }}
-              assembly={"GRCh38"}
-              selectedBiosamples={selectedBiosample}
-              setSelectedBiosamples={setSelectedBiosample}
-            /> :
-            <CircularProgress sx={{ margin: "auto" }} />}
-        </AccordionDetails>
-      </Accordion>
+      <div>
+        <Accordion defaultExpanded sx={{ backgroundColor: "rgb(210, 239, 255)" }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            Select a Biosample
+          </AccordionSummary>
+          <AccordionDetails sx={{ backgroundColor: "rgb(235, 248, 255)" }}>
+            {biosampleData?.data ?
+              <BiosampleTables
+                showRNAseq={false}
+                showDownloads={false}
+                biosampleSelectMode="replace"
+                biosampleData={{ data: { human: { biosamples: biosampleData.data['human'].biosamples.filter(b => b.dnase) }, mouse: biosampleData.data['mouse'] }, loading: biosampleData.loading, networkStatus: biosampleData.networkStatus }}
+                assembly={"GRCh38"}
+                selectedBiosamples={selectedBiosample}
+                setSelectedBiosamples={setSelectedBiosample}
+              /> :
+              <CircularProgress sx={{ margin: "auto" }} />}
+          </AccordionDetails>
+        </Accordion>
+      </div>
   }
 
   const LdBlocks = () => {
     return (
       study && cCREIntersections && overlappingldblocks && (
-        <Accordion defaultExpanded>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            LD Blocks
-          </AccordionSummary>
-          <AccordionDetails>
-            <DataTable
-              rows={[{ totalLDblocks: study.totalldblocks, overlappingldblocks: Math.ceil((overlappingldblocks.size / +study.totalldblocks) * 100), numCresOverlap: accessions.size }]}
-              columns={[
-                { header: "Total LD blocks", value: (row: any) => row.totalLDblocks },
-                { header: "# of LD blocks overlapping cCREs", value: (row: any) => overlappingldblocks.size + " (" + row.overlappingldblocks + "%)" },
-                { header: "# of overlapping cCREs", value: (row: any) => row.numCresOverlap },
-              ]}
-              sortDescending={true}
-              hidePageMenu={true}
-            />
-          </AccordionDetails>
-        </Accordion>
+        <div>
+          <Accordion defaultExpanded sx={{ backgroundColor: "rgb(225, 209, 255)" }}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              LD Blocks
+            </AccordionSummary>
+            <AccordionDetails sx={{ backgroundColor: "rgb(241, 234, 255)" }}>
+              <DataTable
+                rows={[{ totalLDblocks: study.totalldblocks, overlappingldblocks: Math.ceil((overlappingldblocks.size / +study.totalldblocks) * 100), numCresOverlap: accessions.size }]}
+                columns={[
+                  { header: "Total LD blocks", value: (row: any) => row.totalLDblocks },
+                  { header: "# of LD blocks overlapping cCREs", value: (row: any) => overlappingldblocks.size + " (" + row.overlappingldblocks + "%)" },
+                  { header: "# of overlapping cCREs", value: (row: any) => row.numCresOverlap },
+                ]}
+                sortDescending={true}
+                hidePageMenu={true}
+              />
+            </AccordionDetails>
+          </Accordion>
+        </div>
       )
     )
   }
@@ -260,41 +266,45 @@ export default function GWAS() {
   const IntersectingcCREs = () => {
     return (
       cCREsIntersectionData && cCREsIntersectionData.length > 0 && (
-        <Accordion defaultExpanded>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            Intersecting cCREs
-          </AccordionSummary>
-          <AccordionDetails>
-            <DataTable
-              key={cCREsIntersectionData[0] && cCREsIntersectionData[0].gene + cCREsIntersectionData[0].accession + cCREsIntersectionData[0].snpid + cCREsIntersectionData[0].ldblocksnpid + cCREsIntersectionData[0].ldblock + cCREsIntersectionData[0].rsquare + columns.toString()}
-              rows={cCREsIntersectionData}
-              tableTitle={selectedBiosample.length > 0 ? selectedBiosample[0].displayname + " Specific Data" : "Cell Type Agnostic Data"}
-              columns={columns}
-              sortDescending={true}
-              itemsPerPage={10}
-              searchable={true}
-            />
-          </AccordionDetails>
-        </Accordion>
+        <div>
+          <Accordion defaultExpanded  sx={{ backgroundColor: "rgb(225, 209, 255)" }}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              Intersecting cCREs
+            </AccordionSummary>
+            <AccordionDetails sx={{ backgroundColor: "rgb(241, 234, 255)" }}>
+              <DataTable
+                key={cCREsIntersectionData[0] && cCREsIntersectionData[0].gene + cCREsIntersectionData[0].accession + cCREsIntersectionData[0].snpid + cCREsIntersectionData[0].ldblocksnpid + cCREsIntersectionData[0].ldblock + cCREsIntersectionData[0].rsquare + columns.toString()}
+                rows={cCREsIntersectionData}
+                tableTitle={selectedBiosample.length > 0 ? selectedBiosample[0].displayname + " Specific Data" : "Cell Type Agnostic Data"}
+                columns={columns}
+                sortDescending={true}
+                itemsPerPage={10}
+                searchable={true}
+              />
+            </AccordionDetails>
+          </Accordion>
+        </div>
       )
     )
   }
 
   const SuggestionsPlot = () => {
     return (
-      <Accordion defaultExpanded  sx={{backgroundColor: "rgb(255, 210, 141)"}}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          Suggestions
-        </AccordionSummary>
-        <AccordionDetails sx={{backgroundColor: "rgb(255, 235, 204)"}}>
-          <EnrichmentLollipopPlot
-            data={enrichmentData}
-            height={700}
-            width={800}
-            onSuggestionClicked={(selected) => console.log(selected)}
-          />
-        </AccordionDetails>
-      </Accordion>
+      <div>
+        <Accordion defaultExpanded sx={{ backgroundColor: "rgb(255, 210, 141)" }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            Suggestions
+          </AccordionSummary>
+          <AccordionDetails sx={{ backgroundColor: "rgb(255, 235, 204)" }}>
+            <EnrichmentLollipopPlot
+              data={enrichmentData}
+              height={700}
+              width={800}
+              onSuggestionClicked={(selected) => console.log(selected)}
+            />
+          </AccordionDetails>
+        </Accordion>
+      </div>
     )
   }
 
