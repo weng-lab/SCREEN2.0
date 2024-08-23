@@ -6,7 +6,7 @@ import { scaleBand, scaleLinear } from '@visx/scale';
 import { AxisBottom } from '@visx/axis'
 import { Text } from '@visx/text'
 import { defaultStyles as defaultTooltipStyles, useTooltip, TooltipWithBounds } from '@visx/tooltip';
-import { Container, FormControl, FormLabel, Paper, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
+import { Checkbox, Container, FormControl, FormControlLabel, FormGroup, FormLabel, Paper, Radio, RadioGroup, Stack, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
 import { KeyboardDoubleArrowUp } from '@mui/icons-material';
 import {
   LegendSize,
@@ -67,42 +67,27 @@ export type TransformedEnrichmentData = RawEnrichmentData & {
 export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
   const [sortBy, setSortBy] = useState<"FDR" | "foldEnrichment">("foldEnrichment")
   const [FDRcutoff, setFDRcutoff] = useState<boolean>(false)
-  const [groupTissues, setGroupTissues] = useState<boolean>(false)
+  const [groupTissues, setGroupTissues] = useState<boolean>(true)
 
-  const handleSortBy = (
-    event: React.MouseEvent<HTMLElement>,
-    newSort: string | null,
-  ) => {
-    if (newSort === "FDR" || newSort === "foldEnrichment") {
-      setSortBy(newSort);
-    }
+  const handleSortBy = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSortBy((event.target as HTMLInputElement).value as "FDR" | "foldEnrichment");
   };
 
-  const handleFDRcutoff = (
-    event: React.MouseEvent<HTMLElement>,
-    newVal: boolean | null,
-  ) => {
-    if (newVal !== null) {
-      setFDRcutoff(newVal);
-    }
+  const handleFDRcutoff = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFDRcutoff(event.target.checked);
   };
 
-  const handleGroupTissues = (
-    event: React.MouseEvent<HTMLElement>,
-    newVal: boolean | null,
-  ) => {
-    if (newVal !== null) {
-      setGroupTissues(newVal);
-    }
+  const handleGroupTissues = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setGroupTissues(event.target.checked);
   };
 
   /**
    * Filtered, log transformed, and sorted enrichment data. Includes grouped and ungrouped data
    */
-  const plotData: {grouped: {[key: string]: TransformedEnrichmentData[]}} & {ungrouped: TransformedEnrichmentData[]} = useMemo(() => {
+  const plotData: { grouped: { [key: string]: TransformedEnrichmentData[] } } & { ungrouped: TransformedEnrichmentData[] } = useMemo(() => {
     const tissues = Object.entries(tissueColors) //temporary
 
-    const data: {grouped: {[key: string]: TransformedEnrichmentData[]}} & {ungrouped: TransformedEnrichmentData[]} = {grouped: {}, ungrouped: []}
+    const data: { grouped: { [key: string]: TransformedEnrichmentData[] } } & { ungrouped: TransformedEnrichmentData[] } = { grouped: {}, ungrouped: [] }
 
     props.data.forEach((x: RawEnrichmentData) => {
       const randomIndex = Math.floor(Math.random() * tissues.length)
@@ -125,12 +110,12 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
     data.ungrouped.sort((a, b) => sortBy === "foldEnrichment" ? b.log2foldenrichment - a.log2foldenrichment : a.neglog10fdr - b.neglog10fdr)
 
     const sortedGroups = Object.entries(data.grouped)
-    //Sort each tissue's values by specified sort
-    .map((x: [string, TransformedEnrichmentData[]]) => {x[1].sort((a, b) => sortBy === "foldEnrichment" ? b.log2foldenrichment - a.log2foldenrichment : a.neglog10fdr - b.neglog10fdr); return x})
-    //Sort the tissues
-    .sort((a, b) => {
-      //check first index since it should be the largest of that tissue
-      return sortBy === "foldEnrichment" ? b[1][0].log2foldenrichment - a[1][0].log2foldenrichment : a[1][0].neglog10fdr - b[1][0].neglog10fdr
+      //Sort each tissue's values by specified sort
+      .map((x: [string, TransformedEnrichmentData[]]) => { x[1].sort((a, b) => sortBy === "foldEnrichment" ? b.log2foldenrichment - a.log2foldenrichment : a.neglog10fdr - b.neglog10fdr); return x })
+      //Sort the tissues
+      .sort((a, b) => {
+        //check first index since it should be the largest of that tissue
+        return sortBy === "foldEnrichment" ? b[1][0].log2foldenrichment - a[1][0].log2foldenrichment : a[1][0].neglog10fdr - b[1][0].neglog10fdr
       });
 
     data.grouped = Object.fromEntries(sortedGroups)
@@ -142,17 +127,15 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
 
   const paddingRightOfMaxVal = props.width * 0.10
   const spaceForCellNames = 200
+  const spaceForTissueName = 90
   const spaceForBottomAxis = 60
   const innerPaddingY = 10
   const innerPaddingX = 10
 
-  const gapBetweenTissues = 40
-
   const xMin = spaceForCellNames
-  const xMax = props.width - spaceForCellNames - paddingRightOfMaxVal - (2 * innerPaddingX) //If adding tissue categories, need to add a space for it here
-  
+  const xMax = props.width - spaceForCellNames - paddingRightOfMaxVal - (2 * innerPaddingX) - (groupTissues && spaceForTissueName)
+
   const yMax = plotData.ungrouped.length * 27
-  // const yMax = groupTissues ? (plotData.ungrouped.length * 27) + ((Object.keys(plotData.grouped).length - 1) * gapBetweenTissues) : plotData.ungrouped.length * 27
 
   // xScale used for the width (value) of bars
   const xScale = useMemo(() =>
@@ -235,59 +218,97 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
     );
   }
 
+  const dataPoint = (x: TransformedEnrichmentData) => {
+    let barStart: number;
+    let barWidth: number;
+    let circleX: number;
+
+    const barHeight = yScale.bandwidth()
+    const barY = yScale(x.celltype)
+    const radiusFDR = rScale(x.neglog10fdr)
+
+    if (x.log2foldenrichment < 0) { //bar is to the left of 0
+      barStart = xMin + xScale(x.log2foldenrichment)
+      barWidth = xScale(0) - xScale(x.log2foldenrichment)
+      circleX = barStart
+    } else { //bar is to the right of 0
+      barStart = xMin + xScale(0)
+      barWidth = xScale(x.log2foldenrichment) - xScale(0)
+      circleX = barStart + barWidth
+    }
+
+    return (
+      <Group
+        key={`bar-${x.celltype}`}
+        onMouseMove={(event) => {
+          showTooltip({
+            tooltipTop: event.pageY,
+            tooltipLeft: event.pageX,
+            tooltipData: x
+          })
+        }}
+        onMouseLeave={() => {
+          hideTooltip()
+        }}
+        onClick={() => props.onSuggestionClicked && props.onSuggestionClicked(x)}
+        cursor={props.onSuggestionClicked && "pointer"}
+      >
+        <Text
+          fontSize={12}
+          textAnchor='end'
+          verticalAnchor='middle'
+          x={spaceForCellNames - 5}
+          y={barY + (0.5 * barHeight)}
+        >
+          {x.displayname.length > 25 ? x.displayname.slice(0, 23) + '...' : x.displayname}
+        </Text>
+        <Bar
+          x={barStart}
+          y={barY}
+          width={barWidth}
+          height={barHeight}
+          fill={x.color}
+        />
+        <Circle
+          r={radiusFDR}
+          cx={circleX}
+          cy={barY + (0.5 * barHeight)}
+          fill={x.color}
+        />
+        <Circle
+          r={radiusFDR - 1.5}
+          cx={circleX}
+          cy={barY + (0.5 * barHeight)}
+          fill='black'
+        />
+      </Group>
+    )
+  }
+
   return (
     <Stack direction={"column"} spacing={2}>
-      <Stack direction={"row"} spacing={2}>
-        <FormControl>
-          <FormLabel>Sort By</FormLabel>
-          <ToggleButtonGroup
-            value={sortBy}
-            exclusive
-            onChange={handleSortBy}
-            aria-label="Sort By"
-          >
-            <ToggleButton value="foldEnrichment" aria-label="fold enrichment" sx={{ textTransform: 'none' }}>
-              Log<sub>2</sub>(Fold Enrichment)
-            </ToggleButton>
-            <ToggleButton value="FDR" aria-label="FDR" sx={{ textTransform: 'none' }}>
-              -Log<sub>10</sub>(FDR)
-            </ToggleButton>
-          </ToggleButtonGroup>
-        </FormControl>
-        <FormControl>
-          <FormLabel>FDR Cutoff</FormLabel>
-          <ToggleButtonGroup
-            value={FDRcutoff}
-            exclusive
-            onChange={handleFDRcutoff}
-            aria-label="FDR Cutoff"
-          >
-            <ToggleButton value={false} aria-label="No FDR Cutoff" sx={{ textTransform: 'none' }}>
-              All Values
-            </ToggleButton>
-            <ToggleButton value={true} aria-label="FDR less than 0.05" sx={{ textTransform: 'none' }}>
-              {"FDR < 0.05"}
-            </ToggleButton>
-          </ToggleButtonGroup>
-        </FormControl>
-        <FormControl>
-          <FormLabel>Group By</FormLabel>
-          <ToggleButtonGroup
-            value={groupTissues}
-            exclusive
-            onChange={handleGroupTissues}
-            aria-label="Group By"
-          >
-            <ToggleButton value={false} aria-label="No FDR Cutoff" sx={{ textTransform: 'none' }}>
-              Don&apos;t Group
-            </ToggleButton>
-            <ToggleButton value={true} aria-label="FDR less than 0.05" sx={{ textTransform: 'none' }}>
-              Group Tissues
-            </ToggleButton>
-          </ToggleButtonGroup>
-        </FormControl>
-      </Stack>
       <Paper sx={{ width: props.width }}>
+        <Stack direction={"row"} spacing={2} alignItems={"center"} m={2}>
+          <FormControl>
+            <FormLabel>Sort By</FormLabel>
+            <RadioGroup row value={sortBy} onChange={handleSortBy}>
+              <FormControlLabel value="foldEnrichment" control={<Radio />} label={<>Log<sub>2</sub>(Fold Enrichment)</>} />
+              <FormControlLabel value="FDR" control={<Radio />} label={<>-Log<sub>10</sub>(FDR)</>} />
+            </RadioGroup>
+          </FormControl>
+          <FormControl>
+            <FormLabel>FDR Threshold</FormLabel>
+            <FormGroup>
+              <FormControlLabel control={<Checkbox />} checked={FDRcutoff} onChange={handleFDRcutoff} label={'FDR < 0.05'} />
+            </FormGroup>
+          </FormControl>
+          <FormControl>
+            <FormLabel>Grouping</FormLabel>
+            <FormGroup>
+              <FormControlLabel control={<Checkbox />} checked={groupTissues} onChange={handleGroupTissues} label={'Group Tissues'} />
+            </FormGroup>
+          </FormControl>
+        </Stack>
         {plotData.ungrouped.length < 1 ?
           <Typography m={2}>No Data to Display</Typography>
           :
@@ -345,72 +366,38 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
               <div onScroll={updateShading} id="scroll-container" style={{ maxHeight: props.height - spaceForBottomAxis, overflowY: 'auto' }}>
                 <svg id="sugestions-plot" width={props.width - (2 * innerPaddingX)} height={yMax + (2 * innerPaddingY)}>
                   <Group id="bars-goup" top={innerPaddingY}>
-                    {(groupTissues ? Object.values(plotData.grouped).flat() : plotData.ungrouped).map((x) => {
-                      let barStart: number;
-                      let barWidth: number;
-                      let circleX: number;
+                    {groupTissues ?
+                      Object.entries(plotData.grouped)
+                        //Each Tissues
+                        .map((entry: [string, TransformedEnrichmentData[]]) => {
+                          const firstDatum = entry[1][0]
+                          const BarHeight = yScale.step() * (entry[1].length - 1) + yScale.bandwidth()
 
-                      const barHeight = yScale.bandwidth()
-                      const barY = yScale(x.celltype)
-                      const radiusFDR = rScale(x.neglog10fdr)
-
-                      if (x.log2foldenrichment < 0) { //bar is to the left of 0
-                        barStart = xMin + xScale(x.log2foldenrichment)
-                        barWidth = xScale(0) - xScale(x.log2foldenrichment)
-                        circleX = barStart
-                      } else { //bar is to the right of 0
-                        barStart = xMin + xScale(0)
-                        barWidth = xScale(x.log2foldenrichment) - xScale(0)
-                        circleX = barStart + barWidth
-                      }
-
-                      return (
-                        <Group
-                          key={`bar-${x.celltype}`}
-                          onMouseMove={(event) => {
-                            showTooltip({
-                              tooltipTop: event.pageY,
-                              tooltipLeft: event.pageX,
-                              tooltipData: x
-                            })
-                          }}
-                          onMouseLeave={() => {
-                            hideTooltip()
-                          }}
-                          onClick={() => props.onSuggestionClicked && props.onSuggestionClicked(x)}
-                          cursor={props.onSuggestionClicked && "pointer"}
-                        >
-                          <Text
-                            fontSize={12}
-                            textAnchor='end'
-                            verticalAnchor='middle'
-                            x={spaceForCellNames - 5}
-                            y={barY + (0.5 * barHeight)}
-                          >
-                            {x.displayname.length > 25 ? x.displayname.slice(0, 23) + '...' : x.displayname}
-                          </Text>
-                          <Bar
-                            x={barStart}
-                            y={barY}
-                            width={barWidth}
-                            height={barHeight}
-                            fill={x.color}
-                          />
-                          <Circle
-                            r={radiusFDR}
-                            cx={circleX}
-                            cy={barY + (0.5 * barHeight)}
-                            fill={x.color}
-                          />
-                          <Circle
-                            r={radiusFDR - 1.5}
-                            cx={circleX}
-                            cy={barY + (0.5 * barHeight)}
-                            fill='black'
-                          />
-                        </Group>
-                      )
-                    })}
+                          return (
+                            <Group key={entry[0]}>
+                              <Bar
+                                x={xMin + xMax + 15}
+                                y={yScale(firstDatum.celltype)} //Y position of first data point
+                                width={yScale.bandwidth()}
+                                height={BarHeight} //bandwidth = bar height, step = bandwidth + gap between bars
+                                fill={firstDatum.color}
+                              />
+                              <Text
+                                fontSize={12}
+                                verticalAnchor='middle'
+                                x={xMin + xMax + 25}
+                                y={yScale(firstDatum.celltype) + 0.5 * BarHeight} //Y position of first data point + half of bar width
+                              >
+                                {entry[0].charAt(0).toUpperCase() + entry[0].slice(1)}
+                              </Text>
+                              {/* Each Data point for that tissue */}
+                              {entry[1].map((x) => dataPoint(x))}
+                            </Group>
+                          )
+                        })
+                      :
+                      plotData.ungrouped.map((x) => dataPoint(x))
+                    }
                   </Group>
                   <line stroke='black' x1={xMin + xScale(0)} y1={0} x2={xMin + xScale(0)} y2={yMax + (2 * innerPaddingY)} />
                 </svg >
