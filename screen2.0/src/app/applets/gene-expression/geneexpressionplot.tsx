@@ -126,23 +126,25 @@ export function PlotGeneExpression(props: {
 
     return info.values.map((item: { color: string, biosample: string, file_accession: string, accession: string, value: number, replicate_num: number }, i: number) => {
       //Shouldn't this just be LinearTransform? Why 2D?
-      p1 = linearTransform2D(props.range, props.dimensions)({ x: item.value, y: 0 })
+      p1 = linearTransform2D(props.range, props.dimensions)({ x: Number(item.value.toFixed(2)), y: 0 })
       return (
         <g key={i}>
           {/* The color bar */}
           <g>
-            <title>{item.biosample + "\n" + item.accession + "-" + item.file_accession + "\n" + "Clicking opens this experiment in a new tab"}</title>
+            <title>
+              {item.value.toFixed(2) + "\n" + item.biosample + "\n" + item.accession + "-" + item.file_accession + "\n" + "Clicking opens this experiment in a new tab"}
+            </title>
             <a href={"https://encodeproject.org/experiments/" + item.accession} target="_blank" rel="noopener noreferrer">
               <rect
                 x={165}
                 y={y + i * 20}
-                width={p1.x + 0}
+                width={p1.x}
                 height={18}
                 fill={item.color}
               />
               {/* The score and exp/biosample ID */}
               <text x={p1.x + 0 + 170} y={y + i * 20 + 12.5} style={{ fontSize: 12 }}>
-                {Number(item.value.toFixed(1)) + ", "}
+                {item.value.toFixed(2) + ", "}
                 {item.biosample + " ("}
                 {item.accession}
                 {item.replicate_num ? ", rep. " + item.replicate_num + ")" : ")"}
