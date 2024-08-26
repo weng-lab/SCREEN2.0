@@ -544,6 +544,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               <StyledTab value={6} label="TF Motifs and Sequence Features" sx={{ alignSelf: "start" }} />
               {mainQueryParams.coordinates.assembly !== "mm10" && <StyledTab value={9} label="ChromHMM States" sx={{ alignSelf: "start" }} />}
               <StyledTab value={7} label="Configure UCSC Genome Browser" sx={{ alignSelf: "start" }} />
+              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledTab value={10} label="ENTEx" sx={{ alignSelf: "start" }} />}
             </Tabs>
           }
         </Drawer>
