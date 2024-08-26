@@ -151,7 +151,7 @@ export const TfSequenceFeatures: React.FC<TfSequenceFeaturesProps> = (props) => 
     [props.coordinates]
   )
   const l = useCallback((c) => ((c - coordinates.start) * 1400) / (coordinates.end - coordinates.start), [coordinates])
-  console.log(props.coordinates,"coords",coordinates)
+  
   return (
     <>
       <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "1rem" }}>

@@ -481,8 +481,8 @@ export function DataMatrices() {
               <AccordionDetails>
                 {legendEntries.map((element, index) => {
                   return (
-                    <Typography key={index} borderLeft={`0.7rem solid ${element.color}`} paddingLeft={1}>
-                      {`${element.label}: ${element.value}`}
+                    <Typography key={index} borderLeft={`0.2rem solid ${element.color}`} paddingLeft={1}>
+                      {`${element.label}: ${element.value} experiments`}
                     </Typography>
                   )
                 })}
