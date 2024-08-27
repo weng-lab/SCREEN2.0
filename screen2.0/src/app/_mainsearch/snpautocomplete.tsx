@@ -10,7 +10,7 @@ import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { IconButton, Stack } from "@mui/material"
 import { Search } from "@mui/icons-material"
 
-export const SnpAutoComplete: React.FC<{ assembly: string, header?: boolean }> = (props) => {
+export const SnpAutoComplete: React.FC<{ assembly: string; header?: boolean }> = (props) => {
   const [value, setValue] = useState(null)
   const [inputValue, setInputValue] = useState("")
   const [options, setOptions] = useState([])
@@ -32,7 +32,7 @@ export const SnpAutoComplete: React.FC<{ assembly: string, header?: boolean }> =
     const snpSuggestion = (await response.json()).data?.snpAutocompleteQuery
     if (snpSuggestion && snpSuggestion.length > 0) {
       const r = snpSuggestion.map((g: { id: string }) => g.id)
-      const snp = snpSuggestion.map((g: { id: string, coordinates: { chromosome: string, start: number, end: number } }) => {
+      const snp = snpSuggestion.map((g: { id: string; coordinates: { chromosome: string; start: number; end: number } }) => {
         return {
           chrom: g.coordinates.chromosome,
           start: g.coordinates.end,
@@ -46,7 +46,6 @@ export const SnpAutoComplete: React.FC<{ assembly: string, header?: boolean }> =
       setOptions([])
       setSnpIds([])
     }
-
   }
 
   const debounceFn = useCallback(debounce(onSearchChange, 500), [])
@@ -56,9 +55,7 @@ export const SnpAutoComplete: React.FC<{ assembly: string, header?: boolean }> =
       let chromosome = snpids.find((g) => g.id === value)?.chrom
       let start = snpids.find((g) => g.id === value)?.start
       let end = snpids.find((g) => g.id === value)?.end
-      return (
-        `/search?assembly=${props.assembly}&chromosome=${chromosome}&start=${Math.max(0, start)}&end=${end}&snpid=${value}&snpDistance=0`
-      )
+      return `/search?assembly=${props.assembly}&chromosome=${chromosome}&start=${Math.max(0, start)}&end=${end}&snpid=${value}&snpDistance=0`
     }
   }
 
@@ -96,22 +93,22 @@ export const SnpAutoComplete: React.FC<{ assembly: string, header?: boolean }> =
           <TextField
             {...params}
             label="Enter a snp rsId"
-            InputLabelProps={{ shrink: true, style: props.header ? {color: "white"} : { color: "black" } }}
+            InputLabelProps={{ shrink: true, style: props.header ? { color: "white" } : { color: "black" } }}
             placeholder="e.g. rs11669173"
             fullWidth
             sx={{
               //Border at rest
               fieldset: props.header ? { borderColor: "white" } : { borderColor: "black" },
-              '& .MuiOutlinedInput-root': {
+              "& .MuiOutlinedInput-root": {
                 //hover border color
-                '&:hover fieldset': props.header ? { borderColor: "white" } : { borderColor: "black" },
+                "&:hover fieldset": props.header ? { borderColor: "white" } : { borderColor: "black" },
                 //focused border color
-                '&.Mui-focused fieldset': props.header ? { borderColor: "white" } : { borderColor: "black" },
+                "&.Mui-focused fieldset": props.header ? { borderColor: "white" } : { borderColor: "black" },
               },
               //Text
-              '& .MuiOutlinedInput-input': props.header && { color: "white" },
+              "& .MuiOutlinedInput-input": props.header && { color: "white" },
               //Icon
-              '& .MuiSvgIcon-root': props.header && { fill: "white"}
+              "& .MuiSvgIcon-root": props.header && { fill: "white" },
             }}
           />
         )}
@@ -134,7 +131,12 @@ export const SnpAutoComplete: React.FC<{ assembly: string, header?: boolean }> =
           )
         }}
       />
-      <IconButton aria-label="Search" type="submit" href={handleSubmit()} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
+      <IconButton
+        aria-label="Search"
+        type="submit"
+        href={handleSubmit()}
+        sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}
+      >
         <Search />
       </IconButton>
     </Stack>
