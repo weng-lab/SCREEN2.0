@@ -71,17 +71,26 @@ export const GraphComponent = ({ accession, handleOpencCRE }) => {
         >
           Degrees of Separation:
         </Typography>
-        <input
+        <TextField
           id="degree"
           type="number"
           value={degreeOfSeparation}
-          min={1}
-          max={3}
           onChange={(e) => setDegree(parseInt(e.target.value))}
-          style={{
+          inputProps={{
+            min: 1,
+            max: 3,
+            style: {
+              padding: "3px",
+            },
+          }}
+          sx={{
             marginLeft: "5px",
             marginBottom: "5px",
             fontFamily: "Roboto",
+            width: "40px",
+            "& input[type=number]::-webkit-inner-spin-button, & input[type=number]::-webkit-outer-spin-button": {
+              opacity: 1,
+            },
           }}
         />
       </div>
