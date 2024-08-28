@@ -55,7 +55,7 @@
     "graphql": "^16.8.1",
     "jubilant-carnival": "^0.6.0",
     "logots-react": "latest",
-    "next": "14.2.3",
+    "next": "14.2.7",
     "normalize.css": "^8.0.1",
     "only": "^0.0.2",
     "postcss": "8.4.33",
