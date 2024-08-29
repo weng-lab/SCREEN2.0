@@ -235,7 +235,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
           <Rampage genes={uniqueGenes.length > 0 ? uniqueGenes : []} biosampleData={biosampleData} />)
       }
       {page === 10 && assembly !== "mm10" &&
-        <ENTExData accession={accession} />
+        <ENTExData accession={accession}  coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }}/>
       }
     </>
     :

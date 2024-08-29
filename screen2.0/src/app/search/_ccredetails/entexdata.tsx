@@ -21,9 +21,26 @@ query ENTEXQuery($accession: String!){
   }
 }
 `
-export const ENTExData = (props: { accession }) =>{
+
+const ENTEx_Active_Annotations_QUERY = gql`
+query entexActiveAnnotationsQuery( $coordinates: GenomicRangeInput! ) {
+    entexActiveAnnotationsQuery(coordinates: $coordinates) {
+        tissue
+        assay_score
+    }
+
+}`
+export const ENTExData = (props: { accession, coordinates }) =>{
+    console.log(props.coordinates)
     const { data, loading } = useQuery(ENTEx_QUERY, {
         variables: { accession: props.accession },
+        fetchPolicy: "cache-and-network",
+        nextFetchPolicy: "cache-first",
+        client,
+      })
+
+    const { data: entexActiveAnno, loading: entexActiveAnnoLoading } = useQuery(ENTEx_Active_Annotations_QUERY, {
+        variables: { coordinates: props.coordinates },
         fetchPolicy: "cache-and-network",
         nextFetchPolicy: "cache-first",
         client,
@@ -40,12 +57,12 @@ export const ENTExData = (props: { accession }) =>{
                 {
                     header: "Tissue",
                     HeaderRender: () => <b>Tissue</b>,
-                    value: (row) => row.tissue.replace("_"," "),
+                    value: (row) => row.tissue.replaceAll("_"," "),
                 },
                 {
                     header: "Assay",
                     HeaderRender: () => <b>Assay</b>,
-                    value: (row) => row.assay.replace("_"," "),
+                    value: (row) => row.assay.replaceAll("_"," "),
                 },
                 {
                     header: "Donor",
@@ -89,7 +106,32 @@ export const ENTExData = (props: { accession }) =>{
             sortDescending
             itemsPerPage={10}
             />
-        </Grid2> }
+        </Grid2> }        
         { !loading && data && data.entexQuery.length==0 && <Grid2 xs={12} lg={12}><Typography>No data available</Typography></Grid2> }
+        {entexActiveAnno && !entexActiveAnnoLoading && entexActiveAnno.entexActiveAnnotationsQuery.length>0 && 
+        <Grid2 xs={12} lg={12}>
+        <DataTable
+        tableTitle={`ENTEx Active Annotations`}
+        columns={[
+            {
+                header: "Tissue",
+                HeaderRender: () => <b>Tissue</b>,
+                value: (row) => row.tissue.replaceAll("_"," "),
+            },
+            {
+                header: "Assay Score",
+                HeaderRender: () => <b>Assay Score</b>,
+                value: (row) => row.assay_score
+            }
+        ]}
+        rows={entexActiveAnno.entexActiveAnnotationsQuery || []}
+        sortColumn={0}
+        searchable
+        sortDescending
+        itemsPerPage={10}
+        />
+    </Grid2> 
+
+        }
     </Grid2>)
 }
