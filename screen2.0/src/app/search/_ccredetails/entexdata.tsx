@@ -5,6 +5,7 @@ import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { client } from "./client"
 import { Typography, CircularProgress } from "@mui/material"
 import { createLink } from "../../../common/lib/utility"
+
 const ENTEx_QUERY = gql`
 query ENTEXQuery($accession: String!){
   entexQuery(accession: $accession){
@@ -57,7 +58,7 @@ export const ENTExData = (props: { accession, coordinates }) =>{
                 {
                     header: "Tissue",
                     HeaderRender: () => <b>Tissue</b>,
-                    value: (row) => row.tissue.replaceAll("_"," "),
+                    value: (row) => row.tissue.split("_").map(s=>s[0].toUpperCase()+s.slice(1)).join(" "),
                 },
                 {
                     header: "Assay",
@@ -116,12 +117,12 @@ export const ENTExData = (props: { accession, coordinates }) =>{
             {
                 header: "Tissue",
                 HeaderRender: () => <b>Tissue</b>,
-                value: (row) => row.tissue.replaceAll("_"," "),
+                value: (row) => row.tissue.split("_").map(s=>s[0].toUpperCase()+s.slice(1)).join(" "),
             },
             {
-                header: "Assay Score",
-                HeaderRender: () => <b>Assay Score</b>,
-                value: (row) => row.assay_score
+                header: "Supporting Assays",
+                HeaderRender: () => <b>Supporting Assays</b>,
+                value: (row) => row.assay_score.split("|").map(s=>s.split(":")[0]).join(",")
             }
         ]}
         rows={entexActiveAnno.entexActiveAnnotationsQuery || []}
