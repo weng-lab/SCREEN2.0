@@ -63,6 +63,9 @@ export default function GWAS() {
   const [isPending, startTransition] = useTransition();
   const [biosampleData, setBiosampleData] = useState<ApolloQueryResult<BIOSAMPLE_Data>>(null)
 
+  const theme = useTheme()
+  const isLg = useMediaQuery(theme.breakpoints.up('lg'))
+
   const handleSetSelectedSample = (selected: RegistryBiosamplePlusRNA) => {
     setSelectedSample({ name: selected.name, displayname: selected.displayname })
   }
@@ -383,7 +386,7 @@ export default function GWAS() {
   const DataToDisplay = () => {
     return (
       study &&
-      <Paper>
+      <Paper sx={{width: "100%"}}>
         <Stack spacing={2} margin={2}>
           <LdBlocks />
           <IntersectingcCREs />
@@ -394,7 +397,7 @@ export default function GWAS() {
 
   const Selections = () => {
     return (
-      <Paper sx={{maxWidth: '70rem'}}>
+      <Paper sx={(isLg && !study) ? {width: "50%"} : {width: "100%"}}>
         <Stack spacing={2} margin={2}>
           <StudySelection />
           {study && <BiosampleSelection />}
@@ -406,7 +409,7 @@ export default function GWAS() {
   const SuggestionsPlot = useMemo(() => {
     return (
       study &&
-      <Paper sx={{ backgroundColor: lightOrange, backgroundImage: "none !important", padding: 2 }}>
+      <Paper sx={{ backgroundColor: lightOrange, backgroundImage: "none !important", padding: 2, width: "100%" }}>
         <Accordion defaultExpanded>
           <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: orange, color: lightTextColor, borderRadius: '4px' }}>
             Suggestions
@@ -431,9 +434,6 @@ export default function GWAS() {
     )
   }, [plotData, study])
 
-  const theme = useTheme()
-  const isLg = useMediaQuery(theme.breakpoints.down('lg'))
-
   return (
     <main style={{ backgroundColor: background }}>
       <Grid container spacing={2} padding={5}>
@@ -447,12 +447,8 @@ export default function GWAS() {
         <Grid xs={12} lg={!study ? 12 : 4}>
           <Stack spacing={2} alignItems={"center"}>
             <Selections />
-            {isLg &&
-              <>
-                <DataToDisplay />
-                {SuggestionsPlot}
-              </>
-            }
+            {!isLg && <DataToDisplay />}
+            {!isLg && SuggestionsPlot}
           </Stack>
         </Grid>
         <Grid lg={8} display={{ xs: 'none', lg: 'block' }}>
