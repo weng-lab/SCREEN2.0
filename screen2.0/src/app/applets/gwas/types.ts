@@ -71,3 +71,32 @@ export const initialstudies = {
     ],
   },
 }
+
+export type BiosampleNameData = {
+  ccREBiosampleQuery: {
+    biosamples: {
+      name: string
+      displayname: string
+      ontology: string
+    }[]
+  }
+}
+
+export type BiosampleNameVars = {
+  assembly: "grch38" | "mm10"
+  samples: string[]
+}
+
+export type EnrichmentData = {
+  getGWASCtEnrichmentQuery: {
+      celltype: string,
+      accession: string,
+      fc: number,
+      fdr: number,
+      pvalue: number
+  }[]
+}
+
+export type EnrichmentVars = {
+  study: string
+}

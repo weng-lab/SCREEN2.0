@@ -75,3 +75,29 @@ export const CCRE_SEARCH = gql`query ccreSearchQuery(
      
     }
   }`
+
+export const CT_ENRICHMENT = gql`
+  query getGWASCTEnrichmentQuery($study: String!) {
+    getGWASCtEnrichmentQuery(study: $study) {
+      celltype
+      accession
+      fc
+      fdr
+      pvalue
+    }
+  }
+`
+
+
+
+export const BIOSAMPLE_DISPLAYNAMES = gql`
+  query getDisplayNames($assembly: String!, $samples: [String!]) {
+    ccREBiosampleQuery(assembly: $assembly, name: $samples) {
+      biosamples {
+        name
+        displayname
+        ontology
+      }    
+    }
+  }
+`

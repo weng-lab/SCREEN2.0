@@ -1,34 +1,35 @@
 "use client"
-import { Accordion, AccordionDetails, AccordionSummary, FormControl, FormLabel, Stack, ToggleButton, ToggleButtonGroup, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { Accordion, AccordionDetails, AccordionSummary, Button, FormControl, FormLabel, Paper, Stack, ToggleButton, ToggleButtonGroup, Typography, useMediaQuery, useTheme } from "@mui/material"
 
 import React, { useState, useEffect, useTransition, useMemo } from "react"
-import { DataTable } from "@weng-lab/psychscreen-ui-components"
+import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { createLink, LoadingMessage } from "../../../common/lib/utility"
 import Grid from "@mui/material/Unstable_Grid2/Grid2"
 import { CircularProgress } from "@mui/material"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import { client } from "../../search/_ccredetails/client"
 import { useQuery } from "@apollo/client"
-import { GET_ALL_GWAS_STUDIES, GET_SNPS_FOR_GIVEN_GWASSTUDY, BED_INTERSECT, CCRE_SEARCH } from "./queries"
+import { GET_ALL_GWAS_STUDIES, GET_SNPS_FOR_GIVEN_GWASSTUDY, BED_INTERSECT, CCRE_SEARCH, CT_ENRICHMENT, BIOSAMPLE_DISPLAYNAMES } from "./queries"
 import { ApolloQueryResult } from "@apollo/client"
 import { BIOSAMPLE_Data, biosampleQuery } from "../../../common/lib/queries"
-import BiosampleTables from "../../search/biosampletables"
-import { RegistryBiosample } from "../../search/types"
+import BiosampleTables2 from "./biosampletables2"
+import { RegistryBiosample, RegistryBiosamplePlusRNA } from "../../search/types"
 import testData from "./gwastestdata.json"
-import { EnrichmentLollipopPlot } from "./lollipopplot"
+import { EnrichmentLollipopPlot, RawEnrichmentData, TransformedEnrichmentData } from "./lollipopplot"
+import { ParentSize } from "@visx/responsive"
+import { ParentSizeProvidedProps } from "@visx/responsive/lib/components/ParentSize"
+import { BiosampleNameData, BiosampleNameVars, EnrichmentData, EnrichmentVars } from "./types"
+import { tissueColors } from "../../../common/lib/colors"
 
-const enrichmentData = testData.map(x => {
-
-  return {
-    celltype: x.celltype,
-    displayname: x.celltype, //Need to fetch displayname with ccREBiosampleQuery if not included in data
-    fdr: +x.fdr,
-    pval: +x.pval,
-    foldenrichment: +x.foldenrichment,
-    study: x.study,
-    expID: 'ENCSR123456789'
-  }
-})
+//Background colors for the accordions
+const lightBlue = "#5F8ED3"
+const darkBlue = "#2C5BA0"
+const extraLightBlue = "#E7EEF8"
+const orange = "#F1884D"
+const lightOrange = "#FDEFE7 !important"
+const grey = "#F2F2F7"
+const background = "#F9F9F9"
+const lightTextColor = "#FFFFFF"
 
 type GWASStudy = {
   studyname: string,
@@ -36,13 +37,39 @@ type GWASStudy = {
   author: string
   pubmedid: string
   totalldblocks: string
-
 }
+
+type TableRow = {
+  accession: string,
+  snpid: string,
+  ldblocksnpid: string,
+  ldblock: string,
+  rsquare: string,
+  gene: string,
+  atac_zscore: number,
+  ctcf_zscore: number,
+  dnase_zscore: number,
+  h3k4me3_zscore: number,
+  h3k27ac_zscore: number
+}
+
 export default function GWAS() {
   const [study, setStudy] = useState<GWASStudy>(null)
+  const [selectedSample, setSelectedSample] = useState<{ name: string, displayname: string }>(null)
+
+  //useless, to remove once biosampletable2 fixed
   const [selectedBiosample, setSelectedBiosample] = useState<RegistryBiosample[]>([])
+
   const [isPending, startTransition] = useTransition();
   const [biosampleData, setBiosampleData] = useState<ApolloQueryResult<BIOSAMPLE_Data>>(null)
+
+  const handleSetSelectedSample = (selected: RegistryBiosamplePlusRNA) => {
+    setSelectedSample({ name: selected.name, displayname: selected.displayname })
+  }
+
+  const handlePlotSelection = (selected: TransformedEnrichmentData) => {
+    setSelectedSample({ name: selected.celltype, displayname: selected.displayname })
+  }
 
   useEffect(() => {
     startTransition(async () => {
@@ -90,125 +117,185 @@ export default function GWAS() {
     client,
   })
 
+  const cCREsIntersectionData: {
+    accession: string,
+    snpid: string,
+    ldblocksnpid: string,
+    ldblock: string,
+    rsquare: string,
+  }[] = useMemo(() => {
+    if (cCREIntersections) {
+      return cCREIntersections.intersection.map((c) => {
+        return {
+          accession: c[4],
+          snpid: c[9],
+          ldblocksnpid: c[11],
+          ldblock: c[12],
+          rsquare: c[10]
+        }
+      })
+    } else return []
+  }, [cCREIntersections])
 
-  let cCREsIntersectionData = cCREIntersections && cCREIntersections.intersection.map((c) => {
+  //I'm assuming this returns duplicate accessions maybe?
+  const uniqueAccessions = useMemo(() => {
+    return [...new Set([...cCREsIntersectionData.map(c => { return (c.accession) })])]
+  }, [cCREsIntersectionData])
 
-    return {
-      accession: c[4],
-      snpid: c[9],
-      ldblocksnpid: c[11],
-      ldblock: c[12],
-      rsquare: c[10]
+  const overlappingLdBlocks = useMemo(() => {
+    return [... new Set([...cCREsIntersectionData.map(c => { return (+c.ldblock) })])]
+  }, [cCREsIntersectionData])
+
+
+  const { data: enrichmentData, loading: enrichmentLoading, error: enrichmentError } = useQuery<EnrichmentData, EnrichmentVars>(
+    CT_ENRICHMENT,
+    {
+      variables: {
+        study: study?.study
+      },
+      skip: !study,
+      client
     }
-  })
+  )
 
-  let overlappingldblocks = cCREsIntersectionData && new Set([...cCREsIntersectionData.map(c => { return (+c.ldblock) })])
-  let accessions = cCREsIntersectionData && new Set([...cCREsIntersectionData.map(c => { return (c.accession) })])
+  const { data: biosampleNames, loading: loadingBiosampleNames, error: errorBiosampleNames } = useQuery<BiosampleNameData, BiosampleNameVars>(
+    BIOSAMPLE_DISPLAYNAMES,
+    {
+      variables: {
+        assembly: "grch38",
+        samples: enrichmentData?.getGWASCtEnrichmentQuery.map(x => x.celltype)
+      },
+      skip: !enrichmentData,
+      client
+    }
+  )
 
-  const {
-    data: cCREDetails, loading: cCREDetailsLoading
-  } = useQuery(CCRE_SEARCH, {
+  const { data: cCREDetails, loading: cCREDetailsLoading } = useQuery(CCRE_SEARCH, {
     variables: {
-      accessions: accessions && Array.from(accessions),
+      accessions: uniqueAccessions,
       assembly: "grch38",
-      celltype: selectedBiosample && selectedBiosample.length > 0 ? selectedBiosample[0].name : null
+      celltype: selectedSample ? selectedSample.name : null
     },
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
-    skip: !(accessions && accessions.size > 0),
+    skip: !(uniqueAccessions && uniqueAccessions.length > 0),
     client,
   })
 
-  let ccreGenes = {}
+  const plotData: RawEnrichmentData[] = useMemo(() => {
+    if (!enrichmentData || !biosampleNames) return null
+    return (
+      enrichmentData.getGWASCtEnrichmentQuery.map(x => {
+        return (
+          {
+            ...x,
+            displayname: biosampleNames.ccREBiosampleQuery.biosamples.find(y => y.name === x.celltype).displayname || "NAME MISMATCH",
+            ontology: biosampleNames.ccREBiosampleQuery.biosamples.find(y => y.name === x.celltype).ontology || "NAME MISMATCH",
+            color: tissueColors[biosampleNames.ccREBiosampleQuery.biosamples.find(y => y.name === x.celltype).ontology] || tissueColors.missing
+          }
+        )
+      })
+    )
+  }, [biosampleNames, enrichmentData])
 
-  cCREDetails && cCREDetails.cCRESCREENSearch.forEach((c) => {
-    ccreGenes[c.info.accession] = { gene: c.nearestgenes[0].gene, ctspecific: c.ctspecific }
+  //Combine snp and cCRE data into rows for the table
+  const intersectionTableRows: TableRow[] = useMemo(() => {
+    if (cCREDetails && cCREsIntersectionData) {
+      return uniqueAccessions.map((x, i) => {
+        const snpInfo = cCREsIntersectionData.find(y => y.accession === x)
+        const cCREInfo = cCREDetails.cCRESCREENSearch.find(y => y.info.accession === x)
+        i === 0 && console.log(cCREInfo)
+        return {
+          accession: x,
+          ...snpInfo,
+          gene: cCREInfo.nearestgenes[0].gene,
+          atac_zscore: cCREInfo.ctspecific?.atac_zscore ?? cCREInfo.atac_zscore,
+          ctcf_zscore: cCREInfo.ctspecific?.ctcf_zscore ?? cCREInfo.ctcf_zscore,
+          dnase_zscore: cCREInfo.ctspecific?.dnase_zscore ?? cCREInfo.dnase_zscore,
+          h3k4me3_zscore: cCREInfo.ctspecific?.h3k4me3_zscore ?? cCREInfo.promoter_zscore,
+          h3k27ac_zscore: cCREInfo.ctspecific?.h3k27ac_zscore ?? cCREInfo.enhancer_zscore
+        }
+      })
+    } else return []
+  }, [cCREDetails, cCREsIntersectionData, uniqueAccessions])
 
-
-  })
-
-  cCREsIntersectionData = ccreGenes && cCREsIntersectionData && cCREsIntersectionData.map((c) => {
-    return {
-      ...c,
-      gene: ccreGenes[c.accession] && ccreGenes[c.accession].gene,
-      ctspecific: ccreGenes[c.accession] && ccreGenes[c.accession].ctspecific
-
-    }
-  })
-
-  const columns = useMemo(() => {
-
-    let cols = [
-      { header: "cCRE", value: (row: any) => row.accession },
+  const columns: DataTableColumn<TableRow>[] = useMemo(() => {
+    const cols: DataTableColumn<TableRow>[] = [
+      {
+        header: "cCRE",
+        value: (row: TableRow) => row.accession
+      },
       {
         header: "SNP",
-        value: (row: any) => createLink("http://ensembl.org/Homo_sapiens/Variation/Explore?vdb=variation;v=", row.snpid),
+        value: (row: TableRow) => "http://ensembl.org/Homo_sapiens/Variation/Explore?vdb=variation;v=" + row.snpid,
+        render: (row: TableRow) => createLink("http://ensembl.org/Homo_sapiens/Variation/Explore?vdb=variation;v=", row.snpid)
       },
-      { header: "LdBlock", value: (row: any) => row.ldblock },
       {
-        header: "Ld Block SNP ID", value: (row: any) => row.ldblocksnpid
+        header: "Ld Block SNP ID",
+        value: (row: TableRow) => row.ldblocksnpid
       },
-      { header: "R Square", value: (row: any) => row.rsquare },
-      { header: "Gene", value: (row: any) => row.gene },
-
+      {
+        header: "R Square",
+        HeaderRender: () => <Typography variant="body2"><i>R</i><sup>2</sup></Typography>,
+        value: (row: TableRow) => row.rsquare
+      },
+      {
+        header: "Gene",
+        value: (row: TableRow) => row.gene,
+        render: (row: TableRow) => <i>{row.gene}</i>
+      },
     ]
 
-    if (selectedBiosample && selectedBiosample.length > 0 && cCREsIntersectionData && cCREsIntersectionData[0].ctspecific) {
-      if (selectedBiosample[0].dnase) {
-        cols.push({ header: "DNase Zscore", value: (row: any) => row.ctspecific.dnase_zscore?.toFixed(2) })
-      }
-      if (selectedBiosample[0].atac) {
-        cols.push({ header: "ATAC Zscore", value: (row: any) => row.ctspecific.atac_zscore?.toFixed(2) })
-      }
-      if (selectedBiosample[0].ctcf) {
-        cols.push({ header: "CTCF Zscore", value: (row: any) => row.ctspecific.ctcf_zscore?.toFixed(2) })
-      }
-
-      if (selectedBiosample[0].h3k27ac) {
-        cols.push({ header: "H3k27ac Zscore", value: (row: any) => row.ctspecific.enhancer_zscore?.toFixed(2) })
-      }
-
-      if (selectedBiosample[0].h3k4me3) {
-        cols.push({ header: "H3k4me3 Zscore", value: (row: any) => row.ctspecific.promoter_zscore?.toFixed(2) })
-      }
-
-
-
+    //if sample selected, check before adding assays
+    if (selectedSample && cCREDetails) {
+      const cCRE = cCREDetails.cCRESCREENSearch[0]
+      cCRE.ctspecific?.dnase_zscore && cols.push({ header: "DNase Zscore", value: (row: TableRow) => row.dnase_zscore?.toFixed(2) })
+      cCRE.ctspecific?.atac_zscore && cols.push({ header: "ATAC Zscore", value: (row: TableRow) => row.atac_zscore?.toFixed(2) })
+      cCRE.ctspecific?.ctcf_zscore && cols.push({ header: "CTCF Zscore", value: (row: TableRow) => row.ctcf_zscore?.toFixed(2) })
+      cCRE.ctspecific?.h3k27ac_zscore && cols.push({ header: "H3k27ac Zscore", value: (row: TableRow) => row.h3k27ac_zscore?.toFixed(2) })
+      cCRE.ctspecific?.h3k4me3_zscore && cols.push({ header: "H3k4me3 Zscore", value: (row: TableRow) => row.h3k4me3_zscore?.toFixed(2) })
+    } else {
+      cols.push({ header: "DNase Zscore", value: (row: TableRow) => row.dnase_zscore?.toFixed(2) })
+      cols.push({ header: "ATAC Zscore", value: (row: TableRow) => row.atac_zscore?.toFixed(2) })
+      cols.push({ header: "CTCF Zscore", value: (row: TableRow) => row.ctcf_zscore?.toFixed(2) })
+      cols.push({ header: "H3k27ac Zscore", value: (row: TableRow) => row.h3k27ac_zscore?.toFixed(2) })
+      cols.push({ header: "H3k4me3 Zscore", value: (row: TableRow) => row.h3k4me3_zscore?.toFixed(2) })
     }
-    return cols;
-  }, [selectedBiosample, cCREsIntersectionData])
+    return cols
+
+  }, [selectedSample, cCREDetails])
 
   const StudySelection = () => {
     return gwasstudiesLoading ? LoadingMessage() : gwasstudies && gwasstudies.getAllGwasStudies.length > 0 &&
-    <div>
-      <Accordion defaultExpanded sx={{ backgroundColor: "rgb(210, 239, 255)" }}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          Select a GWAS Study
-        </AccordionSummary>
-        <AccordionDetails sx={{ backgroundColor: "rgb(235, 248, 255)" }}>
-          <DataTable
-            tableTitle="GWAS Studies"
-            rows={gwasstudies.getAllGwasStudies}
-            columns={[
-              {
-                header: "Study", value: (row) => {
-                  return row.studyname
-                }
-              },
-              { header: "Author", value: (row) => row.author },
-              { header: "Pubmed", value: (row) => row.pubmedid, render: (row: any) => createLink("https://pubmed.ncbi.nlm.nih.gov/", row.pubmedid) },
-            ]}
-            onRowClick={(row: any) => {
-              setStudy(row)
-              setSelectedBiosample([])
-            }}
-            sortDescending={true}
-            itemsPerPage={10}
-            searchable={true}
-          />
-        </AccordionDetails>
-      </Accordion>
-    </div>
+      <div>
+        <Accordion defaultExpanded>
+          <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: lightBlue, color: lightTextColor, borderRadius: '4px' }}>
+            Select a GWAS Study
+          </AccordionSummary>
+          <AccordionDetails>
+            <DataTable
+              tableTitle="GWAS Studies"
+              rows={gwasstudies.getAllGwasStudies}
+              columns={[
+                {
+                  header: "Study", value: (row) => {
+                    return row.studyname
+                  }
+                },
+                { header: "Author", value: (row) => row.author },
+                { header: "Pubmed", value: (row) => row.pubmedid, render: (row: any) => createLink("https://pubmed.ncbi.nlm.nih.gov/", row.pubmedid) },
+              ]}
+              onRowClick={(row: any) => {
+                setStudy(row)
+                setSelectedSample(null)
+              }}
+              sortDescending={true}
+              itemsPerPage={10}
+              searchable={true}
+            />
+          </AccordionDetails>
+        </Accordion>
+      </div>
   }
 
   const BiosampleSelection = () => {
@@ -216,21 +303,23 @@ export default function GWAS() {
       <CircularProgress sx={{ margin: "auto" }} />
       :
       <div>
-        <Accordion defaultExpanded sx={{ backgroundColor: "rgb(210, 239, 255)" }}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Accordion defaultExpanded>
+          <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: lightBlue, color: lightTextColor, borderRadius: '4px' }}>
             Select a Biosample
           </AccordionSummary>
-          <AccordionDetails sx={{ backgroundColor: "rgb(235, 248, 255)" }}>
+          <AccordionDetails>
             {biosampleData?.data ?
-              <BiosampleTables
+              <BiosampleTables2
                 showRNAseq={false}
                 showDownloads={false}
                 biosampleSelectMode="replace"
                 biosampleData={{ data: { human: { biosamples: biosampleData.data['human'].biosamples.filter(b => b.dnase) }, mouse: biosampleData.data['mouse'] }, loading: biosampleData.loading, networkStatus: biosampleData.networkStatus }}
                 assembly={"GRCh38"}
-                selectedBiosamples={selectedBiosample}
+                selectedBiosamples={[]}
                 setSelectedBiosamples={setSelectedBiosample}
-              /> :
+                onBiosampleClicked={handleSetSelectedSample}
+              />
+              :
               <CircularProgress sx={{ margin: "auto" }} />}
           </AccordionDetails>
         </Accordion>
@@ -239,104 +328,137 @@ export default function GWAS() {
 
   const LdBlocks = () => {
     return (
-      study && cCREIntersections && overlappingldblocks && (
-        <div>
-          <Accordion defaultExpanded sx={{ backgroundColor: "rgb(225, 209, 255)" }}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              LD Blocks
-            </AccordionSummary>
-            <AccordionDetails sx={{ backgroundColor: "rgb(241, 234, 255)" }}>
+      <div>
+        <Accordion defaultExpanded>
+          <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: darkBlue, color: lightTextColor, borderRadius: '4px' }}>
+            LD Blocks
+          </AccordionSummary>
+          <AccordionDetails>
+            {cCREIntersectionsLoading ?
+              <CircularProgress /> :
               <DataTable
-                rows={[{ totalLDblocks: study.totalldblocks, overlappingldblocks: Math.ceil((overlappingldblocks.size / +study.totalldblocks) * 100), numCresOverlap: accessions.size }]}
+                rows={[{ totalLDblocks: study.totalldblocks, overlappingldblocks: Math.ceil((overlappingLdBlocks.length / +study.totalldblocks) * 100), numCresOverlap: uniqueAccessions.length }]}
                 columns={[
                   { header: "Total LD blocks", value: (row: any) => row.totalLDblocks },
-                  { header: "# of LD blocks overlapping cCREs", value: (row: any) => overlappingldblocks.size + " (" + row.overlappingldblocks + "%)" },
+                  { header: "# of LD blocks overlapping cCREs", value: (row: any) => overlappingLdBlocks.length + " (" + row.overlappingldblocks + "%)" },
                   { header: "# of overlapping cCREs", value: (row: any) => row.numCresOverlap },
                 ]}
                 sortDescending={true}
                 hidePageMenu={true}
-              />
-            </AccordionDetails>
-          </Accordion>
-        </div>
-      )
-    )
-  }
-
-  const IntersectingcCREs = () => {
-    return (
-      cCREsIntersectionData && cCREsIntersectionData.length > 0 && (
-        <div>
-          <Accordion defaultExpanded  sx={{ backgroundColor: "rgb(225, 209, 255)" }}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              Intersecting cCREs
-            </AccordionSummary>
-            <AccordionDetails sx={{ backgroundColor: "rgb(241, 234, 255)" }}>
-              <DataTable
-                key={cCREsIntersectionData[0] && cCREsIntersectionData[0].gene + cCREsIntersectionData[0].accession + cCREsIntersectionData[0].snpid + cCREsIntersectionData[0].ldblocksnpid + cCREsIntersectionData[0].ldblock + cCREsIntersectionData[0].rsquare + columns.toString()}
-                rows={cCREsIntersectionData}
-                tableTitle={selectedBiosample.length > 0 ? selectedBiosample[0].displayname + " Specific Data" : "Cell Type Agnostic Data"}
-                columns={columns}
-                sortDescending={true}
-                itemsPerPage={10}
-                searchable={true}
-              />
-            </AccordionDetails>
-          </Accordion>
-        </div>
-      )
-    )
-  }
-
-  const SuggestionsPlot = () => {
-    return (
-      <div>
-        <Accordion defaultExpanded sx={{ backgroundColor: "rgb(255, 210, 141)" }}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            Suggestions
-          </AccordionSummary>
-          <AccordionDetails sx={{ backgroundColor: "rgb(255, 235, 204)" }}>
-            <EnrichmentLollipopPlot
-              data={enrichmentData}
-              height={700}
-              width={800}
-              onSuggestionClicked={(selected) => console.log(selected)}
-            />
+              />}
           </AccordionDetails>
         </Accordion>
       </div>
     )
   }
 
+  const IntersectingcCREs = () => {
+    return (
+      <div>
+        <Accordion defaultExpanded>
+          <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: darkBlue, color: lightTextColor, borderRadius: '4px' }}>
+            Intersecting cCREs
+          </AccordionSummary>
+          <AccordionDetails>
+            {!cCREDetails || cCREDetailsLoading ?
+              <CircularProgress />
+              :
+              <DataTable
+                key={Math.random()}
+                rows={intersectionTableRows}
+                tableTitle={selectedSample ? selectedSample.displayname + " Specific Data" : "Cell Type Agnostic Data"}
+                columns={columns}
+                sortDescending={true}
+                itemsPerPage={10}
+                searchable={true}
+                onRowClick={(row) => console.log(row)}
+              />
+            }
+          </AccordionDetails>
+        </Accordion>
+      </div>
+    )
+  }
+
+  const DataToDisplay = () => {
+    return (
+      study &&
+      <Paper>
+        <Stack spacing={2} margin={2}>
+          <LdBlocks />
+          <IntersectingcCREs />
+        </Stack>
+      </Paper>
+    )
+  }
+
+  const Selections = () => {
+    return (
+      <Paper sx={{maxWidth: '70rem'}}>
+        <Stack spacing={2} margin={2}>
+          <StudySelection />
+          {study && <BiosampleSelection />}
+        </Stack>
+      </Paper>
+    )
+  }
+
+  const SuggestionsPlot = useMemo(() => {
+    return (
+      study &&
+      <Paper sx={{ backgroundColor: lightOrange, backgroundImage: "none !important", padding: 2 }}>
+        <Accordion defaultExpanded>
+          <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: orange, color: lightTextColor, borderRadius: '4px' }}>
+            Suggestions
+          </AccordionSummary>
+          <AccordionDetails>
+            <ParentSize>
+              {(parent: ParentSizeProvidedProps) => (
+                (plotData && parent.width) ?
+                  <EnrichmentLollipopPlot
+                    data={plotData}
+                    height={700}
+                    width={parent.width}
+                    onSuggestionClicked={handlePlotSelection}
+                  />
+                  :
+                  <CircularProgress />
+              )}
+            </ParentSize>
+          </AccordionDetails>
+        </Accordion>
+      </Paper>
+    )
+  }, [plotData, study])
+
   const theme = useTheme()
   const isLg = useMediaQuery(theme.breakpoints.down('lg'))
 
   return (
-    <main>
+    <main style={{ backgroundColor: background }}>
       <Grid container spacing={2} padding={5}>
         <Grid xs={12}>
           <Typography variant="h4">GWAS Applet</Typography>
           <Typography>Selected Study: {study?.studyname}</Typography>
-          <Typography>Selected Sample: {selectedBiosample.length > 0 && selectedBiosample[0].displayname}</Typography>
+          <Button onClick={() => { setStudy(null); setSelectedSample(null) }}>Clear Study</Button>
+          <Typography>Selected Sample: {selectedSample && selectedSample.displayname}</Typography>
+          <Button onClick={() => { setSelectedSample(null) }}>Clear Sample</Button>
         </Grid>
-        <Grid xs={12} lg={4}>
-          <Stack spacing={2}>
-            <StudySelection />
-            <BiosampleSelection />
+        <Grid xs={12} lg={!study ? 12 : 4}>
+          <Stack spacing={2} alignItems={"center"}>
+            <Selections />
             {isLg &&
               <>
-                <LdBlocks />
-                <IntersectingcCREs />
-                <SuggestionsPlot />
+                <DataToDisplay />
+                {SuggestionsPlot}
               </>
             }
           </Stack>
         </Grid>
         <Grid lg={8} display={{ xs: 'none', lg: 'block' }}>
           <Stack spacing={2}>
-            <LdBlocks />
-            <IntersectingcCREs />
-            <SuggestionsPlot />
+            <DataToDisplay />
+            {SuggestionsPlot}
           </Stack>
         </Grid>
       </Grid>

@@ -1,8 +1,8 @@
 "use client"
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Bar, Circle } from '@visx/shape';
 import { Group } from '@visx/group';
-import { scaleBand, scaleLinear } from '@visx/scale';
+import { scaleBand, scaleLinear, scaleLog } from '@visx/scale';
 import { AxisBottom } from '@visx/axis'
 import { Text } from '@visx/text'
 import { defaultStyles as defaultTooltipStyles, useTooltip, TooltipWithBounds, Portal } from '@visx/tooltip';
@@ -15,6 +15,7 @@ import {
 } from '@visx/legend';
 import { tissueColors } from '../../../common/lib/colors';
 import { localPoint } from '@visx/event';
+import { NumberValue } from '@visx/vendor/d3-scale';
 
 export type EnrichmentLollipopPlot = {
   /**
@@ -40,17 +41,15 @@ export type RawEnrichmentData = {
   celltype: string
   displayname: string
   fdr: number
-  pval: number
-  foldenrichment: number
-  study: string
-  expID: string
+  pvalue: number
+  fc: number
+  accession: string
+  ontology: string
+  color: string
 }
 
 export type TransformedEnrichmentData = RawEnrichmentData & {
-  neglog10fdr: number
-  log2foldenrichment: number
-  ontology: string
-  color: string
+  log2fc: number
 }
 
 /**
@@ -68,6 +67,7 @@ export type TransformedEnrichmentData = RawEnrichmentData & {
 export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
   const [sortBy, setSortBy] = useState<"FDR" | "foldEnrichment">("foldEnrichment")
   const [FDRcutoff, setFDRcutoff] = useState<boolean>(false)
+  const [pvalCutoff, setPvalCutoff] = useState<boolean>(false)
   const [groupTissues, setGroupTissues] = useState<boolean>(true)
 
   const handleSortBy = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,6 +78,10 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
     setFDRcutoff(event.target.checked);
   };
 
+  const handlePvalcutoff = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setPvalCutoff(event.target.checked);
+  };
+
   const handleGroupTissues = (event: React.ChangeEvent<HTMLInputElement>) => {
     setGroupTissues(event.target.checked);
   };
@@ -86,20 +90,16 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
    * Filtered, log transformed, and sorted enrichment data. Includes grouped and ungrouped data
    */
   const plotData: { grouped: { [key: string]: TransformedEnrichmentData[] } } & { ungrouped: TransformedEnrichmentData[] } = useMemo(() => {
-    const tissues = Object.entries(tissueColors) //temporary
-
     const data: { grouped: { [key: string]: TransformedEnrichmentData[] } } & { ungrouped: TransformedEnrichmentData[] } = { grouped: {}, ungrouped: [] }
 
     props.data.forEach((x: RawEnrichmentData) => {
-      const randomIndex = Math.floor(Math.random() * tissues.length)
       const transformedData: TransformedEnrichmentData = {
         ...x,
-        ontology: tissues[randomIndex][0], //temporary
-        neglog10fdr: -Math.log10(x.fdr),
-        log2foldenrichment: Math.log2(x.foldenrichment),
-        color: tissues[randomIndex][1], //temporary
+
+        fdr: x.fdr === 0 ? x.fdr + 0.000001 : x.fdr,
+        log2fc: Math.log2(x.fc + 0.0001),
       }
-      if (!FDRcutoff || (FDRcutoff && x.fdr < 0.05)) {
+      if ((!FDRcutoff || (FDRcutoff && x.fdr < 0.05)) && (!pvalCutoff || (pvalCutoff && x.pvalue < 0.05))) {
         data.ungrouped.push(transformedData)
         if (!data.grouped[transformedData.ontology]) {
           data.grouped[transformedData.ontology] = []
@@ -108,21 +108,21 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
       }
     })
 
-    data.ungrouped.sort((a, b) => sortBy === "foldEnrichment" ? b.log2foldenrichment - a.log2foldenrichment : a.neglog10fdr - b.neglog10fdr)
+    data.ungrouped.sort((a, b) => sortBy === "foldEnrichment" ? b.log2fc - a.log2fc : a.fdr - b.fdr)
 
     const sortedGroups = Object.entries(data.grouped)
       //Sort each tissue's values by specified sort
-      .map((x: [string, TransformedEnrichmentData[]]) => { x[1].sort((a, b) => sortBy === "foldEnrichment" ? b.log2foldenrichment - a.log2foldenrichment : a.neglog10fdr - b.neglog10fdr); return x })
+      .map((x: [string, TransformedEnrichmentData[]]) => { x[1].sort((a, b) => sortBy === "foldEnrichment" ? b.log2fc - a.log2fc : a.fdr - b.fdr); return x })
       //Sort the tissues
       .sort((a, b) => {
         //check first index since it should be the largest of that tissue
-        return sortBy === "foldEnrichment" ? b[1][0].log2foldenrichment - a[1][0].log2foldenrichment : a[1][0].neglog10fdr - b[1][0].neglog10fdr
+        return sortBy === "foldEnrichment" ? b[1][0].log2fc - a[1][0].log2fc : a[1][0].fdr - b[1][0].fdr
       });
 
     data.grouped = Object.fromEntries(sortedGroups)
 
     return data
-  }, [FDRcutoff, props.data, sortBy])
+  }, [FDRcutoff, pvalCutoff, props.data, sortBy])
 
   const { tooltipOpen, tooltipLeft, tooltipTop, tooltipData, hideTooltip, showTooltip } = useTooltip<TransformedEnrichmentData>();
 
@@ -142,7 +142,7 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
   // xScale used for the width (value) of bars
   const xScale = useMemo(() =>
     scaleLinear<number>({
-      domain: [Math.min(0, Math.min(...plotData.ungrouped.map(x => x.log2foldenrichment))), Math.max(0, Math.max(...plotData.ungrouped.map(x => x.log2foldenrichment)))], //Accounts for values not crossing zero, always include zero as anchor for scores
+      domain: [Math.min(0, Math.min(...plotData.ungrouped.map(x => x.log2fc))), Math.max(0, Math.max(...plotData.ungrouped.map(x => x.log2fc)))], //Accounts for values not crossing zero, always include zero as anchor for scores
       range: [0, xMax],
       round: true,
     }),
@@ -160,11 +160,15 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
     [yMax, plotData, groupTissues]
   )
 
-  // rScale used for the radius of the circle
+  // 
+  /**
+   * Scale for the radius of the FDR circle.
+   */
   const rScale = useMemo(() =>
-    scaleLinear<number>({
-      domain: [Math.min(...plotData.ungrouped.map(x => x.neglog10fdr)), Math.max(...plotData.ungrouped.map(x => x.neglog10fdr))], // Min/Max of fdr values in data
-      range: [10, 3],
+    scaleLog<number>({
+      base: 2,
+      domain: [Math.min(...plotData.ungrouped.map(x => x.fdr)), 1], // Min/Max of fdr values in data
+      range: [10, 5],
       round: true,
     }),
     [plotData]
@@ -175,20 +179,27 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
     const shadeTop = document.getElementById('shade-top');
     const shadeBottom = document.getElementById('shade-bottom');
 
-    // Check if there's overflow at the top
-    if (container.scrollTop > 0) {
-      shadeTop.style.display = 'flex';
-    } else {
-      shadeTop.style.display = 'none';
-    }
+    if (container && shadeTop && shadeBottom) {
+      // Check if there's overflow at the top
+      if (container.scrollTop > 0) {
+        shadeTop.style.display = 'flex';
+      } else {
+        shadeTop.style.display = 'none';
+      }
 
-    // Check if there's overflow at the bottom
-    if (container.scrollHeight > container.clientHeight + container.scrollTop) {
-      shadeBottom.style.display = 'block';
-    } else {
-      shadeBottom.style.display = 'none';
+      // Check if there's overflow at the bottom
+      if (container.scrollHeight > container.clientHeight + container.scrollTop) {
+        shadeBottom.style.display = 'block';
+      } else {
+        shadeBottom.style.display = 'none';
+      }
     }
   }
+
+  //Update shading whenever data changes
+  useEffect(() => {
+    updateShading()
+  }, [plotData])
 
   function scrollToTop() {
     const container = document.getElementById('scroll-container');
@@ -198,12 +209,12 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
   function LegendDemo({ children }: { children: React.ReactNode }) {
     return (
       <div className="legend">
-        <div className="title">-Log<sub>10</sub>(FDR)</div>
+        <div className="title">FDR</div>
         {children}
         <style>{`
           .legend {
             font-size: 10px;
-            padding: 10px 10px;
+            padding: 6px 6px;
             border: 1px solid grey;
             border-radius: 4px;
             margin: 0px 20px;
@@ -216,7 +227,6 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
           }
           .title {
             font-size: 12px;
-            margin-bottom: 10px;
           }
         `}</style>
       </div>
@@ -230,15 +240,15 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
 
     const barHeight = yScale.bandwidth()
     const barY = yScale(x.celltype)
-    const radiusFDR = rScale(x.neglog10fdr)
+    const radiusFDR = rScale(x.fdr)
 
-    if (x.log2foldenrichment < 0) { //bar is to the left of 0
-      barStart = xMin + xScale(x.log2foldenrichment)
-      barWidth = xScale(0) - xScale(x.log2foldenrichment)
+    if (x.log2fc < 0) { //bar is to the left of 0
+      barStart = xMin + xScale(x.log2fc)
+      barWidth = xScale(0) - xScale(x.log2fc)
       circleX = barStart
     } else { //bar is to the right of 0
       barStart = xMin + xScale(0)
-      barWidth = xScale(x.log2foldenrichment) - xScale(0)
+      barWidth = xScale(x.log2fc) - xScale(0)
       circleX = barStart + barWidth
     }
 
@@ -293,157 +303,177 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
   }
 
   return (
-    <Stack direction={"column"} spacing={2}>
-      <Paper sx={{ width: props.width }}>
-        <Stack direction={"row"} spacing={2} alignItems={"center"} m={2}>
-          <FormControl>
-            <FormLabel>Sort By</FormLabel>
-            <RadioGroup row value={sortBy} onChange={handleSortBy}>
-              <FormControlLabel value="foldEnrichment" control={<Radio />} label={<>Log<sub>2</sub>(Fold Enrichment)</>} />
-              <FormControlLabel value="FDR" control={<Radio />} label={<>-Log<sub>10</sub>(FDR)</>} />
-            </RadioGroup>
-          </FormControl>
-          <FormControl>
-            <FormLabel>FDR Threshold</FormLabel>
-            <FormGroup>
-              <FormControlLabel control={<Checkbox />} checked={FDRcutoff} onChange={handleFDRcutoff} label={'FDR < 0.05'} />
-            </FormGroup>
-          </FormControl>
-          <FormControl>
-            <FormLabel>Grouping</FormLabel>
-            <FormGroup>
-              <FormControlLabel control={<Checkbox />} checked={groupTissues} onChange={handleGroupTissues} label={'Group Tissues'} />
-            </FormGroup>
-          </FormControl>
-        </Stack>
-        {plotData.ungrouped.length < 1 ?
-          <Typography m={2}>No Data to Display</Typography>
-          :
-          <div>
-            <div id="scroll-container-wrapper" style={{ position: 'relative', maxHeight: props.height - spaceForBottomAxis }}>
-              <div
-                id="shade-top"
-                style={{
-                  position: 'absolute',
-                  display: 'none',
-                  left: 0,
-                  right: 0,
-                  height: '80px',
-                  pointerEvents: 'none',
-                  background: "linear-gradient(to bottom, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0))",
-                  justifyContent: 'center',
-                }}
-              >
-                <KeyboardDoubleArrowUp fontSize='large' sx={{ mt: 1, pointerEvents: 'auto', cursor: 'pointer' }} onClick={scrollToTop} />
-              </div>
-              <div
-                id="shade-bottom"
-                style={{
-                  position: 'absolute',
-                  left: 0,
-                  right: 0,
-                  top: 'auto',
-                  bottom: 0,
-                  height: '80px',
-                  pointerEvents: 'none',
-                  background: "linear-gradient(to top, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0))",
-                }}
-              />
-              <LegendDemo>
-                <LegendSize scale={rScale}>
-                  {(labels) =>
-                    labels.map((label) => {
-                      const size = rScale(label.datum) ?? 0;
-                      return (
-                        <LegendItem
-                          key={`legend-${label.text}-${label.index}`}
-                        >
-                          <svg width={size * 2} height={size * 2} style={{ margin: '5px 0' }}>
-                            <circle r={size} cx={size} cy={size} />
-                          </svg>
-                          <LegendLabel align="left" margin="0 4px">
-                            {(+label.text).toFixed(2)}
-                          </LegendLabel>
-                        </LegendItem>
-                      );
-                    })
-                  }
-                </LegendSize>
-              </LegendDemo>
-              <div onScroll={updateShading} id="scroll-container" style={{ maxHeight: props.height - spaceForBottomAxis, overflowY: 'auto' }}>
-                <svg id="sugestions-plot" width={props.width - (2 * innerPaddingX)} height={yMax + (2 * innerPaddingY)}>
-                  <Group id="bars-goup" top={innerPaddingY}>
-                    {groupTissues ?
-                      Object.entries(plotData.grouped)
-                        //Each Tissues
-                        .map((entry: [string, TransformedEnrichmentData[]]) => {
-                          const firstDatum = entry[1][0]
-                          const BarHeight = yScale.step() * (entry[1].length - 1) + yScale.bandwidth()
-
-                          return (
-                            <Group key={entry[0]}>
-                              <Bar
-                                x={xMin + xMax + 15}
-                                y={yScale(firstDatum.celltype)} //Y position of first data point
-                                width={yScale.bandwidth()}
-                                height={BarHeight} //bandwidth = bar height, step = bandwidth + gap between bars
-                                fill={firstDatum.color}
-                              />
-                              <Text
-                                fontSize={12}
-                                verticalAnchor='middle'
-                                x={xMin + xMax + 25}
-                                y={yScale(firstDatum.celltype) + 0.5 * BarHeight} //Y position of first data point + half of bar width
-                              >
-                                {entry[0].charAt(0).toUpperCase() + entry[0].slice(1)}
-                              </Text>
-                              {/* Each Data point for that tissue */}
-                              {entry[1].map((x) => dataPoint(x))}
-                            </Group>
-                          )
-                        })
-                      :
-                      plotData.ungrouped.map((x) => dataPoint(x))
-                    }
-                  </Group>
-                  <line stroke='black' x1={xMin + xScale(0)} y1={0} x2={xMin + xScale(0)} y2={yMax + (2 * innerPaddingY)} />
-                </svg >
-              </div>
-            </div>
-            <svg id="axis-container" width={props.width} height={spaceForBottomAxis}>
-              <AxisBottom left={xMin} top={5} scale={xScale} label='Log2(Fold Enrichment)' />
-            </svg>
-          </div>
-        }
-        {tooltipOpen && (
-          <Portal>
-            <TooltipWithBounds
-              top={tooltipTop}
-              left={tooltipLeft}
-              style={{ ...defaultTooltipStyles, backgroundColor: '#283238', color: 'white' }}
+    <Stack direction={"column"} spacing={2} width={props.width}>
+      <Stack direction={"row"} spacing={2} alignItems={"center"} m={2}>
+        <FormControl>
+          <FormLabel>Sort By</FormLabel>
+          <RadioGroup row value={sortBy} onChange={handleSortBy}>
+            <FormControlLabel value="foldEnrichment" control={<Radio />} label={<>Log<sub>2</sub>(Fold Enrichment)</>} />
+            <FormControlLabel value="FDR" control={<Radio />} label={"FDR"} />
+          </RadioGroup>
+        </FormControl>
+        <FormControl>
+          <FormLabel>FDR Threshold</FormLabel>
+          <FormGroup>
+            <FormControlLabel control={<Checkbox />} checked={FDRcutoff} onChange={handleFDRcutoff} label={'FDR < 0.05'} />
+          </FormGroup>
+        </FormControl>
+        <FormControl>
+          <FormLabel><i>P</i>-value Threshold</FormLabel>
+          <FormGroup>
+            <FormControlLabel control={<Checkbox />} checked={pvalCutoff} onChange={handlePvalcutoff} label={<><i>P</i>{" < 0.05"}</>} />
+          </FormGroup>
+        </FormControl>
+        <FormControl>
+          <FormLabel>Grouping</FormLabel>
+          <FormGroup>
+            <FormControlLabel control={<Checkbox />} checked={groupTissues} onChange={handleGroupTissues} label={'Group Tissues'} />
+          </FormGroup>
+        </FormControl>
+      </Stack>
+      {plotData.ungrouped.length < 1 ?
+        <Typography m={2}>No Data to Display</Typography>
+        :
+        <div>
+          <div id="scroll-container-wrapper" style={{ position: 'relative', maxHeight: props.height - spaceForBottomAxis }}>
+            <div
+              id="shade-top"
+              style={{
+                position: 'absolute',
+                display: 'none',
+                left: 0,
+                right: 0,
+                height: '80px',
+                pointerEvents: 'none',
+                background: "linear-gradient(to bottom, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0))",
+                justifyContent: 'center',
+              }}
             >
-              <div>
-                <Typography>{tooltipData.displayname}</Typography>
-              </div>
-              <div>
-                <Typography>{tooltipData.ontology}</Typography>
-              </div>
-              <div>
-                <Typography>{tooltipData.expID}</Typography>
-              </div>
-              <div>
-                <Typography variant='body2'><i>P</i>: {tooltipData.pval}</Typography>
-              </div>
-              <div>
-                <Typography variant='body2'>Log<sub>2</sub>(Fold Enrichment): {tooltipData.log2foldenrichment}</Typography>
-              </div>
-              <div>
-                <Typography variant='body2'>-Log<sub>10</sub>(FDR): {tooltipData.neglog10fdr}</Typography>
-              </div>
-            </TooltipWithBounds>
-          </Portal>
-        )}
-      </Paper>
+              <KeyboardDoubleArrowUp fontSize='large' sx={{ mt: 1, pointerEvents: 'auto', cursor: 'pointer' }} onClick={scrollToTop} />
+            </div>
+            <div
+              id="shade-bottom"
+              style={{
+                position: 'absolute',
+                display: 'none',
+                left: 0,
+                right: 0,
+                top: 'auto',
+                bottom: 0,
+                height: '80px',
+                pointerEvents: 'none',
+                background: "linear-gradient(to top, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0))",
+              }}
+            />
+            {/** @todo name this something else */}
+            <LegendDemo>
+              <LegendSize scale={rScale} steps={3}>
+                {(labels) => {
+                  type Label = { datum: NumberValue, index: number, text: string, value?: number };
+
+                  const deduplicatedLabels: Label[] = labels.reduce<Label[]>((acc, current) => {
+                    const isDuplicate = acc.some(item => item.text === current.text);
+                    if (!isDuplicate) {
+                      acc.push(current);
+                    }
+                    return acc;
+                  }, []);
+
+                  return deduplicatedLabels.map((label) => {
+                    if (plotData.ungrouped.length === 1 && label.index === 1) return (<></>)
+                    const size = rScale(label.datum) ?? 0;
+                    return (
+                      <LegendItem
+                        key={`legend-${label.text}-${label.index}`}
+                      >
+                        <svg width={size * 2} height={size * 2} style={{ margin: '5px 0' }}>
+                          <circle r={size} cx={size} cy={size} />
+                        </svg>
+                        <LegendLabel align="left" margin="0 4px">
+                          {(+label.text).toFixed(2)}
+                        </LegendLabel>
+                      </LegendItem>
+                    );
+                  })
+                }}
+              </LegendSize>
+            </LegendDemo>
+            <div onScroll={updateShading} id="scroll-container" style={{ maxHeight: props.height - spaceForBottomAxis, overflowY: 'auto' }}>
+              <svg id="sugestions-plot" width={props.width - (2 * innerPaddingX)} height={yMax + (2 * innerPaddingY)}>
+                <Group id="bars-goup" top={innerPaddingY}>
+                  {groupTissues ?
+                    Object.entries(plotData.grouped)
+                      //Each Tissues
+                      .map((entry: [string, TransformedEnrichmentData[]]) => {
+                        const firstDatum = entry[1][0]
+                        const BarHeight = yScale.step() * (entry[1].length - 1) + yScale.bandwidth()
+
+                        return (
+                          <Group key={entry[0]}>
+                            <Bar
+                              x={xMin + xMax + 15}
+                              y={yScale(firstDatum.celltype)} //Y position of first data point
+                              width={yScale.bandwidth()}
+                              height={BarHeight} //bandwidth = bar height, step = bandwidth + gap between bars
+                              fill={firstDatum.color}
+                            />
+                            <Text
+                              fontSize={12}
+                              verticalAnchor='middle'
+                              x={xMin + xMax + 25}
+                              y={yScale(firstDatum.celltype) + 0.5 * BarHeight} //Y position of first data point + half of bar width
+                            >
+                              {entry[0].charAt(0).toUpperCase() + entry[0].slice(1)}
+                            </Text>
+                            {/* Each Data point for that tissue */}
+                            {entry[1].map((x) => dataPoint(x))}
+                          </Group>
+                        )
+                      })
+                    :
+                    plotData.ungrouped.map((x) => dataPoint(x))
+                  }
+                </Group>
+                <line stroke='black' x1={xMin + xScale(0)} y1={0} x2={xMin + xScale(0)} y2={yMax + (2 * innerPaddingY)} />
+              </svg >
+            </div>
+          </div>
+          <svg id="axis-container" width={props.width} height={spaceForBottomAxis}>
+            <AxisBottom left={xMin} top={5} scale={xScale} label='Log2(Fold Enrichment)' />
+          </svg>
+        </div>
+      }
+      {tooltipOpen && (
+        <Portal>
+          <TooltipWithBounds
+            top={tooltipTop}
+            left={tooltipLeft}
+            style={{ ...defaultTooltipStyles, backgroundColor: '#283238', color: 'white' }}
+          >
+            <div>
+              <Typography>{tooltipData.displayname}</Typography>
+            </div>
+            <div>
+              <Typography>{tooltipData.ontology}</Typography>
+            </div>
+            <div>
+              <Typography variant='body2'>{tooltipData.accession}</Typography>
+            </div>
+            <div>
+              <Typography variant='body2'><i>P</i>: {tooltipData.pvalue}</Typography>
+            </div>
+            <div>
+              <Typography variant='body2'>Fold Enrichment: {tooltipData.fc}</Typography>
+            </div>
+            <div>
+              <Typography variant='body2'>Log<sub>2</sub>(Fold Enrichment): {tooltipData.log2fc}</Typography>
+            </div>
+            <div>
+              <Typography variant='body2'>FDR: {tooltipData.fdr}</Typography>
+            </div>
+          </TooltipWithBounds>
+        </Portal>
+      )}
     </Stack>
   )
 }
