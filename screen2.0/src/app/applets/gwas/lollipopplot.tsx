@@ -13,7 +13,6 @@ import {
   LegendItem,
   LegendLabel,
 } from '@visx/legend';
-import { tissueColors } from '../../../common/lib/colors';
 import { localPoint } from '@visx/event';
 import { NumberValue } from '@visx/vendor/d3-scale';
 
@@ -52,16 +51,15 @@ export type TransformedEnrichmentData = RawEnrichmentData & {
   log2fc: number
 }
 
+const minFDRval: number = 1e-300
+const FCaugmentation: number = 0.000001
+
 /**
  * 
  * @todo
  * - Tissue Categories? How to handle with various sorting modes? -> see figure Jill sent in #screen-iscreen
- * - Responsive sizing: https://airbnb.io/visx/docs/responsive -> useParentSize().
- *    - Want plot to be able to fill it's parent container
- *    - Not sure if we want it to always fill it's parent container or if it's helpful to have some way to manually set size too
  * - CSS is a mess here, between my inline CSS and the example code for the Legend. Need to clean up
- * - Support negative values in fold enrichment. Can't just adjust min value of domain for xScale. Bar coordinates need to be reworked to support this.
- * - If possible, would be nice to rework tooltip placement to support placing plot in an MUI Accordion. Breaks for some reason.
+ * - Fix scaling of FDR point
  */
 
 export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
@@ -95,9 +93,9 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
     props.data.forEach((x: RawEnrichmentData) => {
       const transformedData: TransformedEnrichmentData = {
         ...x,
-
-        fdr: x.fdr === 0 ? x.fdr + 0.000001 : x.fdr,
-        log2fc: Math.log2(x.fc + 0.0001),
+        pvalue: x.pvalue === 0 ? minFDRval : x.pvalue,
+        fdr: x.fdr === 0 ? minFDRval : x.fdr,
+        log2fc: Math.log2(x.fc + FCaugmentation),
       }
       if ((!FDRcutoff || (FDRcutoff && x.fdr < 0.05)) && (!pvalCutoff || (pvalCutoff && x.pvalue < 0.05))) {
         data.ungrouped.push(transformedData)
@@ -160,19 +158,26 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
     [yMax, plotData, groupTissues]
   )
 
-  // 
+  const rScaleAdjustment = 0.005
+
   /**
-   * Scale for the radius of the FDR circle.
+   * Scale for the radius of the FDR circle. Use getFDRradius instead of this directly to avoid going outside of the domain
    */
   const rScale = useMemo(() =>
     scaleLog<number>({
-      base: 2,
-      domain: [Math.min(...plotData.ungrouped.map(x => x.fdr)), 1], // Min/Max of fdr values in data
-      range: [10, 5],
+      base: 10,
+      domain: [rScaleAdjustment, 1], // Min/Max of fdr values in data
+      range: [10, 2],
       round: true,
     }),
-    [plotData]
-  )
+    [])
+
+  /**
+   * 
+   * @param x 
+   * @returns rScale(Math.max(0.001, x)) to avoid the very large values near 0
+   */
+  const getFDRradius = (x: number) => rScale(Math.max(rScaleAdjustment, x))
 
   function updateShading() {
     const container = document.getElementById('scroll-container');
@@ -240,7 +245,7 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
 
     const barHeight = yScale.bandwidth()
     const barY = yScale(x.celltype)
-    const radiusFDR = rScale(x.fdr)
+    const radiusFDR = getFDRradius(x.fdr)
 
     if (x.log2fc < 0) { //bar is to the left of 0
       barStart = xMin + xScale(x.log2fc)
@@ -379,22 +384,58 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
                     return acc;
                   }, []);
 
-                  return deduplicatedLabels.map((label) => {
-                    if (plotData.ungrouped.length === 1 && label.index === 1) return (<></>)
-                    const size = rScale(label.datum) ?? 0;
-                    return (
-                      <LegendItem
-                        key={`legend-${label.text}-${label.index}`}
-                      >
-                        <svg width={size * 2} height={size * 2} style={{ margin: '5px 0' }}>
-                          <circle r={size} cx={size} cy={size} />
+                  // return deduplicatedLabels.map((label) => {
+                  //   if (plotData.ungrouped.length === 1 && label.index === 1) return (<></>)
+                  //   const size = rScale(label.datum) ?? 0;
+                  //   return (
+                  //     <LegendItem
+                  //       key={`legend-${label.text}-${label.index}`}
+                  //     >
+                  //       <svg width={size * 2} height={size * 2} style={{ margin: '5px 0' }}>
+                  //         <circle r={size} cx={size} cy={size} />
+                  //       </svg>
+                  //       <LegendLabel align="left" margin="0 4px">
+                  //         {(+label.text).toFixed(2)}
+                  //       </LegendLabel>
+                  //     </LegendItem>
+                  //   );
+                  // })
+                  return (
+                    <>
+                      <LegendItem key={`legend-0.001`}                      >
+                        <svg width={getFDRradius(0.001) * 2} height={getFDRradius(0.001) * 2} style={{ margin: '5px 0' }}>
+                          <circle r={getFDRradius(0.001)} cx={getFDRradius(0.001)} cy={getFDRradius(0.001)} />
                         </svg>
                         <LegendLabel align="left" margin="0 4px">
-                          {(+label.text).toFixed(2)}
+                          {0.001}
                         </LegendLabel>
                       </LegendItem>
-                    );
-                  })
+                      <LegendItem key={`legend-0.01`}                      >
+                        <svg width={getFDRradius(0.01) * 2} height={getFDRradius(0.01) * 2} style={{ margin: '5px 0' }}>
+                          <circle r={getFDRradius(0.01)} cx={getFDRradius(0.01)} cy={getFDRradius(0.01)} />
+                        </svg>
+                        <LegendLabel align="left" margin="0 4px">
+                          {0.01}
+                        </LegendLabel>
+                      </LegendItem>
+                      <LegendItem key={`legend-0.05`}                      >
+                        <svg width={getFDRradius(0.05) * 2} height={getFDRradius(0.05) * 2} style={{ margin: '5px 0' }}>
+                          <circle r={getFDRradius(0.05)} cx={getFDRradius(0.05)} cy={getFDRradius(0.05)} />
+                        </svg>
+                        <LegendLabel align="left" margin="0 4px">
+                          {0.05}
+                        </LegendLabel>
+                      </LegendItem>
+                      <LegendItem key={`legend-1`}                      >
+                        <svg width={getFDRradius(1) * 2} height={getFDRradius(1) * 2} style={{ margin: '5px 0' }}>
+                          <circle r={getFDRradius(1)} cx={getFDRradius(1)} cy={getFDRradius(1)} />
+                        </svg>
+                        <LegendLabel align="left" margin="0 4px">
+                          {1}
+                        </LegendLabel>
+                      </LegendItem>
+                    </>
+                  )
                 }}
               </LegendSize>
             </LegendDemo>
@@ -463,13 +504,13 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
               <Typography variant='body2'><i>P</i>: {tooltipData.pvalue}</Typography>
             </div>
             <div>
+              <Typography variant='body2'>FDR: {tooltipData.fdr}</Typography>
+            </div>
+            <div>
               <Typography variant='body2'>Fold Enrichment: {tooltipData.fc}</Typography>
             </div>
             <div>
               <Typography variant='body2'>Log<sub>2</sub>(Fold Enrichment): {tooltipData.log2fc}</Typography>
-            </div>
-            <div>
-              <Typography variant='body2'>FDR: {tooltipData.fdr}</Typography>
             </div>
           </TooltipWithBounds>
         </Portal>
