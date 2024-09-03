@@ -22,8 +22,8 @@ import { useQuery } from "@apollo/client"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { ArrowForward, Download, ExpandMore, Visibility } from "@mui/icons-material"
 import Image from "next/image"
-import Human from "../../../public/Human2.png"
-import Mouse from "../../../public/Mouse2.png"
+import humanTransparentIcon from "../../../public/Transparent_HumanIcon.png"
+import mouseTransparentIcon from "../../../public/Transparent_MouseIcon.png"
 import { Chart, Scatter, Annotation, Range2D } from "jubilant-carnival"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import Config from "../../config.json"
@@ -331,7 +331,7 @@ export function DataMatrices() {
             <Typography variant="subtitle2">1,678 cell types</Typography>
           </Grid2>
           <Grid2 xs={4}>
-            <Image src={Human} alt={"Human Icon"} width={50} />
+            <Image src={humanTransparentIcon} alt={"Human Icon"} width={100} />
           </Grid2>
           <Grid2 xs={12}>
             {selectorButton({ assembly: "Human", assay: "DNase" })}
@@ -346,7 +346,7 @@ export function DataMatrices() {
             <Typography variant="subtitle2">366 cell types</Typography>
           </Grid2>
           <Grid2 xs={4}>
-            <Image src={Mouse} alt={"Mouse Icon"} width={50} />
+            <Image src={mouseTransparentIcon} alt={"Mouse Icon"} width={100} />
           </Grid2>
           <Grid2 xs={12}>
             {selectorButton({ assembly: "Mouse", assay: "DNase" })}

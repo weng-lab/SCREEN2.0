@@ -5,8 +5,8 @@ import { useState } from "react"
 import { Typography, Switch, SwitchProps, Stack } from "@mui/material"
 import { styled } from "@mui/material/styles"
 
-import mouseIcon from "../../../../public/mouse.png"
-import humanIcon from "../../../../public/human.png"
+import mouseIcon from "../../../../public/Transparent_MouseIcon.png"
+import humanIcon from "../../../../public/Transparent_HumanIcon.png"
 
 export type GenomeSwitchProps = SwitchProps & {
   /**

@@ -7,8 +7,8 @@ import DownloadIcon from "@mui/icons-material/Download"
 import SearchIcon from "@mui/icons-material/Search"
 import { CA_CTCF, CA_H3K4me3, CA_TF, CA_only, PLS, TF_only, dELS, pELS } from "../../common/lib/colors"
 import Image from "next/image"
-import Human from "../../../public/Human2.png"
-import Mouse from "../../../public/Mouse2.png"
+import humanTransparentIcon from "../../../public/Transparent_HumanIcon.png"
+import mouseTransparentIcon from "../../../public/Transparent_MouseIcon.png"
 import { ApolloQueryResult } from "@apollo/client"
 import { BIOSAMPLE_Data } from "../../common/lib/queries"
 import BiosampleTables from "../search/biosampletables"
@@ -78,7 +78,7 @@ export function DetailedElements(props: TabPanelProps) {
               <Typography mt="auto" variant="h5" >Human (GRCh38/hg38)</Typography>
               <Typography variant="subtitle1">2,348,854 cCREs • 1,888 cell types</Typography>
             </Stack>
-            <Image src={Human} alt={"Human Icon"} height={75} />
+            <Image src={humanTransparentIcon} alt={"Human Icon"} height={75} />
           </Stack>
           <DownloadButton href={Config.Downloads.HumanCCREs} label="All Human cCREs (2,348,854)" />
           <InlineDownloadButton
@@ -138,7 +138,7 @@ export function DetailedElements(props: TabPanelProps) {
               <Typography mt="auto" variant="h5" >Mouse (GRCm38/mm10)</Typography>
               <Typography variant="subtitle1">926,843 cCREs • 366 cell types</Typography>
             </Stack>
-            <Image src={Mouse} alt={"Mouse Icon"} height={75} />
+            <Image src={mouseTransparentIcon} alt={"Mouse Icon"} height={75} />
           </Stack>
           <DownloadButton href={Config.Downloads.MouseCCREs} label="Download All Mouse cCREs" />
           <InlineDownloadButton
