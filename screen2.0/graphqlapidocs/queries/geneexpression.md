@@ -5,6 +5,7 @@
 Returns gene id data for the OR51B4 gene.
 
 ```graphql
+
 query  {
   gene(assembly: "grch38", name: ["OR51B4"]) {
     name
@@ -18,11 +19,13 @@ query  {
     
   }
 }
+
 ```
 
 Returns gene expression data for the OR51B4 gene (based on gene id).
 
 ```graphql
+
 query {
   gene_dataset {
     biosample
@@ -40,5 +43,6 @@ query {
     }    
   }
 }
+
 ```
 <br />
