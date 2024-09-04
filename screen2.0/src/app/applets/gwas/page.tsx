@@ -316,6 +316,9 @@ export default function GWAS() {
                 showRNAseq={false}
                 showDownloads={false}
                 biosampleSelectMode="replace"
+                /**
+                 * @todo account for this when refactoring biosample tables further
+                 */
                 biosampleData={{ data: { human: { biosamples: biosampleData.data['human'].biosamples.filter(b => b.dnase) }, mouse: biosampleData.data['mouse'] }, loading: biosampleData.loading, networkStatus: biosampleData.networkStatus }}
                 assembly={"GRCh38"}
                 selectedBiosamples={[]}

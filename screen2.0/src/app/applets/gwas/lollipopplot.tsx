@@ -1,20 +1,14 @@
 "use client"
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Bar, Circle } from '@visx/shape';
 import { Group } from '@visx/group';
 import { scaleBand, scaleLinear, scaleLog } from '@visx/scale';
 import { AxisBottom } from '@visx/axis'
 import { Text } from '@visx/text'
 import { defaultStyles as defaultTooltipStyles, useTooltip, TooltipWithBounds, Portal } from '@visx/tooltip';
-import { Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, Paper, Radio, RadioGroup, Stack, Typography } from '@mui/material';
-import { KeyboardDoubleArrowUp } from '@mui/icons-material';
-import {
-  LegendSize,
-  LegendItem,
-  LegendLabel,
-} from '@visx/legend';
+import { Button, Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, IconButton, InputLabel, OutlinedInput, Radio, RadioGroup, Stack, Tooltip, Typography } from '@mui/material';
+import { Download, KeyboardDoubleArrowUp, Search } from '@mui/icons-material';
 import { localPoint } from '@visx/event';
-import { NumberValue } from '@visx/vendor/d3-scale';
 
 export type EnrichmentLollipopPlot = {
   /**
@@ -56,17 +50,29 @@ const FCaugmentation: number = 0.000001
 
 /**
  * 
- * @todo
- * - Tissue Categories? How to handle with various sorting modes? -> see figure Jill sent in #screen-iscreen
- * - CSS is a mess here, between my inline CSS and the example code for the Legend. Need to clean up
- * - Fix scaling of FDR point
+ * @param ref 
+ * @param filename 
+ * @info If you're importing this function, move this to a helper file!
  */
+export const downloadSVG = (ref: React.MutableRefObject<SVGSVGElement>, filename: string) => {
+  const serializer = new XMLSerializer();
+  const source = serializer.serializeToString(ref.current);
+  const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'plot.svg';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
 
 export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
   const [sortBy, setSortBy] = useState<"FDR" | "foldEnrichment">("foldEnrichment")
   const [FDRcutoff, setFDRcutoff] = useState<boolean>(false)
   const [pvalCutoff, setPvalCutoff] = useState<boolean>(false)
   const [groupTissues, setGroupTissues] = useState<boolean>(true)
+  const [search, setSearch] = useState<string>("")
 
   const handleSortBy = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSortBy((event.target as HTMLInputElement).value as "FDR" | "foldEnrichment");
@@ -84,6 +90,19 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
     setGroupTissues(event.target.checked);
   };
 
+  const handleSetSearch = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setSearch(event.target.value)
+  };
+
+  const sampleMatchesSearch = useCallback((x: RawEnrichmentData) => {
+    if (search) {
+      return x.accession.toLowerCase().includes(search.toLowerCase())
+        || x.celltype.toLowerCase().includes(search.toLowerCase())
+        || x.displayname.toLowerCase().includes(search.toLowerCase())
+        || x.ontology.toLowerCase().includes(search.toLowerCase())
+    } else return true
+  }, [search])
+
   /**
    * Filtered, log transformed, and sorted enrichment data. Includes grouped and ungrouped data
    */
@@ -97,7 +116,8 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
         fdr: x.fdr === 0 ? minFDRval : x.fdr,
         log2fc: Math.log2(x.fc + FCaugmentation),
       }
-      if ((!FDRcutoff || (FDRcutoff && x.fdr < 0.05)) && (!pvalCutoff || (pvalCutoff && x.pvalue < 0.05))) {
+      // Check search string and fdr/pval cutoffs
+      if (sampleMatchesSearch(x) && (!FDRcutoff || (FDRcutoff && x.fdr < 0.05)) && (!pvalCutoff || (pvalCutoff && x.pvalue < 0.05))) {
         data.ungrouped.push(transformedData)
         if (!data.grouped[transformedData.ontology]) {
           data.grouped[transformedData.ontology] = []
@@ -120,7 +140,7 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
     data.grouped = Object.fromEntries(sortedGroups)
 
     return data
-  }, [FDRcutoff, pvalCutoff, props.data, sortBy])
+  }, [FDRcutoff, pvalCutoff, props.data, sortBy, sampleMatchesSearch])
 
   const { tooltipOpen, tooltipLeft, tooltipTop, tooltipData, hideTooltip, showTooltip } = useTooltip<TransformedEnrichmentData>();
 
@@ -170,14 +190,15 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
       range: [10, 2],
       round: true,
     }),
-    [])
+    []
+  )
 
   /**
    * 
    * @param x 
-   * @returns rScale(Math.max(0.001, x)) to avoid the very large values near 0
+   * @returns rScale(Math.max(0.005, x)) to avoid the very large values near 0
    */
-  const getFDRradius = (x: number) => rScale(Math.max(rScaleAdjustment, x))
+  const getFDRradius = useCallback((x: number) => rScale(Math.max(rScaleAdjustment, x)), [rScale])
 
   function updateShading() {
     const container = document.getElementById('scroll-container');
@@ -211,34 +232,35 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
     container.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function LegendDemo({ children }: { children: React.ReactNode }) {
+  function Legend() {
     return (
-      <div className="legend">
-        <div className="title">FDR</div>
-        {children}
-        <style>{`
-          .legend {
-            font-size: 10px;
-            padding: 6px 6px;
-            border: 1px solid grey;
-            border-radius: 4px;
-            margin: 0px 20px;
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            background-color: rgba(255, 255, 255, 0.3); /* White with 30% transparency */
-            backdrop-filter: blur(3px); /* Apply blur to the content behind */
-            -webkit-backdrop-filter: blur(3px); /* Safari support */
-          }
-          .title {
-            font-size: 12px;
-          }
-        `}</style>
-      </div>
+      <svg height={125} width={64} id="legend">
+        <rect height={125} width={64} stroke='black' fill='none' />
+        <Text x={32} y={15} textAnchor='middle' color='black' fontSize={12}>FDR</Text>
+        <line stroke="black" x1={5} x2={59} y1={20} y2={20} />
+        <Group transform="translate(15, 38)">
+          <Group>
+            <circle r={getFDRradius(0.001)} cx={0} cy={0} />
+            <Text x={15} y={0} textAnchor='start' verticalAnchor='middle' color='black' fontSize={10}>0.001</Text>
+          </Group>
+          <Group>
+            <circle r={getFDRradius(0.01)} cx={0} cy={25} />
+            <Text x={15} y={25} textAnchor='start' verticalAnchor='middle' color='black' fontSize={10}>0.01</Text>
+          </Group>
+          <Group>
+            <circle r={getFDRradius(0.05)} cx={0} cy={50} />
+            <Text x={15} y={50} textAnchor='start' verticalAnchor='middle' color='black' fontSize={10}>0.05</Text>
+          </Group>
+          <Group>
+            <circle r={getFDRradius(1)} cx={0} cy={75} />
+            <Text x={15} y={75} textAnchor='start' verticalAnchor='middle' color='black' fontSize={10}>1</Text>
+          </Group>
+        </Group>
+      </svg>
     );
   }
 
-  const dataPoint = (x: TransformedEnrichmentData) => {
+  const dataPoint = useCallback((x: TransformedEnrichmentData) => {
     let barStart: number;
     let barWidth: number;
     let circleX: number;
@@ -262,7 +284,6 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
         key={`bar-${x.celltype}`}
         onMouseMove={(event) => {
           const coords = localPoint(event);
-          console.log(coords)
           showTooltip({
             tooltipTop: event.pageY,
             tooltipLeft: event.pageX,
@@ -305,11 +326,61 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
         />
       </Group>
     )
-  }
+  }, [getFDRradius, hideTooltip, props, showTooltip, xMin, xScale, yScale])
+
+  const MainPlotData = useMemo(() => {
+    return (
+      <Group id="bars-goup" top={innerPaddingY}>
+        {groupTissues ?
+          Object.entries(plotData.grouped)
+            //Each Tissues
+            .map((entry: [string, TransformedEnrichmentData[]]) => {
+              const firstDatum = entry[1][0]
+              const BarHeight = yScale.step() * (entry[1].length - 1) + yScale.bandwidth()
+
+              return (
+                <Group key={entry[0]}>
+                  <Bar
+                    x={xMin + xMax + 15}
+                    y={yScale(firstDatum.celltype)} //Y position of first data point
+                    width={yScale.bandwidth()}
+                    height={BarHeight} //bandwidth = bar height, step = bandwidth + gap between bars
+                    fill={firstDatum.color}
+                  />
+                  <Text
+                    fontSize={12}
+                    verticalAnchor='middle'
+                    x={xMin + xMax + 25}
+                    y={yScale(firstDatum.celltype) + 0.5 * BarHeight} //Y position of first data point + half of bar width
+                  >
+                    {entry[0].charAt(0).toUpperCase() + entry[0].slice(1)}
+                  </Text>
+                  {/* Each Data point for that tissue */}
+                  {entry[1].map((x) => dataPoint(x))}
+                </Group>
+              )
+            })
+          :
+          plotData.ungrouped.map((x) => dataPoint(x))
+        }
+      </Group>
+    )
+  }, [dataPoint, groupTissues, plotData.grouped, plotData.ungrouped, xMax, xMin, yScale])
+
+  const hiddenSVGRef = useRef(null)
 
   return (
     <Stack direction={"column"} spacing={2} width={props.width}>
-      <Stack direction={"row"} spacing={2} alignItems={"center"} m={2}>
+      <Stack direction={"row"} flexWrap={"wrap"} gap={2} alignItems={"center"} m={2}>
+        <FormControl>
+          <InputLabel>Search</InputLabel>
+          <OutlinedInput endAdornment={<Search />} label="Search" value={search} onChange={handleSetSearch} />
+        </FormControl>
+        <Tooltip title="Download SVG">
+          <IconButton size='large' onClick={() => downloadSVG(hiddenSVGRef, "test.svg")}>
+            <Download fontSize='inherit' />
+          </IconButton>
+        </Tooltip>
         <FormControl>
           <FormLabel>Sort By</FormLabel>
           <RadioGroup row value={sortBy} onChange={handleSortBy}>
@@ -370,118 +441,19 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
                 background: "linear-gradient(to top, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0))",
               }}
             />
-            {/** @todo name this something else */}
-            <LegendDemo>
-              <LegendSize scale={rScale} steps={3}>
-                {(labels) => {
-                  type Label = { datum: NumberValue, index: number, text: string, value?: number };
-
-                  const deduplicatedLabels: Label[] = labels.reduce<Label[]>((acc, current) => {
-                    const isDuplicate = acc.some(item => item.text === current.text);
-                    if (!isDuplicate) {
-                      acc.push(current);
-                    }
-                    return acc;
-                  }, []);
-
-                  // return deduplicatedLabels.map((label) => {
-                  //   if (plotData.ungrouped.length === 1 && label.index === 1) return (<></>)
-                  //   const size = rScale(label.datum) ?? 0;
-                  //   return (
-                  //     <LegendItem
-                  //       key={`legend-${label.text}-${label.index}`}
-                  //     >
-                  //       <svg width={size * 2} height={size * 2} style={{ margin: '5px 0' }}>
-                  //         <circle r={size} cx={size} cy={size} />
-                  //       </svg>
-                  //       <LegendLabel align="left" margin="0 4px">
-                  //         {(+label.text).toFixed(2)}
-                  //       </LegendLabel>
-                  //     </LegendItem>
-                  //   );
-                  // })
-                  return (
-                    <>
-                      <LegendItem key={`legend-0.001`}                      >
-                        <svg width={getFDRradius(0.001) * 2} height={getFDRradius(0.001) * 2} style={{ margin: '5px 0' }}>
-                          <circle r={getFDRradius(0.001)} cx={getFDRradius(0.001)} cy={getFDRradius(0.001)} />
-                        </svg>
-                        <LegendLabel align="left" margin="0 4px">
-                          {0.001}
-                        </LegendLabel>
-                      </LegendItem>
-                      <LegendItem key={`legend-0.01`}                      >
-                        <svg width={getFDRradius(0.01) * 2} height={getFDRradius(0.01) * 2} style={{ margin: '5px 0' }}>
-                          <circle r={getFDRradius(0.01)} cx={getFDRradius(0.01)} cy={getFDRradius(0.01)} />
-                        </svg>
-                        <LegendLabel align="left" margin="0 4px">
-                          {0.01}
-                        </LegendLabel>
-                      </LegendItem>
-                      <LegendItem key={`legend-0.05`}                      >
-                        <svg width={getFDRradius(0.05) * 2} height={getFDRradius(0.05) * 2} style={{ margin: '5px 0' }}>
-                          <circle r={getFDRradius(0.05)} cx={getFDRradius(0.05)} cy={getFDRradius(0.05)} />
-                        </svg>
-                        <LegendLabel align="left" margin="0 4px">
-                          {0.05}
-                        </LegendLabel>
-                      </LegendItem>
-                      <LegendItem key={`legend-1`}                      >
-                        <svg width={getFDRradius(1) * 2} height={getFDRradius(1) * 2} style={{ margin: '5px 0' }}>
-                          <circle r={getFDRradius(1)} cx={getFDRradius(1)} cy={getFDRradius(1)} />
-                        </svg>
-                        <LegendLabel align="left" margin="0 4px">
-                          {1}
-                        </LegendLabel>
-                      </LegendItem>
-                    </>
-                  )
-                }}
-              </LegendSize>
-            </LegendDemo>
             <div onScroll={updateShading} id="scroll-container" style={{ maxHeight: props.height - spaceForBottomAxis, overflowY: 'auto' }}>
-              <svg id="sugestions-plot" width={props.width - (2 * innerPaddingX)} height={yMax + (2 * innerPaddingY)}>
-                <Group id="bars-goup" top={innerPaddingY}>
-                  {groupTissues ?
-                    Object.entries(plotData.grouped)
-                      //Each Tissues
-                      .map((entry: [string, TransformedEnrichmentData[]]) => {
-                        const firstDatum = entry[1][0]
-                        const BarHeight = yScale.step() * (entry[1].length - 1) + yScale.bandwidth()
-
-                        return (
-                          <Group key={entry[0]}>
-                            <Bar
-                              x={xMin + xMax + 15}
-                              y={yScale(firstDatum.celltype)} //Y position of first data point
-                              width={yScale.bandwidth()}
-                              height={BarHeight} //bandwidth = bar height, step = bandwidth + gap between bars
-                              fill={firstDatum.color}
-                            />
-                            <Text
-                              fontSize={12}
-                              verticalAnchor='middle'
-                              x={xMin + xMax + 25}
-                              y={yScale(firstDatum.celltype) + 0.5 * BarHeight} //Y position of first data point + half of bar width
-                            >
-                              {entry[0].charAt(0).toUpperCase() + entry[0].slice(1)}
-                            </Text>
-                            {/* Each Data point for that tissue */}
-                            {entry[1].map((x) => dataPoint(x))}
-                          </Group>
-                        )
-                      })
-                    :
-                    plotData.ungrouped.map((x) => dataPoint(x))
-                  }
-                </Group>
+              <svg id="suggestions-plot" width={props.width - (2 * innerPaddingX)} height={yMax + (2 * innerPaddingY)}>
+                {MainPlotData}
                 <line stroke='black' x1={xMin + xScale(0)} y1={0} x2={xMin + xScale(0)} y2={yMax + (2 * innerPaddingY)} />
-              </svg >
+              </svg>
             </div>
           </div>
           <svg id="axis-container" width={props.width} height={spaceForBottomAxis}>
             <AxisBottom left={xMin} top={5} scale={xScale} label='Log2(Fold Enrichment)' />
           </svg>
+          <div style={{ position: 'absolute', bottom: 40, right: 40 }}>
+            <Legend />
+          </div>
         </div>
       }
       {tooltipOpen && (
@@ -491,30 +463,27 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
             left={tooltipLeft}
             style={{ ...defaultTooltipStyles, backgroundColor: '#283238', color: 'white' }}
           >
-            <div>
-              <Typography>{tooltipData.displayname}</Typography>
-            </div>
-            <div>
-              <Typography>{tooltipData.ontology}</Typography>
-            </div>
-            <div>
-              <Typography variant='body2'>{tooltipData.accession}</Typography>
-            </div>
-            <div>
-              <Typography variant='body2'><i>P</i>: {tooltipData.pvalue}</Typography>
-            </div>
-            <div>
-              <Typography variant='body2'>FDR: {tooltipData.fdr}</Typography>
-            </div>
-            <div>
-              <Typography variant='body2'>Fold Enrichment: {tooltipData.fc}</Typography>
-            </div>
-            <div>
-              <Typography variant='body2'>Log<sub>2</sub>(Fold Enrichment): {tooltipData.log2fc}</Typography>
-            </div>
+            <Typography>{tooltipData.displayname}</Typography>
+            <Typography>{tooltipData.ontology}</Typography>
+            <Typography variant='body2'>{tooltipData.accession}</Typography>
+            <Typography variant='body2'><i>P</i>: {tooltipData.pvalue}</Typography>
+            <Typography variant='body2'>FDR: {tooltipData.fdr}</Typography>
+            <Typography variant='body2'>Fold Enrichment: {tooltipData.fc}</Typography>
+            <Typography variant='body2'>Log<sub>2</sub>(Fold Enrichment): {tooltipData.log2fc}</Typography>
           </TooltipWithBounds>
         </Portal>
       )}
+      <div style={{ display: 'none' }}>
+        {/* svg that gets downloaded */}
+        <svg ref={hiddenSVGRef} id="downloadable-suggestions-plot" width={props.width - (2 * innerPaddingX) + 64} height={yMax + (2 * innerPaddingY) + spaceForBottomAxis}>
+          {MainPlotData}
+          <line stroke='black' x1={xMin + xScale(0)} y1={0} x2={xMin + xScale(0)} y2={yMax + (2 * innerPaddingY)} />
+          <AxisBottom left={xMin} top={yMax + (2 * innerPaddingY)} scale={xScale} label='Log2(Fold Enrichment)' />
+          <Group transform={`translate(${props.width - (2 * innerPaddingX) - 15}, ${yMax + (2 * innerPaddingY) + spaceForBottomAxis - 150})`}>
+            <Legend />
+          </Group>
+        </svg>
+      </div>
     </Stack>
   )
 }
