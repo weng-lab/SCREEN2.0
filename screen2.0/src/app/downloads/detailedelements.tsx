@@ -135,7 +135,7 @@ export function DetailedElements(props: TabPanelProps) {
         <Stack spacing={1}> {/* Use stack to provide even spacing horizonatally */}
           <Stack direction={"row"} justifyContent={"space-between"}>
             <Stack>
-              <Typography mt="auto" variant="h5" >Mouse (GRCm38/mm10)</Typography>
+              <Typography mt="auto" variant="h5">Mouse (GRCm38/mm10)</Typography>
               <Typography variant="subtitle1">926,843 cCREs • 366 cell types</Typography>
             </Stack>
             <Image src={mouseTransparentIcon} alt={"Mouse Icon"} height={75} />
