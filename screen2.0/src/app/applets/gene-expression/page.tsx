@@ -1,14 +1,30 @@
 "use client"
 import { Box } from "@mui/material"
-import { GeneExpression } from "../../search/ccredetails/geneexpression"
+import { GeneExpression } from "../../search/_ccredetails/geneexpression"
+import { Suspense, startTransition, useEffect, useState, useTransition } from "react"
+import { BIOSAMPLE_Data, biosampleQuery } from "../../../common/lib/queries"
+import { ApolloQueryResult } from "@apollo/client"
 
 export default function GeneExpressionApplet() {
+  const [isPending, startTransition] = useTransition();
+  const [biosampleData, setBiosampleData] = useState<ApolloQueryResult<BIOSAMPLE_Data>>(null)
+  
+  useEffect(() => {
+    startTransition(async () => {
+      const biosamples = await biosampleQuery()
+      setBiosampleData(biosamples)
+    })
+  }, [])
+  
   return (
     <Box maxWidth="95%" margin="auto" marginTop={3}>
-      <GeneExpression
-        assembly={"GRCh38"}
-        applet
-      />
+      <Suspense>
+        <GeneExpression
+          assembly={"GRCh38"}
+          applet
+          biosampleData={biosampleData}
+        />
+      </Suspense>
     </Box>
   )
 }

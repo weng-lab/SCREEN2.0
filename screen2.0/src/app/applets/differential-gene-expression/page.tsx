@@ -1,10 +1,9 @@
 "use client"
 import React, { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ReadonlyURLSearchParams, useSearchParams, usePathname } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { LoadingMessage, ErrorMessage, createLink } from "../../../common/lib/utility"
-import { client } from "../../search/ccredetails/client"
-
+import { client } from "../../search/_ccredetails/client"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import Divider from "@mui/material/Divider"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
@@ -28,7 +27,7 @@ import {
 
 import { useQuery } from "@apollo/client"
 import { GENE_SEARCH_QUERY, ZSCORE_QUERY } from "./queries"
-import GeneAutoComplete from "../gene-expression/gene-autocomplete"
+import GeneAutoComplete from "../gene-expression/geneautocomplete"
 import { CoordinateRangeField, TogglePCT, TogglePlot } from "./options"
 import { PlotDifferentialExpression, PlotGenes } from "./plot"
 import { cellTypeInfoArr } from "./types"
@@ -42,18 +41,17 @@ import { initialhighlight } from "./const"
  * Additionally, it plots the genes occupational coordinates and their strand.
  * @returns differential gene expression app
  */
-export default function DifferentialGeneExpression() {
-  const searchParams: ReadonlyURLSearchParams = useSearchParams()!
+export default function DifferentialGeneExpression({ searchParams }: { searchParams: { [key: string]: string | undefined } }) {
   const router = useRouter()
   const pathname = usePathname()
 
-  if (!searchParams.get("assembly")) router.replace(pathname + "?assembly=GRCh38&chromosome=chr11")
+  if (!searchParams.assembly) router.replace(pathname + "?assembly=GRCh38&chromosome=chr11")
 
   const [loading, setLoading] = useState<boolean>(true)
   const [open, setState] = useState<boolean>(true)
 
-  const [assembly, setAssembly] = useState<string>(searchParams.get("assembly") ? searchParams.get("assembly") : "GRCh38")
-  const [chromosome, setChromosome] = useState<string>(searchParams.get("chromosome") ? searchParams.get("chromosome") : "chr11")
+  const [assembly, setAssembly] = useState<string>(searchParams.assembly ?? "GRCh38")
+  const [chromosome, setChromosome] = useState<string>(searchParams.chromosome ?? "chr11")
   const [gene, setGene] = useState<gene>(null)
 
   const [ct1, setct1] = useState<string>("A172_ENCDO934VENA549_treated_with_0.02%_ethanol_for_1_hour_ENCDO000AAZ")
@@ -130,10 +128,11 @@ export default function DifferentialGeneExpression() {
     data: data_genes,
   } = useQuery(GENE_SEARCH_QUERY, {
     variables: {
-      assembly: assembly,
-      chromosome: chromosome,
+      assembly,
+      chromosome,
       start: slider.min,
       end: slider.max,
+      version: assembly.toLowerCase()==="grch38" ? 40 : 25
     },
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",

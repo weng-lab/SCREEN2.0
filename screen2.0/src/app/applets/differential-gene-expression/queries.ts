@@ -1,8 +1,8 @@
 import { gql } from "@apollo/client"
 
 export const GENE_SEARCH_QUERY = gql`
-  query ($assembly: String!, $chromosome: String, $start: Int, $end: Int, $limit: Int) {
-    gene(assembly: $assembly, chromosome: $chromosome, start: $start, end: $end, limit: $limit) {
+  query ($assembly: String!, $chromosome: String, $start: Int, $end: Int, $limit: Int, $version: Int) {
+    gene(assembly: $assembly, chromosome: $chromosome, start: $start, end: $end, limit: $limit, version: $version) {
       name
       id
       coordinates {
@@ -27,16 +27,16 @@ export const ZSCORE_QUERY = gql`
     $gene_all_end: Int
     $gene_pc_start: Int
     $gene_pc_end: Int
-    $rank_ctcf_end: Float!
-    $rank_ctcf_start: Float!
-    $rank_atac_end: Float!
-    $rank_atac_start: Float!
-    $rank_dnase_end: Float!
-    $rank_dnase_start: Float!
-    $rank_enhancer_end: Float!
-    $rank_enhancer_start: Float!
-    $rank_promoter_end: Float!
-    $rank_promoter_start: Float!
+    $rank_ctcf_end: Float
+    $rank_ctcf_start: Float
+    $rank_atac_end: Float
+    $rank_atac_start: Float
+    $rank_dnase_end: Float
+    $rank_dnase_start: Float
+    $rank_enhancer_end: Float
+    $rank_enhancer_start: Float
+    $rank_promoter_end: Float
+    $rank_promoter_start: Float
     $uuid: String
     $limit: Int
   ) {

@@ -1,34 +1,32 @@
 /**
  * Send the request to our Server from a server component
  */
-
+'use server'
 import { getClient } from "../lib/client"
-import { ApolloQueryResult, gql } from "@apollo/client"
-import Config from "../../config.json"
+import { ApolloQueryResult, TypedDocumentNode, gql } from "@apollo/client"
+import { RegistryBiosample } from "../../app/search/types"
 
 const cCRE_QUERY = gql`
   query ccreSearchQuery(
     $accessions: [String!]
     $assembly: String!
     $cellType: String
-    $coord_chrom: String
-    $coord_end: Int
-    $coord_start: Int
+    $coordinates: [GenomicRangeInput]
     $element_type: String
     $gene_all_start: Int
     $gene_all_end: Int
     $gene_pc_start: Int
     $gene_pc_end: Int
-    $rank_ctcf_end: Float!
-    $rank_ctcf_start: Float!
-    $rank_dnase_end: Float!
-    $rank_dnase_start: Float!
-    $rank_enhancer_end: Float!
-    $rank_enhancer_start: Float!
-    $rank_promoter_end: Float!
-    $rank_promoter_start: Float!
-    $rank_atac_end: Float!
-    $rank_atac_start: Float!
+    $rank_ctcf_end: Float
+    $rank_ctcf_start: Float
+    $rank_dnase_end: Float
+    $rank_dnase_start: Float
+    $rank_enhancer_end: Float
+    $rank_enhancer_start: Float
+    $rank_promoter_end: Float
+    $rank_promoter_start: Float
+    $rank_atac_end: Float
+    $rank_atac_start: Float
     $mammals_min: Float
     $mammals_max: Float
     $vertebrates_min: Float
@@ -44,9 +42,7 @@ const cCRE_QUERY = gql`
       assembly: $assembly
       accessions: $accessions
       cellType: $cellType
-      coord_chrom: $coord_chrom
-      coord_end: $coord_end
-      coord_start: $coord_start
+      coordinates: $coordinates
       element_type: $element_type
       gene_all_start: $gene_all_start
       gene_all_end: $gene_all_end
@@ -98,206 +94,49 @@ const cCRE_QUERY = gql`
         isproximal
         concordant
       }
-      genesallpc {
-        accession
-        all {
-          end
-          start
-          chromosome
-          assembly
-          intersecting_genes {
-            name
-          }
-        }
-        pc {
-          end
-          assembly
-          chromosome
-          start
-          intersecting_genes {
-            name
-          }
-        }
+      nearestgenes {
+        gene
+        distance
       }
     }
   }
 `
 
-function cCRE_QUERY_VARIABLES(assembly: string, chromosome: string, start: number, end: number, biosample: string, nearbygenesdistancethreshold: number, nearbygeneslimit: number, accessions: string[]) {
+function cCRE_QUERY_VARIABLES(assembly: string, coordinates: {chromosome: string, start: number, end: number}[], biosample: string, nearbygenesdistancethreshold: number, nearbygeneslimit: number, accessions: string[], noLimit?: boolean) {
   let vars = {
     uuid: null,
     assembly: assembly,
-    coord_chrom: chromosome,
-    coord_start: start,
-    coord_end: end,
     gene_all_start: 0,
     gene_all_end: 5000000,
     gene_pc_start: 0,
     gene_pc_end: 5000000,
     rank_dnase_start: -10,
-    rank_dnase_end: 10,
+    rank_dnase_end: 11,
     rank_atac_start: -10,
-    rank_atac_end: 10,
+    rank_atac_end: 11,
     rank_promoter_start: -10,
-    rank_promoter_end: 10,
+    rank_promoter_end: 11,
     rank_enhancer_start: -10,
-    rank_enhancer_end: 10,
+    rank_enhancer_end: 11,
     rank_ctcf_start: -10,
-    rank_ctcf_end: 10,
+    rank_ctcf_end: 11,
     cellType: biosample,
     element_type: null,
-    limit: 25000,
+    limit: noLimit ? null : 25000,
     nearbygenesdistancethreshold: nearbygenesdistancethreshold,
     nearbygeneslimit: nearbygeneslimit
   }
+  //Can't just null out accessions field if not using due to API functionality as of writing this, so push to vars only if using
   if (accessions) {
     vars["accessions"] = accessions
+  }
+  if (coordinates) {
+    vars["coordinates"] = coordinates
   }
 
   return vars
 }
 
-const BIOSAMPLE_QUERY = gql`
-  query biosamples {
-    human: ccREBiosampleQuery(assembly: "grch38") {
-      biosamples {
-        name
-        ontology
-        lifeStage
-        sampleType
-        displayname
-        dnase: experimentAccession(assay: "DNase")
-        h3k4me3: experimentAccession(assay: "H3K4me3")
-        h3k27ac: experimentAccession(assay: "H3K27ac")
-        ctcf: experimentAccession(assay: "CTCF")
-        dnase_signal: fileAccession(assay: "DNase")
-        h3k4me3_signal: fileAccession(assay: "H3K4me3")
-        h3k27ac_signal: fileAccession(assay: "H3K27ac")
-        ctcf_signal: fileAccession(assay: "CTCF")
-      }
-    }
-    mouse: ccREBiosampleQuery(assembly: "mm10") {
-      biosamples {
-        name
-        ontology
-        lifeStage
-        sampleType
-        displayname
-        dnase: experimentAccession(assay: "DNase")
-        h3k4me3: experimentAccession(assay: "H3K4me3")
-        h3k27ac: experimentAccession(assay: "H3K27ac")
-        ctcf: experimentAccession(assay: "CTCF")
-        dnase_signal: fileAccession(assay: "DNase")
-        h3k4me3_signal: fileAccession(assay: "H3K4me3")
-        h3k27ac_signal: fileAccession(assay: "H3K27ac")
-        ctcf_signal: fileAccession(assay: "CTCF")
-      }
-    }
-  }
-`
-
-const UMAP_QUERY = gql`
-  query q($assembly: String!, $assay: [String!], $a: String!) {
-    ccREBiosampleQuery(assay: $assay, assembly: $assembly) {
-      biosamples {
-        name
-        displayname
-        ontology
-        sampleType
-        lifeStage
-        umap_coordinates(assay: $a)
-        experimentAccession(assay: $a)
-      }
-    }
-  }
-`
-
-export const TOP_TISSUES = gql`
-  query q($accession: [String!], $assembly: String!) {
-    ccREBiosampleQuery(assembly: $assembly) {
-      biosamples {
-        sampleType
-        cCREZScores(accession: $accession) {
-          score
-          assay
-          experiment_accession
-        }
-        name
-        ontology
-      }
-    }
-    cCREQuery(assembly: $assembly, accession: $accession) {
-      accession
-      group
-      dnase: maxZ(assay: "DNase")
-      h3k4me3: maxZ(assay: "H3K4me3")
-      h3k27ac: maxZ(assay: "H3K27ac")
-      ctcf: maxZ(assay: "CTCF")
-    }
-  }
-`
-
-const LINKED_GENES_QUERY = gql`
-  query ($assembly: String!, $accession: [String]!) {
-    linkedGenesQuery(assembly: $assembly, accession: $accession) {
-      assay
-      accession
-      celltype
-      gene
-    }
-  }
-`
-
-const GENE_QUERY = gql`
-  query($assembly: String!, $name_prefix: [String!]) {
-    gene(assembly: $assembly, name_prefix: $name_prefix) {
-      name
-      id
-    }
-  }
-`
-
-export async function linkedGenesQuery(assembly: "GRCh38" | "mm10", accession: string[]) {
-  let returnData: { [key: string]: { genes: { geneName: string, linkedBy: "CTCF-ChIAPET" | "RNAPII-ChIAPET", biosample: string }[] } } = {}
-  let geneIDs: string[] = []
-  let linkedGenes: ApolloQueryResult<any>
-  let geneNames: ApolloQueryResult<any>
-  //Attempt first linked genes query
-  try {
-    linkedGenes = await getClient().query({
-      query: LINKED_GENES_QUERY,
-      variables: { assembly, accession },
-    })
-    linkedGenes.data.linkedGenesQuery.forEach((entry) => {
-      !geneIDs.includes(entry.gene.split(".")[0]) && geneIDs.push(entry.gene.split(".")[0])
-    })
-    //Attempt to lookup gene names
-    try {
-      geneNames = await getClient().query({
-        query: GENE_QUERY,
-        variables: { assembly: assembly, name_prefix: geneIDs },
-      })
-      //If both queries are successful, go through each of linkedGenes.data.linkedGenesQuery, find the accession and (if doesnt exist) add to linkedGenesData along with any gene names matching the ID in queryRes2
-      linkedGenes.data.linkedGenesQuery.forEach((entry) => {
-        // if returnData does not have an entry for that accession, and if there is a gene in query2 with an id that matches
-        if (geneNames.data && (!Object.hasOwn(returnData, entry.accession)) && (geneNames.data.gene.find((x) => x.id === entry.gene) !== undefined)) {
-          Object.defineProperty(returnData, entry.accession, { value: { genes: [{ geneName: geneNames.data.gene.find((x) => x.id === entry.gene).name, linkedBy: entry.assay, biosample: entry.celltype }] }, writable: true, enumerable: true, configurable: true })
-        }
-        // if returnData does already have a linked gene for that accession, add the linked gene to the existing data
-        else if (geneNames.data && (Object.hasOwn(returnData, entry.accession)) && (geneNames.data.gene.find((x) => x.id === entry.gene) !== undefined)) {
-          Object.defineProperty(returnData[entry.accession], "genes", { value: [...returnData[entry.accession].genes, { geneName: geneNames.data.gene.find((x) => x.id === entry.gene).name, linkedBy: entry.assay, biosample: entry.celltype }], writable: true, enumerable: true, configurable: true })
-        }
-      })
-    } catch (error) {
-      console.log("Gene Name Lookup Failed")
-      console.log(error)
-    }
-  } catch (error) {
-    console.log(error)
-  }
-  //for some reason, the formatting of the data (newlines) aren't consistent. Don't think this has any effect though
-  return returnData
-}
 
 /**
  *
@@ -311,64 +150,85 @@ export async function linkedGenesQuery(assembly: "GRCh38" | "mm10", accession: s
  * @param accessions a list of accessions to fetch information on. Set chromosome, start, end to "undefined" if using so they're set to null
  * @returns cCREs matching the search
  */
-export async function MainQuery(assembly: string = null, chromosome: string = null, start: number = null, end: number = null, biosample: string = null, nearbygenesdistancethreshold: number, nearbygeneslimit: number, accessions: string[] = null) {
-  console.log("queried with: " + assembly, chromosome, start, end, biosample + `${accessions ? "with accessions" : "no accessions"}`)
+export async function MainQuery(assembly: string = null, chromosome: string = null, start: number = null, end: number = null, biosample: string = null, nearbygenesdistancethreshold: number, nearbygeneslimit: number, accessions: string[] = null, noLimit?: boolean) {
+  console.log("queried with: " + assembly, chromosome, start, end, biosample + `${accessions ? " with accessions" : " no accessions"}`)
   let data: ApolloQueryResult<any>
   try {
     data = await getClient().query({
       query: cCRE_QUERY,
-      variables: cCRE_QUERY_VARIABLES(assembly, chromosome, start, end, biosample, nearbygenesdistancethreshold, nearbygeneslimit, accessions),
+      variables: cCRE_QUERY_VARIABLES(assembly, chromosome ? [{chromosome, start, end}] : null, biosample, nearbygenesdistancethreshold, nearbygeneslimit, accessions, noLimit),
+      //Telling it to not cache, next js caches also and for things that exceed the 2mb cache limit it slows down substantially for some reason
+      fetchPolicy: "no-cache",
     })
   } catch (error) {
+    console.log("error fetching main cCRE data")
     console.log(error)
-  } finally {
-    return data
+    throw error
   }
+  
+  return data
 }
+
+
+export type BIOSAMPLE_Data = {
+  human: { biosamples: RegistryBiosample[] },
+  mouse: {biosamples: RegistryBiosample[]}
+}
+
+const BIOSAMPLE_QUERY: TypedDocumentNode<BIOSAMPLE_Data> = gql`
+  query biosamples {
+    human: ccREBiosampleQuery(assembly: "grch38") {
+      biosamples {
+        name
+        ontology
+        lifeStage
+        sampleType
+        displayname
+        dnase: experimentAccession(assay: "DNase")
+        h3k4me3: experimentAccession(assay: "H3K4me3")
+        h3k27ac: experimentAccession(assay: "H3K27ac")
+        ctcf: experimentAccession(assay: "CTCF")
+        atac: experimentAccession(assay: "ATAC")
+        dnase_signal: fileAccession(assay: "DNase")
+        h3k4me3_signal: fileAccession(assay: "H3K4me3")
+        h3k27ac_signal: fileAccession(assay: "H3K27ac")
+        ctcf_signal: fileAccession(assay: "CTCF")
+        atac_signal: fileAccession(assay: "ATAC")
+      }
+    }
+    mouse: ccREBiosampleQuery(assembly: "mm10") {
+      biosamples {
+        name
+        ontology
+        lifeStage
+        sampleType
+        displayname
+        dnase: experimentAccession(assay: "DNase")
+        h3k4me3: experimentAccession(assay: "H3K4me3")
+        h3k27ac: experimentAccession(assay: "H3K27ac")
+        ctcf: experimentAccession(assay: "CTCF")
+        atac: experimentAccession(assay: "ATAC")
+        dnase_signal: fileAccession(assay: "DNase")
+        h3k4me3_signal: fileAccession(assay: "H3K4me3")
+        h3k27ac_signal: fileAccession(assay: "H3K27ac")
+        ctcf_signal: fileAccession(assay: "CTCF")
+        atac_signal: fileAccession(assay: "ATAC")
+      }
+    }
+  }
+`
 
 export async function biosampleQuery() {
-  var data: ApolloQueryResult<any> | -1
+  let returnData: ApolloQueryResult<BIOSAMPLE_Data>
   try {
-    data = await getClient().query({
+    const res = await getClient().query({
       query: BIOSAMPLE_QUERY,
     })
+    returnData = { data: res.data, loading: res.loading, networkStatus: res.networkStatus, error: res.error }
   } catch (error) {
     console.log(error)
   } finally {
-    return data
+    return returnData
   }
 }
 
-export async function UMAPQuery(assembly: "grch38" | "mm10", assay: "DNase" | "H3K4me3" | "H3K27ac" | "CTCF") {
-  var data: ApolloQueryResult<any> | -1
-  try {
-    data = await getClient().query({
-      query: UMAP_QUERY,
-      variables: {
-        assembly: assembly,
-        assay: assay,
-        a: assay.toLocaleLowerCase(),
-      },
-    })
-  } catch (error) {
-    console.log(error)
-    data = -1
-  } finally {
-    return data
-  }
-}
-
-/**
- *
- * @returns the shortened byCellType file from https://downloads.wenglab.org/databyct.json
- */
-export const getGlobals = async (assembly: "GRCh38" | "mm10") => {
-  // console.log(assembly)
-  let res: Response
-  if (assembly === "GRCh38") {
-    res = await fetch(Config.API.HumanGlobals)
-  } else if (assembly === "mm10") {
-    res = await fetch(Config.API.MouseGlobals)
-  }
-  return res.json()
-}

@@ -1,7 +1,10 @@
 import React from "react"
-import { Link, Alert, AlertTitle, CircularProgress, Typography, Popover, Popper } from "@mui/material"
+import { Link, Alert, AlertTitle, CircularProgress, Typography, TypographyPropsVariantOverrides, Stack } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { Snackbar, Box } from "@mui/material"
+import { OverridableStringUnion } from '@mui/types';
+import { Variant } from "@mui/material/styles/createTypography";
+import { Launch } from "@mui/icons-material";
 
 /**
  * Uses fetch to make a query call (server side)
@@ -41,18 +44,33 @@ export async function fetchServer<T>(url: string, jq: BodyInit) {
  * @param id string to be pasted at the end of the url
  * @returns link anchor to url + id
  */
-export const createLink = (url: string, id: string, label?: string) => {
+export const createLink = (url: string, id: string, label?: string, showExternalIcon?: boolean, variant?: OverridableStringUnion<Variant | 'inherit', TypographyPropsVariantOverrides>, textColor?: string) => {
   const link = url + id
   return (
-    <Link href={link} rel="noopener noreferrer" target="_blank">
-      {label ? <button>{label}</button> : <button>{id}</button>}
-      {/* <button>{id}</button> */}
-    </Link>
+    <Stack alignItems={"center"} direction="row" gap={0.5}>
+      <Link variant={variant} href={link} rel="noopener noreferrer" target="_blank" color={textColor}>
+        {label ? <button>{label}</button> : <button>{id}</button>}
+      </Link>
+      <Launch fontSize="inherit" /> 
+    </Stack>
   )
 }
 
+export const CreateLink: React.FC<{ linkPrefix: string, linkArg: string, label: string, showExternalIcon?: boolean, variant?: OverridableStringUnion<Variant | 'inherit', TypographyPropsVariantOverrides>, textColor?: string, underline?: "none" | "always" | "hover" }> = (props) => {
+  const link = props.linkPrefix + props.linkArg
+  return (
+    <>
+      <Link variant={props.variant} href={link} rel="noopener noreferrer" target="_blank" color={props.textColor} underline={props.underline}>
+        {props.label}
+        {props.showExternalIcon && <Launch sx={{ml: 0.5}} color="inherit" fontSize="inherit" />}
+      </Link>
+    </>
+  )
+}
+
+
 /**
- * Logs and returns loading message
+ * Returns loading wheel
  * @returns active loader
  */
 export function LoadingMessage() {
@@ -89,9 +107,54 @@ export function ErrorMessage(props: { error: Error }) {
       >
         <Alert severity="error" variant="filled">
           <AlertTitle>Error</AlertTitle>
-          There was an error loading. — <strong>{"Error"}</strong>
+          There was an error loading
         </Alert>
       </Snackbar>
     </Grid2>
+  )
+}
+
+/**
+ * 
+ * @param num Number to convert to Sci Notation
+ * @param sigFigs Number of desired significant figures
+ * @returns 
+ */
+export function toScientificNotationString(num: number, sigFigs: number = 2) {
+  // Convert the number to scientific notation using toExponential
+  let scientific = num.toExponential(sigFigs);
+  let [coefficient, exponent] = scientific.split('e');
+  
+  // Format the exponent part
+  let expSign = exponent[0];
+  exponent = exponent.slice(1);
+  
+  // Convert the exponent to a superscript string
+  let superscriptExponent = exponent
+    .split('')
+    .map(char => '⁰¹²³⁴⁵⁶⁷⁸⁹'[char] || char)
+    .join('');
+  
+  // Add the sign back to the exponent
+  superscriptExponent = (expSign === '-' ? '⁻' : '') + superscriptExponent;
+  
+  // Combine the coefficient with the superscript exponent
+  return coefficient + '×10' + superscriptExponent;
+}
+
+/**
+ * 
+ * @param num Number to convert to Sci Notation
+ * @param variant MUI Typography Variant to be used
+ * @param sigFigs Number of desired significant figures
+ * @returns 
+ */
+export function toScientificNotationElement(num: number, variant?: OverridableStringUnion<Variant | 'inherit', TypographyPropsVariantOverrides>, sigFigs: number = 2) {
+  // Convert the number to scientific notation using toExponential
+  let scientific = num.toExponential(sigFigs);
+  let [coefficient, exponent] = scientific.split('e');
+  
+  return (
+    <Typography variant={variant}>{coefficient}&nbsp;×&nbsp;10<sup>{exponent}</sup></Typography>
   )
 }
