@@ -5,9 +5,9 @@ import { MainSearch } from "./_mainsearch/mainsearch"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import homeImage from "../../public/homeImage.png"
 import Image from "next/image"
-import humanIcon from "../../public/humanDark.png"
-import mouseIcon from "../../public/mouseDark.png"
-import Link from 'next/link'
+import humanTransparentIcon from "../../public/Transparent_HumanIcon.png"
+import mouseTransparentIcon from "../../public/Transparent_MouseIcon.png"
+
 
 export default function Home() {
   return (
@@ -37,7 +37,7 @@ export default function Home() {
             <Typography p={1} border={"1px solid LightGray"} align="right">Cell/Tissue Types Covered</Typography>
             <Stack border={"1px solid LightGray"} direction="row" pl={1} >
               <Box position={"relative"} minWidth={"30px"}>
-                <Image style={{ objectFit: "contain" }} src={humanIcon} alt={""} fill />
+                <Image style={{ objectFit: "contain" }} src={humanTransparentIcon} alt={""} fill />
               </Box>
               <Typography p={1} align="left">Human (hg38)</Typography>
             </Stack>
@@ -45,7 +45,7 @@ export default function Home() {
             <Typography p={1} border={"1px solid LightGray"} align="right">1,888</Typography>
             <Stack border={"1px solid LightGray"} direction="row" pl={1} >
               <Box position={"relative"} minWidth={"30px"}>
-                <Image style={{ objectFit: "contain" }} src={mouseIcon} alt={""} fill />
+                <Image style={{ objectFit: "contain" }} src={mouseTransparentIcon} alt={""} fill />
               </Box>
               <Typography p={1} align="left">Mouse (mm10)</Typography>
             </Stack>
