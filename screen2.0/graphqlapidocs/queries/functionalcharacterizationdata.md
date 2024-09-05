@@ -38,10 +38,10 @@ query {
     strand
     log2fc
     experiment
-    barcode_location
-    __typename
+    barcode_location    
   }
 }
+
 ```
 
 
@@ -61,10 +61,10 @@ query {
     rna_rep2
     rna_rep3
     pvalue
-    experiment
-    __typename
+    experiment    
   }
 }
+
 ```
 
 Returns STARR-seq CAPRA Quantification (double fragments) for a single cCRE.
@@ -81,8 +81,7 @@ query  {
     rna_rep2
     rna_rep3
     pvalue
-    experiment
-    __typename
+    experiment    
   }
 }
 ```
