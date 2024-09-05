@@ -26,7 +26,6 @@ query {
 Returns all biosample-specific signals for a given cCRE.
 
 ```graphql
-
 query {
    ccREBiosampleQuery(assembly: "grch38") {
     biosamples {
@@ -41,7 +40,6 @@ query {
     }    
   }
 }
-
 ```
 
 

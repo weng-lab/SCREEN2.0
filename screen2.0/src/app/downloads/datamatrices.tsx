@@ -22,8 +22,8 @@ import { useQuery } from "@apollo/client"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { ArrowForward, Download, ExpandMore, Visibility } from "@mui/icons-material"
 import Image from "next/image"
-import Human from "../../../public/Human2.png"
-import Mouse from "../../../public/Mouse2.png"
+import humanTransparentIcon from "../../../public/Transparent_HumanIcon.png"
+import mouseTransparentIcon from "../../../public/Transparent_MouseIcon.png"
 import { Chart, Scatter, Annotation, Range2D } from "jubilant-carnival"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import Config from "../../config.json"
@@ -196,8 +196,6 @@ export function DataMatrices() {
     return [Object.keys(g).map((x) => ({ label: x, color: g[x], value: gc[x] })).sort((a,b) => b.value - a.value), Object.keys(g).length * 50]
   }, [colorBy, sampleTypeColors, ontologyColors, sampleTypeCounts, ontologyCounts])
 
-  console.log(fData)
-
   /**
    * Checks and reverses the order of coordinates provided by Jubilant Carnival selection if needed, then calls setBounds()
    * @param bounds a Range2D object to check
@@ -322,16 +320,18 @@ export function DataMatrices() {
     <div role="tabpanel" id={`simple-tabpanel-${2}`} aria-labelledby={`simple-tab-${2}`}>
       <Grid2 container spacing={3} columnSpacing={5}>
         <Grid2 container justifyContent="flex-start" alignContent="flex-start" spacing={2} xs={2.5}>
-          <Grid2 xs={8}>
-            <Typography mt="auto" variant="h5">
-              Human
-            </Typography>
-            <Divider />
-            <Typography variant="subtitle2">2,348,854 cCREs</Typography>
-            <Typography variant="subtitle2">1,678 cell types</Typography>
-          </Grid2>
-          <Grid2 xs={4}>
-            <Image src={Human} alt={"Human Icon"} width={50} />
+          <Grid2 xs={12}>
+            <Stack direction={"row"} justifyContent={"space-between"}>
+              <div>
+                <Typography mt="auto" variant="h5">
+                  Human
+                </Typography>
+                <Divider />
+                <Typography variant="subtitle2">2,348,854 cCREs</Typography>
+                <Typography variant="subtitle2">1,678 cell types</Typography>
+              </div>
+              <Image src={humanTransparentIcon} alt={"Human Icon"} style={{maxWidth: '75px', maxHeight: '75px'}} />
+            </Stack>
           </Grid2>
           <Grid2 xs={12}>
             {selectorButton({ assembly: "Human", assay: "DNase" })}
@@ -339,14 +339,18 @@ export function DataMatrices() {
             {selectorButton({ assembly: "Human", assay: "H3K27ac" })}
             {selectorButton({ assembly: "Human", assay: "CTCF" })}
           </Grid2>
-          <Grid2 xs={8}>
-            <Typography variant="h5">Mouse</Typography>
-            <Divider />
-            <Typography variant="subtitle2">926,843 cCREs</Typography>
-            <Typography variant="subtitle2">366 cell types</Typography>
-          </Grid2>
-          <Grid2 xs={4}>
-            <Image src={Mouse} alt={"Mouse Icon"} width={50} />
+          <Grid2 xs={12}>
+            <Stack direction={"row"} justifyContent={"space-between"}>
+              <div>
+                <Typography mt="auto" variant="h5">
+                  Mouse
+                </Typography>
+                <Divider />
+                <Typography variant="subtitle2">926,843 cCREs</Typography>
+                <Typography variant="subtitle2">366 cell types</Typography>
+              </div>
+              <Image src={mouseTransparentIcon} alt={"Mouse Icon"} style={{maxWidth: '75px', maxHeight: '75px'}} />
+            </Stack>
           </Grid2>
           <Grid2 xs={12}>
             {selectorButton({ assembly: "Mouse", assay: "DNase" })}

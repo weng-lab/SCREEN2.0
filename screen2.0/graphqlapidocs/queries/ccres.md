@@ -22,7 +22,6 @@ query  {
       promoter_zscore          
     }
   }
-
 ```
 
 ## Query cCREs by max epigenetic signal
@@ -49,7 +48,6 @@ query  {
       promoter_zscore          
     }
   }
-
 ```
 
 ## Query cCREs by biosample-specific epigenetic signal
