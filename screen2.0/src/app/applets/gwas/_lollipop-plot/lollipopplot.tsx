@@ -383,39 +383,45 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
 
   return (
     <Stack direction={"column"} spacing={2} width={props.width}>
-      <Stack direction={"row"} flexWrap={"wrap"} gap={2} alignItems={"center"} m={2}>
-        <FormControl>
-          <InputLabel>Search</InputLabel>
-          <OutlinedInput endAdornment={search ? <IconButton onClick={() => setSearch("")}><Close/></IconButton> : <Search />} label="Search" value={search} onChange={handleSetSearch} />
-        </FormControl>
-        <Button size='large' variant='outlined' endIcon={<Download />} sx={{textTransform: 'none'}} onClick={() => setDownloadOpen(true)}>
-          Download
-        </Button>
-        <FormControl>
-          <FormLabel>Sort By</FormLabel>
-          <RadioGroup row value={sortBy} onChange={handleSortBy}>
-            <FormControlLabel value="foldEnrichment" control={<Radio />} label={<>Log<sub>2</sub>(Fold Change)</>} />
-            <FormControlLabel value="FDR" control={<Radio />} label={"FDR"} />
-          </RadioGroup>
-        </FormControl>
-        <FormControl>
-          <FormLabel>FDR Threshold</FormLabel>
-          <FormGroup>
-            <FormControlLabel control={<Checkbox />} checked={FDRcutoff} onChange={handleFDRcutoff} label={'FDR < 0.05'} />
-          </FormGroup>
-        </FormControl>
-        <FormControl>
-          <FormLabel><i>P</i>-val Threshold</FormLabel>
-          <FormGroup>
-            <FormControlLabel control={<Checkbox />} checked={pvalCutoff} onChange={handlePvalcutoff} label={<><i>P</i>{" < 0.05"}</>} />
-          </FormGroup>
-        </FormControl>
-        <FormControl>
-          <FormLabel>Grouping</FormLabel>
-          <FormGroup>
-            <FormControlLabel control={<Checkbox />} checked={groupTissues} onChange={handleGroupTissues} label={'Group Tissues'} />
-          </FormGroup>
-        </FormControl>
+      <Stack direction={"row"} justifyContent={"space-between"} alignItems={"flex-start"}>
+        <Stack direction={"row"} flexWrap={"wrap"} columnGap={2} rowGap={1} alignItems={"center"}>
+          <FormControl>
+            <FormLabel>Sort By</FormLabel>
+            <RadioGroup row value={sortBy} onChange={handleSortBy}>
+              <FormControlLabel value="foldEnrichment" control={<Radio size='small' sx={{py: 0}} />} label={<>Log<sub>2</sub>(Fold Change)</>} />
+              <FormControlLabel value="FDR" control={<Radio size='small' />} label={"FDR"} />
+            </RadioGroup>
+          </FormControl>
+          <FormControl>
+            <FormLabel>FDR Threshold</FormLabel>
+            <FormGroup>
+              <FormControlLabel control={<Checkbox size='small' />} checked={FDRcutoff} onChange={handleFDRcutoff} label={'FDR < 0.05'} />
+            </FormGroup>
+          </FormControl>
+          <FormControl>
+            <FormLabel><i>P</i>-val Threshold</FormLabel>
+            <FormGroup>
+              <FormControlLabel control={<Checkbox size='small' />} checked={pvalCutoff} onChange={handlePvalcutoff} label={<><i>P</i>{" < 0.05"}</>} />
+            </FormGroup>
+          </FormControl>
+          <FormControl>
+            <FormLabel>Grouping</FormLabel>
+            <FormGroup>
+              <FormControlLabel control={<Checkbox size='small' />} checked={groupTissues} onChange={handleGroupTissues} label={'Group Tissues'} />
+            </FormGroup>
+          </FormControl>
+        </Stack>
+        <Stack direction={"row"} gap={3} alignItems={"center"}>
+          <Tooltip title="Select from PNG, SVG, TSV, and JSON">
+            <Button variant="outlined" endIcon={<Download />} sx={{ textTransform: 'none', height: 40, flexShrink: 0 }} onClick={() => setDownloadOpen(true)}>
+              Download
+            </Button>
+          </Tooltip>
+          <FormControl sx={{minWidth: 150}}>
+            <InputLabel size='small'>Search</InputLabel>
+            <OutlinedInput size='small' endAdornment={search ? <IconButton onClick={() => setSearch("")}><Close/></IconButton> : <Search />} label="Search" value={search} onChange={handleSetSearch} />
+          </FormControl>
+        </Stack>
       </Stack>
       {plotData.ungrouped.length < 1 ?
         <Typography m={2}>No Data to Display</Typography>
