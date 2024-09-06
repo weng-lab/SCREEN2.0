@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="Nishigandha Phalke" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>cCRE details - SCREEN GraphQL API</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "cCRE details";
+        var mkdocs_page_input_path = "queries/ccredetails.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SCREEN GraphQL API
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../getting_started/command_line/">Command-line</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../getting_started/python/">Python</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../getting_started/javascript/">Javascript</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Queries</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../ccres/">Searching cCREs</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">cCRE details</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#query-a-max-z-scores-of-a-ccre">Query a max Z scores of a cCRE</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#get-biosample-specific-epigenetic-signals">Get biosample-specific epigenetic signals</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#get-nearby-genomic-features">Get nearby genomic features</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#get-orthologous-ccres-in-another-assembly">Get orthologous cCREs in another assembly</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#get-linked-genes">Get linked genes</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#get-entex-data-for-given-ccre">Get ENTEx data for given cCRE</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#get-entex-active-annotations-for-given-ccre-genomic-region">Get ENTEx Active Annotations for given cCRE genomic region</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../geneexpression/">Gene expression</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../gwas/">GWAS</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SCREEN GraphQL API</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Queries</li>
+      <li class="breadcrumb-item active">cCRE details</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="https://github.com/weng-lab/SCREEN2.0/edit/master/docs/queries/ccredetails.md">Edit on SCREEN2.0</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="getting-ccre-details">Getting cCRE details</h1>
+<h2 id="query-a-max-z-scores-of-a-ccre">Query a max Z scores of a cCRE</h2>
+<p>Returns a cell type agnostic max Z scores of a cCRE </p>
+<pre><code class="language-graphql">
+query {
+  cCREQuery(assembly: &quot;grch38&quot;, accession: &quot;EH38E2941922&quot;) {
+    accession
+    group
+    dnase: maxZ(assay: &quot;DNase&quot;)
+    h3k4me3: maxZ(assay: &quot;H3K4me3&quot;)
+    h3k27ac: maxZ(assay: &quot;H3K27ac&quot;)
+    ctcf: maxZ(assay: &quot;CTCF&quot;)
+    atac: maxZ(assay: &quot;ATAC&quot;)
+
+  }
+}
+
+</code></pre>
+<h2 id="get-biosample-specific-epigenetic-signals">Get biosample-specific epigenetic signals</h2>
+<p>Returns all biosample-specific signals for a given cCRE.</p>
+<pre><code class="language-graphql">query {
+   ccREBiosampleQuery(assembly: &quot;grch38&quot;) {
+    biosamples {
+      sampleType
+      cCREZScores(accession: &quot;EH38E2941922&quot;) {
+        score
+        assay
+        experiment_accession        
+      }
+      name
+      ontology      
+    }    
+  }
+}
+</code></pre>
+<h2 id="get-nearby-genomic-features">Get nearby genomic features</h2>
+<p>Returns nearby genomic features (genes, cCRES and SNPs)  for a single cCRE (based on genomic region).</p>
+<pre><code class="language-graphql">
+query {
+  gene(chromosome: &quot;chr11&quot;, start: 4291251, end: 6291587, assembly: &quot;grch38&quot;) {
+    name
+    id
+    strand
+    coordinates {
+      chromosome
+      start
+      end
+    }
+     transcripts {
+        id
+        coordinates {
+          chromosome
+          start
+          end
+        }
+      }
+  }
+  cCREQuery(assembly: &quot;grch38&quot;, coordinates:  { chromosome:&quot;chr11&quot;, start:4291251,end:6291587 }) {
+    accession
+    coordinates {
+      chromosome
+      start
+      end
+    }
+    group
+  }
+  snpQuery(coordinates: { chromosome:&quot;chr11&quot;, start:4291251, end:6291587 }, assembly: &quot;hg38&quot;, common: true) {
+    id
+    coordinates {
+      chromosome
+      start
+      end
+    }
+  }
+}
+</code></pre>
+<h2 id="get-orthologous-ccres-in-another-assembly">Get orthologous cCREs in another assembly</h2>
+<p>Returns orthogolous cCREs in mm10 for a given grch38 cCRE or vice versa.</p>
+<pre><code class="language-graphql">
+query  {
+  orthologQuery(accession: &quot;EH38E2941922&quot;, assembly: &quot;grch38&quot;) {
+    assembly
+    accession
+    ortholog {
+      stop
+      start
+      chromosome
+      accession      
+    }    
+  }
+}
+
+</code></pre>
+<h2 id="get-linked-genes">Get linked genes</h2>
+<p>Returns linked genes for a cCRE by various methods like Intact-HiC, CRISPR, eQTLs, RNAPII-ChIAPET and CTCF-ChIAPET.</p>
+<pre><code class="language-graphql">
+query {
+  linkedGenesQuery(assembly: &quot;grch38&quot;, accession: [&quot;EH38E1516972&quot;]) {
+      accession  
+      p_val
+      gene
+      geneid
+      genetype
+      method
+      grnaid
+      effectsize
+      assay
+      celltype
+      experiment_accession
+      tissue
+      variantid
+      source
+      slope
+      score
+      displayname
+    }
+}
+</code></pre>
+<h2 id="get-entex-data-for-given-ccre">Get ENTEx data for given cCRE</h2>
+<p>Returns ENTEx data for input accession</p>
+<pre><code class="language-graphql">
+query {
+  entexQuery(accession: &quot;EH38E1310345&quot;){
+    assay
+    accession
+    hap1_count
+    hap2_count
+    hap1_allele_ratio
+    p_betabinom
+    experiment_accession
+    tissue
+    donor    
+    imbalance_significance
+  }
+}
+
+</code></pre>
+<h2 id="get-entex-active-annotations-for-given-ccre-genomic-region">Get ENTEx Active Annotations for given cCRE genomic region</h2>
+<p>Returns ENTEx active tissues and supoorting assays for input accession genomic coordinates</p>
+<pre><code class="language-graphql">
+query {
+    entexActiveAnnotationsQuery(coordinates:  { chromosome: &quot;chr1&quot;, start: 1000068, end: 1000409 }) {
+        tissue
+        assay_score
+    }
+}
+
+</code></pre>
+<h1 id="try-it-out">Try it out</h1>
+<p>What query would you use to get the max H3K27ac Z-score for nearby cCREs for <code>EH38E2941922</code>?</p>
+<details>
+<summary>See answer</summary>
+
+
+<pre><code class="language-graphql">query {
+  cCREQuery(assembly: &quot;GRCh38&quot;, accession: &quot;EH38E2941922&quot;) {
+    accession
+    group
+    h3k27ac: maxZ(assay: &quot;H3K27ac&quot;)    
+  }
+}
+</code></pre>
+
+</details>
+
+<p><br /></p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../ccres/" class="btn btn-neutral float-left" title="Searching cCREs"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../geneexpression/" class="btn btn-neutral float-right" title="Gene expression">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2024 Weng Lab</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/weng-lab/SCREEN2.0" class="fa fa-code-fork" style="color: #fcfcfc"> SCREEN2.0</a>
+        </span>
+    
+    
+      <span><a href="../ccres/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../geneexpression/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
