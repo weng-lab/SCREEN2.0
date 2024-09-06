@@ -7,8 +7,10 @@ import { AxisBottom } from '@visx/axis'
 import { Text } from '@visx/text'
 import { defaultStyles as defaultTooltipStyles, useTooltip, TooltipWithBounds, Portal } from '@visx/tooltip';
 import { Button, Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, IconButton, InputLabel, OutlinedInput, Radio, RadioGroup, Stack, Tooltip, Typography } from '@mui/material';
-import { Download, KeyboardDoubleArrowUp, Search } from '@mui/icons-material';
+import { Close, Download, KeyboardDoubleArrowUp, Search } from '@mui/icons-material';
 import { localPoint } from '@visx/event';
+import DownloadDialog, { FileOption } from './DownloadDialog';
+import { downloadObjArrayAsTSV, downloadObjectAsJson, downloadSVG, downloadSvgAsPng } from '../helpers';
 
 export type EnrichmentLollipopPlot = {
   /**
@@ -23,6 +25,10 @@ export type EnrichmentLollipopPlot = {
    * Total height of bounding paper element
    */
   height: number
+  /**
+   * Used as file prefix in downloaded file and appended to top of downloads
+   */
+  title?: string
   /**
    * Fired on the click of text or bar of a sample
    */
@@ -48,51 +54,16 @@ export type TransformedEnrichmentData = RawEnrichmentData & {
 const minFDRval: number = 1e-300
 const FCaugmentation: number = 0.000001
 
-/**
- * 
- * @param ref 
- * @param filename 
- * @info If you're importing this function, move this to a helper file!
- */
-export const downloadSVG = (ref: React.MutableRefObject<SVGSVGElement>, filename: string) => {
-  const serializer = new XMLSerializer();
-  const source = serializer.serializeToString(ref.current);
-  const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'plot.svg';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
 export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
   const [sortBy, setSortBy] = useState<"FDR" | "foldEnrichment">("foldEnrichment")
   const [FDRcutoff, setFDRcutoff] = useState<boolean>(false)
   const [pvalCutoff, setPvalCutoff] = useState<boolean>(false)
   const [groupTissues, setGroupTissues] = useState<boolean>(true)
   const [search, setSearch] = useState<string>("")
+  const [downloadOpen, setDownloadOpen] = useState(false)
 
-  const handleSortBy = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSortBy((event.target as HTMLInputElement).value as "FDR" | "foldEnrichment");
-  };
-
-  const handleFDRcutoff = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFDRcutoff(event.target.checked);
-  };
-
-  const handlePvalcutoff = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setPvalCutoff(event.target.checked);
-  };
-
-  const handleGroupTissues = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setGroupTissues(event.target.checked);
-  };
-
-  const handleSetSearch = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setSearch(event.target.value)
-  };
+  const { tooltipOpen, tooltipLeft, tooltipTop, tooltipData, hideTooltip, showTooltip } = useTooltip<TransformedEnrichmentData>();
+  const hiddenSVGRef = useRef(null)
 
   const sampleMatchesSearch = useCallback((x: RawEnrichmentData) => {
     if (search) {
@@ -106,8 +77,8 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
   /**
    * Filtered, log transformed, and sorted enrichment data. Includes grouped and ungrouped data
    */
-  const plotData: { grouped: { [key: string]: TransformedEnrichmentData[] } } & { ungrouped: TransformedEnrichmentData[] } = useMemo(() => {
-    const data: { grouped: { [key: string]: TransformedEnrichmentData[] } } & { ungrouped: TransformedEnrichmentData[] } = { grouped: {}, ungrouped: [] }
+  const plotData: { grouped: { [key: string]: TransformedEnrichmentData[] }, ungrouped: TransformedEnrichmentData[] } = useMemo(() => {
+    const data: { grouped: { [key: string]: TransformedEnrichmentData[] }, ungrouped: TransformedEnrichmentData[] } = { grouped: {}, ungrouped: [] }
 
     props.data.forEach((x: RawEnrichmentData) => {
       const transformedData: TransformedEnrichmentData = {
@@ -142,8 +113,51 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
     return data
   }, [FDRcutoff, pvalCutoff, props.data, sortBy, sampleMatchesSearch])
 
-  const { tooltipOpen, tooltipLeft, tooltipTop, tooltipData, hideTooltip, showTooltip } = useTooltip<TransformedEnrichmentData>();
 
+
+  const handleDownload = useCallback((selectedOptions: FileOption[]) => {
+    selectedOptions.includes('svg') && downloadSVG(hiddenSVGRef, props.title ?? "plot")
+    selectedOptions.includes('png') && downloadSvgAsPng(hiddenSVGRef, props.title ?? "plot")
+    selectedOptions.includes('json') && downloadObjectAsJson(groupTissues ? plotData.grouped : {data: plotData.ungrouped}, props.title ?? "plot")
+
+    //map for making the tsv download cleaner
+    const downloadMap = (x: TransformedEnrichmentData) => {
+      const y = {
+        biosample: x.celltype,
+        accession: x.accession,
+        tissue: x.ontology,
+        displayname: x.displayname,
+        fc: x.fc,
+        log2fc: x.log2fc,
+        fdr: x.fdr,
+        pvalue: x.pvalue,
+      }
+      return y
+    }
+
+    selectedOptions.includes('tsv') && downloadObjArrayAsTSV(groupTissues ? Object.values(plotData.grouped).flat().map(downloadMap) : plotData.ungrouped.map(downloadMap), props.title ?? "plot")
+
+  }, [groupTissues, plotData.grouped, plotData.ungrouped, props.title]) 
+
+  const handleSortBy = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSortBy((event.target as HTMLInputElement).value as "FDR" | "foldEnrichment");
+  };
+
+  const handleFDRcutoff = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFDRcutoff(event.target.checked);
+  };
+
+  const handlePvalcutoff = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setPvalCutoff(event.target.checked);
+  };
+
+  const handleGroupTissues = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setGroupTissues(event.target.checked);
+  };
+
+  const handleSetSearch = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setSearch(event.target.value)
+  };
 
   const paddingRightOfMaxVal = props.width * 0.10
   const spaceForCellNames = 200
@@ -367,24 +381,20 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
     )
   }, [dataPoint, groupTissues, plotData.grouped, plotData.ungrouped, xMax, xMin, yScale])
 
-  const hiddenSVGRef = useRef(null)
-
   return (
     <Stack direction={"column"} spacing={2} width={props.width}>
       <Stack direction={"row"} flexWrap={"wrap"} gap={2} alignItems={"center"} m={2}>
         <FormControl>
           <InputLabel>Search</InputLabel>
-          <OutlinedInput endAdornment={<Search />} label="Search" value={search} onChange={handleSetSearch} />
+          <OutlinedInput endAdornment={search ? <IconButton onClick={() => setSearch("")}><Close/></IconButton> : <Search />} label="Search" value={search} onChange={handleSetSearch} />
         </FormControl>
-        <Tooltip title="Download SVG">
-          <IconButton size='large' onClick={() => downloadSVG(hiddenSVGRef, "test.svg")}>
-            <Download fontSize='inherit' />
-          </IconButton>
-        </Tooltip>
+        <Button size='large' variant='outlined' endIcon={<Download />} sx={{textTransform: 'none'}} onClick={() => setDownloadOpen(true)}>
+          Download
+        </Button>
         <FormControl>
           <FormLabel>Sort By</FormLabel>
           <RadioGroup row value={sortBy} onChange={handleSortBy}>
-            <FormControlLabel value="foldEnrichment" control={<Radio />} label={<>Log<sub>2</sub>(Fold Enrichment)</>} />
+            <FormControlLabel value="foldEnrichment" control={<Radio />} label={<>Log<sub>2</sub>(Fold Change)</>} />
             <FormControlLabel value="FDR" control={<Radio />} label={"FDR"} />
           </RadioGroup>
         </FormControl>
@@ -395,7 +405,7 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
           </FormGroup>
         </FormControl>
         <FormControl>
-          <FormLabel><i>P</i>-value Threshold</FormLabel>
+          <FormLabel><i>P</i>-val Threshold</FormLabel>
           <FormGroup>
             <FormControlLabel control={<Checkbox />} checked={pvalCutoff} onChange={handlePvalcutoff} label={<><i>P</i>{" < 0.05"}</>} />
           </FormGroup>
@@ -473,14 +483,22 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
           </TooltipWithBounds>
         </Portal>
       )}
+      <DownloadDialog
+        open={downloadOpen}
+        onClose={() => setDownloadOpen(false)}
+        onSubmit={handleDownload}
+      />
       <div style={{ display: 'none' }}>
         {/* svg that gets downloaded */}
-        <svg ref={hiddenSVGRef} id="downloadable-suggestions-plot" width={props.width - (2 * innerPaddingX) + 64} height={yMax + (2 * innerPaddingY) + spaceForBottomAxis}>
-          {MainPlotData}
-          <line stroke='black' x1={xMin + xScale(0)} y1={0} x2={xMin + xScale(0)} y2={yMax + (2 * innerPaddingY)} />
-          <AxisBottom left={xMin} top={yMax + (2 * innerPaddingY)} scale={xScale} label='Log2(Fold Enrichment)' />
-          <Group transform={`translate(${props.width - (2 * innerPaddingX) - 15}, ${yMax + (2 * innerPaddingY) + spaceForBottomAxis - 150})`}>
-            <Legend />
+        <svg ref={hiddenSVGRef} id="downloadable-suggestions-plot" width={props.width - (2 * innerPaddingX) + 64} height={yMax + (2 * innerPaddingY) + spaceForBottomAxis + 50}>
+          <rect fill='white' width={props.width - (2 * innerPaddingX) + 64} height={yMax + (2 * innerPaddingY) + spaceForBottomAxis + 50}/>
+          <Group transform='translate(0, 50)'>
+            {MainPlotData}
+            <line stroke='black' x1={xMin + xScale(0)} y1={0} x2={xMin + xScale(0)} y2={yMax + (2 * innerPaddingY)} />
+            <AxisBottom left={xMin} top={yMax + (2 * innerPaddingY)} scale={xScale} label='Log2(Fold Enrichment)' />
+            <Group transform={`translate(${props.width - (2 * innerPaddingX) - 15}, ${yMax + (2 * innerPaddingY) + spaceForBottomAxis - 150})`}>
+              <Legend />
+            </Group>
           </Group>
         </svg>
       </div>

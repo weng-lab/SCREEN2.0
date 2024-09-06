@@ -1,5 +1,5 @@
 "use client"
-import { Accordion, AccordionDetails, AccordionSummary, Button, FormControl, FormLabel, Paper, Stack, ToggleButton, ToggleButtonGroup, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { Accordion, AccordionDetails, AccordionSummary, Box, Button, FormControl, FormLabel, IconButton, Paper, Stack, ToggleButton, ToggleButtonGroup, Typography, useMediaQuery, useTheme } from "@mui/material"
 
 import React, { useState, useEffect, useTransition, useMemo } from "react"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
@@ -14,12 +14,12 @@ import { ApolloQueryResult } from "@apollo/client"
 import { BIOSAMPLE_Data, biosampleQuery } from "../../../common/lib/queries"
 import BiosampleTables2 from "./biosampletables2"
 import { RegistryBiosample, RegistryBiosamplePlusRNA } from "../../search/types"
-import testData from "./gwastestdata.json"
-import { EnrichmentLollipopPlot, RawEnrichmentData, TransformedEnrichmentData } from "./lollipopplot"
+import { EnrichmentLollipopPlot, RawEnrichmentData, TransformedEnrichmentData } from "./_lollipop-plot/lollipopplot"
 import { ParentSize } from "@visx/responsive"
 import { ParentSizeProvidedProps } from "@visx/responsive/lib/components/ParentSize"
 import { BiosampleNameData, BiosampleNameVars, EnrichmentData, EnrichmentVars } from "./types"
 import { tissueColors } from "../../../common/lib/colors"
+import { Close } from "@mui/icons-material"
 
 //Background colors for the accordions
 const lightBlue = "#5F8ED3"
@@ -27,7 +27,8 @@ const darkBlue = "#2C5BA0"
 const extraLightBlue = "#E7EEF8"
 const orange = "#F1884D"
 const lightOrange = "#FDEFE7 !important"
-const grey = "#F2F2F7"
+const lightGrey = "#EAE9E9"
+const grey = "#B6B6B6"
 const background = "#F9F9F9"
 const lightTextColor = "#FFFFFF"
 
@@ -63,16 +64,31 @@ export default function GWAS() {
   const [isPending, startTransition] = useTransition();
   const [biosampleData, setBiosampleData] = useState<ApolloQueryResult<BIOSAMPLE_Data>>(null)
 
-  const theme = useTheme()
-  const isLg = useMediaQuery(theme.breakpoints.up('lg'))
+  const [suggestionsOpen, setSuggestionsOpen] = useState<boolean>(false)
 
+  const handleSetSuggestionsOpen = (event: React.SyntheticEvent, isExpanded: boolean) => {
+    setSuggestionsOpen(isExpanded);
+  };
+
+  const handleSetStudy = (newStudy: GWASStudy) => {
+    if (newStudy) {
+      setSuggestionsOpen(true)
+    } else {
+      setSuggestionsOpen(false)
+    }
+    setStudy(newStudy)
+  }
+  
   const handleSetSelectedSample = (selected: RegistryBiosamplePlusRNA) => {
     setSelectedSample({ name: selected.name, displayname: selected.displayname })
   }
-
+  
   const handlePlotSelection = (selected: TransformedEnrichmentData) => {
     setSelectedSample({ name: selected.celltype, displayname: selected.displayname })
   }
+  
+  const theme = useTheme()
+  const isLg = useMediaQuery(theme.breakpoints.up('lg'))
 
   useEffect(() => {
     startTransition(async () => {
@@ -207,7 +223,6 @@ export default function GWAS() {
       return uniqueAccessions.map((x, i) => {
         const snpInfo = cCREsIntersectionData.find(y => y.accession === x)
         const cCREInfo = cCREDetails.cCRESCREENSearch.find(y => y.info.accession === x)
-        i === 0 && console.log(cCREInfo)
         return {
           accession: x,
           ...snpInfo,
@@ -270,32 +285,44 @@ export default function GWAS() {
 
   const StudySelection = () => {
     return gwasstudiesLoading ? LoadingMessage() : gwasstudies && gwasstudies.getAllGwasStudies.length > 0 &&
-      <div>
+      <div id="study-selection">
         <Accordion defaultExpanded>
           <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: lightBlue, color: lightTextColor, borderRadius: '4px' }}>
-            Select a GWAS Study
+            GWAS Studies
           </AccordionSummary>
           <AccordionDetails>
-            <DataTable
-              tableTitle="GWAS Studies"
-              rows={gwasstudies.getAllGwasStudies}
-              columns={[
-                {
-                  header: "Study", value: (row) => {
-                    return row.studyname
-                  }
-                },
-                { header: "Author", value: (row) => row.author },
-                { header: "Pubmed", value: (row) => row.pubmedid, render: (row: any) => createLink("https://pubmed.ncbi.nlm.nih.gov/", row.pubmedid) },
-              ]}
-              onRowClick={(row: any) => {
-                setStudy(row)
-                setSelectedSample(null)
-              }}
-              sortDescending={true}
-              itemsPerPage={10}
-              searchable={true}
-            />
+            {study ?
+              <Stack direction={"row"} gap={2} alignItems={"center"} justifyContent={"space-between"}>
+                <Typography>{study.studyname}</Typography>
+                <Typography>{study.author}</Typography>
+                <Box flexGrow={1}>
+                  <IconButton onClick={() => handleSetStudy(null)}>
+                    <Close />
+                  </IconButton>
+                </Box>
+              </Stack>
+              :
+              <DataTable
+                tableTitle="GWAS Studies"
+                rows={gwasstudies.getAllGwasStudies}
+                columns={[
+                  {
+                    header: "Study", value: (row) => {
+                      return row.studyname
+                    }
+                  },
+                  { header: "Author", value: (row) => row.author.replaceAll("_", " ") },
+                  { header: "Pubmed", value: (row) => row.pubmedid, render: (row: any) => createLink("https://pubmed.ncbi.nlm.nih.gov/", row.pubmedid) },
+                ]}
+                onRowClick={(row: any) => {
+                  handleSetStudy(row)
+                  setSelectedSample(null)
+                }}
+                sortDescending={true}
+                itemsPerPage={10}
+                searchable={true}
+              />
+            }
           </AccordionDetails>
         </Accordion>
       </div>
@@ -340,18 +367,22 @@ export default function GWAS() {
             LD Blocks
           </AccordionSummary>
           <AccordionDetails>
-            {cCREIntersectionsLoading ?
-              <CircularProgress /> :
-              <DataTable
-                rows={[{ totalLDblocks: study.totalldblocks, overlappingldblocks: Math.ceil((overlappingLdBlocks.length / +study.totalldblocks) * 100), numCresOverlap: uniqueAccessions.length }]}
-                columns={[
-                  { header: "Total LD blocks", value: (row: any) => row.totalLDblocks },
-                  { header: "# of LD blocks overlapping cCREs", value: (row: any) => overlappingLdBlocks.length + " (" + row.overlappingldblocks + "%)" },
-                  { header: "# of overlapping cCREs", value: (row: any) => row.numCresOverlap },
-                ]}
-                sortDescending={true}
-                hidePageMenu={true}
-              />}
+            {study ?
+              cCREIntersectionsLoading ?
+                <CircularProgress /> :
+                <DataTable
+                  rows={[{ totalLDblocks: study.totalldblocks, overlappingldblocks: Math.ceil((overlappingLdBlocks.length / +study.totalldblocks) * 100), numCresOverlap: uniqueAccessions.length }]}
+                  columns={[
+                    { header: "Total LD blocks", value: (row: any) => row.totalLDblocks },
+                    { header: "# of LD blocks overlapping cCREs", value: (row: any) => overlappingLdBlocks.length + " (" + row.overlappingldblocks + "%)" },
+                    { header: "# of overlapping cCREs", value: (row: any) => row.numCresOverlap },
+                  ]}
+                  sortDescending={true}
+                  hidePageMenu={true}
+                />
+              :
+              <Typography>Select a Study on the Left</Typography>
+            }
           </AccordionDetails>
         </Accordion>
       </div>
@@ -366,19 +397,22 @@ export default function GWAS() {
             Intersecting cCREs
           </AccordionSummary>
           <AccordionDetails>
-            {!cCREDetails || cCREDetailsLoading ?
-              <CircularProgress />
+            {study ?
+              !cCREDetails || cCREDetailsLoading ?
+                <CircularProgress />
+                :
+                <DataTable
+                  key={Math.random()}
+                  rows={intersectionTableRows}
+                  tableTitle={selectedSample ? selectedSample.displayname + " Specific Data" : "Cell Type Agnostic Data"}
+                  columns={columns}
+                  sortDescending={true}
+                  itemsPerPage={10}
+                  searchable={true}
+                  onRowClick={(row) => console.log(row)}
+                />
               :
-              <DataTable
-                key={Math.random()}
-                rows={intersectionTableRows}
-                tableTitle={selectedSample ? selectedSample.displayname + " Specific Data" : "Cell Type Agnostic Data"}
-                columns={columns}
-                sortDescending={true}
-                itemsPerPage={10}
-                searchable={true}
-                onRowClick={(row) => console.log(row)}
-              />
+              <Typography>Select a Study on the Left</Typography>
             }
           </AccordionDetails>
         </Accordion>
@@ -388,7 +422,6 @@ export default function GWAS() {
 
   const DataToDisplay = () => {
     return (
-      study &&
       <Paper sx={{width: "100%"}}>
         <Stack spacing={2} margin={2}>
           <LdBlocks />
@@ -400,7 +433,7 @@ export default function GWAS() {
 
   const Selections = () => {
     return (
-      <Paper sx={(isLg && !study) ? {width: "50%"} : {width: "100%"}}>
+      <Paper sx={{width: "100%"}}>
         <Stack spacing={2} margin={2}>
           <StudySelection />
           {study && <BiosampleSelection />}
@@ -411,10 +444,9 @@ export default function GWAS() {
 
   const SuggestionsPlot = useMemo(() => {
     return (
-      study &&
-      <Paper sx={{ backgroundColor: lightOrange, backgroundImage: "none !important", padding: 2, width: "100%" }}>
-        <Accordion defaultExpanded>
-          <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: orange, color: lightTextColor, borderRadius: '4px' }}>
+      <Paper sx={{ backgroundColor: study ? lightOrange : lightGrey, backgroundImage: "none !important", padding: 2, width: "100%" }}>
+        <Accordion disabled={!study} expanded={suggestionsOpen} onChange={handleSetSuggestionsOpen}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: study ? orange : grey, color: study ? lightTextColor : undefined, borderRadius: '4px' }}>
             Suggestions
           </AccordionSummary>
           <AccordionDetails>
@@ -426,6 +458,7 @@ export default function GWAS() {
                     height={700}
                     width={parent.width}
                     onSuggestionClicked={handlePlotSelection}
+                    title={study.studyname + ', ' + study.author.replaceAll('_', ' ') + ', ' + study.pubmedid}
                   />
                   :
                   <CircularProgress />
@@ -435,7 +468,7 @@ export default function GWAS() {
         </Accordion>
       </Paper>
     )
-  }, [plotData, study])
+  }, [plotData, study, suggestionsOpen])
 
   return (
     <main style={{ backgroundColor: background }}>
@@ -443,11 +476,11 @@ export default function GWAS() {
         <Grid xs={12}>
           <Typography variant="h4">GWAS Applet</Typography>
           <Typography>Selected Study: {study?.studyname}</Typography>
-          <Button onClick={() => { setStudy(null); setSelectedSample(null) }}>Clear Study</Button>
+          <Button onClick={() => { handleSetStudy(null); setSelectedSample(null) }}>Clear Study</Button>
           <Typography>Selected Sample: {selectedSample && selectedSample.displayname}</Typography>
           <Button onClick={() => { setSelectedSample(null) }}>Clear Sample</Button>
         </Grid>
-        <Grid xs={12} lg={!study ? 12 : 4}>
+        <Grid xs={12} lg={4}>
           <Stack spacing={2} alignItems={"center"}>
             <Selections />
             {!isLg && <DataToDisplay />}
