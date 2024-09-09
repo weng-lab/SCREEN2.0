@@ -51,7 +51,7 @@ export const createLink = (url: string, id: string, label?: string, showExternal
       <Link variant={variant} href={link} rel="noopener noreferrer" target="_blank" color={textColor}>
         {label ? <button>{label}</button> : <button>{id}</button>}
       </Link>
-      <Launch fontSize="inherit" /> 
+      {showExternalIcon && <Launch fontSize="inherit" />}
     </Stack>
   )
 }

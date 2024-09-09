@@ -263,7 +263,9 @@ export function GeneExpression(props: {
             }}
           >
             {dataOrtholog?.geneOrthologQuery.length > 0 ?
-              `Go to ${dataAssembly === "GRCh38" ? "mm10" : "GRCh38"} ortholog: ${dataOrtholog?.geneOrthologQuery[0][dataAssembly === "GRCh38" ? 'mouseGene' : 'humanGene']}`
+              <>
+              {`Go to ${dataAssembly === "GRCh38" ? "mm10" : "GRCh38"} ortholog:`}&thinsp;<i>{dataOrtholog?.geneOrthologQuery[0][dataAssembly === "GRCh38" ? 'mouseGene' : 'humanGene']}</i>
+              </>
               :
               `No ortholog found in ${dataAssembly === "GRCh38" ? "mm10" : "GRCh38"}`
             }
