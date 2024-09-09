@@ -1,4 +1,6 @@
-import { FileOption } from "./_lollipop-plot/DownloadDialog";
+export const capitalizeFirstLetter = (string) => {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
 
 /**
  * Downloads .svg from given SVG ref

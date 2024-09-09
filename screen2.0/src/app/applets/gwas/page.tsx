@@ -1,5 +1,5 @@
 "use client"
-import { Accordion, AccordionDetails, AccordionSummary, Box, Button, FormControl, FormLabel, IconButton, Paper, Stack, ToggleButton, ToggleButtonGroup, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { Accordion, AccordionDetails, AccordionSummary, IconButton, Paper, Stack, Typography, useMediaQuery, useTheme } from "@mui/material"
 
 import React, { useState, useEffect, useTransition, useMemo } from "react"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
@@ -19,7 +19,8 @@ import { ParentSize } from "@visx/responsive"
 import { ParentSizeProvidedProps } from "@visx/responsive/lib/components/ParentSize"
 import { BiosampleNameData, BiosampleNameVars, EnrichmentData, EnrichmentVars } from "./types"
 import { tissueColors } from "../../../common/lib/colors"
-import { Close } from "@mui/icons-material"
+import { CancelRounded } from "@mui/icons-material"
+import { capitalizeFirstLetter } from "./helpers"
 
 //Background colors for the accordions
 const lightBlue = "#5F8ED3"
@@ -55,38 +56,50 @@ type TableRow = {
 }
 
 export default function GWAS() {
-  const [study, setStudy] = useState<GWASStudy>(null)
-  const [selectedSample, setSelectedSample] = useState<{ name: string, displayname: string }>(null)
-
-  //useless, to remove once biosampletable2 fixed
+  //all 3 useless, to remove once biosampletable2 fixed
   const [selectedBiosample, setSelectedBiosample] = useState<RegistryBiosample[]>([])
-
   const [isPending, startTransition] = useTransition();
   const [biosampleData, setBiosampleData] = useState<ApolloQueryResult<BIOSAMPLE_Data>>(null)
 
+  const [study, setStudy] = useState<GWASStudy>(null)
+  const [selectedSample, setSelectedSample] = useState<{ name: string, displayname: string, tissue: string }>(null)
   const [suggestionsOpen, setSuggestionsOpen] = useState<boolean>(false)
+  const [studiesOpen, setStudiesOpen] = useState<boolean>(true)
+  const [samplesOpen, setSamplesOpen] = useState<boolean>(false)
 
   const handleSetSuggestionsOpen = (event: React.SyntheticEvent, isExpanded: boolean) => {
     setSuggestionsOpen(isExpanded);
   };
 
+  const handleSetStudiesOpen = (event: React.SyntheticEvent, isExpanded: boolean) => {
+    setStudiesOpen(isExpanded);
+  };
+
+  const handleSetSamplesOpen = (event: React.SyntheticEvent, isExpanded: boolean) => {
+    setSamplesOpen(isExpanded);
+  };
+
   const handleSetStudy = (newStudy: GWASStudy) => {
     if (newStudy) {
       setSuggestionsOpen(true)
+      setSamplesOpen(true)
+      setStudiesOpen(false)
     } else {
       setSuggestionsOpen(false)
+      setSamplesOpen(false)
+      setStudiesOpen(true)
     }
     setStudy(newStudy)
   }
-  
+
   const handleSetSelectedSample = (selected: RegistryBiosamplePlusRNA) => {
-    setSelectedSample({ name: selected.name, displayname: selected.displayname })
+    setSelectedSample( selected ? { name: selected.name, displayname: selected.displayname, tissue: selected.ontology } : null)
   }
-  
+
   const handlePlotSelection = (selected: TransformedEnrichmentData) => {
-    setSelectedSample({ name: selected.celltype, displayname: selected.displayname })
+    setSelectedSample({ name: selected.celltype, displayname: selected.displayname, tissue: selected.ontology })
   }
-  
+
   const theme = useTheme()
   const isLg = useMediaQuery(theme.breakpoints.up('lg'))
 
@@ -283,27 +296,41 @@ export default function GWAS() {
 
   }, [selectedSample, cCREDetails])
 
+  type SelectInfoProps = {
+    info1: string,
+    info2: string,
+    onClose: React.MouseEventHandler<HTMLButtonElement>
+  }
+
+  const SelectInfo: React.FC<SelectInfoProps> = (props: SelectInfoProps) => {
+    return (
+      <Paper>
+        <Stack borderRadius={1} direction={"row"} spacing={3} sx={{ backgroundColor: "#E7EEF8" }} alignItems={"center"}>
+          <Typography flexGrow={1} sx={{ color: "#2C5BA0", pl: 1 }}>{props.info1}</Typography>
+          <Typography flexGrow={0} sx={{ color: "#2C5BA0" }}>{props.info2}</Typography>
+          <IconButton onClick={props.onClose} sx={{ m: 'auto', flexGrow: 0 }}>
+            <CancelRounded />
+          </IconButton>
+        </Stack>
+      </Paper>
+    )
+  }
+
   const StudySelection = () => {
     return gwasstudiesLoading ? LoadingMessage() : gwasstudies && gwasstudies.getAllGwasStudies.length > 0 &&
       <div id="study-selection">
-        <Accordion defaultExpanded>
+        <Accordion expanded={studiesOpen} onChange={handleSetStudiesOpen} sx={{borderRadius: '4px !important'}}>
           <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: lightBlue, color: lightTextColor, borderRadius: '4px' }}>
-            GWAS Studies
+            <Typography variant="h6">GWAS Studies</Typography>
           </AccordionSummary>
-          <AccordionDetails>
-            {study ?
-              <Stack direction={"row"} gap={2} alignItems={"center"} justifyContent={"space-between"}>
-                <Typography>{study.studyname}</Typography>
-                <Typography>{study.author}</Typography>
-                <Box flexGrow={1}>
-                  <IconButton onClick={() => handleSetStudy(null)}>
-                    <Close />
-                  </IconButton>
-                </Box>
-              </Stack>
-              :
+          <AccordionDetails sx={{ p: 0 }}>
+            <Stack gap={1}>
+              {study &&
+                <SelectInfo info1={study.studyname} info2={study.author} onClose={() => handleSetStudy(null)} />
+              }
               <DataTable
                 tableTitle="GWAS Studies"
+                highlighted={study}
                 rows={gwasstudies.getAllGwasStudies}
                 columns={[
                   {
@@ -322,9 +349,12 @@ export default function GWAS() {
                 itemsPerPage={10}
                 searchable={true}
               />
-            }
+            </Stack>
           </AccordionDetails>
         </Accordion>
+        {study && !studiesOpen &&
+          <SelectInfo info1={study.studyname} info2={study.author} onClose={() => handleSetStudy(null)} />
+        }
       </div>
   }
 
@@ -333,29 +363,38 @@ export default function GWAS() {
       <CircularProgress sx={{ margin: "auto" }} />
       :
       <div>
-        <Accordion defaultExpanded>
+        <Accordion expanded={samplesOpen} onChange={handleSetSamplesOpen} disabled={!study}  sx={{borderRadius: '4px !important'}}>
           <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: lightBlue, color: lightTextColor, borderRadius: '4px' }}>
             Select a Biosample
           </AccordionSummary>
-          <AccordionDetails>
-            {biosampleData?.data ?
-              <BiosampleTables2
-                showRNAseq={false}
-                showDownloads={false}
-                biosampleSelectMode="replace"
-                /**
-                 * @todo account for this when refactoring biosample tables further
-                 */
-                biosampleData={{ data: { human: { biosamples: biosampleData.data['human'].biosamples.filter(b => b.dnase) }, mouse: biosampleData.data['mouse'] }, loading: biosampleData.loading, networkStatus: biosampleData.networkStatus }}
-                assembly={"GRCh38"}
-                selectedBiosamples={[]}
-                setSelectedBiosamples={setSelectedBiosample}
-                onBiosampleClicked={handleSetSelectedSample}
-              />
-              :
-              <CircularProgress sx={{ margin: "auto" }} />}
+          <AccordionDetails sx={{p: 0}}>
+            <Stack gap={1} mt={selectedSample ? 0 : 1}>
+              {selectedSample &&
+                <SelectInfo info1={capitalizeFirstLetter(selectedSample.tissue)} info2={capitalizeFirstLetter(selectedSample.displayname)} onClose={() => handleSetSelectedSample(null)} />
+              }
+              {biosampleData?.data ?
+                <BiosampleTables2
+                  showRNAseq={false}
+                  showDownloads={false}
+                  biosampleSelectMode="replace"
+                  /**
+                   * @todo account for this when refactoring biosample tables further
+                   */
+                  biosampleData={{ data: { human: { biosamples: biosampleData.data['human'].biosamples.filter(b => b.dnase) }, mouse: biosampleData.data['mouse'] }, loading: biosampleData.loading, networkStatus: biosampleData.networkStatus }}
+                  assembly={"GRCh38"}
+                  selectedBiosamples={[]}
+                  setSelectedBiosamples={setSelectedBiosample}
+                  onBiosampleClicked={handleSetSelectedSample}
+                />
+                :
+                <CircularProgress sx={{ margin: "auto" }} />
+              }
+            </Stack>
           </AccordionDetails>
         </Accordion>
+        {selectedSample && !samplesOpen &&
+          <SelectInfo info1={selectedSample.tissue} info2={selectedSample.displayname} onClose={() => handleSetSelectedSample(null)} />
+        }
       </div>
   }
 
@@ -366,11 +405,12 @@ export default function GWAS() {
           <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: darkBlue, color: lightTextColor, borderRadius: '4px' }}>
             LD Blocks
           </AccordionSummary>
-          <AccordionDetails>
+          <AccordionDetails sx={{p: 0}}>
             {study ?
               cCREIntersectionsLoading ?
                 <CircularProgress /> :
                 <DataTable
+                  tableTitle={"LD Blocks"}
                   rows={[{ totalLDblocks: study.totalldblocks, overlappingldblocks: Math.ceil((overlappingLdBlocks.length / +study.totalldblocks) * 100), numCresOverlap: uniqueAccessions.length }]}
                   columns={[
                     { header: "Total LD blocks", value: (row: any) => row.totalLDblocks },
@@ -381,7 +421,7 @@ export default function GWAS() {
                   hidePageMenu={true}
                 />
               :
-              <Typography>Select a Study on the Left</Typography>
+              <Typography p={2}>Select a Study on the Left</Typography>
             }
           </AccordionDetails>
         </Accordion>
@@ -396,7 +436,7 @@ export default function GWAS() {
           <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: darkBlue, color: lightTextColor, borderRadius: '4px' }}>
             Intersecting cCREs
           </AccordionSummary>
-          <AccordionDetails>
+          <AccordionDetails sx={{p: 0}}>
             {study ?
               !cCREDetails || cCREDetailsLoading ?
                 <CircularProgress />
@@ -404,7 +444,7 @@ export default function GWAS() {
                 <DataTable
                   key={Math.random()}
                   rows={intersectionTableRows}
-                  tableTitle={selectedSample ? selectedSample.displayname + " Specific Data" : "Cell Type Agnostic Data"}
+                  tableTitle={selectedSample ? capitalizeFirstLetter(selectedSample.displayname) + " Specific Data" : "Cell Type Agnostic Data"}
                   columns={columns}
                   sortDescending={true}
                   itemsPerPage={10}
@@ -412,7 +452,7 @@ export default function GWAS() {
                   onRowClick={(row) => console.log(row)}
                 />
               :
-              <Typography>Select a Study on the Left</Typography>
+              <Typography p={2}>Select a Study on the Left</Typography>
             }
           </AccordionDetails>
         </Accordion>
@@ -422,7 +462,7 @@ export default function GWAS() {
 
   const DataToDisplay = () => {
     return (
-      <Paper sx={{width: "100%"}}>
+      <Paper sx={{ width: "100%" }}>
         <Stack spacing={2} margin={2}>
           <LdBlocks />
           <IntersectingcCREs />
@@ -433,10 +473,10 @@ export default function GWAS() {
 
   const Selections = () => {
     return (
-      <Paper sx={{width: "100%"}}>
+      <Paper sx={{ width: "100%" }}>
         <Stack spacing={2} margin={2}>
           <StudySelection />
-          {study && <BiosampleSelection />}
+          <BiosampleSelection />
         </Stack>
       </Paper>
     )
@@ -444,9 +484,9 @@ export default function GWAS() {
 
   const SuggestionsPlot = useMemo(() => {
     return (
-      <Paper sx={{ backgroundColor: study ? lightOrange : lightGrey, backgroundImage: "none !important", padding: 2, width: "100%" }}>
+      <Paper sx={{ backgroundColor: lightOrange, backgroundImage: "none !important", padding: 2, width: "100%" }}>
         <Accordion disabled={!study} expanded={suggestionsOpen} onChange={handleSetSuggestionsOpen}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: study ? orange : grey, color: study ? lightTextColor : undefined, borderRadius: '4px' }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: orange, color: lightTextColor, borderRadius: '4px' }}>
             Suggestions
           </AccordionSummary>
           <AccordionDetails>
@@ -473,13 +513,6 @@ export default function GWAS() {
   return (
     <main style={{ backgroundColor: background }}>
       <Grid container spacing={2} padding={5}>
-        <Grid xs={12}>
-          <Typography variant="h4">GWAS Applet</Typography>
-          <Typography>Selected Study: {study?.studyname}</Typography>
-          <Button onClick={() => { handleSetStudy(null); setSelectedSample(null) }}>Clear Study</Button>
-          <Typography>Selected Sample: {selectedSample && selectedSample.displayname}</Typography>
-          <Button onClick={() => { setSelectedSample(null) }}>Clear Sample</Button>
-        </Grid>
         <Grid xs={12} lg={4}>
           <Stack spacing={2} alignItems={"center"}>
             <Selections />
