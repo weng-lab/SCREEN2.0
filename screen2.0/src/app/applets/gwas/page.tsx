@@ -3,7 +3,7 @@ import { Accordion, AccordionDetails, AccordionSummary, IconButton, Paper, Stack
 
 import React, { useState, useEffect, useTransition, useMemo } from "react"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
-import { createLink, LoadingMessage } from "../../../common/lib/utility"
+import { CreateLink, createLink, LoadingMessage } from "../../../common/lib/utility"
 import Grid from "@mui/material/Unstable_Grid2/Grid2"
 import { CircularProgress } from "@mui/material"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
@@ -12,7 +12,7 @@ import { useQuery } from "@apollo/client"
 import { GET_ALL_GWAS_STUDIES, GET_SNPS_FOR_GIVEN_GWASSTUDY, BED_INTERSECT, CCRE_SEARCH, CT_ENRICHMENT, BIOSAMPLE_DISPLAYNAMES } from "./queries"
 import { ApolloQueryResult } from "@apollo/client"
 import { BIOSAMPLE_Data, biosampleQuery } from "../../../common/lib/queries"
-import BiosampleTables2 from "./biosampletables2"
+import GwasBiosampleTables from "./gwasbiosampletables"
 import { RegistryBiosample, RegistryBiosamplePlusRNA } from "../../search/types"
 import { EnrichmentLollipopPlot, RawEnrichmentData, TransformedEnrichmentData } from "./_lollipop-plot/lollipopplot"
 import { ParentSize } from "@visx/responsive"
@@ -25,11 +25,8 @@ import { capitalizeFirstLetter } from "./helpers"
 //Background colors for the accordions
 const lightBlue = "#5F8ED3"
 const darkBlue = "#2C5BA0"
-const extraLightBlue = "#E7EEF8"
 const orange = "#F1884D"
 const lightOrange = "#FDEFE7 !important"
-const lightGrey = "#EAE9E9"
-const grey = "#B6B6B6"
 const background = "#F9F9F9"
 const lightTextColor = "#FFFFFF"
 
@@ -276,7 +273,7 @@ export default function GWAS() {
       {
         header: "Gene",
         value: (row: TableRow) => row.gene,
-        render: (row: TableRow) => <i>{createLink("/applets/gene-expression?assembly=GRCh38&gene=", row.gene, row.gene, false)}</i>
+        render: (row: TableRow) => <i><CreateLink linkPrefix={"/applets/gene-expression?assembly=GRCh38&gene="} linkArg={row.gene} label={row.gene} underline={"none"} /></i>
       },
     ]
 
@@ -325,14 +322,14 @@ export default function GWAS() {
         <Accordion expanded={studiesOpen} onChange={handleSetStudiesOpen} sx={{borderRadius: '4px !important'}}>
           <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: lightBlue, color: lightTextColor, borderRadius: '4px' }}>
             <Typography variant="h6">GWAS Studies</Typography>
-            <Tooltip title={"Need to put more info here"} sx={{alignSelf: "center", ml: 1}}>
+            <Tooltip title={"Select a study to view cCREs overlapping associated SNPs"} sx={{alignSelf: "center", ml: 1}}>
               <Info />
             </Tooltip>
           </AccordionSummary>
           <AccordionDetails sx={{ p: 0 }}>
             <Stack gap={1}>
               {study &&
-                <SelectInfo info1={study.studyname} info2={study.author} onClose={() => handleSetStudy(null)} />
+                <SelectInfo info1={study.studyname} info2={study.author.replaceAll("_", " ")} onClose={() => handleSetStudy(null)} />
               }
               <DataTable
                 tableTitle="GWAS Studies"
@@ -359,7 +356,7 @@ export default function GWAS() {
           </AccordionDetails>
         </Accordion>
         {study && !studiesOpen &&
-          <SelectInfo info1={capitalizeFirstLetter(study.studyname)} info2={capitalizeFirstLetter(study.author)} onClose={() => handleSetStudy(null)} />
+          <SelectInfo info1={capitalizeFirstLetter(study.studyname)} info2={study.author.replaceAll("_", " ")} onClose={() => handleSetStudy(null)} />
         }
       </div>
   }
@@ -372,7 +369,7 @@ export default function GWAS() {
         <Accordion expanded={samplesOpen} onChange={handleSetSamplesOpen} disabled={!study}  sx={{borderRadius: '4px !important'}}>
           <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: lightBlue, color: lightTextColor, borderRadius: '4px' }}>
             <Typography variant="h6">Select a Biosample</Typography>
-            <Tooltip title={"Need to put more info here"} sx={{alignSelf: "center", ml: 1}}>
+            <Tooltip title={"Optionally select a biosample to view biosample-specific assay z-scores"} sx={{alignSelf: "center", ml: 1}}>
               <Info />
             </Tooltip>
           </AccordionSummary>
@@ -382,7 +379,7 @@ export default function GWAS() {
                 <SelectInfo info1={capitalizeFirstLetter(selectedSample.tissue)} info2={capitalizeFirstLetter(selectedSample.displayname)} onClose={() => handleSetSelectedSample(null)} />
               }
               {biosampleData?.data ?
-                <BiosampleTables2
+                <GwasBiosampleTables
                   showRNAseq={false}
                   showDownloads={false}
                   biosampleSelectMode="replace"
@@ -447,7 +444,7 @@ export default function GWAS() {
         <Accordion defaultExpanded>
           <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: darkBlue, color: lightTextColor, borderRadius: '4px' }}>
             <Typography variant="h6">Intersecting cCREs</Typography>
-            <Tooltip title={"Need to put more info here"} sx={{alignSelf: "center", ml: 1}}>
+            <Tooltip title={"cCREs intersected against SNPs identified by selected GWAS study"} sx={{alignSelf: "center", ml: 1}}>
               <Info />
             </Tooltip>
           </AccordionSummary>
@@ -461,10 +458,9 @@ export default function GWAS() {
                   rows={intersectionTableRows}
                   tableTitle={selectedSample ? capitalizeFirstLetter(selectedSample.displayname) + " Specific Data" : "Cell Type Agnostic Data"}
                   columns={columns}
-                  itemsPerPage={10}
+                  itemsPerPage={5}
                   searchable={true}
                   sortColumn={5}
-                  
                 />
               :
               <Typography p={2}>Select a Study on the Left</Typography>

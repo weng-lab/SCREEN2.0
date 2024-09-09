@@ -1,12 +1,10 @@
-import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, Box, CircularProgress, FormControlLabel, Accordion, FormGroup, Checkbox, IconButton, Menu, MenuItem, Button, InputAdornment, FormControl, FormLabel, CircularProgressProps, Paper, Stack } from "@mui/material"
-import Grid2 from "@mui/material/Unstable_Grid2"
+import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, Box, CircularProgress, FormControlLabel, Accordion, FormGroup, Checkbox, IconButton, Menu, MenuItem, InputAdornment, FormControl, FormLabel, CircularProgressProps, Paper, Stack } from "@mui/material"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
-import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react"
+import { Dispatch, SetStateAction, SyntheticEvent, useEffect, useMemo, useState } from "react"
 import { filterBiosamples, parseBiosamples, assayHoverInfo } from "../../search/searchhelpers"
 import { BiosampleData, BiosampleTableFilters, RegistryBiosample, RegistryBiosamplePlusRNA } from "../../search/types"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
-import { ArrowDropDown, Check, Close, Download, FilterList } from "@mui/icons-material"
-import { ArrowRight } from "@mui/icons-material"
+import { Check, Close, Download, FilterList } from "@mui/icons-material"
 import SearchIcon from '@mui/icons-material/Search';
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import { ApolloQueryResult, TypedDocumentNode, gql } from "@apollo/client"
@@ -212,6 +210,10 @@ function DownloadBiosamplecCREs(row: RegistryBiosample | RegistryBiosamplePlusRN
   } else return null
 }
 
+type FiltersKey = "CellLine" | "PrimaryCell" | "Tissue" | "Organoid" | "InVitro" | "Core" | "Partial" | "Ancillary" | "Embryo" | "Adult"
+
+type CheckboxState = {[key in FiltersKey]: boolean}
+
 /**
  * @todo in V2
  * 
@@ -233,7 +235,6 @@ interface Props {
   showDownloads: boolean,
   biosampleSelectMode: "replace" | "append"
   biosampleTableFilters?: BiosampleTableFilters,
-  setBiosampleTableFilters?: Dispatch<SetStateAction<BiosampleTableFilters>>,
 }
 
 /**
@@ -243,7 +244,7 @@ interface Props {
  * If false, it's assumed to use RegistryBiosample.
  * Not following this may cause unexpected behabior
  */
-export const BiosampleTables2: React.FC<Props> = ({
+export const GwasBiosampleTables: React.FC<Props> = ({
   biosampleData,
   assembly,
   selectedBiosamples,
@@ -252,21 +253,34 @@ export const BiosampleTables2: React.FC<Props> = ({
   showRNAseq,
   showDownloads,
   biosampleSelectMode,
-  biosampleTableFilters,
-  setBiosampleTableFilters 
+  biosampleTableFilters 
 }) => {
-  const [biosampleTableFiltersInternal, setBiosampleTableFiltersInternal] = useState<BiosampleTableFilters>({
-    CellLine: { checked: true, label: "Cell Line" },
-    PrimaryCell: { checked: true, label: "Primary Cell" },
-    Tissue: { checked: true, label: "Tissue" },
-    Organoid: { checked: true, label: "Organoid" },
-    InVitro: { checked: true, label: "In Vitro Differentiated Cell" },
-    Core: { checked: true, label: "Core Collection" },
-    Partial: { checked: true, label: "Partial Data Collection" },
-    Ancillary: { checked: true, label: "Ancillary Collection" },
-    Embryo: { checked: true, label: "Embryo" },
-    Adult: { checked: true, label: "Adult" }
+  const [checkboxes, setCheckboxes] = useState<CheckboxState>({
+    CellLine: true,
+    PrimaryCell: true,
+    Tissue: true,
+    Organoid: true,
+    InVitro: true,
+    Core: true,
+    Partial: true,
+    Ancillary: true,
+    Embryo: true,
+    Adult: true
   })
+
+  const checkboxLabels: {[key in FiltersKey]: string} = {
+    CellLine: "Cell Line",
+    PrimaryCell: "Primary Cell",
+    Tissue: "Tissue",
+    Organoid: "Organoid",
+    InVitro: "In Vitro Differentiated Cell",
+    Core: "Core Collection",
+    Partial: "Partial Data Collection",
+    Ancillary: "Ancillary Collection",
+    Embryo: "Embryo",
+    Adult: "Adult"
+  }
+
 //For searching biosample tables
   const [searchString, setSearchString] = useState<string>("")
 
@@ -308,20 +322,20 @@ export const BiosampleTables2: React.FC<Props> = ({
         filterBiosamples(
           //Parse raw data into ontology-grouped biosamples
           parseBiosamples(biosampleData.data[assembly === "GRCh38" ? "human" : "mouse"].biosamples, data_rnaseq?.rnaSeqQuery || []),
-          sidebar ? biosampleTableFilters.Tissue.checked : biosampleTableFiltersInternal.Tissue.checked,
-          sidebar ? biosampleTableFilters.PrimaryCell.checked : biosampleTableFiltersInternal.PrimaryCell.checked,
-          sidebar ? biosampleTableFilters.CellLine.checked : biosampleTableFiltersInternal.CellLine.checked,
-          sidebar ? biosampleTableFilters.InVitro.checked : biosampleTableFiltersInternal.InVitro.checked,
-          sidebar ? biosampleTableFilters.Organoid.checked : biosampleTableFiltersInternal.Organoid.checked,
-          sidebar ? biosampleTableFilters.Core.checked : biosampleTableFiltersInternal.Core.checked,
-          sidebar ? biosampleTableFilters.Partial.checked : biosampleTableFiltersInternal.Partial.checked,
-          sidebar ? biosampleTableFilters.Ancillary.checked : biosampleTableFiltersInternal.Ancillary.checked,
-          sidebar ? biosampleTableFilters.Embryo.checked : biosampleTableFiltersInternal.Embryo.checked,
-          sidebar ? biosampleTableFilters.Adult.checked : biosampleTableFiltersInternal.Adult.checked,
+          checkboxes.Tissue,
+          checkboxes.PrimaryCell,
+          checkboxes.CellLine,
+          checkboxes.InVitro,
+          checkboxes.Organoid,
+          checkboxes.Core,
+          checkboxes.Partial,
+          checkboxes.Ancillary,
+          checkboxes.Embryo,
+          checkboxes.Adult,
         )
       )
     } else return {}
-  }, [biosampleData, assembly, showRNAseq, data_rnaseq, sidebar, biosampleTableFiltersInternal, biosampleTableFilters])
+  }, [biosampleData, assembly, showRNAseq, data_rnaseq, checkboxes])
 
 
   const biosampleTables = useMemo(() => {
@@ -455,7 +469,7 @@ export const BiosampleTables2: React.FC<Props> = ({
 
     return (
       Object.entries(filteredBiosamples).sort().map(([ontology, biosamples], i) => {
-        if (searchString ? biosamples.find(obj => obj.displayname.toLowerCase().includes(searchString.toLowerCase())) : true) {
+        if ((searchString ? biosamples.find(obj => obj.displayname.toLowerCase().includes(searchString.toLowerCase())) : true) && biosamples.length > 0) {
           return (
             <Accordion key={i}>
               <AccordionSummary
@@ -506,6 +520,25 @@ export const BiosampleTables2: React.FC<Props> = ({
     [filteredBiosamples, selectedBiosamples, searchString, setSelectedBiosamples, biosampleSelectMode, showRNAseq, showDownloads, onBiosampleClicked]
   )
 
+  const FilterCheckbox: React.FC<{control: FiltersKey}> = ({control}) => {
+    const handleChange = (_, checked: boolean) => {
+      const x = {...checkboxes}
+      x[control] = checked
+      setCheckboxes(x)
+    }
+    
+    return (
+      <MenuItem>
+        <FormControlLabel
+          checked={checkboxes[control]}
+          onChange={handleChange}
+          control={<Checkbox />}
+          label={checkboxLabels[control]}
+        />
+      </MenuItem>
+    )
+  }
+
 
   return (
     <Paper elevation={0}>
@@ -541,94 +574,24 @@ export const BiosampleTables2: React.FC<Props> = ({
           }}
         >
           <FormControl sx={{ ml: 2, mt: 1 }} component="fieldset" variant="standard">
-            <FormLabel component="legend">Biosample Types</FormLabel>
             <FormGroup>
-              <MenuItem>
-                <FormControlLabel
-                  checked={biosampleTableFiltersInternal.CellLine.checked}
-                  onChange={(_, checked: boolean) => setBiosampleTableFiltersInternal({ ...biosampleTableFiltersInternal, CellLine: { checked: checked, label: biosampleTableFiltersInternal.CellLine.label } })}
-                  control={<Checkbox />}
-                  label={biosampleTableFiltersInternal.CellLine.label}
-                />
-              </MenuItem>
-              <MenuItem>
-                <FormControlLabel
-                  checked={biosampleTableFiltersInternal.PrimaryCell.checked}
-                  onChange={(_, checked: boolean) => setBiosampleTableFiltersInternal({ ...biosampleTableFiltersInternal, PrimaryCell: { checked: checked, label: biosampleTableFiltersInternal.PrimaryCell.label } })}
-                  control={<Checkbox />}
-                  label={biosampleTableFiltersInternal.PrimaryCell.label}
-                />
-              </MenuItem>
-              <MenuItem>
-                <FormControlLabel
-                  checked={biosampleTableFiltersInternal.Tissue.checked}
-                  onChange={(_, checked: boolean) => setBiosampleTableFiltersInternal({ ...biosampleTableFiltersInternal, Tissue: { checked: checked, label: biosampleTableFiltersInternal.Tissue.label } })}
-                  control={<Checkbox />}
-                  label={biosampleTableFiltersInternal.Tissue.label}
-                />
-              </MenuItem>
-              <MenuItem>
-                <FormControlLabel
-                  checked={biosampleTableFiltersInternal.Organoid.checked}
-                  onChange={(_, checked: boolean) => setBiosampleTableFiltersInternal({ ...biosampleTableFiltersInternal, Organoid: { checked: checked, label: biosampleTableFiltersInternal.Organoid.label } })}
-                  control={<Checkbox />}
-                  label={biosampleTableFiltersInternal.Organoid.label}
-                />
-              </MenuItem>
-              <MenuItem>
-                <FormControlLabel
-                  checked={biosampleTableFiltersInternal.InVitro.checked}
-                  onChange={(_, checked: boolean) => setBiosampleTableFiltersInternal({ ...biosampleTableFiltersInternal, InVitro: { checked: checked, label: biosampleTableFiltersInternal.InVitro.label } })}
-                  control={<Checkbox />}
-                  label={biosampleTableFiltersInternal.InVitro.label}
-                />
-              </MenuItem>
+              <FormLabel component="legend">Biosample Types</FormLabel>
+              <FilterCheckbox control="CellLine" />
+              <FilterCheckbox control="PrimaryCell" />
+              <FilterCheckbox control="Tissue" />
+              <FilterCheckbox control="Organoid" />
+              <FilterCheckbox control="InVitro" />
             </FormGroup>
-            <FormLabel component="legend">Collection</FormLabel>
             <FormGroup>
-              <MenuItem>
-                <FormControlLabel
-                  checked={biosampleTableFiltersInternal.Core.checked}
-                  onChange={(_, checked: boolean) => setBiosampleTableFiltersInternal({ ...biosampleTableFiltersInternal, Core: { checked: checked, label: biosampleTableFiltersInternal.Core.label } })}
-                  control={<Checkbox />}
-                  label={biosampleTableFiltersInternal.Core.label}
-                />
-              </MenuItem>
-              <MenuItem>
-                <FormControlLabel
-                  checked={biosampleTableFiltersInternal.Partial.checked}
-                  onChange={(_, checked: boolean) => setBiosampleTableFiltersInternal({ ...biosampleTableFiltersInternal, Partial: { checked: checked, label: biosampleTableFiltersInternal.Partial.label } })}
-                  control={<Checkbox />}
-                  label={biosampleTableFiltersInternal.Partial.label}
-                />
-              </MenuItem>
-              <MenuItem>
-                <FormControlLabel
-                  checked={biosampleTableFiltersInternal.Ancillary.checked}
-                  onChange={(_, checked: boolean) => setBiosampleTableFiltersInternal({ ...biosampleTableFiltersInternal, Ancillary: { checked: checked, label: biosampleTableFiltersInternal.Ancillary.label } })}
-                  control={<Checkbox />}
-                  label={biosampleTableFiltersInternal.Ancillary.label}
-                />
-              </MenuItem>
+              <FormLabel component="legend">Collection</FormLabel>
+              <FilterCheckbox control="Core" />
+              <FilterCheckbox control="Partial" />
+              <FilterCheckbox control="Ancillary" />
             </FormGroup>
-            <FormLabel component="legend">Lifestage</FormLabel>
             <FormGroup>
-              <MenuItem>
-                <FormControlLabel
-                  checked={biosampleTableFiltersInternal.Embryo.checked}
-                  onChange={(_, checked: boolean) => setBiosampleTableFiltersInternal({ ...biosampleTableFiltersInternal, Embryo: { checked: checked, label: biosampleTableFiltersInternal.Embryo.label } })}
-                  control={<Checkbox />}
-                  label={biosampleTableFiltersInternal.Embryo.label}
-                />
-              </MenuItem>
-              <MenuItem>
-                <FormControlLabel
-                  checked={biosampleTableFiltersInternal.Adult.checked}
-                  onChange={(_, checked: boolean) => setBiosampleTableFiltersInternal({ ...biosampleTableFiltersInternal, Adult: { checked: checked, label: biosampleTableFiltersInternal.Adult.label } })}
-                  control={<Checkbox />}
-                  label={biosampleTableFiltersInternal.Adult.label}
-                />
-              </MenuItem>
+              <FormLabel component="legend">Lifestage</FormLabel>
+              <FilterCheckbox control="Embryo" />
+              <FilterCheckbox control="Adult" />
             </FormGroup>
           </FormControl>
         </Menu>
@@ -636,4 +599,4 @@ export const BiosampleTables2: React.FC<Props> = ({
   )
 }
 
-export default BiosampleTables2
+export default GwasBiosampleTables

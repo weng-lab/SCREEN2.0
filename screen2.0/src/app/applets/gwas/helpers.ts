@@ -66,8 +66,8 @@ export const downloadSvgAsPng = (ref: React.MutableRefObject<SVGSVGElement>, fil
   const canvas = document.createElement('canvas');
   const context = canvas.getContext('2d');
 
-  const svgWidth = svg.viewBox.baseVal.width || svg.clientWidth;
-  const svgHeight = svg.viewBox.baseVal.height || svg.clientHeight;
+  const svgWidth = svg.viewBox.baseVal?.width || svg.clientWidth;
+  const svgHeight = svg.viewBox.baseVal?.height || svg.clientHeight;
 
   canvas.width = svgWidth;
   canvas.height = svgHeight;
@@ -81,7 +81,7 @@ export const downloadSvgAsPng = (ref: React.MutableRefObject<SVGSVGElement>, fil
     const downloadLink = document.createElement('a');
     downloadLink.href = pngData;
     downloadLink.download = `${filename}.png`;
-    document.body.appendChild(downloadLink);
+    document.body.appendChild(downloadLink); 
     downloadLink.click();
     document.body.removeChild(downloadLink);
 
