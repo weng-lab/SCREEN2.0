@@ -1,5 +1,4 @@
 import {  useQuery } from "@apollo/client"
-
 import { BigBedData } from "bigwig-reader"
 import React, { RefObject, useEffect, useMemo, useState } from "react"
 import { DenseBigBed, EmptyTrack } from "umms-gb"

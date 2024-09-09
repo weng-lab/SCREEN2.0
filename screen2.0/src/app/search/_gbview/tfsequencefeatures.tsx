@@ -8,7 +8,7 @@ import CytobandView, { GenomicRange } from "./cytobandview"
 import EGeneTracks from "./egenetracks"
 import { client } from "../_ccredetails/client"
 import { TfMotifTrack } from "./tfmotiftrack"
-import { DenseBigBed, EmptyTrack, FullBigWig } from "umms-gb"
+import { EmptyTrack, FullBigWig } from "umms-gb"
 import { GraphQLImportanceTrack } from "bpnet-ui"
 import { BigQueryResponse } from "./types"
 import { BIG_QUERY } from "./queries"
@@ -74,6 +74,7 @@ query q($requests: [BigRequest!]!) {
 `
 
 export const TfSequenceFeatures: React.FC<TfSequenceFeaturesProps> = (props) => {
+  
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const svgRef = useRef<SVGSVGElement>(null)
@@ -149,6 +150,8 @@ export const TfSequenceFeatures: React.FC<TfSequenceFeaturesProps> = (props) => 
     },
     [props.coordinates]
   )
+  const l = useCallback((c) => ((c - coordinates.start) * 1400) / (coordinates.end - coordinates.start), [coordinates])
+  
   return (
     <>
       <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "1rem" }}>
@@ -178,6 +181,11 @@ export const TfSequenceFeatures: React.FC<TfSequenceFeaturesProps> = (props) => 
             }}
           >
             <RulerTrack domain={coordinates} height={30} width={1400} />
+            <>
+            {(props.coordinates.start  > coordinates.start  || props.coordinates.end < coordinates.end   ) &&
+              <rect key={"tfseq"} fill="#FAA4A4" fillOpacity={0.8} height={3500} x={l(props.coordinates.start)} width={l(props.coordinates.end) - l(props.coordinates.start)} />
+            }
+            </>
             <EGeneTracks
               genes={groupedTranscripts || []}
               expandedCoordinates={coordinates}

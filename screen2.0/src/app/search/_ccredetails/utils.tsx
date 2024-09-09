@@ -1,16 +1,6 @@
 "use client"
-import React, { useState } from "react"
-import {
-  Box,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  SelectChangeEvent
-} from "@mui/material"
+import React from "react"
 import { Point2D, Range2D, linearTransform2D } from "jubilant-carnival"
-import { Fragment } from "react"
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { GeneExpEntry } from "../../applets/gene-expression/types"
 import { tissueColors } from "../../../common/lib/colors"
 import { RampagePeak } from "./rampage"

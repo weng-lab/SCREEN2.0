@@ -1,6 +1,6 @@
 "use client"
 import { DataTable, DataTableProps, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
-import React, { useState, Dispatch, SetStateAction, useMemo, useCallback } from "react"
+import React, { useState, useMemo } from "react"
 import { Box, Typography, Stack, Button, Accordion, AccordionSummary, AccordionDetails, Tooltip, CircularProgress, List } from "@mui/material"
 import { MainResultTableRow, ConservationData } from "./types"
 import { ApolloQueryResult, LazyQueryResultTuple } from "@apollo/client"
@@ -9,7 +9,7 @@ import ConfigureGBModal from "./_ccredetails/configuregbmodal"
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { LinkedGeneInfo } from "./_ccredetails/ccredetails"
 import { InfoOutlined } from "@mui/icons-material"
-import { CreateLink, createLink } from "../../common/lib/utility"
+import { CreateLink } from "../../common/lib/utility"
 import { LinkedGenes, LinkedGenesVariables } from "./page"
 
 

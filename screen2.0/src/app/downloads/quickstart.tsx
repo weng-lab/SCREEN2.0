@@ -13,8 +13,8 @@ import InfoIcon from "@mui/icons-material/Info"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import LoadingButton from "@mui/lab/LoadingButton"
 import DownloadIcon from "@mui/icons-material/Download"
-import Human from "../../../public/Human2.png"
-import Mouse from "../../../public/Mouse2.png"
+import humanTransparentIcon from "../../../public/Transparent_HumanIcon.png"
+import mouseTransparentIcon from "../../../public/Transparent_MouseIcon.png"
 import Config from "../../config.json"
 import { useEffect, useMemo, useState } from "react"
 import React from "react"
@@ -183,24 +183,23 @@ export function QuickStart(props: TabPanelProps) {
     <div role="tabpanel" id={`simple-tabpanel-${0}`} aria-labelledby={`simple-tab-${0}`}>
         <Grid2 container columnSpacing={{ xs: 4, md: 6 }} rowSpacing={3} mt={1}>
           {/* Titles */}
-          <Grid2 display="flex" alignItems="flex-start" flexDirection="column" xsOffset={2} xs={3.75}>
-            <Typography mt="auto" variant="h5">
-              Human (GRCh38/hg38)
-            </Typography>
-            {/* These are not showing up because of the flex container */}
-            <Divider variant="fullWidth" />
-            <Typography variant="subtitle1">2,348,854 cCREs • 1,678 cell types</Typography>
+          <Grid2 xsOffset={2} xs={5}>
+            <Stack direction={"row"} justifyContent={"space-between"}>
+              <Stack>
+                <Typography mt="auto" variant="h5" >Human (GRCh38/hg38)</Typography>
+                <Typography variant="subtitle1">2,348,854 cCREs • 1,888 cell types</Typography>
+              </Stack>
+              <Image src={humanTransparentIcon} alt={"Human Icon"} style={{maxWidth: '75px', maxHeight: '75px'}} />
+            </Stack>
           </Grid2>
-          <Grid2 justifyContent="flex-end" xs={1.25}>
-            <Image src={Human} alt={"Human Icon"} height={75} />
-          </Grid2>
-          <Grid2 display="flex" alignItems="flex-start" flexDirection="column" xs={3.75}>
-            <Typography variant="h5">Mouse (GRCm38/mm10)</Typography>
-            <Divider />
-            <Typography variant="subtitle1">926,843 cCREs • 366 cell types</Typography>
-          </Grid2>
-          <Grid2 justifyContent="flex-end" xs={1.25}>
-            <Image src={Mouse} alt={"Mouse Icon"} height={75} />
+          <Grid2 xs={5}>
+            <Stack direction={"row"} justifyContent={"space-between"}>
+              <Stack>
+                <Typography mt="auto" variant="h5">Mouse (GRCm38/mm10)</Typography>
+                <Typography variant="subtitle1">926,843 cCREs • 366 cell types</Typography>
+              </Stack>
+              <Image src={mouseTransparentIcon} alt={"Human Icon"} style={{maxWidth: '75px', maxHeight: '75px'}} />
+            </Stack>
           </Grid2>
           {/* All cCREs */}
           <Grid2 xs={2} borderLeft={"0.375rem solid #06DA93"}>

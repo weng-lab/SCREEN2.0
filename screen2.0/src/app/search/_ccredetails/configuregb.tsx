@@ -1,7 +1,7 @@
 import Grid2 from "@mui/material/Unstable_Grid2";
 import { BiosampleTables } from "../biosampletables";
 import { RegistryBiosamplePlusRNA } from "../types";
-import { Dispatch, SetStateAction, useState } from "react";
+import { useState } from "react";
 import { Button, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Snackbar, Stack, Tooltip, Typography } from "@mui/material";
 import { Close, CloseOutlined } from "@mui/icons-material";
 import { v4 as uuidv4 } from "uuid"

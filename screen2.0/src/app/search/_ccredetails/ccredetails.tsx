@@ -9,6 +9,7 @@ import { Ortholog } from "./linkedccres"
 import { TfIntersection } from "./tfintersection"
 import { FunctionData } from "./functionaldata"
 import { ChromHMM } from "./chromhmm";
+import { ENTExData } from "./entexdata";
 import Rampage from "./rampage"
 import { GeneExpression } from "./geneexpression"
 import { TfSequenceFeatures } from "../_gbview/tfsequencefeatures"
@@ -223,6 +224,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
       {page === 9 && assembly !== "mm10" &&
         <ChromHMM accession={accession} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }} assembly={assembly} />
       }
+
       {(page === 8 && assembly !== "mm10") &&
       (!dataNearbyAndLinked || loadingLinkedGenes ?
         <CircularProgress />
@@ -231,6 +233,9 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
           <Typography>{`Issue fetching Linked Genes for ${accession}.`}</Typography> 
           :
           <Rampage genes={uniqueGenes.length > 0 ? uniqueGenes : []} biosampleData={biosampleData} />)
+      }
+      {page === 10 && assembly !== "mm10" &&
+        <ENTExData accession={accession}  coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }}/>
       }
     </>
     :
