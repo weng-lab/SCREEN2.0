@@ -1,5 +1,5 @@
 "use client"
-import { Accordion, AccordionDetails, AccordionSummary, IconButton, Paper, Stack, Typography, useMediaQuery, useTheme } from "@mui/material"
+import { Accordion, AccordionDetails, AccordionSummary, IconButton, Paper, Stack, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material"
 
 import React, { useState, useEffect, useTransition, useMemo } from "react"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
@@ -19,7 +19,7 @@ import { ParentSize } from "@visx/responsive"
 import { ParentSizeProvidedProps } from "@visx/responsive/lib/components/ParentSize"
 import { BiosampleNameData, BiosampleNameVars, EnrichmentData, EnrichmentVars } from "./types"
 import { tissueColors } from "../../../common/lib/colors"
-import { CancelRounded } from "@mui/icons-material"
+import { CancelRounded, Info } from "@mui/icons-material"
 import { capitalizeFirstLetter } from "./helpers"
 
 //Background colors for the accordions
@@ -43,6 +43,7 @@ type GWASStudy = {
 
 type TableRow = {
   accession: string,
+  coordinates: {chromosome: string, start: number, end: number}
   snpid: string,
   ldblocksnpid: string,
   ldblock: string,
@@ -238,6 +239,7 @@ export default function GWAS() {
         const cCREInfo = cCREDetails.cCRESCREENSearch.find(y => y.info.accession === x)
         return {
           accession: x,
+          coordinates: {chromosome: cCREInfo.chrom, start: cCREInfo.start, end: cCREInfo.start + cCREInfo.len},
           ...snpInfo,
           gene: cCREInfo.nearestgenes[0].gene,
           atac_zscore: cCREInfo.ctspecific?.atac_zscore ?? cCREInfo.atac_zscore,
@@ -254,12 +256,13 @@ export default function GWAS() {
     const cols: DataTableColumn<TableRow>[] = [
       {
         header: "cCRE",
-        value: (row: TableRow) => row.accession
+        value: (row: TableRow) => row.accession,
+        render: (row: TableRow) => createLink(`/search?assembly=GRCh38&chromosome=${row.coordinates.chromosome}&start=${row.coordinates.start}&end=${row.coordinates.end}&accessions=${row.accession}&page=2`, "", row.accession, false)
       },
       {
         header: "SNP",
         value: (row: TableRow) => "http://ensembl.org/Homo_sapiens/Variation/Explore?vdb=variation;v=" + row.snpid,
-        render: (row: TableRow) => createLink("http://ensembl.org/Homo_sapiens/Variation/Explore?vdb=variation;v=", row.snpid)
+        render: (row: TableRow) => createLink("http://ensembl.org/Homo_sapiens/Variation/Explore?vdb=variation;v=", row.snpid, row.snpid, true)
       },
       {
         header: "Ld Block SNP ID",
@@ -273,7 +276,7 @@ export default function GWAS() {
       {
         header: "Gene",
         value: (row: TableRow) => row.gene,
-        render: (row: TableRow) => <i>{row.gene}</i>
+        render: (row: TableRow) => <i>{createLink("/applets/gene-expression?assembly=GRCh38&gene=", row.gene, row.gene, false)}</i>
       },
     ]
 
@@ -322,6 +325,9 @@ export default function GWAS() {
         <Accordion expanded={studiesOpen} onChange={handleSetStudiesOpen} sx={{borderRadius: '4px !important'}}>
           <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: lightBlue, color: lightTextColor, borderRadius: '4px' }}>
             <Typography variant="h6">GWAS Studies</Typography>
+            <Tooltip title={"Need to put more info here"} sx={{alignSelf: "center", ml: 1}}>
+              <Info />
+            </Tooltip>
           </AccordionSummary>
           <AccordionDetails sx={{ p: 0 }}>
             <Stack gap={1}>
@@ -353,7 +359,7 @@ export default function GWAS() {
           </AccordionDetails>
         </Accordion>
         {study && !studiesOpen &&
-          <SelectInfo info1={study.studyname} info2={study.author} onClose={() => handleSetStudy(null)} />
+          <SelectInfo info1={capitalizeFirstLetter(study.studyname)} info2={capitalizeFirstLetter(study.author)} onClose={() => handleSetStudy(null)} />
         }
       </div>
   }
@@ -365,7 +371,10 @@ export default function GWAS() {
       <div>
         <Accordion expanded={samplesOpen} onChange={handleSetSamplesOpen} disabled={!study}  sx={{borderRadius: '4px !important'}}>
           <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: lightBlue, color: lightTextColor, borderRadius: '4px' }}>
-            Select a Biosample
+            <Typography variant="h6">Select a Biosample</Typography>
+            <Tooltip title={"Need to put more info here"} sx={{alignSelf: "center", ml: 1}}>
+              <Info />
+            </Tooltip>
           </AccordionSummary>
           <AccordionDetails sx={{p: 0}}>
             <Stack gap={1} mt={selectedSample ? 0 : 1}>
@@ -393,7 +402,7 @@ export default function GWAS() {
           </AccordionDetails>
         </Accordion>
         {selectedSample && !samplesOpen &&
-          <SelectInfo info1={selectedSample.tissue} info2={selectedSample.displayname} onClose={() => handleSetSelectedSample(null)} />
+          <SelectInfo info1={capitalizeFirstLetter(selectedSample.tissue)} info2={capitalizeFirstLetter(selectedSample.displayname)} onClose={() => handleSetSelectedSample(null)} />
         }
       </div>
   }
@@ -403,7 +412,10 @@ export default function GWAS() {
       <div>
         <Accordion defaultExpanded>
           <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: darkBlue, color: lightTextColor, borderRadius: '4px' }}>
-            LD Blocks
+            <Typography variant="h6">LD Blocks</Typography>
+            <Tooltip title={"Need to put more info here"} sx={{alignSelf: "center", ml: 1}}>
+              <Info />
+            </Tooltip>
           </AccordionSummary>
           <AccordionDetails sx={{p: 0}}>
             {study ?
@@ -434,7 +446,10 @@ export default function GWAS() {
       <div>
         <Accordion defaultExpanded>
           <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: darkBlue, color: lightTextColor, borderRadius: '4px' }}>
-            Intersecting cCREs
+            <Typography variant="h6">Intersecting cCREs</Typography>
+            <Tooltip title={"Need to put more info here"} sx={{alignSelf: "center", ml: 1}}>
+              <Info />
+            </Tooltip>
           </AccordionSummary>
           <AccordionDetails sx={{p: 0}}>
             {study ?
@@ -446,10 +461,10 @@ export default function GWAS() {
                   rows={intersectionTableRows}
                   tableTitle={selectedSample ? capitalizeFirstLetter(selectedSample.displayname) + " Specific Data" : "Cell Type Agnostic Data"}
                   columns={columns}
-                  sortDescending={true}
                   itemsPerPage={10}
                   searchable={true}
-                  onRowClick={(row) => console.log(row)}
+                  sortColumn={5}
+                  
                 />
               :
               <Typography p={2}>Select a Study on the Left</Typography>
@@ -487,7 +502,10 @@ export default function GWAS() {
       <Paper sx={{ backgroundColor: lightOrange, backgroundImage: "none !important", padding: 2, width: "100%" }}>
         <Accordion disabled={!study} expanded={suggestionsOpen} onChange={handleSetSuggestionsOpen}>
           <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: orange, color: lightTextColor, borderRadius: '4px' }}>
-            Suggestions
+            <Typography variant="h6">Suggestions</Typography>
+            <Tooltip title={"Need to put more info here"} sx={{alignSelf: "center", ml: 1}}>
+              <Info />
+            </Tooltip>
           </AccordionSummary>
           <AccordionDetails>
             <ParentSize>
