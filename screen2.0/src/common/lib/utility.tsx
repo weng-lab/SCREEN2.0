@@ -56,8 +56,8 @@ export const createLink = (url: string, id: string, label?: string, showExternal
   )
 }
 
-export const CreateLink: React.FC<{ linkPrefix: string, linkArg: string, label: string, showExternalIcon?: boolean, variant?: OverridableStringUnion<Variant | 'inherit', TypographyPropsVariantOverrides>, textColor?: string, underline?: "none" | "always" | "hover" }> = (props) => {
-  const link = props.linkPrefix + props.linkArg
+export const CreateLink: React.FC<{ linkPrefix: string, linkArg?: string, label: string, showExternalIcon?: boolean, variant?: OverridableStringUnion<Variant | 'inherit', TypographyPropsVariantOverrides>, textColor?: string, underline?: "none" | "always" | "hover" }> = (props) => {
+  const link = props.linkPrefix + (props.linkArg ?? "")
   return (
     <>
       <Link variant={props.variant} href={link} rel="noopener noreferrer" target="_blank" color={props.textColor} underline={props.underline}>
