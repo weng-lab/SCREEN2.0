@@ -262,7 +262,7 @@ export default function GWAS() {
         render: (row: TableRow) => createLink("http://ensembl.org/Homo_sapiens/Variation/Explore?vdb=variation;v=", row.snpid, row.snpid, true)
       },
       {
-        header: "Ld Block SNP ID",
+        header: "LD Block SNP ID",
         value: (row: TableRow) => row.ldblocksnpid
       },
       {
@@ -280,17 +280,17 @@ export default function GWAS() {
     //if sample selected, check before adding assays
     if (selectedSample && cCREDetails) {
       const cCRE = cCREDetails.cCRESCREENSearch[0]
-      cCRE.ctspecific?.dnase_zscore && cols.push({ header: "DNase Zscore", value: (row: TableRow) => row.dnase_zscore?.toFixed(2) })
-      cCRE.ctspecific?.atac_zscore && cols.push({ header: "ATAC Zscore", value: (row: TableRow) => row.atac_zscore?.toFixed(2) })
-      cCRE.ctspecific?.ctcf_zscore && cols.push({ header: "CTCF Zscore", value: (row: TableRow) => row.ctcf_zscore?.toFixed(2) })
-      cCRE.ctspecific?.h3k27ac_zscore && cols.push({ header: "H3k27ac Zscore", value: (row: TableRow) => row.h3k27ac_zscore?.toFixed(2) })
-      cCRE.ctspecific?.h3k4me3_zscore && cols.push({ header: "H3k4me3 Zscore", value: (row: TableRow) => row.h3k4me3_zscore?.toFixed(2) })
+      cCRE.ctspecific?.dnase_zscore && cols.push({ header: "DNase Z\u2011Score", value: (row: TableRow) => row.dnase_zscore?.toFixed(2) })
+      cCRE.ctspecific?.atac_zscore && cols.push({ header: "ATAC Z\u2011Score", value: (row: TableRow) => row.atac_zscore?.toFixed(2) })
+      cCRE.ctspecific?.ctcf_zscore && cols.push({ header: "CTCF Z\u2011Score", value: (row: TableRow) => row.ctcf_zscore?.toFixed(2) })
+      cCRE.ctspecific?.h3k27ac_zscore && cols.push({ header: "H3k27ac Z\u2011Score", value: (row: TableRow) => row.h3k27ac_zscore?.toFixed(2) })
+      cCRE.ctspecific?.h3k4me3_zscore && cols.push({ header: "H3k4me3 Z\u2011Score", value: (row: TableRow) => row.h3k4me3_zscore?.toFixed(2) })
     } else {
-      cols.push({ header: "DNase Zscore", value: (row: TableRow) => row.dnase_zscore?.toFixed(2) })
-      cols.push({ header: "ATAC Zscore", value: (row: TableRow) => row.atac_zscore?.toFixed(2) })
-      cols.push({ header: "CTCF Zscore", value: (row: TableRow) => row.ctcf_zscore?.toFixed(2) })
-      cols.push({ header: "H3k27ac Zscore", value: (row: TableRow) => row.h3k27ac_zscore?.toFixed(2) })
-      cols.push({ header: "H3k4me3 Zscore", value: (row: TableRow) => row.h3k4me3_zscore?.toFixed(2) })
+      cols.push({ header: "DNase Max\u00A0Z", value: (row: TableRow) => row.dnase_zscore?.toFixed(2) })
+      cols.push({ header: "ATAC Max\u00A0Z", value: (row: TableRow) => row.atac_zscore?.toFixed(2) })
+      cols.push({ header: "CTCF Max\u00A0Z", value: (row: TableRow) => row.ctcf_zscore?.toFixed(2) })
+      cols.push({ header: "H3k27ac Max\u00A0Z", value: (row: TableRow) => row.h3k27ac_zscore?.toFixed(2) })
+      cols.push({ header: "H3k4me3 Max\u00A0Z", value: (row: TableRow) => row.h3k4me3_zscore?.toFixed(2) })
     }
     return cols
 

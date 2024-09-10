@@ -528,7 +528,7 @@ export const GwasBiosampleTables: React.FC<Props> = ({
     }
     
     return (
-      <MenuItem>
+      <MenuItem dense>
         <FormControlLabel
           checked={checkboxes[control]}
           onChange={handleChange}
@@ -573,7 +573,8 @@ export const GwasBiosampleTables: React.FC<Props> = ({
             'aria-labelledby': 'basic-button',
           }}
         >
-          <FormControl sx={{ ml: 2, mt: 1 }} component="fieldset" variant="standard">
+          <Stack padding={2}>
+            <FormControl component="fieldset" variant="standard">
             <FormGroup>
               <FormLabel component="legend">Biosample Types</FormLabel>
               <FilterCheckbox control="CellLine" />
@@ -582,18 +583,23 @@ export const GwasBiosampleTables: React.FC<Props> = ({
               <FilterCheckbox control="Organoid" />
               <FilterCheckbox control="InVitro" />
             </FormGroup>
+          </FormControl>
+          <FormControl component="fieldset" variant="standard">
             <FormGroup>
               <FormLabel component="legend">Collection</FormLabel>
               <FilterCheckbox control="Core" />
               <FilterCheckbox control="Partial" />
               <FilterCheckbox control="Ancillary" />
             </FormGroup>
+          </FormControl>
+          <FormControl component="fieldset" variant="standard">
             <FormGroup>
               <FormLabel component="legend">Lifestage</FormLabel>
               <FilterCheckbox control="Embryo" />
               <FilterCheckbox control="Adult" />
             </FormGroup>
           </FormControl>
+          </Stack>
         </Menu>
     </Paper>
   )
