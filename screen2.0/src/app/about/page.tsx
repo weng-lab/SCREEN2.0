@@ -205,7 +205,7 @@ export default function About() {
           {/* API Documentation */}
           <Grid2 xs={12} id="api-documentation">
             <Typography mb={1} variant="h2">API Documentation</Typography>
-            <CreateLink linkPrefix={"https://weng-lab.github.io/SCREEN2.0/"} label={"SCREEN API Documentation"} underline="none" showExternalIcon />
+            <CreateLink linkPrefix={"https://weng-lab.github.io/SCREEN2.0/"} label={"SCREEN API Documentation"} showExternalIcon />
           </Grid2>
           {/* Contact Us */}
           <Grid2 xs={12} id="contact-us">

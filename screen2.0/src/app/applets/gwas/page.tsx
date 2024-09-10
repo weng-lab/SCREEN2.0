@@ -410,7 +410,7 @@ export default function GWAS() {
         <Accordion defaultExpanded>
           <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: darkBlue, color: lightTextColor, borderRadius: '4px' }}>
             <Typography variant="h6">LD Blocks</Typography>
-            <Tooltip title={"Need to put more info here"} sx={{alignSelf: "center", ml: 1}}>
+            <Tooltip title={"LD Blocks are regions of the genome where genetic variants are inherited together due to high levels of linkage disequilibrium (LD)"} sx={{alignSelf: "center", ml: 1}}>
               <Info />
             </Tooltip>
           </AccordionSummary>
@@ -499,7 +499,7 @@ export default function GWAS() {
         <Accordion disabled={!study} expanded={suggestionsOpen} onChange={handleSetSuggestionsOpen}>
           <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: orange, color: lightTextColor, borderRadius: '4px' }}>
             <Typography variant="h6">Suggestions</Typography>
-            <Tooltip title={"Need to put more info here"} sx={{alignSelf: "center", ml: 1}}>
+            <Tooltip title={"Suggested Biosamples: Suggested biosamples to investigate based on cCRE enrichment as calculated by the Variant Enrichment and Sample Prioritization Analysis (VESPA) pipeline"} sx={{alignSelf: "center", ml: 1}}>
               <Info />
             </Tooltip>
           </AccordionSummary>
