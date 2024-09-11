@@ -1,10 +1,10 @@
 import React from "react"
-import { Link, Alert, AlertTitle, CircularProgress, Typography, TypographyPropsVariantOverrides, Stack } from "@mui/material"
+import { Link, Alert, AlertTitle, CircularProgress, Typography, TypographyPropsVariantOverrides, Stack, TypographyOwnProps } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { Snackbar, Box } from "@mui/material"
 import { OverridableStringUnion } from '@mui/types';
 import { Variant } from "@mui/material/styles/createTypography";
-import { Launch } from "@mui/icons-material";
+import { Launch, NumbersOutlined } from "@mui/icons-material";
 
 /**
  * Uses fetch to make a query call (server side)
@@ -56,8 +56,8 @@ export const createLink = (url: string, id: string, label?: string, showExternal
   )
 }
 
-export const CreateLink: React.FC<{ linkPrefix: string, linkArg: string, label: string, showExternalIcon?: boolean, variant?: OverridableStringUnion<Variant | 'inherit', TypographyPropsVariantOverrides>, textColor?: string, underline?: "none" | "always" | "hover" }> = (props) => {
-  const link = props.linkPrefix + props.linkArg
+export const CreateLink: React.FC<{ linkPrefix: string, linkArg?: string, label: string, showExternalIcon?: boolean, variant?: OverridableStringUnion<Variant | 'inherit', TypographyPropsVariantOverrides>, textColor?: string, underline?: "none" | "always" | "hover" }> = (props) => {
+  const link = props.linkPrefix + (props.linkArg ?? "")
   return (
     <>
       <Link variant={props.variant} href={link} rel="noopener noreferrer" target="_blank" color={props.textColor} underline={props.underline}>
@@ -149,12 +149,14 @@ export function toScientificNotationString(num: number, sigFigs: number = 2) {
  * @param sigFigs Number of desired significant figures
  * @returns 
  */
-export function toScientificNotationElement(num: number, variant?: OverridableStringUnion<Variant | 'inherit', TypographyPropsVariantOverrides>, sigFigs: number = 2) {
+export function toScientificNotationElement(num: number, sigFigs: number, typographyProps?: TypographyOwnProps) {
+  if (num > 0.01) { return <Typography {...typographyProps}>{num.toFixed(2)}</Typography> }
+
   // Convert the number to scientific notation using toExponential
   let scientific = num.toExponential(sigFigs);
   let [coefficient, exponent] = scientific.split('e');
   
   return (
-    <Typography variant={variant}>{coefficient}&nbsp;×&nbsp;10<sup>{exponent}</sup></Typography>
+    <Typography {...typographyProps}>{coefficient}&nbsp;×&nbsp;10<sup>{exponent}</sup></Typography>
   )
 }

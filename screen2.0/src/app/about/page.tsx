@@ -8,6 +8,7 @@ import encodeEncyclopedia from "../../../public/assets/about/images/encodeencycl
 import classifications from "../../../public/assets/about/images/classifications.png"
 import biosamples from "../../../public/assets/about/images/biosamples.png"
 import { CA_CTCF, CA_H3K4me3, CA_TF, CA_only, PLS, TF_only, dELS } from "../../common/lib/colors";
+import { CreateLink } from "../../common/lib/utility";
 
 export default function About() {
   const [contactName, setContactName] = useState('')
@@ -201,6 +202,11 @@ export default function About() {
               </ul>
             </Grid2>
           </Grid2>
+          {/* API Documentation */}
+          <Grid2 xs={12} id="api-documentation">
+            <Typography mb={1} variant="h2">API Documentation</Typography>
+            <CreateLink linkPrefix={"https://weng-lab.github.io/SCREEN2.0/"} label={"SCREEN API Documentation"} showExternalIcon />
+          </Grid2>
           {/* Contact Us */}
           <Grid2 xs={12} id="contact-us">
             <Typography mb={1} variant="h2">Contact Us</Typography>
@@ -208,11 +214,11 @@ export default function About() {
             <Typography mb={1} variant="body1">As this is a beta site, we would greatly appreciate any feedback you may have. Knowing how our users are using the site and documenting issues they may have are important to make this resource better and easier to use.</Typography>
             <Box mb={1}>
               <Typography display={"inline"} variant="body1">If you&apos;re experiencing an error/bug, feel free to&nbsp;</Typography>
-              <Link display={"inline"} href="https://github.com/weng-lab/SCREEN2.0/issues">submit an issue on Github.</Link>
+              <Link display={"inline"} href="https://github.com/weng-lab/SCREEN2.0/issues" target="_blank" rel="noopener noreferrer">submit an issue on Github.</Link>
             </Box>
             <Box mb={2}>
               <Typography display={"inline"} variant="body1">If you would like to send an attachment, feel free to email us directly at&nbsp;</Typography>
-              <Link display={"inline"} href="mailto:encode-screen@googlegroups.com">encode&#8209;screen@googlegroups.com</Link>
+              <Link display={"inline"} href="mailto:encode-screen@googlegroups.com" target="_blank" rel="noopener noreferrer">encode&#8209;screen@googlegroups.com</Link>
             </Box>
             <Box
               component="form"

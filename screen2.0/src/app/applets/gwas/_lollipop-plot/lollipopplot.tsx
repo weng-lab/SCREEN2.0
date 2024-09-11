@@ -11,6 +11,7 @@ import { Close, Download, KeyboardDoubleArrowUp, Search } from '@mui/icons-mater
 import { localPoint } from '@visx/event';
 import DownloadDialog, { FileOption } from './DownloadDialog';
 import { downloadObjArrayAsTSV, downloadObjectAsJson, downloadSVG, downloadSvgAsPng } from '../helpers';
+import { toScientificNotationElement } from '../../../../common/lib/utility';
 
 export type EnrichmentLollipopPlot = {
   /**
@@ -399,7 +400,7 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
             </FormGroup>
           </FormControl>
           <FormControl>
-            <FormLabel><i>P</i>-val Threshold</FormLabel>
+            <FormLabel><i>P</i> Threshold</FormLabel>
             <FormGroup>
               <FormControlLabel control={<Checkbox size='small' />} checked={pvalCutoff} onChange={handlePvalcutoff} label={<><i>P</i>{" < 0.05"}</>} />
             </FormGroup>
@@ -482,10 +483,10 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
             <Typography>{tooltipData.displayname}</Typography>
             <Typography>{tooltipData.ontology}</Typography>
             <Typography variant='body2'>{tooltipData.accession}</Typography>
-            <Typography variant='body2'><i>P</i>: {tooltipData.pvalue}</Typography>
-            <Typography variant='body2'>FDR: {tooltipData.fdr}</Typography>
-            <Typography variant='body2'>Fold Enrichment: {tooltipData.fc}</Typography>
-            <Typography variant='body2'>Log<sub>2</sub>(Fold Enrichment): {tooltipData.log2fc}</Typography>
+            <Typography variant='body2'><i>P</i>: {toScientificNotationElement(tooltipData.pvalue, 2, {display: "inline", variant: "inherit"})}</Typography>
+            <Typography variant='body2'>FDR: {tooltipData.fdr.toFixed(2)}</Typography>
+            <Typography variant='body2'>Fold Change: {tooltipData.fc.toFixed(2)}</Typography>
+            <Typography variant='body2'>Log<sub>2</sub>(Fold Change): {tooltipData.log2fc.toFixed(2)}</Typography>
           </TooltipWithBounds>
         </Portal>
       )}

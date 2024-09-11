@@ -121,7 +121,7 @@ export const LinkedGenes: React.FC<props> = (props) => {
                 header: "P",
                 HeaderRender: (row: LinkedGeneInfo) => <Typography variant="body2"><i>P</i></Typography>,
                 value: (row: LinkedGeneInfo) => row.p_val,
-                render: (row: LinkedGeneInfo) => row.p_val === 0 ? '0' : toScientificNotationElement(row.p_val, 'body2')
+                render: (row: LinkedGeneInfo) => row.p_val === 0 ? '0' : toScientificNotationElement(row.p_val, 2, {variant: "body2"})
               },
             ]}
             tableTitle="Intact Hi-C Loops"
@@ -218,7 +218,7 @@ export const LinkedGenes: React.FC<props> = (props) => {
                 header: "P",
                 HeaderRender: (row: LinkedGeneInfo) => <Typography variant="body2"><i>P</i></Typography>,
                 value: (row: LinkedGeneInfo) => row.p_val,
-                render: (row: LinkedGeneInfo) => toScientificNotationElement(row.p_val, 'body2')
+                render: (row: LinkedGeneInfo) => toScientificNotationElement(row.p_val, 2, {variant: 'body2'})
               },
             ]}
             tableTitle="CRISPRi-FlowFISH"
@@ -267,7 +267,7 @@ export const LinkedGenes: React.FC<props> = (props) => {
                 header: "P",
                 HeaderRender: () => <Typography variant="body2"><i>P</i></Typography>,
                 value: (row: LinkedGeneInfo) => row.p_val,
-                render: (row: LinkedGeneInfo) => toScientificNotationElement(row.p_val, 'body2')
+                render: (row: LinkedGeneInfo) => toScientificNotationElement(row.p_val, 2, {variant: 'body2'})
               },
             ]}
             tableTitle="eQTLs"

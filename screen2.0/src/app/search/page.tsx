@@ -35,6 +35,9 @@ const drawerWidth = 350;
 
 const StyledTab = styled(Tab)(() => ({
   textTransform: "none",
+  paddingTop: 0,
+  paddingBottom: 0,
+  minHeight: "64px"
 }))
 
 //Wrapper for the table
@@ -445,6 +448,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               aria-label="navigation tabs"
               value={page}
               onChange={handlePageChange}
+              
             >
               {/* Hidden empty icon to keep tab height consistent */}
               <StyledTab iconPosition="end" icon={<Box sx={{ display: 'none' }} />} value={0} label="Table View" />

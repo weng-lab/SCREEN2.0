@@ -136,7 +136,6 @@ export function MainResultsFilters(
   }
 ): JSX.Element {
 
-  console.log("biosampleData",props.biosampleData)
   const [getLinkedGenes, { loading: loadingLinkedGenes, data: dataLinkedGenes, error: errorLinkedGenes }] = props.useLinkedGenes
 
   type LGBiosampleReturnData = {

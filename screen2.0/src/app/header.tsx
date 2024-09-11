@@ -19,6 +19,7 @@ const pageLinks = [
     dropdownID: "0",
     subPages: [
       { pageName: "Overview", link: "/about" },
+      { pageName: "API Documentation", link: "/about#api-documentation" },
       { pageName: "Contact Us", link: "/about#contact-us" },
     ],
   },
