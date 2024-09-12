@@ -1,14 +1,13 @@
 import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, Box, CircularProgress, FormControlLabel, Accordion, FormGroup, Checkbox, IconButton, Menu, MenuItem, InputAdornment, FormControl, FormLabel, CircularProgressProps, Paper, Stack } from "@mui/material"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
-import { Dispatch, SetStateAction, SyntheticEvent, useEffect, useMemo, useState } from "react"
-import { filterBiosamples, parseBiosamples, assayHoverInfo } from "../../search/searchhelpers"
-import { BiosampleData, BiosampleTableFilters, RegistryBiosample, RegistryBiosamplePlusRNA } from "../../search/types"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { parseBiosamples, assayHoverInfo, passesFilters, filterBiosamples } from "../../search/searchhelpers"
+import { RegistryBiosample, RegistryBiosamplePlusRNA } from "../../search/types"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
 import { Check, Close, Download, FilterList } from "@mui/icons-material"
 import SearchIcon from '@mui/icons-material/Search';
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
-import { ApolloQueryResult, TypedDocumentNode, gql } from "@apollo/client"
-import { BIOSAMPLE_Data } from "../../../common/lib/queries"
+import { TypedDocumentNode, gql } from "@apollo/client"
 import { downloadTSV } from "../../downloads/utils"
 
 type RNA_SEQ_Data = {
@@ -25,6 +24,38 @@ const RNA_SEQ_QUERY: TypedDocumentNode<RNA_SEQ_Data, RNA_SEQ_Variables> = gql`
   query RNASeqQuery($assembly: String!){
     rnaSeqQuery(assembly:$assembly) {
       biosample
+    }
+  }
+`
+
+type BiosampleData = {
+  ccREBiosampleQuery: { biosamples: RegistryBiosample[]}
+}
+
+type BiosampleDataVars = {
+  assembly: "grch38" | "mm10"
+}
+
+const BIOSAMPLE_QUERY = gql`
+  query biosamples($assembly: String!) {
+    ccREBiosampleQuery(assembly: $assembly) {
+      biosamples {
+        name
+        ontology
+        lifeStage
+        sampleType
+        displayname
+        dnase: experimentAccession(assay: "DNase")
+        h3k4me3: experimentAccession(assay: "H3K4me3")
+        h3k27ac: experimentAccession(assay: "H3K27ac")
+        ctcf: experimentAccession(assay: "CTCF")
+        atac: experimentAccession(assay: "ATAC")
+        dnase_signal: fileAccession(assay: "DNase")
+        h3k4me3_signal: fileAccession(assay: "H3K4me3")
+        h3k27ac_signal: fileAccession(assay: "H3K27ac")
+        ctcf_signal: fileAccession(assay: "CTCF")
+        atac_signal: fileAccession(assay: "ATAC")
+      }
     }
   }
 `
@@ -214,27 +245,51 @@ type FiltersKey = "CellLine" | "PrimaryCell" | "Tissue" | "Organoid" | "InVitro"
 
 type CheckboxState = {[key in FiltersKey]: boolean}
 
+const checkboxLabels: {[key in FiltersKey]: string} = {
+  CellLine: "Cell Line",
+  PrimaryCell: "Primary Cell",
+  Tissue: "Tissue",
+  Organoid: "Organoid",
+  InVitro: "In Vitro Differentiated Cell",
+  Core: "Core Collection",
+  Partial: "Partial Data Collection",
+  Ancillary: "Ancillary Collection",
+  Embryo: "Embryo",
+  Adult: "Adult"
+}
+
 /**
  * @todo in V2
  * 
- * - Fetch biosample data within this component
- * - Pass selectedBiosamples as string[]
  * - Undo the weird type assumption with showRNAseq that is confusing
- * - Undo biosampleSelectMode, why?
- * - Clarify what passing biosampleTableFilters does
  * - Remove this weird type difference with RegistryBiosample and RegistryBiosamplePlusRNA
+ * - Figure out how to best set the height of the component. Previously if filter state was passed it would be 350, without 500. Expose Paper/Stack props?
  */
 
 interface Props {
-  biosampleData: ApolloQueryResult<BIOSAMPLE_Data>,
+  /**
+   * Assembly used in fetching samples
+   */
   assembly: "GRCh38" | "mm10"
-  selectedBiosamples: RegistryBiosample[] | RegistryBiosamplePlusRNA[],
-  setSelectedBiosamples: Dispatch<SetStateAction<RegistryBiosample[] | RegistryBiosamplePlusRNA[]>>,
+  /**
+   * Highlights samples in the tables. Can pass name or displayname of sample
+   */
+  selected: string | string[],
+  /**
+   * 
+   * @param selected 
+   * Fired on click of biosample
+   */
   onBiosampleClicked?: (selected: RegistryBiosamplePlusRNA) => void,
+  /**
+   * @param sample 
+   * If specified, samples will be passed through this function before populating tables
+   */
+  preFilterBiosamples?: (sample: RegistryBiosamplePlusRNA) => boolean,
+
+  //Should I change this? Seems like so-so way to handle this behavior
   showRNAseq: boolean,
   showDownloads: boolean,
-  biosampleSelectMode: "replace" | "append"
-  biosampleTableFilters?: BiosampleTableFilters,
 }
 
 /**
@@ -245,16 +300,14 @@ interface Props {
  * Not following this may cause unexpected behabior
  */
 export const GwasBiosampleTables: React.FC<Props> = ({
-  biosampleData,
   assembly,
-  selectedBiosamples,
-  setSelectedBiosamples,
+  selected,
   onBiosampleClicked,
+  preFilterBiosamples,
   showRNAseq,
-  showDownloads,
-  biosampleSelectMode,
-  biosampleTableFilters 
+  showDownloads
 }) => {
+  //Checkbox state for filters
   const [checkboxes, setCheckboxes] = useState<CheckboxState>({
     CellLine: true,
     PrimaryCell: true,
@@ -268,26 +321,28 @@ export const GwasBiosampleTables: React.FC<Props> = ({
     Adult: true
   })
 
-  const checkboxLabels: {[key in FiltersKey]: string} = {
-    CellLine: "Cell Line",
-    PrimaryCell: "Primary Cell",
-    Tissue: "Tissue",
-    Organoid: "Organoid",
-    InVitro: "In Vitro Differentiated Cell",
-    Core: "Core Collection",
-    Partial: "Partial Data Collection",
-    Ancillary: "Ancillary Collection",
-    Embryo: "Embryo",
-    Adult: "Adult"
-  }
-
-//For searching biosample tables
+  //For searching biosample tables
   const [searchString, setSearchString] = useState<string>("")
 
   //Anchor for dropdown menu
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
-  const { data: data_rnaseq, loading: loading_rnaseq, error: error_rnaseq } = useQuery(RNA_SEQ_QUERY,
+  const handleClose = () => { setAnchorEl(null) }
+
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => { setAnchorEl(event.currentTarget) }
+
+
+  const {data: biosampleData, loading: loadingBiosamples, error: errorBiosamples } = useQuery<BiosampleData, BiosampleDataVars>(
+    BIOSAMPLE_QUERY,
+    {
+      variables: {
+        assembly: assembly.toLowerCase() as "grch38" | "mm10"
+      }
+    }
+  )
+
+  const { data: data_rnaseq, loading: loading_rnaseq, error: error_rnaseq } = useQuery(
+    RNA_SEQ_QUERY,
     {
       variables: {
         assembly: assembly.toLowerCase() as ("grch38" | "mm10")
@@ -297,45 +352,58 @@ export const GwasBiosampleTables: React.FC<Props> = ({
     }
   )
 
-  const sidebar = Boolean(biosampleTableFilters)
+  const sampleMatchesSearch = useCallback((x: RegistryBiosample) => {
+    if (searchString) {
+      return x.name.toLowerCase().includes(searchString.toLowerCase())
+        || x.displayname.toLowerCase().includes(searchString.toLowerCase())
+        || x.ontology.toLowerCase().includes(searchString.toLowerCase())
+    } else return true
+  }, [searchString])
 
-
-
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  // Type guard function to prevent accessing rnaseq field when it doesn't exist
-  function isRegistryBiosamplePlusRNA(
-    biosample: RegistryBiosample | RegistryBiosamplePlusRNA
-  ): biosample is RegistryBiosamplePlusRNA {
-    return (biosample as RegistryBiosamplePlusRNA)?.rnaseq !== undefined;
-  }
-
-  const filteredBiosamples: BiosampleData = useMemo(() => {
-    if ((biosampleData?.data && (showRNAseq ? data_rnaseq : true))) {
-      return (
-        filterBiosamples(
-          //Parse raw data into ontology-grouped biosamples
-          parseBiosamples(biosampleData.data[assembly === "GRCh38" ? "human" : "mouse"].biosamples, data_rnaseq?.rnaSeqQuery || []),
-          checkboxes.Tissue,
-          checkboxes.PrimaryCell,
-          checkboxes.CellLine,
-          checkboxes.InVitro,
-          checkboxes.Organoid,
-          checkboxes.Core,
-          checkboxes.Partial,
-          checkboxes.Ancillary,
-          checkboxes.Embryo,
-          checkboxes.Adult,
-        )
+  /**
+   * Sorted and Filtered Biosamples
+   * @todo should I be filtering out biosamples here? Or let individual tables handle search
+   */
+  const filteredBiosamples: {[key: string]: RegistryBiosamplePlusRNA[]} = useMemo(() => {
+    if ((biosampleData && (data_rnaseq || !showRNAseq))) {
+      const groupedBiosamples: {[key: string]: RegistryBiosamplePlusRNA[]} = {}
+      biosampleData.ccREBiosampleQuery.biosamples.filter(preFilterBiosamples || (() => true)).forEach(biosample => {
+        if (!searchString || (searchString && sampleMatchesSearch(biosample))) { //check to see that sample matches search
+          //If tissue hasn't been cataloged yet, define an entry for it
+          if (!groupedBiosamples[biosample.ontology]){
+            groupedBiosamples[biosample.ontology] = [];
+          }
+          //Add biosample to corresponding entry
+          groupedBiosamples[biosample.ontology].push(
+            {
+              ...biosample,
+              /**
+               * @todo make sure this works properly
+               */
+              rnaseq: data_rnaseq ? Boolean(data_rnaseq.rnaSeqQuery.map((sample) => sample.biosample).find(sampleName => biosample.name === sampleName)) : undefined,
+            }
+          )
+        }
+      })
+      /**
+       * @todo cleanup this function to not need to pass all parameters individually like this
+       */
+      const filteredBiosamples = filterBiosamples(
+        groupedBiosamples,
+        checkboxes.Tissue,
+        checkboxes.PrimaryCell,
+        checkboxes.CellLine,
+        checkboxes.InVitro,
+        checkboxes.Organoid,
+        checkboxes.Core,
+        checkboxes.Partial,
+        checkboxes.Ancillary,
+        checkboxes.Embryo,
+        checkboxes.Adult,
       )
+      return filteredBiosamples
     } else return {}
-  }, [biosampleData, assembly, showRNAseq, data_rnaseq, checkboxes])
+  }, [biosampleData, checkboxes, data_rnaseq, showRNAseq, sampleMatchesSearch, searchString, preFilterBiosamples])
 
 
   const biosampleTables = useMemo(() => {
@@ -467,9 +535,18 @@ export const GwasBiosampleTables: React.FC<Props> = ({
       ]
     }
 
+    if (loadingBiosamples || loading_rnaseq) {
+      return <CircularProgress sx={{ margin: "auto" }} />
+    }
+
+    if (errorBiosamples || error_rnaseq) {
+      return <Typography>Something went wrong fetching biosamples, check the console for more information.</Typography>
+    }
+
     return (
       Object.entries(filteredBiosamples).sort().map(([ontology, biosamples], i) => {
         if ((searchString ? biosamples.find(obj => obj.displayname.toLowerCase().includes(searchString.toLowerCase())) : true) && biosamples.length > 0) {
+          const toHighlight = selected ? typeof selected === 'string' ? [selected] : selected : []
           return (
             <Accordion key={i}>
               <AccordionSummary
@@ -489,25 +566,15 @@ export const GwasBiosampleTables: React.FC<Props> = ({
                   rows={biosamples}
                   dense
                   searchable
-                  search={searchString}
-                  //Rows will always have rnaseq columns, so add on if selected biosample will be missing
-                  highlighted={isRegistryBiosamplePlusRNA(selectedBiosamples[0]) ? selectedBiosamples : selectedBiosamples.map(x => { return { ...x, rnaseq: false } })}
+                  /**
+                   * @todo ensure this works as expected
+                   */
+                  highlighted={biosamples.find(x => toHighlight.includes(x.name) || toHighlight.includes(x.displayname))}
                   sortColumn={1}
-                  onRowClick={(row: RegistryBiosamplePlusRNA, i) => {
-                    let x = row
-                    if (biosampleSelectMode === "append" && !selectedBiosamples.find((x) => x.displayname === row.displayname)) {
-                      if (showRNAseq) {
-                        setSelectedBiosamples([...selectedBiosamples, row])
-                      } else {
-                        //remove rnaseq data if not using
-                        delete x.rnaseq
-                        setSelectedBiosamples([...selectedBiosamples, x])
-                      }
-                    } else {
-                      setSelectedBiosamples([row])
-                    }
-                    onBiosampleClicked && onBiosampleClicked(row)
-                  }}
+                  /**
+                   * @todo ensure this works as expected
+                   */
+                  onRowClick={onBiosampleClicked}
                 />
               </AccordionDetails>
             </Accordion>
@@ -517,7 +584,7 @@ export const GwasBiosampleTables: React.FC<Props> = ({
     )
 
   },
-    [filteredBiosamples, selectedBiosamples, searchString, setSelectedBiosamples, biosampleSelectMode, showRNAseq, showDownloads, onBiosampleClicked]
+    [showRNAseq, showDownloads, loadingBiosamples, loading_rnaseq, errorBiosamples, error_rnaseq, filteredBiosamples, searchString, selected, onBiosampleClicked]
   )
 
   const FilterCheckbox: React.FC<{control: FiltersKey}> = ({control}) => {
@@ -557,13 +624,10 @@ export const GwasBiosampleTables: React.FC<Props> = ({
             <FilterList />
           </IconButton>
         </Stack>
-        <Box height={sidebar ? 350 : 500} sx={{ display: 'flex', flexDirection: "column", overflow: "auto" }}>
-          {(biosampleData && (showRNAseq ? data_rnaseq : true)) ? biosampleTables : <CircularProgress sx={{ margin: "auto" }} />}
+        <Box height={500} sx={{ display: 'flex', flexDirection: "column", overflow: "auto" }}>
+          {biosampleTables}
         </Box>
       </Stack>
-      {/**
-       * @todo fix all this duplication
-       *   */}
       <Menu
           id="basic-menu"
           anchorEl={anchorEl}

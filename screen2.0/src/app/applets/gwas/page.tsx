@@ -54,11 +54,6 @@ type TableRow = {
 }
 
 export default function GWAS() {
-  //all 3 useless, to remove once biosampletable2 fixed
-  const [selectedBiosample, setSelectedBiosample] = useState<RegistryBiosample[]>([])
-  const [isPending, startTransition] = useTransition();
-  const [biosampleData, setBiosampleData] = useState<ApolloQueryResult<BIOSAMPLE_Data>>(null)
-
   const [study, setStudy] = useState<GWASStudy>(null)
   const [selectedSample, setSelectedSample] = useState<{ name: string, displayname: string, tissue: string }>(null)
   const [suggestionsOpen, setSuggestionsOpen] = useState<boolean>(false)
@@ -100,13 +95,6 @@ export default function GWAS() {
 
   const theme = useTheme()
   const isLg = useMediaQuery(theme.breakpoints.up('lg'))
-
-  useEffect(() => {
-    startTransition(async () => {
-      const biosamples = await biosampleQuery()
-      setBiosampleData(biosamples)
-    })
-  }, [])
 
   const {
     data: gwasstudies, loading: gwasstudiesLoading
@@ -362,39 +350,28 @@ export default function GWAS() {
   }
 
   const BiosampleSelection = () => {
-    return biosampleData?.loading && gwasstudies && gwasstudies.getAllGwasStudies.length > 0 ?
-      <CircularProgress sx={{ margin: "auto" }} />
-      :
+    return (
       <div>
-        <Accordion expanded={samplesOpen} onChange={handleSetSamplesOpen} disabled={!study}  sx={{borderRadius: '4px !important'}}>
+        <Accordion expanded={samplesOpen} onChange={handleSetSamplesOpen} disabled={!study} sx={{ borderRadius: '4px !important' }}>
           <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: lightBlue, color: lightTextColor, borderRadius: '4px' }}>
             <Typography variant="h6">Select a Biosample</Typography>
-            <Tooltip title={"Optionally select a biosample to view biosample-specific assay z-scores"} sx={{alignSelf: "center", ml: 1}}>
+            <Tooltip title={"Optionally select a biosample to view biosample-specific assay z-scores"} sx={{ alignSelf: "center", ml: 1 }}>
               <Info />
             </Tooltip>
           </AccordionSummary>
-          <AccordionDetails sx={{p: 0}}>
+          <AccordionDetails sx={{ p: 0 }}>
             <Stack gap={1} mt={selectedSample ? 0 : 1}>
               {selectedSample &&
                 <SelectInfo info1={capitalizeFirstLetter(selectedSample.tissue)} info2={capitalizeFirstLetter(selectedSample.displayname)} onClose={() => handleSetSelectedSample(null)} />
               }
-              {biosampleData?.data ?
-                <GwasBiosampleTables
-                  showRNAseq={false}
-                  showDownloads={false}
-                  biosampleSelectMode="replace"
-                  /**
-                   * @todo account for this when refactoring biosample tables further
-                   */
-                  biosampleData={{ data: { human: { biosamples: biosampleData.data['human'].biosamples.filter(b => b.dnase) }, mouse: biosampleData.data['mouse'] }, loading: biosampleData.loading, networkStatus: biosampleData.networkStatus }}
-                  assembly={"GRCh38"}
-                  selectedBiosamples={[]}
-                  setSelectedBiosamples={setSelectedBiosample}
-                  onBiosampleClicked={handleSetSelectedSample}
-                />
-                :
-                <CircularProgress sx={{ margin: "auto" }} />
-              }
+              <GwasBiosampleTables
+                assembly={"GRCh38"}
+                showRNAseq={false}
+                showDownloads={false}
+                preFilterBiosamples={(sample: RegistryBiosamplePlusRNA) => sample.dnase !== null}
+                selected={selectedSample?.name}
+                onBiosampleClicked={handleSetSelectedSample}
+              />
             </Stack>
           </AccordionDetails>
         </Accordion>
@@ -402,6 +379,7 @@ export default function GWAS() {
           <SelectInfo info1={capitalizeFirstLetter(selectedSample.tissue)} info2={capitalizeFirstLetter(selectedSample.displayname)} onClose={() => handleSetSelectedSample(null)} />
         }
       </div>
+    )
   }
 
   const LdBlocks = () => {
