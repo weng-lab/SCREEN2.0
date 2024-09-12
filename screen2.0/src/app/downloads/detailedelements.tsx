@@ -140,7 +140,7 @@ export function DetailedElements(props: TabPanelProps) {
             </Stack>
             <Image src={mouseTransparentIcon} alt={"Mouse Icon"} height={75} />
           </Stack>
-          <DownloadButton href={Config.Downloads.MouseCCREs} label="Download All Mouse cCREs" />
+          <DownloadButton href={Config.Downloads.MouseCCREs} label="All Mouse cCREs" />
           <InlineDownloadButton
             mode="download"
             href={Config.Downloads.MousePromoters}
