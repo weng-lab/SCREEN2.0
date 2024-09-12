@@ -20,6 +20,7 @@ import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import { NEARBY_AND_LINKED_GENES } from "./queries"
 import { calcDistToTSS } from "./utils"
 import { LoadingMessage } from "../../../common/lib/utility"
+import { OverlappingPeaks } from "./overlappingpeaks"
 
 //Passing these props through this file could be done with context to reduce prop drilling
 type CcreDetailsProps = {
@@ -157,9 +158,11 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
         <Typography variant="h6">{`${region.chrom}:${region.start.toLocaleString("en-US")}-${region.end.toLocaleString("en-US")}`}</Typography>
       </Stack>
       <Divider sx={{ mb: 2 }} />
+      {/* Biosample Activity */}
       {page === 0 &&
         <InSpecificBiosamples accession={accession} assembly={assembly} />
       }
+      {/* Linked Genes */}
       {(page === 1 && assembly !== "mm10") &&
         (loadingLinkedGenes ?
         <CircularProgress />
@@ -169,6 +172,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
           :
           <LinkedGenes linkedGenes={nearest3AndLinkedGenes?.linkedGenes || []} />)
       }
+      {/* Nearby Genomic Features */}
       {page === 2 && (
         <NearByGenomicFeatures
           accession={accession}
@@ -181,9 +185,11 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
           handleOpencCRE={handleOpencCRE}
         />
       )}
+      {/* Orthologous cCREs in Other Species */}
       {page === 3 &&
         <Ortholog accession={accession} assembly={assembly} />
       }
+      {/* Associated Gene Expression */}
       {(page === 4) &&
         (loadingLinkedGenes ?
         <CircularProgress />
@@ -193,10 +199,26 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
           :
           <GeneExpression assembly={assembly} genes={uniqueGenes || []} biosampleData={biosampleData} />)
       }
-      {page === 5 &&
+      {/* Associated Transcript Expression */}
+      {(page === 5 && assembly !== "mm10") &&
+      (!dataNearbyAndLinked || loadingLinkedGenes ?
+        <CircularProgress />
+        :
+        errorNearbyAndLinked ?
+          <Typography>{`Issue fetching Linked Genes for ${accession}.`}</Typography> 
+          :
+          <Rampage genes={uniqueGenes.length > 0 ? uniqueGenes : []} biosampleData={biosampleData} />)
+      }
+      {/* Overlapping RAMPAGE Peaks */}
+      {page === 6 &&
+        <OverlappingPeaks accession={accession} assembly={assembly} />
+      }
+      {/* Functional Data */}
+      {page === 7 &&
         <FunctionData accession={accession} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }} assembly={assembly} />
       }
-      {page === 6 &&
+      {/* TF Motifs and Sequence Features */}
+      {page === 8 &&
         <>
           <TfSequenceFeatures assembly={assembly} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }} />
           <TfIntersection
@@ -209,7 +231,12 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
           />
         </>
       }
-      {page === 7 &&
+      {/* ChromHMM States */}
+      {page === 9 && assembly !== "mm10" &&
+        <ChromHMM accession={accession} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }} assembly={assembly} />
+      }
+      {/* Configure UCSC Genome Browser */}
+      {page === 10 &&
         <ConfigureGBTab
           biosampleData={biosampleData}
           coordinates={{
@@ -221,20 +248,8 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
           accession={accession}
         />
       }
-      {page === 9 && assembly !== "mm10" &&
-        <ChromHMM accession={accession} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }} assembly={assembly} />
-      }
-
-      {(page === 8 && assembly !== "mm10") &&
-      (!dataNearbyAndLinked || loadingLinkedGenes ?
-        <CircularProgress />
-        :
-        errorNearbyAndLinked ?
-          <Typography>{`Issue fetching Linked Genes for ${accession}.`}</Typography> 
-          :
-          <Rampage genes={uniqueGenes.length > 0 ? uniqueGenes : []} biosampleData={biosampleData} />)
-      }
-      {page === 10 && assembly !== "mm10" &&
+      {/* ENTEx */}
+      {page === 11 && assembly !== "mm10" &&
         <ENTExData accession={accession}  coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }}/>
       }
     </>
