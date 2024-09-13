@@ -39,22 +39,23 @@ query ($assembly: String!, $name_prefix: [String!], $limit: Int, $version: Int) 
 const TSS_RAMPAGE_QUERY = `
   query tssRampage($gene: String!) {
   tssrampageQuery(genename: $gene) {
-    start
-    geneName
-    organ
-    locusType
+    start    
+    organ   
     strand
     peakId
     biosampleName
     biosampleType
     biosampleSummary
-    col1
-    col2
+    peakType
     expAccession
     value
     start
     end 
-    chrom 
+    chrom    
+    genes {
+      geneName
+       locusType
+    }
   }
 }
 `
@@ -68,11 +69,10 @@ export type RampagePeak = {
   start: string,
   end: string,
   chrom: string,
-  col1: string,
-  col2: string,
+  peakType: string,  
   organ: string,
   strand: string,
-  tissue: string
+  tissue: string,
 }
 export default function Rampage(props: { genes: { name: string, linkedBy?: string[] }[], biosampleData: ApolloQueryResult<BIOSAMPLE_Data> }) {
   const [currentGene, setCurrentGene] = useState(props.genes[0].name)
@@ -112,13 +112,12 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
               peakId: t.peakId,
               biosampleType: t.biosampleType,
               name: t.biosampleName,
-              locusType: t.locusType,
+              locusType: t.genes[0].locusType,
               expAccession: t.expAccession,
               start: t.start,
               end: t.end,
               chrom: t.chrom,
-              col1: t.col1,
-              col2: t.col2,
+              peakType: t.peakType,              
               organ: t.organ,
               strand: t.strand,
               tissue: t.organ
@@ -228,7 +227,7 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
                   return (
                     <Stack>
                       <Typography>{value}</Typography>
-                      <Typography variant="body2" color={"text.secondary"}>{`(${details?.col1} ${details?.col2})`}</Typography>
+                      <Typography variant="body2" color={"text.secondary"}>{`(${details?.peakType})`}</Typography>
                     </Stack>
                   )
                 }
@@ -239,7 +238,7 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
                 return (
                   <MenuItem sx={{ display: "block" }} key={peak} value={peak}>
                     <Typography>{peak}</Typography>
-                    <Typography variant="body2" color={"text.secondary"}>{`(${details?.col1} ${details?.col2})`}</Typography>
+                    <Typography variant="body2" color={"text.secondary"}>{`(${details?.peakType})`}</Typography>
                   </MenuItem>
                 )
               })
