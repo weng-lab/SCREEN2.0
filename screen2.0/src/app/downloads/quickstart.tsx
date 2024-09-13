@@ -1,0 +1,300 @@
+import {
+  Typography,
+  Button,
+  ButtonProps,
+  Stack,
+  IconButton,
+  Autocomplete,
+  TextField,
+  Tooltip,  
+  Divider,
+} from "@mui/material"
+import InfoIcon from "@mui/icons-material/Info"
+import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import LoadingButton from "@mui/lab/LoadingButton"
+import DownloadIcon from "@mui/icons-material/Download"
+import humanTransparentIcon from "../../../public/Transparent_HumanIcon.png"
+import mouseTransparentIcon from "../../../public/Transparent_MouseIcon.png"
+import Config from "../../config.json"
+import { useEffect, useMemo, useState } from "react"
+import React from "react"
+import Image from "next/image"
+import { ApolloQueryResult } from "@apollo/client"
+import { downloadTSV } from "./utils"
+import { RegistryBiosample } from "../search/types"
+import { BIOSAMPLE_Data } from "../../common/lib/queries"
+
+interface TabPanelProps {
+  children?: React.ReactNode
+  biosamples: ApolloQueryResult<BIOSAMPLE_Data>
+}
+
+const PROMOTER_MESSAGE =
+  "cCREs with promoter-like signatures have high DNase-seq signal, high H3K4me3 signal, and have centers within 200 bp of an annotated GENCODE TSS."
+const ENHANCER_MESSAGE =
+  "cCREs with enhancer-like signatures have high DNase-seq signal and high H3K27ac signal. These cCREs can either be TSS-proximal (within 2kb) or TSS-distal and do not include promoter annotations."
+const CTCF_MESSAGE = "cCREs with high CTCF-signal. These cCRE may also be classified as promoters, enhancer, or CTCF-only elements."
+const LINK_MESSAGE = "cCRE-gene links curated from Hi-C, ChIA-PET, CRISPR perturbations and eQTL data."
+
+/**
+ *
+ * @param selected The selected biosample
+ * @returns The link to download biosample-specific cCREs
+ */
+function generateBiosampleURL(selected: RegistryBiosample): URL {
+  const r = [selected.dnase_signal, selected.h3k4me3_signal, selected.h3k27ac_signal, selected.ctcf_signal].filter((x) => !!x)
+  return new URL(`https://downloads.wenglab.org/Registry-V4/${r.join("_")}.bed`)
+}
+
+const DownloadButton = (props: ButtonProps & { label: string }) => {
+  return (
+    <Button sx={{ textTransform: "none" }} fullWidth variant="contained" color="primary" {...props} endIcon={<DownloadIcon />}>
+      {props.label}
+    </Button>
+  )
+}
+
+function ComboBox(props: {
+  options: RegistryBiosample[]
+  label: string
+  mode: "H-promoter" | "H-enhancer" | "H-ctcf" | "M-promoter" | "M-enhancer" | "M-ctcf"
+}): JSX.Element {
+  const [toDownload, setToDownload] = useState<URL | null>(null)
+  const [selectedBiosample, setSelectedBiosample] = useState<RegistryBiosample | null>(null)
+
+  //Not sure if this is strictly necessary to use useMemo
+  const stringToMatch: string = useMemo(() => {
+    switch (props.mode) {
+      case "H-promoter":
+        return "PLS"
+      case "M-promoter":
+        return "PLS"
+      case "H-enhancer":
+        return "ELS"
+      case "M-enhancer":
+        return "ELS"
+      case "H-ctcf":
+        return "CTCF"
+      case "M-ctcf":
+        return "CTCF"
+    }
+  }, [props.mode])
+
+  useEffect(() => {
+    toDownload &&
+      fetch(toDownload)
+        .then((x) => x.text())
+        .then((x) => {
+          downloadTSV(
+            x
+              .split("\n")
+              .filter((x) => x.includes(stringToMatch))
+              .join("\n"),
+            `${selectedBiosample.displayname}.${
+              props.mode === "H-promoter" || props.mode === "M-promoter"
+                ? "promoters"
+                : props.mode === "H-enhancer" || props.mode === "M-enhancer"
+                ? "enhancers"
+                : "CTCF-bound cCREs"
+            }.bed`
+          )
+          setToDownload(null)
+        })
+  }, [toDownload, props.mode, selectedBiosample, stringToMatch])
+
+  return (
+    <React.Fragment>
+      {/* As an important note, since all the biosample names are getting their underscores removed, you can't search with the original names with the underscores without customizing search function. Maybe we could look into being able to search for a tissue category also or group them */}
+      <Autocomplete
+        disablePortal
+        id="combo-box-demo"
+        options={props.options}
+        sx={{ width: 300 }}
+        //This spread is giving a warning. Code comes from MUI. Can't remove it though or doesn't work...
+        renderInput={(params) => <TextField {...params} label={props.label} />}
+        getOptionLabel={(biosample: RegistryBiosample) =>
+          biosample.displayname +
+          " — Exp ID: " +
+          (props.mode === "H-promoter" || props.mode === "M-promoter"
+            ? biosample.h3k4me3
+            : props.mode === "H-enhancer" || props.mode === "M-enhancer"
+            ? biosample.h3k27ac
+            : biosample.ctcf)
+        }
+        blurOnSelect
+        onChange={(event, value: any) => setSelectedBiosample(value)}
+        size="small"
+      />
+      {selectedBiosample && (
+        <LoadingButton
+          loading={toDownload !== null}
+          loadingPosition="end"
+          sx={{ textTransform: "none" }}
+          fullWidth
+          onClick={() => setToDownload(generateBiosampleURL(selectedBiosample))}
+          variant="contained"
+          color="primary"
+          endIcon={<DownloadIcon />}
+        >
+          <span>
+            {`Download ${props.mode === "H-promoter" || props.mode === "M-promoter"
+                ? "promoters"
+                : props.mode === "H-enhancer" || props.mode === "M-enhancer"
+                  ? "enhancers"
+                  : "CTCF-bound cCREs"
+              } active in ${selectedBiosample.displayname.replace(/_/g, " ")}`}
+          </span>
+        </LoadingButton>
+      )}
+    </React.Fragment>
+  )
+}
+
+export function QuickStart(props: TabPanelProps) {
+  const biosamples = props.biosamples?.data
+
+  //Filter query return
+  const humanPromoters: RegistryBiosample[] = useMemo(
+    () => ((biosamples && biosamples.human && biosamples.human.biosamples) || []).filter((x: RegistryBiosample) => x.h3k4me3 !== null),
+    [biosamples]
+  )
+  const humanEnhancers: RegistryBiosample[] = useMemo(
+    () => ((biosamples && biosamples.human && biosamples.human.biosamples) || []).filter((x: RegistryBiosample) => x.h3k27ac !== null),
+    [biosamples]
+  )
+  const humanCTCF: RegistryBiosample[] = useMemo(
+    () => ((biosamples && biosamples.human && biosamples.human.biosamples) || []).filter((x: RegistryBiosample) => x.ctcf !== null),
+    [biosamples]
+  )
+  const mousePromoters: RegistryBiosample[] = useMemo(
+    () => ((biosamples && biosamples.mouse && biosamples.mouse.biosamples) || []).filter((x: RegistryBiosample) => x.h3k4me3 !== null),
+    [biosamples]
+  )
+  const mouseEnhancers: RegistryBiosample[] = useMemo(
+    () => ((biosamples && biosamples.mouse && biosamples.mouse.biosamples) || []).filter((x: RegistryBiosample) => x.h3k27ac !== null),
+    [biosamples]
+  )
+  const mouseCTCF: RegistryBiosample[] = useMemo(
+    () => ((biosamples && biosamples.mouse && biosamples.mouse.biosamples) || []).filter((x: RegistryBiosample) => x.ctcf !== null),
+    [biosamples]
+  )
+
+  return (
+    <div role="tabpanel" id={`simple-tabpanel-${0}`} aria-labelledby={`simple-tab-${0}`}>
+        <Grid2 container columnSpacing={{ xs: 4, md: 6 }} rowSpacing={3} mt={1}>
+          {/* Titles */}
+          <Grid2 xsOffset={2} xs={5}>
+            <Stack direction={"row"} justifyContent={"space-between"}>
+              <Stack>
+                <Typography mt="auto" variant="h5" >Human (GRCh38/hg38)</Typography>
+                <Typography variant="subtitle1">2,348,854 cCREs • 1,888 cell types</Typography>
+              </Stack>
+              <Image src={humanTransparentIcon} alt={"Human Icon"} style={{maxWidth: '75px', maxHeight: '75px'}} />
+            </Stack>
+          </Grid2>
+          <Grid2 xs={5}>
+            <Stack direction={"row"} justifyContent={"space-between"}>
+              <Stack>
+                <Typography mt="auto" variant="h5">Mouse (GRCm38/mm10)</Typography>
+                <Typography variant="subtitle1">926,843 cCREs • 366 cell types</Typography>
+              </Stack>
+              <Image src={mouseTransparentIcon} alt={"Human Icon"} style={{maxWidth: '75px', maxHeight: '75px'}} />
+            </Stack>
+          </Grid2>
+          {/* All cCREs */}
+          <Grid2 xs={2} borderLeft={"0.375rem solid #06DA93"}>
+            <Typography>All cCREs</Typography>
+          </Grid2>
+          <Grid2 xs={5}>
+            <DownloadButton href={Config.Downloads.HumanCCREs} label="Download All Human cCREs" />
+          </Grid2>
+          <Grid2 xs={5}>
+            <DownloadButton href={Config.Downloads.MouseCCREs} label="Download All Mouse cCREs" />
+          </Grid2>
+          {/* Promoters */}
+          <Grid2 xs={2} borderLeft={"0.375rem solid #FF0000"}>
+            <span>
+              <Typography display={"inline"}>Candidate Promoters</Typography>
+              <Tooltip title={PROMOTER_MESSAGE}>
+                <IconButton>
+                  <InfoIcon />
+                </IconButton>
+              </Tooltip>
+            </span>
+          </Grid2>
+          <Grid2 xs={5}>
+            <Stack spacing={2}>
+              <DownloadButton href={Config.Downloads.HumanPromoters} label="Download Human Candidate Promoters" />
+              <ComboBox options={humanPromoters} label="Search for a Biosample" mode="H-promoter" />
+            </Stack>
+          </Grid2>
+          <Grid2 xs={5}>
+            <Stack spacing={2}>
+              <DownloadButton href={Config.Downloads.MousePromoters} label="Download Mouse Candidate Promoters" />
+              <ComboBox options={mousePromoters} label="Search for a Biosample" mode="M-promoter" />
+            </Stack>
+          </Grid2>
+          {/* Enhancers */}
+          <Grid2 xs={2} borderLeft={"0.375rem solid #FFCD00"}>
+            <span>
+              <Typography display={"inline"}>Candidate Enhancers</Typography>
+              <Tooltip title={ENHANCER_MESSAGE}>
+                <IconButton>
+                  <InfoIcon />
+                </IconButton>
+              </Tooltip>
+            </span>
+          </Grid2>
+          <Grid2 xs={5}>
+            <Stack spacing={2}>
+              <DownloadButton href={Config.Downloads.HumanEnhancers} label="Download Human Candidate Enhancers" />
+              <ComboBox options={humanEnhancers} label="Search for a Biosample" mode="H-enhancer" />
+            </Stack>
+          </Grid2>
+          <Grid2 xs={5}>
+            <Stack spacing={2}>
+              <DownloadButton href={Config.Downloads.MouseEnhancers} label="Download Mouse Candidate Enhancers" />
+              <ComboBox options={mouseEnhancers} label="Search for a Biosample" mode="M-enhancer" />
+            </Stack>
+          </Grid2>
+          {/* CTCF-Bound */}
+          <Grid2 xs={2} borderLeft={"0.375rem solid #00B0F0"}>
+            <span>
+              <Typography display={"inline"}>CTCF-Bound</Typography>
+              <Tooltip title={CTCF_MESSAGE}>
+                <IconButton>
+                  <InfoIcon />
+                </IconButton>
+              </Tooltip>
+            </span>
+          </Grid2>
+          <Grid2 xs={5}>
+            <Stack spacing={2}>
+              <DownloadButton href={Config.Downloads.HumanCA_CTCF} label="Download Human CTCF-Bound cCREs" />
+              <ComboBox options={humanCTCF} label="Search for a Biosample" mode="H-ctcf" />
+            </Stack>
+          </Grid2>
+          <Grid2 xs={5}>
+            <Stack spacing={2}>
+              <DownloadButton href={Config.Downloads.MouseCA_CTCF} label="Download Mouse CTCF-Bound cCREs" />
+              <ComboBox options={mouseCTCF} label="Search for a Biosample" mode="M-ctcf" />
+            </Stack>
+          </Grid2>
+          {/* Gene Links */}
+          <Grid2 xs={2} borderLeft={"0.375rem solid #A872E5"}>
+            <span>
+              <Typography display={"inline"}>Gene Links</Typography>
+              <Tooltip title={LINK_MESSAGE}>
+                <IconButton>
+                  <InfoIcon />
+                </IconButton>
+              </Tooltip>
+            </span>
+          </Grid2>
+          <Grid2 xs={5}>
+            <DownloadButton href={Config.Downloads.HumanGeneLinks} label="Download Human cCRE-Gene Links" />
+          </Grid2>
+        </Grid2>
+    </div>
+  )
+}
