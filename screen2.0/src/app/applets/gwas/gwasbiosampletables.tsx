@@ -1,7 +1,7 @@
-import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, Box, CircularProgress, FormControlLabel, Accordion, FormGroup, Checkbox, IconButton, Menu, MenuItem, InputAdornment, FormControl, FormLabel, CircularProgressProps, Paper, Stack } from "@mui/material"
+import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, Box, CircularProgress, FormControlLabel, Accordion, FormGroup, Checkbox, IconButton, Menu, MenuItem, InputAdornment, FormControl, FormLabel, CircularProgressProps, Paper, Stack, PaperOwnProps, StackOwnProps, MenuProps, StackProps, PaperProps } from "@mui/material"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { parseBiosamples, assayHoverInfo, passesFilters, filterBiosamples } from "../../search/searchhelpers"
+import { assayHoverInfo, filterBiosamples } from "../../search/searchhelpers"
 import { RegistryBiosample, RegistryBiosamplePlusRNA } from "../../search/types"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
 import { Check, Close, Download, FilterList } from "@mui/icons-material"
@@ -29,7 +29,7 @@ const RNA_SEQ_QUERY: TypedDocumentNode<RNA_SEQ_Data, RNA_SEQ_Variables> = gql`
 `
 
 type BiosampleData = {
-  ccREBiosampleQuery: { biosamples: RegistryBiosample[]}
+  ccREBiosampleQuery: { biosamples: RegistryBiosample[] }
 }
 
 type BiosampleDataVars = {
@@ -82,7 +82,7 @@ function DownloadBiosamplecCREs(row: RegistryBiosample | RegistryBiosamplePlusRN
   };
 
   function CircularProgressWithLabel(
-    props: CircularProgressProps & { value: number},
+    props: CircularProgressProps & { value: number },
   ) {
     return (
       <Box
@@ -243,9 +243,9 @@ function DownloadBiosamplecCREs(row: RegistryBiosample | RegistryBiosamplePlusRN
 
 type FiltersKey = "CellLine" | "PrimaryCell" | "Tissue" | "Organoid" | "InVitro" | "Core" | "Partial" | "Ancillary" | "Embryo" | "Adult"
 
-type CheckboxState = {[key in FiltersKey]: boolean}
+type CheckboxState = { [key in FiltersKey]: boolean }
 
-const checkboxLabels: {[key in FiltersKey]: string} = {
+const checkboxLabels: { [key in FiltersKey]: string } = {
   CellLine: "Cell Line",
   PrimaryCell: "Primary Cell",
   Tissue: "Tissue",
@@ -288,8 +288,37 @@ interface Props {
   preFilterBiosamples?: (sample: RegistryBiosamplePlusRNA) => boolean,
 
   //Should I change this? Seems like so-so way to handle this behavior
-  showRNAseq: boolean,
-  showDownloads: boolean,
+  showRNAseq?: boolean, //I feel like this is fine
+  showDownloads?: boolean, //I feel like this is maybe more appropriate to be something that is user-defined. Allow them to add extra columns?
+  /**
+   * Props spread into each slot inside, helpful for changing things such as width and height
+   */
+  slotProps?: {
+    /**
+     * Parent element, wraps everything. Is a ```<Stack component={Paper}>``` with access to props of both Paper and Stack
+     */
+    paperStack?: PaperProps & StackProps,
+    /**
+     * Vertical Stack for header elements (search and filters icon) and tables
+     */
+    columnStack?: StackProps,
+    /**
+     * Horizontal Stack for search bar and filters icon
+     */
+    headerStack?: StackProps,
+    /**
+     * Vertical Stack for Accordions
+     */
+    tableStack?: StackProps
+    /**
+     * Filters Checkbox parent element
+     */
+    menu?: MenuProps,
+    /**
+     * Vertical Stack for FormGroups in menu
+     */
+    menuStack?: StackProps
+  }
 }
 
 /**
@@ -305,7 +334,8 @@ export const GwasBiosampleTables: React.FC<Props> = ({
   onBiosampleClicked,
   preFilterBiosamples,
   showRNAseq,
-  showDownloads
+  showDownloads,
+  slotProps
 }) => {
   //Checkbox state for filters
   const [checkboxes, setCheckboxes] = useState<CheckboxState>({
@@ -332,7 +362,7 @@ export const GwasBiosampleTables: React.FC<Props> = ({
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => { setAnchorEl(event.currentTarget) }
 
 
-  const {data: biosampleData, loading: loadingBiosamples, error: errorBiosamples } = useQuery<BiosampleData, BiosampleDataVars>(
+  const { data: biosampleData, loading: loadingBiosamples, error: errorBiosamples } = useQuery<BiosampleData, BiosampleDataVars>(
     BIOSAMPLE_QUERY,
     {
       variables: {
@@ -364,13 +394,13 @@ export const GwasBiosampleTables: React.FC<Props> = ({
    * Sorted and Filtered Biosamples
    * @todo should I be filtering out biosamples here? Or let individual tables handle search
    */
-  const filteredBiosamples: {[key: string]: RegistryBiosamplePlusRNA[]} = useMemo(() => {
+  const filteredBiosamples: { [key: string]: RegistryBiosamplePlusRNA[] } = useMemo(() => {
     if ((biosampleData && (data_rnaseq || !showRNAseq))) {
-      const groupedBiosamples: {[key: string]: RegistryBiosamplePlusRNA[]} = {}
+      const groupedBiosamples: { [key: string]: RegistryBiosamplePlusRNA[] } = {}
       biosampleData.ccREBiosampleQuery.biosamples.filter(preFilterBiosamples || (() => true)).forEach(biosample => {
         if (!searchString || (searchString && sampleMatchesSearch(biosample))) { //check to see that sample matches search
           //If tissue hasn't been cataloged yet, define an entry for it
-          if (!groupedBiosamples[biosample.ontology]){
+          if (!groupedBiosamples[biosample.ontology]) {
             groupedBiosamples[biosample.ontology] = [];
           }
           //Add biosample to corresponding entry
@@ -587,13 +617,13 @@ export const GwasBiosampleTables: React.FC<Props> = ({
     [showRNAseq, showDownloads, loadingBiosamples, loading_rnaseq, errorBiosamples, error_rnaseq, filteredBiosamples, searchString, selected, onBiosampleClicked]
   )
 
-  const FilterCheckbox: React.FC<{control: FiltersKey}> = ({control}) => {
+  const FilterCheckbox: React.FC<{ control: FiltersKey }> = ({ control }) => {
     const handleChange = (_, checked: boolean) => {
-      const x = {...checkboxes}
+      const x = { ...checkboxes }
       x[control] = checked
       setCheckboxes(x)
     }
-    
+
     return (
       <MenuItem dense>
         <FormControlLabel
@@ -608,37 +638,35 @@ export const GwasBiosampleTables: React.FC<Props> = ({
 
 
   return (
-    <Paper elevation={0}>
-      <Stack direction={"column"} gap={2}>
-        <Stack direction={"row"} justifyContent={"space-between"}>
-          <TextField
-            value={searchString}
-            size="small"
-            label="Search Biosamples"
-            onChange={(event) => setSearchString(event.target.value)}
-            InputProps={{
-              endAdornment: <InputAdornment position="end"><SearchIcon /></InputAdornment>,
-            }}
-          />
-          <IconButton onClick={handleClick}>
-            <FilterList />
-          </IconButton>
-        </Stack>
-        <Box height={500} sx={{ display: 'flex', flexDirection: "column", overflow: "auto" }}>
-          {biosampleTables}
-        </Box>
+    <Stack component={Paper} height={500} {...slotProps?.paperStack}>
+      <Stack direction={"row"} justifyContent={"space-between"} m={1} {...slotProps?.headerStack}>
+        <TextField
+          value={searchString}
+          size="small"
+          label="Search Biosamples"
+          onChange={(event) => setSearchString(event.target.value)}
+          InputProps={{
+            endAdornment: <InputAdornment position="end"><SearchIcon /></InputAdornment>,
+          }} />
+        <IconButton onClick={handleClick}>
+          <FilterList />
+        </IconButton>
+      </Stack>
+      <Stack overflow={"auto"} {...slotProps?.tableStack}>
+        {biosampleTables}
       </Stack>
       <Menu
-          id="basic-menu"
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={handleClose}
-          MenuListProps={{
-            'aria-labelledby': 'basic-button',
-          }}
-        >
-          <Stack padding={2}>
-            <FormControl component="fieldset" variant="standard">
+        id="basic-menu"
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleClose}
+        MenuListProps={{
+          'aria-labelledby': 'basic-button',
+        }}
+        {...slotProps?.menu}
+      >
+        <Stack padding={2} {...slotProps?.menuStack}>
+          <FormControl component="fieldset" variant="standard">
             <FormGroup>
               <FormLabel component="legend">Biosample Types</FormLabel>
               <FilterCheckbox control="CellLine" />
@@ -663,9 +691,9 @@ export const GwasBiosampleTables: React.FC<Props> = ({
               <FilterCheckbox control="Adult" />
             </FormGroup>
           </FormControl>
-          </Stack>
-        </Menu>
-    </Paper>
+        </Stack>
+      </Menu>
+    </Stack>
   )
 }
 

@@ -1,7 +1,7 @@
 "use client"
 import { Accordion, AccordionDetails, AccordionSummary, IconButton, Paper, Stack, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material"
 
-import React, { useState, useEffect, useTransition, useMemo } from "react"
+import React, { useState, useMemo } from "react"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { CreateLink, createLink, LoadingMessage } from "../../../common/lib/utility"
 import Grid from "@mui/material/Unstable_Grid2/Grid2"
@@ -10,10 +10,8 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import { client } from "../../search/_ccredetails/client"
 import { useQuery } from "@apollo/client"
 import { GET_ALL_GWAS_STUDIES, GET_SNPS_FOR_GIVEN_GWASSTUDY, BED_INTERSECT, CCRE_SEARCH, CT_ENRICHMENT, BIOSAMPLE_DISPLAYNAMES } from "./queries"
-import { ApolloQueryResult } from "@apollo/client"
-import { BIOSAMPLE_Data, biosampleQuery } from "../../../common/lib/queries"
 import GwasBiosampleTables from "./gwasbiosampletables"
-import { RegistryBiosample, RegistryBiosamplePlusRNA } from "../../search/types"
+import { RegistryBiosamplePlusRNA } from "../../search/types"
 import { EnrichmentLollipopPlot, RawEnrichmentData, TransformedEnrichmentData } from "./_lollipop-plot/lollipopplot"
 import { ParentSize } from "@visx/responsive"
 import { ParentSizeProvidedProps } from "@visx/responsive/lib/components/ParentSize"
@@ -366,11 +364,10 @@ export default function GWAS() {
               }
               <GwasBiosampleTables
                 assembly={"GRCh38"}
-                showRNAseq={false}
-                showDownloads={false}
                 preFilterBiosamples={(sample: RegistryBiosamplePlusRNA) => sample.dnase !== null}
                 selected={selectedSample?.name}
                 onBiosampleClicked={handleSetSelectedSample}
+                slotProps={{paperStack: {elevation: 0}}}
               />
             </Stack>
           </AccordionDetails>
