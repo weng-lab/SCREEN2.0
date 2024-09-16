@@ -9,8 +9,6 @@ import Config from "../../../config.json"
 import SendIcon from '@mui/icons-material/Send';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DownloadIcon from '@mui/icons-material/Download';
-import { ApolloQueryResult } from "@apollo/client";
-import { BIOSAMPLE_Data } from "../../../common/lib/queries";
 import GwasBiosampleTables from "../../applets/gwas/gwasbiosampletables/gwasbiosampletables";
 
 
@@ -21,7 +19,6 @@ const CREATE_TRACKHUB_QUERY = `
 `
 
 const ConfigureGenomeBrowser = (props: {
-  biosampleData: ApolloQueryResult<BIOSAMPLE_Data>
   coordinates: {
     assembly: "GRCh38" | "mm10"
     chromosome: string

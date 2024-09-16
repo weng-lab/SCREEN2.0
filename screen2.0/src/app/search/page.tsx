@@ -595,7 +595,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                   itemsPerPage={10}
                   assembly={mainQueryParams.coordinates.assembly}
                   onRowClick={handlecCREClick}
-                  biosampleData={biosampleData}
                   useLinkedGenes={useLinkedGenes}
                   />
                   <Stack direction="row" alignItems={"center"} sx={{ mt: 1 }}>
@@ -638,10 +637,10 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
             />
           )}
           {mainQueryParams.gene.name && page === 2 &&
-            <GeneExpression assembly={mainQueryParams.coordinates.assembly} genes={[{ name: mainQueryParams.gene.name }]} biosampleData={biosampleData} />
+            <GeneExpression assembly={mainQueryParams.coordinates.assembly} genes={[{ name: mainQueryParams.gene.name }]} />
           }
           {mainQueryParams.gene.name && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" && page === 3 && (
-            <Rampage genes={[{ name: mainQueryParams.gene.name }]} biosampleData={biosampleData} />
+            <Rampage genes={[{ name: mainQueryParams.gene.name }]} />
           )}
           {page >= numberOfDefaultTabs && opencCREs.length > 0 && (
             opencCREs[page - numberOfDefaultTabs] ?
@@ -649,7 +648,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                 key={opencCREs[page - numberOfDefaultTabs].ID}
                 accession={opencCREs[page - numberOfDefaultTabs].ID}
                 region={opencCREs[page - numberOfDefaultTabs].region}
-                biosampleData={biosampleData}
                 assembly={mainQueryParams.coordinates.assembly}
                 page={detailsPage}
                 handleOpencCRE={handlecCREClick}
