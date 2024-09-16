@@ -39,7 +39,6 @@ export function PlotActivityProfiles(props: {
   
   let p1: Point2D = { x: 0, y: 0 }
   let max: number = 0
-
   
   Object.values(props.data).map((biosample) => {
     if (biosample["value"] === 0) return
@@ -54,13 +53,36 @@ export function PlotActivityProfiles(props: {
         strand: biosample["strand"],
         color: tissueColors[biosample["tissue"]] ?? tissueColors.missing,
       })
-      tissues[biosample["tissue"]].values.sort((a,b)=>b.value-a.value);
+      tissues[biosample["tissue"]].values.sort((a,b)=>b.value-a.value); //Sort values in tissue.values
       if (props.sort === "byTissueMax" && tissues[biosample["tissue"]].sum > max) max = tissues[biosample["tissue"]].sum
       else if (biosample["value"] > max) max = biosample["value"]
     }
   })
 
+  //Sort tissue array based on maxValue
+  const sortedTissues = Object.keys(tissues).sort((a, b) => {
+    const maxValueA = tissues[a].values[0]?.value || 0;
+    const maxValueB = tissues[b].values[0]?.value || 0;
+    return maxValueB - maxValueA;
+  });
 
+  //Rebuild object
+  tissues = sortedTissues.reduce((acc, tissue) => {
+    acc[tissue] = tissues[tissue];
+    return acc;
+  }, {} as typeof tissues);
+
+  //Populate the byTissueMaxTissues with the maximum value from each tissue
+  Object.keys(tissues).forEach(tissue => {
+    if (tissues[tissue].values.length === 0) {
+      delete tissues[tissue]; //Eliminate tissue if it has no values
+    } else {
+      byTissueMaxTissues[tissue] = {
+        sum: tissues[tissue].sum,
+        values: [tissues[tissue].values[0]] //Extract max value
+      };
+    }
+  });
 
   props.range.x.end = max
 
