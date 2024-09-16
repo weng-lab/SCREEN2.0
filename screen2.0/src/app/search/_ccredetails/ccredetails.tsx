@@ -210,8 +210,12 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
           <Rampage genes={uniqueGenes.length > 0 ? uniqueGenes : []} biosampleData={biosampleData} />)
       }
       {/* Overlapping RAMPAGE Peaks */}
-      {page === 6 &&
-        <OverlappingPeaks accession={accession} assembly={assembly} />
+      {(page === 6 && assembly !== "mm10") &&
+        <OverlappingPeaks coordinates={{
+          chromosome: region.chrom,
+          start: region.start,
+          stop: region.end,
+        }} />
       }
       {/* Functional Data */}
       {page === 7 &&

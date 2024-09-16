@@ -550,7 +550,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               <StyledVerticalTab value={3} label="Orthologous cCREs in Other Species" sx={{ alignSelf: "start" }} />
               <StyledVerticalTab value={4} label="Associated Gene Expression" sx={{ alignSelf: "start" }} />
               {mainQueryParams.coordinates.assembly !== "mm10" && <StyledVerticalTab value={5} label="Associated Transcript Expression" sx={{ alignSelf: "start" }} />}
-              <StyledVerticalTab value={6} label="Overlapping RAMPAGE Peaks" sx={{ alignSelf: "start" }} />
+              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledVerticalTab value={6} label="Overlapping RAMPAGE Peaks" sx={{ alignSelf: "start" }} />}
               <StyledVerticalTab value={7} label="Functional Data" sx={{ alignSelf: "start" }} />
               <StyledVerticalTab value={8} label="TF Motifs and Sequence Features" sx={{ alignSelf: "start" }} />
               {mainQueryParams.coordinates.assembly !== "mm10" && <StyledVerticalTab value={9} label="ChromHMM States" sx={{ alignSelf: "start" }} />}

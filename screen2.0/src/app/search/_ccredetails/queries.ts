@@ -374,3 +374,19 @@ const LINKED_GENES_CELLTYPES = gql`
     }
   }
 `
+export const TSS_RAMPAGE_PEAKS = gql`
+query getTSSRampagePeaks($coordinates: ChromRange!) {
+  gettssRampagePeaks(coordinates: $coordinates) {
+    peakType
+    start
+    chrom
+    end
+    peakId
+    genes 
+    {
+      geneName      
+      locusType
+    }
+  }
+}
+`
