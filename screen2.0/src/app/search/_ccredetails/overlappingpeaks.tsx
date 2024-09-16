@@ -112,16 +112,17 @@ export const OverlappingPeaks: React.FC<PeakVars> = ({ coordinates }) => {
           itemsPerPage={5}
         />
       </Grid2>
+      <Grid2 xs={12} display={"flex"} gap={2}>
       <Stack>
         <InputLabel>Peak</InputLabel>
           <Select
               id="peak"
-              value={peakID || ''}
+              value={peakData.length === 0 ? 'no-peaks' : peakID}
               onChange={handlePeakIdChange}
               disabled={peakData.length === 0}
             >
           {peakData.length === 0 ? (
-            <MenuItem value="" disabled>
+            <MenuItem value="no-peaks" disabled>
               No Peaks Found
             </MenuItem>
           ) : (
@@ -133,6 +134,7 @@ export const OverlappingPeaks: React.FC<PeakVars> = ({ coordinates }) => {
           )}
           </Select>
       </Stack>
+      </Grid2>
     </Grid2>
   )
 }
