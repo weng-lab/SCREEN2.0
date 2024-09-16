@@ -1,6 +1,5 @@
 "use client"
 import { Accordion, AccordionDetails, AccordionSummary, IconButton, Paper, Stack, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material"
-
 import React, { useState, useMemo } from "react"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { CreateLink, createLink, LoadingMessage } from "../../../common/lib/utility"
@@ -10,7 +9,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import { client } from "../../search/_ccredetails/client"
 import { useQuery } from "@apollo/client"
 import { GET_ALL_GWAS_STUDIES, GET_SNPS_FOR_GIVEN_GWASSTUDY, BED_INTERSECT, CCRE_SEARCH, CT_ENRICHMENT, BIOSAMPLE_DISPLAYNAMES } from "./queries"
-import GwasBiosampleTables from "./gwasbiosampletables/gwasbiosampletables"
+import BiosampleTables from "../../_biosampleTables/BiosampleTables"
 import { RegistryBiosamplePlusRNA } from "../../search/types"
 import { EnrichmentLollipopPlot, RawEnrichmentData, TransformedEnrichmentData } from "./_lollipop-plot/lollipopplot"
 import { ParentSize } from "@visx/responsive"
@@ -362,7 +361,7 @@ export default function GWAS() {
               {selectedSample &&
                 <SelectInfo info1={capitalizeFirstLetter(selectedSample.tissue)} info2={capitalizeFirstLetter(selectedSample.displayname)} onClose={() => handleSetSelectedSample(null)} />
               }
-              <GwasBiosampleTables
+              <BiosampleTables
                 assembly={"GRCh38"}
                 preFilterBiosamples={(sample: RegistryBiosamplePlusRNA) => sample.dnase !== null}
                 selected={selectedSample?.name}

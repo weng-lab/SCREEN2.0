@@ -11,7 +11,7 @@ import mouseTransparentIcon from "../../../public/Transparent_MouseIcon.png"
 import { ApolloQueryResult } from "@apollo/client"
 import { BIOSAMPLE_Data } from "../../common/lib/queries"
 import { fetchFileSize } from "./downloads"
-import GwasBiosampleTables from "../applets/gwas/gwasbiosampletables/gwasbiosampletables"
+import BiosampleTables from "../_biosampleTables/BiosampleTables"
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -192,14 +192,14 @@ export function DetailedElements(props: TabPanelProps) {
       </Grid2>
       <Grid2 xs={12} md={6} order={{ xs: 2, md: 3 }}>
         <Typography variant="h6">Human cCREs by cell and tissue types</Typography>
-        <GwasBiosampleTables
+        <BiosampleTables
           assembly="GRCh38"
           showDownloads
         />
       </Grid2>
       <Grid2 xs={12} md={6} order={{ xs: 3, md: 3 }}>
         <Typography variant="h6">Mouse cCREs by cell and tissue types</Typography>
-        <GwasBiosampleTables
+        <BiosampleTables
           assembly="mm10"
           showDownloads
         />

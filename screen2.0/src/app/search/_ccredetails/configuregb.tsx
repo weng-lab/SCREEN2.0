@@ -1,5 +1,3 @@
-import Grid2 from "@mui/material/Unstable_Grid2";
-import { BiosampleTables } from "../biosampletables";
 import { RegistryBiosamplePlusRNA } from "../types";
 import { useState } from "react";
 import { Button, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Snackbar, Stack, Tooltip, Typography } from "@mui/material";
@@ -9,7 +7,7 @@ import Config from "../../../config.json"
 import SendIcon from '@mui/icons-material/Send';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DownloadIcon from '@mui/icons-material/Download';
-import GwasBiosampleTables from "../../applets/gwas/gwasbiosampletables/gwasbiosampletables";
+import BiosampleTables from "../../_biosampleTables/BiosampleTables";
 
 
 const CREATE_TRACKHUB_QUERY = `
@@ -128,7 +126,7 @@ const ConfigureGenomeBrowser = (props: {
           Note: For best UCSC performance, choose {"<"}10 cell types. Track hubs will be deleted after 24 hours.
         </DialogContentText>
         <Stack direction={{xs: "column", lg: "row"}} spacing={2}>
-          <GwasBiosampleTables
+          <BiosampleTables
             assembly={props.coordinates.assembly}
             showRNAseq
             selected={selectedBiosamples.map(x => x.name)}

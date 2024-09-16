@@ -3,7 +3,7 @@ import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { useCallback,  useMemo, useState } from "react"
 import { BiosampleDataVars, BiosampleReturnData, CheckboxState, FiltersKey, Props, RegistryBiosample, RegistryBiosamplePlusRNA, RNA_SEQ_Data, RNA_SEQ_Variables } from "./types"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
-import { Check,  FilterList } from "@mui/icons-material"
+import { Check,  Close,  FilterList } from "@mui/icons-material"
 import SearchIcon from '@mui/icons-material/Search';
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import { assayHoverInfo, DownloadBiosamplecCREsButton, filterBiosamples } from "./helpers"
@@ -22,7 +22,7 @@ const checkboxLabels: { [key in FiltersKey]: string } = {
   Adult: "Adult"
 }
 
-export const GwasBiosampleTables = <T extends boolean = false>({
+export const BiosampleTables = <T extends boolean = false>({
   assembly,
   selected,
   onBiosampleClicked,
@@ -112,9 +112,6 @@ export const GwasBiosampleTables = <T extends boolean = false>({
             }
           }
       })
-      /**
-       * @todo make sure this works
-       */
       const filteredBiosamples = filterBiosamples(
         groupedBiosamples,
         checkboxes,
@@ -329,7 +326,7 @@ export const GwasBiosampleTables = <T extends boolean = false>({
           label="Search Biosamples"
           onChange={(event) => setSearchString(event.target.value)}
           InputProps={{
-            endAdornment: <InputAdornment position="end"><SearchIcon /></InputAdornment>,
+            endAdornment: searchString ? <IconButton onClick={() => setSearchString("")}><Close/></IconButton> : <InputAdornment position="end"><SearchIcon /></InputAdornment>,
           }} />
         <IconButton onClick={handleClick}>
           <FilterList />
@@ -380,4 +377,4 @@ export const GwasBiosampleTables = <T extends boolean = false>({
   )
 }
 
-export default GwasBiosampleTables
+export default BiosampleTables

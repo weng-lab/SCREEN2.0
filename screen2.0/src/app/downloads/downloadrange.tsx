@@ -4,8 +4,8 @@ import { Box, Button, Checkbox, CircularProgress, CircularProgressProps, FormCon
 import { downloadBED } from "../search/searchhelpers"
 import { parseGenomicRegion } from "../_mainsearch/parsegenomicregion"
 import { Close, Download } from "@mui/icons-material"
-import GwasBiosampleTables from "../applets/gwas/gwasbiosampletables/gwasbiosampletables"
-import { RegistryBiosample } from "../applets/gwas/gwasbiosampletables/types"
+import BiosampleTables from "../_biosampleTables/BiosampleTables"
+import { RegistryBiosample } from "../_biosampleTables/types"
 
 function CircularProgressWithLabel(
   props: CircularProgressProps & { value: number },
@@ -121,7 +121,7 @@ export const DownloadRange: React.FC = () => {
   return (
     <Grid2 container spacing={3}>
       <Grid2 xs={6}>
-        <GwasBiosampleTables
+        <BiosampleTables
           assembly={assembly}
           selected={selectedBiosample?.name}
           onBiosampleClicked={(selected: RegistryBiosample) => handleSetSelectedBiosample(selected)}

@@ -326,119 +326,9 @@ function availableAssays(
 }
 
 /**
- * 
- * @param biosampleData 
- * @param rnaSeqSamples 
- * @returns an object of sorted biosample types, grouped by tissue type
- * @todo remove this once old biosmaple tables is out
- */
-export function parseBiosamples(biosampleData: RegistryBiosample[], rnaSeqSamples: { biosample: string }[]): BiosampleData{
-  const groupedBiosamples: BiosampleData = {}
-
-  biosampleData.forEach(biosample => {
-    //If tissue hasn't been cataloged yet, define an entry for it
-    if (!groupedBiosamples[biosample.ontology]){
-      groupedBiosamples[biosample.ontology] = [];
-    }
-    //Add biosample to corresponding entry
-    groupedBiosamples[biosample.ontology].push(
-      {
-        ...biosample,
-        rnaseq: Boolean(rnaSeqSamples.map((sample) => sample.biosample).find(sampleName => biosample.name === sampleName)),
-      }
-    )
-  })
-
-  return groupedBiosamples
-}
-
-/**
- *
- * @param biosamples The biosamples object to filter
- * @returns The same object but filtered with the current state of Biosample Type filters
- * @todo remove this function once old biosample tables is out
- */
-export function filterBiosamples(
-  biosamples: BiosampleData,
-  Tissue: boolean,
-  PrimaryCell: boolean,
-  CellLine: boolean,
-  InVitro: boolean,
-  Organoid: boolean,
-  Core: boolean,
-  Partial: boolean,
-  Ancillary: boolean,
-  Embryo: boolean,
-  Adult: boolean,
-): BiosampleData {
-
-  const filteredBiosamples: BiosampleData = {}
-
-  for (const ontology in biosamples) {
-    filteredBiosamples[ontology] = biosamples[ontology].filter((biosample) => {
-      let passesType: boolean = false
-      if (Tissue && biosample.sampleType === "tissue") {
-        passesType = true
-      } else if (PrimaryCell && biosample.sampleType === "primary cell") {
-        passesType = true
-      } else if (CellLine && biosample.sampleType === "cell line") {
-        passesType = true
-      } else if (InVitro && biosample.sampleType === "in vitro differentiated cells") {
-        passesType = true
-      } else if (Organoid && biosample.sampleType === "organoid") {
-        passesType = true
-      }
-      let passesLifestage = false
-      if (Embryo && biosample.lifeStage === "embryonic") {
-        passesLifestage = true
-      } else if (Adult && biosample.lifeStage === "adult") {
-        passesLifestage = true
-      }
-      //Assign to Ancillary as baseline
-      let collection = "Ancillary"
-      if (biosample.dnase) {
-        //Assign to Partial if at least dnase is available
-        collection = "Partial"
-        if (biosample.ctcf && biosample.h3k4me3 && biosample.h3k27ac) {
-          //If all other marks (ignoring atac) are available, assign to core
-          collection = "Core"
-        }
-      }
-      let passesCollection = false
-      if ((Core && collection == "Core") || (Partial && collection == "Partial") || (Ancillary && collection == "Ancillary")) {
-        passesCollection = true
-      }
-      return (passesType && passesLifestage && passesCollection)
-    })
-  }
-  return filteredBiosamples
-}
-
-/**
- * @todo remove this once biosample tables is out
- */
-export function assayHoverInfo(assays: { dnase: boolean; h3k27ac: boolean; h3k4me3: boolean; ctcf: boolean; atac: boolean }) {
-  const dnase = assays.dnase
-  const h3k27ac = assays.h3k27ac
-  const h3k4me3 = assays.h3k4me3
-  const ctcf = assays.ctcf
-  const atac = assays.atac
-
-  if (dnase && h3k27ac && h3k4me3 && ctcf && atac) {
-    return "All assays available"
-  } else if (!dnase && !h3k27ac && !h3k4me3 && !ctcf && !atac) {
-    return "No assays available"
-  } else
-    return `Available:\n${dnase ? "DNase\n" : ""}${h3k27ac ? "H3K27ac\n" : ""}${h3k4me3 ? "H3K4me3\n" : ""}${ctcf ? "CTCF\n" : ""}${
-      atac ? "ATAC\n" : ""
-    }`
-}
-
-/**
  *
  * @param newSearchParams object of type MainQueryParams
  * @param newFilterCriteria object of type FilterCriteria
- * @param newBiosampleTableFilters object of type BiosampleTableFilters
  * @param page number, should be current page
  * @param accessions string, comma-separated, (NOT string[])
  * @param newBiosample optional, use if setting Biosample State and then immediately triggering router before re-render when the new state is accessible
@@ -448,7 +338,6 @@ export function assayHoverInfo(assays: { dnase: boolean; h3k27ac: boolean; h3k4m
 export function constructSearchURL(
   newSearchParams: MainQueryParams,
   newFilterCriteria: FilterCriteria,
-  newBiosampleTableFilters: BiosampleTableFilters,
   page: number = 0,
   accessions: string = '',
 ): string {
@@ -473,23 +362,13 @@ export function constructSearchURL(
       + `${newSearchParams.snp.rsID ? "&snpid=" + newSearchParams.snp.rsID + "&snpDistance=" + newSearchParams.snp.distance : ""}`
 
   //Can probably get biosample down to one string, and extract other info when parsing byCellType
-  const biosampleFilters =
+  const biosample =
     `${newSearchParams.biosample ?
       "&Biosample=" + (newSearchParams.biosample.name)
       + "&BiosampleTissue=" + (newSearchParams.biosample.ontology)
       + "&BiosampleSummary=" + (newSearchParams.biosample.displayname)
       : ""
     }`
-    + `&Tissue=${outputT_or_F(newBiosampleTableFilters.Tissue.checked)}`
-    + `&PrimaryCell=${outputT_or_F(newBiosampleTableFilters.PrimaryCell.checked)}`
-    + `&InVitro=${outputT_or_F(newBiosampleTableFilters.InVitro.checked)}`
-    + `&Organoid=${outputT_or_F(newBiosampleTableFilters.Organoid.checked)}`
-    + `&CellLine=${outputT_or_F(newBiosampleTableFilters.CellLine.checked)}`
-    + `&Core=${outputT_or_F(newBiosampleTableFilters.Core.checked)}`
-    + `&Partial=${outputT_or_F(newBiosampleTableFilters.Partial.checked)}`
-    + `&Ancillary=${outputT_or_F(newBiosampleTableFilters.Ancillary.checked)}`
-    + `&Embryo=${outputT_or_F(newBiosampleTableFilters.Embryo.checked)}`
-    + `&Adult=${outputT_or_F(newBiosampleTableFilters.Adult.checked)}`
 
   const chromatinFilters =
     `&dnase_s=${newFilterCriteria.dnase_s}`
@@ -535,7 +414,7 @@ export function constructSearchURL(
 
   const url =
     `${urlBasics}`
-    + `${biosampleFilters}`
+    + `${biosample}`
     + `${chromatinFilters}`
     + `${classificationFilters}`
     + `${conservationFilters}`
@@ -633,23 +512,6 @@ export function constructFilterCriteriaFromURL(searchParams: { [key: string]: st
       HiC: sP.HiC ? {checked: checkTrueFalse(sP.HiC.split('_')[0]), biosample: sP.HiC.split('_')[1]} : {checked: true, biosample: null},
       CRISPRiFlowFISH: sP.CRISPRiFlowFISH ? {checked: checkTrueFalse(sP.CRISPRiFlowFISH.split('_')[0]), biosample: sP.CRISPRiFlowFISH.split('_')[1]} : {checked: true, biosample: null},
       eQTLs: sP.eQTLs ? {checked: checkTrueFalse(sP.eQTLs.split('_')[0]), biosample: sP.eQTLs.split('_')[1]} : {checked: true, biosample: null}
-    }
-  )
-}
-
-export function constructBiosampleTableFiltersFromURL(searchParams: { [key: string]: string | undefined }): BiosampleTableFilters {
-  return (
-    {
-      CellLine: { checked: searchParams.CellLine ? checkTrueFalse(searchParams.CellLine) : true, label: "Cell Line" },
-      PrimaryCell: { checked: searchParams.PrimaryCell ? checkTrueFalse(searchParams.PrimaryCell) : true, label: "Primary Cell" },
-      Tissue: { checked: searchParams.Tissue ? checkTrueFalse(searchParams.Tissue) : true, label: "Tissue" },
-      Organoid: { checked: searchParams.Organoid ? checkTrueFalse(searchParams.Organoid) : true, label: "Organoid" },
-      InVitro: { checked: searchParams.InVitro ? checkTrueFalse(searchParams.InVitro) : true, label: "In Vitro Differentiated Cell" },
-      Core: { checked: searchParams.Core ? checkTrueFalse(searchParams.Core) : true, label: "Core Collection" },
-      Partial: { checked: searchParams.Partial ? checkTrueFalse(searchParams.Partial) : true, label: "Partial Data Collection" },
-      Ancillary: { checked: searchParams.Ancillary ? checkTrueFalse(searchParams.Ancillary) : true, label: "Ancillary Collection" },
-      Embryo: { checked: searchParams.Ancillary ? checkTrueFalse(searchParams.Embyro) : true, label: "Embryo" },
-      Adult: { checked: searchParams.Ancillary ? checkTrueFalse(searchParams.Adult) : true, label: "Adult" },
     }
   )
 }

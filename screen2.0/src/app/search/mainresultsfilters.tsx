@@ -29,16 +29,15 @@ import FormControl from '@mui/material/FormControl';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import Grid2 from "@mui/material/Unstable_Grid2"
 import { RangeSlider } from "@weng-lab/psychscreen-ui-components"
-import { BiosampleTableFilters, FilterCriteria, MainQueryParams, RegistryBiosample } from "./types"
+import {  FilterCriteria, MainQueryParams, RegistryBiosample } from "./types"
 import { eQTLsTissues, filtersModified } from "./searchhelpers"
-import { ApolloQueryResult, LazyQueryResultTuple, gql, useLazyQuery } from "@apollo/client"
+import {  LazyQueryResultTuple, gql, useLazyQuery } from "@apollo/client"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
-import { InfoOutlined } from "@mui/icons-material";
-import BiosampleTables from "./biosampletables";
+import { CancelRounded, InfoOutlined } from "@mui/icons-material";
 import ClearIcon from '@mui/icons-material/Clear';
-import { BIOSAMPLE_Data } from "../../common/lib/queries";
 import { GeneAutoComplete2, GeneInfo } from "./_filterspanel/geneautocomplete2";
 import { LinkedGenes, LinkedGenesVariables } from "./page";
+import BiosampleTables from "../_biosampleTables/BiosampleTables";
 
 const snpMarks = [
   {
@@ -123,13 +122,10 @@ export function MainResultsFilters(
     setMainQueryParams: Dispatch<SetStateAction<MainQueryParams>>,
     filterCriteria: FilterCriteria,
     setFilterCriteria: Dispatch<SetStateAction<FilterCriteria>>,
-    biosampleTableFilters: BiosampleTableFilters,
-    setBiosampleTableFilters: Dispatch<SetStateAction<BiosampleTableFilters>>,
     setBiosample: (biosample: RegistryBiosample) => void,
     TSSs: number[]
     setTSSs: Dispatch<SetStateAction<number[]>>,
     setTSSranges: Dispatch<SetStateAction<{ start: number, end: number }[]>>
-    biosampleData: ApolloQueryResult<BIOSAMPLE_Data>
     genomeBrowserView: boolean,
     searchParams: { [key: string]: string | undefined },
     useLinkedGenes: LazyQueryResultTuple<LinkedGenes, LinkedGenesVariables> //Is this a proper usage of a custom hook?
@@ -523,52 +519,23 @@ export function MainResultsFilters(
             </Tooltip>
           </Stack>
         </AccordionSummary>
-        <AccordionDetails>
-          <Grid2 container spacing={2}>
-            {props.mainQueryParams.biosample && (
-              <>
-                <Grid2 xs={12}>
-                  <Paper elevation={0}>
-                    <Typography>Selected Biosample:</Typography>
-                    <Typography>{props.mainQueryParams.biosample.ontology.charAt(0).toUpperCase() + props.mainQueryParams.biosample.ontology.slice(1) + " - " + props.mainQueryParams.biosample.displayname}</Typography>
-                  </Paper>
-                </Grid2>
-                <Grid2 xs={12}>
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    onClick={() => {
-                      props.setMainQueryParams({ ...props.mainQueryParams, biosample: null })
-                    }}
-                  >
-                    Clear
-                  </Button>
-                </Grid2>
-              </>
-            )}
-            <Grid2 xs={12}>
-              <Box sx={{ display: 'flex', flexDirection: "column" }}>
-                {props.biosampleData?.loading ?
-                  <CircularProgress sx={{ margin: "auto" }} />
-                  :
-                  props.biosampleData?.data ?
-                    <BiosampleTables
-                      showRNAseq={false}
-                      showDownloads={false}
-                      assembly={props.mainQueryParams.coordinates.assembly}
-                      biosampleSelectMode="replace"
-                      biosampleData={props.biosampleData}
-                      selectedBiosamples={[props.mainQueryParams.biosample]}
-                      setSelectedBiosamples={(biosample: [RegistryBiosample]) => props.setBiosample(biosample[0])}
-                      biosampleTableFilters={props.biosampleTableFilters}
-                      setBiosampleTableFilters={props.setBiosampleTableFilters}
-                    />
-                    :
-                    <CircularProgress sx={{ margin: "auto" }} />
-                }
-              </Box>
-            </Grid2>
-          </Grid2>
+        <AccordionDetails sx={{ px: 0, pt: 0 }}>
+          {props.mainQueryParams.biosample &&
+            <Paper sx={{ mx: 2, mb: 1 }}>
+              <Stack borderRadius={1} direction={"row"} spacing={3} sx={{ backgroundColor: "#E7EEF8" }} alignItems={"center"}>
+                <Typography flexGrow={1} sx={{ color: "#2C5BA0", pl: 1 }}>{props.mainQueryParams.biosample.ontology.charAt(0).toUpperCase() + props.mainQueryParams.biosample.ontology.slice(1) + " - " + props.mainQueryParams.biosample.displayname.charAt(0).toUpperCase() + props.mainQueryParams.biosample.displayname.slice(1)}</Typography>
+                <IconButton onClick={() => props.setBiosample(null)} sx={{ m: 'auto', flexGrow: 0 }}>
+                  <CancelRounded />
+                </IconButton>
+              </Stack>
+            </Paper>
+          }
+          <BiosampleTables
+            assembly={props.mainQueryParams.coordinates.assembly}
+            selected={props.mainQueryParams.biosample?.name}
+            onBiosampleClicked={props.setBiosample}
+            slotProps={{ paperStack: { elevation: 0 }, headerStack: {mt: 0} }}
+          />
         </AccordionDetails>
       </Accordion>
       {/* Hide all other filters when on genome browser view */}
