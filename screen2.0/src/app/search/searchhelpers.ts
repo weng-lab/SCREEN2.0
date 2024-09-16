@@ -330,6 +330,7 @@ function availableAssays(
  * @param biosampleData 
  * @param rnaSeqSamples 
  * @returns an object of sorted biosample types, grouped by tissue type
+ * @todo remove this once old biosmaple tables is out
  */
 export function parseBiosamples(biosampleData: RegistryBiosample[], rnaSeqSamples: { biosample: string }[]): BiosampleData{
   const groupedBiosamples: BiosampleData = {}
@@ -355,6 +356,7 @@ export function parseBiosamples(biosampleData: RegistryBiosample[], rnaSeqSample
  *
  * @param biosamples The biosamples object to filter
  * @returns The same object but filtered with the current state of Biosample Type filters
+ * @todo remove this function once old biosample tables is out
  */
 export function filterBiosamples(
   biosamples: BiosampleData,
@@ -409,10 +411,12 @@ export function filterBiosamples(
       return (passesType && passesLifestage && passesCollection)
     })
   }
-
   return filteredBiosamples
 }
 
+/**
+ * @todo remove this once biosample tables is out
+ */
 export function assayHoverInfo(assays: { dnase: boolean; h3k27ac: boolean; h3k4me3: boolean; ctcf: boolean; atac: boolean }) {
   const dnase = assays.dnase
   const h3k27ac = assays.h3k27ac
@@ -771,7 +775,7 @@ export const downloadBED = async (
   chromosome: string,
   start: number,
   end: number,
-  biosample: RegistryBiosample,
+  biosampleName: string | undefined,
   bedIntersect: boolean = false,
   TSSranges: { start: number, end: number }[] = null,
   assays: { atac: boolean, ctcf: boolean, dnase: boolean, h3k27ac: boolean, h3k4me3: boolean },
@@ -800,7 +804,7 @@ export const downloadBED = async (
           chromosome,
           range.start,
           range.end,
-          biosample ? biosample.name : undefined,
+          biosampleName ?? undefined,
           1000000,
           null,
           bedIntersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined,
@@ -813,7 +817,7 @@ export const downloadBED = async (
       } catch (error) {
         window.alert(
           "There was an error fetching cCRE data, please try again soon. If this error persists, please report it via our 'Contact Us' form on the About page and include this info:\n\n" +
-          `Downloading:\n${assembly}\n${chromosome}\n${start}\n${end}\n${biosample ? biosample.name : undefined}\n` +
+          `Downloading:\n${assembly}\n${chromosome}\n${start}\n${end}\n${biosampleName ?? undefined}\n` +
           error
         );
         setBedLoadingPercent(null)
@@ -852,7 +856,7 @@ export const downloadBED = async (
   // Create a link element to trigger the download
   const link = document.createElement('a');
   link.href = url;
-  link.download = `${assembly}-${chromosome}-${start}-${end}${biosample ? '-' + biosample.displayname : ''}.bed`; // File name for download
+  link.download = `${assembly}-${chromosome}-${start}-${end}${biosampleName ? '-' + biosampleName : ''}.bed`; // File name for download
   document.body.appendChild(link);
 
   // Simulate a click on the link to initiate download

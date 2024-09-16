@@ -11,6 +11,7 @@ function downloadBlob(blob, filename) {
 
 //Imported from old SCREEN
 //Move to utils
+/**@todo remove this once old biosample tables is removed */
 export function downloadTSV(text, filename) {
   downloadBlob(new Blob([text], { type: "text/plain" }), filename)
 }
