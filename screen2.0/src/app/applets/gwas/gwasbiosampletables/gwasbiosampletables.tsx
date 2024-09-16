@@ -265,6 +265,7 @@ export const GwasBiosampleTables = <T extends boolean = false>({
       Object.entries(filteredBiosamples).sort().map(([ontology, biosamples], i) => {
         if ((searchString ? biosamples.find(obj => obj.displayname.toLowerCase().includes(searchString.toLowerCase())) : true) && biosamples.length > 0) {
           const toHighlight = selected ? typeof selected === 'string' ? [selected] : selected : []
+          const highlighted = toHighlight.map(x => biosamples.find(y => y.name === x) || biosamples.find(y => y.displayname === x))
           return (
             <Accordion key={i}>
               <AccordionSummary
@@ -284,14 +285,8 @@ export const GwasBiosampleTables = <T extends boolean = false>({
                   rows={biosamples}
                   dense
                   searchable
-                  /**
-                   * @todo ensure this works as expected
-                   */
-                  highlighted={biosamples.find(x => toHighlight.includes(x.name) || toHighlight.includes(x.displayname))}
+                  highlighted={highlighted}
                   sortColumn={1}
-                  /**
-                   * @todo ensure this works as expected
-                   */
                   onRowClick={onBiosampleClicked}
                 />
               </AccordionDetails>
@@ -327,7 +322,7 @@ export const GwasBiosampleTables = <T extends boolean = false>({
 
   return (
     <Stack component={Paper} height={500} {...slotProps?.paperStack}>
-      <Stack direction={"row"} justifyContent={"space-between"} m={1} {...slotProps?.headerStack}>
+      <Stack direction={"row"} justifyContent={"space-between"} m={2} {...slotProps?.headerStack}>
         <TextField
           value={searchString}
           size="small"

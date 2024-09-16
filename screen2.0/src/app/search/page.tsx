@@ -419,7 +419,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       mainQueryParams.coordinates.chromosome,
       start,
       end,
-      mainQueryParams.biosample,
+      mainQueryParams.biosample.name,
       mainQueryParams.searchConfig.bed_intersect,
       mainQueryParams.gene.nearTSS ? TSSranges : null,
       assays,

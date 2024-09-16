@@ -11,6 +11,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DownloadIcon from '@mui/icons-material/Download';
 import { ApolloQueryResult } from "@apollo/client";
 import { BIOSAMPLE_Data } from "../../../common/lib/queries";
+import GwasBiosampleTables from "../../applets/gwas/gwasbiosampletables/gwasbiosampletables";
 
 
 const CREATE_TRACKHUB_QUERY = `
@@ -129,18 +130,15 @@ const ConfigureGenomeBrowser = (props: {
         <DialogContentText mb={2}>
           Note: For best UCSC performance, choose {"<"}10 cell types. Track hubs will be deleted after 24 hours.
         </DialogContentText>
-        <Grid2 container spacing={2}>
-          <Grid2 xs={12} lg={7}>
-            <BiosampleTables
-              showRNAseq={true}
-              showDownloads={false}
-              biosampleSelectMode="append"
-              biosampleData={props.biosampleData}
-              assembly={props.coordinates.assembly}
-              selectedBiosamples={selectedBiosamples}
-              setSelectedBiosamples={setSelectedBiosamples} />
-          </Grid2>
-          <Grid2 xs={12} lg={5}>
+        <Stack direction={{xs: "column", lg: "row"}} spacing={2}>
+          <GwasBiosampleTables
+            assembly={props.coordinates.assembly}
+            showRNAseq
+            selected={selectedBiosamples.map(x => x.name)}
+            onBiosampleClicked={(selected) => setSelectedBiosamples([...selectedBiosamples, selected])}
+            slotProps={{paperStack: {minWidth: {xs: '300px', lg: '500px'}}}}
+          />
+          <div>
             <Typography minWidth={"300px"} visibility={selectedBiosamples.length > 0 ? "visible" : "hidden"} mt={2}>Selected Biosamples:</Typography>
             {selectedBiosamples.map((biosample, i) => {
               return (
@@ -152,8 +150,8 @@ const ConfigureGenomeBrowser = (props: {
                 </Stack>
               );
             })}
-          </Grid2>
-        </Grid2>
+          </div>
+        </Stack>
       </DialogContent>
       <DialogActions sx={!props.handleClose && { position: "fixed", bottom: 15, right: 15, zIndex: 1 }}>
         <Tooltip placement="top" arrow title="Copy link to Trackhub">

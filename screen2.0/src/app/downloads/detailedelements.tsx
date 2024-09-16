@@ -1,6 +1,5 @@
-import { Button, ButtonProps, Paper, Typography, Divider, Stack } from "@mui/material"
+import { Button, ButtonProps, Typography, Stack } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
-import { Box } from "@mui/system"
 import React, { useEffect, useState } from "react"
 import Config from "../../config.json"
 import DownloadIcon from "@mui/icons-material/Download"
@@ -11,8 +10,8 @@ import humanTransparentIcon from "../../../public/Transparent_HumanIcon.png"
 import mouseTransparentIcon from "../../../public/Transparent_MouseIcon.png"
 import { ApolloQueryResult } from "@apollo/client"
 import { BIOSAMPLE_Data } from "../../common/lib/queries"
-import BiosampleTables from "../search/biosampletables"
 import { fetchFileSize } from "./downloads"
+import GwasBiosampleTables from "../applets/gwas/gwasbiosampletables/gwasbiosampletables"
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -193,26 +192,16 @@ export function DetailedElements(props: TabPanelProps) {
       </Grid2>
       <Grid2 xs={12} md={6} order={{ xs: 2, md: 3 }}>
         <Typography variant="h6">Human cCREs by cell and tissue types</Typography>
-        <BiosampleTables
-          biosampleData={props.biosamples}
-          assembly={"GRCh38"}
-          selectedBiosamples={[]}
-          setSelectedBiosamples={() => null}
-          showRNAseq={false}
-          showDownloads={true}
-          biosampleSelectMode={"append"}
+        <GwasBiosampleTables
+          assembly="GRCh38"
+          showDownloads
         />
       </Grid2>
       <Grid2 xs={12} md={6} order={{ xs: 3, md: 3 }}>
         <Typography variant="h6">Mouse cCREs by cell and tissue types</Typography>
-        <BiosampleTables
-          biosampleData={props.biosamples}
-          assembly={"mm10"}
-          selectedBiosamples={[]}
-          setSelectedBiosamples={() => null}
-          showRNAseq={false}
-          showDownloads={true}
-          biosampleSelectMode={"append"}
+        <GwasBiosampleTables
+          assembly="mm10"
+          showDownloads
         />
       </Grid2>
     </Grid2>

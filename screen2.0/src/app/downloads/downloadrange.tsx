@@ -1,7 +1,6 @@
-import { SetStateAction, useEffect, useState } from "react"
-import BiosampleTables from "../search/biosampletables"
+import { SetStateAction, useState } from "react"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
-import { Box, Button, Checkbox, CircularProgress, CircularProgressProps, FormControl, FormControlLabel, FormGroup, FormLabel, IconButton, Radio, RadioGroup, Stack, TextField, Typography } from "@mui/material"
+import { Box, Button, Checkbox, CircularProgress, CircularProgressProps, FormControl, FormControlLabel, FormLabel, IconButton, Radio, RadioGroup, Stack, TextField, Typography } from "@mui/material"
 import { downloadBED } from "../search/searchhelpers"
 import { parseGenomicRegion } from "../_mainsearch/parsegenomicregion"
 import { Close, Download } from "@mui/icons-material"
@@ -67,7 +66,7 @@ export const DownloadRange: React.FC = () => {
       setSelectedConservation({ primate: true, mammal: true, vertebrate: true })
       // setLinkedGenes({ distancePC: true, distanceAll: true, ctcfChiaPet: true, rnapiiChiaPet: true })
     }
-    setSelectedBiosample(null);
+    handleSetSelectedBiosample(null);
     (value === "GRCh38" || value === "mm10") && setAssembly(value)
   }
 

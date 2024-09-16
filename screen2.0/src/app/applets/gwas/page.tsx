@@ -367,7 +367,7 @@ export default function GWAS() {
                 preFilterBiosamples={(sample: RegistryBiosamplePlusRNA) => sample.dnase !== null}
                 selected={selectedSample?.name}
                 onBiosampleClicked={handleSetSelectedSample}
-                slotProps={{paperStack: {elevation: 0}}}
+                slotProps={{paperStack: {elevation: 0}, headerStack: {mt: 1}}}
               />
             </Stack>
           </AccordionDetails>
