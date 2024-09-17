@@ -43,7 +43,9 @@ const StyledHorizontalTab = styled(Tab)(() => ({
 const StyledVerticalTab = styled(Tab)(() => ({
   textTransform: "none",
   paddingTop: 0,
-  paddingBottom: 0
+  paddingBottom: 0,
+  alignSelf: "flex-start",
+  minWidth: 'auto'
 }))
 
 //Wrapper for the table
@@ -540,22 +542,23 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               onChange={(_, newValue: number) => { setDetailsPage(newValue) }}
               orientation="vertical"
               variant="scrollable"
-              allowScrollButtonsMobile sx={{
+              allowScrollButtonsMobile
+              sx={{
                 '& .MuiTabs-scrollButtons': { color: "black" },
                 '& .MuiTabs-scrollButtons.Mui-disabled': { opacity: 0.3 },
               }}>
-              <StyledVerticalTab value={0} label="Biosample Activity" sx={{ alignSelf: "start" }} />
-              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledVerticalTab value={1} label="Linked Genes" sx={{ alignSelf: "start" }} />}
-              <StyledVerticalTab value={2} label="Nearby Genomic Features" sx={{ alignSelf: "start" }} />
-              <StyledVerticalTab value={3} label="Orthologous cCREs in Other Species" sx={{ alignSelf: "start" }} />
-              <StyledVerticalTab value={4} label="Associated Gene Expression" sx={{ alignSelf: "start" }} />
-              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledVerticalTab value={5} label="Associated Transcript Expression" sx={{ alignSelf: "start" }} />}
-              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledVerticalTab value={6} label="Transcription at cCRE" sx={{ alignSelf: "start" }} />}
-              <StyledVerticalTab value={7} label="Functional Data" sx={{ alignSelf: "start" }} />
-              <StyledVerticalTab value={8} label="TF Motifs and Sequence Features" sx={{ alignSelf: "start" }} />
-              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledVerticalTab value={9} label="ChromHMM States" sx={{ alignSelf: "start" }} />}
-              <StyledVerticalTab value={10} label="Configure UCSC Genome Browser" sx={{ alignSelf: "start" }} />
-              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledVerticalTab value={11} label="ENTEx" sx={{ alignSelf: "start" }} />}
+              <StyledVerticalTab value={0} label="Biosample Activity" />
+              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledVerticalTab value={1} label="Linked Genes" />}
+              <StyledVerticalTab value={2} label="Nearby Genomic Features" />
+              <StyledVerticalTab value={3} label="Orthologous cCREs in Other Species"  />
+              <StyledVerticalTab value={4} label="Associated Gene Expression" />
+              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledVerticalTab value={5} label="Associated Transcript Expression" />}
+              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledVerticalTab value={6} label="Transcription at cCRE" />}
+              <StyledVerticalTab value={7} label="Functional Data" />
+              <StyledVerticalTab value={8} label="TF Motifs and Sequence Features" />
+              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledVerticalTab value={9} label="ChromHMM States" />}
+              <StyledVerticalTab value={10} label="Configure UCSC Genome Browser" />
+              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledVerticalTab value={11} label="ENTEx" />}
             </Tabs>
           }
         </Drawer>
