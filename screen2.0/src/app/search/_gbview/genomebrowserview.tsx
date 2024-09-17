@@ -183,7 +183,7 @@ export const GenomeBrowserView: React.FC<GenomeBrowserViewProps> = (props) => {
         ])
       setTracks(tracks)
     }
-  }, [bdata, props.biosample,props.assembly])
+  }, [bdata, props.biosample, props.assembly, props.biosampledisplayname])
   
   return (
     <>

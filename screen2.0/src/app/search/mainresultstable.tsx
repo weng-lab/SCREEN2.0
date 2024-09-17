@@ -354,7 +354,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
       HeaderRender: () => <strong><p>Conservation</p></strong>
     })
     return cols
-  }, [props.assembly, props.biosampleData, props.rows, getLinkedGenes, loadingLinkedGenes])
+  }, [props.assembly, props.biosampleData, props.rows, getLinkedGenes])
 
   return (
     <DataTable
