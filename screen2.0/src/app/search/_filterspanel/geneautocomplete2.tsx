@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback, useMemo } from "react"
 import Box from "@mui/material/Box"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import Typography from "@mui/material/Typography"
@@ -144,7 +144,7 @@ export const GeneAutoComplete2 = (
     setLoadingOptions(false)
   }
 
-  const debounceFn = useCallback(debounce(onSearchChange, 500), [])
+  const debounceFn = useMemo(() => debounce(onSearchChange, 500), [])
 
 
   // Merge the ListboxProps
