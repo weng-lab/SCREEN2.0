@@ -528,7 +528,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               setTSSs={setTSSs}
               setTSSranges={setTSSranges}
               genomeBrowserView={page === 1}
-              searchParams={searchParams}
               useLinkedGenes={useLinkedGenes}
               
             />

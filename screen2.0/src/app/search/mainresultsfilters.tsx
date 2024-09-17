@@ -127,7 +127,6 @@ export function MainResultsFilters(
     setTSSs: Dispatch<SetStateAction<number[]>>,
     setTSSranges: Dispatch<SetStateAction<{ start: number, end: number }[]>>
     genomeBrowserView: boolean,
-    searchParams: { [key: string]: string | undefined },
     useLinkedGenes: LazyQueryResultTuple<LinkedGenes, LinkedGenesVariables>
   }
 ): JSX.Element {
@@ -141,7 +140,6 @@ export function MainResultsFilters(
     setTSSs,
     setTSSranges,
     genomeBrowserView,
-    searchParams,
     useLinkedGenes,
   } = props;
 
@@ -541,9 +539,9 @@ export function MainResultsFilters(
             </Paper>
           }
           <BiosampleTables
-            assembly={props.mainQueryParams.coordinates.assembly}
-            selected={props.mainQueryParams.biosample?.name}
-            onBiosampleClicked={props.setBiosample}
+            assembly={mainQueryParams.coordinates.assembly}
+            selected={mainQueryParams.biosample?.name}
+            onBiosampleClicked={setBiosample}
             slotProps={{ paperStack: { elevation: 0 }, headerStack: {mt: 0} }}
           />
         </AccordionDetails>
