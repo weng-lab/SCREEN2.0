@@ -20,7 +20,7 @@ import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import { NEARBY_AND_LINKED_GENES } from "./queries"
 import { calcDistToTSS } from "./utils"
 import { LoadingMessage } from "../../../common/lib/utility"
-import { OverlappingPeaks } from "./overlappingpeaks"
+import { OverlappingPeaks } from "./transcriptionatccre"
 
 //Passing these props through this file could be done with context to reduce prop drilling
 type CcreDetailsProps = {
@@ -209,7 +209,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
           :
           <Rampage genes={uniqueGenes.length > 0 ? uniqueGenes : []} biosampleData={biosampleData} />)
       }
-      {/* Overlapping RAMPAGE Peaks */}
+      {/* Transcription at cCRE */}
       {(page === 6 && assembly !== "mm10") &&
         <OverlappingPeaks coordinates={{
           chromosome: region.chrom,
