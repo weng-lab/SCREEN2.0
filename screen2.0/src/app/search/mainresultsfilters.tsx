@@ -35,7 +35,8 @@ import {  LazyQueryResultTuple, gql, useLazyQuery } from "@apollo/client"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import { CancelRounded, InfoOutlined } from "@mui/icons-material";
 import ClearIcon from '@mui/icons-material/Clear';
-import { GeneAutocomplete, GeneInfo } from "./_geneAutocomplete/GeneAutocomplete";
+import { GeneAutocomplete } from "./_geneAutocomplete/GeneAutocomplete";
+import { GeneInfo } from "./_geneAutocomplete/types";
 import { LinkedGenes, LinkedGenesVariables } from "./page";
 import BiosampleTables from "../_biosampleTables/BiosampleTables";
 

@@ -9,7 +9,8 @@ import { SnpAutoComplete } from "./snpautocomplete"
 import { CelltypeAutocomplete } from "./celltypeautocomplete"
 import BedUpload from "./bedupload"
 import GenomicRegion from "./genomicregion"
-import { GeneAutocomplete, GeneInfo } from "../search/_geneAutocomplete/GeneAutocomplete"
+import { GeneAutocomplete } from "../search/_geneAutocomplete/GeneAutocomplete"
+import { GeneInfo } from "../search/_geneAutocomplete/types"
 
 export type MainSearchProps = InputBaseProps & {
   //false for human, true for mouse

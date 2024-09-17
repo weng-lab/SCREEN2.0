@@ -10,7 +10,8 @@ import { HUMAN_GENE_EXP, MOUSE_GENE_EXP } from "../../applets/gene-expression/co
 import { GENE_EXP_QUERY, GENE_QUERY, GET_ORTHOLOG, GET_ORTHOLOG_DATA, GET_ORTHOLOG_VARS } from "../../applets/gene-expression/queries"
 import { ReadonlyURLSearchParams, usePathname, useSearchParams, useRouter } from "next/navigation"
 import ConfigureGBModal from "./configuregbmodal"
-import { GeneAutocomplete, GeneInfo } from "../_geneAutocomplete/GeneAutocomplete"
+import { GeneAutocomplete } from "../_geneAutocomplete/GeneAutocomplete"
+import { GeneInfo } from "../_geneAutocomplete/types"
 import { SyncAlt } from "@mui/icons-material"
 import { LoadingButton } from "@mui/lab"
 
