@@ -103,8 +103,10 @@ export function DataMatrices() {
   const [biosamples, setBiosamples] = useState<BiosampleUMAP[]>([])
   const [selectMode, setSelectMode] = useState<"select" | "zoom">("select")
   const [tooltip, setTooltip] = useState(-1)
-
-  const data = umapData && umapData.ccREBiosampleQuery.biosamples.length>0 ? umapData: {}  
+  
+  const data = useMemo(() =>{
+    return umapData && umapData.ccREBiosampleQuery.biosamples.length>0 ? umapData: {} 
+  }, [umapData])
 
   const [open, setOpen] = useState(false)
   const handleOpenModal = () => {
