@@ -44,7 +44,8 @@ const StyledVerticalTab = styled(Tab)(() => ({
   textTransform: "none",
   paddingTop: 0,
   paddingBottom: 0,
-  alignSelf: "flex-start"
+  alignSelf: "flex-start",
+  minWidth: 'auto'
 }))
 
 //Wrapper for the table
