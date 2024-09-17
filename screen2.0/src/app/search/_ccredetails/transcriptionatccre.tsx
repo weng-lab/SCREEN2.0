@@ -2,12 +2,13 @@
 import React, { useMemo, useState, useEffect} from "react"
 import { client } from "./client"
 import { useQuery } from "@apollo/client"
-import { TSS_RAMPAGE_PEAKS } from "./queries"
+import { TSS_RAMPAGE_PEAKS, TSS_RAMPAGE_QUERY } from "./queries"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { LoadingMessage, ErrorMessage, CreateLink } from "../../../common/lib/utility"
 import { Typography, Stack, MenuItem, Select, InputLabel, SelectChangeEvent, Box, FormLabel, FormControl, ToggleButton, ToggleButtonGroup } from "@mui/material"
 import { RampageToolTipInfo } from "./const"
+import { PlotActivityProfiles } from "./utils"
 
 export type PeakData = {
   gettssRampagePeaks: {
@@ -75,6 +76,64 @@ export const OverlappingPeaks: React.FC<PeakVars> = ({ coordinates }) => {
     gene: string;
     locustype: string;
   };
+
+  type RampageData = {
+    tssrampageQuery: {
+      start: number,
+      organ: string,
+      strand: string,
+      peakId: string,
+      biosampleName: string,
+      biosampleType: string,
+      bisampleSummary: string,
+      peakType: string,
+      expAccession: string,
+      value: number,
+      end: number,
+      chrom: string,
+      genes: [{
+        geneName: string
+        locusType: string
+      }]
+  }[]
+  }
+
+  type RampageVars = {
+    peak: string;
+  }
+
+  const { loading: rampageloading, error: rampageerror, data: rampagedata } = useQuery<RampageData, RampageVars>(
+    TSS_RAMPAGE_QUERY, 
+    {
+      variables: {
+        peak: selectedRow?.peakId || "",
+      },
+      skip: !selectedRow,
+      fetchPolicy: "cache-and-network",
+      nextFetchPolicy: "cache-first",
+      client,
+    }
+  )
+
+  const rampageData = useMemo(() => {
+    if (!rampagedata) return [];
+  
+    return rampagedata.tssrampageQuery.map((t) => ({
+      value: t.value,
+      peakId: t.peakId,
+      biosampleType: t.biosampleType,
+      name: t.biosampleName,
+      locusType: t.genes[0].locusType,
+      expAccession: t.expAccession,
+      start: String(t.start),
+      end: String(t.end),
+      chrom: t.chrom,
+      peakType: t.peakType,
+      organ: t.organ,
+      strand: t.strand,
+      tissue: t.organ,
+    }));
+  }, [rampagedata]);
   
   return loading ? (
     <LoadingMessage />
@@ -131,26 +190,29 @@ export const OverlappingPeaks: React.FC<PeakVars> = ({ coordinates }) => {
         </FormControl>
       </Stack>
       </Grid2>
-      {selectedRow && (
-        <Grid2 xs={12} md={12} lg={12}>
-          <Box
-            sx={{
-              mt: 2,
-              p: 2,
-              border: '1px solid',
-              borderColor: 'primary.main',
-              borderRadius: '8px',
-              backgroundColor: 'background.paper',
-              boxShadow: 1,
-            }}
-          >
-            <Typography variant="h6">Selected Peak Details</Typography>
-            <Typography>Peak ID: {selectedRow.peakId}</Typography>
-            <Typography>Type: {selectedRow.peakType}</Typography>
-            <Typography>Associated Gene: {selectedRow.gene}</Typography>
+      <Grid2 xs={12}>
+        {peakData && peakData.length === 0 ? (
+          <Typography>No data available</Typography>
+        ) : selectedRow ? (
+          <Box maxWidth={{ xl: '75%', xs: '100%' }}>
+            <PlotActivityProfiles
+              data={rampageData}
+              sort={sort}
+              range={{
+                x: { start: 0, end: 4 },
+                y: { start: 0, end: 0 },
+              }}
+              dimensions={{
+                x: { start: 0, end: 650 },
+                y: { start: 200, end: 0 },
+              }}
+              peakID={selectedRow.peakId}
+            />
           </Box>
-        </Grid2>
-      )}
+        ) : (
+          null
+        )}
+      </Grid2>
     </Grid2>
   )
 }

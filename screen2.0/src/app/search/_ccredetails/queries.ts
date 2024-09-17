@@ -390,3 +390,27 @@ query getTSSRampagePeaks($coordinates: ChromRange!) {
   }
 }
 `
+
+export const TSS_RAMPAGE_QUERY = gql`
+query tssRampage($peak: String!) {
+  tssrampageQuery(peakId: $peak) {
+    start    
+    organ   
+    strand
+    peakId
+    biosampleName
+    biosampleType
+    biosampleSummary
+    peakType
+    expAccession
+    value
+    start
+    end 
+    chrom    
+    genes {
+      geneName
+       locusType
+    }
+  }
+}
+`
