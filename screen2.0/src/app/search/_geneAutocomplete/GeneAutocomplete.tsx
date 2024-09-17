@@ -5,7 +5,7 @@ import Typography from "@mui/material/Typography"
 import { debounce } from "@mui/material/utils"
 import { GENE_AUTOCOMPLETE_QUERY } from "../../_mainsearch/queries"
 import Config from "../../../config.json"
-import { AutocompleteOwnerState, AutocompleteRenderOptionState, IconButton, Stack, SvgIconTypeMap } from "@mui/material"
+import { AutocompleteOwnerState, AutocompleteRenderOptionState, IconButton, IconButtonProps, Stack, StackProps, SvgIconTypeMap, TextFieldProps } from "@mui/material"
 import { Add, Search } from "@mui/icons-material"
 import {
   Autocomplete,
@@ -13,6 +13,7 @@ import {
   AutocompleteProps,
 } from '@mui/material';
 import { OverridableComponent } from "@mui/material/OverridableComponent"
+
 
 type QueryResponse = [number, string[], any, [string, string, string, string, string, string][], string[]]
 
@@ -28,45 +29,72 @@ export interface GeneInfo {
 }
 
 export interface GeneAutoComplete2Props {
-  //Filling in these generic types tells the component what are valid values and if the "multiple" prop is true/false. If supporting multiple values in future change second type argument
-  autocompleteProps?: Omit<AutocompleteProps<GeneInfo, false, boolean | undefined,false>,
-  'options' | 'renderInput' | 'renderOptions' | 'inputValue' | 'value' | 'noOptionsText' | 'multiple' | 'getOptionLabel' |
-  'isOptionEqualToValue' | 'onChange' | 'onKeyDown'
-  >
-  assembly: "GRCh38" | "mm10"
   /**
-   * The icon to display to the left of the Autocomplete. Overriden if CustomEndIcon specified.
-   * @default "search"
-   */
-  endIcon?: 'search' | 'add' | 'none'
-  CustomEndIcon?: OverridableComponent<SvgIconTypeMap<{}, "svg">> & {
-    muiName: string;
+   * Props spread into each slot inside, helpful for changing things such as width and height
+  */
+  slotProps?: {
+    /**
+     * Main autocomplete component
+    */
+    //Filling in these generic types tells the component what are valid values and if the "multiple" prop is true/false. If supporting multiple values in future change second type argument
+    autocompleteProps?: Omit<AutocompleteProps<GeneInfo, false, boolean | undefined, false>,
+      'options' | 'renderInput' | 'renderOptions' | 'inputValue' | 'value' | 'noOptionsText' | 'multiple' | 'getOptionLabel' |
+      'isOptionEqualToValue' | 'onChange' | 'onKeyDown'
+    >
+    /**
+     * Parent element which wraps autocomplete and icon
+    */
+    stackProps?: StackProps
+    /**
+     * Icon which appears to the right of the component
+    */
+    iconButtonProps?: IconButtonProps
+    /**
+     * 
+     */
+    inputTextFieldProps?: TextFieldProps
   }
-  // onIconClick?: React.MouseEventHandler<HTMLButtonElement>
-  onTextBoxClick?: React.MouseEventHandler<HTMLDivElement>
-  /**
-   * 
-   * Callback fired when a gene is selected from the dropdown options. Not fired on submission (enter, clicking endIcon)
-   * @param gene The gene selected
-   */
-  onGeneSelected?: (gene: GeneInfo) => void
-  /**
-   * Callback fired when a valid gene is submitted by pressing either the enter key or clicking the endIcon.
-   * @param gene The gene submitted
-   *  
-   */
-  onGeneSubmitted?: (gene: GeneInfo) => void
-  colorTheme: "light" | "dark"
+assembly: "GRCh38" | "mm10"
+/**
+ * The icon to display to the left of the Autocomplete. Overriden if CustomEndIcon specified.
+ * @default "search"
+*/
+endIcon?: 'search' | 'add' | 'none'
+CustomEndIcon?: OverridableComponent<SvgIconTypeMap<{}, "svg">> & {
+  muiName: string;
+}
+// onIconClick?: React.MouseEventHandler<HTMLButtonElement>
+onTextBoxClick?: React.MouseEventHandler<HTMLDivElement>
+/**
+ * 
+ * Callback fired when a gene is selected from the dropdown options. Not fired on submission (enter, clicking endIcon)
+ * @param gene The gene selected
+*/
+onGeneSelected?: (gene: GeneInfo) => void
+/**
+ * Callback fired when a valid gene is submitted by pressing either the enter key or clicking the endIcon.
+ * @param gene The gene submitted
+ *  
+*/
+onGeneSubmitted?: (gene: GeneInfo) => void
+colorTheme: "light" | "dark"
 
-  renderOption?: (props: React.HTMLAttributes<HTMLLIElement>, option: GeneInfo, descriptions: { name: string, desc: string }[], state: AutocompleteRenderOptionState, ownerState: AutocompleteOwnerState<GeneInfo, false, boolean | undefined,false>) => React.ReactNode
+renderOption?: (props: React.HTMLAttributes<HTMLLIElement>, option: GeneInfo, descriptions: { name: string, desc: string }[], state: AutocompleteRenderOptionState, ownerState: AutocompleteOwnerState<GeneInfo, false, boolean | undefined,false>) => React.ReactNode
 }
 
-export const GeneAutoComplete2 = (
+/**
+ * @todo manually overriding the colors like this component does is definitely bad practice.
+ * The colors should be overridden by specifying a dark theme.
+ * For example, the header in SCREEN should wrap all child components in a dark theme,
+ * which MUI should automatically detect and switch colors to use correct colors
+ * Should be able to remove the "colorTheme" prop entirely.
+ */
+export const GeneAutocomplete = (
   props: GeneAutoComplete2Props
 ) => {
   const { 
     assembly, 
-    autocompleteProps, 
+    slotProps, 
     endIcon = 'search', 
     CustomEndIcon,
     //  onIconClick, 
@@ -78,7 +106,6 @@ export const GeneAutoComplete2 = (
     } = props;
 
   const [inputValue, setInputValue] = useState("")
-  // const [value, setValue] = useState<GeneInfo>()
   const [options, setOptions] = useState<GeneInfo[]>([])
   const [descriptions, setDescriptions] = useState<{ name: string; desc: string }[]>([])
   const [loadingOptions, setLoadingOptions] = useState<boolean>(false)
@@ -149,12 +176,44 @@ export const GeneAutoComplete2 = (
 
   // Merge the ListboxProps
   const mergedListboxProps = {
-    ...autocompleteProps?.ListboxProps,
+    ...slotProps?.autocompleteProps?.ListboxProps,
     style: {
-      ...(autocompleteProps?.ListboxProps?.style || {}),
+      ...(slotProps?.autocompleteProps?.ListboxProps?.style || {}),
       maxHeight: '250px',
     },
   };
+
+  // Merge icon props since sx being used here
+  const mergedIconProps: IconButtonProps = {
+    ...slotProps?.iconButtonProps,
+    sx: {
+      color: `${colorTheme === "dark" ? "white" : "black"}`,
+      maxHeight: "100%",
+      ...slotProps?.iconButtonProps?.sx,
+    }
+  }
+
+  const mergedTextFieldProps: TextFieldProps = {
+    label: "Enter a gene name",
+    placeholder: props.assembly === "mm10" ? "e.g., Scml2, Dbt" : "e.g., SOX4, GAPDH",
+    ...slotProps?.inputTextFieldProps,
+    InputLabelProps: { style: {color: colorTheme === "dark" && "white" }, ...slotProps?.inputTextFieldProps?.InputLabelProps },
+    sx: {
+      //Border at rest
+      fieldset: colorTheme === "dark" && { borderColor: "white" },
+      '& .MuiOutlinedInput-root': {
+        //hover border color
+        '&:hover fieldset': colorTheme === "dark" && { borderColor: "white" },
+        //focused border color
+        '&.Mui-focused fieldset': colorTheme === "dark" && { borderColor: "white" },
+      },
+      //Text
+      '& .MuiOutlinedInput-input': colorTheme === "dark" && { color: "white" },
+      //Icon
+      '& .MuiSvgIcon-root': colorTheme === "dark" && { fill: "white" },
+      ...slotProps?.inputTextFieldProps?.sx
+    }
+  }
   
   const attemptSubmit = (inputVal: string) => {
     const gene = options.find(x => x.name.toLowerCase() === inputVal.toLowerCase())
@@ -164,13 +223,12 @@ export const GeneAutoComplete2 = (
   }
 
   return (
-    <Stack direction="row" spacing={2}>
+    <Stack direction="row" spacing={2} {...slotProps?.stackProps}>
       <Autocomplete
         multiple={false} //How can I easily support this
         ListboxProps={mergedListboxProps}
         options={options.sort((a, b) => a.name.localeCompare(b.name))} //How do I type this properly?
         inputValue={inputValue}
-        // value={value}
         onInputChange={(_, newInputValue) => {
           if (newInputValue != "") {
             debounceFn(newInputValue, assembly) // This triggers sending new request for genes
@@ -187,26 +245,9 @@ export const GeneAutoComplete2 = (
         renderInput={(params) => (
           <i>
             <TextField
-              {...params}
-              label="Enter a gene name"
-              // InputLabelProps={{ shrink: true, style: props.header ? {color: "white"} : { color: "black" } }}
-              placeholder={props.assembly === "mm10" ? "e.g., Scml2, Dbt" : "e.g., SOX4, GAPDH"}
-              fullWidth
               onClick={onTextBoxClick}
-              sx={{
-                //Border at rest
-                fieldset: colorTheme === "dark" && { borderColor: "white" },
-                '& .MuiOutlinedInput-root': {
-                  //hover border color
-                  '&:hover fieldset': colorTheme === "dark" && { borderColor: "white" },
-                  //focused border color
-                  '&.Mui-focused fieldset': colorTheme === "dark" && { borderColor: "white" },
-                },
-                //Text
-                '& .MuiOutlinedInput-input': colorTheme === "dark" && { color: "white" },
-                //Icon
-                '& .MuiSvgIcon-root': colorTheme === "dark" && { fill: "white" }
-              }}
+              {...params}
+              {...mergedTextFieldProps}
             />
           </i>
         )}
@@ -232,10 +273,15 @@ export const GeneAutoComplete2 = (
             )
           }
         }}
-        {...autocompleteProps}
+        {...slotProps?.autocompleteProps}
         />
       {(endIcon !== 'none' || CustomEndIcon) &&
-        <IconButton aria-label="Search" type="submit" onClick={() => attemptSubmit(inputValue)} sx={{ color: `${colorTheme === "dark" ? "white" : "black"}`, maxHeight: "100%" }}>
+        <IconButton
+          aria-label="Search"
+          type="submit"
+          onClick={() => attemptSubmit(inputValue)}
+          {...mergedIconProps}
+        >
           {CustomEndIcon ?
             <CustomEndIcon />
             :

@@ -10,7 +10,7 @@ import { HUMAN_GENE_EXP, MOUSE_GENE_EXP } from "../../applets/gene-expression/co
 import { GENE_EXP_QUERY, GENE_QUERY, GET_ORTHOLOG, GET_ORTHOLOG_DATA, GET_ORTHOLOG_VARS } from "../../applets/gene-expression/queries"
 import { ReadonlyURLSearchParams, usePathname, useSearchParams, useRouter } from "next/navigation"
 import ConfigureGBModal from "./configuregbmodal"
-import { GeneAutoComplete2, GeneInfo } from "../_filterspanel/geneautocomplete2"
+import { GeneAutocomplete, GeneInfo } from "../_geneAutocomplete/GeneAutocomplete"
 import { SyncAlt } from "@mui/icons-material"
 import { LoadingButton } from "@mui/lab"
 
@@ -216,19 +216,21 @@ export function GeneExpression(props: {
             <MenuItem value={"GRCh38"}>GRCh38</MenuItem>
             <MenuItem value={"mm10"}>mm10</MenuItem>
           </Select>
-          <GeneAutoComplete2
+          <GeneAutocomplete
             assembly={searchAssembly}
-            autocompleteProps={{
-              fullWidth: true,
-              size: "medium",
-              sx: { minWidth: '200px' },
-              defaultValue: {
-                name: gene, //only gene needed to set default
-                id: "",
-                coordinates: {
-                  chromosome: "",
-                  start: 0,
-                  end: 0
+            slotProps={{
+              autocompleteProps: {
+                fullWidth: true,
+                size: "medium",
+                sx: { minWidth: '200px' },
+                defaultValue: {
+                  name: gene, //only gene needed to set default
+                  id: "",
+                  coordinates: {
+                    chromosome: "",
+                    start: 0,
+                    end: 0
+                  }
                 }
               }
             }}

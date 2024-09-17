@@ -35,7 +35,7 @@ import {  LazyQueryResultTuple, gql, useLazyQuery } from "@apollo/client"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import { CancelRounded, InfoOutlined } from "@mui/icons-material";
 import ClearIcon from '@mui/icons-material/Clear';
-import { GeneAutoComplete2, GeneInfo } from "./_filterspanel/geneautocomplete2";
+import { GeneAutocomplete, GeneInfo } from "./_geneAutocomplete/GeneAutocomplete";
 import { LinkedGenes, LinkedGenesVariables } from "./page";
 import BiosampleTables from "../_biosampleTables/BiosampleTables";
 
@@ -897,53 +897,51 @@ export function MainResultsFilters(
                 <FormControl sx={{ width: 'inherit' }}>
                   <FormLabel component="legend">Gene</FormLabel>
                   <FormGroup>
-                    <Box sx={{ mt: 1 }}>
-                      {/* This does not properly accept adjusting padding/margin through sx, need to fix*/}
-                      <GeneAutoComplete2
-                        assembly={mainQueryParams.coordinates.assembly}
-                        autocompleteProps={
-                          {
-                            size: "small",
-                            fullWidth: true,
-                            defaultValue: filterCriteria.linkedGeneName ?
-                              //have to pass in whole object, but only name is checked for equality
-                              {
-                                name: filterCriteria.linkedGeneName,
-                                id: '',
-                                coordinates: {
-                                  chromosome: '',
-                                  start: 0,
-                                  end: 0
-                                },
-                                description: ''
-                              }
-                              :
-                              null,
-                            getOptionDisabled: option => !linkedGenesWithNums.find(x => x.geneName === option.name)
-                          }
-                        }
-                        onTextBoxClick={() => !dataLinkedGenes && !loadingLinkedGenes && getLinkedGenes()}
-                        endIcon="none"
-                        colorTheme="light"
-                        onGeneSelected={(gene) =>
-                          setFilterCriteria(
-                            gene === null ?
-                              {
-                                ...filterCriteria,
-                                linkedGeneName: null,
-                                CTCFChIAPET: { checked: filterCriteria.CTCFChIAPET.checked, biosample: '' },
-                                RNAPIIChIAPET: { checked: filterCriteria.RNAPIIChIAPET.checked, biosample: '' },
-                                HiC: { checked: filterCriteria.HiC.checked, biosample: '' },
-                                CRISPRiFlowFISH: { checked: filterCriteria.CRISPRiFlowFISH.checked, biosample: '' },
-                                eQTLs: { checked: filterCriteria.eQTLs.checked, biosample: '' },
-                              }
-                              :
-                              { ...filterCriteria, linkedGeneName: gene.name }
+                    <GeneAutocomplete
+                      assembly={mainQueryParams.coordinates.assembly}
+                      slotProps={{
+                        autocompleteProps: {
+                          size: "small",
+                          fullWidth: true,
+                          defaultValue: filterCriteria.linkedGeneName ?
+                            //have to pass in whole object, but only name is checked for equality
+                            {
+                              name: filterCriteria.linkedGeneName,
+                              id: '',
+                              coordinates: {
+                                chromosome: '',
+                                start: 0,
+                                end: 0
+                              },
+                              description: ''
+                            }
+                            :
+                            null,
+                          getOptionDisabled: option => !linkedGenesWithNums.find(x => x.geneName === option.name),
+                        },
+                        stackProps: { mt: 1 }
+                      }}
+                      onTextBoxClick={() => !dataLinkedGenes && !loadingLinkedGenes && getLinkedGenes()}
+                      endIcon="none"
+                      colorTheme="light"
+                      onGeneSelected={(gene) =>
+                        setFilterCriteria(
+                          gene === null ?
+                            {
+                              ...filterCriteria,
+                              linkedGeneName: null,
+                              CTCFChIAPET: { checked: filterCriteria.CTCFChIAPET.checked, biosample: '' },
+                              RNAPIIChIAPET: { checked: filterCriteria.RNAPIIChIAPET.checked, biosample: '' },
+                              HiC: { checked: filterCriteria.HiC.checked, biosample: '' },
+                              CRISPRiFlowFISH: { checked: filterCriteria.CRISPRiFlowFISH.checked, biosample: '' },
+                              eQTLs: { checked: filterCriteria.eQTLs.checked, biosample: '' },
+                            }
+                            :
+                            { ...filterCriteria, linkedGeneName: gene.name }
 
-                          )}
-                        renderOption={(props, option, descriptions) => renderGeneAutoCompleteOption(props, option, descriptions)}
-                      />
-                    </Box>
+                        )}
+                      renderOption={(props, option, descriptions) => renderGeneAutoCompleteOption(props, option, descriptions)}
+                    />
                   </FormGroup>
                 </FormControl>
                 {/* Linked-by Checkboxes */}
