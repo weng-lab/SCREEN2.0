@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback, useMemo } from "react"
 import Box from "@mui/material/Box"
 import TextField from "@mui/material/TextField"
 import Autocomplete from "@mui/material/Autocomplete"
@@ -93,7 +93,7 @@ export const GeneAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
     }
   }
 
-  const debounceFn = useCallback(debounce(onSearchChange, 500), [])  
+  const debounceFn = useMemo(() => debounce(onSearchChange, 500), [])  
 
   return (
     <Stack direction="row" spacing={2}>

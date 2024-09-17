@@ -66,7 +66,7 @@ export const BiosampleTracks: React.FC<BiosampleTracksProps> = (props) => {
         (x: any) => x.name as any,
         (x) => x
       ),
-    [biosampleData, biosampleDataLoading]
+    [biosampleData]
   )
 
   const cCRECoordinateMap = useMemo(

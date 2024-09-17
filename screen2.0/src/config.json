@@ -31,7 +31,7 @@
     "overrides": {}
   },
   "API": {
-    "CcreAPI": "https://factorbook.api.wenglab.org/graphql",
+    "CcreAPI": "https://screen.api.wenglab.org/graphql",
     "GraphqlAPI": "https://ga.staging.wenglab.org/graphql"
   },
   "ChromHMM": {
