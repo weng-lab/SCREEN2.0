@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react"
 import Config from "../../config.json"
 import DownloadIcon from "@mui/icons-material/Download"
 import SearchIcon from "@mui/icons-material/Search"
-import { CA_CTCF, CA_H3K4me3, CA_TF, CA_only, PLS, TF_only, dELS, pELS } from "../../common/lib/colors"
+import { CA_CTCF, CA_H3K4me3, CA_TF, CA_only, PLS, TF_only, dELS, pELS, CTCF_Bound, Gene_Links, dELSpELS } from "../../common/lib/colors"
 import Image from "next/image"
 import humanTransparentIcon from "../../../public/Transparent_HumanIcon.png"
 import mouseTransparentIcon from "../../../public/Transparent_MouseIcon.png"
@@ -101,6 +101,12 @@ export function DetailedElements(props: TabPanelProps) {
           />
           <InlineDownloadButton
             mode="download"
+            href={Config.Downloads.HumanEnhancers}
+            label="All Candidate Enhacers (pELS & dELS) (1,718,669)"
+            bordercolor={dELSpELS}
+          />
+          <InlineDownloadButton
+            mode="download"
             href={Config.Downloads.HumanCA_CTCF}
             label="Chromatin Accessible with CTCF (CA-CTCF) (126,034)"
             bordercolor={CA_CTCF}
@@ -128,6 +134,18 @@ export function DetailedElements(props: TabPanelProps) {
             href={Config.Downloads.HumanTF_only}
             label="TF Only (TF) (105,286)"
             bordercolor={TF_only}
+          />
+          <InlineDownloadButton
+            mode="download"
+            href={Config.Downloads.HumanCA_CTCF}
+            label="CTCF-Bound cCREs ()"
+            bordercolor={CTCF_Bound}
+          />
+          <InlineDownloadButton
+            mode="download"
+            href={Config.Downloads.HumanGeneLinks}
+            label="cCRE-Gene Links"
+            bordercolor={Gene_Links}
           />
         </Stack>
       </Grid2>
@@ -161,6 +179,12 @@ export function DetailedElements(props: TabPanelProps) {
           />
           <InlineDownloadButton
             mode="download"
+            href={Config.Downloads.MouseEnhancers}
+            label="All Candidate Enhacers (pELS & dELS) (512,001)"
+            bordercolor={dELSpELS}
+          />
+          <InlineDownloadButton
+            mode="download"
             href={Config.Downloads.MouseCA_CTCF}
             label="Chromatin Accessible with CTCF (CA-CTCF) (45,933)"
             bordercolor={CA_CTCF}
@@ -188,6 +212,12 @@ export function DetailedElements(props: TabPanelProps) {
             href={Config.Downloads.MouseTF_only}
             label="TF Only (TF) (15,283)"
             bordercolor={TF_only}
+          />
+          <InlineDownloadButton
+            mode="download"
+            href={Config.Downloads.MouseCA_CTCF}
+            label="CTCF-Bound cCREs ()"
+            bordercolor={CTCF_Bound}
           />
         </Stack>
       </Grid2>
