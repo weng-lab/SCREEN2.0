@@ -11,7 +11,7 @@ export const CA_only = "#06DA93"
 export const CA_TF = "#be28e5"
 export const TF_only = "#d876ec"
 export const CTCF_Bound = "#6495ED"
-export const Gene_Links = "#FF69B4"
+export const Gene_Links = "#A872E5"
 export const LowDNase = "#e1e1e1"
 export const Unclassified = "#8c8c8c"
 
