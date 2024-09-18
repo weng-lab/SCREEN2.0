@@ -133,7 +133,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.10.4, @babel/runtime@npm:^7.10.5, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.23.9, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.8.7":
+"@babel/runtime@npm:^7.10.4, @babel/runtime@npm:^7.10.5, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.23.9, @babel/runtime@npm:^7.25.6, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.8.7":
   version: 7.25.6
   resolution: "@babel/runtime@npm:7.25.6"
   dependencies:
@@ -212,7 +212,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@emotion/cache@npm:^11.11.0, @emotion/cache@npm:^11.13.0":
+"@emotion/cache@npm:^11.11.0, @emotion/cache@npm:^11.13.0, @emotion/cache@npm:^11.13.1":
   version: 11.13.1
   resolution: "@emotion/cache@npm:11.13.1"
   dependencies:
@@ -622,6 +622,29 @@ __metadata:
     "@types/react":
       optional: true
   checksum: 22eda1106db35ac2a249ee049b84cd4100f39181a0fa93d983a2c3d2bced390426deffb379cb5e234f330d76bc6f9e0344b698d7656b76119c1ca8cee7445a21
+  languageName: node
+  linkType: hard
+
+"@mui/material-nextjs@npm:^6.1.0":
+  version: 6.1.0
+  resolution: "@mui/material-nextjs@npm:6.1.0"
+  dependencies:
+    "@babel/runtime": ^7.25.6
+  peerDependencies:
+    "@emotion/cache": ^11.11.0
+    "@emotion/react": ^11.11.4
+    "@emotion/server": ^11.11.0
+    "@types/react": ^17.0.0 || ^18.0.0 || ^19.0.0
+    next: ^13.0.0 || ^14.0.0
+    react: ^17.0.0 || ^18.0.0 || ^19.0.0
+  peerDependenciesMeta:
+    "@emotion/cache":
+      optional: true
+    "@emotion/server":
+      optional: true
+    "@types/react":
+      optional: true
+  checksum: 63dcda9f4214c4be6e28530ed84b078da2e7eb22462a4765428c1d477ab96d13ee4bdb60ac3cce319782eb24843492e06fd7270553d33248c8e45a24515049f8
   languageName: node
   linkType: hard
 
@@ -7821,11 +7844,13 @@ __metadata:
     "@apollo/client": alpha
     "@apollo/experimental-nextjs-app-support": ^0.8.0
     "@emailjs/browser": ^4.3.3
+    "@emotion/cache": ^11.13.1
     "@emotion/react": ^11.11.1
     "@emotion/styled": ^11.11.0
     "@mui/icons-material": ^5.16.7
     "@mui/lab": ^5.0.0-alpha.170
     "@mui/material": ^5.16.7
+    "@mui/material-nextjs": ^6.1.0
     "@types/node": ^20.14.6
     "@types/react": ^18.3.3
     "@types/react-dom": 18.2.18

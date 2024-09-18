@@ -206,6 +206,7 @@ function ResponsiveAppBar() {
           </Toolbar>
         </Container>
       </AppBar>
+      {/* Bumps content down since header is position="fixed" */}
       <Toolbar />
     </>
   )
