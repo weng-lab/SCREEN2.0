@@ -9,6 +9,7 @@ import EGeneTracks from "./egenetracks"
 import { client } from "../_ccredetails/client"
 import DefaultTracks from "./defaulttracks"
 import { BiosampleTracks } from "./biosampletracks"
+
 type GenomeBrowserViewProps = {
   coordinates: {
     start: number

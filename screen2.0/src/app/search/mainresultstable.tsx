@@ -15,7 +15,6 @@ import { LinkedGenes, LinkedGenesVariables } from "./page"
 
 interface MainResultsTableProps extends Partial<DataTableProps<any>> {
   assembly: "GRCh38" | "mm10"
-  biosampleData: ApolloQueryResult<BIOSAMPLE_Data>
   useLinkedGenes: LazyQueryResultTuple<LinkedGenes, LinkedGenesVariables> //Is this a proper usage of a custom hook?
 }
 
@@ -333,7 +332,6 @@ export function MainResultsTable(props: MainResultsTableProps) {
               UCSC
             </Button>
             <ConfigureGBModal
-              biosampleData={props.biosampleData}
               coordinates={{
                 assembly: props.assembly,
                 chromosome: row.chromosome,
@@ -354,7 +352,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
       HeaderRender: () => <strong><p>Conservation</p></strong>
     })
     return cols
-  }, [props.assembly, props.biosampleData, props.rows, getLinkedGenes])
+  }, [props.assembly, props.rows, getLinkedGenes])
 
   return (
     <DataTable

@@ -1,6 +1,5 @@
 import { Button, ButtonProps, Paper, Typography, Divider, Stack, Tabs, Tab } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
-import { Box } from "@mui/system"
 import React, { useEffect, useState } from "react"
 import Config from "../../config.json"
 import DownloadIcon from "@mui/icons-material/Download"
@@ -11,8 +10,8 @@ import humanTransparentIcon from "../../../public/Transparent_HumanIcon.png"
 import mouseTransparentIcon from "../../../public/Transparent_MouseIcon.png"
 import { ApolloQueryResult } from "@apollo/client"
 import { BIOSAMPLE_Data } from "../../common/lib/queries"
-import BiosampleTables from "../search/biosampletables"
 import { fetchFileSize } from "./downloads"
+import BiosampleTables from "../_biosampleTables/BiosampleTables"
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -118,13 +117,8 @@ export function DetailedElements(props: TabPanelProps) {
               <Grid2 xs={12} md={6}>
                 <Typography variant="h6">Human cCREs by cell and tissue types</Typography>
                 <BiosampleTables
-                  biosampleData={props.biosamples}
                   assembly={"GRCh38"}
-                  selectedBiosamples={[]}
-                  setSelectedBiosamples={() => null}
-                  showRNAseq={false}
-                  showDownloads={true}
-                  biosampleSelectMode={"append"}
+                  showDownloads
                 />
               </Grid2>
             </Grid2>
@@ -158,13 +152,8 @@ export function DetailedElements(props: TabPanelProps) {
               <Grid2 xs={12} md={6}>
                 <Typography variant="h6">Mouse cCREs by cell and tissue types</Typography>
                 <BiosampleTables
-                  biosampleData={props.biosamples}
                   assembly={"mm10"}
-                  selectedBiosamples={[]}
-                  setSelectedBiosamples={() => null}
-                  showRNAseq={false}
-                  showDownloads={true}
-                  biosampleSelectMode={"append"}
+                  showDownloads
                 />
               </Grid2>
             </Grid2>

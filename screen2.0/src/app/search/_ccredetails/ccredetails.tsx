@@ -14,8 +14,6 @@ import Rampage from "./rampage"
 import { GeneExpression } from "./geneexpression"
 import { TfSequenceFeatures } from "../_gbview/tfsequencefeatures"
 import ConfigureGBTab from "./configuregbtab"
-import { ApolloQueryResult } from "@apollo/client"
-import { BIOSAMPLE_Data } from "../../../common/lib/queries"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import { NEARBY_AND_LINKED_GENES } from "./queries"
 import { calcDistToTSS } from "./utils"
@@ -26,7 +24,6 @@ type CcreDetailsProps = {
   accession: string
   assembly: "GRCh38" | "mm10"
   region: GenomicRegion
-  biosampleData: ApolloQueryResult<BIOSAMPLE_Data>
   page: number
   handleOpencCRE: (row: any) => void
 }
@@ -90,7 +87,7 @@ export type NearbyAndLinkedVariables = {
   geneVersion: 40 | 25
 }
 
-export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, biosampleData, assembly, page, handleOpencCRE }) => {
+export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, assembly, page, handleOpencCRE }) => {
 
   //Fetch linked genes and genes within a 2M bp window around cCRE
   const { loading: loadingLinkedGenes, data: dataNearbyAndLinked, error: errorNearbyAndLinked } = useQuery<NearbyAndLinked, NearbyAndLinkedVariables>(NEARBY_AND_LINKED_GENES, {
@@ -191,7 +188,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
         errorNearbyAndLinked ?
           <Typography>{`Issue fetching Linked Genes for ${accession}. Please use our Gene Expression Applet`}</Typography> 
           :
-          <GeneExpression assembly={assembly} genes={uniqueGenes || []} biosampleData={biosampleData} />)
+          <GeneExpression assembly={assembly} genes={uniqueGenes || []} />)
       }
       {page === 5 &&
         <FunctionData accession={accession} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }} assembly={assembly} />
@@ -211,7 +208,6 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
       }
       {page === 7 &&
         <ConfigureGBTab
-          biosampleData={biosampleData}
           coordinates={{
             assembly: assembly,
             chromosome: region.chrom,
@@ -232,7 +228,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, bio
         errorNearbyAndLinked ?
           <Typography>{`Issue fetching Linked Genes for ${accession}.`}</Typography> 
           :
-          <Rampage genes={uniqueGenes.length > 0 ? uniqueGenes : []} biosampleData={biosampleData} />)
+          <Rampage genes={uniqueGenes.length > 0 ? uniqueGenes : []} />)
       }
       {page === 10 && assembly !== "mm10" &&
         <ENTExData accession={accession}  coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }}/>
