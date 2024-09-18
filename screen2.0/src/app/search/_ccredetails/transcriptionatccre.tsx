@@ -3,10 +3,9 @@ import React, { useMemo, useState, useEffect} from "react"
 import { client } from "./client"
 import { useQuery } from "@apollo/client"
 import { TSS_RAMPAGE_PEAKS, TSS_RAMPAGE_QUERY } from "./queries"
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { LoadingMessage, ErrorMessage, CreateLink } from "../../../common/lib/utility"
-import { Typography, Stack, MenuItem, Select, InputLabel, SelectChangeEvent, Box, FormLabel, FormControl, ToggleButton, ToggleButtonGroup } from "@mui/material"
+import { Typography, Stack, Box, FormLabel, FormControl, ToggleButton, ToggleButtonGroup } from "@mui/material"
 import { RampageToolTipInfo } from "./const"
 import { PlotActivityProfiles } from "./utils"
 
@@ -140,8 +139,7 @@ export const OverlappingPeaks: React.FC<PeakVars> = ({ coordinates }) => {
   ) : error ? (
     <ErrorMessage error={error} />
   ) : (
-    <Grid2 container spacing={3} sx={{ mt: "0rem", mb: "2rem" }}>
-      <Grid2 xs={12} md={12} lg={12}>
+    <Stack spacing={3} sx={{ mt: "0rem", mb: "2rem" }}>
         <DataTable
           tableTitle="RAMPAGE Peaks Directly Overlapping cCREs"
           titleHoverInfo={RampageToolTipInfo}
@@ -170,8 +168,6 @@ export const OverlappingPeaks: React.FC<PeakVars> = ({ coordinates }) => {
           sortColumn={0}
           itemsPerPage={5}
         />
-      </Grid2>
-      <Grid2 xs={12} display={"flex"} gap={2}>
       <Stack direction="row" gap={2} flexWrap={"wrap"}>
       <FormControl>
           <FormLabel>Sort By</FormLabel>
@@ -193,8 +189,6 @@ export const OverlappingPeaks: React.FC<PeakVars> = ({ coordinates }) => {
           </ToggleButtonGroup>
         </FormControl>
       </Stack>
-      </Grid2>
-      <Grid2 xs={12}>
         {peakData && peakData.length === 0 ? (
           <Typography>No data available</Typography>
         ) : selectedRow ? (
@@ -216,7 +210,6 @@ export const OverlappingPeaks: React.FC<PeakVars> = ({ coordinates }) => {
         ) : (
           null
         )}
-      </Grid2>
-    </Grid2>
+    </Stack>
   )
 }
