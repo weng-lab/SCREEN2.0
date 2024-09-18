@@ -12,11 +12,11 @@ import { GENE_EXP_QUERY, LINKED_GENES, Z_SCORES_QUERY } from "./queries"
 import { ApolloQueryResult, useLazyQuery, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
 import { ZScores, LinkedGenes } from "./types"
-import BiosampleTables from "../../search/biosampletables"
 import { BIOSAMPLE_Data, biosampleQuery } from "../../../common/lib/queries"
 import { RegistryBiosample } from "../../search/types"
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { BED_INTERSECT_QUERY } from "../../_mainsearch/queries"
+import BiosampleTables from "../../_biosampleTables/BiosampleTables"
 
 
 export default function Argo(props: {header?: false, optionalFunction?: Function}) {
@@ -48,8 +48,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     const [rows, setRows] = useState<ZScores[]>([]) // The main data displayed on the table
     const [key, setKey] = useState<string>()
     const [columns, setColumns] = useState([]) // State variable used to display the columns in the DataTable
-    const [biosampleData, setBiosampleData] = useState<ApolloQueryResult<BIOSAMPLE_Data>>(null)
-    const [selectedBiosample, setSelectedBiosample] = useState<RegistryBiosample[]>([])
+    const [selectedBiosample, setSelectedBiosample] = useState<RegistryBiosample>(null)
     const [availableScores, setAvailableScores] = useState(allScoresObj) // This is all the scores available according to the query, all false scores are disabled checkboxes below
     const [checkedScores, setCheckedScores] = useState(allScoresObj) // This is the scores the user has selected, used for checkbox control
     
@@ -59,7 +58,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         variables: {
             assembly: assembly,
             accessions: rows.length > 0 ? rows.map((s) => s.accession): dataAPI.map((r) => r[4]) ,
-            cellType: selectedBiosample.length > 0 ? selectedBiosample[0].name: null
+            cellType: selectedBiosample ? selectedBiosample.name: null
         },
         skip: rows.length == 0 && dataAPI.length == 0,
         client: client,
@@ -67,7 +66,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         onCompleted(d) {
             let data = d['cCRESCREENSearch']
             let result = null
-            if (selectedBiosample.length > 0) {
+            if (selectedBiosample) {
                 // This makes a copy of the existing row and just updates the scores to ctspecific
                 result = rows.map((obj) => {
                     let o = {...obj}
@@ -118,7 +117,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                 }          
             }        
             
-            let scoresToInclude = selectedBiosample.length > 0 ? scoreNames.filter((s) => selectedBiosample[0][s]): scoreNames
+            let scoresToInclude = selectedBiosample ? scoreNames.filter((s) => selectedBiosample[s]): scoreNames
             let availableScoresCopy = {...availableScores}
             
             if (assembly != "mm10") {
@@ -145,9 +144,9 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     const {loading: loading_genes, error: error_genes} = useQuery(LINKED_GENES, {
         variables: {
             assembly: assembly.toLowerCase(),
-            accessions: (rows.length > 0 && selectedBiosample.length > 0) ? rows.map((s) => s.accession): [],
+            accessions: (rows.length > 0 && selectedBiosample) ? rows.map((s) => s.accession): [],
         },
-        skip: rows.length == 0 || selectedBiosample.length == 0,
+        skip: rows.length == 0 || !!selectedBiosample,
         client: client,
         fetchPolicy: 'cache-and-network',
         onCompleted(data) {
@@ -169,10 +168,10 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     const {loading: loading_quantifications, error: error_quantifications} = useQuery(GENE_EXP_QUERY, {
         variables: {
             assembly: assembly,
-            biosample_value: selectedBiosample.length > 0 ? selectedBiosample[0].name: "",
+            biosample_value: selectedBiosample ? selectedBiosample.name: "",
             gene_id: Array.from(rows.reduce((acc, e) => { e.linked_genes.map((e) => e.gene_id).forEach((el) => acc.add(el)); return acc }, new Set([]))) // Using Set to avoid duplicates
         },
-        skip: selectedBiosample.length == 0 || rows.length == 0,
+        skip: !!selectedBiosample || rows.length == 0,
         client: client,
         fetchPolicy: 'cache-and-network',
         onCompleted(data) {
@@ -213,19 +212,12 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
             }
         },
     })
-    
-    useEffect(() => {
-        startTransition(async () => {
-          const biosamples = await biosampleQuery()
-          setBiosampleData(biosamples)
-        })
-      }, [])
 
     const handleSearchChange = (event: SelectChangeEvent) => {
         setDataAPI([])
         setAvailableScores(allScoresObj)
         setCheckedScores(allScoresObj)
-        setSelectedBiosample([])
+        setSelectedBiosample(null)
         setRows([])
         setColumns([])
         setSelectedSearch(event.target.value)
@@ -235,7 +227,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         setDataAPI([])
         setAvailableScores(allScoresObj)
         setCheckedScores(allScoresObj)
-        setSelectedBiosample([])
+        setSelectedBiosample(null)
         setRows([])
         setColumns([])
         if ((event.target.value === "GRCh38") || (event.target.value === "mm10")) {
@@ -244,7 +236,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     }
 
     function appletCallBack(data) {
-        setSelectedBiosample([])
+        setSelectedBiosample(null)
         setDataAPI(data)
         setRows([])
     }
@@ -385,23 +377,19 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                 <Stack direction="row" spacing="7%" height="32vh">
                     <Box width="40%" overflow="scroll">
                     <Typography lineHeight={"40px"}>Within a Biosample</Typography>
-                        {selectedBiosample.length > 0 &&
+                        {selectedBiosample &&
                             <Paper elevation={0}>
-                                <IconButton size="small" sx={{ p: 0 }} onClick={(event) => { setSelectedBiosample([]); event.stopPropagation() }}>
+                                <IconButton size="small" sx={{ p: 0 }} onClick={(event) => { setSelectedBiosample(null); event.stopPropagation() }}>
                                     <Tooltip placement="top" title={"Clear Biosample"}>
                                         <ClearIcon />
                                     </Tooltip>
-                                    <Typography>{selectedBiosample[0].ontology.charAt(0).toUpperCase() + selectedBiosample[0].ontology.slice(1) + " - " + selectedBiosample[0].displayname}</Typography>
+                                    <Typography>{selectedBiosample.ontology.charAt(0).toUpperCase() + selectedBiosample.ontology.slice(1) + " - " + selectedBiosample.displayname}</Typography>
                                 </IconButton>
                             </Paper>
                         }
                         <BiosampleTables
-                            biosampleData={biosampleData}
-                            selectedBiosamples={selectedBiosample}
-                            setSelectedBiosamples={setSelectedBiosample} 
-                            biosampleSelectMode="replace"
-                            showRNAseq={false}
-                            showDownloads={false}
+                            selected={selectedBiosample?.name}
+                            onBiosampleClicked={setSelectedBiosample}
                             assembly={assembly}
                         />
                     </Box>
@@ -426,11 +414,11 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                     <Stack>
                         <Typography lineHeight={"40px"}>Linked Genes</Typography>
                         <FormGroup>
-                            <FormControlLabel label="Intact Hi-C Loops" control={<Checkbox onChange={handleCheckBoxChange} disabled={selectedBiosample.length == 0 || !availableScores["Intact-HiC"]} checked={checkedScores["Intact-HiC"]} value="Intact-HiC"></Checkbox>}></FormControlLabel>
-                            <FormControlLabel label="CTCF ChIA-PET Interaction" control={<Checkbox onChange={handleCheckBoxChange} disabled={selectedBiosample.length == 0 || !availableScores["CTCF-ChIAPET"]} checked={checkedScores["CTCF-ChIAPET"]} value="CTCF-ChIAPET"></Checkbox>}></FormControlLabel>
-                            <FormControlLabel label="RNAPII ChIA-PET Interaction" control={<Checkbox onChange={handleCheckBoxChange} disabled={selectedBiosample.length == 0 || !availableScores["RNAPII-ChIAPET"]} checked={checkedScores["RNAPII-ChIAPET"]} value="RNAPII-ChIAPET"></Checkbox>}></FormControlLabel>
-                            <FormControlLabel label="CRISPRi-FlowFISH" control={<Checkbox onChange={handleCheckBoxChange} disabled={selectedBiosample.length == 0 || !availableScores["CRISPRi-FlowFISH"]} checked={checkedScores["CRISPRi-FlowFISH"]} value="CRISPRi-FlowFISH"></Checkbox>}></FormControlLabel>
-                            <FormControlLabel label="eQTLs" control={<Checkbox onChange={handleCheckBoxChange} disabled={selectedBiosample.length == 0 || !availableScores["eQTLs"]} checked={checkedScores["eQTLs"]} value="eQTLs"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="Intact Hi-C Loops" control={<Checkbox onChange={handleCheckBoxChange} disabled={!!selectedBiosample || !availableScores["Intact-HiC"]} checked={checkedScores["Intact-HiC"]} value="Intact-HiC"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="CTCF ChIA-PET Interaction" control={<Checkbox onChange={handleCheckBoxChange} disabled={!!selectedBiosample || !availableScores["CTCF-ChIAPET"]} checked={checkedScores["CTCF-ChIAPET"]} value="CTCF-ChIAPET"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="RNAPII ChIA-PET Interaction" control={<Checkbox onChange={handleCheckBoxChange} disabled={!!selectedBiosample || !availableScores["RNAPII-ChIAPET"]} checked={checkedScores["RNAPII-ChIAPET"]} value="RNAPII-ChIAPET"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="CRISPRi-FlowFISH" control={<Checkbox onChange={handleCheckBoxChange} disabled={!!selectedBiosample || !availableScores["CRISPRi-FlowFISH"]} checked={checkedScores["CRISPRi-FlowFISH"]} value="CRISPRi-FlowFISH"></Checkbox>}></FormControlLabel>
+                            <FormControlLabel label="eQTLs" control={<Checkbox onChange={handleCheckBoxChange} disabled={!!selectedBiosample || !availableScores["eQTLs"]} checked={checkedScores["eQTLs"]} value="eQTLs"></Checkbox>}></FormControlLabel>
                         </FormGroup>
                     </Stack>
                 </Stack>
