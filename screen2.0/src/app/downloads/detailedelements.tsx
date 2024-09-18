@@ -114,8 +114,8 @@ export function DetailedElements(props: TabPanelProps) {
                 </Stack>
               </Grid2>
 
-              <Grid2 xs={12} md={6}>
-                <Typography variant="h6">Human cCREs by cell and tissue types</Typography>
+              <Grid2 xs={12} md={6} alignItems="flex-start">
+                <Typography variant="h6" mt={6.5}>Human cCREs by cell and tissue types</Typography>
                 <BiosampleTables
                   assembly={"GRCh38"}
                   showDownloads
@@ -149,8 +149,8 @@ export function DetailedElements(props: TabPanelProps) {
                 </Stack>
               </Grid2>
 
-              <Grid2 xs={12} md={6}>
-                <Typography variant="h6">Mouse cCREs by cell and tissue types</Typography>
+              <Grid2 xs={12} md={6} alignItems="flex-start">
+                <Typography variant="h6" mt={6.5}>Mouse cCREs by cell and tissue types</Typography>
                 <BiosampleTables
                   assembly={"mm10"}
                   showDownloads
