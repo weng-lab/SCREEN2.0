@@ -80,9 +80,7 @@ export function DetailedElements(props: TabPanelProps) {
   }
 
   return (
-    <Grid2 container spacing={3} mt={1}>
-      <Grid2 xs={12} md={12}>
-        <Stack spacing={1}> {/* Stack for spacing and responsiveness */}
+        <Stack spacing={1}>
           <Tabs value={species} onChange={handleChange} aria-label="basic tabs example" variant="scrollable" allowScrollButtonsMobile>
             <Tab label="Human" sx={{ textTransform: "none" }} {...a11yProps(0)} />
             <Tab label="Mouse" sx={{ textTransform: "none" }} {...a11yProps(1)} />
@@ -159,8 +157,6 @@ export function DetailedElements(props: TabPanelProps) {
             </Grid2>
           )}
         </Stack>
-      </Grid2>
-    </Grid2>
   )
 }
 
