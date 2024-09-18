@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react"
 import Config from "../../config.json"
 import DownloadIcon from "@mui/icons-material/Download"
 import SearchIcon from "@mui/icons-material/Search"
-import { CA_CTCF, CA_H3K4me3, CA_TF, CA_only, PLS, TF_only, dELS, pELS, CTCF_Bound, Gene_Links, dELSpELS } from "../../common/lib/colors"
+import { CA_CTCF, CA_H3K4me3, CA_TF, CA_only, PLS, TF_only, dELS, pELS, CTCF_Bound, Gene_Links, ELS } from "../../common/lib/colors"
 import Image from "next/image"
 import humanTransparentIcon from "../../../public/Transparent_HumanIcon.png"
 import mouseTransparentIcon from "../../../public/Transparent_MouseIcon.png"
@@ -103,7 +103,7 @@ export function DetailedElements(props: TabPanelProps) {
                   <InlineDownloadButton mode="download" href={Config.Downloads.HumanPromoters} label="Promoter-like (PLS) (47,532)" bordercolor={PLS} />
                   <InlineDownloadButton mode="download" href={Config.Downloads.HumanProximalEnhancers} label="Proximal enhancer-like (pELS) (249,464)" bordercolor={pELS} />
                   <InlineDownloadButton mode="download" href={Config.Downloads.HumanDistalEnhancers} label="Distal enhancer-like (dELS) (1,469,205)" bordercolor={dELS} />
-                  <InlineDownloadButton mode="download" href={Config.Downloads.HumanEnhancers} label="All Candidate Enhancers (pELS & dELS) (1,718,669)" bordercolor={dELSpELS} />
+                  <InlineDownloadButton mode="download" href={Config.Downloads.HumanEnhancers} label="All Candidate Enhancers (pELS & dELS) (1,718,669)" bordercolor={ELS} />
                   <InlineDownloadButton mode="download" href={Config.Downloads.HumanCA_CTCF} label="Chromatin Accessible with CTCF (CA-CTCF) (126,034)" bordercolor={CA_CTCF} />
                   <InlineDownloadButton mode="download" href={Config.Downloads.HumanCA_H3K4me3} label="Chromatin Accessible with H3K4me3 (CA-H3K4me3) (79,246)" bordercolor={CA_H3K4me3} />
                   <InlineDownloadButton mode="download" href={Config.Downloads.HumanCA_TF} label="Chromatin Accessible with TF (CA-TF) (26,102)" bordercolor={CA_TF} />
@@ -139,7 +139,7 @@ export function DetailedElements(props: TabPanelProps) {
                   <InlineDownloadButton mode="download" href={Config.Downloads.MousePromoters} label={`Promoter-like (PLS) (27,332)`} bordercolor={PLS} />
                   <InlineDownloadButton mode="download" href={Config.Downloads.MouseProximalEnhancers} label="Proximal enhancer-like (pELS) (111,218)" bordercolor={pELS} />
                   <InlineDownloadButton mode="download" href={Config.Downloads.MouseDistalEnhancers} label="Distal enhancer-like (dELS) (400,783)" bordercolor={dELS} />
-                  <InlineDownloadButton mode="download" href={Config.Downloads.MouseEnhancers} label="All Candidate Enhancers (pELS & dELS) (512,001)" bordercolor={dELSpELS} />
+                  <InlineDownloadButton mode="download" href={Config.Downloads.MouseEnhancers} label="All Candidate Enhancers (pELS & dELS) (512,001)" bordercolor={ELS} />
                   <InlineDownloadButton mode="download" href={Config.Downloads.MouseCA_CTCF} label="Chromatin Accessible with CTCF (CA-CTCF) (45,933)" bordercolor={CA_CTCF} />
                   <InlineDownloadButton mode="download" href={Config.Downloads.MouseCA_H3K4me3} label="Chromatin Accessible with H3K4me3 (CA-H3K4me3) (23,832)" bordercolor={CA_H3K4me3} />
                   <InlineDownloadButton mode="download" href={Config.Downloads.MouseCA_TF} label="Chromatin Accessible with TF (CA-TF) (10,707)" bordercolor={CA_TF} />

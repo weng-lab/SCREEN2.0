@@ -4,7 +4,7 @@
 export const PLS = "#FF0000"
 export const pELS = "#FFA700"
 export const dELS = "#FFCD00"
-export const dELSpELS = "#8CC63F"
+export const ELS = "#8CC63F"
 export const CA_H3K4me3 = "#ffaaaa"
 export const CA_CTCF = "#00B0F0"
 export const CA_only = "#06DA93"
