@@ -31,8 +31,7 @@
     "overrides": {}
   },
   "API": {
-    "CcreAPI": "https://screen.api.wenglab.org/graphql",
-    "GraphqlAPI": "https://ga.staging.wenglab.org/graphql"
+    "CcreAPI": "https://screen.api.wenglab.org/graphql"
   },
   "ChromHMM": {
     "HumanChromHMM": "https://downloads.wenglab.org/humanchromhmmchipseq.tsv"
