@@ -93,7 +93,7 @@ export type BiosampleData = {
 }
 
 export interface RegistryBiosamplePlusRNA extends RegistryBiosample {
-  rnaseq: boolean
+  rnaseq: boolean | undefined
 }
 
 export type RegistryBiosample = {

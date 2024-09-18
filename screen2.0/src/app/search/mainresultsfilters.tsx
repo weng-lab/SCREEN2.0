@@ -29,16 +29,16 @@ import FormControl from '@mui/material/FormControl';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import Grid2 from "@mui/material/Unstable_Grid2"
 import { RangeSlider } from "@weng-lab/psychscreen-ui-components"
-import { BiosampleTableFilters, FilterCriteria, MainQueryParams, RegistryBiosample } from "./types"
+import {  FilterCriteria, MainQueryParams, RegistryBiosample } from "./types"
 import { eQTLsTissues, filtersModified } from "./searchhelpers"
-import { ApolloQueryResult, LazyQueryResultTuple, gql, useLazyQuery } from "@apollo/client"
+import {  LazyQueryResultTuple, gql, useLazyQuery } from "@apollo/client"
 import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
-import { InfoOutlined } from "@mui/icons-material";
-import BiosampleTables from "./biosampletables";
+import { CancelRounded, InfoOutlined } from "@mui/icons-material";
 import ClearIcon from '@mui/icons-material/Clear';
-import { BIOSAMPLE_Data } from "../../common/lib/queries";
-import { GeneAutoComplete2, GeneInfo } from "./_filterspanel/geneautocomplete2";
+import { GeneAutocomplete } from "./_geneAutocomplete/GeneAutocomplete";
+import { GeneInfo } from "./_geneAutocomplete/types";
 import { LinkedGenes, LinkedGenesVariables } from "./page";
+import BiosampleTables from "../_biosampleTables/BiosampleTables";
 
 const snpMarks = [
   {
@@ -123,15 +123,11 @@ export function MainResultsFilters(
     setMainQueryParams: Dispatch<SetStateAction<MainQueryParams>>,
     filterCriteria: FilterCriteria,
     setFilterCriteria: Dispatch<SetStateAction<FilterCriteria>>,
-    biosampleTableFilters: BiosampleTableFilters,
-    setBiosampleTableFilters: Dispatch<SetStateAction<BiosampleTableFilters>>,
     setBiosample: (biosample: RegistryBiosample) => void,
     TSSs: number[]
     setTSSs: Dispatch<SetStateAction<number[]>>,
     setTSSranges: Dispatch<SetStateAction<{ start: number, end: number }[]>>
-    biosampleData: ApolloQueryResult<BIOSAMPLE_Data>
     genomeBrowserView: boolean,
-    searchParams: { [key: string]: string | undefined },
     useLinkedGenes: LazyQueryResultTuple<LinkedGenes, LinkedGenesVariables>
   }
 ): JSX.Element {
@@ -140,15 +136,11 @@ export function MainResultsFilters(
     setMainQueryParams,
     filterCriteria,
     setFilterCriteria,
-    biosampleTableFilters,
-    setBiosampleTableFilters,
     setBiosample,
     TSSs,
     setTSSs,
     setTSSranges,
-    biosampleData,
     genomeBrowserView,
-    searchParams,
     useLinkedGenes,
   } = props;
 
@@ -536,52 +528,23 @@ export function MainResultsFilters(
             </Tooltip>
           </Stack>
         </AccordionSummary>
-        <AccordionDetails>
-          <Grid2 container spacing={2}>
-            {mainQueryParams.biosample && (
-              <>
-                <Grid2 xs={12}>
-                  <Paper elevation={0}>
-                    <Typography>Selected Biosample:</Typography>
-                    <Typography>{mainQueryParams.biosample.ontology.charAt(0).toUpperCase() + mainQueryParams.biosample.ontology.slice(1) + " - " + mainQueryParams.biosample.displayname}</Typography>
-                  </Paper>
-                </Grid2>
-                <Grid2 xs={12}>
-                  <Button
-                    variant="outlined"
-                    fullWidth
-                    onClick={() => {
-                      setMainQueryParams({ ...mainQueryParams, biosample: null })
-                    }}
-                  >
-                    Clear
-                  </Button>
-                </Grid2>
-              </>
-            )}
-            <Grid2 xs={12}>
-              <Box sx={{ display: 'flex', flexDirection: "column" }}>
-                {biosampleData?.loading ?
-                  <CircularProgress sx={{ margin: "auto" }} />
-                  :
-                  biosampleData?.data ?
-                    <BiosampleTables
-                      showRNAseq={false}
-                      showDownloads={false}
-                      assembly={mainQueryParams.coordinates.assembly}
-                      biosampleSelectMode="replace"
-                      biosampleData={biosampleData}
-                      selectedBiosamples={[mainQueryParams.biosample]}
-                      setSelectedBiosamples={(biosample: [RegistryBiosample]) => setBiosample(biosample[0])}
-                      biosampleTableFilters={biosampleTableFilters}
-                      setBiosampleTableFilters={setBiosampleTableFilters}
-                    />
-                    :
-                    <CircularProgress sx={{ margin: "auto" }} />
-                }
-              </Box>
-            </Grid2>
-          </Grid2>
+        <AccordionDetails sx={{ px: 0, pt: 0 }}>
+          {mainQueryParams.biosample &&
+            <Paper sx={{ mx: 2, mb: 1 }}>
+              <Stack borderRadius={1} direction={"row"} spacing={3} sx={{ backgroundColor: "#E7EEF8" }} alignItems={"center"}>
+                <Typography flexGrow={1} sx={{ color: "#2C5BA0", pl: 1 }}>{mainQueryParams.biosample.ontology.charAt(0).toUpperCase() + mainQueryParams.biosample.ontology.slice(1) + " - " + mainQueryParams.biosample.displayname.charAt(0).toUpperCase() + mainQueryParams.biosample.displayname.slice(1)}</Typography>
+                <IconButton onClick={() => setBiosample(null)} sx={{ m: 'auto', flexGrow: 0 }}>
+                  <CancelRounded />
+                </IconButton>
+              </Stack>
+            </Paper>
+          }
+          <BiosampleTables
+            assembly={mainQueryParams.coordinates.assembly}
+            selected={mainQueryParams.biosample?.name}
+            onBiosampleClicked={setBiosample}
+            slotProps={{ paperStack: { elevation: 0 }, headerStack: {mt: 0} }}
+          />
         </AccordionDetails>
       </Accordion>
       {/* Hide all other filters when on genome browser view */}
@@ -935,53 +898,51 @@ export function MainResultsFilters(
                 <FormControl sx={{ width: 'inherit' }}>
                   <FormLabel component="legend">Gene</FormLabel>
                   <FormGroup>
-                    <Box sx={{ mt: 1 }}>
-                      {/* This does not properly accept adjusting padding/margin through sx, need to fix*/}
-                      <GeneAutoComplete2
-                        assembly={mainQueryParams.coordinates.assembly}
-                        autocompleteProps={
-                          {
-                            size: "small",
-                            fullWidth: true,
-                            defaultValue: filterCriteria.linkedGeneName ?
-                              //have to pass in whole object, but only name is checked for equality
-                              {
-                                name: filterCriteria.linkedGeneName,
-                                id: '',
-                                coordinates: {
-                                  chromosome: '',
-                                  start: 0,
-                                  end: 0
-                                },
-                                description: ''
-                              }
-                              :
-                              null,
-                            getOptionDisabled: option => !linkedGenesWithNums.find(x => x.geneName === option.name)
-                          }
-                        }
-                        onTextBoxClick={() => !dataLinkedGenes && !loadingLinkedGenes && getLinkedGenes()}
-                        endIcon="none"
-                        colorTheme="light"
-                        onGeneSelected={(gene) =>
-                          setFilterCriteria(
-                            gene === null ?
-                              {
-                                ...filterCriteria,
-                                linkedGeneName: null,
-                                CTCFChIAPET: { checked: filterCriteria.CTCFChIAPET.checked, biosample: '' },
-                                RNAPIIChIAPET: { checked: filterCriteria.RNAPIIChIAPET.checked, biosample: '' },
-                                HiC: { checked: filterCriteria.HiC.checked, biosample: '' },
-                                CRISPRiFlowFISH: { checked: filterCriteria.CRISPRiFlowFISH.checked, biosample: '' },
-                                eQTLs: { checked: filterCriteria.eQTLs.checked, biosample: '' },
-                              }
-                              :
-                              { ...filterCriteria, linkedGeneName: gene.name }
+                    <GeneAutocomplete
+                      assembly={mainQueryParams.coordinates.assembly}
+                      slotProps={{
+                        autocompleteProps: {
+                          size: "small",
+                          fullWidth: true,
+                          defaultValue: filterCriteria.linkedGeneName ?
+                            //have to pass in whole object, but only name is checked for equality
+                            {
+                              name: filterCriteria.linkedGeneName,
+                              id: '',
+                              coordinates: {
+                                chromosome: '',
+                                start: 0,
+                                end: 0
+                              },
+                              description: ''
+                            }
+                            :
+                            null,
+                          getOptionDisabled: option => !linkedGenesWithNums.find(x => x.geneName === option.name),
+                        },
+                        stackProps: { mt: 1 }
+                      }}
+                      onTextBoxClick={() => !dataLinkedGenes && !loadingLinkedGenes && getLinkedGenes()}
+                      endIcon="none"
+                      colorTheme="light"
+                      onGeneSelected={(gene) =>
+                        setFilterCriteria(
+                          gene === null ?
+                            {
+                              ...filterCriteria,
+                              linkedGeneName: null,
+                              CTCFChIAPET: { checked: filterCriteria.CTCFChIAPET.checked, biosample: '' },
+                              RNAPIIChIAPET: { checked: filterCriteria.RNAPIIChIAPET.checked, biosample: '' },
+                              HiC: { checked: filterCriteria.HiC.checked, biosample: '' },
+                              CRISPRiFlowFISH: { checked: filterCriteria.CRISPRiFlowFISH.checked, biosample: '' },
+                              eQTLs: { checked: filterCriteria.eQTLs.checked, biosample: '' },
+                            }
+                            :
+                            { ...filterCriteria, linkedGeneName: gene.name }
 
-                          )}
-                        renderOption={(props, option, descriptions) => renderGeneAutoCompleteOption(props, option, descriptions)}
-                      />
-                    </Box>
+                        )}
+                      renderOption={(props, option, descriptions) => renderGeneAutoCompleteOption(props, option, descriptions)}
+                    />
                   </FormGroup>
                 </FormControl>
                 {/* Linked-by Checkboxes */}

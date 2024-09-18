@@ -1,10 +1,7 @@
 import ConfigureGenomeBrowser from "./configuregb";
-import { ApolloQueryResult } from "@apollo/client";
-import { BIOSAMPLE_Data } from "../../../common/lib/queries";
 
 
 interface Props {
-  biosampleData: ApolloQueryResult<BIOSAMPLE_Data>
   coordinates: {
     assembly: "mm10" | "GRCh38",
     chromosome: string,
@@ -15,14 +12,12 @@ interface Props {
 }
 
 const ConfigureGBTab: React.FC<Props> = ({
-  biosampleData,
   coordinates,
   accession
  }) => {
 
   return (
     <ConfigureGenomeBrowser
-      biosampleData={biosampleData}
       coordinates={coordinates}
       accession={accession}
     />

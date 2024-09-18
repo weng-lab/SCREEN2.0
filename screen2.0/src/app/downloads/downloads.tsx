@@ -56,7 +56,7 @@ export default function DownloadsPage(props: {
           {page === 0 && <QuickStart biosamples={props.biosamples} />}
           {page === 1 && <DetailedElements biosamples={props.biosamples} />}
           {page === 2 && <DataMatrices/>}
-          {page === 3 && <DownloadRange biosampleData={props.biosamples} />}
+          {page === 3 && <DownloadRange />}
         </Grid2>
       </Grid2>
     </Container>
