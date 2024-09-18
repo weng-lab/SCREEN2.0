@@ -2,7 +2,7 @@
 "use client"
 import { BIOSAMPLE_Data, biosampleQuery } from "../../common/lib/queries"
 import { BiosampleTableFilters, FilterCriteria, MainQueryData, MainQueryParams, RegistryBiosample } from "./types"
-import { constructBiosampleTableFiltersFromURL, constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, downloadBED, fetchcCREData } from "./searchhelpers"
+import { constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, downloadBED, fetchcCREData } from "./searchhelpers"
 import React, { useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { styled } from '@mui/material/styles';
 import { Divider, IconButton, Tab, Tabs, Typography, Box, Button, CircularProgressProps, CircularProgress, Stack } from "@mui/material"
@@ -164,7 +164,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   //potential performance improvement if I make an initializer function vs passing param here.
   const [mainQueryParams, setMainQueryParams] = useState<MainQueryParams>(constructMainQueryParamsFromURL(searchParams))
   const [filterCriteria, setFilterCriteria] = useState<FilterCriteria>(constructFilterCriteriaFromURL(searchParams))
-  const [biosampleTableFilters, setBiosampleTableFilters] = useState<BiosampleTableFilters>(constructBiosampleTableFiltersFromURL(searchParams))
   const [loadingTable, setLoadingTable] = useState<boolean>(false)
   const [loadingFetch, setLoadingFetch] = useState<boolean>(false)
   const [isPending, startTransition] = useTransition();
@@ -174,7 +173,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const [bedLoadingPercent, setBedLoadingPercent] = useState<number>(null)
 
 
-  //Used to set just biosample in filters. Used for performance improvement to avoid having entire mainQueryParams in dep array
+  //Used to set just biosample in filters.
   const handleSetBiosample = (biosample: RegistryBiosample) => { setMainQueryParams({ ...mainQueryParams, biosample: biosample }) }
 
   //using useRef, and then assigning their value in useEffect to prevent accessing sessionStorage on the server
@@ -226,6 +225,9 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
 
   //Keep URL and state in sync. Prevent from firing initially to allow time for opencCREs to be initialized
   //J 7/13 this really needs to be made cleaner. This is confusing to read
+  /**
+   * @todo this should not be done in a useEffect. This should be done in event handlers for updating relevant state variables
+   */
   useEffect(() => {
     //Check if the URL params representing state are stale
     if (
@@ -233,13 +235,11 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       //bug potentially?
       (JSON.stringify(constructMainQueryParamsFromURL(searchParams)) !== JSON.stringify(mainQueryParams)
         || JSON.stringify(constructFilterCriteriaFromURL(searchParams)) !== JSON.stringify(filterCriteria)
-        || JSON.stringify(constructBiosampleTableFiltersFromURL(searchParams)) !== JSON.stringify(biosampleTableFilters)
         || +searchParams.page !== page
         || searchParams.accessions !== opencCREs.map(x => x.ID).join(','))) {
       const newURL = constructSearchURL(
         mainQueryParams,
         filterCriteria,
-        biosampleTableFilters,
         page,
         opencCREs.map(x => x.ID).join(',')
       )
@@ -247,7 +247,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       // console.log("pushing new url:" + newURL)
       router.push(newURL)
     }
-  }, [searchParams, mainQueryParams, filterCriteria, biosampleTableFilters, page, opencCREs, router, basePathname, opencCREsInitialized, loadingFetch])
+  }, [searchParams, mainQueryParams, filterCriteria, page, opencCREs, router, basePathname, opencCREsInitialized, loadingFetch])
 
   //fetch biosample info, populate selected biosample if specified
   useEffect(() => {
@@ -421,7 +421,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       mainQueryParams.coordinates.chromosome,
       start,
       end,
-      mainQueryParams.biosample,
+      mainQueryParams.biosample.name,
       mainQueryParams.searchConfig.bed_intersect,
       mainQueryParams.gene.nearTSS ? TSSranges : null,
       assays,
@@ -523,15 +523,11 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               setMainQueryParams={setMainQueryParams}
               filterCriteria={filterCriteria}
               setFilterCriteria={setFilterCriteria}
-              biosampleTableFilters={biosampleTableFilters}
-              setBiosampleTableFilters={setBiosampleTableFilters}
               setBiosample={(biosample) => handleSetBiosample(biosample)}
               TSSs={TSSs}
               setTSSs={setTSSs}
               setTSSranges={setTSSranges}
-              biosampleData={biosampleData}
               genomeBrowserView={page === 1}
-              searchParams={searchParams}
               useLinkedGenes={useLinkedGenes}
               
             />
@@ -599,7 +595,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                   itemsPerPage={10}
                   assembly={mainQueryParams.coordinates.assembly}
                   onRowClick={handlecCREClick}
-                  biosampleData={biosampleData}
                   useLinkedGenes={useLinkedGenes}
                   />
                   <Stack direction="row" alignItems={"center"} sx={{ mt: 1 }}>
@@ -642,10 +637,10 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
             />
           )}
           {mainQueryParams.gene.name && page === 2 &&
-            <GeneExpression assembly={mainQueryParams.coordinates.assembly} genes={[{ name: mainQueryParams.gene.name }]} biosampleData={biosampleData} />
+            <GeneExpression assembly={mainQueryParams.coordinates.assembly} genes={[{ name: mainQueryParams.gene.name }]} />
           }
           {mainQueryParams.gene.name && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" && page === 3 && (
-            <Rampage genes={[{ name: mainQueryParams.gene.name }]} biosampleData={biosampleData} />
+            <Rampage genes={[{ name: mainQueryParams.gene.name }]} />
           )}
           {page >= numberOfDefaultTabs && opencCREs.length > 0 && (
             opencCREs[page - numberOfDefaultTabs] ?
@@ -653,7 +648,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                 key={opencCREs[page - numberOfDefaultTabs].ID}
                 accession={opencCREs[page - numberOfDefaultTabs].ID}
                 region={opencCREs[page - numberOfDefaultTabs].region}
-                biosampleData={biosampleData}
                 assembly={mainQueryParams.coordinates.assembly}
                 page={detailsPage}
                 handleOpencCRE={handlecCREClick}

@@ -5,11 +5,12 @@ import MenuItem from "@mui/material/MenuItem"
 import FormControl from "@mui/material/FormControl"
 import Select, { SelectChangeEvent } from "@mui/material/Select"
 import { CcreAutoComplete } from "./ccreautocomplete"
-import { GeneAutoComplete } from "./geneautocomplete"
 import { SnpAutoComplete } from "./snpautocomplete"
 import { CelltypeAutocomplete } from "./celltypeautocomplete"
 import BedUpload from "./bedupload"
 import GenomicRegion from "./genomicregion"
+import { GeneAutocomplete } from "../search/_geneAutocomplete/GeneAutocomplete"
+import { GeneInfo } from "../search/_geneAutocomplete/types"
 
 export type MainSearchProps = InputBaseProps & {
   //false for human, true for mouse
@@ -27,6 +28,16 @@ export const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) =>
 
   const handleAssemblyChange = (event: SelectChangeEvent) => {
     ((event.target.value === "GRCh38") || (event.target.value === "mm10")) && setAssembly(event.target.value)
+  }
+
+  const handleGeneSearch = (gene: GeneInfo) => {
+    if (gene) {
+      let chrom = gene.coordinates.chromosome
+      let start = gene.coordinates.start
+      let end = gene.coordinates.end
+      let name = gene.name
+      window.open(`/search?assembly=${assembly}&chromosome=${chrom}&start=${start}&end=${end}&gene=${name}&tssDistance=0`, "_self")
+    }
   }
 
   return (
@@ -106,7 +117,17 @@ export const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) =>
           {selectedSearch === "Genomic Region" ? (
             <GenomicRegion assembly={assembly} header={props.header} />
           ) : selectedSearch === "Gene Name" ? (
-            <GeneAutoComplete assembly={assembly} header={props.header} />
+            <GeneAutocomplete
+              assembly={assembly}
+              colorTheme={props.header ? "dark" : "light"}
+              endIcon="search"
+              onGeneSubmitted={handleGeneSearch}
+              slotProps={{
+                stackProps: {width: 300},
+                autocompleteProps: {fullWidth: true, size: props.header ? "small" : "medium"},
+                inputTextFieldProps: {InputLabelProps: {shrink: true}}
+              }} 
+            />
           ) : selectedSearch === "SNP rsID" ? (
             <SnpAutoComplete assembly={assembly} header={props.header} />
           ) : selectedSearch === "Cell Type" ? (

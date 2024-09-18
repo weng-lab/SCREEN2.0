@@ -171,7 +171,7 @@ export async function MainQuery(assembly: string = null, chromosome: string = nu
 
 
 export type BIOSAMPLE_Data = {
-  human: { biosamples: RegistryBiosample[] },
+  human: { biosamples: RegistryBiosample[]},
   mouse: {biosamples: RegistryBiosample[]}
 }
 

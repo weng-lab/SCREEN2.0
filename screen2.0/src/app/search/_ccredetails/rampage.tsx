@@ -19,10 +19,9 @@ import { PlotActivityProfiles } from "./utils"
 import Image from "next/image"
 import InfoIcon from "@mui/icons-material/Info"
 import { RampageToolTipInfo } from "./const"
-import { ApolloQueryResult, gql, useQuery } from "@apollo/client"
+import { gql, useQuery } from "@apollo/client"
 import { client } from "./client"
 import ConfigureGBModal from "./configuregbmodal"
-import { BIOSAMPLE_Data } from "../../../common/lib/queries"
 
 const GENE_QUERY = gql`
 query ($assembly: String!, $name_prefix: [String!], $limit: Int, $version: Int) {
@@ -36,6 +35,7 @@ query ($assembly: String!, $name_prefix: [String!], $limit: Int, $version: Int) 
     }
   }
 } `
+ 
 const TSS_RAMPAGE_QUERY = `
   query tssRampage($gene: String!) {
   tssrampageQuery(genename: $gene) {
@@ -74,7 +74,7 @@ export type RampagePeak = {
   strand: string,
   tissue: string,
 }
-export default function Rampage(props: { genes: { name: string, linkedBy?: string[] }[], biosampleData: ApolloQueryResult<BIOSAMPLE_Data> }) {
+export default function Rampage(props: { genes: { name: string, linkedBy?: string[] }[]}) {
   const [currentGene, setCurrentGene] = useState(props.genes[0].name)
   const [loading, setLoading] = useState<boolean>(true)
   const [data, setData] = useState<RampagePeak[]>([])
@@ -294,7 +294,6 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
         </Grid2>
         {/* Configure Trackhub */}
         <ConfigureGBModal
-          biosampleData={props.biosampleData}
           coordinates={{
             assembly: "GRCh38",
             chromosome: data_gene?.gene[0]?.coordinates.chromosome,
