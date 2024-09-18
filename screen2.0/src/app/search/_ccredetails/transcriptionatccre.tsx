@@ -159,6 +159,10 @@ export const OverlappingPeaks: React.FC<PeakVars> = ({ coordinates }) => {
               value: (row: PeakRow) => row.gene,
               render: (row: PeakRow) => <i><CreateLink linkPrefix={"/applets/gene-expression?assembly=GRCh38&gene="} linkArg={row.gene} label={row.gene} underline={"none"} /></i>
             },
+            {
+              header: "Genomic Region",
+              value: (row: PeakRow) => row.chrom + ":" + row.start.toLocaleString() + "-" + row.end.toLocaleString(),
+            },
           ]}
           highlighted={selectedRow}
           onRowClick={handleRowClick}
