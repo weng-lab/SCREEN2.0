@@ -1,4 +1,4 @@
-import { Button, ButtonProps, Paper, Typography, Divider, Stack } from "@mui/material"
+import { Button, ButtonProps, Paper, Typography, Divider, Stack, Tabs, Tab } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { Box } from "@mui/system"
 import React, { useEffect, useState } from "react"
@@ -67,184 +67,111 @@ const InlineDownloadButton = (props: ButtonProps & { label: string; bordercolor:
   )
 }
 
+function a11yProps(index: number) {
+  return {
+    id: `simple-tab-${index}`,
+    "aria-controls": `simple-tabpanel-${index}`,
+  }
+}
+
 export function DetailedElements(props: TabPanelProps) {
+  const [species, setSpecies] = useState(0)
+  const handleChange = (_, newValue: number) => {    
+    setSpecies(newValue)
+  }
 
   return (
     <Grid2 container spacing={3} mt={1}>
-      <Grid2 xs={12} md={6} order={{ xs: 1, md: 1 }}>
-        <Stack spacing={1}> {/* Use stack to provide even spacing horizonatally */}
-          <Stack direction={"row"} justifyContent={"space-between"}>
-            <Stack>
-              <Typography mt="auto" variant="h5" >Human (GRCh38/hg38)</Typography>
-              <Typography variant="subtitle1">2,348,854 cCREs • 1,888 cell types</Typography>
-            </Stack>
-            <Image src={humanTransparentIcon} alt={"Human Icon"} height={75} />
-          </Stack>
-          <DownloadButton href={Config.Downloads.HumanCCREs} label="All Human cCREs (2,348,854)" />
-          <InlineDownloadButton
-            mode="download"
-            href={Config.Downloads.HumanPromoters}
-            label="Promoter-like (PLS) (47,532)"
-            bordercolor={PLS}
-          />
-          <InlineDownloadButton
-            mode="download"
-            href={Config.Downloads.HumanProximalEnhancers}
-            label="Proximal enhancer-like (pELS) (249,464)"
-            bordercolor={pELS}
-          />
-          <InlineDownloadButton
-            mode="download"
-            href={Config.Downloads.HumanDistalEnhancers}
-            label="Distal enhancer-like (dELS) (1,469,205)"
-            bordercolor={dELS}
-          />
-          <InlineDownloadButton
-            mode="download"
-            href={Config.Downloads.HumanEnhancers}
-            label="All Candidate Enhacers (pELS & dELS) (1,718,669)"
-            bordercolor={dELSpELS}
-          />
-          <InlineDownloadButton
-            mode="download"
-            href={Config.Downloads.HumanCA_CTCF}
-            label="Chromatin Accessible with CTCF (CA-CTCF) (126,034)"
-            bordercolor={CA_CTCF}
-          />
-          <InlineDownloadButton
-            mode="download"
-            href={Config.Downloads.HumanCA_H3K4me3}
-            label="Chromatin Accessible with H3K4me3 (CA-H3K4me3) (79,246)"
-            bordercolor={CA_H3K4me3}
-          />
-          <InlineDownloadButton
-            mode="download"
-            href={Config.Downloads.HumanCA_TF}
-            label="Chromatin Accessible with TF (CA-TF) (26,102)"
-            bordercolor={CA_TF}
-          />
-          <InlineDownloadButton
-            mode="download"
-            href={Config.Downloads.HumanCA_only}
-            label="Chromatin Accessible Only (CA) (245,985)"
-            bordercolor={CA_only}
-          />
-          <InlineDownloadButton
-            mode="download"
-            href={Config.Downloads.HumanTF_only}
-            label="TF Only (TF) (105,286)"
-            bordercolor={TF_only}
-          />
-          <InlineDownloadButton
-            mode="download"
-            href={Config.Downloads.HumanCA_CTCF}
-            label="CTCF-Bound cCREs ()"
-            bordercolor={CTCF_Bound}
-          />
-          <InlineDownloadButton
-            mode="download"
-            href={Config.Downloads.HumanGeneLinks}
-            label="cCRE-Gene Links"
-            bordercolor={Gene_Links}
-          />
+      <Grid2 xs={12} md={12}>
+        <Stack spacing={1}> {/* Stack for spacing and responsiveness */}
+          <Tabs value={species} onChange={handleChange} aria-label="basic tabs example" variant="scrollable" allowScrollButtonsMobile>
+            <Tab label="Human" sx={{ textTransform: "none" }} {...a11yProps(0)} />
+            <Tab label="Mouse" sx={{ textTransform: "none" }} {...a11yProps(1)} />
+          </Tabs>
+
+          {species === 0 && (
+            <Grid2 container spacing={3}>
+              <Grid2 xs={12} md={6}>
+                <Stack spacing={1}>
+                  <Stack direction={"row"} justifyContent={"space-between"}>
+                    <Stack>
+                      <Typography mt="auto" variant="h5">Human (GRCh38/hg38)</Typography>
+                      <Typography variant="subtitle1">2,348,854 cCREs • 1,888 cell types</Typography>
+                    </Stack>
+                    <Image src={humanTransparentIcon} alt={"Human Icon"} height={75} />
+                  </Stack>
+                  <DownloadButton href={Config.Downloads.HumanCCREs} label="All Human cCREs (2,348,854)" />
+                  <InlineDownloadButton mode="download" href={Config.Downloads.HumanPromoters} label="Promoter-like (PLS) (47,532)" bordercolor={PLS} />
+                  <InlineDownloadButton mode="download" href={Config.Downloads.HumanProximalEnhancers} label="Proximal enhancer-like (pELS) (249,464)" bordercolor={pELS} />
+                  <InlineDownloadButton mode="download" href={Config.Downloads.HumanDistalEnhancers} label="Distal enhancer-like (dELS) (1,469,205)" bordercolor={dELS} />
+                  <InlineDownloadButton mode="download" href={Config.Downloads.HumanEnhancers} label="All Candidate Enhancers (pELS & dELS) (1,718,669)" bordercolor={dELSpELS} />
+                  <InlineDownloadButton mode="download" href={Config.Downloads.HumanCA_CTCF} label="Chromatin Accessible with CTCF (CA-CTCF) (126,034)" bordercolor={CA_CTCF} />
+                  <InlineDownloadButton mode="download" href={Config.Downloads.HumanCA_H3K4me3} label="Chromatin Accessible with H3K4me3 (CA-H3K4me3) (79,246)" bordercolor={CA_H3K4me3} />
+                  <InlineDownloadButton mode="download" href={Config.Downloads.HumanCA_TF} label="Chromatin Accessible with TF (CA-TF) (26,102)" bordercolor={CA_TF} />
+                  <InlineDownloadButton mode="download" href={Config.Downloads.HumanCA_only} label="Chromatin Accessible Only (CA) (245,985)" bordercolor={CA_only} />
+                  <InlineDownloadButton mode="download" href={Config.Downloads.HumanTF_only} label="TF Only (TF) (105,286)" bordercolor={TF_only} />
+                  <InlineDownloadButton mode="download" href={Config.Downloads.HumanCA_CTCF} label="CTCF-Bound cCREs ()" bordercolor={CTCF_Bound} />
+                  <InlineDownloadButton mode="download" href={Config.Downloads.HumanGeneLinks} label="cCRE-Gene Links" bordercolor={Gene_Links} />
+                </Stack>
+              </Grid2>
+
+              <Grid2 xs={12} md={6}>
+                <Typography variant="h6">Human cCREs by cell and tissue types</Typography>
+                <BiosampleTables
+                  biosampleData={props.biosamples}
+                  assembly={"GRCh38"}
+                  selectedBiosamples={[]}
+                  setSelectedBiosamples={() => null}
+                  showRNAseq={false}
+                  showDownloads={true}
+                  biosampleSelectMode={"append"}
+                />
+              </Grid2>
+            </Grid2>
+          )}
+
+          {species === 1 && (
+            <Grid2 container spacing={2}>
+              <Grid2 xs={12} md={6}>
+                <Stack spacing={1}>
+                  <Stack direction={"row"} justifyContent={"space-between"}>
+                    <Stack>
+                      <Typography mt="auto" variant="h5">Mouse (GRCm38/mm10)</Typography>
+                      <Typography variant="subtitle1">926,843 cCREs • 366 cell types</Typography>
+                    </Stack>
+                    <Image src={mouseTransparentIcon} alt={"Mouse Icon"} height={75} />
+                  </Stack>
+                  <DownloadButton href={Config.Downloads.MouseCCREs} label="All Mouse cCREs" />
+                  <InlineDownloadButton mode="download" href={Config.Downloads.MousePromoters} label={`Promoter-like (PLS) (27,332)`} bordercolor={PLS} />
+                  <InlineDownloadButton mode="download" href={Config.Downloads.MouseProximalEnhancers} label="Proximal enhancer-like (pELS) (111,218)" bordercolor={pELS} />
+                  <InlineDownloadButton mode="download" href={Config.Downloads.MouseDistalEnhancers} label="Distal enhancer-like (dELS) (400,783)" bordercolor={dELS} />
+                  <InlineDownloadButton mode="download" href={Config.Downloads.MouseEnhancers} label="All Candidate Enhancers (pELS & dELS) (512,001)" bordercolor={dELSpELS} />
+                  <InlineDownloadButton mode="download" href={Config.Downloads.MouseCA_CTCF} label="Chromatin Accessible with CTCF (CA-CTCF) (45,933)" bordercolor={CA_CTCF} />
+                  <InlineDownloadButton mode="download" href={Config.Downloads.MouseCA_H3K4me3} label="Chromatin Accessible with H3K4me3 (CA-H3K4me3) (23,832)" bordercolor={CA_H3K4me3} />
+                  <InlineDownloadButton mode="download" href={Config.Downloads.MouseCA_TF} label="Chromatin Accessible with TF (CA-TF) (10,707)" bordercolor={CA_TF} />
+                  <InlineDownloadButton mode="download" href={Config.Downloads.MouseCA_only} label="Chromatin Accessible Only (CA) (291,800)" bordercolor={CA_only} />
+                  <InlineDownloadButton mode="download" href={Config.Downloads.MouseTF_only} label="TF Only (TF) (15,283)" bordercolor={TF_only} />
+                  <InlineDownloadButton mode="download" href={Config.Downloads.MouseCA_CTCF} label="CTCF-Bound cCREs ()" bordercolor={CTCF_Bound} />
+                </Stack>
+              </Grid2>
+
+              <Grid2 xs={12} md={6}>
+                <Typography variant="h6">Mouse cCREs by cell and tissue types</Typography>
+                <BiosampleTables
+                  biosampleData={props.biosamples}
+                  assembly={"mm10"}
+                  selectedBiosamples={[]}
+                  setSelectedBiosamples={() => null}
+                  showRNAseq={false}
+                  showDownloads={true}
+                  biosampleSelectMode={"append"}
+                />
+              </Grid2>
+            </Grid2>
+          )}
         </Stack>
-      </Grid2>
-      <Grid2 xs={12} md={6} order={{ xs: 3, md: 2 }}>
-        <Stack spacing={1}> {/* Use stack to provide even spacing horizonatally */}
-          <Stack direction={"row"} justifyContent={"space-between"}>
-            <Stack>
-              <Typography mt="auto" variant="h5">Mouse (GRCm38/mm10)</Typography>
-              <Typography variant="subtitle1">926,843 cCREs • 366 cell types</Typography>
-            </Stack>
-            <Image src={mouseTransparentIcon} alt={"Mouse Icon"} height={75} />
-          </Stack>
-          <DownloadButton href={Config.Downloads.MouseCCREs} label="All Mouse cCREs" />
-          <InlineDownloadButton
-            mode="download"
-            href={Config.Downloads.MousePromoters}
-            label={`Promoter-like (PLS) (27,332)`}
-            bordercolor={PLS}
-          />
-          <InlineDownloadButton
-            mode="download"
-            href={Config.Downloads.MouseProximalEnhancers}
-            label="Proximal enhancer-like (pELS) (111,218)"
-            bordercolor={pELS}
-          />
-          <InlineDownloadButton
-            mode="download"
-            href={Config.Downloads.MouseDistalEnhancers}
-            label="Distal enhancer-like (dELS) (400,783)"
-            bordercolor={dELS}
-          />
-          <InlineDownloadButton
-            mode="download"
-            href={Config.Downloads.MouseEnhancers}
-            label="All Candidate Enhacers (pELS & dELS) (512,001)"
-            bordercolor={dELSpELS}
-          />
-          <InlineDownloadButton
-            mode="download"
-            href={Config.Downloads.MouseCA_CTCF}
-            label="Chromatin Accessible with CTCF (CA-CTCF) (45,933)"
-            bordercolor={CA_CTCF}
-          />
-          <InlineDownloadButton
-            mode="download"
-            href={Config.Downloads.MouseCA_H3K4me3}
-            label="Chromatin Accessible with H3K4me3 (CA-H3K4me3) (23,832)"
-            bordercolor={CA_H3K4me3}
-          />
-          <InlineDownloadButton
-            mode="download"
-            href={Config.Downloads.MouseCA_TF}
-            label="Chromatin Accessible with TF (CA-TF) (10,707)"
-            bordercolor={CA_TF}
-          />
-          <InlineDownloadButton
-            mode="download"
-            href={Config.Downloads.MouseCA_only}
-            label="Chromatin Accessible Only (CA) (291,800)"
-            bordercolor={CA_only}
-          />
-          <InlineDownloadButton
-            mode="download"
-            href={Config.Downloads.MouseTF_only}
-            label="TF Only (TF) (15,283)"
-            bordercolor={TF_only}
-          />
-          <InlineDownloadButton
-            mode="download"
-            href={Config.Downloads.MouseCA_CTCF}
-            label="CTCF-Bound cCREs ()"
-            bordercolor={CTCF_Bound}
-          />
-        </Stack>
-      </Grid2>
-      <Grid2 xs={12} md={6} order={{ xs: 2, md: 3 }}>
-        <Typography variant="h6">Human cCREs by cell and tissue types</Typography>
-        <BiosampleTables
-          biosampleData={props.biosamples}
-          assembly={"GRCh38"}
-          selectedBiosamples={[]}
-          setSelectedBiosamples={() => null}
-          showRNAseq={false}
-          showDownloads={true}
-          biosampleSelectMode={"append"}
-        />
-      </Grid2>
-      <Grid2 xs={12} md={6} order={{ xs: 3, md: 3 }}>
-        <Typography variant="h6">Mouse cCREs by cell and tissue types</Typography>
-        <BiosampleTables
-          biosampleData={props.biosamples}
-          assembly={"mm10"}
-          selectedBiosamples={[]}
-          setSelectedBiosamples={() => null}
-          showRNAseq={false}
-          showDownloads={true}
-          biosampleSelectMode={"append"}
-        />
       </Grid2>
     </Grid2>
   )
 }
+
