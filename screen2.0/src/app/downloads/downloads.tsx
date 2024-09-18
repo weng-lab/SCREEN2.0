@@ -45,18 +45,18 @@ export default function DownloadsPage(props: {
       <Grid2 mt={2} container spacing={2}>
         <Grid2 xs={12}>
           <Tabs value={page} onChange={handleChange} aria-label="basic tabs example" variant="scrollable" allowScrollButtonsMobile>
-            <Tab label="Quick Start" sx={{ textTransform: "none" }} {...a11yProps(0)} />
-            <Tab label="Detailed Elements" sx={{ textTransform: "none" }} {...a11yProps(1)} />
-            <Tab label="Data Matrices" sx={{ textTransform: "none" }} {...a11yProps(2)} />
-            <Tab label="Download cCREs in Genomic Region" sx={{ textTransform: "none" }} {...a11yProps(3)} />
+            {/* <Tab label="Quick Start" sx={{ textTransform: "none" }} {...a11yProps(0)} /> */}
+            <Tab label="Detailed Elements" sx={{ textTransform: "none" }} {...a11yProps(0)} />
+            <Tab label="Data Matrices" sx={{ textTransform: "none" }} {...a11yProps(1)} />
+            <Tab label="Download cCREs in Genomic Region" sx={{ textTransform: "none" }} {...a11yProps(2)} />
           </Tabs>
           <Divider />
         </Grid2>
         <Grid2 xs={12}>
-          {page === 0 && <QuickStart biosamples={props.biosamples} />}
-          {page === 1 && <DetailedElements biosamples={props.biosamples} />}
-          {page === 2 && <DataMatrices/>}
-          {page === 3 && <DownloadRange />}
+          {/* {page === 0 && <QuickStart biosamples={props.biosamples} />} */}
+          {page === 0 && <DetailedElements biosamples={props.biosamples} />}
+          {page === 1 && <DataMatrices/>}
+          {page === 2 && <DownloadRange />}
         </Grid2>
       </Grid2>
     </Container>
