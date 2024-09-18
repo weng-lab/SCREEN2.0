@@ -109,8 +109,8 @@ export function DetailedElements(props: TabPanelProps) {
                   <InlineDownloadButton mode="download" href={Config.Downloads.HumanCA_TF} label="Chromatin Accessible with TF (CA-TF) (26,102)" bordercolor={CA_TF} />
                   <InlineDownloadButton mode="download" href={Config.Downloads.HumanCA_only} label="Chromatin Accessible Only (CA) (245,985)" bordercolor={CA_only} />
                   <InlineDownloadButton mode="download" href={Config.Downloads.HumanTF_only} label="TF Only (TF) (105,286)" bordercolor={TF_only} />
-                  <InlineDownloadButton mode="download" href={Config.Downloads.HumanCA_CTCF} label="CTCF-Bound cCREs ()" bordercolor={CTCF_Bound} />
-                  <InlineDownloadButton mode="download" href={Config.Downloads.HumanGeneLinks} label="cCRE-Gene Links" bordercolor={Gene_Links} />
+                  <InlineDownloadButton mode="download" href={Config.Downloads.HumanCA_CTCF} label="CTCF-Bound cCREs (948,642)" bordercolor={CTCF_Bound} />
+                  <InlineDownloadButton mode="download" href={Config.Downloads.HumanGeneLinks} label="cCRE-Gene Links (3D Chromatin, CRISPR, eQTLS)" bordercolor={Gene_Links} />
                 </Stack>
               </Grid2>
 
@@ -145,7 +145,7 @@ export function DetailedElements(props: TabPanelProps) {
                   <InlineDownloadButton mode="download" href={Config.Downloads.MouseCA_TF} label="Chromatin Accessible with TF (CA-TF) (10,707)" bordercolor={CA_TF} />
                   <InlineDownloadButton mode="download" href={Config.Downloads.MouseCA_only} label="Chromatin Accessible Only (CA) (291,800)" bordercolor={CA_only} />
                   <InlineDownloadButton mode="download" href={Config.Downloads.MouseTF_only} label="TF Only (TF) (15,283)" bordercolor={TF_only} />
-                  <InlineDownloadButton mode="download" href={Config.Downloads.MouseCA_CTCF} label="CTCF-Bound cCREs ()" bordercolor={CTCF_Bound} />
+                  <InlineDownloadButton mode="download" href={Config.Downloads.MouseCA_CTCF} label="CTCF-Bound cCREs (139,894)" bordercolor={CTCF_Bound} />
                 </Stack>
               </Grid2>
 
