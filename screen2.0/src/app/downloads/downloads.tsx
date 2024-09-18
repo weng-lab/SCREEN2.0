@@ -3,7 +3,6 @@
 import * as React from "react"
 import { Tabs, Tab, Box, Container, Divider} from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
-import { QuickStart } from "./quickstart"
 import { DetailedElements } from "./detailedelements"
 import { DataMatrices } from "./datamatrices"
 import { useState } from "react"
@@ -45,7 +44,6 @@ export default function DownloadsPage(props: {
       <Grid2 mt={2} container spacing={2}>
         <Grid2 xs={12}>
           <Tabs value={page} onChange={handleChange} aria-label="basic tabs example" variant="scrollable" allowScrollButtonsMobile>
-            {/* <Tab label="Quick Start" sx={{ textTransform: "none" }} {...a11yProps(0)} /> */}
             <Tab label="Detailed Elements" sx={{ textTransform: "none" }} {...a11yProps(0)} />
             <Tab label="Data Matrices" sx={{ textTransform: "none" }} {...a11yProps(1)} />
             <Tab label="Download cCREs in Genomic Region" sx={{ textTransform: "none" }} {...a11yProps(2)} />
@@ -53,7 +51,6 @@ export default function DownloadsPage(props: {
           <Divider />
         </Grid2>
         <Grid2 xs={12}>
-          {/* {page === 0 && <QuickStart biosamples={props.biosamples} />} */}
           {page === 0 && <DetailedElements biosamples={props.biosamples} />}
           {page === 1 && <DataMatrices/>}
           {page === 2 && <DownloadRange />}
