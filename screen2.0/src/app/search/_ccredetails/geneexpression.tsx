@@ -8,12 +8,10 @@ import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import Image from "next/image"
 import { HUMAN_GENE_EXP, MOUSE_GENE_EXP } from "../../applets/gene-expression/const"
 import { GENE_EXP_QUERY, GENE_QUERY, GET_ORTHOLOG, GET_ORTHOLOG_DATA, GET_ORTHOLOG_VARS } from "../../applets/gene-expression/queries"
-import GenomeSwitch from "./genomeswitch"
 import { ReadonlyURLSearchParams, usePathname, useSearchParams, useRouter } from "next/navigation"
 import ConfigureGBModal from "./configuregbmodal"
-import { ApolloQueryResult } from "@apollo/client"
-import { BIOSAMPLE_Data } from "../../../common/lib/queries"
-import { GeneAutoComplete2, GeneInfo } from "../_filterspanel/geneautocomplete2"
+import { GeneAutocomplete } from "../_geneAutocomplete/GeneAutocomplete"
+import { GeneInfo } from "../_geneAutocomplete/types"
 import { SyncAlt } from "@mui/icons-material"
 import { LoadingButton } from "@mui/lab"
 
@@ -43,7 +41,6 @@ export function GeneExpression(props: {
   assembly: Assembly
   genes?: { name: string, linkedBy?: string[] }[]
   applet?: boolean
-  biosampleData: ApolloQueryResult<BIOSAMPLE_Data>
 }) {
   const searchParams: ReadonlyURLSearchParams = useSearchParams()
   const urlAssembly = searchParams.get("assembly")
@@ -220,19 +217,21 @@ export function GeneExpression(props: {
             <MenuItem value={"GRCh38"}>GRCh38</MenuItem>
             <MenuItem value={"mm10"}>mm10</MenuItem>
           </Select>
-          <GeneAutoComplete2
+          <GeneAutocomplete
             assembly={searchAssembly}
-            autocompleteProps={{
-              fullWidth: true,
-              size: "medium",
-              sx: { minWidth: '200px' },
-              defaultValue: {
-                name: gene, //only gene needed to set default
-                id: "",
-                coordinates: {
-                  chromosome: "",
-                  start: 0,
-                  end: 0
+            slotProps={{
+              autocompleteProps: {
+                fullWidth: true,
+                size: "medium",
+                sx: { minWidth: '200px' },
+                defaultValue: {
+                  name: gene, //only gene needed to set default
+                  id: "",
+                  coordinates: {
+                    chromosome: "",
+                    start: 0,
+                    end: 0
+                  }
                 }
               }
             }}
@@ -264,7 +263,9 @@ export function GeneExpression(props: {
             }}
           >
             {dataOrtholog?.geneOrthologQuery.length > 0 ?
-              `Go to ${dataAssembly === "GRCh38" ? "mm10" : "GRCh38"} ortholog: ${dataOrtholog?.geneOrthologQuery[0][dataAssembly === "GRCh38" ? 'mouseGene' : 'humanGene']}`
+              <>
+              {`Go to ${dataAssembly === "GRCh38" ? "mm10" : "GRCh38"} ortholog:`}&thinsp;<i>{dataOrtholog?.geneOrthologQuery[0][dataAssembly === "GRCh38" ? 'mouseGene' : 'humanGene']}</i>
+              </>
               :
               `No ortholog found in ${dataAssembly === "GRCh38" ? "mm10" : "GRCh38"}`
             }
@@ -413,7 +414,6 @@ export function GeneExpression(props: {
       }
       {/* Configure Trackhub */}
       <ConfigureGBModal
-        biosampleData={props.biosampleData}
         coordinates={{
           assembly: props.assembly,
           chromosome: dataGeneID?.gene[0]?.coordinates.chromosome,

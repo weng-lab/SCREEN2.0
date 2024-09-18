@@ -1,16 +1,6 @@
 "use client"
-import React, { useState } from "react"
-import {
-  Box,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  SelectChangeEvent
-} from "@mui/material"
+import React from "react"
 import { Point2D, Range2D, linearTransform2D } from "jubilant-carnival"
-import { Fragment } from "react"
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { GeneExpEntry } from "../../applets/gene-expression/types"
 import { tissueColors } from "../../../common/lib/colors"
 import { RampagePeak } from "./rampage"
@@ -58,7 +48,7 @@ export function PlotActivityProfiles(props: {
       tissues[biosample["tissue"]].sum += biosample["value"]
       tissues[biosample["tissue"]].values.push({
         value: biosample["value"],
-        biosample_term: biosample["name"].replace("Homo sapiens",""),
+        biosample_term: biosample["name"].replace("Homo sapiens ",""),
         expID: biosample["expAccession"],
         tissue: biosample["tissue"],
         strand: biosample["strand"],
@@ -80,59 +70,57 @@ export function PlotActivityProfiles(props: {
     let l =  Object.values(info.values)
     return l.map((item: {biosample_term: string, value: number, expID: string, strand: string, color: string}, i: number) => {
       
-      p1 = linearTransform2D(props.range, props.dimensions)({ x: item.value, y: 0 })
+      p1 = linearTransform2D(props.range, props.dimensions)({ x: Number(item.value.toFixed(2)), y: 0 })
+
+      const bioampleName = item.biosample_term.length > 35 ? item.biosample_term.slice(0,35) + "..." : item.biosample_term
       return (
-        <Fragment key={i}>
-          <rect
-            x={150}
-            width={p1.x + 150}
-            y={y + i * 20}
-            height={18}
-            fill={item.color}
-            onMouseOver={() => {
-              {
-                ;<rect x={150} width={p1.x + 150} y={y + i * 20} height={18} fill="white" />
-              }
-            }}
-          >
+        <g key={i}>
+          <g>
             <title>
-              <rect x={150} width={p1.x + 150} y={y + i * 20} height={18} fill="white" />
-              {item.value.toFixed(2)} {" " + item.biosample_term} 
-            {" (" + item.strand + ")"}
+              {item.value.toFixed(2) + "\n" + item.biosample_term + " (" + item.strand + ")" + "\n" + "Clicking opens this experiment in a new tab"}
             </title>
-          </rect>
-          <text x={p1.x + 40 + 270} y={y + i * 20 + 12.5} style={{ fontSize: 12 }}>
-            {Number(item.value.toFixed(2)) + " "}
-            <a href={"https://www.encodeproject.org/experiments/" + item.expID}>{item.expID}</a>
-             {" " + item.biosample_term} 
-            {" (" + item.strand + ")"}
-          </text>
+            <a href={"https://www.encodeproject.org/experiments/" + item.expID} target="_blank" rel="noopener noreferrer">
+              <rect
+                x={165}
+                y={y + i * 20}
+                width={p1.x}
+                height={18}
+                fill={item.color}
+              >
+              </rect>
+              <text x={p1.x + 0 + 170} y={y + i * 20 + 12.5} style={{ fontSize: 12 }}>
+                {item.value.toFixed(2) + ", "}
+                {" " + bioampleName}
+                {" (" + item.expID + ")"}
+                {" (" + item.strand + ")"}
+              </text>
+            </a>
+          </g>
           {(props.sort === 'byValue' || props.sort === 'byTissueMax') &&
             <text
               textAnchor="end"
-              x={140}
+              x={160}
               y={y + (i * 20 + 15)}
             >
               {entry[0].split("-")[0]}
             </text>
           }
-          {props.sort=== 'byTissue' && i === Math.floor(Object.values(info.values).length / 2) &&
+          {props.sort === 'byTissue' && i === Math.floor(Object.values(info.values).length / 2) &&
             <text
               textAnchor="end"
-              x={140}
+              x={160}
               // If the tissue has an even number of values, bump up a little
               y={y + (i * 20 + 15) - (((Object.values(info.values).length % 2) !== 0) ? 0 : 12)}
             >
               {entry[0].split("-")[0]}
             </text>
           }
-          <line x1={150} x2={150} y1={y + i * 20} y2={y + (i * 20 + 18)} stroke="black" />
-        </Fragment>
+          <line x1={165} x2={165} y1={y + i * 20} y2={y + (i * 20 + 18)} stroke="black" />
+        </g>
       )
     })
   }
 
-  let y: number = 0
 
   let byValuesTissues = Object.entries(tissues).map((entry) =>{
     let info = entry[1]
@@ -157,26 +145,23 @@ export function PlotActivityProfiles(props: {
   })
   const tissueValues = props.sort === "byValue" ? byValueTissues : props.sort === "byTissueMax" ? byTissueMaxTissues : tissues;
   return (
-    // <Grid2 xs={12}>
-      <Box>
-        {Object.keys(tissueValues).length === 0 ? <span>{'No Data Available'}</span> :
-          <Stack>
-            {Object.entries(tissueValues).map((entry, index: number) => {
-              let info = entry[1]
-              y += info.values.length * 20 + 20 + 25
-              let view: string = "0 0 1200 " + (info.values.length * 20 + 10)
-              return (
-                <svg className="graph" aria-labelledby="title desc" role="img" viewBox={view} key={index}>
-                  <g className="data" data-setname="gene expression plot">
-
-                    {plotGeneExp(entry, 5)}
-                  </g>
-                </svg>
-              )
-            })}
-          </Stack>}
-      </Box>
-    // </Grid2>
+    Object.keys(tissueValues).length === 0 ?
+      <span>{'No Data Available'}</span>
+      :
+      <Stack>
+        {Object.entries(tissueValues).map((entry, index: number) => {
+          let info = entry[1]
+          let view: string = "0 0 1200 " + (info.values.length * 20 + 10)
+          return (
+            <svg className="graph" aria-labelledby="title desc" role="img" viewBox={view} key={index}>
+              <g className="data" data-setname="gene expression plot">
+                {/* Why 5? */}
+                {plotGeneExp(entry, 5)}
+              </g>
+            </svg>
+          )
+        })}
+      </Stack>
   )
 }
 

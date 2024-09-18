@@ -1,18 +1,17 @@
-import { Button, ButtonProps, Paper, Typography, Divider, Stack } from "@mui/material"
+import { Button, ButtonProps, Typography, Stack } from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
-import { Box } from "@mui/system"
 import React, { useEffect, useState } from "react"
 import Config from "../../config.json"
 import DownloadIcon from "@mui/icons-material/Download"
 import SearchIcon from "@mui/icons-material/Search"
 import { CA_CTCF, CA_H3K4me3, CA_TF, CA_only, PLS, TF_only, dELS, pELS } from "../../common/lib/colors"
 import Image from "next/image"
-import Human from "../../../public/Human2.png"
-import Mouse from "../../../public/Mouse2.png"
+import humanTransparentIcon from "../../../public/Transparent_HumanIcon.png"
+import mouseTransparentIcon from "../../../public/Transparent_MouseIcon.png"
 import { ApolloQueryResult } from "@apollo/client"
 import { BIOSAMPLE_Data } from "../../common/lib/queries"
-import BiosampleTables from "../search/biosampletables"
 import { fetchFileSize } from "./downloads"
+import BiosampleTables from "../_biosampleTables/BiosampleTables"
 
 interface TabPanelProps {
   children?: React.ReactNode
@@ -78,7 +77,7 @@ export function DetailedElements(props: TabPanelProps) {
               <Typography mt="auto" variant="h5" >Human (GRCh38/hg38)</Typography>
               <Typography variant="subtitle1">2,348,854 cCREs • 1,888 cell types</Typography>
             </Stack>
-            <Image src={Human} alt={"Human Icon"} height={75} />
+            <Image src={humanTransparentIcon} alt={"Human Icon"} height={75} />
           </Stack>
           <DownloadButton href={Config.Downloads.HumanCCREs} label="All Human cCREs (2,348,854)" />
           <InlineDownloadButton
@@ -135,12 +134,12 @@ export function DetailedElements(props: TabPanelProps) {
         <Stack spacing={1}> {/* Use stack to provide even spacing horizonatally */}
           <Stack direction={"row"} justifyContent={"space-between"}>
             <Stack>
-              <Typography mt="auto" variant="h5" >Mouse (GRCm38/mm10)</Typography>
+              <Typography mt="auto" variant="h5">Mouse (GRCm38/mm10)</Typography>
               <Typography variant="subtitle1">926,843 cCREs • 366 cell types</Typography>
             </Stack>
-            <Image src={Mouse} alt={"Mouse Icon"} height={75} />
+            <Image src={mouseTransparentIcon} alt={"Mouse Icon"} height={75} />
           </Stack>
-          <DownloadButton href={Config.Downloads.MouseCCREs} label="Download All Mouse cCREs" />
+          <DownloadButton href={Config.Downloads.MouseCCREs} label="All Mouse cCREs" />
           <InlineDownloadButton
             mode="download"
             href={Config.Downloads.MousePromoters}
@@ -194,25 +193,15 @@ export function DetailedElements(props: TabPanelProps) {
       <Grid2 xs={12} md={6} order={{ xs: 2, md: 3 }}>
         <Typography variant="h6">Human cCREs by cell and tissue types</Typography>
         <BiosampleTables
-          biosampleData={props.biosamples}
-          assembly={"GRCh38"}
-          selectedBiosamples={[]}
-          setSelectedBiosamples={() => null}
-          showRNAseq={false}
-          showDownloads={true}
-          biosampleSelectMode={"append"}
+          assembly="GRCh38"
+          showDownloads
         />
       </Grid2>
       <Grid2 xs={12} md={6} order={{ xs: 3, md: 3 }}>
         <Typography variant="h6">Mouse cCREs by cell and tissue types</Typography>
         <BiosampleTables
-          biosampleData={props.biosamples}
-          assembly={"mm10"}
-          selectedBiosamples={[]}
-          setSelectedBiosamples={() => null}
-          showRNAseq={false}
-          showDownloads={true}
-          biosampleSelectMode={"append"}
+          assembly="mm10"
+          showDownloads
         />
       </Grid2>
     </Grid2>

@@ -6,7 +6,8 @@ import { AppBar, Box, Toolbar, IconButton, Typography, Menu, Container, Button, 
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown"
 import MenuIcon from "@mui/icons-material/Menu"
 import { MainSearch } from "./_mainsearch/mainsearch"
-
+import Image from "next/image"
+import SCREENLOGO from "../../public/screenLogo.png"
 /*  
   Links for the AppBar. If adding another page with subpages, you need to add another 
   useState() hook for positioning, and add extra if case in open/close handlers 
@@ -18,6 +19,7 @@ const pageLinks = [
     dropdownID: "0",
     subPages: [
       { pageName: "Overview", link: "/about" },
+      { pageName: "API Documentation", link: "/about#api-documentation" },
       { pageName: "Contact Us", link: "/about#contact-us" },
     ],
   },
@@ -30,7 +32,8 @@ const pageLinks = [
     link: "/applets",
     dropdownID: "1",
     subPages: [
-      { pageName: "Gene Expression", link: "/applets/gene-expression" },
+      { pageName: "Gene Expression", link: "/applets/gene-expression " },
+      { pageName: "GWAS", link: "/applets/gwas" },
       { pageName: "ARGO", link: "/applets/argo" }
     ],
   },
@@ -103,7 +106,7 @@ function ResponsiveAppBar() {
             {/* Logo, and desktop navigation */}
             <Box display='flex' flexGrow={1}>
               <a href={"/"}>
-                <img src={'/screenLogo.png'} alt="SCREEN Icon" height={40} width={90} style={{marginRight: '20px'}}/>
+              <Image src={SCREENLOGO} alt="SCREEN Icon" height={40} width={90} style={{marginRight: '20px'}} />                
               </a>
               {/* Main navigation items for desktop, hide on small screen size */}
               <Box sx={{ display: { xs: "none", lg: "flex" }, alignItems: 'center' }}>

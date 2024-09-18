@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react"
+import React, { useState, useCallback, useMemo } from "react"
 import Box from "@mui/material/Box"
 import TextField from "@mui/material/TextField"
 import Autocomplete from "@mui/material/Autocomplete"
@@ -23,7 +23,7 @@ export const SnpAutoComplete: React.FC<{ assembly: string, header?: boolean }> =
       body: JSON.stringify({
         query: SNP_AUTOCOMPLETE_QUERY,
         variables: {
-          assembly: props.assembly.toLowerCase(),
+          assembly: assembly.toLowerCase(),
           snpid: value,
         },
       }),
@@ -49,7 +49,7 @@ export const SnpAutoComplete: React.FC<{ assembly: string, header?: boolean }> =
 
   }
 
-  const debounceFn = useCallback(debounce(onSearchChange, 500), [])
+  const debounceFn = useMemo(() => debounce(onSearchChange, 500), [])
 
   const handleSubmit = () => {
     if (value) {

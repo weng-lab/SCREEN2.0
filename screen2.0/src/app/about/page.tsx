@@ -8,6 +8,7 @@ import encodeEncyclopedia from "../../../public/assets/about/images/encodeencycl
 import classifications from "../../../public/assets/about/images/classifications.png"
 import biosamples from "../../../public/assets/about/images/biosamples.png"
 import { CA_CTCF, CA_H3K4me3, CA_TF, CA_only, PLS, TF_only, dELS } from "../../common/lib/colors";
+import { CreateLink } from "../../common/lib/utility";
 
 export default function About() {
   const [contactName, setContactName] = useState('')
@@ -132,16 +133,16 @@ export default function About() {
                 <u>Chromatin accessibility + H3K4me3 (CA-H3K4me3)</u> have high chromatin accessibility and H3K4me3 signals, low H3K27ac signals and do not fall within 200 bp of a TSS.
               </Typography>
               <Typography paddingLeft={"1rem"} borderLeft={`0.25rem solid ${CA_CTCF}`} variant="body1">
-                <u>Chromatin accessibility + CTCF (CA-CTCF)</u> have high chromatin accessibility and CTCF signals and low H3K4me3, and H3K27ac signals.
+                <u>Chromatin accessibility + CTCF (CA-CTCF)</u> have high chromatin accessibility and CTCF signals, low H3K4me3 and H3K27ac signals.
               </Typography>
               <Typography paddingLeft={"1rem"} borderLeft={`0.25rem solid ${CA_TF}`} variant="body1">
-                <u>Chromatin accessibility + transcription factor (CA-TF)</u> have high chromatin accessibility, low H3K4me3, H3K27ac, and CTCF signals and overlap a transcription factor cluster
+                <u>Chromatin accessibility + transcription factor (CA-TF)</u> have high chromatin accessibility, low H3K4me3 H3K27ac, and CTCF signals, and overlap a transcription factor cluster.
               </Typography>
               <Typography paddingLeft={"1rem"} borderLeft={`0.25rem solid ${CA_only}`} variant="body1">
-                <u>Chromatin accessibility (CA)</u> have high chromatin accessibility, and low H3K4me3, H3K27ac, and CTCF signals
+                <u>Chromatin accessibility (CA)</u> have high chromatin accessibility, and low H3K4me3, H3K27ac, and CTCF signals.
               </Typography>
               <Typography paddingLeft={"1rem"} borderLeft={`0.25rem solid ${TF_only}`} variant="body1">
-                <u>Transcription factor (TF)</u> have low chromatin accessibility, low H3K4me3, H3K27ac, and CTCF signals and overlap a transcription factor cluster.
+                <u>Transcription factor (TF)</u> have low chromatin accessibility, H3K4me3, H3K27ac, and CTCF signals and overlap a transcription factor cluster.
               </Typography>
             </Stack>
             <Typography variant="body1" paragraph>
@@ -158,14 +159,14 @@ export default function About() {
               Core Collection
             </Typography>
             <Typography variant="body1" paragraph>
-              Thanks to the extensive coordination efforts by the ENCODE4 Biosample Working Group, 171 biosamples have DNase, H3K4me3, H3K27ac, and CTCF data. We refer to these samples as the biosample-specific <i>Core Collection</i> of cCREs. These samples cover a derive from a variety of tissues and organs and primarily comprise primary tissues and cells (<b>Figure X</b>). We suggest that users prioritize these samples for their analysis as they contain all the relevant marks for the most complete annotation of cCREs.
+              Thanks to the extensive coordination efforts by the ENCODE4 Biosample Working Group, 171 biosamples have DNase, H3K4me3, H3K27ac, and CTCF data. We refer to these samples as the biosample-specific <i>Core Collection</i> of cCREs. These samples cover a variety of tissues and organs and primarily comprise primary tissues and cells (<b>Figure X</b>). We suggest that users prioritize these samples for their analysis as they contain all the relevant marks for the most complete annotation of cCREs.
               </Typography>
             <Image src={biosamples} style={{maxWidth: "600px", margin: "auto"}} alt="Biosample types visual diagram" />
             <Typography variant="h6">
               Partial Data Collection
               </Typography>
             <Typography variant="body1" paragraph>
-              To supplement this <i>Core Collection</i>, 1,154 biosamples have DNase in addition to various combinations of the other marks (but not all three). Though we are unable to annotate the full spectrum of cCRE classes in these biosamples, having DNase enables us to annotate element boundaries with high resolution. Therefore, we refer to this group as the <i>Partial Data Collection</i>. In these biosamples, we classify elements using the available marks. For example, if a sample lacks H3K27ac and CTCF, its cCREs can only be assigned to the promoter, CA-H3K4me3, and CA groups, not the enhancer or CA-CTCF groups. The <i>Partial Data Collection</i> contains some unique tissues and cell states that are not represented in the Core Collection, such as fetal brain tissue and stimulated immune cells that may be of high interest to some researchers. Therefore, if users are interested in cCRE annotations in such biosamples, we suggest leveraging the cell type-agnostic annotations or annotations from similar biosamples in the <i>Core Collection</i>, to supplement their analyses.
+              To supplement this <i>Core Collection</i>, 1,154 biosamples have DNase in addition to various combinations of the other marks (but not all three). Though we are unable to annotate the full spectrum of cCRE classes in these biosamples, having DNase enables us to annotate element boundaries with high resolution. Therefore, we refer to this group as the <i>Partial Data Collection</i>. In these biosamples, we classify elements using the available marks. For example, if a sample lacks H3K27ac and CTCF, its cCREs can only be assigned to the promoter, CA-H3K4me3, and CA groups, not the enhancer or CA-CTCF groups. The <i>Partial Data Collection</i> contains some unique tissues and cell states that are not represented in the <i>Core Collection</i>, such as fetal brain tissue and stimulated immune cells that may be of high interest to some researchers. Therefore, if users are interested in cCRE annotations in such biosamples, we suggest leveraging the cell type-agnostic annotations or annotations from similar biosamples in the <i>Core Collection</i>, to supplement their analyses.
             </Typography>
             <Typography variant="h6">
               Ancillary Collection
@@ -201,18 +202,23 @@ export default function About() {
               </ul>
             </Grid2>
           </Grid2>
+          {/* API Documentation */}
+          <Grid2 xs={12} id="api-documentation">
+            <Typography mb={1} variant="h2">API Documentation</Typography>
+            <CreateLink linkPrefix={"https://weng-lab.github.io/SCREEN2.0/"} label={"SCREEN API Documentation"} showExternalIcon />
+          </Grid2>
           {/* Contact Us */}
           <Grid2 xs={12} id="contact-us">
             <Typography mb={1} variant="h2">Contact Us</Typography>
-            <Typography mb={1} variant="body1">Send us a message and we&apos;ll be in touch</Typography>
+            <Typography mb={1} variant="body1">Send us a message and we&apos;ll be in touch!</Typography>
             <Typography mb={1} variant="body1">As this is a beta site, we would greatly appreciate any feedback you may have. Knowing how our users are using the site and documenting issues they may have are important to make this resource better and easier to use.</Typography>
             <Box mb={1}>
               <Typography display={"inline"} variant="body1">If you&apos;re experiencing an error/bug, feel free to&nbsp;</Typography>
-              <Link display={"inline"} href="https://github.com/weng-lab/SCREEN2.0/issues">submit an issue on Github.</Link>
+              <Link display={"inline"} href="https://github.com/weng-lab/SCREEN2.0/issues" target="_blank" rel="noopener noreferrer">submit an issue on Github.</Link>
             </Box>
             <Box mb={2}>
               <Typography display={"inline"} variant="body1">If you would like to send an attachment, feel free to email us directly at&nbsp;</Typography>
-              <Link display={"inline"} href="mailto:encode-screen@googlegroups.com">encode&#8209;screen@googlegroups.com</Link>
+              <Link display={"inline"} href="mailto:encode-screen@googlegroups.com" target="_blank" rel="noopener noreferrer">encode&#8209;screen@googlegroups.com</Link>
             </Box>
             <Box
               component="form"

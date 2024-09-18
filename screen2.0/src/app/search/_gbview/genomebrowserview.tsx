@@ -9,6 +9,7 @@ import EGeneTracks from "./egenetracks"
 import { client } from "../_ccredetails/client"
 import DefaultTracks from "./defaulttracks"
 import { BiosampleTracks } from "./biosampletracks"
+
 type GenomeBrowserViewProps = {
   coordinates: {
     start: number
@@ -183,7 +184,7 @@ export const GenomeBrowserView: React.FC<GenomeBrowserViewProps> = (props) => {
         ])
       setTracks(tracks)
     }
-  }, [bdata, props.biosample,props.assembly])
+  }, [bdata, props.biosample, props.assembly, props.biosampledisplayname])
   
   return (
     <>

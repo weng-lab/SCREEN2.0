@@ -29,6 +29,14 @@ type Variables = {
   accession: [string],
 }
 
+export const GET_CCRE_CT_TF = gql`
+query q($accession: String!, $assembly: String!) {
+getcCRETFQuery(accession: $accession, assembly: $assembly) {
+    celltype
+    tf
+  }
+}
+`
 export const TOP_TISSUES: TypedDocumentNode<Data, Variables> = gql`
   query q($accession: [String!], $assembly: String!) {
     ccREBiosampleQuery(assembly: $assembly) {

@@ -2,11 +2,9 @@
 import React, { useState, useEffect } from "react"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { LoadingMessage } from "../../../common/lib/utility"
-import {
-  AppBar,
+import {  
   Box,
-  Button,
-  FormControl,
+  Button,  
   IconButton,
   InputLabel,
   MenuItem,
@@ -21,10 +19,9 @@ import { PlotActivityProfiles } from "./utils"
 import Image from "next/image"
 import InfoIcon from "@mui/icons-material/Info"
 import { RampageToolTipInfo } from "./const"
-import { ApolloQueryResult, gql, useQuery } from "@apollo/client"
+import { gql, useQuery } from "@apollo/client"
 import { client } from "./client"
 import ConfigureGBModal from "./configuregbmodal"
-import { BIOSAMPLE_Data } from "../../../common/lib/queries"
 
 const GENE_QUERY = gql`
 query ($assembly: String!, $name_prefix: [String!], $limit: Int, $version: Int) {
@@ -38,25 +35,27 @@ query ($assembly: String!, $name_prefix: [String!], $limit: Int, $version: Int) 
     }
   }
 } `
+ 
 const TSS_RAMPAGE_QUERY = `
   query tssRampage($gene: String!) {
   tssrampageQuery(genename: $gene) {
-    start
-    geneName
-    organ
-    locusType
+    start    
+    organ   
     strand
     peakId
     biosampleName
     biosampleType
     biosampleSummary
-    col1
-    col2
+    peakType
     expAccession
     value
     start
     end 
-    chrom 
+    chrom    
+    genes {
+      geneName
+       locusType
+    }
   }
 }
 `
@@ -70,13 +69,12 @@ export type RampagePeak = {
   start: string,
   end: string,
   chrom: string,
-  col1: string,
-  col2: string,
+  peakType: string,  
   organ: string,
   strand: string,
-  tissue: string
+  tissue: string,
 }
-export default function Rampage(props: { genes: { name: string, linkedBy?: string[] }[], biosampleData: ApolloQueryResult<BIOSAMPLE_Data> }) {
+export default function Rampage(props: { genes: { name: string, linkedBy?: string[] }[]}) {
   const [currentGene, setCurrentGene] = useState(props.genes[0].name)
   const [loading, setLoading] = useState<boolean>(true)
   const [data, setData] = useState<RampagePeak[]>([])
@@ -114,13 +112,12 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
               peakId: t.peakId,
               biosampleType: t.biosampleType,
               name: t.biosampleName,
-              locusType: t.locusType,
+              locusType: t.genes[0].locusType,
               expAccession: t.expAccession,
               start: t.start,
               end: t.end,
               chrom: t.chrom,
-              col1: t.col1,
-              col2: t.col2,
+              peakType: t.peakType,              
               organ: t.organ,
               strand: t.strand,
               tissue: t.organ
@@ -230,7 +227,7 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
                   return (
                     <Stack>
                       <Typography>{value}</Typography>
-                      <Typography variant="body2" color={"text.secondary"}>{`(${details?.col1} ${details?.col2})`}</Typography>
+                      <Typography variant="body2" color={"text.secondary"}>{`(${details?.peakType})`}</Typography>
                     </Stack>
                   )
                 }
@@ -241,7 +238,7 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
                 return (
                   <MenuItem sx={{ display: "block" }} key={peak} value={peak}>
                     <Typography>{peak}</Typography>
-                    <Typography variant="body2" color={"text.secondary"}>{`(${details?.col1} ${details?.col2})`}</Typography>
+                    <Typography variant="body2" color={"text.secondary"}>{`(${details?.peakType})`}</Typography>
                   </MenuItem>
                 )
               })
@@ -278,23 +275,25 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
         </Grid2>
         <Grid2 xs={12}>
           {data && data.length == 0 ? (<Typography>No data available</Typography>) :
-            <PlotActivityProfiles
-              data={data}
-              sort={sort}
-              range={{
-                x: { start: 0, end: 4 },
-                y: { start: 0, end: 0 },
-              }}
-              dimensions={{
-                x: { start: 125, end: 650 },
-                y: { start: 4900, end: 100 },
-              }}
-              peakID={peak}
-            />}
+            <Box maxWidth={{ xl: '75%', xs: '100%' }}>
+              <PlotActivityProfiles
+                data={data}
+                sort={sort}
+                range={{
+                  x: { start: 0, end: 4 },
+                  y: { start: 0, end: 0 },
+                }}
+                dimensions={{
+                  x: { start: 0, end: 650 },
+                  y: { start: 200, end: 0 },
+                }}
+                peakID={peak}
+              />
+            </Box>
+          }
         </Grid2>
         {/* Configure Trackhub */}
         <ConfigureGBModal
-          biosampleData={props.biosampleData}
           coordinates={{
             assembly: "GRCh38",
             chromosome: data_gene?.gene[0]?.coordinates.chromosome,

@@ -2,7 +2,7 @@
 "use client"
 import { BIOSAMPLE_Data, biosampleQuery } from "../../common/lib/queries"
 import { BiosampleTableFilters, FilterCriteria, MainQueryData, MainQueryParams, RegistryBiosample } from "./types"
-import { constructBiosampleTableFiltersFromURL, constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, downloadBED, fetchcCREData } from "./searchhelpers"
+import { constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, downloadBED, fetchcCREData } from "./searchhelpers"
 import React, { useEffect, useMemo, useRef, useState, useTransition } from "react"
 import { styled } from '@mui/material/styles';
 import { Divider, IconButton, Tab, Tabs, Typography, Box, Button, CircularProgressProps, CircularProgress, Stack } from "@mui/material"
@@ -33,8 +33,19 @@ import { LINKED_GENES } from "./_ccredetails/queries"
 
 const drawerWidth = 350;
 
-const StyledTab = styled(Tab)(() => ({
+const StyledHorizontalTab = styled(Tab)(() => ({
   textTransform: "none",
+  paddingTop: 0,
+  paddingBottom: 0,
+  minHeight: "64px" //Overwrites default minHeight of 72px to constrain size
+}))
+
+const StyledVerticalTab = styled(Tab)(() => ({
+  textTransform: "none",
+  paddingTop: 0,
+  paddingBottom: 0,
+  alignSelf: "flex-start",
+  minWidth: 'auto'
 }))
 
 //Wrapper for the table
@@ -153,7 +164,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   //potential performance improvement if I make an initializer function vs passing param here.
   const [mainQueryParams, setMainQueryParams] = useState<MainQueryParams>(constructMainQueryParamsFromURL(searchParams))
   const [filterCriteria, setFilterCriteria] = useState<FilterCriteria>(constructFilterCriteriaFromURL(searchParams))
-  const [biosampleTableFilters, setBiosampleTableFilters] = useState<BiosampleTableFilters>(constructBiosampleTableFiltersFromURL(searchParams))
   const [loadingTable, setLoadingTable] = useState<boolean>(false)
   const [loadingFetch, setLoadingFetch] = useState<boolean>(false)
   const [isPending, startTransition] = useTransition();
@@ -163,7 +173,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const [bedLoadingPercent, setBedLoadingPercent] = useState<number>(null)
 
 
-  //Used to set just biosample in filters. Used for performance improvement to avoid having entire mainQueryParams in dep array
+  //Used to set just biosample in filters.
   const handleSetBiosample = (biosample: RegistryBiosample) => { setMainQueryParams({ ...mainQueryParams, biosample: biosample }) }
 
   //using useRef, and then assigning their value in useEffect to prevent accessing sessionStorage on the server
@@ -215,6 +225,9 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
 
   //Keep URL and state in sync. Prevent from firing initially to allow time for opencCREs to be initialized
   //J 7/13 this really needs to be made cleaner. This is confusing to read
+  /**
+   * @todo this should not be done in a useEffect. This should be done in event handlers for updating relevant state variables
+   */
   useEffect(() => {
     //Check if the URL params representing state are stale
     if (
@@ -222,13 +235,11 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       //bug potentially?
       (JSON.stringify(constructMainQueryParamsFromURL(searchParams)) !== JSON.stringify(mainQueryParams)
         || JSON.stringify(constructFilterCriteriaFromURL(searchParams)) !== JSON.stringify(filterCriteria)
-        || JSON.stringify(constructBiosampleTableFiltersFromURL(searchParams)) !== JSON.stringify(biosampleTableFilters)
         || +searchParams.page !== page
         || searchParams.accessions !== opencCREs.map(x => x.ID).join(','))) {
       const newURL = constructSearchURL(
         mainQueryParams,
         filterCriteria,
-        biosampleTableFilters,
         page,
         opencCREs.map(x => x.ID).join(',')
       )
@@ -236,7 +247,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       // console.log("pushing new url:" + newURL)
       router.push(newURL)
     }
-  }, [searchParams, mainQueryParams, filterCriteria, biosampleTableFilters, page, opencCREs, router, basePathname, opencCREsInitialized, loadingFetch])
+  }, [searchParams, mainQueryParams, filterCriteria, page, opencCREs, router, basePathname, opencCREsInitialized, loadingFetch])
 
   //fetch biosample info, populate selected biosample if specified
   useEffect(() => {
@@ -410,7 +421,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       mainQueryParams.coordinates.chromosome,
       start,
       end,
-      mainQueryParams.biosample,
+      mainQueryParams.biosample.name,
       mainQueryParams.searchConfig.bed_intersect,
       mainQueryParams.gene.nearTSS ? TSSranges : null,
       assays,
@@ -445,25 +456,26 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               aria-label="navigation tabs"
               value={page}
               onChange={handlePageChange}
+              
             >
               {/* Hidden empty icon to keep tab height consistent */}
-              <StyledTab iconPosition="end" icon={<Box sx={{ display: 'none' }} />} value={0} label="Table View" />
+              <StyledHorizontalTab iconPosition="end" icon={<Box sx={{ display: 'none' }} />} value={0} label="Table View" />
               {!mainQueryParams.searchConfig.bed_intersect &&
-                <StyledTab value={1} label="Genome Browser View" />
+                <StyledHorizontalTab value={1} label="Genome Browser View" />
               }
               {mainQueryParams.gene.name &&
-                <StyledTab value={2}
+                <StyledHorizontalTab value={2}
                   label={<p><i>{mainQueryParams.gene.name}</i> Gene Expression</p>}
                 />
               }
               {mainQueryParams.gene.name && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" &&
-                <StyledTab value={3} label={<p><i>{mainQueryParams.gene.name}</i> RAMPAGE</p>} />
+                <StyledHorizontalTab value={3} label={<p><i>{mainQueryParams.gene.name}</i> RAMPAGE</p>} />
               }
 
               {/* Map opencCREs to tabs */}
               {opencCREs.length > 0 && opencCREs.map((cCRE, i) => {
                 return (
-                  <StyledTab
+                  <StyledHorizontalTab
                     onClick={(event) => event.preventDefault} key={i} value={numberOfDefaultTabs + i}
                     label={cCRE.ID}
                     icon={
@@ -511,15 +523,11 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               setMainQueryParams={setMainQueryParams}
               filterCriteria={filterCriteria}
               setFilterCriteria={setFilterCriteria}
-              biosampleTableFilters={biosampleTableFilters}
-              setBiosampleTableFilters={setBiosampleTableFilters}
               setBiosample={(biosample) => handleSetBiosample(biosample)}
               TSSs={TSSs}
               setTSSs={setTSSs}
               setTSSranges={setTSSranges}
-              biosampleData={biosampleData}
               genomeBrowserView={page === 1}
-              searchParams={searchParams}
               useLinkedGenes={useLinkedGenes}
               
             />
@@ -530,20 +538,23 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               onChange={(_, newValue: number) => { setDetailsPage(newValue) }}
               orientation="vertical"
               variant="scrollable"
-              allowScrollButtonsMobile sx={{
+              allowScrollButtonsMobile
+              sx={{
                 '& .MuiTabs-scrollButtons': { color: "black" },
                 '& .MuiTabs-scrollButtons.Mui-disabled': { opacity: 0.3 },
-              }}>
-              <StyledTab value={0} label="Biosample Activity" sx={{ alignSelf: "start" }} />
-              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledTab value={1} label="Linked Genes" sx={{ alignSelf: "start" }} />}
-              <StyledTab value={2} label="Nearby Genomic Features" sx={{ alignSelf: "start" }} />
-              <StyledTab value={3} label="Orthologous cCREs in Other Species" sx={{ alignSelf: "start" }} />
-              <StyledTab value={4} label="Associated Gene Expression" sx={{ alignSelf: "start" }} />
-              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledTab value={8} label="Associated Transcript Expression" sx={{ alignSelf: "start" }} />}
-              <StyledTab value={5} label="Functional Data" sx={{ alignSelf: "start" }} />
-              <StyledTab value={6} label="TF Motifs and Sequence Features" sx={{ alignSelf: "start" }} />
-              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledTab value={9} label="ChromHMM States" sx={{ alignSelf: "start" }} />}
-              <StyledTab value={7} label="Configure UCSC Genome Browser" sx={{ alignSelf: "start" }} />
+              }}
+            >
+              <StyledVerticalTab value={0} label="Biosample Activity" />
+              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledVerticalTab value={1} label="Linked Genes" />}
+              <StyledVerticalTab value={2} label="Nearby Genomic Features" />
+              <StyledVerticalTab value={3} label="Orthologous cCREs in Other Species" />
+              <StyledVerticalTab value={4} label="Associated Gene Expression" />
+              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledVerticalTab value={8} label="Associated Transcript Expression" />}
+              <StyledVerticalTab value={5} label="Functional Data" />
+              <StyledVerticalTab value={6} label="TF Motifs and Sequence Features" />
+              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledVerticalTab value={9} label="ChromHMM States" />}
+              <StyledVerticalTab value={7} label="Configure UCSC Genome Browser" />
+              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledVerticalTab value={10} label="ENTEx" />}
             </Tabs>
           }
         </Drawer>
@@ -584,7 +595,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                   itemsPerPage={10}
                   assembly={mainQueryParams.coordinates.assembly}
                   onRowClick={handlecCREClick}
-                  biosampleData={biosampleData}
                   useLinkedGenes={useLinkedGenes}
                   />
                   <Stack direction="row" alignItems={"center"} sx={{ mt: 1 }}>
@@ -627,10 +637,10 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
             />
           )}
           {mainQueryParams.gene.name && page === 2 &&
-            <GeneExpression assembly={mainQueryParams.coordinates.assembly} genes={[{ name: mainQueryParams.gene.name }]} biosampleData={biosampleData} />
+            <GeneExpression assembly={mainQueryParams.coordinates.assembly} genes={[{ name: mainQueryParams.gene.name }]} />
           }
           {mainQueryParams.gene.name && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" && page === 3 && (
-            <Rampage genes={[{ name: mainQueryParams.gene.name }]} biosampleData={biosampleData} />
+            <Rampage genes={[{ name: mainQueryParams.gene.name }]} />
           )}
           {page >= numberOfDefaultTabs && opencCREs.length > 0 && (
             opencCREs[page - numberOfDefaultTabs] ?
@@ -638,7 +648,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                 key={opencCREs[page - numberOfDefaultTabs].ID}
                 accession={opencCREs[page - numberOfDefaultTabs].ID}
                 region={opencCREs[page - numberOfDefaultTabs].region}
-                biosampleData={biosampleData}
                 assembly={mainQueryParams.coordinates.assembly}
                 page={detailsPage}
                 handleOpencCRE={handlecCREClick}
