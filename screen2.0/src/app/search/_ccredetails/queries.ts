@@ -392,8 +392,8 @@ query getTSSRampagePeaks($coordinates: ChromRange!) {
 `
 
 export const TSS_RAMPAGE_QUERY = gql`
-query tssRampage($peak: String!) {
-  tssrampageQuery(peakId: $peak) {
+query tssRampage($peak: String, $gene: String) {
+  tssrampageQuery(peakId: $peak, genename: $gene) {
     start    
     organ   
     strand
@@ -414,3 +414,15 @@ query tssRampage($peak: String!) {
   }
 }
 `
+export const GENE_QUERY = gql`
+query ($assembly: String!, $name_prefix: [String!], $limit: Int, $version: Int) {
+  gene(assembly: $assembly, name_prefix: $name_prefix, limit: $limit, version: $version) {
+    name
+    id
+    coordinates {
+      start
+      chromosome
+      end
+    }
+  }
+} `

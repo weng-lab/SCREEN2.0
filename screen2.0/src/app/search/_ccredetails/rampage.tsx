@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect } from "react"
+import React, { useState, useMemo } from "react"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { LoadingMessage } from "../../../common/lib/utility"
 import {  
@@ -14,51 +14,15 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material"
-import Config from "../../../config.json"
 import { PlotActivityProfiles } from "./utils"
 import Image from "next/image"
 import InfoIcon from "@mui/icons-material/Info"
 import { RampageToolTipInfo } from "./const"
-import { gql, useQuery } from "@apollo/client"
+import { useQuery } from "@apollo/client"
 import { client } from "./client"
 import ConfigureGBModal from "./configuregbmodal"
-
-const GENE_QUERY = gql`
-query ($assembly: String!, $name_prefix: [String!], $limit: Int, $version: Int) {
-  gene(assembly: $assembly, name_prefix: $name_prefix, limit: $limit, version: $version) {
-    name
-    id
-    coordinates {
-      start
-      chromosome
-      end
-    }
-  }
-} `
+import { TSS_RAMPAGE_QUERY, GENE_QUERY } from "./queries"
  
-const TSS_RAMPAGE_QUERY = `
-  query tssRampage($gene: String!) {
-  tssrampageQuery(genename: $gene) {
-    start    
-    organ   
-    strand
-    peakId
-    biosampleName
-    biosampleType
-    biosampleSummary
-    peakType
-    expAccession
-    value
-    start
-    end 
-    chrom    
-    genes {
-      geneName
-       locusType
-    }
-  }
-}
-`
 export type RampagePeak = {
   value: number,
   peakId: string,
@@ -87,54 +51,44 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
     data_gene?.gene[0] && setConfigGBOpen(true)
   }
 
-  // fetch rampage data
-  useEffect(() => {
-    fetch(Config.API.CcreAPI, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        query: TSS_RAMPAGE_QUERY, variables: {
-          gene: currentGene
-        }
-      }),
-    })
-      .then((x) => x.json())
-      .then((x) => {
-        if (x.data && x.data.tssrampageQuery.length > 0) {
-          const peaks = x.data.tssrampageQuery.map(t => t.peakId)
-          const uniquePeaks: string[] = [...new Set(peaks as string[])];
-          const d = x.data.tssrampageQuery.map(t => {
-            return {
-              value: t.value,
-              peakId: t.peakId,
-              biosampleType: t.biosampleType,
-              name: t.biosampleName,
-              locusType: t.genes[0].locusType,
-              expAccession: t.expAccession,
-              start: t.start,
-              end: t.end,
-              chrom: t.chrom,
-              peakType: t.peakType,              
-              organ: t.organ,
-              strand: t.strand,
-              tissue: t.organ
-            }
-          })
-          setPeak(uniquePeaks[0])
-          setPeaks(uniquePeaks)
-          setData(d)
-          setLoading(false)
-        } else if (x.data && x.data.tssrampageQuery.length == 0) {
-          setPeak(null)
-          setPeaks([])
-          setData([])
-          setLoading(false)
-        }
-      })
-  }, [currentGene])
+  const { loading: queryLoading, error, data: rampageData } = useQuery(
+    TSS_RAMPAGE_QUERY,
+    {
+      variables: { gene: currentGene || "" },
+      skip: !currentGene, // Skip the query if currentGene is not available
+      fetchPolicy: "cache-and-network",
+      nextFetchPolicy: "cache-first",
+    }
+  );
+
+  const processedData = useMemo(() => {
+    if (!rampageData) return [];
+
+    const peaks = rampageData.tssrampageQuery.map(t => t.peakId);
+    const uniquePeaks: string[] = [...new Set(peaks as string[])];
+
+    const formattedData = rampageData.tssrampageQuery.map(t => ({
+      value: t.value,
+      peakId: t.peakId,
+      biosampleType: t.biosampleType,
+      name: t.biosampleName,
+      locusType: t.genes[0].locusType,
+      expAccession: t.expAccession,
+      start: String(t.start),
+      end: String(t.end),
+      chrom: t.chrom,
+      peakType: t.peakType,
+      organ: t.organ,
+      strand: t.strand,
+      tissue: t.organ,
+    }));
+
+    setPeak(uniquePeaks[0]); // Set first unique peak
+    setPeaks(uniquePeaks); // Set all unique peaks
+    setLoading(false);
+    setData(formattedData);
+    return formattedData;
+  }, [rampageData]);
 
   const {
     data: data_gene
