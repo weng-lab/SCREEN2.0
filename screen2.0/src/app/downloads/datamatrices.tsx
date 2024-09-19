@@ -237,24 +237,26 @@ export function DataMatrices() {
   const selectorButton = (variant: Selected) => {
     return (
       <Button
-        variant="outlined"
+        variant="text"
         fullWidth
         onClick={() => {
-          //if ((selectedAssay && selectedAssay.assembly !== variant.assembly) || selectedAssay.assay !== variant.assay) {
-          //  router.push(`/downloads?tab=2&assembly=${variant.assembly}&assay=${variant.assay}`)
           setBounds(undefined)  
           setSelectedAssay(variant)
-          //}
         }}
-        endIcon={
-          selectedAssay && selectedAssay.assembly === variant.assembly && selectedAssay.assay === variant.assay ? <ArrowForward /> : null
-        }
         sx={{
           mb: 1,
           textTransform: "none",
-          borderLeft: `${selectedAssay && selectedAssay.assembly === variant.assembly && selectedAssay.assay === variant.assay ? "1.5rem" : "0.40rem"
-            } solid ${borderColor(variant.assay)}`,
-          "&:hover": { borderLeft: `1.5rem solid ${borderColor(variant.assay)}` },
+          backgroundColor: `${selectedAssay && selectedAssay.assembly === variant.assembly && selectedAssay.assay === variant.assay ? borderColor(variant.assay) : "initial"}`,
+          borderLeft: `0.40rem solid ${borderColor(variant.assay)}`,
+          color: `${selectedAssay && selectedAssay.assembly === variant.assembly && selectedAssay.assay === variant.assay && selectedAssay.assay === "H3K4me3" ? "white" : "initial"}`,
+          boxShadow: '0px 5px 5px rgba(0, 0, 0, 0.25)',
+          "&:hover": {
+            transform: 'translateY(-0.75px)', // Slightly moves the button upwards to create a "pop out" effect
+            boxShadow: '0px 8px 12px rgba(0, 0, 0, 0.35)', // Stronger box shadow for hover
+            backgroundColor: `${selectedAssay && selectedAssay.assembly === variant.assembly && selectedAssay.assay === variant.assay ? borderColor(variant.assay) : "initial"}`,
+            borderLeft: `${!selectedAssay || selectedAssay.assembly !== variant.assembly || selectedAssay.assay !== variant.assay 
+              ? "1.5rem solid " + borderColor(variant.assay) : undefined}`,
+          },
         }}
       >
         {`${variant.assay}`}
