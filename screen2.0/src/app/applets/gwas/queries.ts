@@ -35,7 +35,7 @@ assembly: $assembly
 }
 `
 
-export const CCRE_SEARCH = gql`query ccreSearchQuery(
+export const CCRE_SEARCH = gql`query ccreSearchQuery_2(
     $assembly: String!    
   	$celltype: String
 	$accessions: [String!]

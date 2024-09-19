@@ -22,7 +22,7 @@ type TfSequenceFeaturesProps = {
   assembly: string
 }
 const GENE_QUERY = gql`
-  query s($chromosome: String, $start: Int, $end: Int, $assembly: String!, $version: Int) {
+  query s_1($chromosome: String, $start: Int, $end: Int, $assembly: String!, $version: Int) {
     gene(chromosome: $chromosome, start: $start, end: $end, assembly: $assembly, version: $version) {
       name
       strand

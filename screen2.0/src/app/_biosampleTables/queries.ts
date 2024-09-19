@@ -9,7 +9,7 @@ export const RNA_SEQ_QUERY = gql`
 `
 
 export const BIOSAMPLE_QUERY = gql`
-  query biosamples($assembly: String!) {
+  query biosamples_1($assembly: String!) {
     ccREBiosampleQuery(assembly: $assembly) {
       biosamples {
         name
