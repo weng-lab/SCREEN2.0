@@ -8,8 +8,20 @@ import { CA_CTCF, CA_H3K4me3, CA_TF, CA_only, PLS, TF_only, dELS, pELS, CTCF_Bou
 import Image from "next/image"
 import humanTransparentIcon from "../../../public/Transparent_HumanIcon.png"
 import mouseTransparentIcon from "../../../public/Transparent_MouseIcon.png"
-import { fetchFileSize } from "./page"
 import BiosampleTables from "../_biosampleTables/BiosampleTables"
+
+export const fetchFileSize = async (url: string, setFileSize: React.Dispatch<React.SetStateAction<number>>) => {
+  try {
+    const response = await fetch(url, { method: 'HEAD' });
+    const contentLength = response.headers.get('Content-Length');
+    if (contentLength) {
+      setFileSize(parseInt(contentLength, 10));
+    }
+  } catch (error) {
+    console.log("error fetching file size for ", url)
+  }
+}
+
 
 //For all Human/Mouse cCREs
 const DownloadButton = (props: ButtonProps & { label: string }) => {

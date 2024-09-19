@@ -15,18 +15,6 @@ function a11yProps(index: number) {
   }
 }
 
-export const fetchFileSize = async (url: string, setFileSize: React.Dispatch<React.SetStateAction<number>>) => {
-  try {
-    const response = await fetch(url, { method: 'HEAD' });
-    const contentLength = response.headers.get('Content-Length');
-    if (contentLength) {
-      setFileSize(parseInt(contentLength, 10));
-    }
-  } catch (error) {
-    console.log("error fetching file size for ", url)
-  }
-}
-
 export default function Downloads() {
   const [page, setPage] = useState(0)
   
