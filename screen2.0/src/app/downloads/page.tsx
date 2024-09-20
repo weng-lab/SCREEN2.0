@@ -23,7 +23,7 @@ export default function Downloads() {
   }
 
   return (
-    <Container>
+    <Container maxWidth={false}>
       <Grid2 mt={2} container spacing={2}>
         <Grid2 xs={12}>
           <Tabs value={page} onChange={handleChange} aria-label="basic tabs example" variant="scrollable" allowScrollButtonsMobile>
