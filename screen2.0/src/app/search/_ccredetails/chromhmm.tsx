@@ -22,7 +22,7 @@ const StyledTab = styled(Tab)(() => ({
   }))
  
 const GENE_QUERY = gql`
-  query s($chromosome: String, $start: Int, $end: Int, $assembly: String!) {
+  query s_3($chromosome: String, $start: Int, $end: Int, $assembly: String!) {
     gene(chromosome: $chromosome, start: $start, end: $end, assembly: $assembly) {
       name
       strand

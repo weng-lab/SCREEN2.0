@@ -65,7 +65,7 @@ export const GeneAutocomplete = (
   const onSearchChange = async (value: string, assembly: string) => {
     setOptions([])
     setLoadingOptions(true)
-    const response = await fetch(Config.API.GraphqlAPI, {
+    const response = await fetch(Config.API.CcreAPI, {
       method: "POST",
       body: JSON.stringify({
         query: GENE_AUTOCOMPLETE_QUERY,
