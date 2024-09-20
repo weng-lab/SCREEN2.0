@@ -1,7 +1,5 @@
 import { gql } from "../../../graphql/__generated__/gql"
 
-
-
 export const GET_ALL_GWAS_STUDIES = gql(`
   query getAllGWASStudies {
     getAllGwasStudies {
@@ -76,6 +74,7 @@ export const CCRE_SEARCH = gql(`
     }
   }
 `)
+
 export const CT_ENRICHMENT = gql(`
   query getGWASCTEnrichmentQuery($study: String!) {
     getGWASCtEnrichmentQuery(study: $study) {
@@ -87,8 +86,6 @@ export const CT_ENRICHMENT = gql(`
     }
   }
 `)
-
-
 
 export const BIOSAMPLE_DISPLAYNAMES = gql(`
   query getDisplayNames($assembly: String!, $samples: [String!]) {

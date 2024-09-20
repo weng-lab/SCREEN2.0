@@ -1,7 +1,7 @@
 import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, CircularProgress, FormControlLabel, Accordion, FormGroup, Checkbox, IconButton, Menu, MenuItem, InputAdornment, FormControl, FormLabel, Paper, Stack } from "@mui/material"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { useCallback,  useMemo, useState } from "react"
-import { BiosampleDataVars, BiosampleReturnData, CheckboxState, FiltersKey, Props, RegistryBiosample, RegistryBiosamplePlusRNA, RNA_SEQ_Data, RNA_SEQ_Variables } from "./types"
+import { CheckboxState, FiltersKey, Props, RegistryBiosample, RegistryBiosamplePlusRNA } from "./types"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
 import { Check,  Close,  FilterList } from "@mui/icons-material"
 import SearchIcon from '@mui/icons-material/Search';
@@ -56,7 +56,7 @@ export const BiosampleTables = <T extends boolean = false>({
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => { setAnchorEl(event.currentTarget) }
 
 
-  const { data: biosampleData, loading: loadingBiosamples, error: errorBiosamples } = useQuery<BiosampleReturnData, BiosampleDataVars>(
+  const { data: biosampleData, loading: loadingBiosamples, error: errorBiosamples } = useQuery(
     BIOSAMPLE_QUERY,
     {
       variables: {
@@ -65,7 +65,7 @@ export const BiosampleTables = <T extends boolean = false>({
     }
   )
 
-  const { data: data_rnaseq, loading: loading_rnaseq, error: error_rnaseq } = useQuery<RNA_SEQ_Data, RNA_SEQ_Variables>(
+  const { data: data_rnaseq, loading: loading_rnaseq, error: error_rnaseq } = useQuery(
     RNA_SEQ_QUERY,
     {
       variables: {
