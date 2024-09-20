@@ -14,7 +14,6 @@ import { RegistryBiosamplePlusRNA } from "../../search/types"
 import { EnrichmentLollipopPlot, RawEnrichmentData, TransformedEnrichmentData } from "./_lollipop-plot/lollipopplot"
 import { ParentSize } from "@visx/responsive"
 import { ParentSizeProvidedProps } from "@visx/responsive/lib/components/ParentSize"
-import { BiosampleNameData, BiosampleNameVars, EnrichmentData, EnrichmentVars } from "./types"
 import { tissueColors } from "../../../common/lib/colors"
 import { CancelRounded, Info } from "@mui/icons-material"
 import { capitalizeFirstLetter } from "./helpers"
@@ -162,7 +161,7 @@ export default function GWAS() {
   }, [cCREsIntersectionData])
 
 
-  const { data: enrichmentData, loading: enrichmentLoading, error: enrichmentError } = useQuery<EnrichmentData, EnrichmentVars>(
+  const { data: enrichmentData, loading: enrichmentLoading, error: enrichmentError } = useQuery(
     CT_ENRICHMENT,
     {
       variables: {
@@ -173,7 +172,7 @@ export default function GWAS() {
     }
   )
 
-  const { data: biosampleNames, loading: loadingBiosampleNames, error: errorBiosampleNames } = useQuery<BiosampleNameData, BiosampleNameVars>(
+  const { data: biosampleNames, loading: loadingBiosampleNames, error: errorBiosampleNames } = useQuery(
     BIOSAMPLE_DISPLAYNAMES,
     {
       variables: {
