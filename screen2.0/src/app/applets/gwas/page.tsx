@@ -18,9 +18,8 @@ import { tissueColors } from "../../../common/lib/colors"
 import { CancelRounded, Info } from "@mui/icons-material"
 import { capitalizeFirstLetter } from "./helpers"
 
-//Background colors for the accordions
-const lightBlue = "#5F8ED3"
-const darkBlue = "#2C5BA0"
+//Colors for the accordions and background
+const lighterBlue = "#4B56BD"
 const orange = "#F1884D"
 const lightOrange = "#FDEFE7 !important"
 const background = "#F9F9F9"
@@ -304,7 +303,7 @@ export default function GWAS() {
     return gwasstudiesLoading ? LoadingMessage() : gwasstudies && gwasstudies.getAllGwasStudies.length > 0 &&
       <div id="study-selection">
         <Accordion expanded={studiesOpen} onChange={handleSetStudiesOpen} sx={{borderRadius: '4px !important'}}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: lightBlue, color: lightTextColor, borderRadius: '4px' }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: theme.palette.primary.main, color: lightTextColor, borderRadius: '4px' }}>
             <Typography variant="h6">GWAS Studies</Typography>
             <Tooltip title={"Select a study to view cCREs overlapping associated SNPs"} sx={{alignSelf: "center", ml: 1}}>
               <Info />
@@ -349,7 +348,7 @@ export default function GWAS() {
     return (
       <div>
         <Accordion expanded={samplesOpen} onChange={handleSetSamplesOpen} disabled={!study} sx={{ borderRadius: '4px !important' }}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: lightBlue, color: lightTextColor, borderRadius: '4px' }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: theme.palette.primary.main, color: lightTextColor, borderRadius: '4px' }}>
             <Typography variant="h6">Select a Biosample</Typography>
             <Tooltip title={"Optionally select a biosample to view biosample-specific assay z-scores"} sx={{ alignSelf: "center", ml: 1 }}>
               <Info />
@@ -381,7 +380,7 @@ export default function GWAS() {
     return (
       <div>
         <Accordion defaultExpanded>
-          <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: darkBlue, color: lightTextColor, borderRadius: '4px' }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: lighterBlue, color: lightTextColor, borderRadius: '4px' }}>
             <Typography variant="h6">LD Blocks</Typography>
             <Tooltip title={"LD Blocks are regions of the genome where genetic variants are inherited together due to high levels of linkage disequilibrium (LD)"} sx={{alignSelf: "center", ml: 1}}>
               <Info />
@@ -415,7 +414,7 @@ export default function GWAS() {
     return (
       <div>
         <Accordion defaultExpanded>
-          <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: darkBlue, color: lightTextColor, borderRadius: '4px' }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: lighterBlue, color: lightTextColor, borderRadius: '4px' }}>
             <Typography variant="h6">Intersecting cCREs</Typography>
             <Tooltip title={"cCREs intersected against SNPs identified by selected GWAS study"} sx={{alignSelf: "center", ml: 1}}>
               <Info />
