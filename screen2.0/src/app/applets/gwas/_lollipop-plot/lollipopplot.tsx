@@ -7,7 +7,7 @@ import { AxisBottom } from '@visx/axis'
 import { Text } from '@visx/text'
 import { defaultStyles as defaultTooltipStyles, useTooltip, TooltipWithBounds, Portal } from '@visx/tooltip';
 import { Button, Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, IconButton, InputLabel, OutlinedInput, Radio, RadioGroup, Stack, Tooltip, Typography } from '@mui/material';
-import { Close, Download, KeyboardDoubleArrowUp, Search } from '@mui/icons-material';
+import { ArrowDownward, ArrowUpward, Close, Download, KeyboardDoubleArrowUp, Search } from '@mui/icons-material';
 import { localPoint } from '@visx/event';
 import DownloadDialog, { FileOption } from './DownloadDialog';
 import { downloadObjArrayAsTSV, downloadObjectAsJson, downloadSVG, downloadSvgAsPng } from '../helpers';
@@ -56,7 +56,8 @@ const minFDRval: number = 1e-300
 const FCaugmentation: number = 0.000001
 
 export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
-  const [sortBy, setSortBy] = useState<"FDR" | "foldEnrichment">("foldEnrichment")
+  const [sortBy, setSortBy] = useState<"FDR" | "FC">("FC")
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc")
   const [FDRcutoff, setFDRcutoff] = useState<boolean>(false)
   const [pvalCutoff, setPvalCutoff] = useState<boolean>(false)
   const [groupTissues, setGroupTissues] = useState<boolean>(true)
@@ -81,6 +82,17 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
   const plotData: { grouped: { [key: string]: TransformedEnrichmentData[] }, ungrouped: TransformedEnrichmentData[] } = useMemo(() => {
     const data: { grouped: { [key: string]: TransformedEnrichmentData[] }, ungrouped: TransformedEnrichmentData[] } = { grouped: {}, ungrouped: [] }
 
+    const sortByFDR = (a: TransformedEnrichmentData, b: TransformedEnrichmentData) => {
+      const difference = sortDirection === "asc" ? a.fdr - b.fdr : b.fdr - a.fdr
+      if (difference === 0) { //Since FDR is minFDRval semi-often, need to have fallback sort by FC
+        return sortDirection === "asc" ? b.log2fc - a.log2fc : a.log2fc - b.log2fc
+      } else return difference
+    }
+
+    const sortByFC = (a: TransformedEnrichmentData, b: TransformedEnrichmentData) => {
+      return sortDirection === "asc" ? a.log2fc - b.log2fc : b.log2fc - a.log2fc
+    }
+
     props.data.forEach((x: RawEnrichmentData) => {
       const transformedData: TransformedEnrichmentData = {
         ...x,
@@ -98,21 +110,21 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
       }
     })
 
-    data.ungrouped.sort((a, b) => sortBy === "foldEnrichment" ? b.log2fc - a.log2fc : a.fdr - b.fdr)
+    data.ungrouped.sort((a, b) => sortBy === "FC" ? sortByFC(a, b) : sortByFDR(a, b))
 
     const sortedGroups = Object.entries(data.grouped)
       //Sort each tissue's values by specified sort
-      .map((x: [string, TransformedEnrichmentData[]]) => { x[1].sort((a, b) => sortBy === "foldEnrichment" ? b.log2fc - a.log2fc : a.fdr - b.fdr); return x })
+      .map((x: [string, TransformedEnrichmentData[]]) => { x[1].sort((a, b) => sortBy === "FC" ? sortByFC(a, b) : sortByFDR(a, b)); return x })
       //Sort the tissues
       .sort((a, b) => {
         //check first index since it should be the largest of that tissue
-        return sortBy === "foldEnrichment" ? b[1][0].log2fc - a[1][0].log2fc : a[1][0].fdr - b[1][0].fdr
+        return sortBy === "FC" ? sortByFC(a[1][0], b[1][0]) : sortByFDR(a[1][0], b[1][0])
       });
 
     data.grouped = Object.fromEntries(sortedGroups)
 
     return data
-  }, [FDRcutoff, pvalCutoff, props.data, sortBy, sampleMatchesSearch])
+  }, [FDRcutoff, pvalCutoff, props.data, sortBy, sampleMatchesSearch, sortDirection])
 
 
 
@@ -141,8 +153,16 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
   }, [groupTissues, plotData.grouped, plotData.ungrouped, props.title]) 
 
   const handleSortBy = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSortBy((event.target as HTMLInputElement).value as "FDR" | "foldEnrichment");
+    const newSortBy = event.target.value as "FDR" | "FC"
+    if (newSortBy === "FC") {
+      setSortDirection("desc") //If going to FC, sort descending
+    } else setSortDirection("asc") //If going to FDR, sort ascending
+    setSortBy(newSortBy);
   };
+
+  const handleReverseSortDirection = useCallback(() => {
+    sortDirection === "asc" ? setSortDirection("desc") : setSortDirection("asc")
+  }, [sortDirection, setSortDirection]) 
 
   const handleFDRcutoff = (event: React.ChangeEvent<HTMLInputElement>) => {
     setFDRcutoff(event.target.checked);
@@ -389,8 +409,14 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
           <FormControl>
             <FormLabel>Sort By</FormLabel>
             <RadioGroup row value={sortBy} onChange={handleSortBy}>
-              <FormControlLabel value="foldEnrichment" control={<Radio size='small' sx={{py: 0}} />} label={<>Log<sub>2</sub>(Fold Change)</>} />
-              <FormControlLabel value="FDR" control={<Radio size='small' />} label={"FDR"} />
+              <Stack direction={"row"} mr={2} alignItems={"baseline"}>
+                <FormControlLabel value="FC" control={<Radio size='small' />} sx={{mr: 0}} label={<>Log<sub>2</sub>(Fold Change)</>} />
+                {sortBy === "FC" && <IconButton size='small' sx={{p: 0, ml: 0.5}} onClick={handleReverseSortDirection}>{sortDirection === "asc" ? <ArrowUpward /> : <ArrowDownward />}</IconButton>}
+              </Stack>
+              <Stack direction={"row"} alignItems={"baseline"}>
+                <FormControlLabel value="FDR" control={<Radio size='small' />} sx={{mr: 0}} label={"FDR"} />
+                {sortBy === "FDR" && <IconButton size='small' sx={{p: 0, ml: 0.5}} onClick={handleReverseSortDirection}>{sortDirection === "asc" ? <ArrowUpward /> : <ArrowDownward />}</IconButton>}
+              </Stack>
             </RadioGroup>
           </FormControl>
           <FormControl>
@@ -484,7 +510,7 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
             <Typography>{tooltipData.ontology}</Typography>
             <Typography variant='body2'>{tooltipData.accession}</Typography>
             <Typography variant='body2'><i>P</i>: {toScientificNotationElement(tooltipData.pvalue, 2, {display: "inline", variant: "inherit"})}</Typography>
-            <Typography variant='body2'>FDR: {tooltipData.fdr.toFixed(2)}</Typography>
+            <Typography variant='body2'>FDR: {toScientificNotationElement(tooltipData.fdr, 3, {display: "inline", variant: "inherit"})}</Typography>
             <Typography variant='body2'>Fold Change: {tooltipData.fc.toFixed(2)}</Typography>
             <Typography variant='body2'>Log<sub>2</sub>(Fold Change): {tooltipData.log2fc.toFixed(2)}</Typography>
           </TooltipWithBounds>
