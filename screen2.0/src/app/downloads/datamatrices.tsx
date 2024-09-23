@@ -329,7 +329,7 @@ export function DataMatrices() {
     <Stack mt={1} direction="row" justifyContent="space-between" spacing={10} sx={{ height: '100vh', paddingX:6 }}>
       <Stack direction="column" sx={{ flex: 1.5 }} spacing={2}>
         <Stack direction="row" spacing={15} sx={{ flexShrink: 0 }}>
-          
+
           {/* human section */}
           <Stack direction="column" spacing={1} sx={{ flex: 1 }}>
             <Grid2 container direction="row" alignItems="flex-start" spacing={2}>
@@ -426,71 +426,75 @@ export function DataMatrices() {
           </Stack>
         </Stack>
 
-        {/* graph area */}
-        <Stack padding={1} sx={{border: '1px solid', borderColor: 'grey.500', borderRadius: '8px', width: '100%', height: '80%'}}>
-          {biosamples.length !== 0 && (
-            <Stack direction="row" justifyContent="space-between" mt={2} sx={{backgroundColor: '#dbdefc', borderRadius: '8px'}}>
-              <Button endIcon={biosamples.length !== 0 && <Visibility />} onClick={handleOpenModal}>
-                {`${biosamples.length} Experiments Selected`}
-              </Button>
-              <Button onClick={() => setBiosamples([])}>Clear Selection</Button>
-            </Stack>
-          )}
-          <Chart
-            domain={{ x: { start: xMin, end: xMax }, y: { start: yMin, end: yMax } }}
-            innerSize={{ width: 1000, height: 1000 }}
-            xAxisProps={{ ticks: (bounds ? oneRange : fiveRange)(xMin, xMax), title: "UMAP-1", fontSize: 40 }}
-            yAxisProps={{ ticks: (bounds ? oneRange : fiveRange)(yMin, yMax), title: "UMAP-2", fontSize: 40 }}
-            scatterData={[scatterData]}
-            plotAreaProps={{
-              onFreeformSelectionEnd: (_, c) => setBiosamples(c[0].map((x) => fData[x])),
-              onSelectionEnd: (x) => handleSetBounds(x),
-              freeformSelection: selectMode === "select",
-            }}
-            >
-            <Scatter
-              data={scatterData}
-              pointStyle={{ r: bounds ? 8 : 6 }}
-              onPointMouseOver={(i, _) => setTimeout(() => setTooltip(i), 100)}
-              onPointMouseOut={() => setTimeout(() => setTooltip(-1), 100)}
-              onPointClick={(i) => setBiosamples([fData[i]])}
-            />
-            {tooltip !== -1 && (
-              <Annotation notScaled notTranslated x={0} y={0}>
-                <rect x={35} y={100} width={740} height={120} strokeWidth={2} stroke="#000000" fill="#ffffffdd" />
-                <rect
-                  x={55}
-                  y={120}
-                  width={740 * 0.04}
-                  height={740 * 0.04}
-                  strokeWidth={1}
-                  stroke="#000000"
-                  fill={
-                    (colorBy === "sampleType" ? sampleTypeColors : ontologyColors)[colorBy === "sampleType" ? fData[tooltip].sampleType : fData[tooltip].ontology]
-                  }
+        {/* graph section */}
+        <Stack padding={1} sx={{border: '2px solid', borderColor: 'grey.400', borderRadius: '8px'}}>
+        <Stack direction="row" justifyContent="space-between" mt={1} sx={{ backgroundColor: '#dbdefc', borderRadius: '8px' }}>
+          <Button endIcon={biosamples.length !== 0 && <Visibility />} onClick={handleOpenModal}>
+            {`${biosamples.length} Experiments Selected`}
+          </Button>
+          <Button onClick={() => setBiosamples([])}>Clear Selection</Button>
+          </Stack>
+          <Stack alignItems="center">
+            <Grid2 xs={8} padding={3} mb={-6} mt={-6}>
+              <Chart
+                domain={{ x: { start: xMin, end: xMax }, y: { start: yMin, end: yMax } }}
+                innerSize={{ width: 1000, height: 1000 }}
+                xAxisProps={{ ticks: (bounds ? oneRange : fiveRange)(xMin, xMax), title: "UMAP-1", fontSize: 35 }}
+                yAxisProps={{ ticks: (bounds ? oneRange : fiveRange)(yMin, yMax), title: "UMAP-2", fontSize: 35 }}
+                scatterData={[scatterData]}
+                plotAreaProps={{
+                  onFreeformSelectionEnd: (_, c) => setBiosamples(c[0].map((x) => fData[x])),
+                  onSelectionEnd: (x) => handleSetBounds(x),
+                  freeformSelection: selectMode === "select",
+                }}
+                >
+                <Scatter
+                  data={scatterData}
+                  pointStyle={{ r: bounds ? 8 : 6 }}
+                  onPointMouseOver={(i, _) => setTimeout(() => setTooltip(i), 100)}
+                  onPointMouseOut={() => setTimeout(() => setTooltip(-1), 100)}
+                  onPointClick={(i) => setBiosamples([fData[i]])}
                 />
-                <text x={100} y={140} fontSize="26px" fontWeight="bold">
-                  {fData[tooltip].displayname.replace(/_/g, " ").slice(0, 45)}
-                  {fData[tooltip].displayname.length > 45 ? "..." : ""}
-                </text>
-                <text x={55} y={185} fontSize="24px">
-                  {fData[tooltip].experimentAccession}
-                </text>
-              </Annotation>
-            )}
-          </Chart>
+                {tooltip !== -1 && (
+                  <Annotation notScaled notTranslated x={0} y={0}>
+                    <rect x={35} y={100} width={740} height={120} strokeWidth={2} stroke="#000000" fill="#ffffffdd" />
+                    <rect
+                      x={55}
+                      y={120}
+                      width={740 * 0.04}
+                      height={740 * 0.04}
+                      strokeWidth={1}
+                      stroke="#000000"
+                      fill={
+                        (colorBy === "sampleType" ? sampleTypeColors : ontologyColors)[colorBy === "sampleType" ? fData[tooltip].sampleType : fData[tooltip].ontology]
+                      }
+                    />
+                    <text x={100} y={140} fontSize="26px" fontWeight="bold">
+                      {fData[tooltip].displayname.replace(/_/g, " ").slice(0, 45)}
+                      {fData[tooltip].displayname.length > 45 ? "..." : ""}
+                    </text>
+                    <text x={55} y={185} fontSize="24px">
+                      {fData[tooltip].experimentAccession}
+                    </text>
+                  </Annotation>
+                )}
+              </Chart>
+            </Grid2>
+          </Stack>
           <Stack direction="row" justifyContent={"flex-end"}>
             <Button disabled={!bounds} variant="contained" onClick={() => setBounds(undefined)}>Reset</Button>
           </Stack>
         </Stack>
-        {/* end graph area */}
       </Stack>
 
       {/* biosample table*/}
-      <Grid2 padding={1} sx={{border: '1px solid', borderColor: 'grey.500', borderRadius: '8px', height: '80%'}}>
+      <Grid2 padding={1} sx={{height: '84%'}}>
         <BiosampleTables
           assembly={selectedAssay?.assembly === "Human" ? "GRCh38" : "mm10"}
           showDownloads
+          slotProps={{
+            paperStack: { height: '100%', overflow: 'hidden' }
+          }}
         />
       </Grid2>
       <Modal open={open} onClose={handleCloseModal} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
