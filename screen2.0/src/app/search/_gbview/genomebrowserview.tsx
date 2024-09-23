@@ -25,7 +25,7 @@ type GenomeBrowserViewProps = {
 }
 
 const BIOSAMPLE_QUERY = gql`
-  query biosamples {
+  query biosamples_2 {
     human: ccREBiosampleQuery(assembly: "grch38") {
       biosamples {
         name
@@ -57,7 +57,7 @@ const BIOSAMPLE_QUERY = gql`
   }
 `
 const GENE_QUERY = gql`
-  query s($chromosome: String, $start: Int, $end: Int, $assembly: String!, $version: Int) {
+  query s_2($chromosome: String, $start: Int, $end: Int, $assembly: String!, $version: Int) {
     gene(chromosome: $chromosome, start: $start, end: $end, assembly: $assembly, version: $version) {
       name
       strand

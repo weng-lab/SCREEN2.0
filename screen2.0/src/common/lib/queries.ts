@@ -7,7 +7,7 @@ import { ApolloQueryResult, TypedDocumentNode, gql } from "@apollo/client"
 import { RegistryBiosample } from "../../app/search/types"
 
 const cCRE_QUERY = gql`
-  query ccreSearchQuery(
+  query ccreSearchQuery_1(
     $accessions: [String!]
     $assembly: String!
     $cellType: String
@@ -176,7 +176,7 @@ export type BIOSAMPLE_Data = {
 }
 
 const BIOSAMPLE_QUERY: TypedDocumentNode<BIOSAMPLE_Data> = gql`
-  query biosamples {
+  query biosamples_3 {
     human: ccREBiosampleQuery(assembly: "grch38") {
       biosamples {
         name

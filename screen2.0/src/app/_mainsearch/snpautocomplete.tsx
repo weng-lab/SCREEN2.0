@@ -18,7 +18,7 @@ export const SnpAutoComplete: React.FC<{ assembly: string, header?: boolean }> =
 
   const onSearchChange = async (value: string, assembly: string) => {
     setOptions([])
-    const response = await fetch(Config.API.GraphqlAPI, {
+    const response = await fetch(Config.API.CcreAPI, {
       method: "POST",
       body: JSON.stringify({
         query: SNP_AUTOCOMPLETE_QUERY,

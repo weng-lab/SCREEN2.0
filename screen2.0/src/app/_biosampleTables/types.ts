@@ -85,24 +85,6 @@ export type RegistryBiosample = {
   atac_signal: string | null;
 };
 
-export type RNA_SEQ_Data = {
-  rnaSeqQuery: {
-    biosample: string
-  }[]
-}
-
-export type RNA_SEQ_Variables = {
-  assembly: "mm10" | "grch38",
-}
-
-export type BiosampleReturnData = {
-  ccREBiosampleQuery: { biosamples: RegistryBiosample[] }
-}
-
-export type BiosampleDataVars = {
-  assembly: "grch38" | "mm10"
-}
-
 export type FiltersKey = "CellLine" | "PrimaryCell" | "Tissue" | "Organoid" | "InVitro" | "Core" | "Partial" | "Ancillary" | "Embryo" | "Adult"
 
 export type CheckboxState = { [key in FiltersKey]: boolean }
