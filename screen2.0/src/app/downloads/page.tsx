@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Tabs, Tab, Box, Container, Divider} from "@mui/material"
+import { Tabs, Tab, Box, Container, Divider, Stack} from "@mui/material"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
 import { Annotations } from "./annotations"
 import { DataMatrices } from "./datamatrices"
@@ -23,7 +23,7 @@ export default function Downloads() {
   }
 
   return (
-    <Container maxWidth={false}>
+    <Stack sx={{paddingX:15}}>
       <Grid2 mt={2} container spacing={2}>
         <Grid2 xs={12}>
           <Tabs value={page} onChange={handleChange} aria-label="basic tabs example" variant="scrollable" allowScrollButtonsMobile>
@@ -39,6 +39,6 @@ export default function Downloads() {
           {page === 2 && <DownloadRange />}
         </Grid2>
       </Grid2>
-    </Container>
+    </Stack>
   )
 }
