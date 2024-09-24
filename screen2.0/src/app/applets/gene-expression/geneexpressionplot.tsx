@@ -2,7 +2,7 @@ import React from "react"
 import { useRouter } from "next/navigation"
 import { Stack } from "@mui/material"
 import { Range2D, Point2D, linearTransform2D } from "jubilant-carnival"
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import Grid from "@mui/material/Grid2"
 import { tissueColors } from "../../../common/lib/colors"
 import { stringToColour } from "../../search/_ccredetails/utils"
 

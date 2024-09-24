@@ -4,7 +4,7 @@ import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
 import { TOP_TISSUES, GET_CCRE_CT_TF } from "./queries"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { z_score, z_score_render, GROUP_COLOR_MAP } from "./utils"
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import Grid from "@mui/material/Grid2"
 import { LoadingMessage } from "../../../common/lib/utility"
 
 export type cCRERow = {
@@ -332,70 +332,69 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
     partialDataCollection = ccreCts.filter((c) => c.type === "partial")
     ancillaryCollection = ccreCts.filter((c) => c.type === "ancillary")
   }
-  return (
-    loading_toptissues || error_toptissues ? (
-      <Grid2 container spacing={3} sx={{ mt: "0rem", mb: "0rem" }}>
-        <Grid2 xs={12} md={12} lg={12}>
-          <LoadingMessage />
-        </Grid2>
-      </Grid2>
-    ) : (
-      <Grid2 container spacing={3} sx={{ mt: "0rem", mb: "0rem" }}>
-        <Grid2 xs={12}>
-          {data_toptissues && (
-            <DataTable
-              rows={[{ ...data_toptissues.cCREQuery[0] }]}
-              tableTitle="Cell type agnostic classification"
-              columns={ctAgnosticColumns()}
-              sortColumn={1}
-              searchable
-              downloadFileName={`${assembly} ${accession} - Cell type agnostic classification.tsv`}
-            />
-          )}
-        </Grid2>
-        <Grid2 xs={12}>
-          {/* Core Collection */}
-          {coreCollection  ? (
-            <DataTable
-              columns={tableCols()}
-              tableTitle="Core Collection"
-              rows={coreCollection}
-              sortColumn={1}
-              itemsPerPage={5}
-              searchable
-              downloadFileName={`${assembly} ${accession} - Core Collection.tsv`}
-            />
-          ) : <LoadingMessage />}
-        </Grid2>
-        <Grid2 xs={12}>
-          {/* Type B & D */}
-          {partialDataCollection  ? (
-            <DataTable
-              columns={tableCols()}
-              sortColumn={1}
-              tableTitle="Partial Data Collection"
-              rows={partialDataCollection}
-              itemsPerPage={5}
-              searchable
-              downloadFileName={`${assembly} ${accession} - Partial Data Collection.tsv`}
-            />
-          ) : <LoadingMessage />}
-        </Grid2>
-        <Grid2 xs={12}>
-          {/* Type C */}
-          {ancillaryCollection ? (
-            <DataTable
-              columns={tableCols(true)}
-              tableTitle="Ancillary Collection"
-              rows={ancillaryCollection}
-              sortColumn={1}
-              itemsPerPage={5}
-              searchable
-              downloadFileName={`${assembly} ${accession} - Ancillary Collection.tsv`}
-            />
-          ) : <LoadingMessage />}
-        </Grid2>
-      </Grid2>
-    )
-  )
+  return (loading_toptissues || error_toptissues ? (<Grid container spacing={3} sx={{ mt: "0rem", mb: "0rem" }}>
+    <Grid
+      size={{
+        xs: 12,
+        md: 12,
+        lg: 12
+      }}>
+      <LoadingMessage />
+    </Grid>
+  </Grid>) : (<Grid container spacing={3} sx={{ mt: "0rem", mb: "0rem" }}>
+    <Grid size={12}>
+      {data_toptissues && (
+        <DataTable
+          rows={[{ ...data_toptissues.cCREQuery[0] }]}
+          tableTitle="Cell type agnostic classification"
+          columns={ctAgnosticColumns()}
+          sortColumn={1}
+          searchable
+          downloadFileName={`${assembly} ${accession} - Cell type agnostic classification.tsv`}
+        />
+      )}
+    </Grid>
+    <Grid size={12}>
+      {/* Core Collection */}
+      {coreCollection  ? (
+        <DataTable
+          columns={tableCols()}
+          tableTitle="Core Collection"
+          rows={coreCollection}
+          sortColumn={1}
+          itemsPerPage={5}
+          searchable
+          downloadFileName={`${assembly} ${accession} - Core Collection.tsv`}
+        />
+      ) : <LoadingMessage />}
+    </Grid>
+    <Grid size={12}>
+      {/* Type B & D */}
+      {partialDataCollection  ? (
+        <DataTable
+          columns={tableCols()}
+          sortColumn={1}
+          tableTitle="Partial Data Collection"
+          rows={partialDataCollection}
+          itemsPerPage={5}
+          searchable
+          downloadFileName={`${assembly} ${accession} - Partial Data Collection.tsv`}
+        />
+      ) : <LoadingMessage />}
+    </Grid>
+    <Grid size={12}>
+      {/* Type C */}
+      {ancillaryCollection ? (
+        <DataTable
+          columns={tableCols(true)}
+          tableTitle="Ancillary Collection"
+          rows={ancillaryCollection}
+          sortColumn={1}
+          itemsPerPage={5}
+          searchable
+          downloadFileName={`${assembly} ${accession} - Ancillary Collection.tsv`}
+        />
+      ) : <LoadingMessage />}
+    </Grid>
+  </Grid>));
 }

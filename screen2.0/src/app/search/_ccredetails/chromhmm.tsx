@@ -7,7 +7,7 @@ import { gql, useQuery } from "@apollo/client"
 import {  Tab, Tabs, CircularProgress, Box } from "@mui/material"
 import CytobandView, { GenomicRange } from "../_gbview/cytobandview"
 import { client } from "./client"
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import Grid from "@mui/material/Grid2"
 import { RulerTrack, GenomeBrowser } from "umms-gb"
 import Controls from "../_gbview/controls"
 import { HumanChromHmmTracks, stateDetails } from "./humanchromhmmtracks"
@@ -177,13 +177,17 @@ export const ChromHMM = (props: { coordinates , assembly, accession }) =>{
     )
     const l = useCallback((c) => ((c - coordinates.start) * 1400) / (coordinates.end - coordinates.start), [coordinates])
   
-    return (    
-      <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "1rem" }}>
+    return (
+      (<Grid container spacing={3} sx={{ mt: "1rem", mb: "1rem" }}>
         <Tabs value={page} onChange={handlePageChange}>              
             <StyledTab  value={0} label="Genome Browser View" />
             <StyledTab value={1} label="Table View" />
         </Tabs>
-        {page==0 &&<Grid2 xs={12} lg={12}>
+        {page==0 &&<Grid
+          size={{
+            xs: 12,
+            lg: 12
+          }}>
           <br />
           <CytobandView innerWidth={1000} height={15} chromosome={coordinates.chromosome!} assembly={props.assembly!=="mm10" ?"hg38" : "mm10"} position={coordinates} />
           <br />
@@ -245,9 +249,13 @@ export const ChromHMM = (props: { coordinates , assembly, accession }) =>{
                 )
             })}
           </GenomeBrowser>
-        </Grid2>}
+        </Grid>}
         {loading && <Box display="flex" height="100%" width="100%" justifyContent="center" alignItems="center"> <CircularProgress></CircularProgress> </Box>}
-        {page==1 && chromhmmdata && <Grid2 xs={12} lg={12}>
+        {page==1 && chromhmmdata && <Grid
+          size={{
+            xs: 12,
+            lg: 12
+          }}>
             <DataTable
             tableTitle={`ChromHMM states`}
             columns={[
@@ -287,8 +295,7 @@ export const ChromHMM = (props: { coordinates , assembly, accession }) =>{
             sortDescending
             itemsPerPage={10}
             />
-        </Grid2>}
-      </Grid2>
-    
-    )
+        </Grid>}
+      </Grid>)
+    );
 }

@@ -3,7 +3,7 @@ import { Accordion, AccordionDetails, AccordionSummary, IconButton, Paper, Stack
 import React, { useState, useMemo } from "react"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { CreateLink, createLink, LoadingMessage } from "../../../common/lib/utility"
-import Grid from "@mui/material/Unstable_Grid2/Grid2"
+import Grid from "@mui/material/Grid2"
 import { CircularProgress } from "@mui/material"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import { client } from "../../search/_ccredetails/client"
@@ -497,22 +497,28 @@ export default function GWAS() {
   }, [plotData, study, suggestionsOpen])
 
   return (
-    <main style={{ backgroundColor: background }}>
+    (<main style={{ backgroundColor: background }}>
       <Grid container spacing={2} padding={5}>
-        <Grid xs={12} lg={4}>
+        <Grid
+          size={{
+            xs: 12,
+            lg: 4
+          }}>
           <Stack spacing={2} alignItems={"center"}>
             <Selections />
             {!isLg && <DataToDisplay />}
             {!isLg && SuggestionsPlot}
           </Stack>
         </Grid>
-        <Grid lg={8} display={{ xs: 'none', lg: 'block' }}>
+        <Grid display={{ xs: 'none', lg: 'block' }} size={{
+          lg: 8
+        }}>
           <Stack spacing={2}>
             <DataToDisplay />
             {SuggestionsPlot}
           </Stack>
         </Grid>
       </Grid>
-    </main>
-  )
+    </main>)
+  );
 }

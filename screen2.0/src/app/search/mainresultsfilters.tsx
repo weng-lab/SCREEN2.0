@@ -27,7 +27,7 @@ import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControl from '@mui/material/FormControl';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
-import Grid2 from "@mui/material/Unstable_Grid2"
+import Grid from "@mui/material/Grid2"
 import { RangeSlider } from "@weng-lab/psychscreen-ui-components"
 import {  FilterCriteria, MainQueryParams, RegistryBiosample } from "./types"
 import { eQTLsTissues, filtersModified } from "./searchhelpers"
@@ -233,8 +233,8 @@ export function MainResultsFilters(
     const geneInfo = linkedGenesWithNums.find(x => x.geneName === option.name)
     return (
       <li {...props} key={props.id}>
-        <Grid2 container alignItems="center">
-          <Grid2 sx={{ width: "100%" }}>
+        <Grid container alignItems="center">
+          <Grid sx={{ width: "100%" }}>
             <Box component="span" sx={{ fontWeight: "regular" }}>
               {loadingLinkedGenes ?
                 <Stack direction={'row'}>
@@ -248,8 +248,8 @@ export function MainResultsFilters(
             <Typography variant="body2" color="text.secondary">
               {descriptions.find((g) => g.name === option.name)?.desc + ` (Linked: ${geneInfo?.accessions.length ?? 0})`}
             </Typography>
-          </Grid2>
-        </Grid2>
+          </Grid>
+        </Grid>
       </li>
     )
   }, [loadingLinkedGenes, linkedGenesWithNums])
@@ -332,16 +332,16 @@ export function MainResultsFilters(
   ) => {
     return (
       <li {...props} key={props.id}>
-        <Grid2 container alignItems="center">
-          <Grid2 sx={{ width: "100%" }}>
+        <Grid container alignItems="center">
+          <Grid sx={{ width: "100%" }}>
             <Box component="span" sx={{ fontWeight: "regular" }}>
               {option.name}
             </Box>
             <Typography variant="body2" color="text.secondary">
               {`${currentGene} linked to ${option.count} in this biosample`}
             </Typography>
-          </Grid2>
-        </Grid2>
+          </Grid>
+        </Grid>
       </li>
     )
   }, [])
@@ -385,7 +385,7 @@ export function MainResultsFilters(
 
 
   return (
-    <Paper elevation={0}>
+    (<Paper elevation={0}>
       {/* cCREs within distance from SNP  */}
       {mainQueryParams.snp.rsID &&
         <>
@@ -412,8 +412,8 @@ export function MainResultsFilters(
               </Stack>
             </AccordionSummary>
             <AccordionDetails>
-              <Grid2 container spacing={2}>
-                <Grid2 xs={12}>
+              <Grid container spacing={2}>
+                <Grid size={12}>
                   <Box sx={{ width: 300 }}>
                     <Slider
                       aria-label="Custom marks"
@@ -428,8 +428,8 @@ export function MainResultsFilters(
                       marks={snpMarks}
                     />
                   </Box>
-                </Grid2>
-              </Grid2>
+                </Grid>
+              </Grid>
             </AccordionDetails>
           </Accordion>
         </>
@@ -465,8 +465,8 @@ export function MainResultsFilters(
           </AccordionSummary>
           <AccordionDetails>
             {geneTranscripts ?
-              <Grid2 container spacing={2}>
-                <Grid2 xs={12}>
+              <Grid container spacing={2}>
+                <Grid size={12}>
                   <FormControl>
                     <RadioGroup
                       aria-labelledby="gene-controlled-radio-buttons-group"
@@ -480,8 +480,8 @@ export function MainResultsFilters(
                       <FormControlLabel value="tss" control={<Radio />} label={<>Within distance of TSS of <i>{mainQueryParams.gene.name}</i></>} />
                     </RadioGroup>
                   </FormControl>
-                </Grid2>
-                {mainQueryParams.gene.nearTSS && <Grid2 xs={12}>
+                </Grid>
+                {mainQueryParams.gene.nearTSS && <Grid size={12}>
                   <Box sx={{ width: 300 }}>
                     <Typography id="input-slider" gutterBottom>
                       Distance around TSS
@@ -499,8 +499,8 @@ export function MainResultsFilters(
                       marks={tssMarks}
                     />
                   </Box>
-                </Grid2>}
-              </Grid2>
+                </Grid>}
+              </Grid>
               :
               <CircularProgress sx={{ margin: "auto" }} />
             }
@@ -589,8 +589,8 @@ export function MainResultsFilters(
               </Stack>
             </AccordionSummary>
             <AccordionDetails>
-              <Grid2 container spacing={3}>
-                {(!mainQueryParams.biosample || mainQueryParams.biosample.dnase) && <Grid2 xs={6}>
+              <Grid container spacing={3}>
+                {(!mainQueryParams.biosample || mainQueryParams.biosample.dnase) && <Grid size={6}>
                   <RangeSlider
                     title="DNase"
                     width="100%"
@@ -603,8 +603,8 @@ export function MainResultsFilters(
                       setFilterCriteria({ ...filterCriteria, dnase_s: value[0], dnase_e: value[1] })
                     }}
                   />
-                </Grid2>}
-                {(!mainQueryParams.biosample || mainQueryParams.biosample.h3k4me3) && <Grid2 xs={6}>
+                </Grid>}
+                {(!mainQueryParams.biosample || mainQueryParams.biosample.h3k4me3) && <Grid size={6}>
                   <RangeSlider
                     title="H3K4me3"
                     width="100%"
@@ -617,8 +617,8 @@ export function MainResultsFilters(
                       setFilterCriteria({ ...filterCriteria, h3k4me3_s: value[0], h3k4me3_e: value[1] })
                     }}
                   />
-                </Grid2>}
-                {(!mainQueryParams.biosample || mainQueryParams.biosample.h3k27ac) && <Grid2 xs={6}>
+                </Grid>}
+                {(!mainQueryParams.biosample || mainQueryParams.biosample.h3k27ac) && <Grid size={6}>
                   <RangeSlider
                     title="H3K27ac"
                     width="100%"
@@ -631,8 +631,8 @@ export function MainResultsFilters(
                       setFilterCriteria({ ...filterCriteria, h3k27ac_s: value[0], h3k27ac_e: value[1] })
                     }}
                   />
-                </Grid2>}
-                {(!mainQueryParams.biosample || mainQueryParams.biosample.ctcf) && <Grid2 xs={6}>
+                </Grid>}
+                {(!mainQueryParams.biosample || mainQueryParams.biosample.ctcf) && <Grid size={6}>
                   <RangeSlider
                     title="CTCF"
                     width="100%"
@@ -645,8 +645,8 @@ export function MainResultsFilters(
                       setFilterCriteria({ ...filterCriteria, ctcf_s: value[0], ctcf_e: value[1] })
                     }}
                   />
-                </Grid2>}
-                {(!mainQueryParams.biosample || mainQueryParams.biosample.atac) && <Grid2 xs={6}>
+                </Grid>}
+                {(!mainQueryParams.biosample || mainQueryParams.biosample.atac) && <Grid size={6}>
                   <RangeSlider
                     title="ATAC"
                     width="100%"
@@ -659,8 +659,8 @@ export function MainResultsFilters(
                       setFilterCriteria({ ...filterCriteria, atac_s: value[0], atac_e: value[1] })
                     }}
                   />
-                </Grid2>}
-              </Grid2>
+                </Grid>}
+              </Grid>
             </AccordionDetails>
           </Accordion>
           {/* Classification */}
@@ -722,8 +722,8 @@ export function MainResultsFilters(
               </FormGroup>
               <Divider />
               {/* <Typography>cCRE Classes</Typography> */}
-              <Grid2 container spacing={0}>
-                <Grid2 xs={6}>
+              <Grid container spacing={0}>
+                <Grid size={6}>
                   <FormGroup>
                     <FormControlLabel
                       checked={filterCriteria.CA}
@@ -750,8 +750,8 @@ export function MainResultsFilters(
                       label="CA-TF"
                     />
                   </FormGroup>
-                </Grid2>
-                <Grid2 xs={6}>
+                </Grid>
+                <Grid size={6}>
                   <FormGroup>
                     <FormControlLabel
                       checked={filterCriteria.dELS}
@@ -778,8 +778,8 @@ export function MainResultsFilters(
                       label="TF"
                     />
                   </FormGroup>
-                </Grid2>
-              </Grid2>
+                </Grid>
+              </Grid>
             </AccordionDetails>
           </Accordion>
           {/* Conservation */}
@@ -817,8 +817,8 @@ export function MainResultsFilters(
               </Stack>
             </AccordionSummary>
             <AccordionDetails>
-              <Grid2 container spacing={3}>
-                <Grid2 xs={6}>
+              <Grid container spacing={3}>
+                <Grid size={6}>
                   <RangeSlider
                     title="43-primate (phastCons)"
                     width="100%"
@@ -831,8 +831,8 @@ export function MainResultsFilters(
                       setFilterCriteria({ ...filterCriteria, prim_s: value[0], prim_e: value[1] })
                     }}
                   />
-                </Grid2>
-                <Grid2 xs={6}>
+                </Grid>
+                <Grid size={6}>
                   <RangeSlider
                     title="240-mammal (phyloP)"
                     width="100%"
@@ -845,8 +845,8 @@ export function MainResultsFilters(
                       setFilterCriteria({ ...filterCriteria, mamm_s: value[0], mamm_e: value[1] })
                     }}
                   />
-                </Grid2>
-                <Grid2 xs={6}>
+                </Grid>
+                <Grid size={6}>
                   <RangeSlider
                     title="100-vertebrate (phyloP)"
                     width="100%"
@@ -859,8 +859,8 @@ export function MainResultsFilters(
                       setFilterCriteria({ ...filterCriteria, vert_s: value[0], vert_e: value[1] })
                     }}
                   />
-                </Grid2>
-              </Grid2>
+                </Grid>
+              </Grid>
             </AccordionDetails>
           </Accordion>}
           {/* Linked Genes */}
@@ -1171,6 +1171,6 @@ export function MainResultsFilters(
           }
         </>
       }
-    </Paper>
-  )
+    </Paper>)
+  );
 }

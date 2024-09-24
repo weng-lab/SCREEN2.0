@@ -1,6 +1,6 @@
 "use client"
 import React from "react"
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import Grid from "@mui/material/Grid2"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { createLink, toScientificNotationElement } from "../../../common/lib/utility"
 import { Box, Link, Paper, Typography } from "@mui/material"
@@ -84,8 +84,8 @@ export const LinkedGenes: React.FC<props> = (props) => {
   }
 
   return (
-    <Grid2 container spacing={3} sx={{ mt: "0rem", mb: "2rem" }}>
-      <Grid2 xs={12}>
+    (<Grid container spacing={3} sx={{ mt: "0rem", mb: "2rem" }}>
+      <Grid size={12}>
         {HiCLinked.length > 0 ?
           <DataTable
             columns={[
@@ -134,8 +134,8 @@ export const LinkedGenes: React.FC<props> = (props) => {
           :
           <EmptyTile title="Intact Hi-C Loops" body="No intact Hi-C loops overlap this cCRE and the promoter of a gene" />
         }
-      </Grid2>
-      <Grid2 xs={12}>
+      </Grid>
+      <Grid size={12}>
         {ChIAPETLinked.length > 0 ?
           <DataTable
             columns={[
@@ -177,8 +177,8 @@ export const LinkedGenes: React.FC<props> = (props) => {
           :
           <EmptyTile title="ChIA-PET Interactions" body="No ChIA-PET interactions overlap this cCRE and the promoter of a gene" />
         }
-      </Grid2>
-      <Grid2 xs={12}>
+      </Grid>
+      <Grid size={12}>
         {crisprLinked.length > 0 ?
           <DataTable
             columns={[
@@ -232,8 +232,8 @@ export const LinkedGenes: React.FC<props> = (props) => {
           :
           <EmptyTile title="CRISPRi-FlowFISH" body="This cCRE was not targeted in a CRISPRi-FlowFISH experiment" />
         }
-      </Grid2>
-      <Grid2 xs={12}>
+      </Grid>
+      <Grid size={12}>
         {eqtlLinked.length > 0 ?
           <DataTable
             columns={[
@@ -280,7 +280,7 @@ export const LinkedGenes: React.FC<props> = (props) => {
           :
           <EmptyTile title="eQTLs" body="This cCRE does not overlap a variant associated with significant changes in gene expression" />
         }
-      </Grid2>
-    </Grid2>
-  )
+      </Grid>
+    </Grid>)
+  );
 }

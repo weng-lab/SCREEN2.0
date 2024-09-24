@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react"
 import Box from "@mui/material/Box"
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import Grid from "@mui/material/Grid2"
 import Typography from "@mui/material/Typography"
 import { debounce } from "@mui/material/utils"
 import { GENE_AUTOCOMPLETE_QUERY } from "../../_mainsearch/queries"
@@ -186,16 +186,16 @@ export const GeneAutocomplete = (
           } else {
             return (
               <li {...props} key={props.id}>
-                <Grid2 container alignItems="center">
-                  <Grid2 sx={{ width: "100%" }}>
+                <Grid container alignItems="center">
+                  <Grid sx={{ width: "100%" }}>
                     <Box component="span" sx={{ fontWeight: "regular" }}>
                       <i>{option.name}</i>
                     </Box>
                     <Typography variant="body2" color="text.secondary">
                       {descriptions.find((g) => g.name === option.name)?.desc}
                     </Typography>
-                  </Grid2>
-                </Grid2>
+                  </Grid>
+                </Grid>
               </li>
             )
           }

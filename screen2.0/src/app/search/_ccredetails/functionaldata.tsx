@@ -3,7 +3,7 @@ import React from "react"
 import { client } from "./client"
 import { useQuery } from "@apollo/client"
 import { FUNCTIONAL_DATA_QUERY, CCRE_RDHS_QUERY, MPRA_FUNCTIONAL_DATA_QUERY, CAPRA_SOLO_FUNCTIONAL_DATA_QUERY, CAPRA_DOUBLE_FUNCTIONAL_DATA_QUERY } from "./queries"
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import Grid from "@mui/material/Grid2"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { LoadingMessage, ErrorMessage } from "../../../common/lib/utility"
 import { Link } from "@mui/material"
@@ -65,8 +65,13 @@ export const FunctionData = ({ coordinates , assembly, accession }) => {
   ) : error ? (
     <ErrorMessage error={error} />
   ) :  (
-    <Grid2 container spacing={3} sx={{ mt: "0rem", mb: "2rem" }}>
-      <Grid2 xs={12} md={12} lg={12}>
+    <Grid container spacing={3} sx={{ mt: "0rem", mb: "2rem" }}>
+      <Grid
+        size={{
+          xs: 12,
+          md: 12,
+          lg: 12
+        }}>
         <DataTable
           tableTitle={`Mouse transgenic enhancer assays`}
           columns={[
@@ -105,11 +110,16 @@ export const FunctionData = ({ coordinates , assembly, accession }) => {
           sortColumn={3}
           itemsPerPage={5}
         />
-      </Grid2>
+      </Grid>
       { mpra_error ? (
     <ErrorMessage error={mpra_error} />
   ) : <>
-  {assembly!=="mm10" &&<Grid2 xs={12} md={12} lg={12}>
+  {assembly!=="mm10" &&<Grid
+    size={{
+      xs: 12,
+      md: 12,
+      lg: 12
+    }}>
         <DataTable
           tableTitle={`MPRA (region centric)`}
           columns={[
@@ -163,11 +173,16 @@ export const FunctionData = ({ coordinates , assembly, accession }) => {
           sortColumn={4}
           itemsPerPage={5}
         />
-      </Grid2>}</>}
+      </Grid>}</>}
       { capra_error ? (
     <ErrorMessage error={capra_error} />
   ) : <>
-  {assembly!=="mm10"  &&<Grid2 xs={12} md={12} lg={12}>
+  {assembly!=="mm10"  &&<Grid
+    size={{
+      xs: 12,
+      md: 12,
+      lg: 12
+    }}>
         <DataTable
           tableTitle={`STARR-seq (CAPRA quantification) Solo Fragments`}
           columns={[
@@ -210,11 +225,16 @@ export const FunctionData = ({ coordinates , assembly, accession }) => {
           sortColumn={5}
           itemsPerPage={5}
         />
-      </Grid2>}</>}
+      </Grid>}</>}
       { capra_double_error ? (
     <ErrorMessage error={capra_double_error} />
   ) : <>
-  {assembly!=="mm10" &&<Grid2 xs={12} md={12} lg={12}>
+  {assembly!=="mm10" &&<Grid
+    size={{
+      xs: 12,
+      md: 12,
+      lg: 12
+    }}>
         <DataTable
           tableTitle={`STARR-seq (CAPRA quantification) Double Fragments`}
           columns={[
@@ -263,7 +283,7 @@ export const FunctionData = ({ coordinates , assembly, accession }) => {
           sortColumn={6}
           itemsPerPage={5}
         />
-      </Grid2>}</>}
-    </Grid2>
-  )
+      </Grid>}</>}
+    </Grid>
+  );
 }

@@ -2,7 +2,7 @@
 import React, { useRef, useState } from "react"
 import emailjs from '@emailjs/browser';
 import { Box, Button, Divider, Link, Stack, TextField, Typography } from "@mui/material"
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import Grid from "@mui/material/Grid2"
 import Image from "next/image"
 import encodeEncyclopedia from "../../../public/assets/about/images/encodeencyclopedia.png"
 import classifications from "../../../public/assets/about/images/classifications.png"
@@ -70,27 +70,35 @@ export default function About() {
 
 
   return (
-    <main>
-      <Grid2 container spacing={3} sx={{ maxWidth: "min(70%, 1000px)", minWidth: "600px", mr: "auto", ml: "auto", mt: "3rem" }}>
+    (<main>
+      <Grid container spacing={3} sx={{ maxWidth: "min(70%, 1000px)", minWidth: "600px", mr: "auto", ml: "auto", mt: "3rem" }}>
         {/* Header */}
-        <Grid2 xs={12}>
+        <Grid size={12}>
           <Typography variant="h2">About SCREEN</Typography>
           <Divider />
           <Typography mt={1} variant="body1" paragraph>SCREEN (Search Candidate Regulatory Elements by ENCODE) is a web-based visualization engine designed to allow users to explore and visualize the <b>ENCODE Registry of candidate cis-Regulatory Elements (cCREs)</b> and its connection with other ENCODE Encyclopedia annotations.</Typography>
-        </Grid2>
+        </Grid>
         {/* Encode Encyclopedia */}
-        <Grid2 container xs={12}>
-          <Grid2 xs={12} lg={5}>
+        <Grid container size={12}>
+          <Grid
+            size={{
+              xs: 12,
+              lg: 5
+            }}>
             <Typography variant="h5">The ENCODE Encyclopedia</Typography>
             <Typography variant="body1" paragraph>The ENCODE Encyclopedia encompasses a comprehensive set of sequence (yellow), element (red), gene (green) and interaction (blue) annotations (<b>Figure&nbsp;1</b>). These annotations can either derive directly from primary data (primary level) or derive from the integration of multiple data types using innovative computational methods (integrative level). </Typography>
-          </Grid2>
-          <Grid2 xs={12} lg={7}>
+          </Grid>
+          <Grid
+            size={{
+              xs: 12,
+              lg: 7
+            }}>
             <Image src={encodeEncyclopedia} alt={"Encode Encyclopedia"} />
-          </Grid2>
-        </Grid2>
+          </Grid>
+        </Grid>
         {/* Reistry of cCREs */}
-        <Grid2 container xs={12}>
-          <Grid2 xs={12}>
+        <Grid container size={12}>
+          <Grid size={12}>
             <Typography variant="h5">
               The Registry of cCREs
             </Typography>
@@ -151,10 +159,10 @@ export default function About() {
             <Typography variant="body1" paragraph>
               Because of the uneven distribution of TF data across biosamples and our desire to reduce false positive annotations, we do not specifically annotate the TF class of elements in individual cell types. We instead provide an aggregate list of these TF cCREs annotated with their supporting TF ChIP-seq peaks. For cell types with TF ChIP-seq data, we annotate CA-TF elements since the accessible chromatin corroborates the TF binding.
             </Typography>
-          </Grid2>
-        </Grid2>
-        <Grid2 container xs={12}>
-          <Grid2 xs={12}>
+          </Grid>
+        </Grid>
+        <Grid container size={12}>
+          <Grid size={12}>
             <Typography variant="h6">
               Core Collection
             </Typography>
@@ -180,13 +188,13 @@ export default function About() {
             <Typography variant="h6">Custom Classification</Typography>
             <Typography variant="body1" paragraph>While our classification schemes place each cCRE into specific, individual classes, the signal strengths for all recorded epigenetic features are retained for each cCRE in the Registry and can be used for customized searches by users. For example, users may want promoters that have high DNase, H3K4me3, and H3K27ac to distinguish from poised promoters that often lack H3K27ac signal.</Typography>
             <Typography variant="body1" paragraph>Additionally, by default, all chromatin accessibility annotations use DNase signal. If users prefer to use ATAC signal, this can be easily accomplished using the ENCODE API.</Typography>
-          </Grid2>
-          <Grid2 container xs={12}>
-            <Grid2 xs={12}>
+          </Grid>
+          <Grid container size={12}>
+            <Grid size={12}>
               <Typography variant="h5">Integration with other encyclopedia annotations</Typography>
               <Typography variant="body1" paragraph>In addition to hosting the Registry of cCREs, SCREEN also hosts other Encyclopedia annotations and displays them in the context of cCREs. Under the cCRE Details page for each cCRE are tabs displaying overlapping Encyclopedia annotations with links to their derived experiments or annotations. Such annotations include TF peaks, histone mark peaks, ChromHMM states, TSS derived from RAMPAGE and long read RNA-seq data, 3D chromatin interactions, and gene expression.</Typography>
-            </Grid2>
-            <Grid2 xs={12}>
+            </Grid>
+            <Grid size={12}>
               <Typography variant="h5">How to Cite the ENCODE Encyclopedia, the Registry of cCREs, and SCREEN</Typography>
               <Typography variant="h6">The Registry of cCREs and SCREEN</Typography>
               <ul style={{ listStyleType: "circle", listStylePosition: "inside" }}>
@@ -200,15 +208,15 @@ export default function About() {
                   <Typography display={"inline"} variant="body1" paragraph>The ENCODE Project Consortium, Jill E. Moore, Michael J. Purcaro, Henry E. Pratt, Charles B. Epstein, Noam Shoresh, Jessika Adrian, et al. 2020. “Expanded Encyclopaedias of DNA Elements in the Human and Mouse Genomes.” Nature 583 (7818): 699–710.</Typography>
                 </li>
               </ul>
-            </Grid2>
-          </Grid2>
+            </Grid>
+          </Grid>
           {/* API Documentation */}
-          <Grid2 xs={12} id="api-documentation">
+          <Grid id="api-documentation" size={12}>
             <Typography mb={1} variant="h2">API Documentation</Typography>
             <CreateLink linkPrefix={"https://weng-lab.github.io/SCREEN2.0/"} label={"SCREEN API Documentation"} showExternalIcon />
-          </Grid2>
+          </Grid>
           {/* Contact Us */}
-          <Grid2 xs={12} id="contact-us">
+          <Grid id="contact-us" size={12}>
             <Typography mb={1} variant="h2">Contact Us</Typography>
             <Typography mb={1} variant="body1">Send us a message and we&apos;ll be in touch!</Typography>
             <Typography mb={1} variant="body1">As this is a beta site, we would greatly appreciate any feedback you may have. Knowing how our users are using the site and documenting issues they may have are important to make this resource better and easier to use.</Typography>
@@ -284,9 +292,9 @@ export default function About() {
               </Button>
             </Box>
             {success && <Typography>Submitted successfully, thank you!</Typography>}
-          </Grid2>
-        </Grid2>
-      </Grid2>
-    </main >
-  )
+          </Grid>
+        </Grid>
+      </Grid>
+    </main >)
+  );
 }
