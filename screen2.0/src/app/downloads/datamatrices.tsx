@@ -564,16 +564,27 @@ export function DataMatrices() {
       </Stack>
 
       {/* legend section */}
-      <Stack mt={2} sx={{ height: '20vh'}}>
-        <Typography>Legend</Typography>
-          {legendEntries.map((element, index) => {
-            return (
-              <Typography key={index} borderLeft={`0.2rem solid ${element.color}`} paddingLeft={1}>
+      <Grid2 mt={2} sx={{ height: '20vh', display: 'flex', flexWrap: 'wrap', alignContent: 'flex-start' }}>
+        <Typography sx={{ width: '100%' }}>Legend</Typography>
+        {legendEntries.map((element, index) => {
+          return (
+            <Box key={index} sx={{ width: '20%', display: 'flex', alignItems: 'center', paddingLeft: 1 }}>
+              <Box
+                sx={{
+                  width: '12px',
+                  height: '12px',
+                  borderRadius: '50%',
+                  backgroundColor: element.color,
+                  marginRight: 1,
+                }}
+              />
+              <Typography>
                 {`${element.label}: ${element.value} experiments`}
               </Typography>
-            )
-          })}
-      </Stack>
+            </Box>
+          );
+        })}
+      </Grid2>
 
       {/* modals */}
       {/* Selection table modal */}
@@ -601,7 +612,7 @@ export function DataMatrices() {
           <Typography id="download-modal-title" variant="h6">
             Download
           </Typography>
-          <Typography id="download-modal-description" sx={{ mt: 2 }}>
+          <Typography id="download-modal-description" variant="subtitle1" sx={{ mt: 1 }}>
             Select format to download
           </Typography>
           <FormGroup sx={{ mt: 2 }}>
