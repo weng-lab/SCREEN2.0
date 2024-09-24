@@ -1,6 +1,6 @@
 "use client"
 import React from "react"
-import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
+import { useQuery } from "@apollo/client"
 import { TOP_TISSUES, GET_CCRE_CT_TF } from "./queries"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { z_score, z_score_render, GROUP_COLOR_MAP } from "./utils"

@@ -2,7 +2,7 @@
 import React, { useMemo, useState } from "react"
 import { LoadingMessage } from "../../../common/lib/utility"
 import { PlotGeneExpression } from "../../applets/gene-expression/geneexpressionplot"
-import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
+import { useQuery } from "@apollo/client"
 import { Button, Typography, Stack, MenuItem, FormControl, SelectChangeEvent, Checkbox, InputLabel, ListItemText, OutlinedInput, Select, ToggleButton, ToggleButtonGroup, FormLabel, Box } from "@mui/material"
 import Grid from "@mui/material/Grid2"
 import Image from "next/image"

@@ -32,7 +32,7 @@ import { RangeSlider } from "@weng-lab/psychscreen-ui-components"
 import {  FilterCriteria, MainQueryParams, RegistryBiosample } from "./types"
 import { eQTLsTissues, filtersModified } from "./searchhelpers"
 import {  LazyQueryResultTuple, gql, useLazyQuery } from "@apollo/client"
-import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
+import { useQuery } from "@apollo/client"
 import { CancelRounded, InfoOutlined } from "@mui/icons-material";
 import ClearIcon from '@mui/icons-material/Clear';
 import { GeneAutocomplete } from "./_geneAutocomplete/GeneAutocomplete";
@@ -169,7 +169,6 @@ export function MainResultsFilters(
     skip: !mainQueryParams.gene.name,
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first"
-
   })
 
   //Recalculate when geneTranscripts available, near
