@@ -501,8 +501,8 @@ export function DataMatrices() {
         </Stack>
 
         {/* biosample table*/}
-        <Grid2 paddingBottom={0}>
-        {searched &&
+        <Grid2 paddingBottom={0} sx={{ width: "30%", display: 'flex', flexDirection: 'column' }}>
+          {searched && (
             <Paper sx={{ mx: 2, mb: 1 }}>
               <Stack borderRadius={1} direction={"row"} spacing={3} sx={{ backgroundColor: "#E7EEF8" }} alignItems={"center"}>
                 <Typography flexGrow={1} sx={{ color: "#2C5BA0", pl: 1 }}>{searched}</Typography>
@@ -511,16 +511,17 @@ export function DataMatrices() {
                 </IconButton>
               </Stack>
             </Paper>
-          }
+          )}
           <BiosampleTables
             assembly={selectedAssay?.assembly === "Human" ? "GRCh38" : "mm10"}
             preFilterBiosamples={(sample: RegistryBiosamplePlusRNA) => sample[selectedAssay.assay.toLowerCase()] !== null}
             onBiosampleClicked={handleSetSelectedSample}
             slotProps={{
-              paperStack: { height: '100%', overflow: 'hidden'}
+              paperStack: { overflow: 'hidden', flexGrow: 1 } // Allow the table to grow within the container
             }}
           />
         </Grid2>
+
       </Stack>
 
       {/* legend section */}
