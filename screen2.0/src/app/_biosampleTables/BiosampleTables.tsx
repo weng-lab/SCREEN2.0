@@ -204,7 +204,7 @@ export const BiosampleTables = <T extends boolean = false>({
 
     if (showRNAseq) cols.push({
       header: "RNA-Seq",
-      value: (row) => +!!row.rnaseq ?? "",
+      value: (row) => +row.rnaseq,
       render: (row) => {
         if (row.rnaseq) {
           return (
