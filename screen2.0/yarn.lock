@@ -2337,12 +2337,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^20.14.6":
-  version: 20.16.5
-  resolution: "@types/node@npm:20.16.5"
+"@types/node@npm:^22.7.0":
+  version: 22.7.0
+  resolution: "@types/node@npm:22.7.0"
   dependencies:
     undici-types: ~6.19.2
-  checksum: f38b7bd8c4993dcf38943afa2ffdd7dfd18fc94f8f3f28d0c1045a10d39871a6cc1b8f8d3bf0c7ed848457d0e1d283482f6ca125579c13fed1b7575d23e8e8f5
+  checksum: a40a013afb3d00c2246d6eca39885a5516216785e9c6668191fd836eefd9b3daed0c8865485ebab181838131dbded6b9ee3275b404202261c31a7f9fa51a871a
   languageName: node
   linkType: hard
 
@@ -10113,7 +10113,7 @@ __metadata:
     "@mui/lab": ^5.0.0-alpha.170
     "@mui/material": ^5.16.7
     "@mui/material-nextjs": ^6.1.0
-    "@types/node": ^20.14.6
+    "@types/node": ^22.7.0
     "@types/react": ^18.3.3
     "@types/react-dom": 18.2.18
     "@visx/event": ^3.3.0
