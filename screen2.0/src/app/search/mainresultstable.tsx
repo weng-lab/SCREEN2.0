@@ -240,7 +240,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
 
         return (
           //If linked genes data hasn't been fetched, fetch
-          <Box onClick={(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => { event.stopPropagation(); !row.linkedGenes && getLinkedGenes() }} key={row.accession}>
+          (<Box onClick={(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => { event.stopPropagation(); !row.linkedGenes && getLinkedGenes() }} key={row.accession}>
             <Accordion>
               <AccordionSummary
                 expandIcon={<ExpandMoreIcon />}
@@ -312,8 +312,8 @@ export function MainResultsTable(props: MainResultsTableProps) {
                 </AccordionDetails>
               }
             </Accordion>
-          </Box>
-        )
+          </Box>)
+        );
       }
     })
     cols.push({
@@ -327,7 +327,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
 
         return (
           //Box's onClick prevents onRowClick from running when interacting with modal
-          <Box onClick={(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => { event.stopPropagation() }}>
+          (<Box onClick={(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => { event.stopPropagation() }}>
             <Button variant="outlined" onClick={() => setOpen(true)}>
               UCSC
             </Button>
@@ -342,8 +342,8 @@ export function MainResultsTable(props: MainResultsTableProps) {
               open={open}
               setOpen={setOpen}
             />
-          </Box>
-        )
+          </Box>)
+        );
       }
     })
     props.assembly === "GRCh38" && cols.push({

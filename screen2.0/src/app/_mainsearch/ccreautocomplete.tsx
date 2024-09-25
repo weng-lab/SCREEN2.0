@@ -2,7 +2,7 @@ import React, { useState, useCallback } from "react"
 import Box from "@mui/material/Box"
 import TextField from "@mui/material/TextField"
 import Autocomplete from "@mui/material/Autocomplete"
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import Grid from "@mui/material/Grid2"
 import Typography from "@mui/material/Typography"
 import { debounce } from "@mui/material/utils"
 import { CCRE_AUTOCOMPLETE_QUERY } from "./queries"
@@ -111,8 +111,8 @@ export const CcreAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
           renderOption={(props, option) => {
             return (
               <li {...props} key={props.id}>
-                <Grid2 container alignItems="center">
-                  <Grid2 sx={{ width: "100%", wordWrap: "break-word" }}>
+                <Grid container alignItems="center">
+                  <Grid sx={{ width: "100%", wordWrap: "break-word" }}>
                     <Box component="span" sx={{ fontWeight: "regular" }}>
                       {option}
                     </Box>
@@ -122,8 +122,8 @@ export const CcreAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
                           }-${(ccreAccessions.find((g: { ccreaccession: string }) => g.ccreaccession === option))?.end}`}
                       </Typography>
                     )}
-                  </Grid2>
-                </Grid2>
+                  </Grid>
+                </Grid>
               </li>
             )
           }}

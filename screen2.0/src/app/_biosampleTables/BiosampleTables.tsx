@@ -5,7 +5,7 @@ import { CheckboxState, FiltersKey, Props, RegistryBiosample, RegistryBiosampleP
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
 import { Check,  Close,  FilterList } from "@mui/icons-material"
 import SearchIcon from '@mui/icons-material/Search';
-import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
+import { useQuery } from "@apollo/client"
 import { assayHoverInfo, DownloadBiosamplecCREsButton, filterBiosamples } from "./helpers"
 import { BIOSAMPLE_QUERY, RNA_SEQ_QUERY } from "./queries"
 
@@ -204,7 +204,7 @@ export const BiosampleTables = <T extends boolean = false>({
 
     if (showRNAseq) cols.push({
       header: "RNA-Seq",
-      value: (row) => +!!row.rnaseq ?? "",
+      value: (row) => +row.rnaseq,
       render: (row) => {
         if (row.rnaseq) {
           return (

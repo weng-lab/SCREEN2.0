@@ -1,5 +1,5 @@
 import { Button, ButtonProps, Paper, Typography, Divider, Stack, Tabs, Tab } from "@mui/material"
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import Grid from "@mui/material/Grid2"
 import React, { useEffect, useState } from "react"
 import Config from "../../config.json"
 import DownloadIcon from "@mui/icons-material/Download"
@@ -88,8 +88,12 @@ export function Annotations() {
         <Tab label="Mouse" sx={{ textTransform: "none" }} {...a11yProps(1)} />
       </Tabs>
       {species === 0 && (
-        <Grid2 container spacing={3}>
-          <Grid2 xs={12} md={6}>
+        <Grid container spacing={3}>
+          <Grid
+            size={{
+              xs: 12,
+              md: 6
+            }}>
             <Stack spacing={1}>
               <Stack direction={"row"} justifyContent={"space-between"}>
                 <Stack>
@@ -111,19 +115,28 @@ export function Annotations() {
               <InlineDownloadButton href={Config.Downloads.HumanCA_Bound} label="CTCF-Bound cCREs (948,642)" bordercolor={CTCF_Bound} />
               <InlineDownloadButton href={Config.Downloads.HumanGeneLinks} label="cCRE-Gene Links (3D Chromatin, CRISPR, eQTLS)" bordercolor={Gene_Links} />
             </Stack>
-          </Grid2>
-          <Grid2 xs={12} md={6} alignItems="flex-start">
+          </Grid>
+          <Grid
+            alignItems="flex-start"
+            size={{
+              xs: 12,
+              md: 6
+            }}>
             <Typography variant="h6" mt={6.5}>Human cCREs by cell and tissue types</Typography>
             <BiosampleTables
               assembly={"GRCh38"}
               showDownloads
             />
-          </Grid2>
-        </Grid2>
+          </Grid>
+        </Grid>
       )}
       {species === 1 && (
-        <Grid2 container spacing={3}>
-          <Grid2 xs={12} md={6}>
+        <Grid container spacing={3}>
+          <Grid
+            size={{
+              xs: 12,
+              md: 6
+            }}>
             <Stack spacing={1}>
               <Stack direction={"row"} justifyContent={"space-between"}>
                 <Stack>
@@ -144,17 +157,22 @@ export function Annotations() {
               <InlineDownloadButton href={Config.Downloads.MouseTF_only} label="TF Only (TF) (15,283)" bordercolor={TF_only} />
               <InlineDownloadButton href={Config.Downloads.MouseCA_Bound} label="CTCF-Bound cCREs (139,894)" bordercolor={CTCF_Bound} />
             </Stack>
-          </Grid2>
-          <Grid2 xs={12} md={6} alignItems="flex-start">
+          </Grid>
+          <Grid
+            alignItems="flex-start"
+            size={{
+              xs: 12,
+              md: 6
+            }}>
             <Typography variant="h6" mt={6.5}>Mouse cCREs by cell and tissue types</Typography>
             <BiosampleTables
               assembly={"mm10"}
               showDownloads
             />
-          </Grid2>
-        </Grid2>
+          </Grid>
+        </Grid>
       )}
     </Stack>
-  )
+  );
 }
 
