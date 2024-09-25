@@ -82,7 +82,7 @@ export function Annotations() {
   }
 
   return (
-    (<Stack spacing={1}>
+    <Stack spacing={1}>
       <Tabs value={species} onChange={handleChange} aria-label="basic tabs example" variant="scrollable" allowScrollButtonsMobile>
         <Tab label="Human" sx={{ textTransform: "none" }} {...a11yProps(0)} />
         <Tab label="Mouse" sx={{ textTransform: "none" }} {...a11yProps(1)} />
@@ -172,7 +172,7 @@ export function Annotations() {
           </Grid>
         </Grid>
       )}
-    </Stack>)
+    </Stack>
   );
 }
 

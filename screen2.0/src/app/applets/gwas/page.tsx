@@ -497,7 +497,7 @@ export default function GWAS() {
   }, [plotData, study, suggestionsOpen])
 
   return (
-    (<main style={{ backgroundColor: background }}>
+    <main style={{ backgroundColor: background }}>
       <Grid container spacing={2} padding={5}>
         <Grid
           size={{
@@ -519,6 +519,6 @@ export default function GWAS() {
           </Stack>
         </Grid>
       </Grid>
-    </main>)
+    </main>
   );
 }

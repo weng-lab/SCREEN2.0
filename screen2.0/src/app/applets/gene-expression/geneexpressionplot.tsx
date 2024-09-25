@@ -2,9 +2,7 @@ import React from "react"
 import { useRouter } from "next/navigation"
 import { Stack } from "@mui/material"
 import { Range2D, Point2D, linearTransform2D } from "jubilant-carnival"
-import Grid from "@mui/material/Grid2"
 import { tissueColors } from "../../../common/lib/colors"
-import { stringToColour } from "../../search/_ccredetails/utils"
 
 type QuantificationData = {
   accession: string,
