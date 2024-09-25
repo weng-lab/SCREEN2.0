@@ -226,25 +226,28 @@ export function DataMatrices() {
     [data, isInbounds]
   )
 
-  const scatterData = useMemo(
-    () =>
-      (fData &&
-        fData
-          .map((x) => ({
-            x: x.umap_coordinates[0],
-            y: x.umap_coordinates[1],
-            svgProps: {
-              r: searched && x.displayname === searched ? 10 : 4,
-              fill:
-                searched === null || x.displayname === searched
-                  ? (colorBy === "sampleType" ? sampleTypeColors : ontologyColors)[x[colorBy]]
-                  : "#aaaaaa",
-              fillOpacity: isInbounds(x) ? (searched === null || x.displayname === searched ? 1 : 0.2) : 0,
-            },
-          }))) ||
-      [],
-    [fData, searched, colorBy, sampleTypeColors, ontologyColors, isInbounds]
-  )  
+  const scatterData = useMemo(() => {
+    if (!fData) return [];
+    const biosampleIds = biosamples.map(sample => sample.displayname);
+  
+    return fData.map((x) => {
+      const isInBiosample = biosampleIds.includes(x.displayname);
+  
+      return {
+        x: x.umap_coordinates[0],
+        y: x.umap_coordinates[1],
+        svgProps: {
+          r: searched && x.displayname === searched ? 10 : 4,
+          fill:
+            searched === null || x.displayname === searched
+              ? (colorBy === "sampleType" ? sampleTypeColors : ontologyColors)[x[colorBy]]
+              : "#aaaaaa",
+              fillOpacity: biosampleIds.length === 0? 1 : (isInBiosample ? 1 : 0.1),
+        },
+      };
+    });
+  }, [fData, searched, colorBy, sampleTypeColors, ontologyColors, isInbounds, biosamples]);
+  
   // Direct copy from old SCREEN
   const [legendEntries, height] = useMemo(() => {
     const g = colorBy === "sampleType" ? sampleTypeColors : ontologyColors
@@ -373,7 +376,7 @@ export function DataMatrices() {
   ]
 
   return (
-    <Stack mt={1} direction="column" sx={{height: '100vh', paddingX:6}}>
+    <Stack mt={1} direction="column" sx={{height: "110vh", paddingX:6}}>
       <Stack direction="row" justifyContent="space-between" spacing={10} sx={{height: '80vh'}}>
         <Stack direction="column" sx={{ flex: 1.5 }} spacing={2}>
           <Stack direction="row" spacing={15}>
@@ -479,7 +482,7 @@ export function DataMatrices() {
             {({ width, height }) => {
               const squareSize = Math.min(width, height);
               return (
-                <Stack justifyContent="space-between" overflow={"hidden"} padding={1} sx={{ border: '2px solid', borderColor: 'grey.400', borderRadius: '8px', maxHeight: '55vh' }}>
+                <Stack justifyContent="space-between" overflow={"hidden"} padding={1} sx={{ border: '2px solid', borderColor: 'grey.400', borderRadius: '8px', maxHeight: '57vh' }}>
                   <Stack direction="row" justifyContent="space-between" mt={1} sx={{ backgroundColor: '#dbdefc', borderRadius: '8px', zIndex: 10 }}>
                     <Button endIcon={biosamples.length !== 0 && <Visibility />} onClick={handleOpenModal}>
                       {`${biosamples.length} Experiments Selected`}
@@ -531,10 +534,10 @@ export function DataMatrices() {
                         </Chart>
                       </Box>
                     <Stack direction="column" justifyContent={"flex-end"} alignItems={"center"} spacing={5} sx={{position: "absolute", right: 0}}>
-                      <IconButton aria-label="edit"><Edit /></IconButton>
+                      <IconButton aria-label="edit" onClick={() => setSelectMode('select')} sx={{ color: selectMode === "select" ? "primary.main" : "default" }}><Edit /></IconButton>
                       {/* <IconButton aria-label="pan"><PanTool /></IconButton> */}
                       <Stack direction="column">
-                        <IconButton aria-label="zoom-in"><ZoomIn /></IconButton>
+                        <IconButton aria-label="zoom-in" onClick={() => setSelectMode('zoom')} sx={{ color: selectMode === "zoom" ? "primary.main" : "default" }}><ZoomIn /></IconButton>
                         <IconButton aria-label="zoom-out"><ZoomOut /></IconButton>
                       </Stack>
                       <Button sx={{ height: '30px' }} size="small" disabled={!bounds} variant="outlined" onClick={() => setBounds(undefined)}>Reset</Button>
@@ -546,7 +549,7 @@ export function DataMatrices() {
         </Stack>
 
         {/* biosample table*/}
-        <Grid2 paddingBottom={0} sx={{ width: "30%", display: 'flex', flexDirection: 'column' }}>
+        <Grid2 paddingBottom={0} sx={{ width: "30%", display: 'flex', flexDirection: 'column'}}>
           {searched && (
             <Paper sx={{ mb: 1 }}>
               <Stack borderRadius={1} direction={"row"} spacing={3} sx={{ backgroundColor: "#E7EEF8" }} alignItems={"center"}>
@@ -584,8 +587,6 @@ export function DataMatrices() {
           ))}
         </Box>
       </Box>
-
-
 
       {/* modals */}
       {/* Selection table modal */}
@@ -648,7 +649,6 @@ export function DataMatrices() {
           </Stack>
         </Box>
       </Modal>
-
     </Stack>
     
   )
