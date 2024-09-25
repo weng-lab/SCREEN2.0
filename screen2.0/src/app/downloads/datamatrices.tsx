@@ -46,6 +46,7 @@ import { client } from "../search/_ccredetails/client"
 import { UMAP_QUERY } from "./queries"
 import BiosampleTables from "../_biosampleTables/BiosampleTables"
 import { RegistryBiosamplePlusRNA } from "../search/types"
+import { ParentSize } from '@visx/responsive';
 
 type Selected = {
   assembly: "Human" | "Mouse"
@@ -474,76 +475,80 @@ export function DataMatrices() {
           </Stack>
 
           {/* graph section */}
-          <Stack justifyContent="space-between" overflow={"hidden"} padding={1} sx={{border: '2px solid', borderColor: 'grey.400', borderRadius: '8px', height: '100%'}}>
-            <Stack direction="row" justifyContent="space-between" mt={1} sx={{ backgroundColor: '#dbdefc', borderRadius: '8px' }}>
-              <Button endIcon={biosamples.length !== 0 && <Visibility />} onClick={handleOpenModal}>
-                {`${biosamples.length} Experiments Selected`}
-              </Button>
-              <Button onClick={() => setBiosamples([])}>Clear Selection</Button>
-            </Stack>
-            <Stack alignItems="center">
-              <Grid2 xs={8} padding={3} mb={-6} mt={-6}>
-                <Chart
-                  domain={{ x: { start: xMin, end: xMax }, y: { start: yMin, end: yMax } }}
-                  innerSize={{ width: 1075, height: 1000 }}
-                  xAxisProps={{ ticks: (bounds ? oneRange : fiveRange)(xMin, xMax), title: "UMAP-1", fontSize: 35 }}
-                  yAxisProps={{ ticks: (bounds ? oneRange : fiveRange)(yMin, yMax), title: "UMAP-2", fontSize: 35 }}
-                  scatterData={[scatterData]}
-                  plotAreaProps={{
-                    onFreeformSelectionEnd: (_, c) => setBiosamples(c[0].map((x) => fData[x])),
-                    onSelectionEnd: (x) => handleSetBounds(x),
-                    freeformSelection: selectMode === "select",
-                  }}
-                  >
-                  <Scatter
-                    data={scatterData}
-                    pointStyle={{ r: bounds ? 8 : 6 }}
-                    onPointMouseOver={(i, _) => setTimeout(() => setTooltip(i), 100)}
-                    onPointMouseOut={() => setTimeout(() => setTooltip(-1), 100)}
-                    onPointClick={(i) => setBiosamples([fData[i]])}
-                  />
-                  {tooltip !== -1 && (
-                    <Annotation notScaled notTranslated x={0} y={0}>
-                      <rect x={35} y={100} width={740} height={120} strokeWidth={2} stroke="#000000" fill="#ffffffdd" />
-                      <rect
-                        x={55}
-                        y={120}
-                        width={740 * 0.04}
-                        height={740 * 0.04}
-                        strokeWidth={1}
-                        stroke="#000000"
-                        fill={
-                          (colorBy === "sampleType" ? sampleTypeColors : ontologyColors)[colorBy === "sampleType" ? fData[tooltip].sampleType : fData[tooltip].ontology]
-                        }
-                      />
-                      <text x={100} y={140} fontSize="26px" fontWeight="bold">
-                        {fData[tooltip].displayname.replace(/_/g, " ").slice(0, 45)}
-                        {fData[tooltip].displayname.length > 45 ? "..." : ""}
-                      </text>
-                      <text x={55} y={185} fontSize="24px">
-                        {fData[tooltip].experimentAccession}
-                      </text>
-                    </Annotation>
-                  )}
-                </Chart>
-              </Grid2>
-            </Stack>
-            <Stack direction="row" justifyContent={"flex-end"} alignItems={"center"} spacing={5}>
-              <IconButton aria-label="edit"><Edit /></IconButton>
-              <IconButton aria-label="pan"><PanTool /></IconButton>
-              <Stack direction="row">
-              <IconButton aria-label="zoom-in"><ZoomIn /></IconButton>
-              <IconButton aria-label="zoom-out"><ZoomOut /></IconButton>
-              </Stack>
-              <Button sx={{ height: '30px' }} size="small" disabled={!bounds} variant="outlined" onClick={() => setBounds(undefined)}>Reset</Button>
-            </Stack>
-          </Stack>
+          <ParentSize>
+            {({ width, height }) => {
+              const squareSize = Math.min(width, height);
+              return (
+                <Stack justifyContent="space-between" overflow={"hidden"} padding={1} sx={{ border: '2px solid', borderColor: 'grey.400', borderRadius: '8px', maxHeight: '55vh' }}>
+                  <Stack direction="row" justifyContent="space-between" mt={1} sx={{ backgroundColor: '#dbdefc', borderRadius: '8px', zIndex: 10 }}>
+                    <Button endIcon={biosamples.length !== 0 && <Visibility />} onClick={handleOpenModal}>
+                      {`${biosamples.length} Experiments Selected`}
+                    </Button>
+                    <Button onClick={() => setBiosamples([])}>Clear Selection</Button>
+                  </Stack>
+                  <Stack justifyContent="center" alignItems="center" direction="row" sx={{ flex: 1, position: "relative", maxHeight: height }} mt={-5}>
+                    <Box sx={{ width: squareSize, height: squareSize }}>
+                        <Chart
+                          domain={{ x: { start: xMin, end: xMax }, y: { start: yMin, end: yMax } }}
+                          innerSize={{ width: squareSize*2, height: squareSize*2}}
+                          xAxisProps={{ ticks: (bounds ? oneRange : fiveRange)(xMin, xMax), title: "UMAP-1", fontSize: 40 }}
+                          yAxisProps={{ ticks: (bounds ? oneRange : fiveRange)(yMin, yMax), title: "UMAP-2", fontSize: 40 }}
+                          scatterData={[scatterData]}
+                          plotAreaProps={{
+                            onFreeformSelectionEnd: (_, c) => setBiosamples(c[0].map((x) => fData[x])),
+                            onSelectionEnd: (x) => handleSetBounds(x),
+                            freeformSelection: selectMode === "select",
+                          }}
+                        >
+                          <Scatter
+                            data={scatterData}
+                            pointStyle={{ r: bounds ? 8 : 6 }}
+                            onPointMouseOver={(i, _) => setTimeout(() => setTooltip(i), 100)}
+                            onPointMouseOut={() => setTimeout(() => setTooltip(-1), 100)}
+                            onPointClick={(i) => setBiosamples([fData[i]])}
+                          />
+                          {tooltip !== -1 && (
+                            <Annotation notScaled notTranslated x={0} y={0}>
+                              <rect x={35} y={100} width={740} height={120} strokeWidth={2} stroke="#000000" fill="#ffffffdd" />
+                              <rect
+                                x={55}
+                                y={120}
+                                width={740 * 0.04}
+                                height={740 * 0.04}
+                                strokeWidth={1}
+                                stroke="#000000"
+                                fill={(colorBy === "sampleType" ? sampleTypeColors : ontologyColors)[colorBy === "sampleType" ? fData[tooltip].sampleType : fData[tooltip].ontology]}
+                              />
+                              <text x={100} y={140} fontSize="26px" fontWeight="bold">
+                                {fData[tooltip].displayname.replace(/_/g, " ").slice(0, 45)}
+                                {fData[tooltip].displayname.length > 45 ? "..." : ""}
+                              </text>
+                              <text x={55} y={185} fontSize="24px">
+                                {fData[tooltip].experimentAccession}
+                              </text>
+                            </Annotation>
+                          )}
+                        </Chart>
+                      </Box>
+                    <Stack direction="column" justifyContent={"flex-end"} alignItems={"center"} spacing={5} sx={{position: "absolute", right: 0}}>
+                      <IconButton aria-label="edit"><Edit /></IconButton>
+                      {/* <IconButton aria-label="pan"><PanTool /></IconButton> */}
+                      <Stack direction="column">
+                        <IconButton aria-label="zoom-in"><ZoomIn /></IconButton>
+                        <IconButton aria-label="zoom-out"><ZoomOut /></IconButton>
+                      </Stack>
+                      <Button sx={{ height: '30px' }} size="small" disabled={!bounds} variant="outlined" onClick={() => setBounds(undefined)}>Reset</Button>
+                    </Stack>
+                  </Stack>
+                </Stack>
+              )}}
+          </ParentSize>
         </Stack>
 
         {/* biosample table*/}
         <Grid2 paddingBottom={0} sx={{ width: "30%", display: 'flex', flexDirection: 'column' }}>
           {searched && (
-            <Paper sx={{ mx: 2, mb: 1 }}>
+            <Paper sx={{ mb: 1 }}>
               <Stack borderRadius={1} direction={"row"} spacing={3} sx={{ backgroundColor: "#E7EEF8" }} alignItems={"center"}>
                 <Typography flexGrow={1} sx={{ color: "#2C5BA0", pl: 1 }}>{searched}</Typography>
                 <IconButton onClick={() => setSearched(null)} sx={{ m: 'auto', flexGrow: 0 }}>
@@ -564,27 +569,23 @@ export function DataMatrices() {
       </Stack>
 
       {/* legend section */}
-      <Grid2 mt={2} sx={{ height: '20vh', display: 'flex', flexWrap: 'wrap', alignContent: 'flex-start' }}>
-        <Typography sx={{ width: '100%' }}>Legend</Typography>
-        {legendEntries.map((element, index) => {
-          return (
-            <Box key={index} sx={{ width: '20%', display: 'flex', alignItems: 'center', paddingLeft: 1 }}>
-              <Box
-                sx={{
-                  width: '12px',
-                  height: '12px',
-                  borderRadius: '50%',
-                  backgroundColor: element.color,
-                  marginRight: 1,
-                }}
-              />
-              <Typography>
-                {`${element.label}: ${element.value} experiments`}
-              </Typography>
+      <Box mt={2} sx={{ display: 'flex', flexDirection: 'column' }}>
+        <Typography sx={{ width: '100%' }} mb={1}>Legend</Typography>
+        <Box sx={{ display: 'flex' }} justifyContent={"space-between"}>
+          {Array.from({ length: Math.ceil(legendEntries.length / 6) }, (_, colIndex) => (
+            <Box key={colIndex} sx={{ marginRight: 2 }}>
+              {legendEntries.slice(colIndex * 6, colIndex * 6 + 6).map((element, index) => (
+                <Box key={index} sx={{display: 'flex', alignItems: 'center', marginBottom: 1,}}>
+                  <Box sx={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: element.color, marginRight: 1,}}/>
+                  <Typography>{`${element.label}: ${element.value}`}</Typography>
+                </Box>
+              ))}
             </Box>
-          );
-        })}
-      </Grid2>
+          ))}
+        </Box>
+      </Box>
+
+
 
       {/* modals */}
       {/* Selection table modal */}
