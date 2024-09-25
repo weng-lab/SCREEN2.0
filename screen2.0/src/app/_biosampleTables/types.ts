@@ -29,8 +29,8 @@ export interface Props<T extends boolean = false> {
    */
   preFilterBiosamples?: (sample: BiosampleData<T>) => boolean,
 
-  //Should I change this? Seems like so-so way to handle this behavior
   showRNAseq?: T, //I feel like this is fine
+  
   showDownloads?: boolean, //I feel like this is maybe more appropriate to be something that is user-defined. Allow them to add extra columns?
   /**
    * Props spread into each slot inside, helpful for changing things such as width and height
@@ -88,3 +88,5 @@ export type RegistryBiosample = {
 export type FiltersKey = "CellLine" | "PrimaryCell" | "Tissue" | "Organoid" | "InVitro" | "Core" | "Partial" | "Ancillary" | "Embryo" | "Adult"
 
 export type CheckboxState = { [key in FiltersKey]: boolean }
+
+export type assay = "DNase" | "H3K27ac" | "H3K4me3" | "CTCF" | "ATAC"

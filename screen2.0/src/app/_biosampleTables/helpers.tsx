@@ -5,7 +5,15 @@
 import { useState, useEffect } from "react"
 import { Close, Download } from "@mui/icons-material"
 import { CircularProgressProps, Box, CircularProgress, Typography, IconButton } from "@mui/material"
-import { RegistryBiosample, RegistryBiosamplePlusRNA, CheckboxState } from "./types"
+import { RegistryBiosample, RegistryBiosamplePlusRNA, CheckboxState, assay } from "./types"
+
+export const assayColors: {[key in assay]: string} = {
+  DNase: "#06DA93",
+  H3K27ac: "#FFCD00",
+  H3K4me3: "#FF0000",
+  CTCF: "#00B0F0",
+  ATAC: "#02c7b9"
+}
 
 /**
  * 
