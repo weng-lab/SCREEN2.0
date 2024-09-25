@@ -119,7 +119,7 @@ export const DownloadRange: React.FC = () => {
   }
 
   return (
-    (<Grid container spacing={3}>
+    <Grid container spacing={3}>
       <Grid size={6}>
         <BiosampleTables
           assembly={assembly}
@@ -335,6 +335,6 @@ export const DownloadRange: React.FC = () => {
           {bedLoadingPercent !== null && <CircularProgressWithLabel value={bedLoadingPercent} />}
         </Stack>
       </Grid>
-    </Grid>)
+    </Grid>
   );
 }

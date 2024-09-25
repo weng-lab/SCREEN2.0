@@ -48,7 +48,7 @@ export const ENTExData = (props: { accession, coordinates }) =>{
       })
 
     return (
-        (<Grid container spacing={3} sx={{ mt: "1rem", mb: "1rem" }}>
+        <Grid container spacing={3} sx={{ mt: "1rem", mb: "1rem" }}>
             {loading && <CircularProgress />}
             {data && !loading && data.entexQuery.length>0  &&
                 <Grid
@@ -146,6 +146,6 @@ export const ENTExData = (props: { accession, coordinates }) =>{
         </Grid> 
 
             }
-        </Grid>)
+        </Grid>
     );
 }

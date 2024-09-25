@@ -70,7 +70,7 @@ export default function About() {
 
 
   return (
-    (<main>
+    <main>
       <Grid container spacing={3} sx={{ maxWidth: "min(70%, 1000px)", minWidth: "600px", mr: "auto", ml: "auto", mt: "3rem" }}>
         {/* Header */}
         <Grid size={12}>
@@ -295,6 +295,6 @@ export default function About() {
           </Grid>
         </Grid>
       </Grid>
-    </main >)
+    </main>
   );
 }

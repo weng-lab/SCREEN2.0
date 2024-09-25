@@ -11,7 +11,7 @@ import mouseTransparentIcon from "../../public/Transparent_MouseIcon.png"
 
 export default function Home() {
   return (
-    (<main>
+    <main>
       <Grid container spacing={6} sx={{ mr: "auto", ml: "auto", mt: "3rem", maxWidth: '95%' }}>
         <Grid size={12}>
           <Typography variant="h3">SCREEN</Typography>
@@ -65,6 +65,6 @@ export default function Home() {
           <Image priority src={homeImage} alt={"SCREEN home image"} />
         </Grid>
       </Grid>
-    </main>)
+    </main>
   );
 }

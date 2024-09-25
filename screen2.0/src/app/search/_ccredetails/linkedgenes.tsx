@@ -84,7 +84,7 @@ export const LinkedGenes: React.FC<props> = (props) => {
   }
 
   return (
-    (<Grid container spacing={3} sx={{ mt: "0rem", mb: "2rem" }}>
+    <Grid container spacing={3} sx={{ mt: "0rem", mb: "2rem" }}>
       <Grid size={12}>
         {HiCLinked.length > 0 ?
           <DataTable
@@ -281,6 +281,6 @@ export const LinkedGenes: React.FC<props> = (props) => {
           <EmptyTile title="eQTLs" body="This cCRE does not overlap a variant associated with significant changes in gene expression" />
         }
       </Grid>
-    </Grid>)
+    </Grid>
   );
 }

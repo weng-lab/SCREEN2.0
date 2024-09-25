@@ -319,7 +319,7 @@ export function DataMatrices() {
   ]
 
   return (
-    (<div role="tabpanel" id={`simple-tabpanel-${2}`} aria-labelledby={`simple-tab-${2}`}>
+    <div role="tabpanel" id={`simple-tabpanel-${2}`} aria-labelledby={`simple-tab-${2}`}>
       <Grid container spacing={3} columnSpacing={5}>
         <Grid container justifyContent="flex-start" alignContent="flex-start" spacing={2} size={2.5}>
           <Grid size={12}>
@@ -526,6 +526,6 @@ export function DataMatrices() {
           />
         </Box>
       </Modal>
-    </div>)
+    </div>
   );
 }

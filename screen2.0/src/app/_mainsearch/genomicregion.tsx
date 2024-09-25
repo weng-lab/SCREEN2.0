@@ -193,7 +193,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
   }, [value, inputType, props.assembly, chromosome, start, end])
 
   return (
-    (<Grid container spacing={2}>
+    <Grid container spacing={2}>
       {!props.header && (
         <Grid pt={0} size={12}>
           <FormControl>
@@ -389,7 +389,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
           </IconButton>
         </Stack>
       </Grid>
-    </Grid>)
+    </Grid>
   );
 }
 

@@ -384,7 +384,7 @@ export function MainResultsFilters(
 
 
   return (
-    (<Paper elevation={0}>
+    <Paper elevation={0}>
       {/* cCREs within distance from SNP  */}
       {mainQueryParams.snp.rsID &&
         <>
@@ -1170,6 +1170,6 @@ export function MainResultsFilters(
           }
         </>
       }
-    </Paper>)
+    </Paper>
   );
 }

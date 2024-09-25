@@ -179,7 +179,7 @@ export function GeneExpression(props: {
   };
 
   return (
-    (<Stack spacing={2}>
+    <Stack spacing={2}>
       <Stack direction="row" justifyContent={"space-between"}>
         <Typography
           alignSelf={"flex-end"}
@@ -429,6 +429,6 @@ export function GeneExpression(props: {
         open={configGBopen}
         setOpen={setConfigGBOpen}
       />
-    </Stack>)
+    </Stack>
   );
 }

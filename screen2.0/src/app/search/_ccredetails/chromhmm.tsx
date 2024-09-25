@@ -17,6 +17,7 @@ import { BigBedData } from "bigwig-reader"
 import { styled } from '@mui/material/styles';
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import config from "../../../config.json"
+
 const StyledTab = styled(Tab)(() => ({
     textTransform: "none",
   }))
@@ -178,7 +179,7 @@ export const ChromHMM = (props: { coordinates , assembly, accession }) =>{
     const l = useCallback((c) => ((c - coordinates.start) * 1400) / (coordinates.end - coordinates.start), [coordinates])
   
     return (
-      (<Grid container spacing={3} sx={{ mt: "1rem", mb: "1rem" }}>
+      <Grid container spacing={3} sx={{ mt: "1rem", mb: "1rem" }}>
         <Tabs value={page} onChange={handlePageChange}>              
             <StyledTab  value={0} label="Genome Browser View" />
             <StyledTab value={1} label="Table View" />
@@ -296,6 +297,6 @@ export const ChromHMM = (props: { coordinates , assembly, accession }) =>{
             itemsPerPage={10}
             />
         </Grid>}
-      </Grid>)
+      </Grid>
     );
 }
