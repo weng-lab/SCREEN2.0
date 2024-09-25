@@ -43,7 +43,7 @@
     "@emotion/cache": "^11.13.1",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
-    "@mui/icons-material": "^5.16.7",
+    "@mui/icons-material": "^6.1.1",
     "@mui/lab": "^5.0.0-alpha.170",
     "@mui/material": "^5.16.7",
     "@mui/material-nextjs": "^6.1.0",
