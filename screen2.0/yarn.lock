@@ -1740,9 +1740,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/material-nextjs@npm:^6.1.0":
-  version: 6.1.0
-  resolution: "@mui/material-nextjs@npm:6.1.0"
+"@mui/material-nextjs@npm:^6.1.1":
+  version: 6.1.1
+  resolution: "@mui/material-nextjs@npm:6.1.1"
   dependencies:
     "@babel/runtime": ^7.25.6
   peerDependencies:
@@ -1759,7 +1759,7 @@ __metadata:
       optional: true
     "@types/react":
       optional: true
-  checksum: 63dcda9f4214c4be6e28530ed84b078da2e7eb22462a4765428c1d477ab96d13ee4bdb60ac3cce319782eb24843492e06fd7270553d33248c8e45a24515049f8
+  checksum: ca6b091f4dff80389e0c6f13b26cd9631f69e4f8b8e26a8d6e12402decabafb1daaef213888af5a36fc74624cc3d95b2f5ebfa1b50c8350aed53fb03cdabed79
   languageName: node
   linkType: hard
 
@@ -10112,7 +10112,7 @@ __metadata:
     "@mui/icons-material": ^5.16.7
     "@mui/lab": ^5.0.0-alpha.170
     "@mui/material": ^5.16.7
-    "@mui/material-nextjs": ^6.1.0
+    "@mui/material-nextjs": ^6.1.1
     "@types/node": ^20.14.6
     "@types/react": ^18.3.3
     "@types/react-dom": 18.2.18
