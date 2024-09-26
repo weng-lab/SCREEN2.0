@@ -27,6 +27,7 @@ export const BiosampleTables = <T extends boolean = false>({
   selected,
   onBiosampleClicked,
   preFilterBiosamples,
+  fetchBiosamplesWith = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"],
   showRNAseq,
   showDownloads,
   slotProps
@@ -60,7 +61,8 @@ export const BiosampleTables = <T extends boolean = false>({
     BIOSAMPLE_QUERY,
     {
       variables: {
-        assembly: assembly.toLowerCase() as "grch38" | "mm10"
+        assembly: assembly.toLowerCase() as "grch38" | "mm10",
+        assays: fetchBiosamplesWith
       }
     }
   )
