@@ -482,6 +482,21 @@ export function DataMatrices() {
           <ParentSize>
             {({ width, height }) => {
               const squareSize = Math.min(width, height);
+
+              // simulate shift key being pressed
+              let shiftDownEvent = new KeyboardEvent('keydown', {
+                key: 'Shift',
+                keyCode: 16,
+                code: 'ShiftLeft',
+                location: 1,
+                ctrlKey: false,
+                shiftKey: true,
+                altKey: false,
+                metaKey: false,
+                bubbles: true,
+              });
+              document.dispatchEvent(shiftDownEvent);
+
               return (
                 <Stack justifyContent="space-between" overflow={"hidden"} padding={1} sx={{ border: '2px solid', borderColor: 'grey.400', borderRadius: '8px', maxHeight: '57vh'}}>
                   <Stack direction="row" justifyContent="space-between" mt={1} sx={{ backgroundColor: '#dbdefc', borderRadius: '8px', zIndex: 10 }}>
@@ -534,17 +549,15 @@ export function DataMatrices() {
                           )}
                         </Chart>
                       </Box>
-                    <Stack direction="column" justifyContent={"flex-end"} alignItems={"center"} spacing={5} sx={{position: "absolute", right: 0}}>
-                      <Tooltip title="Hold Shift and Drag to Select">
+                    <Stack direction="row" justifyContent={"flex-end"} alignItems={"center"} spacing={5} sx={{position: "absolute", right: 0, bottom: 20}}>
+                      <Tooltip title="Drag to Select">
                         <IconButton aria-label="edit" onClick={() => setSelectMode('select')} sx={{ color: selectMode === "select" ? "primary.main" : "default" }}><Edit /></IconButton>
                       </Tooltip>
                       {/* <IconButton aria-label="pan"><PanTool /></IconButton> */}
-                      <Stack direction="column">
-                        <Tooltip title="Hold Shift and Drag to Zoom In">
+                        <Tooltip title="Drag to Zoom In">
                           <IconButton aria-label="zoom-in" onClick={() => setSelectMode('zoom')} sx={{ color: selectMode === "zoom" ? "primary.main" : "default" }}><ZoomIn /></IconButton>
                          </Tooltip> 
-                        <IconButton aria-label="zoom-out"><ZoomOut /></IconButton>
-                      </Stack>
+                        {/* <IconButton aria-label="zoom-out"><ZoomOut /></IconButton> */}
                       <Button sx={{ height: '30px' }} size="small" disabled={!bounds} variant="outlined" onClick={() => setBounds(undefined)}>Reset</Button>
                     </Stack>
                   </Stack>
