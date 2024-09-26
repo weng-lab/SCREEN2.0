@@ -494,7 +494,7 @@ export function DataMatrices() {
               document.dispatchEvent(shiftDownEvent);
 
               return (
-                <Stack justifyContent="space-between" overflow={"hidden"} padding={1} sx={{ border: '2px solid', borderColor: 'grey.400', borderRadius: '8px', maxHeight: '57vh'}}>
+                <Stack justifyContent="space-between" overflow={"hidden"} padding={1} sx={{ border: '2px solid', borderColor: 'grey.400', borderRadius: '8px', height: '57vh'}}>
                   <Stack direction="row" justifyContent="space-between" mt={1} sx={{ backgroundColor: '#dbdefc', borderRadius: '8px', zIndex: 10 }}>
                     <Button endIcon={biosamples.length !== 0 && <Visibility />} onClick={handleOpenModal}>
                       {`${biosamples.length} Experiments Selected`}
