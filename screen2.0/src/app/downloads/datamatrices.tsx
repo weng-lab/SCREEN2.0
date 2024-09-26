@@ -25,7 +25,8 @@ import {
   IconButton,
   Paper,
   FormGroup,
-  Checkbox
+  Checkbox,
+  Tooltip
 } from "@mui/material"
 import { useQuery } from "@apollo/client"
 import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
@@ -228,10 +229,10 @@ export function DataMatrices() {
 
   const scatterData = useMemo(() => {
     if (!fData) return [];
-    const biosampleIds = biosamples.map(sample => sample.displayname);
+    const biosampleIds = biosamples.map(sample => sample.umap_coordinates);
   
     return fData.map((x) => {
-      const isInBiosample = biosampleIds.includes(x.displayname);
+      const isInBiosample = biosampleIds.includes(x.umap_coordinates);
   
       return {
         x: x.umap_coordinates[0],
@@ -376,8 +377,8 @@ export function DataMatrices() {
   ]
 
   return (
-    <Stack mt={1} direction="column" sx={{height: "110vh", paddingX:6}}>
-      <Stack direction="row" justifyContent="space-between" spacing={10} sx={{height: '80vh'}}>
+    <Stack mt={1} direction="column" sx={{paddingX:6}}>
+      <Stack direction="row" justifyContent="space-between" spacing={10} >
         <Stack direction="column" sx={{ flex: 1.5 }} spacing={2}>
           <Stack direction="row" spacing={15}>
 
@@ -471,7 +472,7 @@ export function DataMatrices() {
               <Grid2 container justifyContent="flex-end">
                 <Grid2 xs={5.75} mt={1}>
                   <InputLabel sx={{ color: 'white' }} id="download-label">Download</InputLabel>
-                  <Button sx={{ height: '40px' }} size="medium" variant="contained" fullWidth endIcon={<Download />} onClick={handleOpenDownloadModal}>Download Data</Button>
+                  <Button sx={{ height: '40px', lineHeight: '20px' }} size="medium" variant="contained" fullWidth endIcon={<Download />} onClick={handleOpenDownloadModal}>Download Data</Button>
                 </Grid2>
               </Grid2>
             </Stack>
@@ -482,7 +483,7 @@ export function DataMatrices() {
             {({ width, height }) => {
               const squareSize = Math.min(width, height);
               return (
-                <Stack justifyContent="space-between" overflow={"hidden"} padding={1} sx={{ border: '2px solid', borderColor: 'grey.400', borderRadius: '8px', maxHeight: '57vh' }}>
+                <Stack justifyContent="space-between" overflow={"hidden"} padding={1} sx={{ border: '2px solid', borderColor: 'grey.400', borderRadius: '8px', maxHeight: '57vh'}}>
                   <Stack direction="row" justifyContent="space-between" mt={1} sx={{ backgroundColor: '#dbdefc', borderRadius: '8px', zIndex: 10 }}>
                     <Button endIcon={biosamples.length !== 0 && <Visibility />} onClick={handleOpenModal}>
                       {`${biosamples.length} Experiments Selected`}
@@ -534,10 +535,14 @@ export function DataMatrices() {
                         </Chart>
                       </Box>
                     <Stack direction="column" justifyContent={"flex-end"} alignItems={"center"} spacing={5} sx={{position: "absolute", right: 0}}>
-                      <IconButton aria-label="edit" onClick={() => setSelectMode('select')} sx={{ color: selectMode === "select" ? "primary.main" : "default" }}><Edit /></IconButton>
+                      <Tooltip title="Hold Shift and Drag to Select">
+                        <IconButton aria-label="edit" onClick={() => setSelectMode('select')} sx={{ color: selectMode === "select" ? "primary.main" : "default" }}><Edit /></IconButton>
+                      </Tooltip>
                       {/* <IconButton aria-label="pan"><PanTool /></IconButton> */}
                       <Stack direction="column">
-                        <IconButton aria-label="zoom-in" onClick={() => setSelectMode('zoom')} sx={{ color: selectMode === "zoom" ? "primary.main" : "default" }}><ZoomIn /></IconButton>
+                        <Tooltip title="Hold Shift and Drag to Zoom In">
+                          <IconButton aria-label="zoom-in" onClick={() => setSelectMode('zoom')} sx={{ color: selectMode === "zoom" ? "primary.main" : "default" }}><ZoomIn /></IconButton>
+                         </Tooltip> 
                         <IconButton aria-label="zoom-out"><ZoomOut /></IconButton>
                       </Stack>
                       <Button sx={{ height: '30px' }} size="small" disabled={!bounds} variant="outlined" onClick={() => setBounds(undefined)}>Reset</Button>
@@ -549,7 +554,7 @@ export function DataMatrices() {
         </Stack>
 
         {/* biosample table*/}
-        <Grid2 paddingBottom={0} sx={{ width: "30%", display: 'flex', flexDirection: 'column'}}>
+        <Grid2 paddingBottom={0} sx={{ width: "30%", display: 'flex', flexDirection: 'column', flex: 1}}>
           {searched && (
             <Paper sx={{ mb: 1 }}>
               <Stack borderRadius={1} direction={"row"} spacing={3} sx={{ backgroundColor: "#E7EEF8" }} alignItems={"center"}>
@@ -572,7 +577,7 @@ export function DataMatrices() {
       </Stack>
 
       {/* legend section */}
-      <Box mt={2} sx={{ display: 'flex', flexDirection: 'column' }}>
+      <Box mt={2} mb={5} sx={{ display: 'flex', flexDirection: 'column' }}>
         <Typography sx={{ width: '100%' }} mb={1}>Legend</Typography>
         <Box sx={{ display: 'flex' }} justifyContent={"space-between"}>
           {Array.from({ length: Math.ceil(legendEntries.length / 6) }, (_, colIndex) => (
@@ -650,215 +655,5 @@ export function DataMatrices() {
         </Box>
       </Modal>
     </Stack>
-    
   )
 }
-
-// <div role="tabpanel" id={`simple-tabpanel-${2}`} aria-labelledby={`simple-tab-${2}`}>
-    //   <Grid2 container spacing={3} columnSpacing={5}>
-    //     <Grid2 container justifyContent="flex-start" alignContent="flex-start" spacing={2} xs={2.5}>
-    //       <Grid2 xs={12}>
-    //         <Stack direction={"row"} justifyContent={"space-between"}>
-    //           <div>
-    //             <Typography mt="auto" variant="h5">
-    //               Human
-    //             </Typography>
-    //             <Divider />
-    //             <Typography variant="subtitle2">2,348,854 cCREs</Typography>
-    //             <Typography variant="subtitle2">1,678 cell types</Typography>
-    //           </div>
-    //           <Image src={humanTransparentIcon} alt={"Human Icon"} style={{maxWidth: '75px', maxHeight: '75px'}} />
-    //         </Stack>
-    //       </Grid2>
-    //       <Grid2 xs={12}>
-    //         {selectorButton({ assembly: "Human", assay: "DNase" })}
-    //         {selectorButton({ assembly: "Human", assay: "H3K4me3" })}
-    //         {selectorButton({ assembly: "Human", assay: "H3K27ac" })}
-    //         {selectorButton({ assembly: "Human", assay: "CTCF" })}
-    //       </Grid2>
-    //       <Grid2 xs={12}>
-    //         <Stack direction={"row"} justifyContent={"space-between"}>
-    //           <div>
-    //             <Typography mt="auto" variant="h5">
-    //               Mouse
-    //             </Typography>
-    //             <Divider />
-    //             <Typography variant="subtitle2">926,843 cCREs</Typography>
-    //             <Typography variant="subtitle2">366 cell types</Typography>
-    //           </div>
-    //           <Image src={mouseTransparentIcon} alt={"Mouse Icon"} style={{maxWidth: '75px', maxHeight: '75px'}} />
-    //         </Stack>
-    //       </Grid2>
-    //       <Grid2 xs={12}>
-    //         {selectorButton({ assembly: "Mouse", assay: "DNase" })}
-    //         {selectorButton({ assembly: "Mouse", assay: "H3K4me3" })}
-    //         {selectorButton({ assembly: "Mouse", assay: "H3K27ac" })}
-    //         {selectorButton({ assembly: "Mouse", assay: "CTCF" })}
-    //       </Grid2>
-    //     </Grid2>
-    //     <Grid2 container xs={9.5}>
-    //       <Grid2 xs={4}>
-            // <Button
-            //   variant="outlined"
-            //   fullWidth
-            //   onClick={() => null}
-            //   endIcon={<Download />}
-            //   sx={{ mr: 1, mb: 1, mt: 3, textTransform: "none" }}
-            //   href={matrixDownloadURL(selectedAssay, "signal")}
-            // >
-            //   {`${selectedAssay.assay === "DNase" ? "Read-Depth Normalized Signal Matrix" : "Fold-Change Signal Matrix"}`}
-            // </Button>
-            // <Button
-            //   variant="outlined"
-            //   fullWidth
-            //   endIcon={<Download />}
-            //   sx={{ textTransform: "none", mb: 1 }}
-            //   href={matrixDownloadURL(selectedAssay, "zScore")}
-            // >
-            //   Z-Score Matrix
-            // </Button>
-    //         <Autocomplete
-    //           sx={{ mb: 3 }}
-    //           disablePortal
-    //           id="combo-box-demo"
-    //           options={fData}
-    //           renderInput={(params) => <TextField {...params} label={"Search for a Biosample"} />}
-    //           groupBy={(option) => option.ontology}
-    //           getOptionLabel={(biosample: BiosampleUMAP) => biosample.displayname + " — Exp ID: " + biosample.experimentAccession}
-    //           blurOnSelect
-    //           onChange={(_, value: any) => setSearched(value)}
-    //           size="small"
-    //         />
-    //         <FormControl>
-    //           <FormLabel id="demo-radio-buttons-group-label">Color By:</FormLabel>
-    //           <RadioGroup
-    //             aria-labelledby="demo-radio-buttons-group-label"
-    //             name="radio-buttons-group"
-    //             sx={{ mb: 2 }}
-    //             onChange={(_, value: "ontology" | "sampleType") => setColorBy(value)}
-    //             value={colorBy}
-    //           >
-    //             <FormControlLabel value="ontology" control={<Radio />} label="Tissue/Organ" />
-    //             <FormControlLabel value="sampleType" control={<Radio />} label="Biosample type" />
-    //           </RadioGroup>
-    //         </FormControl>
-    //         <FormControl>
-    //           <FormLabel id="demo-radio-buttons-group-label">Show:</FormLabel>
-    //           <RadioGroup
-    //             aria-labelledby="demo-radio-buttons-group-label"
-    //             defaultValue="all"
-    //             name="radio-buttons-group"
-    //             sx={{ mb: 2 }}
-    //             onChange={(event: ChangeEvent<HTMLInputElement>, value: string) => setLifeStage(value)}
-    //           >
-    //             <FormControlLabel value="all" control={<Radio />} label="All" />
-    //             <FormControlLabel value="adult" control={<Radio />} label="Adult" />
-    //             <FormControlLabel value="embryonic" control={<Radio />} label="Embyronic" />
-    //           </RadioGroup>
-    //         </FormControl>
-    //         <FormControl>
-    //           <FormLabel id="demo-radio-buttons-group-label">Hold shift, click, and draw a selection to:</FormLabel>
-    //           <RadioGroup
-    //             aria-labelledby="demo-radio-buttons-group-label"
-    //             defaultValue="select"
-    //             name="radio-buttons-group"
-    //             onChange={(event: ChangeEvent<HTMLInputElement>, value: "select" | "zoom") => setSelectMode(value)}
-    //           >
-    //             <FormControlLabel value="select" control={<Radio />} label="Select Experiments" />
-    //             <FormControlLabel value="zoom" control={<Radio />} label="Zoom In" />
-    //           </RadioGroup>
-    //         </FormControl>
-    //          <Button disabled={!bounds} variant="contained" onClick={() => setBounds(undefined)}>Reset Zoom</Button>
-    //       </Grid2>
-    //       <Grid2 xs={8} position={"relative"} padding={2}>
-            // <Chart
-            //   domain={{ x: { start: xMin, end: xMax }, y: { start: yMin, end: yMax } }}
-            //   innerSize={{ width: 1000, height: 1000 }}
-            //   xAxisProps={{ ticks: (bounds ? oneRange : fiveRange)(xMin, xMax), title: "UMAP-1", fontSize: 40 }}
-            //   yAxisProps={{ ticks: (bounds ? oneRange : fiveRange)(yMin, yMax), title: "UMAP-2", fontSize: 40 }}
-            //   scatterData={[scatterData]}
-            //   plotAreaProps={{
-            //     onFreeformSelectionEnd: (_, c) => setBiosamples(c[0].map((x) => fData[x])),
-            //     onSelectionEnd: (x) => handleSetBounds(x),
-            //     freeformSelection: selectMode === "select",
-            //   }}
-            // >
-            //   <Scatter
-            //     data={scatterData}
-            //     pointStyle={{ r: bounds ? 8 : 6 }}
-            //     onPointMouseOver={(i,_)=> setTimeout(() => {
-            //       setTooltip(i)
-            //     }, 100)}
-            //     onPointMouseOut={() => setTimeout(() => {
-            //       setTooltip(-1)
-            //     }, 100)}
-            //     onPointClick={(i) => setBiosamples([fData[i]])}
-            //   />
-            //   {tooltip !== -1 && (
-            //     //X and Y attributes added due to error. Not sure if setting to zero has unintended consequences
-            //     <Annotation notScaled notTranslated x={0} y={0}>
-            //       <rect x={35} y={100} width={740} height={120} strokeWidth={2} stroke="#000000" fill="#ffffffdd" />
-            //       <rect x={55} y={120} width={740 * 0.04} height={740 * 0.04} strokeWidth={1} stroke="#000000" fill={(colorBy === "sampleType" ? sampleTypeColors : ontologyColors)[colorBy === "sampleType" ? fData[tooltip].sampleType : fData[tooltip].ontology]} />
-            //       <text x={100} y={140} fontSize="26px" fontWeight="bold">
-            //         {fData[tooltip].displayname.replace(/_/g, " ").slice(0, 45)}
-            //         {fData[tooltip].displayname.length > 45 ? "..." : ""}
-            //       </text>
-            //       <text x={55} y={185} fontSize="24px">
-            //         {fData[tooltip].experimentAccession}
-            //       </text>
-            //     </Annotation>
-            //   )}
-            // </Chart>
-            // {biosamples.length !== 0 && (
-            //   <Stack direction="row" justifyContent="space-between" mb={1}>
-            //     <Button endIcon={biosamples.length !== 0 && <Visibility />} onClick={handleOpenModal}>
-            //       {`${biosamples.length} Experiments Selected`}
-            //     </Button>
-            //     <Button onClick={() => setBiosamples([])}>Clear</Button>
-            //   </Stack>
-            // )}
-    //         <Accordion elevation={2}>
-    //           <AccordionSummary expandIcon={<ExpandMore />}>Legend</AccordionSummary>
-    //           <AccordionDetails>
-                // {legendEntries.map((element, index) => {
-                //   return (
-                //     <Typography key={index} borderLeft={`0.2rem solid ${element.color}`} paddingLeft={1}>
-                //       {`${element.label}: ${element.value} experiments`}
-                //     </Typography>
-                //   )
-                // })}
-    //           </AccordionDetails>
-    //         </Accordion>
-    //         {umapLoading &&
-    //           <Box
-    //               position={"absolute"}
-    //               top={0}
-    //               left={0}
-    //               width={'100%'}
-    //               height={'100%'}
-    //               display={'flex'}
-    //               justifyContent={"center"}
-    //               alignItems={"center"}
-    //               sx={{
-    //                   backdropFilter: 'blur(3px)'
-    //               }}
-    //           >
-    //               <CircularProgress />
-    //           </Box>
-    //        }
-    //       </Grid2>
-    //     </Grid2>
-    //   </Grid2>
-      // <Modal open={open} onClose={handleCloseModal} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
-      //   <Box sx={style}>
-      //     <DataTable
-      //       sortDescending
-      //       searchable
-      //       tableTitle={"Selected Biosamples"}
-      //       columns={modalCols}
-      //       rows={biosamples}
-      //       itemsPerPage={7}
-      //     />
-      //   </Box>
-      // </Modal>
-    // </div>
