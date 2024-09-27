@@ -2,7 +2,7 @@ import React, { useState, useEffect, SetStateAction, useTransition } from "react
 import Box from "@mui/material/Box"
 import TextField from "@mui/material/TextField"
 import Autocomplete from "@mui/material/Autocomplete"
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import Grid from "@mui/material/Grid2"
 import Typography from "@mui/material/Typography"
 import { IconButton, Stack } from "@mui/material"
 import { Search } from "@mui/icons-material"
@@ -101,16 +101,16 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
         renderOption={(props, option) => {
           return (
             <li {...props} key={props.id}>
-              <Grid2 container alignItems="center">
-                <Grid2 sx={{ width: "100%", wordWrap: "normal" }}>
+              <Grid container alignItems="center">
+                <Grid sx={{ width: "100%", wordWrap: "normal" }}>
                   <Box component="span" sx={{ fontWeight: "regular" }}>
                     {option.displayname}
                   </Box>
                   <Typography variant="body2" color="text.secondary">
                     {option.ontology}
                   </Typography>
-                </Grid2>
-              </Grid2>
+                </Grid>
+              </Grid>
             </li>
           )
         }}

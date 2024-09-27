@@ -3,7 +3,7 @@ import React from "react"
 import { client } from "./client"
 import { useQuery } from "@apollo/client"
 import { ORTHOLOG_QUERY } from "./queries"
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import Grid from "@mui/material/Grid2"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { LoadingMessage, ErrorMessage } from "../../../common/lib/utility"
 import { Typography } from "@mui/material"
@@ -43,8 +43,13 @@ export const Ortholog = ({ accession, assembly }) => {
   ) : error ? (
     <ErrorMessage error={error} />
   ) : (
-    <Grid2 container spacing={3} sx={{ mt: "0rem", mb: "2rem" }}>
-      <Grid2 xs={12} md={12} lg={12}>
+    <Grid container spacing={3} sx={{ mt: "0rem", mb: "2rem" }}>
+      <Grid
+        size={{
+          xs: 12,
+          md: 12,
+          lg: 12
+        }}>
         <DataTable
           tableTitle={`Linked cCREs in ${assembly == "GRCh38" ? "mm10" : "GRCh38"}`}
           columns={[
@@ -77,7 +82,7 @@ export const Ortholog = ({ accession, assembly }) => {
           sortColumn={0}
           itemsPerPage={5}
         />
-      </Grid2>
-    </Grid2>
-  )
+      </Grid>
+    </Grid>
+  );
 }

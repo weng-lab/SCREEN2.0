@@ -1,6 +1,6 @@
 "use client"
 import React, { useMemo, useState, useRef, useCallback, useEffect } from "react"
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import Grid from "@mui/material/Grid2"
 import { RulerTrack, GenomeBrowser } from "umms-gb"
 import Controls from "./controls"
 import { gql, useQuery } from "@apollo/client"
@@ -22,7 +22,7 @@ type TfSequenceFeaturesProps = {
   assembly: string
 }
 const GENE_QUERY = gql`
-  query s($chromosome: String, $start: Int, $end: Int, $assembly: String!, $version: Int) {
+  query s_1($chromosome: String, $start: Int, $end: Int, $assembly: String!, $version: Int) {
     gene(chromosome: $chromosome, start: $start, end: $end, assembly: $assembly, version: $version) {
       name
       strand
@@ -152,90 +152,92 @@ export const TfSequenceFeatures: React.FC<TfSequenceFeaturesProps> = (props) => 
   )
   const l = useCallback((c) => ((c - coordinates.start) * 1400) / (coordinates.end - coordinates.start), [coordinates])
   
-  return (
-    <>
-      <Grid2 container spacing={3} sx={{ mt: "1rem", mb: "1rem" }}>
-        <Grid2 xs={12} lg={12}>
-          <br />
-          <CytobandView innerWidth={1000} height={15} chromosome={coordinates.chromosome!} assembly={props.assembly!=="mm10"? "hg38": "mm10"} position={coordinates} />
-          <br />
-          <div style={{ textAlign: "center" }}>
-            <Controls onDomainChanged={onDomainChanged} domain={coordinates || props.coordinates} />
-          </div>
-          <br />
-          <br />
-          <GenomeBrowser
-            svgRef={svgRef}
-            domain={coordinates}
-            innerWidth={1400}
-            width="100%"
-            noMargin
-            onDomainChanged={(x) => {
-              if (Math.ceil(x.end) - Math.floor(x.start) > 10) {
-                setCoordinates({
-                  chromosome: coordinates.chromosome,
-                  start: Math.floor(x.start),
-                  end: Math.ceil(x.end),
-                })
-              }
-            }}
-          >
-            <RulerTrack domain={coordinates} height={30} width={1400} />
-            <>
-            {(props.coordinates.start  > coordinates.start  || props.coordinates.end < coordinates.end   ) &&
-              <rect key={"tfseq"} fill="#FAA4A4" fillOpacity={0.8} height={3500} x={l(props.coordinates.start)} width={l(props.coordinates.end) - l(props.coordinates.start)} />
+  return (<>
+    <Grid container spacing={3} sx={{ mt: "1rem", mb: "1rem" }}>
+      <Grid
+        size={{
+          xs: 12,
+          lg: 12
+        }}>
+        <br />
+        <CytobandView innerWidth={1000} height={15} chromosome={coordinates.chromosome!} assembly={props.assembly!=="mm10"? "hg38": "mm10"} position={coordinates} />
+        <br />
+        <div style={{ textAlign: "center" }}>
+          <Controls onDomainChanged={onDomainChanged} domain={coordinates || props.coordinates} />
+        </div>
+        <br />
+        <br />
+        <GenomeBrowser
+          svgRef={svgRef}
+          domain={coordinates}
+          innerWidth={1400}
+          width="100%"
+          noMargin
+          onDomainChanged={(x) => {
+            if (Math.ceil(x.end) - Math.floor(x.start) > 10) {
+              setCoordinates({
+                chromosome: coordinates.chromosome,
+                start: Math.floor(x.start),
+                end: Math.ceil(x.end),
+              })
             }
-            </>
-            <EGeneTracks
-              genes={groupedTranscripts || []}
-              expandedCoordinates={coordinates}
-              squish={true}
-            />
-            {!loading && data && props.assembly!=="mm10" && <TfMotifTrack width={1400} data={data} svgRef={svgRef} coordinates={coordinates}/>}
-            <g>
-            <EmptyTrack height={40} width={1400} text={`Sequence Importance (${url})`} transform="" id="" />
-            {coordinates.end - coordinates.start < 5000  ? <g transform="translate(0,30)"><GraphQLImportanceTrack
-          width={1400}
-          height={140}
-          
-          endpoint="https://ga.staging.wenglab.org"
-          signalURL={url}
-          sequenceURL={props.assembly==="GRCh38" ?"gs://gcp.wenglab.org/hg38.2bit" :"gs://gcp.wenglab.org/mm10.2bit"}
-          coordinates={{ chromosome: coordinates.chromosome!, start: coordinates.start, end: coordinates.end }}
-          key={`${coordinates.chromosome}:${coordinates.start}-${coordinates.end}-${url}`}
-        /></g>:   
-        <FullBigWig
+          }}
+        >
+          <RulerTrack domain={coordinates} height={30} width={1400} />
+          <>
+          {(props.coordinates.start  > coordinates.start  || props.coordinates.end < coordinates.end   ) &&
+            <rect key={"tfseq"} fill="#FAA4A4" fillOpacity={0.8} height={3500} x={l(props.coordinates.start)} width={l(props.coordinates.end) - l(props.coordinates.start)} />
+          }
+          </>
+          <EGeneTracks
+            genes={groupedTranscripts || []}
+            expandedCoordinates={coordinates}
+            squish={true}
+          />
+          {!loading && data && props.assembly!=="mm10" && <TfMotifTrack width={1400} data={data} svgRef={svgRef} coordinates={coordinates}/>}
+          <g>
+          <EmptyTrack height={40} width={1400} text={`Sequence Importance (${url})`} transform="" id="" />
+          {coordinates.end - coordinates.start < 5000  ? <g transform="translate(0,30)"><GraphQLImportanceTrack
         width={1400}
         height={140}
-        domain={coordinates}
-        id={url}
-        transform="translate(0,40)"        
-        data={sequenceData?.bigRequests[0].data as BigWigData[]}
-        noTransparency
-      />}
-      {settingsMousedOver && (
-        <rect width={ 1400} height={150} transform="translate(0,0)" fill="#0000ff" fillOpacity={0.1} />
-      )}
-        <rect transform="translate(0,0)" height={150} width={40} fill="#ffffff" />
-        <rect
-        height={150}
-        width={15}
-        fill="#0000ff"
-        stroke="#000000"        
-        fillOpacity={settingsMousedOver ? 1 : 0.6}
-        onMouseOver={() => setSettingsMousedOver(true)}
-        onMouseOut={() => setSettingsMousedOver(false)}
-        strokeWidth={1}
-        transform="translate(20,0)"
-      />
-      <text transform={`rotate(270) translate(-${100 / 2 + 60},12)`} fill="#0000ff">
-        Sequence
-      </text>
-      </g>
-            
-          </GenomeBrowser>
-        </Grid2>
-      </Grid2>
-    </>
-  )
+        
+        endpoint="https://ga.staging.wenglab.org"
+        signalURL={url}
+        sequenceURL={props.assembly==="GRCh38" ?"gs://gcp.wenglab.org/hg38.2bit" :"gs://gcp.wenglab.org/mm10.2bit"}
+        coordinates={{ chromosome: coordinates.chromosome!, start: coordinates.start, end: coordinates.end }}
+        key={`${coordinates.chromosome}:${coordinates.start}-${coordinates.end}-${url}`}
+      /></g>:   
+      <FullBigWig
+      width={1400}
+      height={140}
+      domain={coordinates}
+      id={url}
+      transform="translate(0,40)"        
+      data={sequenceData?.bigRequests[0].data as BigWigData[]}
+      noTransparency
+    />}
+    {settingsMousedOver && (
+      <rect width={ 1400} height={150} transform="translate(0,0)" fill="#0000ff" fillOpacity={0.1} />
+    )}
+      <rect transform="translate(0,0)" height={150} width={40} fill="#ffffff" />
+      <rect
+      height={150}
+      width={15}
+      fill="#0000ff"
+      stroke="#000000"        
+      fillOpacity={settingsMousedOver ? 1 : 0.6}
+      onMouseOver={() => setSettingsMousedOver(true)}
+      onMouseOut={() => setSettingsMousedOver(false)}
+      strokeWidth={1}
+      transform="translate(20,0)"
+    />
+    <text transform={`rotate(270) translate(-${100 / 2 + 60},12)`} fill="#0000ff">
+      Sequence
+    </text>
+    </g>
+          
+        </GenomeBrowser>
+      </Grid>
+    </Grid>
+  </>);
 }

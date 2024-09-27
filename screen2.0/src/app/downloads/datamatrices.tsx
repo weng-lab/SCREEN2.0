@@ -19,7 +19,7 @@ import {
   CircularProgress,
 } from "@mui/material"
 import { useQuery } from "@apollo/client"
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import Grid from "@mui/material/Grid2"
 import { ArrowForward, Download, ExpandMore, Visibility } from "@mui/icons-material"
 import Image from "next/image"
 import humanTransparentIcon from "../../../public/Transparent_HumanIcon.png"
@@ -320,9 +320,9 @@ export function DataMatrices() {
 
   return (
     <div role="tabpanel" id={`simple-tabpanel-${2}`} aria-labelledby={`simple-tab-${2}`}>
-      <Grid2 container spacing={3} columnSpacing={5}>
-        <Grid2 container justifyContent="flex-start" alignContent="flex-start" spacing={2} xs={2.5}>
-          <Grid2 xs={12}>
+      <Grid container spacing={3} columnSpacing={5}>
+        <Grid container justifyContent="flex-start" alignContent="flex-start" spacing={2} size={2.5}>
+          <Grid size={12}>
             <Stack direction={"row"} justifyContent={"space-between"}>
               <div>
                 <Typography mt="auto" variant="h5">
@@ -334,14 +334,14 @@ export function DataMatrices() {
               </div>
               <Image src={humanTransparentIcon} alt={"Human Icon"} style={{maxWidth: '75px', maxHeight: '75px'}} />
             </Stack>
-          </Grid2>
-          <Grid2 xs={12}>
+          </Grid>
+          <Grid size={12}>
             {selectorButton({ assembly: "Human", assay: "DNase" })}
             {selectorButton({ assembly: "Human", assay: "H3K4me3" })}
             {selectorButton({ assembly: "Human", assay: "H3K27ac" })}
             {selectorButton({ assembly: "Human", assay: "CTCF" })}
-          </Grid2>
-          <Grid2 xs={12}>
+          </Grid>
+          <Grid size={12}>
             <Stack direction={"row"} justifyContent={"space-between"}>
               <div>
                 <Typography mt="auto" variant="h5">
@@ -353,16 +353,16 @@ export function DataMatrices() {
               </div>
               <Image src={mouseTransparentIcon} alt={"Mouse Icon"} style={{maxWidth: '75px', maxHeight: '75px'}} />
             </Stack>
-          </Grid2>
-          <Grid2 xs={12}>
+          </Grid>
+          <Grid size={12}>
             {selectorButton({ assembly: "Mouse", assay: "DNase" })}
             {selectorButton({ assembly: "Mouse", assay: "H3K4me3" })}
             {selectorButton({ assembly: "Mouse", assay: "H3K27ac" })}
             {selectorButton({ assembly: "Mouse", assay: "CTCF" })}
-          </Grid2>
-        </Grid2>
-        <Grid2 container xs={9.5}>
-          <Grid2 xs={4}>
+          </Grid>
+        </Grid>
+        <Grid container size={9.5}>
+          <Grid size={4}>
             <Button
               variant="outlined"
               fullWidth
@@ -434,8 +434,8 @@ export function DataMatrices() {
               </RadioGroup>
             </FormControl>
              <Button disabled={!bounds} variant="contained" onClick={() => setBounds(undefined)}>Reset Zoom</Button>
-          </Grid2>
-          <Grid2 xs={8} position={"relative"} padding={2}>
+          </Grid>
+          <Grid position={"relative"} padding={2} size={8}>
             <Chart
               domain={{ x: { start: xMin, end: xMax }, y: { start: yMin, end: yMax } }}
               innerSize={{ width: 1000, height: 1000 }}
@@ -461,7 +461,7 @@ export function DataMatrices() {
               />
               {tooltip !== -1 && (
                 //X and Y attributes added due to error. Not sure if setting to zero has unintended consequences
-                <Annotation notScaled notTranslated x={0} y={0}>
+                (<Annotation notScaled notTranslated x={0} y={0}>
                   <rect x={35} y={100} width={740} height={120} strokeWidth={2} stroke="#000000" fill="#ffffffdd" />
                   <rect x={55} y={120} width={740 * 0.04} height={740 * 0.04} strokeWidth={1} stroke="#000000" fill={(colorBy === "sampleType" ? sampleTypeColors : ontologyColors)[colorBy === "sampleType" ? fData[tooltip].sampleType : fData[tooltip].ontology]} />
                   <text x={100} y={140} fontSize="26px" fontWeight="bold">
@@ -471,7 +471,7 @@ export function DataMatrices() {
                   <text x={55} y={185} fontSize="24px">
                     {fData[tooltip].experimentAccession}
                   </text>
-                </Annotation>
+                </Annotation>)
               )}
             </Chart>
             {biosamples.length !== 0 && (
@@ -511,9 +511,9 @@ export function DataMatrices() {
                   <CircularProgress />
               </Box>
            }
-          </Grid2>
-        </Grid2>
-      </Grid2>
+          </Grid>
+        </Grid>
+      </Grid>
       <Modal open={open} onClose={handleCloseModal} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
         <Box sx={style}>
           <DataTable
@@ -527,5 +527,5 @@ export function DataMatrices() {
         </Box>
       </Modal>
     </div>
-  )
+  );
 }

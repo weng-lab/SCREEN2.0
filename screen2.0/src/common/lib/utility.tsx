@@ -1,6 +1,6 @@
 import React from "react"
 import { Link, Alert, AlertTitle, CircularProgress, Typography, TypographyPropsVariantOverrides, Stack, TypographyOwnProps } from "@mui/material"
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import Grid from "@mui/material/Grid2"
 import { Snackbar, Box } from "@mui/material"
 import { OverridableStringUnion } from '@mui/types';
 import { Variant } from "@mui/material/styles/createTypography";
@@ -75,14 +75,14 @@ export const CreateLink: React.FC<{ linkPrefix: string, linkArg?: string, label:
  */
 export function LoadingMessage() {
   return (
-    <Grid2 container alignItems="center" justifyContent="center" direction="column" sx={{ minHeight: "90vh" }}>
+    <Grid container alignItems="center" justifyContent="center" direction="column" sx={{ minHeight: "90vh" }}>
       <Box>
         <CircularProgress />
       </Box>
       <Box mt={1} ml={1}>
         <Typography>Loading...</Typography>
       </Box>
-    </Grid2>
+    </Grid>
   )
 }
 
@@ -96,7 +96,7 @@ export function ErrorMessage(props: { error: Error }) {
   // throw error
 
   return (
-    <Grid2 container alignItems="center" justifyContent="center" direction="column" sx={{ minHeight: "90vh" }}>
+    <Grid container alignItems="center" justifyContent="center" direction="column" sx={{ minHeight: "90vh" }}>
       <Snackbar
         id="errorpopper"
         open={true}
@@ -110,7 +110,7 @@ export function ErrorMessage(props: { error: Error }) {
           There was an error loading
         </Alert>
       </Snackbar>
-    </Grid2>
+    </Grid>
   )
 }
 

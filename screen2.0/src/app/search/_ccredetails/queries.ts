@@ -30,7 +30,7 @@ type Variables = {
 }
 
 export const GET_CCRE_CT_TF = gql`
-query q($accession: String!, $assembly: String!) {
+query q_2($accession: String!, $assembly: String!) {
 getcCRETFQuery(accession: $accession, assembly: $assembly) {
     celltype
     tf
@@ -38,7 +38,7 @@ getcCRETFQuery(accession: $accession, assembly: $assembly) {
 }
 `
 export const TOP_TISSUES: TypedDocumentNode<Data, Variables> = gql`
-  query q($accession: [String!], $assembly: String!) {
+  query q_3($accession: [String!], $assembly: String!) {
     ccREBiosampleQuery(assembly: $assembly) {
       biosamples {
         sampleType
@@ -190,7 +190,7 @@ export const ORTHOLOG_QUERY = gql`
 `
 
 export const NEARBY_GENOMIC_FEATURES_QUERY = gql`
-  query features($coordinates: [GenomicRangeInput!], $chromosome: String, $start: Int, $end: Int, $b: String!, $c: String!, $a: String!, $version: Int) {
+  query features_1($coordinates: [GenomicRangeInput!], $chromosome: String, $start: Int, $end: Int, $b: String!, $c: String!, $a: String!, $version: Int) {
     gene(chromosome: $chromosome, start: $start, end: $end, assembly: $b, version: $version) {
       name
       id
@@ -232,7 +232,7 @@ export const NEARBY_GENOMIC_FEATURES_QUERY = gql`
 `
 
 export const NEARBY_GENOMIC_FEATURES_NOSNPS_QUERY = gql`
-  query features($coordinates: [GenomicRangeInput!], $chromosome: String, $start: Int, $end: Int, $b: String!, $c: String!, $version: Int) {
+  query features_2($coordinates: [GenomicRangeInput!], $chromosome: String, $start: Int, $end: Int, $b: String!, $c: String!, $version: Int) {
     gene(chromosome: $chromosome, start: $start, end: $end, assembly: $b, version: $version) {
       name
       id
@@ -264,7 +264,7 @@ export const NEARBY_GENOMIC_FEATURES_NOSNPS_QUERY = gql`
   }
 `
 export const CRE_TF_DCC_QUERY = gql`
-  query tfpeaks($assembly: String, $range: [ChromosomeRangeInput]!, $target: String) {
+  query tfpeaks_1($assembly: String, $range: [ChromosomeRangeInput]!, $target: String) {
     peaks(assembly: $assembly, range: $range, target: $target) {
       peaks {
         chrom
@@ -284,7 +284,7 @@ export const CRE_TF_DCC_QUERY = gql`
 `
 
 export const TF_INTERSECTION_QUERY = gql`
-  query tfpeaks($assembly: String, $range: [ChromosomeRangeInput]!, $species: String) {
+  query tfpeaks_2($assembly: String, $range: [ChromosomeRangeInput]!, $species: String) {
     peaks(assembly: $assembly, range: $range) {
       peaks {
         chrom

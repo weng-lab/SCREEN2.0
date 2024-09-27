@@ -5,7 +5,7 @@ import { client } from "../_ccredetails/client"
 import { GROUP_COLOR_MAP } from "../_ccredetails/utils"
 
 const QUERY = gql`
-  query cCRE($assembly: String!, $accession: [String!], $experiments: [String!]) {
+  query cCRE_1($assembly: String!, $accession: [String!], $experiments: [String!]) {
     cCREQuery(assembly: $assembly, accession: $accession) {
       group
       zScores(experiments: $experiments) {
@@ -17,7 +17,7 @@ const QUERY = gql`
 `
 
 const MAXZ_QUERY = gql`
-  query cCRE($assembly: String!, $accession: [String!]) {
+  query cCRE_2($assembly: String!, $accession: [String!]) {
     cCREQuery(assembly: $assembly, accession: $accession) {
       group
       dnase: maxZ(assay: "dnase")
