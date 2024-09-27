@@ -2,9 +2,9 @@
 import React, { useMemo, useState } from "react"
 import { LoadingMessage } from "../../../common/lib/utility"
 import { PlotGeneExpression } from "../../applets/gene-expression/geneexpressionplot"
-import { useQuery } from "@apollo/experimental-nextjs-app-support/ssr"
+import { useQuery } from "@apollo/client"
 import { Button, Typography, Stack, MenuItem, FormControl, SelectChangeEvent, Checkbox, InputLabel, ListItemText, OutlinedInput, Select, ToggleButton, ToggleButtonGroup, FormLabel, Box } from "@mui/material"
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import Grid from "@mui/material/Grid2"
 import Image from "next/image"
 import { HUMAN_GENE_EXP, MOUSE_GENE_EXP } from "../../applets/gene-expression/const"
 import { GENE_EXP_QUERY, GENE_QUERY, GET_ORTHOLOG, GET_ORTHOLOG_DATA, GET_ORTHOLOG_VARS } from "../../applets/gene-expression/queries"
@@ -272,7 +272,7 @@ export function GeneExpression(props: {
           </LoadingButton>
         </Stack>
         :
-        <Grid2>
+        <Grid>
           <InputLabel>Gene</InputLabel>
           <Select
             value={gene}
@@ -293,7 +293,7 @@ export function GeneExpression(props: {
               )
             })}
           </Select>
-        </Grid2>
+        </Grid>
       }
       <Stack direction="row" gap={2} flexWrap={"wrap"}>
         <FormControl sx={{ width: 300 }}>
@@ -383,12 +383,17 @@ export function GeneExpression(props: {
       </Stack>
       {
         loadingGeneID || loadingExperiments ?
-          <Grid2 xs={12} md={12} lg={12}>
+          <Grid
+            size={{
+              xs: 12,
+              md: 12,
+              lg: 12
+            }}>
             <LoadingMessage />
-          </Grid2>
+          </Grid>
           :
           dataExperiments ?
-            <Grid2 xs={12}>
+            <Grid size={12}>
               <Box maxWidth={{ xl: '75%', xs: '100%' }}>
                 <Typography variant="h5" mb={1}>Gene Expression of <i>{gene}</i> in {dataAssembly}:</Typography>
                 <PlotGeneExpression
@@ -406,7 +411,7 @@ export function GeneExpression(props: {
                   replicates={replicates}
                 />
               </Box>
-            </Grid2>
+            </Grid>
             :
             <Typography variant="h5">
               Please Select a Gene
@@ -425,5 +430,5 @@ export function GeneExpression(props: {
         setOpen={setConfigGBOpen}
       />
     </Stack>
-  )
+  );
 }

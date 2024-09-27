@@ -1,5 +1,5 @@
-import { Button, ButtonProps, Typography, Stack, Tabs, Tab } from "@mui/material"
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import { Button, ButtonProps, Paper, Typography, Divider, Stack, Tabs, Tab } from "@mui/material"
+import Grid from "@mui/material/Grid2"
 import React, { useEffect, useState } from "react"
 import Config from "../../config.json"
 import DownloadIcon from "@mui/icons-material/Download"
@@ -121,8 +121,8 @@ export function Annotations() {
                 paperStack: { overflow: 'hidden', flexGrow: 1 }
               }}
             />
-          </Grid2>
-        </Grid2>
+          </Grid>
+        </Grid>
       )}
       {species === 1 && (
         <Grid2 container spacing={3}>
@@ -157,10 +157,10 @@ export function Annotations() {
                 paperStack: { overflow: 'hidden', flexGrow: 1 }
               }}
             />
-          </Grid2>
-        </Grid2>
+          </Grid>
+        </Grid>
       )}
     </Stack>
-  )
+  );
 }
 
