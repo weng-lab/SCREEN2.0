@@ -1,5 +1,5 @@
 import { SetStateAction, useState } from "react"
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import Grid from "@mui/material/Grid2"
 import { Box, Button, Checkbox, CircularProgress, CircularProgressProps, FormControl, FormControlLabel, FormLabel, IconButton, Radio, RadioGroup, Stack, TextField, Typography } from "@mui/material"
 import { downloadBED } from "../search/searchhelpers"
 import { parseGenomicRegion } from "../_mainsearch/parsegenomicregion"
@@ -119,15 +119,15 @@ export const DownloadRange: React.FC = () => {
   }
 
   return (
-    <Grid2 container spacing={3} paddingX={6}>
-      <Grid2 xs={6}>
+    <Grid container spacing={3} paddingX={6}>
+      <Grid size={{ xs: 6 }}>
         <BiosampleTables
           assembly={assembly}
           selected={selectedBiosample?.name}
           onBiosampleClicked={(selected: RegistryBiosample) => handleSetSelectedBiosample(selected)}
         />
-      </Grid2>
-      <Grid2 xs={6} flexGrow={1}>
+      </Grid>
+      <Grid size={{ xs: 6 }} flexGrow={1}>
         <FormControl sx={{ mb: 1 }}>
           <FormLabel id="demo-row-radio-buttons-group-label">Assembly</FormLabel>
           <RadioGroup
@@ -228,9 +228,8 @@ export const DownloadRange: React.FC = () => {
                   indeterminate={
                     !(
                       //If every value is not true/null
-                      Object.values(selectedConservation).every(x => x || x === null) ||
-                      //Or every value is not false/null
-                      Object.values(selectedConservation).every(x => !x || x === null)
+                      (Object.values(selectedConservation).every(x => x || x === null) || //Or every value is not false/null
+                      Object.values(selectedConservation).every(x => !x || x === null))
                     )
                   }
                   onChange={(_, checked: boolean) => setSelectedConservation(
@@ -335,7 +334,7 @@ export const DownloadRange: React.FC = () => {
           </Button>
           {bedLoadingPercent !== null && <CircularProgressWithLabel value={bedLoadingPercent} />}
         </Stack>
-      </Grid2>
-    </Grid2>
-  )
+      </Grid>
+    </Grid>
+  );
 }

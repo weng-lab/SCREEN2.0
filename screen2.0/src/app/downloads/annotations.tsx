@@ -88,8 +88,8 @@ export function Annotations() {
         <Tab label="Mouse" sx={{ textTransform: "none" }} {...a11yProps(1)} />
       </Tabs>
       {species === 0 && (
-        <Grid2 container spacing={3}>
-          <Grid2 xs={12} md={6}>
+        <Grid container spacing={3}>
+          <Grid size={{ xs: 12, md: 6}}>
             <Stack spacing={1} flexGrow={1}>
               <Stack direction={"row"} justifyContent={"space-between"}>
                 <Stack>
@@ -111,8 +111,8 @@ export function Annotations() {
               <InlineDownloadButton href={Config.Downloads.HumanCA_Bound} label="CTCF-Bound cCREs (948,642)" bordercolor={CTCF_Bound} />
               <InlineDownloadButton href={Config.Downloads.HumanGeneLinks} label="cCRE-Gene Links (3D Chromatin, CRISPR, eQTLS)" bordercolor={Gene_Links} />
             </Stack>
-          </Grid2>
-          <Grid2 xs={12} md={6} alignItems="flex-start" sx={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+          </Grid>
+          <Grid size={{ xs: 12, md: 6}} alignItems="flex-start" sx={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
             <Typography variant="h6" mt={6.5}>Human cCREs by cell and tissue types</Typography>
             <BiosampleTables
               assembly={"GRCh38"}
@@ -125,8 +125,8 @@ export function Annotations() {
         </Grid>
       )}
       {species === 1 && (
-        <Grid2 container spacing={3}>
-          <Grid2 xs={12} md={6}>
+        <Grid container spacing={3}>
+          <Grid size={{ xs: 12, md: 6}}>
             <Stack spacing={1} flexGrow={1}>
               <Stack direction={"row"} justifyContent={"space-between"}>
                 <Stack>
@@ -147,8 +147,8 @@ export function Annotations() {
               <InlineDownloadButton href={Config.Downloads.MouseTF_only} label="TF Only (TF) (15,283)" bordercolor={TF_only} />
               <InlineDownloadButton href={Config.Downloads.MouseCA_Bound} label="CTCF-Bound cCREs (139,894)" bordercolor={CTCF_Bound} />
             </Stack>
-          </Grid2>
-          <Grid2 xs={12} md={6} alignItems="flex-start" sx={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }} alignItems="flex-start" sx={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
             <Typography variant="h6" mt={6.5}>Mouse cCREs by cell and tissue types</Typography>
             <BiosampleTables
               assembly={"mm10"}

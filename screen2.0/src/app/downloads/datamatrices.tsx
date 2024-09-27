@@ -29,7 +29,7 @@ import {
   Tooltip
 } from "@mui/material"
 import { useQuery } from "@apollo/client"
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import Grid from "@mui/material/Grid2"
 import { ArrowForward, Download, ExpandMore, Visibility, ZoomIn, ZoomOut, PanTool, Edit, CancelRounded } from "@mui/icons-material"
 import Image from "next/image"
 import humanTransparentIcon from "../../../public/Transparent_HumanIcon.png"
@@ -376,18 +376,18 @@ export function DataMatrices() {
   ]
 
   return (
-    <Grid2 container mt={1} direction="column" sx={{paddingX:5}}>
+    <Grid container mt={1} direction="column" sx={{paddingX:5}}>
       <Stack direction="row" spacing={10}>
         <Stack direction="column" spacing={2}>
           <Stack direction="row" spacing={20}>
 
             {/* human section */}
             <Stack direction="column" spacing={1}>
-              <Grid2 container direction="row" alignItems="flex-start" spacing={2}>
-                <Grid2>
+              <Grid container direction="row" alignItems="flex-start" spacing={2}>
+                <Grid>
                   <Image src={humanTransparentIcon} alt={"Human Icon"} style={{ maxWidth: '75px', maxHeight: '75px' }} />
-                </Grid2>
-                <Grid2 xs>
+                </Grid>
+                <Grid size="grow">
                   <Stack direction="column" spacing={1}>
                     <Typography variant="h5">Human</Typography>
                     <Divider />
@@ -396,8 +396,8 @@ export function DataMatrices() {
                       <Typography variant="subtitle2"><b>1,678</b> cell types</Typography>
                     </Stack>
                   </Stack>
-                </Grid2>
-              </Grid2>
+                </Grid>
+              </Grid>
               <Stack direction="row" spacing={2} alignItems="center">
                 {selectorButton({ assembly: "Human", assay: "DNase" })}
                 {selectorButton({ assembly: "Human", assay: "H3K4me3" })}
@@ -405,8 +405,8 @@ export function DataMatrices() {
                 {selectorButton({ assembly: "Human", assay: "CTCF" })}
               </Stack>
               <Stack direction="row" justifyContent="space-between">
-                <Grid2 container spacing={2} sx={{ flex: 1 }}>
-                  <Grid2 xs={6} mt={1}>
+                <Grid container spacing={2} sx={{ flex: 1 }}>
+                  <Grid size={{ xs: 6}} mt={1}>
                     <InputLabel id="color-by-label">Color By</InputLabel>
                     <Select
                       size="small"
@@ -420,8 +420,8 @@ export function DataMatrices() {
                       <MenuItem value="ontology">Tissue/Organ</MenuItem>
                       <MenuItem value="sampleType">Biosample Type</MenuItem>
                     </Select>
-                  </Grid2>
-                  <Grid2 xs={6} mt={1}>
+                  </Grid>
+                  <Grid size={{ xs: 6}} mt={1}>
                     <InputLabel id="show-label">Show</InputLabel>
                     <Select
                       size="small"
@@ -436,18 +436,18 @@ export function DataMatrices() {
                       <MenuItem value="adult">Adult</MenuItem>
                       <MenuItem value="embryonic">Embryonic</MenuItem>
                     </Select>
-                  </Grid2>
-                </Grid2>
+                  </Grid>
+                </Grid>
               </Stack>
             </Stack>
 
             {/* mouse section */}
             <Stack direction="column" spacing={1}>
-              <Grid2 container direction="row" alignItems="flex-start" spacing={2}>
-                <Grid2>
+              <Grid container direction="row" alignItems="flex-start" spacing={2}>
+                <Grid>
                   <Image src={mouseTransparentIcon} alt={"Mouse Icon"} style={{ maxWidth: '75px', maxHeight: '75px' }} />
-                </Grid2>
-                <Grid2 xs>
+                </Grid>
+                <Grid size="grow">
                   <Stack direction="column" spacing={1}>
                     <Typography variant="h5">Mouse</Typography>
                     <Divider />
@@ -456,20 +456,20 @@ export function DataMatrices() {
                       <Typography variant="subtitle2"><b>366</b> cell types</Typography>
                     </Stack>
                   </Stack>
-                </Grid2>
-              </Grid2>
+                </Grid>
+              </Grid>
               <Stack direction="row" spacing={2} alignItems="center">
                 {selectorButton({ assembly: "Mouse", assay: "DNase" })}
                 {selectorButton({ assembly: "Mouse", assay: "H3K4me3" })}
                 {selectorButton({ assembly: "Mouse", assay: "H3K27ac" })}
                 {selectorButton({ assembly: "Mouse", assay: "CTCF" })}
               </Stack>
-              <Grid2 container justifyContent="flex-end">
-                <Grid2 xs={5.75} mt={1}>
+              <Grid container justifyContent="flex-end">
+                <Grid size={{ xs: 5.75 }} mt={1}>
                   <InputLabel sx={{ color: 'white' }} id="download-label">Download</InputLabel>
                   <Button sx={{ height: '40px', lineHeight: '20px' }} size="medium" variant="contained" fullWidth endIcon={<Download />} onClick={handleOpenDownloadModal}>Download Data</Button>
-                </Grid2>
-              </Grid2>
+                </Grid>
+              </Grid>
             </Stack>
           </Stack>
 
@@ -563,7 +563,7 @@ export function DataMatrices() {
         </Stack>
 
         {/* biosample table*/}
-        <Grid2 paddingBottom={0} sx={{ display: 'flex', flexDirection: 'column', flex: 1}}>
+        <Grid paddingBottom={0} sx={{ display: 'flex', flexDirection: 'column', flex: 1}}>
           {searched && (
             <Paper sx={{ mb: 1 }}>
               <Stack borderRadius={1} direction={"row"} spacing={3} sx={{ backgroundColor: "#E7EEF8" }} alignItems={"center"}>
@@ -582,7 +582,7 @@ export function DataMatrices() {
               paperStack: { overflow: 'hidden', flexGrow: 1 }
             }}
           />
-        </Grid2>
+        </Grid>
       </Stack>
 
       {/* legend section */}
@@ -664,6 +664,6 @@ export function DataMatrices() {
           </Stack>
         </Box>
       </Modal>
-    </Grid2>
+    </Grid>
   )
 }
