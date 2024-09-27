@@ -133,10 +133,6 @@ export function DataMatrices() {
   const handleSetSelectedSample = (selected: any) => {
     setSearched(selected.displayname)
   }
-  
-  // const data = useMemo(() =>{
-  //   return umapData && umapData.ccREBiosampleQuery.biosamples.length>0 ? umapData: {} 
-  // }, [umapData])
 
   const [openModalType, setOpenModalType] = useState<null | "biosamples" | "download">(null);
 
