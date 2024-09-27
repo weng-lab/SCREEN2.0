@@ -134,9 +134,9 @@ export function DataMatrices() {
     setSearched(selected.displayname)
   }
   
-  const data = useMemo(() =>{
-    return umapData && umapData.ccREBiosampleQuery.biosamples.length>0 ? umapData: {} 
-  }, [umapData])
+  // const data = useMemo(() =>{
+  //   return umapData && umapData.ccREBiosampleQuery.biosamples.length>0 ? umapData: {} 
+  // }, [umapData])
 
   const [openModalType, setOpenModalType] = useState<null | "biosamples" | "download">(null);
 
@@ -173,13 +173,12 @@ export function DataMatrices() {
 
   const fData = useMemo(() => {
     return (
-      data &&
-      data.ccREBiosampleQuery &&
-      data.ccREBiosampleQuery.biosamples
+      umapData &&
+      umapData.ccREBiosampleQuery.biosamples
         .filter((x) => x.umap_coordinates)
         .filter((x) => (lifeStage === "all" || lifeStage === x.lifeStage) && (tSelected.size === 0 || tSelected.has(x[colorBy])))
     )
-  }, [data, lifeStage, colorBy, tSelected])
+  }, [umapData, lifeStage, colorBy, tSelected])
 
   const xMin = useMemo(
     () => (bounds ? Math.floor(bounds.x.start) : nearest5(Math.min(...((fData && fData.map((x) => x.umap_coordinates[0])) || [0])), true)),
@@ -210,21 +209,21 @@ export function DataMatrices() {
   const [sampleTypeColors, sampleTypeCounts] = useMemo(
     () =>
       colorMap(
-        (data && data.ccREBiosampleQuery &&
-          data.ccREBiosampleQuery.biosamples.filter((x) => x.umap_coordinates && isInbounds(x)).map((x) => x.sampleType)) ||
+        (umapData && umapData.ccREBiosampleQuery &&
+          umapData.ccREBiosampleQuery.biosamples.filter((x) => x.umap_coordinates && isInbounds(x)).map((x) => x.sampleType)) ||
         []
       ),
-    [data, isInbounds]
+    [umapData, isInbounds]
   )
   const [ontologyColors, ontologyCounts] = useMemo(
     () =>
       colorMap(
-        (data && data.ccREBiosampleQuery &&
+        (umapData && umapData.ccREBiosampleQuery &&
           //Check if umap coordinates exist, then map each entry to it's ontology (tissue type). This array of strings is passed to colorMap
-          data.ccREBiosampleQuery.biosamples.filter((x) => x.umap_coordinates && isInbounds(x)).map((x) => x.ontology)) ||
+          umapData.ccREBiosampleQuery.biosamples.filter((x) => x.umap_coordinates && isInbounds(x)).map((x) => x.ontology)) ||
         []
       ),
-    [data, isInbounds]
+    [umapData, isInbounds]
   )
 
   const scatterData = useMemo(() => {
@@ -510,7 +509,7 @@ export function DataMatrices() {
                         yAxisProps={{ ticks: (bounds ? oneRange : fiveRange)(yMin, yMax), title: "UMAP-2", fontSize: 40 }}
                         scatterData={[scatterData]}
                         plotAreaProps={{
-                          onFreeformSelectionEnd: (_, c) => setBiosamples(c[0].map((x) => fData[x])),
+                          onFreeformSelectionEnd: (_, c) => setBiosamples(c[0].map((x) => fData[x] as BiosampleUMAP)),
                           onSelectionEnd: (x) => handleSetBounds(x),
                           freeformSelection: selectMode === "select",
                         }}
@@ -520,7 +519,7 @@ export function DataMatrices() {
                           pointStyle={{ r: bounds ? 8 : 6 }}
                           onPointMouseOver={(i, _) => setTimeout(() => setTooltip(i), 100)}
                           onPointMouseOut={() => setTimeout(() => setTooltip(-1), 100)}
-                          onPointClick={(i) => setBiosamples([fData[i]])}
+                          onPointClick={(i) => setBiosamples([fData[i] as BiosampleUMAP])}
                         />
                         {tooltip !== -1 && (
                           <Annotation notScaled notTranslated x={0} y={0}>
