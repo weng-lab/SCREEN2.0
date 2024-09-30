@@ -119,15 +119,15 @@ export const DownloadRange: React.FC = () => {
   }
 
   return (
-    <Grid container spacing={3}>
-      <Grid size={6}>
+    <Grid container spacing={3} paddingX={6}>
+      <Grid size={{ xs: 6 }}>
         <BiosampleTables
           assembly={assembly}
           selected={selectedBiosample?.name}
           onBiosampleClicked={(selected: RegistryBiosample) => handleSetSelectedBiosample(selected)}
         />
       </Grid>
-      <Grid size={6}>
+      <Grid size={{ xs: 6 }} flexGrow={1}>
         <FormControl sx={{ mb: 1 }}>
           <FormLabel id="demo-row-radio-buttons-group-label">Assembly</FormLabel>
           <RadioGroup
