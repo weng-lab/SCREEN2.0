@@ -129,12 +129,15 @@ export function DataMatrices() {
   const [biosamples, setBiosamples] = useState<BiosampleUMAP[]>([])
   const [selectMode, setSelectMode] = useState<"select" | "zoom">("select")
   const [tooltip, setTooltip] = useState(-1)
+  const [selectedFormats, setSelectedFormats] = useState({
+    signal: false,
+    zScore: false,
+  });
+  const [openModalType, setOpenModalType] = useState<null | "biosamples" | "download">(null);
 
   const handleSetSelectedSample = (selected: any) => {
     setSearched(selected.displayname)
   }
-
-  const [openModalType, setOpenModalType] = useState<null | "biosamples" | "download">(null);
 
   const handleOpenModal = () => {
     if (biosamples.length !== 0) {
@@ -149,21 +152,6 @@ export function DataMatrices() {
   const handleCloseModal = () => {
     setOpenModalType(null);
   };
-  
-  const [selectedFormats, setSelectedFormats] = useState({
-    signal: false,
-    zScore: false,
-  });
-  
-  const handleDownload = () => {
-    if (selectedFormats.signal) {
-      window.location.href = matrixDownloadURL(selectedAssay, "signal");
-    }
-    if (selectedFormats.zScore) {
-      window.location.href = matrixDownloadURL(selectedAssay, "zScore");
-    }
-  };
-  
   
   useEffect(()=> setBiosamples([]) ,[selectedAssay])
 
@@ -301,6 +289,7 @@ export function DataMatrices() {
           textTransform: "none",
           backgroundColor: `${selectedAssay && selectedAssay.assembly === variant.assembly && selectedAssay.assay === variant.assay ? borderColor(variant.assay) : "initial"}`,
           borderLeft: `0.40rem solid ${borderColor(variant.assay)}`,
+          borderRight: `0.40rem solid ${selectedAssay && selectedAssay.assembly === variant.assembly && selectedAssay.assay === variant.assay ? borderColor(variant.assay) : "white"}`,
           color: `${selectedAssay && selectedAssay.assembly === variant.assembly && selectedAssay.assay === variant.assay && selectedAssay.assay === "H3K4me3" ? "white" : "initial"}`,
           boxShadow: '0px 5px 5px rgba(0, 0, 0, 0.25)',
           "&:hover": {
@@ -463,7 +452,7 @@ export function DataMatrices() {
               <Grid container justifyContent="flex-end">
                 <Grid size={{ xs: 5.75 }} mt={1}>
                   <InputLabel sx={{ color: 'white' }} id="download-label">Download</InputLabel>
-                  <Button sx={{ height: '40px', lineHeight: '20px' }} size="medium" variant="contained" fullWidth endIcon={<Download />} onClick={handleOpenDownloadModal}>Download Data</Button>
+                  <Button sx={{ height: '40px', lineHeight: '20px', textTransform: 'none' }} size="medium" variant="contained" fullWidth endIcon={<Download />} onClick={handleOpenDownloadModal}>Download Data</Button>
                 </Grid>
               </Grid>
             </Stack>
@@ -549,7 +538,7 @@ export function DataMatrices() {
                           <IconButton aria-label="zoom-in" onClick={() => setSelectMode('zoom')} sx={{ color: selectMode === "zoom" ? "primary.main" : "default" }}><ZoomIn /></IconButton>
                          </Tooltip> 
                         {/* <IconButton aria-label="zoom-out"><ZoomOut /></IconButton> */}
-                      <Button sx={{ height: '30px' }} size="small" disabled={!bounds} variant="outlined" onClick={() => setBounds(undefined)}>Reset</Button>
+                      <Button sx={{ height: '30px', textTransform: 'none' }} size="small" disabled={!bounds} variant="outlined" onClick={() => setBounds(undefined)}>Reset</Button>
                     </Stack>
                   </Stack>
                 </Stack>
@@ -605,22 +594,12 @@ export function DataMatrices() {
       </Box>
 
       {/* modals */}
-      {/* Selection table modal */}
-      <Modal open={openModalType === "biosamples"} onClose={handleCloseModal} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
-        <Box sx={style}>
-          <DataTable
-            sortDescending
-            searchable
-            tableTitle={"Selected Biosamples"}
-            columns={modalCols}
-            rows={biosamples}
-            itemsPerPage={7}
-          />
-        </Box>
-      </Modal>
-
-      {/* Download modal */}
-      <Modal open={openModalType === "download"} onClose={handleCloseModal} aria-labelledby="download-modal-title" aria-describedby="download-modal-description">
+      <Modal
+        open={openModalType === "download"}
+        onClose={handleCloseModal}
+        aria-labelledby="download-modal-title"
+        aria-describedby="download-modal-description"
+        >
         <Box sx={downloadStyle}>
           <Typography id="download-modal-title" variant="h6">
             Download
@@ -628,35 +607,40 @@ export function DataMatrices() {
           <Typography id="download-modal-description" variant="subtitle1" sx={{ mt: 1 }}>
             Select format to download
           </Typography>
-          <FormGroup sx={{ mt: 2 }}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={selectedFormats.signal}
-                  onChange={(e) => setSelectedFormats({ ...selectedFormats, signal: e.target.checked })}
-                />
-              }
-              label={selectedAssay.assay === "DNase" ? "Read-Depth Normalized Signal Matrix" : "Fold-Change Signal Matrix"}
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={selectedFormats.zScore}
-                  onChange={(e) => setSelectedFormats({ ...selectedFormats, zScore: e.target.checked })}
-                />
-              }
-              label="Z-Score Matrix"
-            />
-          </FormGroup>
+          <Stack sx={{ mt: 2 }} spacing={2}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Stack direction="row" alignItems="center">
+                <IconButton
+                  color="primary"
+                  onClick={() => {
+                    const url = matrixDownloadURL(selectedAssay, "signal");
+                    window.location.href = url;
+                  }}
+                  >
+                  <Download />
+                </IconButton>
+                <Typography>
+                  {selectedAssay.assay === "DNase" ? "Read-Depth Normalized Signal Matrix" : "Fold-Change Signal Matrix"}
+                </Typography>
+              </Stack>
+            </Stack>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Stack direction="row" alignItems="center">
+                <IconButton
+                  color="primary"
+                  onClick={() => {
+                    const url = matrixDownloadURL(selectedAssay, "zScore");
+                    window.location.href = url;
+                  }}
+                  >
+                  <Download />
+                </IconButton>
+                <Typography>Z-Score Matrix</Typography>
+              </Stack>
+            </Stack>
+          </Stack>
           <Stack direction="row" spacing={2} justifyContent="flex-end" sx={{ mt: 3 }}>
-            <Button onClick={handleCloseModal}>Cancel</Button>
-            <Button
-              variant="contained"
-              onClick={handleDownload}
-              disabled={!selectedFormats.signal && !selectedFormats.zScore}
-            >
-              Download
-            </Button>
+            <Button sx={{ textTransform: 'none' }} onClick={handleCloseModal}>Cancel</Button>
           </Stack>
         </Box>
       </Modal>
