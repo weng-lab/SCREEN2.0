@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Group } from '@visx/group';
 import { scaleLinear } from '@visx/scale';
 import { Text } from '@visx/text';
@@ -23,17 +23,17 @@ function Umap({ width: parentWidth, height: parentHeight }: Props) {
     ]; // Example data points
 
     // Define scales based on data and chart dimensions
-    const xScale = scaleLinear({
-        domain: [0, Math.max(...data.map(d => d.x))], // Input data range
-        range: [0, boundedWidth], // Output range (SVG width)
-        nice: true, // Rounds domain to nice round numbers
-    });
-    
-    const yScale = scaleLinear({
-        domain: [0, Math.max(...data.map(d => d.y)) + 10], // Added 10 for better visibility
-        range: [boundedHeight, 0], // Output range (SVG height, inverted for y-axis)
-        nice: true, // Rounds domain to nice round numbers
-    });
+    const xScale = useMemo(() => scaleLinear({
+        domain: [0, Math.max(...data.map(d => d.x))],
+        range: [0, boundedWidth],
+        nice: true,
+    }), [data, boundedWidth]);
+
+    const yScale = useMemo(() => scaleLinear({
+        domain: [0, Math.max(...data.map(d => d.y)) + 10], //better visibility on top
+        range: [boundedHeight, 0],
+        nice: true,
+    }), [data, boundedHeight]); 
 
     const axisLeftLabel = (
         <Text
@@ -62,7 +62,7 @@ function Umap({ width: parentWidth, height: parentHeight }: Props) {
         </Text>
     );
 
-    //map data points
+    //map data points to circles
     const circles = data.map((point, index) => (
         <Circle
             key={index}
