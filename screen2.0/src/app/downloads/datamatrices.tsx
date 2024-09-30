@@ -594,6 +594,19 @@ export function DataMatrices() {
       </Box>
 
       {/* modals */}
+      <Modal open={openModalType === "biosamples"} onClose={handleCloseModal} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
+        <Box sx={style}>
+          <DataTable
+            sortDescending
+            searchable
+            tableTitle={"Selected Biosamples"}
+            columns={modalCols}
+            rows={biosamples}
+            itemsPerPage={7}
+          />
+        </Box>
+      </Modal>
+      
       <Modal
         open={openModalType === "download"}
         onClose={handleCloseModal}
