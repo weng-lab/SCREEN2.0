@@ -47,7 +47,7 @@
     "@mui/lab": "^6.0.0-beta.10",
     "@mui/material": "^6.1.1",
     "@mui/material-nextjs": "^6.1.1",
-    "@types/node": "^22.6.1",
+    "@types/node": "^22.7.4",
     "@types/react": "^18.3.8",
     "@types/react-dom": "18.3.0",
     "@visx/event": "^3.3.0",
