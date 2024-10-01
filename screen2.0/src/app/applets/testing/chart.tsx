@@ -9,19 +9,28 @@ import { min } from 'd3-array'
 interface Props {
     width: number;
     height: number;
+    data: {
+        x: number;
+        y: number
+    }[];
 }
 
-function Umap({ width: parentWidth, height: parentHeight }: Props) {
+function Umap({ width: parentWidth, height: parentHeight, data: umapData }: Props) {
+    if (!umapData || umapData.length === 0) {
+        // Handle the case where data is not yet available or empty
+        return <svg width={parentWidth} height={parentHeight} />;
+      }
+      
     const margin = { top: 20, right: 20, bottom: 70, left: 70 };
-    const boundedWidth = min([parentWidth * 0.9, parentHeight * 0.9]) as number
+    const boundedWidth = min([parentWidth * 0.9, parentHeight * 0.9]) as number - margin.left
     const boundedHeight = boundedWidth
 
-    const data = [
-        { x: -5, y: 10 },
-        { x: -0.83, y: 7 },
-        { x: 10, y: 5 },
-        { x: 5, y: -5 },
-    ]; // Example data points
+    // const data = [
+    //     { x: -5, y: 10 },
+    //     { x: -0.83, y: 7 },
+    //     { x: 10, y: 5 },
+    //     { x: 5, y: -5 },
+    // ]; // Example data points
 
     const roundDownToMultipleOf5 = (value: number) => Math.floor(value / 5) * 5;
     const roundUpToMultipleOf5 = (value: number) => Math.ceil(value / 5) * 5;
@@ -29,21 +38,21 @@ function Umap({ width: parentWidth, height: parentHeight }: Props) {
     // define scales
     const xScale = useMemo(() => scaleLinear({
         domain: [
-            roundDownToMultipleOf5(Math.min(...data.map(d => d.x)) - 1),
-            roundUpToMultipleOf5(Math.max(...data.map(d => d.x))) + 1,
+            roundDownToMultipleOf5(Math.min(...umapData.map(d => d.x)) - 1),
+            roundUpToMultipleOf5(Math.max(...umapData.map(d => d.x))) + 1,
         ],
         range: [0, boundedWidth],
         nice: true,
-    }), [data, boundedWidth]);
+    }), [umapData, boundedWidth]);
 
     const yScale = useMemo(() => scaleLinear({
         domain: [
-            roundDownToMultipleOf5(Math.min(...data.map(d => d.y)) - 1),
-            roundUpToMultipleOf5(Math.max(...data.map(d => d.y)) + 1),
+            roundDownToMultipleOf5(Math.min(...umapData.map(d => d.y)) - 1),
+            roundUpToMultipleOf5(Math.max(...umapData.map(d => d.y)) + 1),
         ],
         range: [boundedHeight, 0], // Y-axis is inverted
         nice: true,
-    }), [data, boundedHeight]);
+    }), [umapData, boundedHeight]);
 
     const axisLeftLabel = (
         <Text
@@ -52,8 +61,8 @@ function Umap({ width: parentWidth, height: parentHeight }: Props) {
             angle={-90}
             fontSize={12}
             y={boundedHeight / 2}
-            x={-margin.left / 2}
-            dx={-10} // Push the label outside of the chart
+            x={0}
+            dx={-50} // Push the label outside of the chart
         >
             UMAP-2
         </Text>
@@ -64,16 +73,16 @@ function Umap({ width: parentWidth, height: parentHeight }: Props) {
             textAnchor="middle"
             verticalAnchor="start"
             fontSize={12}
-            y={boundedHeight + margin.bottom - 40}
+            y={boundedHeight}
             x={boundedWidth / 2}
-            dy={10} // Push the label below the chart
+            dy={50} // Push the label below the chart
         >
             UMAP-1
         </Text>
     );
 
     //map data points to circles
-    const circles = data.map((point, index) => (
+    const circles = umapData.map((point, index) => (
         <Circle
             key={index}
             cx={xScale(point.x)}
