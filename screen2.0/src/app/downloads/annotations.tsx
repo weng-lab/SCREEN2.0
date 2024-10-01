@@ -82,19 +82,15 @@ export function Annotations() {
   }
 
   return (
-    <Stack spacing={1}>
+    <Stack spacing={1} paddingX={6}>
       <Tabs value={species} onChange={handleChange} aria-label="basic tabs example" variant="scrollable" allowScrollButtonsMobile>
         <Tab label="Human" sx={{ textTransform: "none" }} {...a11yProps(0)} />
         <Tab label="Mouse" sx={{ textTransform: "none" }} {...a11yProps(1)} />
       </Tabs>
       {species === 0 && (
-        <Grid container spacing={3}>
-          <Grid
-            size={{
-              xs: 12,
-              md: 6
-            }}>
-            <Stack spacing={1}>
+        <Grid container spacing={3} justifyContent={"center"}>
+          <Grid size={{ xs: 12, md: 6}}>
+            <Stack spacing={1} flexGrow={1}>
               <Stack direction={"row"} justifyContent={"space-between"}>
                 <Stack>
                   <Typography mt="auto" variant="h5">Human (GRCh38/hg38)</Typography>
@@ -116,28 +112,22 @@ export function Annotations() {
               <InlineDownloadButton href={Config.Downloads.HumanGeneLinks} label="cCRE-Gene Links (3D Chromatin, CRISPR, eQTLS)" bordercolor={Gene_Links} />
             </Stack>
           </Grid>
-          <Grid
-            alignItems="flex-start"
-            size={{
-              xs: 12,
-              md: 6
-            }}>
+          <Grid size={{ xs: 12, md: 6}} sx={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
             <Typography variant="h6" mt={6.5}>Human cCREs by cell and tissue types</Typography>
             <BiosampleTables
               assembly={"GRCh38"}
               showDownloads
+              slotProps={{
+                paperStack: { overflow: 'hidden', flexGrow: 1 }
+              }}
             />
           </Grid>
         </Grid>
       )}
       {species === 1 && (
         <Grid container spacing={3}>
-          <Grid
-            size={{
-              xs: 12,
-              md: 6
-            }}>
-            <Stack spacing={1}>
+          <Grid size={{ xs: 12, md: 6}}>
+            <Stack spacing={1} flexGrow={1}>
               <Stack direction={"row"} justifyContent={"space-between"}>
                 <Stack>
                   <Typography mt="auto" variant="h5">Mouse (GRCm38/mm10)</Typography>
@@ -158,16 +148,14 @@ export function Annotations() {
               <InlineDownloadButton href={Config.Downloads.MouseCA_Bound} label="CTCF-Bound cCREs (139,894)" bordercolor={CTCF_Bound} />
             </Stack>
           </Grid>
-          <Grid
-            alignItems="flex-start"
-            size={{
-              xs: 12,
-              md: 6
-            }}>
+          <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
             <Typography variant="h6" mt={6.5}>Mouse cCREs by cell and tissue types</Typography>
             <BiosampleTables
               assembly={"mm10"}
               showDownloads
+              slotProps={{
+                paperStack: { overflow: 'hidden', flexGrow: 1 }
+              }}
             />
           </Grid>
         </Grid>
