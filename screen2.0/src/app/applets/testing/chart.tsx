@@ -6,40 +6,31 @@ import { AxisBottom, AxisLeft } from '@visx/axis';
 import { Circle } from '@visx/shape'
 import { min } from 'd3-array'
 
-interface Props {
+interface UmapProps {
     width: number;
     height: number;
-    data: {
+    pointData: {
         x: number;
-        y: number
+        y: number;
+        color: string
     }[];
 }
 
-function Umap({ width: parentWidth, height: parentHeight, data: umapData }: Props) {
+function Umap({ width: parentWidth, height: parentHeight, pointData: umapData }: UmapProps) {
+    // Handle the case where data is not yet available or empty
     if (!umapData || umapData.length === 0) {
-        // Handle the case where data is not yet available or empty
         return <svg width={parentWidth} height={parentHeight} />;
       }
-      
+
     const margin = { top: 20, right: 20, bottom: 70, left: 70 };
     const boundedWidth = min([parentWidth * 0.9, parentHeight * 0.9]) as number - margin.left
     const boundedHeight = boundedWidth
 
-    // const data = [
-    //     { x: -5, y: 10 },
-    //     { x: -0.83, y: 7 },
-    //     { x: 10, y: 5 },
-    //     { x: 5, y: -5 },
-    // ]; // Example data points
-
-    const roundDownToMultipleOf5 = (value: number) => Math.floor(value / 5) * 5;
-    const roundUpToMultipleOf5 = (value: number) => Math.ceil(value / 5) * 5;
-
     // define scales
     const xScale = useMemo(() => scaleLinear({
         domain: [
-            roundDownToMultipleOf5(Math.min(...umapData.map(d => d.x)) - 1),
-            roundUpToMultipleOf5(Math.max(...umapData.map(d => d.x))) + 1,
+            (Math.min(...umapData.map(d => d.x)) - 1),
+            (Math.max(...umapData.map(d => d.x))) + 1,
         ],
         range: [0, boundedWidth],
         nice: true,
@@ -47,8 +38,8 @@ function Umap({ width: parentWidth, height: parentHeight, data: umapData }: Prop
 
     const yScale = useMemo(() => scaleLinear({
         domain: [
-            roundDownToMultipleOf5(Math.min(...umapData.map(d => d.y)) - 1),
-            roundUpToMultipleOf5(Math.max(...umapData.map(d => d.y)) + 1),
+            (Math.min(...umapData.map(d => d.y)) - 1),
+            (Math.max(...umapData.map(d => d.y)) + 1),
         ],
         range: [boundedHeight, 0], // Y-axis is inverted
         nice: true,
@@ -59,7 +50,7 @@ function Umap({ width: parentWidth, height: parentHeight, data: umapData }: Prop
             textAnchor="middle"
             verticalAnchor="end"
             angle={-90}
-            fontSize={12}
+            fontSize={15}
             y={boundedHeight / 2}
             x={0}
             dx={-50} // Push the label outside of the chart
@@ -72,7 +63,7 @@ function Umap({ width: parentWidth, height: parentHeight, data: umapData }: Prop
         <Text
             textAnchor="middle"
             verticalAnchor="start"
-            fontSize={12}
+            fontSize={15}
             y={boundedHeight}
             x={boundedWidth / 2}
             dy={50} // Push the label below the chart
@@ -88,7 +79,7 @@ function Umap({ width: parentWidth, height: parentHeight, data: umapData }: Prop
             cx={xScale(point.x)}
             cy={yScale(point.y)}
             r={3} 
-            fill="#1c1917"
+            fill={point.color}
         />
     ));
   
