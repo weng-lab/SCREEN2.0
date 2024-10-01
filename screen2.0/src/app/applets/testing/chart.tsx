@@ -4,6 +4,7 @@ import { scaleLinear } from '@visx/scale';
 import { Text } from '@visx/text';
 import { AxisBottom, AxisLeft } from '@visx/axis';
 import { Circle } from '@visx/shape'
+import { min } from 'd3-array'
 
 interface Props {
     width: number;
@@ -12,28 +13,37 @@ interface Props {
 
 function Umap({ width: parentWidth, height: parentHeight }: Props) {
     const margin = { top: 20, right: 20, bottom: 70, left: 70 };
-    const boundedWidth = parentWidth - margin.left - margin.right;
-    const boundedHeight = parentHeight - margin.top - margin.bottom;
+    const boundedWidth = min([parentWidth * 0.9, parentHeight * 0.9]) as number
+    const boundedHeight = boundedWidth
 
     const data = [
-        { x: 0, y: 50 },
-        { x: 100, y: 80 },
-        { x: 50, y: 65 },
-        { x: 80, y: 90 },
+        { x: -5, y: 10 },
+        { x: -0.83, y: 7 },
+        { x: 10, y: 5 },
+        { x: 5, y: -5 },
     ]; // Example data points
 
-    // Define scales based on data and chart dimensions
+    const roundDownToMultipleOf5 = (value: number) => Math.floor(value / 5) * 5;
+    const roundUpToMultipleOf5 = (value: number) => Math.ceil(value / 5) * 5;
+
+    // define scales
     const xScale = useMemo(() => scaleLinear({
-        domain: [0, Math.max(...data.map(d => d.x))],
+        domain: [
+            roundDownToMultipleOf5(Math.min(...data.map(d => d.x)) - 1),
+            roundUpToMultipleOf5(Math.max(...data.map(d => d.x))) + 1,
+        ],
         range: [0, boundedWidth],
         nice: true,
     }), [data, boundedWidth]);
 
     const yScale = useMemo(() => scaleLinear({
-        domain: [0, Math.max(...data.map(d => d.y)) + 10], //better visibility on top
-        range: [boundedHeight, 0],
+        domain: [
+            roundDownToMultipleOf5(Math.min(...data.map(d => d.y)) - 1),
+            roundUpToMultipleOf5(Math.max(...data.map(d => d.y)) + 1),
+        ],
+        range: [boundedHeight, 0], // Y-axis is inverted
         nice: true,
-    }), [data, boundedHeight]); 
+    }), [data, boundedHeight]);
 
     const axisLeftLabel = (
         <Text
@@ -89,6 +99,7 @@ function Umap({ width: parentWidth, height: parentHeight }: Props) {
                 />
                 {axisLeftLabel}
                 <AxisBottom
+                    numTicks={4}
                     top={boundedHeight}
                     scale={xScale}
                     tickLabelProps={() => ({

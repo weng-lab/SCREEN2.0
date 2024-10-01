@@ -16,7 +16,7 @@ export default function Testing() {
         }}>
           <div style={{
               height: '50vh',
-              width: '50vh',
+              width: '50vw',
               position: 'relative',
           }}>
             <ParentSize>
