@@ -59,16 +59,17 @@ export default function Testing() {
             .map((x) => ({
                 x: x.umap_coordinates![0],
                 y: x.umap_coordinates![1],
-                color: ontologyColors[x.ontology]
+                color: ontologyColors[x.ontology],
+                opacity: 1
             }))
         );
     }, [umapData, ontologyColors]);
 
     return (
         <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', }}>
-            <div style={{ height: '75vh', width: '75vw', position: 'relative', }}>
+            <div style={{ height: '75vh', width: '75vh', position: 'relative', }}>
             <ParentSize>
-                {({ width, height }) => <Umap width={width} height={height} pointData={fData} />}
+                {({ width, height }) => <Umap width={width} height={height} pointData={fData} loading={umapLoading} />}
             </ParentSize>
             </div>
         </div>
