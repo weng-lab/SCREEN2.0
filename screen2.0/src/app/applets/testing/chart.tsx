@@ -6,13 +6,14 @@ import { Circle } from '@visx/shape';
 import { min } from 'd3-array';
 import { localPoint } from '@visx/event';
 import { Tooltip } from '@visx/tooltip';
+import { Text } from '@visx/text';
 import CircularProgress from '@mui/material/CircularProgress';
 
 interface Point {
     x: number;
     y: number;
     color: string;
-    opacity: number;
+    opacity?: number;
 }
 
 interface UmapProps {
@@ -94,6 +95,33 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
         }, 300);
     }, []);
 
+    const axisLeftLabel = (
+        <Text
+            textAnchor="middle"
+            verticalAnchor="end"
+            angle={-90}
+            fontSize={15}
+            y={boundedHeight / 2}
+            x={0}
+            dx={-50} //adjust to move outside of chart area
+        >
+            UMAP-2
+        </Text>
+    );
+
+    const axisBottomLabel = (
+        <Text
+            textAnchor="middle"
+            verticalAnchor="start"
+            fontSize={15}
+            y={boundedHeight}
+            x={boundedWidth / 2}
+            dy={50}
+        >
+            UMAP-1
+        </Text>
+    );
+
     if (loading || !umapData) {
         return <CircularProgress />;
     }
@@ -130,9 +158,11 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                             cy={yScale(point.y)}
                             r={tooltipData && tooltipData.x === point.x && tooltipData.y === point.y ? 5 : 3}
                             fill={tooltipData && tooltipData.x === point.x && tooltipData.y === point.y ? 'red' : point.color}
-                            opacity={point.opacity}
+                            opacity={point.opacity !== undefined ? point.opacity : 1}
                         />
                     ))}
+                    {axisLeftLabel}
+                    {axisBottomLabel}
                 </Group>
             </svg>
             {tooltipOpen && tooltipData && (

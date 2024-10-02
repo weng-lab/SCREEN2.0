@@ -60,7 +60,6 @@ export default function Testing() {
                 x: x.umap_coordinates![0],
                 y: x.umap_coordinates![1],
                 color: ontologyColors[x.ontology],
-                opacity: 1
             }))
         );
     }, [umapData, ontologyColors]);
