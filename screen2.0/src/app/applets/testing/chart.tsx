@@ -14,6 +14,8 @@ interface Point {
     y: number;
     color: string;
     opacity?: number;
+    name: string;
+    accession: string;
 }
 
 interface UmapProps {
@@ -126,6 +128,8 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
         return <CircularProgress />;
     }
 
+    const hoveredPoint = tooltipData ? umapData.find(point => point.x === tooltipData.x && point.y === tooltipData.y) : null;
+
     return (
         <>
             <svg width={parentWidth} height={parentHeight} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}>
@@ -151,16 +155,35 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                             textAnchor: 'middle',
                         })}
                     />
-                    {umapData.map((point, index) => (
-                        <Circle
-                            key={index}
-                            cx={xScale(point.x)}
-                            cy={yScale(point.y)}
-                            r={tooltipData && tooltipData.x === point.x && tooltipData.y === point.y ? 5 : 3}
-                            fill={tooltipData && tooltipData.x === point.x && tooltipData.y === point.y ? 'red' : point.color}
-                            opacity={point.opacity !== undefined ? point.opacity : 1}
-                        />
-                    ))}
+                    {umapData.map((point, index) => {
+                    const isHovered = hoveredPoint && hoveredPoint.x === point.x && hoveredPoint.y === point.y;
+
+                    return (
+                        !isHovered && (
+                            <Circle
+                                key={index}
+                                cx={xScale(point.x)}
+                                cy={yScale(point.y)}
+                                r={3}
+                                fill={point.color}
+                                opacity={ point.opacity !== undefined ? point.opacity : 1 }
+                            />
+                        )
+                    );
+                })}
+
+                {/* render hovered point last to bring it to foreground */}
+                {hoveredPoint && (
+                    <Circle
+                        cx={xScale(hoveredPoint.x)}
+                        cy={yScale(hoveredPoint.y)}
+                        r={5}
+                        fill={hoveredPoint.color}
+                        stroke="black"
+                        strokeWidth={1}
+                        opacity={1}
+                    />
+                )}
                     {axisLeftLabel}
                     {axisBottomLabel}
                 </Group>
@@ -168,13 +191,11 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
             {tooltipOpen && tooltipData && (
                 <Tooltip left={xScale(tooltipData.x) + 50} top={yScale(tooltipData.y) + 50}>
                     <div>
-                        <strong>x:</strong> {tooltipData.x}
+                        <strong>Name:</strong> {tooltipData.name.replace(/_/g, " ").slice(0, 45)}
+                        {tooltipData.name.length > 45 ? "..." : ""}
                     </div>
                     <div>
-                        <strong>y:</strong> {tooltipData.y}
-                    </div>
-                    <div>
-                        <strong>color:</strong> {tooltipData.color}
+                        <strong>Experiment Accession:</strong> {tooltipData.accession}
                     </div>
                 </Tooltip>
             )}
