@@ -95,15 +95,17 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
     );
 
     //find all points within the drawn lasso for selection purposes
-    const isPointInLasso = (point: { x: number; y: number }, polygon: Line): boolean => {
+    const isPointInLasso = (point: { x: number; y: number }, lasso: Line): boolean => {
         let inside = false;
-        for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-          const xi = polygon[i].x, yi = polygon[i].y;
-          const xj = polygon[j].x, yj = polygon[j].y;
+        //itterate through lasso, j starting at last point (closing the polygon) and taking the value of the previous point on subsequent calls
+        for (let i = 0, j = lasso.length - 1; i < lasso.length; j = i++) {
+          const xi = lasso[i].x, yi = lasso[i].y; //current vertex
+          const xj = lasso[j].x, yj = lasso[j].y; //previous vertex
       
-          const intersect = ((yi > point.y) !== (yj > point.y)) &&
-                            (point.x < (xj - xi) * (point.y - yi) / (yj - yi) + xi);
-          if (intersect) inside = !inside;
+          //ray tracing using imaginary horizontal ray coming from the point extending to the right
+          const intersect = ((yi > point.y) !== (yj > point.y)) && //does the ray intersect the line segment from the current to the previous vertex?
+                            (point.x < (xj - xi) * (point.y - yi) / (yj - yi) + xi); //is the point to the left of the segment?
+          if (intersect) inside = !inside; //toggles everytime the ray intersects the lasso, if twice it will go back to false since it crossed the lasso twice
         }
         return inside;
       };
@@ -111,14 +113,14 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
       const onDragEnd = useCallback(() => {
           if (lines.length === 0) return;
       
-          const lastLine = lines[lines.length - 1];
+          const lasso = lines[lines.length - 1];
       
           const pointsInsideLasso = umapData.filter((point) => {
               const scaledPoint = {
                   x: xScale(point.x),
                   y: yScale(point.y)
               };
-              return isPointInLasso(scaledPoint, lastLine);
+              return isPointInLasso(scaledPoint, lasso);
           });
       
           console.log("Points inside lasso:", pointsInsideLasso.map(p => p.name));
@@ -244,65 +246,52 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                         })}
                     />
                     {umapData.map((point, index) => {
-                    const isHovered = hoveredPoint && hoveredPoint.x === point.x && hoveredPoint.y === point.y;
+                        const isHovered = hoveredPoint && hoveredPoint.x === point.x && hoveredPoint.y === point.y;
 
-                    return (
-                        !isHovered && (
-                            <Circle
-                                key={index}
-                                cx={xScale(point.x)}
-                                cy={yScale(point.y)}
-                                r={3}
-                                fill={point.color}
-                                opacity={ point.opacity !== undefined ? point.opacity : 1 }
-                            />
-                        )
-                    );
-                })}
+                        return (
+                            !isHovered && (
+                                <Circle
+                                    key={index}
+                                    cx={xScale(point.x)}
+                                    cy={yScale(point.y)}
+                                    r={3}
+                                    fill={point.color}
+                                    opacity={ point.opacity !== undefined ? point.opacity : 1 }
+                                />
+                            )
+                        );
+                    })}
 
-                {/* render hovered point last to bring it to foreground */}
-                {hoveredPoint && (
-                    <Circle
-                        cx={xScale(hoveredPoint.x)}
-                        cy={yScale(hoveredPoint.y)}
-                        r={5}
-                        fill={hoveredPoint.color}
-                        stroke="black"
-                        strokeWidth={1}
-                        opacity={1}
-                    />
-                )}
-                
-                    {/* render lasso */}
-                    {lines.map((line, i) => (
-                        <LinePath
-                        key={`line-${i}`}
-                        fill="transparent"
-                        stroke="black"
-                        strokeWidth={3}
-                        data={line}
-                        curve={curveBasis}
-                        x={(d) => d.x}
-                        y={(d) => d.y}
+                    {/* render hovered point last to bring it to foreground */}
+                    {hoveredPoint && (
+                        <Circle
+                            cx={xScale(hoveredPoint.x)}
+                            cy={yScale(hoveredPoint.y)}
+                            r={5}
+                            fill={hoveredPoint.color}
+                            stroke="black"
+                            strokeWidth={1}
+                            opacity={1}
                         />
-                    ))}
+                    )}
+                    
+                        {/* render lasso */}
+                        {lines.map((line, i) => (
+                            <LinePath
+                            key={`line-${i}`}
+                            fill="transparent"
+                            stroke="black"
+                            strokeWidth={3}
+                            data={line}
+                            curve={curveBasis}
+                            x={(d) => d.x}
+                            y={(d) => d.y}
+                            />
+                        ))}
 
-                    {axisLeftLabel}
-                    {axisBottomLabel}
+                        {axisLeftLabel}
+                        {axisBottomLabel}
                 </Group>
-
-                {/* Create the drawing area */}
-                <g>
-          {isDragging && (
-            /* capture mouse events (note: <Drag /> does this for you) */
-            <rect
-              width={parentWidth}
-              height={parentHeight}
-              onMouseMove={dragMove}
-              onMouseUp={dragEnd}
-              fill="transparent"
-            />
-          )}
           {/* decorate the currently drawing line */}
           {isDragging && (
             <g>
@@ -338,7 +327,6 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
             onTouchEnd={isDragging ? dragEnd : undefined}
             onTouchMove={isDragging ? dragMove : undefined}
           />
-        </g>
             </svg>
 
             {tooltipOpen && tooltipData && (
