@@ -220,7 +220,7 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
 
     return (
         <>
-            <svg width={parentWidth} height={parentHeight} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} style={{ cursor: isDragging ? 'none' : 'default' }}>
+            <svg width={parentWidth} height={parentHeight} onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave} style={{ cursor: isDragging ? 'none' : 'default',  userSelect: 'none' }}>
                 <Group top={margin.top} left={margin.left}>
                     <AxisLeft
                         numTicks={4}
