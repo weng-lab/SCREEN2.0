@@ -77,7 +77,7 @@ function ResponsiveAppBar() {
   const menuItem = (page, isSubPage = false) =>
     <MenuItem key={page.pageName} onClick={handleCloseNavMenu_Hamburger} >
       <Typography
-        pl={isSubPage && 2}
+        pl={isSubPage ? 2 : 0}
         color={isSubPage && "rgba(0, 0, 0, 0.6)"}
         component='a'
         href={page.link}
