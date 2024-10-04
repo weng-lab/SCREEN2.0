@@ -117,7 +117,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, ass
       })].sort((a, b) => a.distanceToTSS - b.distanceToTSS).slice(0, 3)
     } : null
   }, [dataNearbyAndLinked, region])
-
+console.log("nearest3AndLinkedGenes",nearest3AndLinkedGenes && nearest3AndLinkedGenes.nearbyGenes.sort((a,b)=>a.distanceToTSS-b.distanceToTSS))
   //Used to pass genes and their linking method to Gene Expression and RAMPAGE pages
   const uniqueGenes: { name: string; linkedBy: string[]; }[] = useMemo(() => {
     const uniqueGenes: { name: string; linkedBy: string[]; }[] = [];
@@ -154,8 +154,8 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, ass
         <Typography variant="h6">{`${region.chrom}:${region.start.toLocaleString("en-US")}-${region.end.toLocaleString("en-US")}`}</Typography>
       </Stack>
       <Divider sx={{ mb: 2 }} />
-      {page === 0 &&
-        <InSpecificBiosamples accession={accession} assembly={assembly} />
+      {page === 0 && nearest3AndLinkedGenes &&
+        <InSpecificBiosamples accession={accession} assembly={assembly} distanceToTSS={nearest3AndLinkedGenes.nearbyGenes.sort((a,b)=>a.distanceToTSS-b.distanceToTSS)[0].distanceToTSS}/>
       }
       {(page === 1 && assembly !== "mm10") &&
         (loadingLinkedGenes ?

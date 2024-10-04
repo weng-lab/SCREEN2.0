@@ -22,6 +22,7 @@ export type cCRERow = {
 type InSpecificBiosamplesProps = {
   accession: string,
   assembly: "GRCh38" | "mm10",
+  distanceToTSS: number
 }
 
 
@@ -166,7 +167,7 @@ const ctAgnosticColumns = () => [
 ]
 
 //Cache is not working as expected when switching between open cCREs
-export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ accession, assembly }) => {
+export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ accession, assembly, distanceToTSS }) => {
 
   const { data: data_toptissues, loading: loading_toptissues, error: error_toptissues } = useQuery(TOP_TISSUES,
     {
@@ -189,6 +190,8 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
     }
   )
   
+  
+  const distance  = distanceToTSS
   
 
   let partialDataCollection: cCRERow[], coreCollection: cCRERow[], ancillaryCollection: cCRERow[];
@@ -278,44 +281,60 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
       }
     })
 
-    let igroup = data_toptissues?.cCREQuery[0]?.group
+    
     
     let ccreCts = typedata.map((t) => {
-      let group = igroup      
-      if (t.dnase <= 1.64 && t.dnase != -11.0) group = "ylowdnase"
-      if (igroup == "PLS") {
-        if (t.h3k4me3 > 1.64) group = "PLS"
-        if (t.h3k27ac > 1.64) group = "pELS"
+      let group     
+      let tf =  data_ccre_tf && data_ccre_tf.getcCRETFQuery.length>0 ? data_ccre_tf.getcCRETFQuery.find(a=> t.ct===a.celltype)?.tf.toString(): undefined     
         
-      } else {
-        if (t.h3k27ac > 1.64) {
-          if (igroup === "pELS") {
-            group = "pELS"
-          } else {
-            group = "dELS"
+      if(t.dnase != -11.0)
+      {
+          if((t.dnase >= 1.64)) {
+            if(t.h3k4me3 >= 1.64) {
+                if(distance <= 200) {
+                    group = "PLS" //Promoter-like signatures (promoter) must fall within 200 bp of a TSS and have high chromatin accessibility and H3K4me3 signals.
+                }
+                else if((t.h3k27ac < 1.64) && distance > 200) {
+                        group = "CA-H3K4me3" //Chromatin accessibility + H3K4me3 (CA-H3K4me3) have high chromatin accessibility and H3K4me3 signals but low H3K27ac signals and do not fall within 200 bp of a TSS.
+                }
+                else if (distance <= 2000  && t.h3k27ac >= 1.64) {              
+                        group = "pELS" //Enhancer-like signatures (enhancer) have high chromatin accessibility and H3K27ac signals. Enhancers are further divided into TSS-proximal or distal with a 2 kb distance cutoff.          
+                } else if(distance > 2000  && t.h3k27ac >= 1.64) {              
+                        group = "dELS" //Enhancer-like signatures (enhancer) have high chromatin accessibility and H3K27ac signals. Enhancers are further divided into TSS-proximal or distal with a 2 kb distance cutoff.          
+                }
+            }
+            else if(t.h3k27ac >= 1.64) {
+                if(distance <= 2000) {   
+                        group ="pELS"       //Enhancer-like signatures (enhancer) have high chromatin accessibility and H3K27ac signals. Enhancers are further divided into TSS-proximal or distal with a 2 kb distance cutoff.          
+                } else if(distance > 2000) {
+                        group = "dELS"  //Enhancer-like signatures (enhancer) have high chromatin accessibility and H3K27ac signals. Enhancers are further divided into TSS-proximal or distal with a 2 kb distance cutoff.          
+                }
+            }
+            else if(t.ctcf >= 1.64) {
+                group = "CA-CTCF" //Chromatin accessibility + CTCF (CA-CTCF) have high chromatin accessibility and CTCF signals but low H3K4me3 and H3K27ac signals.
+            }
+            else if(tf==='1') {
+                group = "CA-TF" //Chromatin accessibility + transcription factor (CA-TF) have high chromatin accessibility, low H3K4me3, H3K27ac, and CTCF signals and are bound by a transcription factor.
+            }
+            else {
+                group = "CA" //Chromatin accessibility (CA) have high chromatin accessibility, and low H3K4me3, H3K27ac, and CTCF signals.
+            }
           }
-        }
-        if (t.h3k4me3 > 1.64) group = "CA-H3K4me3"
-      }
-      if (t.ctcf > 1.64) group = "ctcf"
-      if (-11.0 === t.dnase) group = "zunclassified"
-      if (t.dnase > 1.64) {
-        group = "dnase"
-        if (t.h3k27ac > 1.64) {          
-          if (igroup === "pELS") {
-            group = "pELS"
-          } else if(igroup === "PLS") {
-            group = "PLS"
-          } 
-          else {
-            group = "dELS"
+          else {            
+            if(tf==='1'){
+              group = "TF" //Transcription factor (TF) have low chromatin accessibility, low H3K4me3, H3K27ac, and CTCF signals and are bound by a transcription factor.
+            } else {
+              group = "InActive" //low chromatin accessibility, low H3K4me3, H3K27ac, and CTCF signals and are NOT bound by a transcription factor.
+            }            
           }
-        }
-      } else {
-        group = "ylowdnase"
       }
-     
-
+      else {
+        group  = "noclass" //If not active in DNase, No class assigned
+      }
+        
+      
+      console.log(t.celltypename, t.atac, t.dnase,t.h3k27ac,t.h3k4me3,t.ctcf, tf, group)
+      
       let type: "core" | "partial" | "ancillary"
 
       type = "ancillary"
