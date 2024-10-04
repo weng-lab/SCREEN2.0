@@ -280,8 +280,7 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
           : -11.0,
       }
     })
-
-    
+   
     
     let ccreCts = typedata.map((t) => {
       let group     
@@ -331,9 +330,6 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
       else {
         group  = "noclass" //If not active in DNase, No class assigned
       }
-        
-      
-      console.log(t.celltypename, t.atac, t.dnase,t.h3k27ac,t.h3k4me3,t.ctcf, tf, group)
       
       let type: "core" | "partial" | "ancillary"
 

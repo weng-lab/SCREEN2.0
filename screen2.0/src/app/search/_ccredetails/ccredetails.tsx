@@ -117,7 +117,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, ass
       })].sort((a, b) => a.distanceToTSS - b.distanceToTSS).slice(0, 3)
     } : null
   }, [dataNearbyAndLinked, region])
-console.log("nearest3AndLinkedGenes",nearest3AndLinkedGenes && nearest3AndLinkedGenes.nearbyGenes.sort((a,b)=>a.distanceToTSS-b.distanceToTSS))
+
   //Used to pass genes and their linking method to Gene Expression and RAMPAGE pages
   const uniqueGenes: { name: string; linkedBy: string[]; }[] = useMemo(() => {
     const uniqueGenes: { name: string; linkedBy: string[]; }[] = [];
