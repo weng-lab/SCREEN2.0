@@ -48,7 +48,6 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
     const margin = { top: 20, right: 20, bottom: 70, left: 70 };
     const boundedWidth = Math.min(parentWidth * 0.9, parentHeight * 0.9) - margin.left;
     const boundedHeight = boundedWidth;
-    const [zoomTransform, setZoomTransform] = useState(initialTransformMatrix);
 
     //rescale x and y scales when zooming
     //converts to pixel values before applying transformations
@@ -380,7 +379,6 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                                         const point = localPoint(event) || { x: 0, y: 0 };
                                         const zoomDirection = event.deltaY < 0 ? 1.1 : 0.9;
                                         zoom.scale({ scaleX: zoomDirection, scaleY: zoomDirection, point });
-                                        setZoomTransform(zoom.transformMatrix);
                                     }}
                                 />
                             </svg>
