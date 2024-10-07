@@ -265,6 +265,11 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                 {(zoom) => {
                     const xScaleTransformed = rescaleX(xScale, zoom);
                     const yScaleTransformed = rescaleY(yScale, zoom);
+                    const isHoveredPointWithinBounds = hoveredPoint && 
+                        xScaleTransformed(hoveredPoint.x) >= 0 && 
+                        xScaleTransformed(hoveredPoint.x) <= boundedWidth && 
+                        yScaleTransformed(hoveredPoint.y) >= 0 && 
+                        yScaleTransformed(hoveredPoint.y) <= boundedHeight;
                     return (
                         <>   
                             <svg width={parentWidth} height={parentHeight} onMouseMove={(e) => handleMouseMove(e, zoom)} onMouseLeave={handleMouseLeave} style={{ cursor: isDragging ? 'none' : 'default', userSelect: 'none' }}>
@@ -272,12 +277,16 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                                 <Group top={margin.top} left={margin.left}>
                                     {umapData.map((point, index) => {
                                         const isHovered = hoveredPoint && hoveredPoint.x === point.x && hoveredPoint.y === point.y;
+                                        const transformedX = xScaleTransformed(point.x);
+                                        const transformedY = yScaleTransformed(point.y);
+                                        const isWithinXBounds = transformedX >= 0 && transformedX <= boundedWidth;
+                                        const isWithinYBounds = transformedY >= 0 && transformedY <= boundedHeight;
                                         return (
-                                            !isHovered && (
+                                            isWithinXBounds && isWithinYBounds && !isHovered && (
                                                 <Circle
                                                     key={index}
-                                                    cx={xScaleTransformed(point.x)}
-                                                    cy={yScaleTransformed(point.y)}
+                                                    cx={transformedX}
+                                                    cy={transformedY}
                                                     r={3}
                                                     fill={point.color}
                                                     opacity={point.opacity !== undefined ? point.opacity : 1}
@@ -287,7 +296,7 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                                     })}
 
                                     {/* Render hovered point last to bring it to foreground */}
-                                    {hoveredPoint && (
+                                    {isHoveredPointWithinBounds && hoveredPoint && (
                                         <Circle
                                             cx={xScaleTransformed(hoveredPoint.x)}
                                             cy={yScaleTransformed(hoveredPoint.y)}
@@ -382,7 +391,7 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                                     }}
                                 />
                             </svg>
-                            {tooltipOpen && tooltipData && (
+                            {tooltipOpen && tooltipData && isHoveredPointWithinBounds &&(
                                 <Tooltip left={xScaleTransformed(tooltipData.x) + 50} top={yScaleTransformed(tooltipData.y) + 50}>
                                     <div>
                                         <strong>Name: </strong> 
