@@ -101,26 +101,30 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
     // Setup dragging for lasso drawing
     const onDragStart = useCallback(
         (currDrag) => {
-            // add the new line with the starting point
-            const adjustedX = (currDrag.x - margin.left);
-            const adjustedY = (currDrag.y - margin.top);
-            setLines((currLines) => [...currLines, [{ x: adjustedX, y: adjustedY }]]);
+            if (selectionType === "select") {
+                // add the new line with the starting point
+                const adjustedX = (currDrag.x - margin.left);
+                const adjustedY = (currDrag.y - margin.top);
+                setLines((currLines) => [...currLines, [{ x: adjustedX, y: adjustedY }]]);
+            }
         },
         [setLines],
       );
 
     const onDragMove = useCallback(
         (currDrag) => {
-            // add the new point to the current line
-            const adjustedX = (currDrag.x - margin.left);
-            const adjustedY = (currDrag.y - margin.top);
-            setLines((currLines) => {
-            const nextLines = [...currLines];
-            const newPoint = { x: adjustedX + currDrag.dx, y: adjustedY + currDrag.dy };
-            const lastIndex = nextLines.length - 1;
-            nextLines[lastIndex] = [...(nextLines[lastIndex] || []), newPoint];
-            return nextLines;
-            });
+            if (selectionType === "select") {
+                // add the new point to the current line
+                const adjustedX = (currDrag.x - margin.left);
+                const adjustedY = (currDrag.y - margin.top);
+                setLines((currLines) => {
+                const nextLines = [...currLines];
+                const newPoint = { x: adjustedX + currDrag.dx, y: adjustedY + currDrag.dy };
+                const lastIndex = nextLines.length - 1;
+                nextLines[lastIndex] = [...(nextLines[lastIndex] || []), newPoint];
+                return nextLines;
+                });
+            }
         },
         [setLines],
     );
@@ -144,25 +148,29 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
       
       const onDragEnd = useCallback(
         (zoom) => {
-          if (lines.length === 0) return;
-      
-          const lasso = lines[lines.length - 1];
-          const xScaleTransformed = rescaleX(xScale, zoom);
-          const yScaleTransformed = rescaleY(yScale, zoom);
-      
-          const pointsInsideLasso = umapData.filter((point) => {
-            const scaledPoint = {
-              x: xScaleTransformed(point.x),
-              y: yScaleTransformed(point.y),
-            };
-            return isPointInLasso(scaledPoint, lasso);
-          });
-      
-          console.log(
-            "Points inside lasso:",
-            pointsInsideLasso.map((p) => p.name)
-          );
-          setLines([]);
+            if (selectionType === "select") {
+                if (lines.length === 0) return;
+        
+                const lasso = lines[lines.length - 1];
+                const xScaleTransformed = rescaleX(xScale, zoom);
+                const yScaleTransformed = rescaleY(yScale, zoom);
+            
+                const pointsInsideLasso = umapData.filter((point) => {
+                    const scaledPoint = {
+                    x: xScaleTransformed(point.x),
+                    y: yScaleTransformed(point.y),
+                    };
+                    return isPointInLasso(scaledPoint, lasso);
+                });
+            
+                console.log(
+                    "Points inside lasso:",
+                    pointsInsideLasso.map((p) => p.name)
+                );
+                setLines([]);
+            } else {
+                setLines([]);
+            }
         },
         [lines, umapData, xScale, yScale, setLines]
       );
@@ -272,7 +280,7 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                         yScaleTransformed(hoveredPoint.y) <= boundedHeight;
                     return (
                         <>   
-                            <svg width={parentWidth} height={parentHeight} onMouseMove={(e) => handleMouseMove(e, zoom)} onMouseLeave={handleMouseLeave} style={{ cursor: isDragging ? 'none' : 'default', userSelect: 'none' }}>
+                            <svg width={parentWidth} height={parentHeight} onMouseMove={(e) => handleMouseMove(e, zoom)} onMouseLeave={handleMouseLeave} style={{ cursor: selectionType === "select" ? (isDragging ? 'none' : 'default') : (zoom.isDragging ? 'grabbing' : 'grab'), userSelect: 'none' }}>
                                 {/* Zoomable Group for Points */}
                                 <Group top={margin.top} left={margin.left}>
                                     {umapData.map((point, index) => {
@@ -308,41 +316,45 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                                         />
                                     )}
 
-                                    {/* Render lasso */}
-                                    {lines.map((line, i) => (
-                                        <LinePath
-                                            key={`line-${i}`}
-                                            fill="transparent"
-                                            stroke="black"
-                                            strokeWidth={3}
-                                            data={line}
-                                            curve={curveBasis}
-                                            x={(d) => d.x}
-                                            y={(d) => d.y}
-                                        />
-                                    ))}
+                                    {selectionType === "select" && (
+                                        <>
+                                            {/* Render lasso */}
+                                            {lines.map((line, i) => (
+                                                <LinePath
+                                                    key={`line-${i}`}
+                                                    fill="transparent"
+                                                    stroke="black"
+                                                    strokeWidth={3}
+                                                    data={line}
+                                                    curve={curveBasis}
+                                                    x={(d) => d.x}
+                                                    y={(d) => d.y}
+                                                />
+                                            ))}
 
-                                    {isDragging && (
-                                        <g>
-                                            {/* Crosshair styling */}
-                                            <line
-                                                x1={x - margin.left + dx - 6}
-                                                y1={y - margin.top + dy}
-                                                x2={x - margin.left + dx + 6}
-                                                y2={y - margin.top + dy}
-                                                stroke="black"
-                                                strokeWidth={1}
-                                            />
-                                            <line
-                                                x1={x - margin.left + dx}
-                                                y1={y - margin.top + dy - 6}
-                                                x2={x - margin.left + dx}
-                                                y2={y - margin.top + dy + 6}
-                                                stroke="black"
-                                                strokeWidth={1}
-                                            />
-                                            <circle cx={x - margin.left} cy={y - margin.top} r={4} fill="transparent" stroke="black" pointerEvents="none" />
-                                        </g>
+                                            {isDragging && (
+                                                <g>
+                                                    {/* Crosshair styling */}
+                                                    <line
+                                                        x1={x - margin.left + dx - 6}
+                                                        y1={y - margin.top + dy}
+                                                        x2={x - margin.left + dx + 6}
+                                                        y2={y - margin.top + dy}
+                                                        stroke="black"
+                                                        strokeWidth={1}
+                                                    />
+                                                    <line
+                                                        x1={x - margin.left + dx}
+                                                        y1={y - margin.top + dy - 6}
+                                                        x2={x - margin.left + dx}
+                                                        y2={y - margin.top + dy + 6}
+                                                        stroke="black"
+                                                        strokeWidth={1}
+                                                    />
+                                                    <circle cx={x - margin.left} cy={y - margin.top} r={4} fill="transparent" stroke="black" pointerEvents="none" />
+                                                </g>
+                                            )}
+                                        </>
                                     )}
                                 </Group>
                                 {/* Static Axes Group */}
@@ -375,15 +387,18 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                                     fill="transparent"
                                     width={parentWidth}
                                     height={parentHeight}
-                                    onMouseDown={dragStart}
-                                    onMouseUp={(event) => {
+                                    onMouseDown={selectionType === "select" ?  dragStart : zoom.dragStart}
+                                    onMouseUp={ selectionType === "select" ? (event) => {
                                         dragEnd(event);
                                         onDragEnd(zoom);
-                                        }}
-                                    onMouseMove={isDragging ? dragMove : undefined}
-                                    onTouchStart={dragStart}
-                                    onTouchEnd={isDragging ? dragEnd : undefined}
-                                    onTouchMove={isDragging ? dragMove : undefined}
+                                    } : zoom.dragEnd}
+                                    onMouseMove={ selectionType === "select" ? (isDragging ? dragMove : undefined) : zoom.dragMove}
+                                    onTouchStart={selectionType === "select" ?  dragStart : zoom.dragStart}
+                                    onTouchEnd={ selectionType === "select" ? (event) => {
+                                        dragEnd(event);
+                                        onDragEnd(zoom);
+                                    } : zoom.dragEnd}
+                                    onTouchMove={selectionType === "select" ? (isDragging ? dragMove : undefined) : zoom.dragMove}
                                     onWheel={(event) => {
                                         const point = localPoint(event) || { x: 0, y: 0 };
                                         const zoomDirection = event.deltaY < 0 ? 1.1 : 0.9;

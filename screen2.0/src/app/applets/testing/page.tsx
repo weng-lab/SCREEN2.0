@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import { Umap } from './chart'
 import { ParentSize } from '@visx/responsive';
 import { client } from "../../search/_ccredetails/client"
@@ -24,12 +24,18 @@ function colorMap(strings) {
   }
 
 export default function Testing() {
+    const [selectionType, setSelectionType] = useState<"select" | "pan">('select');
+
     const {data: umapData, loading: umapLoading} = useQuery(UMAP_QUERY, {
         variables: { assembly: "grch38", assay: "DNase", a: "dnase" },
         fetchPolicy: "cache-and-network",
         nextFetchPolicy: "cache-first",
         client,
     })
+
+    const handleClick = () => {
+        setSelectionType((prev) => (prev === 'select' ? 'pan' : 'select'));
+    };
 
     const [sampleTypeColors, sampleTypeCounts] = useMemo(
         () =>
@@ -70,8 +76,9 @@ export default function Testing() {
         <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', }}>
             <div style={{ height: '75vh', width: '75vh', position: 'relative', }}>
             <ParentSize>
-                {({ width, height }) => <Umap width={width} height={height} pointData={fData} loading={umapLoading} selectionType='select'/>}
+                {({ width, height }) => <Umap width={width} height={height} pointData={fData} loading={umapLoading} selectionType={selectionType}/>}
             </ParentSize>
+            <button onClick={handleClick}>Pan/Select</button>
             </div>
         </div>
 );
