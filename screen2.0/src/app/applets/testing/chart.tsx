@@ -194,7 +194,7 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
     //find the closest point to cursor to show the tooltip
     const handleMouseMove = useCallback(
         (event: React.MouseEvent<SVGElement>, zoom) => {
-            if (isDragging) {
+            if (isDragging || zoom.isDragging) {
                 setTooltipOpen(false);
                 setTooltipData(null);
                 return;
