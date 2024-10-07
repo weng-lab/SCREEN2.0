@@ -70,7 +70,7 @@ export default function Testing() {
         <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', }}>
             <div style={{ height: '75vh', width: '75vh', position: 'relative', }}>
             <ParentSize>
-                {({ width, height }) => <Umap width={width} height={height} pointData={fData} loading={umapLoading} />}
+                {({ width, height }) => <Umap width={width} height={height} pointData={fData} loading={umapLoading} selectionType='select'/>}
             </ParentSize>
             </div>
         </div>
