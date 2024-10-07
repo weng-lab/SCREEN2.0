@@ -45,6 +45,8 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
     const [tooltipData, setTooltipData] = React.useState<TooltipData | null>(null);
     const [tooltipOpen, setTooltipOpen] = React.useState(false);
     const [lines, setLines] = useState<Lines>([]);
+    const [showMiniMap, setShowMiniMap] = useState<boolean>(true);
+
     const margin = { top: 20, right: 20, bottom: 70, left: 70 };
     const boundedWidth = Math.min(parentWidth * 0.9, parentHeight * 0.9) - margin.left;
     const boundedHeight = boundedWidth;
@@ -405,6 +407,36 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                                         zoom.scale({ scaleX: zoomDirection, scaleY: zoomDirection, point });
                                     }}
                                 />
+                                {/* {showMiniMap && (
+                                    <g
+                                    clipPath="url(#zoom-clip)"
+                                    transform={`
+                                        scale(0.25)
+                                        translate(${parentWidth * 4 - parentWidth - 60}, ${parentHeight * 4 - parentHeight - 60})
+                                    `}
+                                    >
+                                    <rect width={parentWidth} height={parentHeight} fill="#1a1a1a" />
+                                    {umapData.map((point, i) => (
+                                        <React.Fragment key={`dot-sm-${i}`}>
+                                        <circle
+                                            cx={xScale(point.x)}
+                                            cy={yScale(point.y)}
+                                            r={3}
+                                            fill={point.color}
+                                        />
+                                        </React.Fragment>
+                                    ))}
+                                    <rect
+                                        width={parentWidth}
+                                        height={parentHeight}
+                                        fill="white"
+                                        fillOpacity={0.2}
+                                        stroke="white"
+                                        strokeWidth={4}
+                                        transform={zoom.toStringInvert()}
+                                    />
+                                    </g>
+                                )} */}
                             </svg>
                             {tooltipOpen && tooltipData && isHoveredPointWithinBounds &&(
                                 <Tooltip left={xScaleTransformed(tooltipData.x) + 50} top={yScaleTransformed(tooltipData.y) + 50}>
