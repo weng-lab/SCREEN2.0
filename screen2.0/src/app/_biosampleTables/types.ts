@@ -28,9 +28,19 @@ export interface Props<T extends boolean = false> {
    * If specified, samples will be passed through this function before populating tables
    */
   preFilterBiosamples?: (sample: BiosampleData<T>) => boolean,
-
-  //Should I change this? Seems like so-so way to handle this behavior
-  showRNAseq?: T, //I feel like this is fine
+  /**
+   * If specified, component will only fetch biosamples which include data for any of specified assays.
+   * More complex filtering can be done with preFilterBiosamples
+   * @default ["dnase","h3k4me3","h3k27ac","ctcf","atac"]
+   */
+  fetchBiosamplesWith?: ("dnase" | "h3k4me3"| "h3k27ac" | "ctcf" | "atac")[]
+  /**
+   * If true, table will display column with check marks for biosamples with RNA seq data.
+   */
+  showRNAseq?: T,
+  /**
+   * If true, table will display columns for assay signal files for each biosample
+   */
   showDownloads?: boolean, //I feel like this is maybe more appropriate to be something that is user-defined. Allow them to add extra columns?
   /**
    * Props spread into each slot inside, helpful for changing things such as width and height
@@ -88,3 +98,5 @@ export type RegistryBiosample = {
 export type FiltersKey = "CellLine" | "PrimaryCell" | "Tissue" | "Organoid" | "InVitro" | "Core" | "Partial" | "Ancillary" | "Embryo" | "Adult"
 
 export type CheckboxState = { [key in FiltersKey]: boolean }
+
+export type assay = "DNase" | "H3K27ac" | "H3K4me3" | "CTCF" | "ATAC"

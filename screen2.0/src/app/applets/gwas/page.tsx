@@ -361,7 +361,7 @@ export default function GWAS() {
               }
               <BiosampleTables
                 assembly={"GRCh38"}
-                preFilterBiosamples={(sample: RegistryBiosamplePlusRNA) => sample.dnase !== null}
+                fetchBiosamplesWith={['dnase']}
                 selected={selectedSample?.name}
                 onBiosampleClicked={handleSetSelectedSample}
                 slotProps={{paperStack: {elevation: 0}, headerStack: {mt: 1}}}
