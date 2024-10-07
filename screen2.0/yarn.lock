@@ -2586,13 +2586,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:^18.3.8":
-  version: 18.3.8
-  resolution: "@types/react@npm:18.3.8"
+"@types/react@npm:^18.3.11":
+  version: 18.3.11
+  resolution: "@types/react@npm:18.3.11"
   dependencies:
-    "@types/prop-types": "npm:*"
-    csstype: "npm:^3.0.2"
-  checksum: a2cc2034746cde564a49a9d7f1ae57214bc83adb0daafd4724dc400569adc54c5a489c0e7d8656752b8748908a364d6811e4d7a2adc7f18a7f7179728d20147a
+    "@types/prop-types": "*"
+    csstype: ^3.0.2
+  checksum: 6cbf36673b64e758dd61b16c24139d015f58530e0d476777de26ba83f24b55e142fbf64e3b8f6b3c7b05ed9ba548551b2a62d9ffb0f95743d0a368646a619163
   languageName: node
   linkType: hard
 
@@ -10327,7 +10327,7 @@ __metadata:
     "@mui/material": ^6.1.1
     "@mui/material-nextjs": ^6.1.1
     "@types/node": ^22.6.1
-    "@types/react": ^18.3.8
+    "@types/react": ^18.3.11
     "@types/react-dom": 18.3.0
     "@visx/event": ^3.3.0
     "@visx/responsive": ^3.10.2
