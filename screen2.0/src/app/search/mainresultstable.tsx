@@ -3,14 +3,14 @@ import { DataTable, DataTableProps, DataTableColumn } from "@weng-lab/psychscree
 import React, { useState, useMemo } from "react"
 import { Box, Typography, Stack, Button, Accordion, AccordionSummary, AccordionDetails, Tooltip, CircularProgress, List } from "@mui/material"
 import { MainResultTableRow, ConservationData } from "./types"
-import { ApolloQueryResult, LazyQueryResultTuple } from "@apollo/client"
-import { BIOSAMPLE_Data } from "../../common/lib/queries"
+import { LazyQueryResultTuple } from "@apollo/client"
 import ConfigureGBModal from "./_ccredetails/configuregbmodal"
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { LinkedGeneInfo } from "./_ccredetails/ccredetails"
 import { InfoOutlined } from "@mui/icons-material"
 import { CreateLink } from "../../common/lib/utility"
 import { LinkedGenes, LinkedGenesVariables } from "./page"
+import GeneLink from "../_utility/GeneLink"
 
 
 interface MainResultsTableProps extends Partial<DataTableProps<any>> {
@@ -93,17 +93,11 @@ export function MainResultsTable(props: MainResultsTableProps) {
       tooltip: "Defined by distance to nearest TSS",
       HeaderRender: () => <strong><p>Nearest&nbsp;Gene</p></strong>,
       value: (row) => row.nearestGenes[0].distance,
-      render: (row) =>
-        <Typography variant="body2" onClick={(event) => event.stopPropagation()}>
-          <i>
-            <CreateLink
-              linkPrefix="/applets/gene-expression"
-              linkArg={`?assembly=${props.assembly}&gene=${row.nearestGenes[0].gene}`}
-              label={row.nearestGenes[0].gene}
-              underline="hover"
-            />
-          </i> - {row.nearestGenes[0].distance.toLocaleString()} bp
-        </Typography>
+      render: (row) =>(
+        <Box onClick={(event) => event.stopPropagation()}>
+          <GeneLink geneName={row.nearestGenes[0].gene} assembly={props.assembly} typographyProps={{display: 'inline'}} />
+          {' -'} {row.nearestGenes[0].distance.toLocaleString()}&nbsp;bp
+        </Box>)
     })
     props.assembly === "GRCh38" && cols.push({
       header: "Linked Genes",
@@ -148,22 +142,16 @@ export function MainResultsTable(props: MainResultsTableProps) {
           }));
         }
 
-        const LinkedGeneList: React.FC<{ genes: { geneName: string, samples: LinkedGeneInfo[] }[], type: "Intact-HiC" | "ChIAPET" | "CRISPR" | "eQTLs" }> = (props) => {
+        const LinkedGeneList: React.FC<{ genes: { geneName: string, samples: LinkedGeneInfo[] }[], type: "Intact-HiC" | "ChIAPET" | "CRISPR" | "eQTLs", assembly: "GRCh38" | "mm10" }> = (props) => {
           return (
             <Stack spacing={1}>
               {props.genes.map((gene, i) =>
                 props.type === "eQTLs" ?
                   //eQTL Linked Gene
                   <Box key={i}>
-                    <Typography display="inline" variant="inherit">
-                      <i>
-                        <CreateLink
-                          linkPrefix="/applets/gene-expression?assembly=GRCh38&gene="
-                          linkArg={gene.geneName}
-                          label={gene.geneName}
-                          underline="hover"
-                        />
-                      </i> ({getNumtissues(gene.samples)} tissue{getNumtissues(gene.samples) > 1 && 's'}, {gene.samples.length} variant{gene.samples.length > 1 && 's'})
+                    <Typography display="inline" variant="inherit" mr={0.5}>
+                      <GeneLink assembly={props.assembly} geneName={gene.geneName} typographyProps={{display: 'inline'}} /> 
+                      {' '}({getNumtissues(gene.samples)} tissue{getNumtissues(gene.samples) > 1 && 's'}, {gene.samples.length} variant{gene.samples.length > 1 && 's'})
                     </Typography>
                     <Tooltip
                       sx={{ display: "inline" }}
@@ -196,14 +184,8 @@ export function MainResultsTable(props: MainResultsTableProps) {
                   //All other
                   <Box key={i}>
                     <Typography display="inline" variant="inherit" mr={0.5}>
-                      <i>
-                        <CreateLink
-                          linkPrefix="/applets/gene-expression?assembly=GRCh38&gene="
-                          linkArg={gene.geneName}
-                          label={gene.geneName}
-                          underline="hover"
-                        />
-                      </i> ({gene.samples.length} biosample{gene.samples.length > 1 && 's'})
+                      <GeneLink assembly={props.assembly} geneName={gene.geneName} typographyProps={{display: 'inline'}} />
+                      {' '}({gene.samples.length} biosample{gene.samples.length > 1 && 's'})
                     </Typography>
                     <Tooltip
                       sx={{ display: 'inline' }}
@@ -261,7 +243,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
                     </AccordionSummary>
                     <AccordionDetails>
                       {IntactHiC.length > 0 ?
-                        <LinkedGeneList genes={IntactHiC} type="Intact-HiC" />
+                        <LinkedGeneList genes={IntactHiC} type="Intact-HiC" assembly={props.assembly} />
                         :
                         "No intact Hi-C loops overlap this cCRE and the promoter of a gene"
                       }
@@ -275,7 +257,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
                     </AccordionSummary>
                     <AccordionDetails>
                       {ChIAPET.length > 0 ?
-                        <LinkedGeneList genes={ChIAPET} type="ChIAPET" />
+                        <LinkedGeneList genes={ChIAPET} type="ChIAPET" assembly={props.assembly} />
                         :
                         "No ChIA-PET interactions overlap this cCRE and the promoter of a gene"
                       }
@@ -289,7 +271,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
                     </AccordionSummary>
                     <AccordionDetails>
                       {CRISPR.length > 0 ?
-                        <LinkedGeneList genes={CRISPR} type="CRISPR" />
+                        <LinkedGeneList genes={CRISPR} type="CRISPR" assembly={props.assembly} />
                         :
                         "This cCRE was not targeted in a CRISPRi-FlowFISH experiment"
                       }
@@ -303,7 +285,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
                     </AccordionSummary>
                     <AccordionDetails>
                       {eQTLs.length > 0 ?
-                        <LinkedGeneList genes={eQTLs} type="eQTLs" />
+                        <LinkedGeneList genes={eQTLs} type="eQTLs" assembly={props.assembly} />
                         :
                         "This cCRE does not overlap a variant associated with significant changes in gene expression"
                       }

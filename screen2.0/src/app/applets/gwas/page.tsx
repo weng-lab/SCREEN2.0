@@ -17,6 +17,7 @@ import { ParentSizeProvidedProps } from "@visx/responsive/lib/components/ParentS
 import { tissueColors } from "../../../common/lib/colors"
 import { CancelRounded, Info } from "@mui/icons-material"
 import { capitalizeFirstLetter } from "./helpers"
+import GeneLink from "../../_utility/GeneLink"
 
 //Colors for the accordions and background
 const lighterBlue = "#4B56BD"
@@ -256,7 +257,7 @@ export default function GWAS() {
       {
         header: "Gene",
         value: (row: TableRow) => row.gene,
-        render: (row: TableRow) => <i><CreateLink linkPrefix={"/applets/gene-expression?assembly=GRCh38&gene="} linkArg={row.gene} label={row.gene} underline={"none"} /></i>
+        render: (row: TableRow) => <GeneLink geneName={row.gene} assembly={'GRCh38'} />
       },
     ]
 

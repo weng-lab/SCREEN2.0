@@ -9,9 +9,10 @@ import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { LoadingMessage } from "../../../common/lib/utility"
 import { calcDistRegionToPosition, calcDistRegionToRegion } from "./utils"
 import { calcDistToTSS } from "./utils"
+import GeneLink from "../../_utility/GeneLink"
 
 export const NearByGenomicFeatures: React.FC<{
-  assembly: string
+  assembly: "mm10" | "GRCh38"
   accession: string
   coordinates: { chromosome: string; start: number; end: number }
   handleOpencCRE: (row: any) => void
@@ -115,13 +116,7 @@ export const NearByGenomicFeatures: React.FC<{
                     header: "Symbol",
                     value: (row) => row.name,
                     render: (row) =>
-                      <Typography
-                        component="a"
-                        variant="body2"
-                        color="primary"
-                      >
-                        <i>{row.name}</i>
-                      </Typography>,
+                      <GeneLink assembly={assembly} geneName={row.name} />
                   },
                   {
                     header: "Distance to Nearest TSS (in bp)",
@@ -129,9 +124,6 @@ export const NearByGenomicFeatures: React.FC<{
                     render: (row) => row.distance.toLocaleString("en-US"),
                   },
                 ]}
-                onRowClick={(row) => {
-                  window.open(`/applets/gene-expression?assembly=${assembly}&gene=${row.name}`, "_blank")
-                }}
                 sortColumn={1}
                 tableTitle="Nearby Genes"
                 rows={genes || []}
