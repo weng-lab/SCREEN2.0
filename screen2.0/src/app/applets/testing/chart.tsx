@@ -262,150 +262,144 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
 
     return (
         <>
-                <Zoom
-                    width={parentWidth}
-                    height={parentHeight}
-                    scaleXMin={1}
-                    scaleXMax={8}
-                    scaleYMin={1}
-                    scaleYMax={8}
-                    initialTransformMatrix={initialTransformMatrix}
-                >
-                    {(zoom) => {
-                        const xScaleTransformed = rescaleX(xScale, zoom);
-                        const yScaleTransformed = rescaleY(yScale, zoom);
-                    return (   
-                        <svg width={parentWidth} height={parentHeight} onMouseMove={(e) => handleMouseMove(e, zoom)} onMouseLeave={handleMouseLeave} style={{ cursor: isDragging ? 'none' : 'default', userSelect: 'none' }}>
-                            {/* Zoomable Group for Points */}
-                            <Group top={margin.top} left={margin.left}>
-                                {umapData.map((point, index) => {
-                                    const isHovered = hoveredPoint && hoveredPoint.x === point.x && hoveredPoint.y === point.y;
-                                    return (
-                                        !isHovered && (
-                                            <Circle
-                                                key={index}
-                                                cx={xScaleTransformed(point.x)}
-                                                cy={yScaleTransformed(point.y)}
-                                                r={3}
-                                                fill={point.color}
-                                                opacity={point.opacity !== undefined ? point.opacity : 1}
+            <Zoom width={parentWidth} height={parentHeight} scaleXMin={1} scaleXMax={8} scaleYMin={1} scaleYMax={8} initialTransformMatrix={initialTransformMatrix}>
+                {(zoom) => {
+                    const xScaleTransformed = rescaleX(xScale, zoom);
+                    const yScaleTransformed = rescaleY(yScale, zoom);
+                    return (
+                        <>   
+                            <svg width={parentWidth} height={parentHeight} onMouseMove={(e) => handleMouseMove(e, zoom)} onMouseLeave={handleMouseLeave} style={{ cursor: isDragging ? 'none' : 'default', userSelect: 'none' }}>
+                                {/* Zoomable Group for Points */}
+                                <Group top={margin.top} left={margin.left}>
+                                    {umapData.map((point, index) => {
+                                        const isHovered = hoveredPoint && hoveredPoint.x === point.x && hoveredPoint.y === point.y;
+                                        return (
+                                            !isHovered && (
+                                                <Circle
+                                                    key={index}
+                                                    cx={xScaleTransformed(point.x)}
+                                                    cy={yScaleTransformed(point.y)}
+                                                    r={3}
+                                                    fill={point.color}
+                                                    opacity={point.opacity !== undefined ? point.opacity : 1}
+                                                />
+                                            )
+                                        );
+                                    })}
+
+                                    {/* Render hovered point last to bring it to foreground */}
+                                    {hoveredPoint && (
+                                        <Circle
+                                            cx={xScaleTransformed(hoveredPoint.x)}
+                                            cy={yScaleTransformed(hoveredPoint.y)}
+                                            r={5}
+                                            fill={hoveredPoint.color}
+                                            stroke="black"
+                                            strokeWidth={1}
+                                            opacity={1}
+                                        />
+                                    )}
+
+                                    {/* Render lasso */}
+                                    {lines.map((line, i) => (
+                                        <LinePath
+                                            key={`line-${i}`}
+                                            fill="transparent"
+                                            stroke="black"
+                                            strokeWidth={3}
+                                            data={line}
+                                            curve={curveBasis}
+                                            x={(d) => d.x}
+                                            y={(d) => d.y}
+                                        />
+                                    ))}
+
+                                    {isDragging && (
+                                        <g>
+                                            {/* Crosshair styling */}
+                                            <line
+                                                x1={x - margin.left + dx - 6}
+                                                y1={y - margin.top + dy}
+                                                x2={x - margin.left + dx + 6}
+                                                y2={y - margin.top + dy}
+                                                stroke="black"
+                                                strokeWidth={1}
                                             />
-                                        )
-                                    );
-                                })}
-    
-                                {/* Render hovered point last to bring it to foreground */}
-                                {hoveredPoint && (
-                                    <Circle
-                                        cx={xScaleTransformed(hoveredPoint.x)}
-                                        cy={yScaleTransformed(hoveredPoint.y)}
-                                        r={5}
-                                        fill={hoveredPoint.color}
-                                        stroke="black"
-                                        strokeWidth={1}
-                                        opacity={1}
+                                            <line
+                                                x1={x - margin.left + dx}
+                                                y1={y - margin.top + dy - 6}
+                                                x2={x - margin.left + dx}
+                                                y2={y - margin.top + dy + 6}
+                                                stroke="black"
+                                                strokeWidth={1}
+                                            />
+                                            <circle cx={x - margin.left} cy={y - margin.top} r={4} fill="transparent" stroke="black" pointerEvents="none" />
+                                        </g>
+                                    )}
+                                </Group>
+                                {/* Static Axes Group */}
+                                <Group top={margin.top} left={margin.left}>
+                                    <AxisLeft
+                                        numTicks={4}
+                                        scale={yScaleTransformed}
+                                        tickLabelProps={() => ({
+                                            fill: '#1c1917',
+                                            fontSize: 10,
+                                            textAnchor: 'end',
+                                            verticalAnchor: 'middle',
+                                            x: -10,
+                                        })}
                                     />
-                                )}
-    
-                                {/* Render lasso */}
-                                {lines.map((line, i) => (
-                                    <LinePath
-                                        key={`line-${i}`}
-                                        fill="transparent"
-                                        stroke="black"
-                                        strokeWidth={3}
-                                        data={line}
-                                        curve={curveBasis}
-                                        x={(d) => d.x}
-                                        y={(d) => d.y}
+                                    <AxisBottom
+                                        numTicks={4}
+                                        top={boundedHeight}
+                                        scale={xScaleTransformed}
+                                        tickLabelProps={() => ({
+                                            fill: '#1c1917',
+                                            fontSize: 11,
+                                            textAnchor: 'middle',
+                                        })}
                                     />
-                                ))}
-    
-                                {isDragging && (
-                                    <g>
-                                        {/* Crosshair styling */}
-                                        <line
-                                            x1={x - margin.left + dx - 6}
-                                            y1={y - margin.top + dy}
-                                            x2={x - margin.left + dx + 6}
-                                            y2={y - margin.top + dy}
-                                            stroke="black"
-                                            strokeWidth={1}
-                                        />
-                                        <line
-                                            x1={x - margin.left + dx}
-                                            y1={y - margin.top + dy - 6}
-                                            x2={x - margin.left + dx}
-                                            y2={y - margin.top + dy + 6}
-                                            stroke="black"
-                                            strokeWidth={1}
-                                        />
-                                        <circle cx={x - margin.left} cy={y - margin.top} r={4} fill="transparent" stroke="black" pointerEvents="none" />
-                                    </g>
-                                )}
-                            </Group>
-                            {/* Static Axes Group */}
-                            <Group top={margin.top} left={margin.left}>
-                                <AxisLeft
-                                    numTicks={4}
-                                    scale={yScaleTransformed}
-                                    tickLabelProps={() => ({
-                                        fill: '#1c1917',
-                                        fontSize: 10,
-                                        textAnchor: 'end',
-                                        verticalAnchor: 'middle',
-                                        x: -10,
-                                    })}
+                                    {axisLeftLabel}
+                                    {axisBottomLabel}
+                                </Group>
+                                <rect
+                                    fill="transparent"
+                                    width={parentWidth}
+                                    height={parentHeight}
+                                    onMouseDown={dragStart}
+                                    onMouseUp={(event) => {
+                                        dragEnd(event);
+                                        onDragEnd(zoom);
+                                        }}
+                                    onMouseMove={isDragging ? dragMove : undefined}
+                                    onTouchStart={dragStart}
+                                    onTouchEnd={isDragging ? dragEnd : undefined}
+                                    onTouchMove={isDragging ? dragMove : undefined}
+                                    onWheel={(event) => {
+                                        const point = localPoint(event) || { x: 0, y: 0 };
+                                        const zoomDirection = event.deltaY < 0 ? 1.1 : 0.9;
+                                        zoom.scale({ scaleX: zoomDirection, scaleY: zoomDirection, point });
+                                        setZoomTransform(zoom.transformMatrix);
+                                    }}
                                 />
-                                <AxisBottom
-                                    numTicks={4}
-                                    top={boundedHeight}
-                                    scale={xScaleTransformed}
-                                    tickLabelProps={() => ({
-                                        fill: '#1c1917',
-                                        fontSize: 11,
-                                        textAnchor: 'middle',
-                                    })}
-                                />
-                                {axisLeftLabel}
-                                {axisBottomLabel}
-                            </Group>
-                            <rect
-                                fill="transparent"
-                                width={parentWidth}
-                                height={parentHeight}
-                                onMouseDown={dragStart}
-                                onMouseUp={(event) => {
-                                    dragEnd(event);
-                                    onDragEnd(zoom);
-                                  }}
-                                onMouseMove={isDragging ? dragMove : undefined}
-                                onTouchStart={dragStart}
-                                onTouchEnd={isDragging ? dragEnd : undefined}
-                                onTouchMove={isDragging ? dragMove : undefined}
-                                onWheel={(event) => {
-                                    const point = localPoint(event) || { x: 0, y: 0 };
-                                    const zoomDirection = event.deltaY < 0 ? 1.1 : 0.9;
-                                    zoom.scale({ scaleX: zoomDirection, scaleY: zoomDirection, point });
-                                    setZoomTransform(zoom.transformMatrix);
-                                }}
-                            />
-                        </svg>
-                    )}}
-                </Zoom>
-    
-            {tooltipOpen && tooltipData && (
-                <Tooltip left={xScale(tooltipData.x) + 50} top={yScale(tooltipData.y) + 50}>
-                    <div>
-                        <strong>Name: </strong> 
-                        {tooltipData.name.replace(/_/g, " ").slice(0, 45)}
-                        {tooltipData.name.length > 45 ? "..." : ""}
-                    </div>
-                    <div>
-                        <strong>Accession:</strong> {tooltipData.accession}
-                    </div>
-                </Tooltip>
-            )}
+                            </svg>
+                            {tooltipOpen && tooltipData && (
+                                <Tooltip left={xScaleTransformed(tooltipData.x) + 50} top={yScaleTransformed(tooltipData.y) + 50}>
+                                    <div>
+                                        <strong>Name: </strong> 
+                                        {tooltipData.name.replace(/_/g, " ").slice(0, 45)}
+                                        {tooltipData.name.length > 45 ? "..." : ""}
+                                    </div>
+                                    <div>
+                                        <strong>Accession:</strong> {tooltipData.accession}
+                                    </div>
+                                </Tooltip>
+                            )}
+                        </>
+                    )
+                }}
+            </Zoom>
         </>
     );
 }
