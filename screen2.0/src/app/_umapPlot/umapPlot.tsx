@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useState } from 'react';
+import React, { useMemo, useCallback, useState, useEffect } from 'react';
 import { Group } from '@visx/group';
 import { scaleLinear } from '@visx/scale';
 import { AxisBottom, AxisLeft } from '@visx/axis';
@@ -28,6 +28,7 @@ interface UmapProps {
     loading: boolean;
     selectionType: "select" | "pan";
     onSelectionChange?: (selectedPoints: any[]) => void;
+    zoomScale: { scaleX: number; scaleY: number };
 }
 
 type TooltipData = Point;
@@ -43,7 +44,7 @@ const initialTransformMatrix={
     skewY: 0,
 }
 
-function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, loading, selectionType, onSelectionChange }: UmapProps) {
+function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, loading, selectionType, onSelectionChange, zoomScale }: UmapProps) {
     const [tooltipData, setTooltipData] = React.useState<TooltipData | null>(null);
     const [tooltipOpen, setTooltipOpen] = React.useState(false);
     const [lines, setLines] = useState<Lines>([]);
@@ -413,6 +414,7 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                                         zoom.scale({ scaleX: zoomDirection, scaleY: zoomDirection, point });
                                     }}
                                 />
+                                
                                 {/* {showMiniMap && (
                                     <g
                                     clipPath="url(#zoom-clip)"
@@ -444,6 +446,13 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                                     </g>
                                 )} */}
                             </svg>
+                            {useEffect(() => {
+                                if(zoomScale.scaleX === 1) {
+                                    zoom.reset;
+                                } else {
+                                    zoom.scale({ scaleX: zoomScale.scaleX, scaleY: zoomScale.scaleY });
+                                }
+                            }, [zoomScale])}
                             {/* tooltip */}
                             {tooltipOpen && tooltipData && isHoveredPointWithinBounds &&(
                                 <Tooltip left={xScaleTransformed(tooltipData.x) + 50} top={yScaleTransformed(tooltipData.y) + 50}>
