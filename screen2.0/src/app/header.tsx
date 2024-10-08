@@ -34,7 +34,6 @@ const pageLinks = [
     subPages: [
       { pageName: "Gene Expression", link: "/applets/gene-expression " },
       { pageName: "GWAS", link: "/applets/gwas" },
-      { pageName: "Chart Testing", link: "/applets/testing" },
     ],
   },
 ]

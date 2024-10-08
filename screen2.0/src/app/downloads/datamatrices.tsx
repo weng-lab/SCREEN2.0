@@ -1,4 +1,4 @@
-import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react"
+import { ChangeEvent, useCallback, useEffect, useMemo, useState, useRef } from "react"
 import {
   Accordion,
   AccordionDetails,
@@ -135,6 +135,24 @@ export function DataMatrices() {
     zScore: false,
   });
   const [openModalType, setOpenModalType] = useState<null | "biosamples" | "download">(null);
+  const graphRef = useRef(null);
+
+  useEffect(() => {
+    const graphElement = graphRef.current;
+
+    const handleWheel = (event: WheelEvent) => {
+      // Prevent default scroll behavior when using the wheel in the graph
+      event.preventDefault();
+    };
+    if (graphElement) {
+      graphElement.addEventListener('wheel', handleWheel, { passive: false });
+    }
+    return () => {
+      if (graphElement) {
+        graphElement.removeEventListener('wheel', handleWheel);
+      }
+    };
+  }, []);
 
   const handleSetSelectedSample = (selected: any) => {
     setSearched(selected.displayname)
@@ -247,7 +265,7 @@ export function DataMatrices() {
       return {
         x: x.umap_coordinates![0],
         y: x.umap_coordinates![1],
-        r: searched && x.displayname === searched ? 10 : 3,
+        r: searched && x.displayname === searched ? 10 : 2,
         color: searched === null || x.displayname === searched
           ? (colorBy === "sampleType" ? sampleTypeColors : ontologyColors)[x[colorBy]]
           : "#aaaaaa",
@@ -497,19 +515,19 @@ export function DataMatrices() {
                     </Button>
                     <Button onClick={() => setBiosamples([])}>Clear Selection</Button>
                   </Stack>
-                  <Stack justifyContent="center" alignItems="center" direction="row" sx={{ position: "relative", maxHeight: height }} mt={-5}>
-                    <Box sx={{ width: squareSize, height: squareSize }}>
-                      <Umap width={squareSize} height={squareSize} pointData={scatterData} loading={umapLoading} selectionType={selectMode}/>
+                  <Stack justifyContent="center" alignItems="center" direction="row" sx={{ position: "relative", maxHeight: height }} >
+                    <Box sx={{ width: squareSize, height: squareSize }} ref={graphRef}>
+                      <Umap width={squareSize-25} height={squareSize-25} pointData={scatterData} loading={umapLoading} selectionType={selectMode}/>
                     </Box>
-                    <Stack direction="row" justifyContent={"flex-end"} alignItems={"center"} spacing={5} sx={{position: "absolute", right: 0, bottom: 20}}>
+                    <Stack direction="column" justifyContent={"flex-end"} alignItems={"center"} spacing={5} sx={{position: "absolute", right: 0}}>
                       <Tooltip title="Drag to Select">
                         <IconButton aria-label="edit" onClick={() => setSelectMode('select')} sx={{ color: selectMode === "select" ? "primary.main" : "default" }}><Edit /></IconButton>
                       </Tooltip>
-                      {/* <IconButton aria-label="pan"><PanTool /></IconButton> */}
+                      <IconButton aria-label="pan" onClick={() => setSelectMode('pan')} sx={{ color: selectMode === "pan" ? "primary.main" : "default" }}><PanTool /></IconButton>
                         <Tooltip title="Drag to Zoom In">
                           <IconButton aria-label="zoom-in"><ZoomIn /></IconButton>
                          </Tooltip> 
-                        {/* <IconButton aria-label="zoom-out"><ZoomOut /></IconButton> */}
+                        <IconButton aria-label="zoom-out"><ZoomOut /></IconButton>
                       <Button sx={{ height: '30px', textTransform: 'none' }} size="small" disabled={!bounds} variant="outlined" onClick={() => setBounds(undefined)}>Reset</Button>
                     </Stack>
                   </Stack>

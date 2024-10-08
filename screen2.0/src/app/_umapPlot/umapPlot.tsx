@@ -315,7 +315,7 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                                         <Circle
                                             cx={xScaleTransformed(hoveredPoint.x)}
                                             cy={yScaleTransformed(hoveredPoint.y)}
-                                            r={5}
+                                            r={hoveredPoint.r + 2}
                                             fill={hoveredPoint.color}
                                             stroke="black"
                                             strokeWidth={1}
