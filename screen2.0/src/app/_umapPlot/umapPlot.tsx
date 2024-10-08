@@ -27,6 +27,7 @@ interface UmapProps {
     pointData: Point[];
     loading: boolean;
     selectionType: "select" | "pan";
+    onSelectionChange?: (selectedPoints: any[]) => void;
 }
 
 type TooltipData = Point;
@@ -42,7 +43,7 @@ const initialTransformMatrix={
     skewY: 0,
 }
 
-function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, loading, selectionType }: UmapProps) {
+function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, loading, selectionType, onSelectionChange }: UmapProps) {
     const [tooltipData, setTooltipData] = React.useState<TooltipData | null>(null);
     const [tooltipOpen, setTooltipOpen] = React.useState(false);
     const [lines, setLines] = useState<Lines>([]);
@@ -167,16 +168,15 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                     return isPointInLasso(scaledPoint, lasso);
                 });
             
-                console.log(
-                    "Points inside lasso:",
-                    pointsInsideLasso.map((p) => p.name)
-                );
+                if (onSelectionChange) {
+                    onSelectionChange(pointsInsideLasso);
+                }
                 setLines([]);
             } else {
                 setLines([]);
             }
         },
-        [lines, umapData, xScale, yScale, setLines]
+        [lines, umapData, xScale, yScale, setLines, onSelectionChange, selectionType]
     );
       
     //visx draggable variables (canot declare before functions)

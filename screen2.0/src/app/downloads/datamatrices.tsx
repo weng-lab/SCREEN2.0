@@ -255,6 +255,25 @@ export function DataMatrices() {
     [umapData, isInbounds]
   )
 
+  const handleSelectionChange = (selectedPoints) => {
+    const selected = selectedPoints.map(point => point.x);
+    const selectedBiosamples = fData
+        .filter(biosample =>
+            selected.includes(biosample.umap_coordinates[0]) &&
+            biosample.umap_coordinates
+        )
+        .map(biosample => ({
+            name: biosample.name,
+            displayname: biosample.displayname,
+            ontology: biosample.ontology,
+            sampleType: biosample.sampleType,
+            lifeStage: biosample.lifeStage,
+            umap_coordinates: biosample.umap_coordinates!,
+            experimentAccession: biosample.experimentAccession,
+        }));
+    setBiosamples(selectedBiosamples);
+  };
+
   const scatterData = useMemo(() => {
     if (!fData) return [];
     const biosampleIds = biosamples.map(sample => sample.umap_coordinates);
@@ -269,7 +288,7 @@ export function DataMatrices() {
         color: searched === null || x.displayname === searched
           ? (colorBy === "sampleType" ? sampleTypeColors : ontologyColors)[x[colorBy]]
           : "#aaaaaa",
-        opacity: biosampleIds.length === 0? 1 : (isInBiosample ? 1 : 0.1),
+        opacity: biosampleIds.length === 0 ? 1 : (isInBiosample ? 1 : 0.1),
         name: x.displayname,
         accession: x.experimentAccession
       };
@@ -517,7 +536,7 @@ export function DataMatrices() {
                   </Stack>
                   <Stack justifyContent="center" alignItems="center" direction="row" sx={{ position: "relative", maxHeight: height }} >
                     <Box sx={{ width: squareSize, height: squareSize }} ref={graphRef}>
-                      <Umap width={squareSize-25} height={squareSize-25} pointData={scatterData} loading={umapLoading} selectionType={selectMode}/>
+                      <Umap width={squareSize-25} height={squareSize-25} pointData={scatterData} loading={umapLoading} selectionType={selectMode} onSelectionChange={handleSelectionChange}/>
                     </Box>
                     <Stack direction="column" justifyContent={"flex-end"} alignItems={"center"} spacing={5} sx={{position: "absolute", right: 0}}>
                       <Tooltip title="Drag to Select">
