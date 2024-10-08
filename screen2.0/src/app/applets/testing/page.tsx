@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState, useEffect } from 'react'
-import { Umap } from './chart'
+import { Umap } from '../../_umapPlot/umapPlot'
 import { ParentSize } from '@visx/responsive';
 import { client } from "../../search/_ccredetails/client"
 import { useQuery } from "@apollo/client"

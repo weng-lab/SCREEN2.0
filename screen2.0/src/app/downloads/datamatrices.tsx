@@ -48,6 +48,7 @@ import { UMAP_QUERY } from "./queries"
 import BiosampleTables from "../_biosampleTables/BiosampleTables"
 import { RegistryBiosamplePlusRNA } from "../search/types"
 import { ParentSize } from '@visx/responsive';
+import { Umap } from '../_umapPlot/umapPlot'
 
 type Selected = {
   assembly: "Human" | "Mouse"
@@ -127,7 +128,7 @@ export function DataMatrices() {
   const [tSelected, setTSelected] = useState(new Set([]))
   const [searched, setSearched] = useState<String>(null)
   const [biosamples, setBiosamples] = useState<BiosampleUMAP[]>([])
-  const [selectMode, setSelectMode] = useState<"select" | "zoom">("select")
+  const [selectMode, setSelectMode] = useState<"select" | "pan">("select")
   const [tooltip, setTooltip] = useState(-1)
   const [selectedFormats, setSelectedFormats] = useState({
     signal: false,
@@ -154,6 +155,32 @@ export function DataMatrices() {
   };
   
   useEffect(()=> setBiosamples([]) ,[selectedAssay])
+
+  useEffect(() => {
+    // Function to handle key press
+    const handleKeyDown = (e) => {
+      if (e.key === 'Shift') {
+        setSelectMode('pan'); // Switch to pan mode when Shift is pressed
+      }
+    };
+
+    // Function to handle key release
+    const handleKeyUp = (e) => {
+      if (e.key === 'Shift') {
+        setSelectMode('select'); // Switch back to select mode when Shift is released
+      }
+    };
+
+    // Add event listeners for key press and release
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    // Clean up event listeners on unmount
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
 
   const fData = useMemo(() => {
     return (
@@ -218,16 +245,15 @@ export function DataMatrices() {
       const isInBiosample = biosampleIds.includes(x.umap_coordinates);
   
       return {
-        x: x.umap_coordinates[0],
-        y: x.umap_coordinates[1],
-        svgProps: {
-          r: searched && x.displayname === searched ? 10 : 4,
-          fill:
-            searched === null || x.displayname === searched
-              ? (colorBy === "sampleType" ? sampleTypeColors : ontologyColors)[x[colorBy]]
-              : "#aaaaaa",
-              fillOpacity: biosampleIds.length === 0? 1 : (isInBiosample ? 1 : 0.1),
-        },
+        x: x.umap_coordinates![0],
+        y: x.umap_coordinates![1],
+        r: searched && x.displayname === searched ? 10 : 3,
+        color: searched === null || x.displayname === searched
+          ? (colorBy === "sampleType" ? sampleTypeColors : ontologyColors)[x[colorBy]]
+          : "#aaaaaa",
+        opacity: biosampleIds.length === 0? 1 : (isInBiosample ? 1 : 0.1),
+        name: x.displayname,
+        accession: x.experimentAccession
       };
     });
   }, [fData, searched, colorBy, sampleTypeColors, ontologyColors, isInbounds, biosamples]);
@@ -463,20 +489,6 @@ export function DataMatrices() {
             {({ width, height }) => {
               const squareSize = Math.min(width, height);
 
-              // simulate shift key being pressed
-              let shiftDownEvent = new KeyboardEvent('keydown', {
-                key: 'Shift',
-                keyCode: 16,
-                code: 'ShiftLeft',
-                location: 1,
-                ctrlKey: false,
-                shiftKey: true,
-                altKey: false,
-                metaKey: false,
-                bubbles: true,
-              });
-              document.dispatchEvent(shiftDownEvent);
-
               return (
                 <Stack justifyContent="space-between" overflow={"hidden"} padding={1} sx={{ border: '2px solid', borderColor: 'grey.400', borderRadius: '8px', height: '57vh'}}>
                   <Stack direction="row" justifyContent="space-between" mt={1} sx={{ backgroundColor: '#dbdefc', borderRadius: '8px', zIndex: 10 }}>
@@ -487,47 +499,7 @@ export function DataMatrices() {
                   </Stack>
                   <Stack justifyContent="center" alignItems="center" direction="row" sx={{ position: "relative", maxHeight: height }} mt={-5}>
                     <Box sx={{ width: squareSize, height: squareSize }}>
-                      <Chart
-                        domain={{ x: { start: xMin, end: xMax }, y: { start: yMin, end: yMax } }}
-                        innerSize={{ width: squareSize*2, height: squareSize*2}}
-                        xAxisProps={{ ticks: (bounds ? oneRange : fiveRange)(xMin, xMax), title: "UMAP-1", fontSize: 40 }}
-                        yAxisProps={{ ticks: (bounds ? oneRange : fiveRange)(yMin, yMax), title: "UMAP-2", fontSize: 40 }}
-                        scatterData={[scatterData]}
-                        plotAreaProps={{
-                          onFreeformSelectionEnd: (_, c) => setBiosamples(c[0].map((x) => fData[x] as BiosampleUMAP)),
-                          onSelectionEnd: (x) => handleSetBounds(x),
-                          freeformSelection: selectMode === "select",
-                        }}
-                        >
-                        <Scatter
-                          data={scatterData}
-                          pointStyle={{ r: bounds ? 8 : 6 }}
-                          onPointMouseOver={(i, _) => setTimeout(() => setTooltip(i), 100)}
-                          onPointMouseOut={() => setTimeout(() => setTooltip(-1), 100)}
-                          onPointClick={(i) => setBiosamples([fData[i] as BiosampleUMAP])}
-                        />
-                        {tooltip !== -1 && (
-                          <Annotation notScaled notTranslated x={0} y={0}>
-                            <rect x={35} y={100} width={740} height={120} strokeWidth={2} stroke="#000000" fill="#ffffffdd" />
-                            <rect
-                              x={55}
-                              y={120}
-                              width={740 * 0.04}
-                              height={740 * 0.04}
-                              strokeWidth={1}
-                              stroke="#000000"
-                              fill={(colorBy === "sampleType" ? sampleTypeColors : ontologyColors)[colorBy === "sampleType" ? fData[tooltip].sampleType : fData[tooltip].ontology]}
-                            />
-                            <text x={100} y={140} fontSize="26px" fontWeight="bold">
-                              {fData[tooltip].displayname.replace(/_/g, " ").slice(0, 45)}
-                              {fData[tooltip].displayname.length > 45 ? "..." : ""}
-                            </text>
-                            <text x={55} y={185} fontSize="24px">
-                              {fData[tooltip].experimentAccession}
-                            </text>
-                          </Annotation>
-                        )}
-                      </Chart>
+                      <Umap width={squareSize} height={squareSize} pointData={scatterData} loading={umapLoading} selectionType={selectMode}/>
                     </Box>
                     <Stack direction="row" justifyContent={"flex-end"} alignItems={"center"} spacing={5} sx={{position: "absolute", right: 0, bottom: 20}}>
                       <Tooltip title="Drag to Select">
@@ -535,7 +507,7 @@ export function DataMatrices() {
                       </Tooltip>
                       {/* <IconButton aria-label="pan"><PanTool /></IconButton> */}
                         <Tooltip title="Drag to Zoom In">
-                          <IconButton aria-label="zoom-in" onClick={() => setSelectMode('zoom')} sx={{ color: selectMode === "zoom" ? "primary.main" : "default" }}><ZoomIn /></IconButton>
+                          <IconButton aria-label="zoom-in"><ZoomIn /></IconButton>
                          </Tooltip> 
                         {/* <IconButton aria-label="zoom-out"><ZoomOut /></IconButton> */}
                       <Button sx={{ height: '30px', textTransform: 'none' }} size="small" disabled={!bounds} variant="outlined" onClick={() => setBounds(undefined)}>Reset</Button>

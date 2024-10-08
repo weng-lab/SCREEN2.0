@@ -14,6 +14,7 @@ import { Zoom } from '@visx/zoom';
 interface Point {
     x: number;
     y: number;
+    r?: number;
     color: string;
     opacity?: number;
     name: string;
@@ -301,7 +302,7 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                                                     key={index}
                                                     cx={transformedX}
                                                     cy={transformedY}
-                                                    r={3}
+                                                    r={point.r !== undefined ? point.r : 3}
                                                     fill={point.color}
                                                     opacity={point.opacity !== undefined ? point.opacity : 1}
                                                 />
