@@ -592,7 +592,7 @@ export function DataMatrices() {
                         <ZoomOut />
                       </IconButton>
                     </Tooltip>
-                    <Button sx={{ height: '30px', textTransform: 'none' }} size="small" disabled={zoom.scaleX === 1} variant="outlined" onClick={handleReset}>
+                    <Button sx={{ height: '30px', textTransform: 'none' }} size="small" variant="outlined" onClick={handleReset}>
                       Reset
                     </Button>
                   </Stack>
