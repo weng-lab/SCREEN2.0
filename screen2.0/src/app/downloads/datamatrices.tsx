@@ -550,32 +550,51 @@ export function DataMatrices() {
               const squareSize = Math.min(width, height);
 
               return (
-                <Stack justifyContent="space-between" overflow={"hidden"} padding={1} sx={{ border: '2px solid', borderColor: 'grey.400', borderRadius: '8px', height: '57vh'}}>
+                <Stack overflow={"hidden"} padding={1} sx={{ border: '2px solid', borderColor: 'grey.400', borderRadius: '8px', height: '57vh', position: 'relative' }}>
                   <Stack direction="row" justifyContent="space-between" mt={1} sx={{ backgroundColor: '#dbdefc', borderRadius: '8px', zIndex: 10 }}>
                     <Button endIcon={biosamples.length !== 0 && <Visibility />} onClick={handleOpenModal}>
                       {`${biosamples.length} Experiments Selected`}
                     </Button>
                     <Button onClick={() => setBiosamples([])}>Clear Selection</Button>
                   </Stack>
-                  <Stack justifyContent="center" alignItems="center" direction="row" sx={{ position: "relative", maxHeight: height }} >
+
+                  <Stack justifyContent="center" alignItems="center" direction="row" sx={{ position: "relative", maxHeight: height }}>
                     <Box sx={{ width: squareSize, height: squareSize }} ref={graphRef}>
-                      <Umap width={squareSize-25} height={squareSize-25} pointData={scatterData} loading={umapLoading} selectionType={selectMode} onSelectionChange={handleSelectionChange} zoomScale={zoom}/>
+                      <Umap
+                        width={squareSize - 25}
+                        height={squareSize - 25}
+                        pointData={scatterData}
+                        loading={umapLoading}
+                        selectionType={selectMode}
+                        onSelectionChange={handleSelectionChange}
+                        zoomScale={zoom}
+                      />
                     </Box>
-                    <Stack direction="column" justifyContent={"flex-end"} alignItems={"center"} spacing={5} sx={{position: "absolute", right: 0}}>
-                      <Tooltip title="Drag to select">
-                        <IconButton aria-label="edit" onClick={() => setSelectMode('select')} sx={{ color: selectMode === "select" ? "primary.main" : "default" }}><Edit /></IconButton>
-                      </Tooltip>
-                      <Tooltip title="Drag to pan, or hold Shift and drag">
-                        <IconButton aria-label="pan" onClick={() => setSelectMode('pan')} sx={{ color: selectMode === "pan" ? "primary.main" : "default" }}><PanTool /></IconButton>
-                      </Tooltip>
-                        <Tooltip title="Zoom In">
-                          <IconButton aria-label="zoom-in" onClick={handleZoomIn}><ZoomIn /></IconButton>
-                        </Tooltip> 
-                        <Tooltip title="Zoom Out">
-                          <IconButton aria-label="zoom-out" onClick={handleZoomOut}><ZoomOut /></IconButton>
-                        </Tooltip>
-                      <Button sx={{ height: '30px', textTransform: 'none' }} size="small" disabled={zoom.scaleX === 1} variant="outlined" onClick={handleReset}>Reset</Button>
-                    </Stack>
+                  </Stack>
+                  <Stack direction="column" justifyContent="flex-start" alignItems="center" spacing={5} sx={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)' }}>
+                    <Tooltip title="Drag to select">
+                      <IconButton aria-label="edit" onClick={() => setSelectMode('select')} sx={{ color: selectMode === "select" ? "primary.main" : "default" }}>
+                        <Edit />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Drag to pan, or hold Shift and drag">
+                      <IconButton aria-label="pan" onClick={() => setSelectMode('pan')} sx={{ color: selectMode === "pan" ? "primary.main" : "default" }}>
+                        <PanTool />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Zoom In">
+                      <IconButton aria-label="zoom-in" onClick={handleZoomIn}>
+                        <ZoomIn />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Zoom Out">
+                      <IconButton aria-label="zoom-out" onClick={handleZoomOut}>
+                        <ZoomOut />
+                      </IconButton>
+                    </Tooltip>
+                    <Button sx={{ height: '30px', textTransform: 'none' }} size="small" disabled={zoom.scaleX === 1} variant="outlined" onClick={handleReset}>
+                      Reset
+                    </Button>
                   </Stack>
                 </Stack>
               )}
