@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect } from 'react'
 import { Umap } from './chart'
 import { ParentSize } from '@visx/responsive';
 import { client } from "../../search/_ccredetails/client"
@@ -71,6 +71,32 @@ export default function Testing() {
             }))
         );
     }, [umapData, ontologyColors]);
+
+    useEffect(() => {
+        // Function to handle key press
+        const handleKeyDown = (e) => {
+          if (e.key === 'Shift') {
+            setSelectionType('pan'); // Switch to pan mode when Shift is pressed
+          }
+        };
+    
+        // Function to handle key release
+        const handleKeyUp = (e) => {
+          if (e.key === 'Shift') {
+            setSelectionType('select'); // Switch back to select mode when Shift is released
+          }
+        };
+    
+        // Add event listeners for key press and release
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keyup', handleKeyUp);
+    
+        // Clean up event listeners on unmount
+        return () => {
+          window.removeEventListener('keydown', handleKeyDown);
+          window.removeEventListener('keyup', handleKeyUp);
+        };
+      }, []);
 
     return (
         <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', }}>

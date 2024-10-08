@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useCallback, useState } from 'react';
+import React, { useMemo, useCallback, useState } from 'react';
 import { Group } from '@visx/group';
 import { scaleLinear } from '@visx/scale';
 import { AxisBottom, AxisLeft } from '@visx/axis';
@@ -50,6 +50,7 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
     const margin = { top: 20, right: 20, bottom: 70, left: 70 };
     const boundedWidth = Math.min(parentWidth * 0.9, parentHeight * 0.9) - margin.left;
     const boundedHeight = boundedWidth;
+    const hoveredPoint = tooltipData ? umapData.find(point => point.x === tooltipData.x && point.y === tooltipData.y) : null;
 
     //rescale x and y scales when zooming
     //converts to pixel values before applying transformations
@@ -148,7 +149,7 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
         return inside;
       };
       
-      const onDragEnd = useCallback(
+    const onDragEnd = useCallback(
         (zoom) => {
             if (selectionType === "select") {
                 if (lines.length === 0) return;
@@ -175,9 +176,9 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
             }
         },
         [lines, umapData, xScale, yScale, setLines]
-      );
+    );
       
-
+    //visx draggable variables (canot declare before functions)
     const {
         x = 0,
         y = 0,
@@ -193,7 +194,7 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
         resetOnStart: true,
     });
 
-    //find the closest point to cursor to show the tooltip
+    //find the closest point to cursor within threshold to show the tooltip
     const handleMouseMove = useCallback(
         (event: React.MouseEvent<SVGElement>, zoom) => {
             if (isDragging || zoom.isDragging) {
@@ -207,27 +208,30 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
             const adjustedX = point.x - margin.left;
             const adjustedY = point.y - margin.top;
     
-            // Rescale the x and y coordinates with the current zoom state
+            //rescale the x and y coordinates with the current zoom state
             const xScaleTransformed = rescaleX(xScale, zoom);
             const yScaleTransformed = rescaleY(yScale, zoom);
-    
-            // Find the closest point using the transformed scales
-            const closestPoint = umapData.reduce((prev, curr) => {
-                const prevDistance = Math.sqrt(
-                    Math.pow(adjustedX - xScaleTransformed(prev.x), 2) +
-                    Math.pow(adjustedY - yScaleTransformed(prev.y), 2)
+
+            const threshhold = 5;
+
+            //find the exact point being hovered over within the threshhold
+            const hoveredPoint = umapData.find((curr) => {
+                const transformedX = xScaleTransformed(curr.x);
+                const transformedY = yScaleTransformed(curr.y);
+                return (
+                    Math.abs(adjustedX - transformedX) < threshhold &&
+                    Math.abs(adjustedY - transformedY) < threshhold
                 );
-                const currDistance = Math.sqrt(
-                    Math.pow(adjustedX - xScaleTransformed(curr.x), 2) +
-                    Math.pow(adjustedY - yScaleTransformed(curr.y), 2)
-                );
-                return currDistance < prevDistance ? curr : prev;
             });
-    
-            setTooltipData(closestPoint);
-            setTooltipOpen(true);
-        },
-        [umapData, xScale, yScale, margin.left, margin.top, isDragging]
+
+            if (hoveredPoint) {
+                setTooltipData(hoveredPoint);
+                setTooltipOpen(true);
+            } else {
+                setTooltipData(null);
+                setTooltipOpen(false);
+            }
+        }, [umapData, xScale, yScale, margin.left, margin.top, isDragging]
     );
     
 
@@ -236,6 +240,7 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
         setTooltipData(null);
     }, []);
 
+    //Axis styling
     const axisLeftLabel = (
         <Text
             textAnchor="middle"
@@ -267,12 +272,11 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
         return <CircularProgress />;
     }
 
-    const hoveredPoint = tooltipData ? umapData.find(point => point.x === tooltipData.x && point.y === tooltipData.y) : null;
-
     return (
         <>
             <Zoom width={parentWidth} height={parentHeight} scaleXMin={1} scaleXMax={8} scaleYMin={1} scaleYMax={8} initialTransformMatrix={initialTransformMatrix}>
                 {(zoom) => {
+                    // rescale as we zoom and pan
                     const xScaleTransformed = rescaleX(xScale, zoom);
                     const yScaleTransformed = rescaleY(yScale, zoom);
                     const isHoveredPointWithinBounds = hoveredPoint && 
@@ -385,6 +389,7 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                                     {axisLeftLabel}
                                     {axisBottomLabel}
                                 </Group>
+                                {/* Interactable surface */}
                                 <rect
                                     fill="transparent"
                                     width={parentWidth}
@@ -438,6 +443,7 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                                     </g>
                                 )} */}
                             </svg>
+                            {/* tooltip */}
                             {tooltipOpen && tooltipData && isHoveredPointWithinBounds &&(
                                 <Tooltip left={xScaleTransformed(tooltipData.x) + 50} top={yScaleTransformed(tooltipData.y) + 50}>
                                     <div>
