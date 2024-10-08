@@ -276,7 +276,7 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
 
     return (
         <>
-            <Zoom width={parentWidth} height={parentHeight} scaleXMin={1} scaleXMax={8} scaleYMin={1} scaleYMax={8} initialTransformMatrix={initialTransformMatrix}>
+            <Zoom width={parentWidth} height={parentHeight} scaleXMin={1 / 2} scaleXMax={8} scaleYMin={1 / 2} scaleYMax={8} initialTransformMatrix={initialTransformMatrix}>
                 {(zoom) => {
                     // rescale as we zoom and pan
                     const xScaleTransformed = rescaleX(xScale, zoom);
@@ -448,7 +448,7 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                             </svg>
                             {useEffect(() => {
                                 if(zoomScale.scaleX === 1) {
-                                    zoom.reset;
+                                    zoom.reset();
                                 } else {
                                     zoom.scale({ scaleX: zoomScale.scaleX, scaleY: zoomScale.scaleY });
                                 }
