@@ -1,40 +1,25 @@
-import { ChangeEvent, useCallback, useEffect, useMemo, useState, useRef } from "react"
+import { useCallback, useEffect, useMemo, useState, useRef } from "react"
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Autocomplete,
   Button,
   Divider,
-  FormControl,
-  FormControlLabel,
-  FormLabel,
   Modal,
-  Radio,
-  RadioGroup,
-  TextField,
   Typography,
   Box,
   Stack,
-  Container,
-  CircularProgress,
   InputLabel,
   Select,
   MenuItem,
   SelectChangeEvent,
   IconButton,
   Paper,
-  FormGroup,
-  Checkbox,
   Tooltip
 } from "@mui/material"
 import { useQuery } from "@apollo/client"
 import Grid from "@mui/material/Grid2"
-import { ArrowForward, Download, ExpandMore, Visibility, ZoomIn, ZoomOut, PanTool, Edit, CancelRounded, HighlightAlt } from "@mui/icons-material"
+import { Download, Visibility, ZoomIn, ZoomOut, PanTool, Edit, CancelRounded, HighlightAlt } from "@mui/icons-material"
 import Image from "next/image"
 import humanTransparentIcon from "../../../public/Transparent_HumanIcon.png"
 import mouseTransparentIcon from "../../../public/Transparent_MouseIcon.png"
-import { Chart, Scatter, Annotation, Range2D } from "jubilant-carnival"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import Config from "../../config.json"
 import { BiosampleUMAP } from "./types"
@@ -46,7 +31,6 @@ import { tissueColors } from "../../common/lib/colors"
 import { client } from "../search/_ccredetails/client"
 import { UMAP_QUERY } from "./queries"
 import BiosampleTables from "../_biosampleTables/BiosampleTables"
-import { RegistryBiosamplePlusRNA } from "../search/types"
 import { ParentSize } from '@visx/responsive';
 import { Umap } from '../_umapPlot/umapPlot'
 
@@ -59,20 +43,6 @@ type Selected = {
 function nearest5(x, low?) {
   if (low) return Math.floor(x) - (x > 0 ? Math.floor(x) % 5 : 5 + (Math.floor(x) % 5))
   return Math.ceil(x) + (x > 0 ? Math.ceil(x) % 5 : 5 + (Math.ceil(x) % 5))
-}
-
-// Direct copy from old SCREEN
-function fiveRange(min, max) {
-  const r = []
-  for (let i = min; i <= max; i += 5) r.push(i)
-  return r
-}
-
-// Direct copy from old SCREEN
-function oneRange(min, max) {
-  const r = []
-  for (let i = min; i <= max; ++i) r.push(i)
-  return r
 }
 
 // Direct copy from old SCREEN
@@ -129,11 +99,6 @@ export function DataMatrices() {
   const [searched, setSearched] = useState<String>(null)
   const [biosamples, setBiosamples] = useState<BiosampleUMAP[]>([])
   const [selectMode, setSelectMode] = useState<"select" | "pan">("select")
-  const [tooltip, setTooltip] = useState(-1)
-  const [selectedFormats, setSelectedFormats] = useState({
-    signal: false,
-    zScore: false,
-  });
   const [openModalType, setOpenModalType] = useState<null | "biosamples" | "download">(null);
   const [zoom, setZoom] = useState({ scaleX: 1, scaleY: 1 });
   const [showMiniMap, setShowMiniMap] = useState(false);
@@ -341,24 +306,6 @@ export function DataMatrices() {
     const gc = colorBy === "sampleType" ? sampleTypeCounts : ontologyCounts
     return [Object.keys(g).map((x) => ({ label: x, color: g[x], value: gc[x] })).sort((a,b) => b.value - a.value), Object.keys(g).length * 50]
   }, [colorBy, sampleTypeColors, ontologyColors, sampleTypeCounts, ontologyCounts])
-
-  /**
-   * Checks and reverses the order of coordinates provided by Jubilant Carnival selection if needed, then calls setBounds()
-   * @param bounds a Range2D object to check
-   */
-  function handleSetBounds(bounds: Range2D) {
-    if (bounds.x.start > bounds.x.end) {
-      const tempX = bounds.x.start
-      bounds.x.start = bounds.x.end
-      bounds.x.end = tempX
-    }
-    if (bounds.y.start > bounds.y.end) {
-      const tempY = bounds.y.start
-      bounds.y.start = bounds.y.end
-      bounds.y.end = tempY
-    }
-    setBounds(bounds)
-  }
 
   /**
    * @param assay an assay
@@ -615,9 +562,11 @@ export function DataMatrices() {
                       Reset
                     </Button>
                   </Stack>
-                  <Button sx={{ position: 'absolute', right: 0, bottom: 10 }} size="small" onClick={toggleMiniMap}>
-                    <HighlightAlt />
-                  </Button>
+                  <Tooltip title="Toggle Minimap">
+                    <Button sx={{ position: 'absolute', right: 0, bottom: 10 }} size="small" onClick={toggleMiniMap}>
+                      <HighlightAlt />
+                    </Button>
+                  </Tooltip>
                 </Stack>
               )}
             }
