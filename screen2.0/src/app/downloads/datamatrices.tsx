@@ -1,40 +1,25 @@
-import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState, useRef } from "react"
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Autocomplete,
   Button,
   Divider,
-  FormControl,
-  FormControlLabel,
-  FormLabel,
   Modal,
-  Radio,
-  RadioGroup,
-  TextField,
   Typography,
   Box,
   Stack,
-  Container,
-  CircularProgress,
   InputLabel,
   Select,
   MenuItem,
   SelectChangeEvent,
   IconButton,
   Paper,
-  FormGroup,
-  Checkbox,
   Tooltip
 } from "@mui/material"
 import { useQuery } from "@apollo/client"
 import Grid from "@mui/material/Grid2"
-import { ArrowForward, Download, ExpandMore, Visibility, ZoomIn, ZoomOut, PanTool, Edit, CancelRounded } from "@mui/icons-material"
+import { Download, Visibility, ZoomIn, ZoomOut, PanTool, Edit, CancelRounded, HighlightAlt } from "@mui/icons-material"
 import Image from "next/image"
 import humanTransparentIcon from "../../../public/Transparent_HumanIcon.png"
 import mouseTransparentIcon from "../../../public/Transparent_MouseIcon.png"
-import { Chart, Scatter, Annotation, Range2D } from "jubilant-carnival"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import Config from "../../config.json"
 import { BiosampleUMAP } from "./types"
@@ -46,8 +31,8 @@ import { tissueColors } from "../../common/lib/colors"
 import { client } from "../search/_ccredetails/client"
 import { UMAP_QUERY } from "./queries"
 import BiosampleTables from "../_biosampleTables/BiosampleTables"
-import { RegistryBiosamplePlusRNA } from "../search/types"
 import { ParentSize } from '@visx/responsive';
+import { Umap } from '../_umapPlot/umapPlot'
 
 type Selected = {
   assembly: "Human" | "Mouse"
@@ -58,20 +43,6 @@ type Selected = {
 function nearest5(x, low?) {
   if (low) return Math.floor(x) - (x > 0 ? Math.floor(x) % 5 : 5 + (Math.floor(x) % 5))
   return Math.ceil(x) + (x > 0 ? Math.ceil(x) % 5 : 5 + (Math.ceil(x) % 5))
-}
-
-// Direct copy from old SCREEN
-function fiveRange(min, max) {
-  const r = []
-  for (let i = min; i <= max; i += 5) r.push(i)
-  return r
-}
-
-// Direct copy from old SCREEN
-function oneRange(min, max) {
-  const r = []
-  for (let i = min; i <= max; ++i) r.push(i)
-  return r
 }
 
 // Direct copy from old SCREEN
@@ -127,13 +98,56 @@ export function DataMatrices() {
   const [tSelected, setTSelected] = useState(new Set([]))
   const [searched, setSearched] = useState<String>(null)
   const [biosamples, setBiosamples] = useState<BiosampleUMAP[]>([])
-  const [selectMode, setSelectMode] = useState<"select" | "zoom">("select")
-  const [tooltip, setTooltip] = useState(-1)
-  const [selectedFormats, setSelectedFormats] = useState({
-    signal: false,
-    zScore: false,
-  });
+  const [selectMode, setSelectMode] = useState<"select" | "pan">("select")
   const [openModalType, setOpenModalType] = useState<null | "biosamples" | "download">(null);
+  const [zoom, setZoom] = useState({ scaleX: 1, scaleY: 1 });
+  const [showMiniMap, setShowMiniMap] = useState(false);
+  const [miniMapXPos, setMiniMapXPos] = useState(0);
+  const [miniMapYPos, setMiniMapYPos] = useState(0);
+
+  const handleZoomIn = useCallback(() => {
+      setZoom({
+          scaleX: 1.2,
+          scaleY: 1.2,
+      });
+  }, [zoom]);
+
+  const handleZoomOut = useCallback(() => {
+      setZoom({
+          scaleX: 0.8,
+          scaleY: 0.8,
+      });
+  }, [zoom]);
+
+  const handleReset = useCallback(() => {
+    setZoom({
+        scaleX: 1,
+        scaleY: 1,
+    });
+  }, [zoom]);
+
+  const toggleMiniMap = useCallback(() => {
+    setShowMiniMap(!showMiniMap);
+  }, [showMiniMap]);
+
+  const graphRef = useRef(null);
+
+  useEffect(() => {
+    const graphElement = graphRef.current;
+
+    const handleWheel = (event: WheelEvent) => {
+      // Prevent default scroll behavior when using the wheel in the graph
+      event.preventDefault();
+    };
+    if (graphElement) {
+      graphElement.addEventListener('wheel', handleWheel, { passive: false });
+    }
+    return () => {
+      if (graphElement) {
+        graphElement.removeEventListener('wheel', handleWheel);
+      }
+    };
+  }, []);
 
   const handleSetSelectedSample = (selected: any) => {
     setSearched(selected.displayname)
@@ -154,6 +168,42 @@ export function DataMatrices() {
   };
   
   useEffect(()=> setBiosamples([]) ,[selectedAssay])
+
+  useEffect(() => {
+    // Function to handle key press
+    const handleKeyDown = (e) => {
+      if (e.key === 'Shift') {
+        setSelectMode('pan'); // Switch to pan mode when Shift is pressed
+      }
+    };
+
+    // Function to handle key release
+    const handleKeyUp = (e) => {
+      if (e.key === 'Shift') {
+        setSelectMode('select'); // Switch back to select mode when Shift is released
+      }
+    };
+
+    // Add event listeners for key press and release
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    // Clean up event listeners on unmount
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
+
+  const map = useMemo(() => {
+    return {
+        show: showMiniMap,
+        position: {
+            x: miniMapXPos,
+            y: miniMapYPos, 
+        }
+    };
+  }, [showMiniMap]);
 
   const fData = useMemo(() => {
     return (
@@ -210,6 +260,25 @@ export function DataMatrices() {
     [umapData, isInbounds]
   )
 
+  const handleSelectionChange = (selectedPoints) => {
+    const selected = selectedPoints.map(point => point.x);
+    const selectedBiosamples = fData
+        .filter(biosample =>
+            selected.includes(biosample.umap_coordinates[0]) &&
+            biosample.umap_coordinates
+        )
+        .map(biosample => ({
+            name: biosample.name,
+            displayname: biosample.displayname,
+            ontology: biosample.ontology,
+            sampleType: biosample.sampleType,
+            lifeStage: biosample.lifeStage,
+            umap_coordinates: biosample.umap_coordinates!,
+            experimentAccession: biosample.experimentAccession,
+        }));
+    setBiosamples(selectedBiosamples);
+  };
+
   const scatterData = useMemo(() => {
     if (!fData) return [];
     const biosampleIds = biosamples.map(sample => sample.umap_coordinates);
@@ -218,16 +287,15 @@ export function DataMatrices() {
       const isInBiosample = biosampleIds.includes(x.umap_coordinates);
   
       return {
-        x: x.umap_coordinates[0],
-        y: x.umap_coordinates[1],
-        svgProps: {
-          r: searched && x.displayname === searched ? 10 : 4,
-          fill:
-            searched === null || x.displayname === searched
-              ? (colorBy === "sampleType" ? sampleTypeColors : ontologyColors)[x[colorBy]]
-              : "#aaaaaa",
-              fillOpacity: biosampleIds.length === 0? 1 : (isInBiosample ? 1 : 0.1),
-        },
+        x: x.umap_coordinates![0],
+        y: x.umap_coordinates![1],
+        r: searched && x.displayname === searched ? 5 : 2,
+        color: searched === null || x.displayname === searched
+          ? (colorBy === "sampleType" ? sampleTypeColors : ontologyColors)[x[colorBy]]
+          : "#aaaaaa",
+        opacity: biosampleIds.length === 0 ? 1 : (isInBiosample ? 1 : 0.1),
+        name: x.displayname,
+        accession: x.experimentAccession
       };
     });
   }, [fData, searched, colorBy, sampleTypeColors, ontologyColors, isInbounds, biosamples]);
@@ -238,24 +306,6 @@ export function DataMatrices() {
     const gc = colorBy === "sampleType" ? sampleTypeCounts : ontologyCounts
     return [Object.keys(g).map((x) => ({ label: x, color: g[x], value: gc[x] })).sort((a,b) => b.value - a.value), Object.keys(g).length * 50]
   }, [colorBy, sampleTypeColors, ontologyColors, sampleTypeCounts, ontologyCounts])
-
-  /**
-   * Checks and reverses the order of coordinates provided by Jubilant Carnival selection if needed, then calls setBounds()
-   * @param bounds a Range2D object to check
-   */
-  function handleSetBounds(bounds: Range2D) {
-    if (bounds.x.start > bounds.x.end) {
-      const tempX = bounds.x.start
-      bounds.x.start = bounds.x.end
-      bounds.x.end = tempX
-    }
-    if (bounds.y.start > bounds.y.end) {
-      const tempY = bounds.y.start
-      bounds.y.start = bounds.y.end
-      bounds.y.end = tempY
-    }
-    setBounds(bounds)
-  }
 
   /**
    * @param assay an assay
@@ -462,85 +512,61 @@ export function DataMatrices() {
           <ParentSize>
             {({ width, height }) => {
               const squareSize = Math.min(width, height);
-
-              // simulate shift key being pressed
-              let shiftDownEvent = new KeyboardEvent('keydown', {
-                key: 'Shift',
-                keyCode: 16,
-                code: 'ShiftLeft',
-                location: 1,
-                ctrlKey: false,
-                shiftKey: true,
-                altKey: false,
-                metaKey: false,
-                bubbles: true,
-              });
-              document.dispatchEvent(shiftDownEvent);
+              setMiniMapXPos(width * 2.5);
+              setMiniMapYPos(height * 2.5);
 
               return (
-                <Stack justifyContent="space-between" overflow={"hidden"} padding={1} sx={{ border: '2px solid', borderColor: 'grey.400', borderRadius: '8px', height: '57vh'}}>
+                <Stack overflow={"hidden"} padding={1} sx={{ border: '2px solid', borderColor: 'grey.400', borderRadius: '8px', height: '57vh', position: 'relative' }}>
                   <Stack direction="row" justifyContent="space-between" mt={1} sx={{ backgroundColor: '#dbdefc', borderRadius: '8px', zIndex: 10 }}>
                     <Button endIcon={biosamples.length !== 0 && <Visibility />} onClick={handleOpenModal}>
                       {`${biosamples.length} Experiments Selected`}
                     </Button>
                     <Button onClick={() => setBiosamples([])}>Clear Selection</Button>
                   </Stack>
-                  <Stack justifyContent="center" alignItems="center" direction="row" sx={{ position: "relative", maxHeight: height }} mt={-5}>
-                    <Box sx={{ width: squareSize, height: squareSize }}>
-                      <Chart
-                        domain={{ x: { start: xMin, end: xMax }, y: { start: yMin, end: yMax } }}
-                        innerSize={{ width: squareSize*2, height: squareSize*2}}
-                        xAxisProps={{ ticks: (bounds ? oneRange : fiveRange)(xMin, xMax), title: "UMAP-1", fontSize: 40 }}
-                        yAxisProps={{ ticks: (bounds ? oneRange : fiveRange)(yMin, yMax), title: "UMAP-2", fontSize: 40 }}
-                        scatterData={[scatterData]}
-                        plotAreaProps={{
-                          onFreeformSelectionEnd: (_, c) => setBiosamples(c[0].map((x) => fData[x] as BiosampleUMAP)),
-                          onSelectionEnd: (x) => handleSetBounds(x),
-                          freeformSelection: selectMode === "select",
-                        }}
-                        >
-                        <Scatter
-                          data={scatterData}
-                          pointStyle={{ r: bounds ? 8 : 6 }}
-                          onPointMouseOver={(i, _) => setTimeout(() => setTooltip(i), 100)}
-                          onPointMouseOut={() => setTimeout(() => setTooltip(-1), 100)}
-                          onPointClick={(i) => setBiosamples([fData[i] as BiosampleUMAP])}
-                        />
-                        {tooltip !== -1 && (
-                          <Annotation notScaled notTranslated x={0} y={0}>
-                            <rect x={35} y={100} width={740} height={120} strokeWidth={2} stroke="#000000" fill="#ffffffdd" />
-                            <rect
-                              x={55}
-                              y={120}
-                              width={740 * 0.04}
-                              height={740 * 0.04}
-                              strokeWidth={1}
-                              stroke="#000000"
-                              fill={(colorBy === "sampleType" ? sampleTypeColors : ontologyColors)[colorBy === "sampleType" ? fData[tooltip].sampleType : fData[tooltip].ontology]}
-                            />
-                            <text x={100} y={140} fontSize="26px" fontWeight="bold">
-                              {fData[tooltip].displayname.replace(/_/g, " ").slice(0, 45)}
-                              {fData[tooltip].displayname.length > 45 ? "..." : ""}
-                            </text>
-                            <text x={55} y={185} fontSize="24px">
-                              {fData[tooltip].experimentAccession}
-                            </text>
-                          </Annotation>
-                        )}
-                      </Chart>
+                  <Stack justifyContent="center" alignItems="center" direction="row" sx={{ position: "relative", maxHeight: height }}>
+                    <Box sx={{ width: squareSize, height: squareSize }} ref={graphRef}>
+                      <Umap
+                        width={squareSize - 25}
+                        height={squareSize - 25}
+                        pointData={scatterData}
+                        loading={umapLoading}
+                        selectionType={selectMode}
+                        onSelectionChange={handleSelectionChange}
+                        zoomScale={zoom}
+                        miniMap={map}
+                      />
                     </Box>
-                    <Stack direction="row" justifyContent={"flex-end"} alignItems={"center"} spacing={5} sx={{position: "absolute", right: 0, bottom: 20}}>
-                      <Tooltip title="Drag to Select">
-                        <IconButton aria-label="edit" onClick={() => setSelectMode('select')} sx={{ color: selectMode === "select" ? "primary.main" : "default" }}><Edit /></IconButton>
-                      </Tooltip>
-                      {/* <IconButton aria-label="pan"><PanTool /></IconButton> */}
-                        <Tooltip title="Drag to Zoom In">
-                          <IconButton aria-label="zoom-in" onClick={() => setSelectMode('zoom')} sx={{ color: selectMode === "zoom" ? "primary.main" : "default" }}><ZoomIn /></IconButton>
-                         </Tooltip> 
-                        {/* <IconButton aria-label="zoom-out"><ZoomOut /></IconButton> */}
-                      <Button sx={{ height: '30px', textTransform: 'none' }} size="small" disabled={!bounds} variant="outlined" onClick={() => setBounds(undefined)}>Reset</Button>
-                    </Stack>
                   </Stack>
+                  <Stack direction="column" justifyContent="flex-start" alignItems="center" spacing={5} sx={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }}>
+                    <Tooltip title="Drag to select">
+                      <IconButton aria-label="edit" onClick={() => setSelectMode('select')} sx={{ color: selectMode === "select" ? "primary.main" : "default" }}>
+                        <Edit />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Drag to pan, or hold Shift and drag">
+                      <IconButton aria-label="pan" onClick={() => setSelectMode('pan')} sx={{ color: selectMode === "pan" ? "primary.main" : "default" }}>
+                        <PanTool />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Zoom In">
+                      <IconButton aria-label="zoom-in" onClick={handleZoomIn}>
+                        <ZoomIn />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Zoom Out">
+                      <IconButton aria-label="zoom-out" onClick={handleZoomOut}>
+                        <ZoomOut />
+                      </IconButton>
+                    </Tooltip>
+                    <Button sx={{ height: '30px', textTransform: 'none' }} size="small" variant="outlined" onClick={handleReset}>
+                      Reset
+                    </Button>
+                  </Stack>
+                  <Tooltip title="Toggle Minimap">
+                    <Button sx={{ position: 'absolute', right: 0, bottom: 10 }} size="small" onClick={toggleMiniMap}>
+                      <HighlightAlt />
+                    </Button>
+                  </Tooltip>
                 </Stack>
               )}
             }
