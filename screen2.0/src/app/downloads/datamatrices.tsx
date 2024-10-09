@@ -30,7 +30,7 @@ import {
 } from "@mui/material"
 import { useQuery } from "@apollo/client"
 import Grid from "@mui/material/Grid2"
-import { ArrowForward, Download, ExpandMore, Visibility, ZoomIn, ZoomOut, PanTool, Edit, CancelRounded } from "@mui/icons-material"
+import { ArrowForward, Download, ExpandMore, Visibility, ZoomIn, ZoomOut, PanTool, Edit, CancelRounded, HighlightAlt } from "@mui/icons-material"
 import Image from "next/image"
 import humanTransparentIcon from "../../../public/Transparent_HumanIcon.png"
 import mouseTransparentIcon from "../../../public/Transparent_MouseIcon.png"
@@ -136,6 +136,9 @@ export function DataMatrices() {
   });
   const [openModalType, setOpenModalType] = useState<null | "biosamples" | "download">(null);
   const [zoom, setZoom] = useState({ scaleX: 1, scaleY: 1 });
+  const [showMiniMap, setShowMiniMap] = useState(false);
+  const [miniMapXPos, setMiniMapXPos] = useState(0);
+  const [miniMapYPos, setMiniMapYPos] = useState(0);
 
   const handleZoomIn = useCallback(() => {
       setZoom({
@@ -156,7 +159,11 @@ export function DataMatrices() {
         scaleX: 1,
         scaleY: 1,
     });
-}, [zoom]);
+  }, [zoom]);
+
+  const toggleMiniMap = useCallback(() => {
+    setShowMiniMap(!showMiniMap);
+  }, [showMiniMap]);
 
   const graphRef = useRef(null);
 
@@ -222,6 +229,16 @@ export function DataMatrices() {
       window.removeEventListener('keyup', handleKeyUp);
     };
   }, []);
+
+  const map = useMemo(() => {
+    return {
+        show: showMiniMap,
+        position: {
+            x: miniMapXPos,
+            y: miniMapYPos, 
+        }
+    };
+  }, [showMiniMap]);
 
   const fData = useMemo(() => {
     return (
@@ -307,7 +324,7 @@ export function DataMatrices() {
       return {
         x: x.umap_coordinates![0],
         y: x.umap_coordinates![1],
-        r: searched && x.displayname === searched ? 10 : 2,
+        r: searched && x.displayname === searched ? 5 : 2,
         color: searched === null || x.displayname === searched
           ? (colorBy === "sampleType" ? sampleTypeColors : ontologyColors)[x[colorBy]]
           : "#aaaaaa",
@@ -548,6 +565,8 @@ export function DataMatrices() {
           <ParentSize>
             {({ width, height }) => {
               const squareSize = Math.min(width, height);
+              setMiniMapXPos(width * 2.5);
+              setMiniMapYPos(height * 2.5);
 
               return (
                 <Stack overflow={"hidden"} padding={1} sx={{ border: '2px solid', borderColor: 'grey.400', borderRadius: '8px', height: '57vh', position: 'relative' }}>
@@ -557,7 +576,6 @@ export function DataMatrices() {
                     </Button>
                     <Button onClick={() => setBiosamples([])}>Clear Selection</Button>
                   </Stack>
-
                   <Stack justifyContent="center" alignItems="center" direction="row" sx={{ position: "relative", maxHeight: height }}>
                     <Box sx={{ width: squareSize, height: squareSize }} ref={graphRef}>
                       <Umap
@@ -568,10 +586,11 @@ export function DataMatrices() {
                         selectionType={selectMode}
                         onSelectionChange={handleSelectionChange}
                         zoomScale={zoom}
+                        miniMap={map}
                       />
                     </Box>
                   </Stack>
-                  <Stack direction="column" justifyContent="flex-start" alignItems="center" spacing={5} sx={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)' }}>
+                  <Stack direction="column" justifyContent="flex-start" alignItems="center" spacing={5} sx={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }}>
                     <Tooltip title="Drag to select">
                       <IconButton aria-label="edit" onClick={() => setSelectMode('select')} sx={{ color: selectMode === "select" ? "primary.main" : "default" }}>
                         <Edit />
@@ -596,6 +615,9 @@ export function DataMatrices() {
                       Reset
                     </Button>
                   </Stack>
+                  <Button sx={{ position: 'absolute', right: 0, bottom: 10 }} size="small" onClick={toggleMiniMap}>
+                    <HighlightAlt />
+                  </Button>
                 </Stack>
               )}
             }

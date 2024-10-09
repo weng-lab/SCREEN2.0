@@ -21,6 +21,11 @@ interface Point {
     accession: string;
 }
 
+interface MiniMapProps {
+    show: boolean;
+    position?: {x: number; y: number};
+}
+
 interface UmapProps {
     width: number;
     height: number;
@@ -29,6 +34,7 @@ interface UmapProps {
     selectionType: "select" | "pan";
     onSelectionChange?: (selectedPoints: any[]) => void;
     zoomScale: { scaleX: number; scaleY: number };
+    miniMap: MiniMapProps;
 }
 
 type TooltipData = Point;
@@ -44,12 +50,10 @@ const initialTransformMatrix={
     skewY: 0,
 }
 
-function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, loading, selectionType, onSelectionChange, zoomScale }: UmapProps) {
+function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, loading, selectionType, onSelectionChange, zoomScale, miniMap }: UmapProps) {
     const [tooltipData, setTooltipData] = React.useState<TooltipData | null>(null);
     const [tooltipOpen, setTooltipOpen] = React.useState(false);
     const [lines, setLines] = useState<Lines>([]);
-    const [showMiniMap, setShowMiniMap] = useState<boolean>(true);
-
     const margin = { top: 20, right: 20, bottom: 70, left: 70 };
     const boundedWidth = Math.min(parentWidth * 0.9, parentHeight * 0.9) - margin.left;
     const boundedHeight = boundedWidth;
@@ -276,7 +280,7 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
 
     return (
         <>
-            <Zoom width={parentWidth} height={parentHeight} scaleXMin={1 / 2} scaleXMax={8} scaleYMin={1 / 2} scaleYMax={8} initialTransformMatrix={initialTransformMatrix}>
+            <Zoom width={parentWidth} height={parentHeight} scaleXMin={1 / 2} scaleXMax={10} scaleYMin={1 / 2} scaleYMax={10} initialTransformMatrix={initialTransformMatrix}>
                 {(zoom) => {
                     // rescale as we zoom and pan
                     const xScaleTransformed = rescaleX(xScale, zoom);
@@ -288,7 +292,7 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                         yScaleTransformed(hoveredPoint.y) <= boundedHeight;
                     return (
                         <>   
-                            <svg width={parentWidth} height={parentHeight} onMouseMove={(e) => handleMouseMove(e, zoom)} onMouseLeave={handleMouseLeave} style={{ cursor: selectionType === "select" ? (isDragging ? 'none' : 'default') : (zoom.isDragging ? 'grabbing' : 'grab'), userSelect: 'none' }}>
+                            <svg width={parentWidth + 200} height={parentHeight} onMouseMove={(e) => handleMouseMove(e, zoom)} onMouseLeave={handleMouseLeave} style={{ cursor: selectionType === "select" ? (isDragging ? 'none' : 'default') : (zoom.isDragging ? 'grabbing' : 'grab'), userSelect: 'none' }}>
                                 {/* Zoomable Group for Points */}
                                 <Group top={margin.top} left={margin.left}>
                                     {umapData.map((point, index) => {
@@ -414,18 +418,22 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                                         zoom.scale({ scaleX: zoomDirection, scaleY: zoomDirection, point });
                                     }}
                                 />
-                                
-                                {/* {showMiniMap && (
+                                <defs>
+                                    <clipPath id="clip-minimap">
+                                        <rect width={parentWidth - 100} height={parentHeight - 100} />
+                                    </clipPath>
+                                </defs>
+                                {miniMap.show && (
                                     <g
-                                    clipPath="url(#zoom-clip)"
+                                    clipPath="url(#clip-minimap)"
                                     transform={`
                                         scale(0.25)
-                                        translate(${parentWidth * 4 - parentWidth - 60}, ${parentHeight * 4 - parentHeight - 60})
+                                        translate(${miniMap.position ? miniMap.position.x : 0}, ${miniMap.position ? miniMap.position.y : 0})
                                     `}
                                     >
-                                    <rect width={parentWidth} height={parentHeight} fill="#1a1a1a" />
+                                    <rect width={parentWidth - 100} height={parentHeight - 100} fill="white" stroke='grey' strokeWidth={4} rx={8}/>
                                     {umapData.map((point, i) => (
-                                        <React.Fragment key={`dot-sm-${i}`}>
+                                        <React.Fragment>
                                         <circle
                                             cx={xScale(point.x)}
                                             cy={yScale(point.y)}
@@ -435,16 +443,17 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                                         </React.Fragment>
                                     ))}
                                     <rect
-                                        width={parentWidth}
-                                        height={parentHeight}
-                                        fill="white"
+                                        width={parentWidth - 100}
+                                        height={parentHeight - 100}
+                                        fill="#0d0f98"
                                         fillOpacity={0.2}
-                                        stroke="white"
+                                        stroke="#0d0f98"
                                         strokeWidth={4}
+                                        rx={8}
                                         transform={zoom.toStringInvert()}
                                     />
                                     </g>
-                                )} */}
+                                )}
                             </svg>
                             {useEffect(() => {
                                 if(zoomScale.scaleX === 1) {
