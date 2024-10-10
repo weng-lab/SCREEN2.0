@@ -102,8 +102,7 @@ export function DataMatrices() {
   const [openModalType, setOpenModalType] = useState<null | "biosamples" | "download">(null);
   const [zoom, setZoom] = useState({ scaleX: 1, scaleY: 1 });
   const [showMiniMap, setShowMiniMap] = useState(false);
-  const [miniMapXPos, setMiniMapXPos] = useState(0);
-  const [miniMapYPos, setMiniMapYPos] = useState(0);
+  const graphContainerRef = useRef(null);
 
   const handleZoomIn = useCallback(() => {
       setZoom({
@@ -199,9 +198,10 @@ export function DataMatrices() {
     return {
         show: showMiniMap,
         position: {
-            x: miniMapXPos,
-            y: miniMapYPos, 
-        }
+            right: 50,
+            bottom: 50, 
+        },
+        ref: graphContainerRef
     };
   }, [showMiniMap]);
 
@@ -512,11 +512,9 @@ export function DataMatrices() {
           <ParentSize>
             {({ width, height }) => {
               const squareSize = Math.min(width, height);
-              setMiniMapXPos(width * 2.5);
-              setMiniMapYPos(height * 2.5);
 
               return (
-                <Stack overflow={"hidden"} padding={1} sx={{ border: '2px solid', borderColor: 'grey.400', borderRadius: '8px', height: '57vh', position: 'relative' }}>
+                <Stack overflow={"hidden"} padding={1} sx={{ border: '2px solid', borderColor: 'grey.400', borderRadius: '8px', height: '57vh', position: 'relative' }} ref={graphContainerRef}>
                   <Stack direction="row" justifyContent="space-between" mt={1} sx={{ backgroundColor: '#dbdefc', borderRadius: '8px', zIndex: 10 }}>
                     <Button endIcon={biosamples.length !== 0 && <Visibility />} onClick={handleOpenModal}>
                       {`${biosamples.length} Experiments Selected`}
@@ -563,9 +561,9 @@ export function DataMatrices() {
                     </Button>
                   </Stack>
                   <Tooltip title="Toggle Minimap">
-                    <Button sx={{ position: 'absolute', right: 0, bottom: 10 }} size="small" onClick={toggleMiniMap}>
+                    <IconButton sx={{ position: 'absolute', right: 10, bottom: 10, zIndex: 10, width: 'auto', height: 'auto', color: showMiniMap ? "primary.main" : "default" }} size="small" onClick={toggleMiniMap}>
                       <HighlightAlt />
-                    </Button>
+                    </IconButton>
                   </Tooltip>
                 </Stack>
               )}

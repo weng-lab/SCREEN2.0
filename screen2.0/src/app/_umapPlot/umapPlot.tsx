@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useState, useEffect } from 'react';
+import React, { useMemo, useCallback, useState, useEffect, MutableRefObject } from 'react';
 import { Group } from '@visx/group';
 import { scaleLinear } from '@visx/scale';
 import { AxisBottom, AxisLeft } from '@visx/axis';
@@ -10,6 +10,7 @@ import { useDrag } from '@visx/drag';
 import CircularProgress from '@mui/material/CircularProgress';
 import { curveBasis } from '@visx/curve';
 import { Zoom } from '@visx/zoom';
+import { createPortal } from 'react-dom';
 
 interface Point {
     x: number;
@@ -23,7 +24,8 @@ interface Point {
 
 interface MiniMapProps {
     show: boolean;
-    position?: {x: number; y: number};
+    position?: {right: number; bottom: number};
+    ref?: MutableRefObject<any>;
 }
 
 interface UmapProps {
@@ -292,7 +294,7 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                         yScaleTransformed(hoveredPoint.y) <= boundedHeight;
                     return (
                         <>   
-                            <svg width={parentWidth + 200} height={parentHeight} onMouseMove={(e) => handleMouseMove(e, zoom)} onMouseLeave={handleMouseLeave} style={{ cursor: selectionType === "select" ? (isDragging ? 'none' : 'default') : (zoom.isDragging ? 'grabbing' : 'grab'), userSelect: 'none' }}>
+                            <svg width={parentWidth} height={parentHeight} onMouseMove={(e) => handleMouseMove(e, zoom)} onMouseLeave={handleMouseLeave} style={{ cursor: selectionType === "select" ? (isDragging ? 'none' : 'default') : (zoom.isDragging ? 'grabbing' : 'grab'), userSelect: 'none' }}>
                                 {/* Zoomable Group for Points */}
                                 <Group top={margin.top} left={margin.left}>
                                     {umapData.map((point, index) => {
@@ -418,43 +420,54 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                                         zoom.scale({ scaleX: zoomDirection, scaleY: zoomDirection, point });
                                     }}
                                 />
+                                </svg>
                                 <defs>
                                     <clipPath id="clip-minimap">
                                         <rect width={parentWidth - 100} height={parentHeight - 100} />
                                     </clipPath>
                                 </defs>
-                                {miniMap.show && (
-                                    <g
-                                    clipPath="url(#clip-minimap)"
-                                    transform={`
-                                        scale(0.25)
-                                        translate(${miniMap.position ? miniMap.position.x : 0}, ${miniMap.position ? miniMap.position.y : 0})
-                                    `}
+                                {miniMap.show && createPortal(
+                                    <div
+                                    style={{
+                                    position: 'absolute',
+                                    bottom: miniMap.position ? miniMap.position.bottom : 10,
+                                    right: miniMap.position ? miniMap.position.right : 10,
+                                    }}
                                     >
-                                    <rect width={parentWidth - 100} height={parentHeight - 100} fill="white" stroke='grey' strokeWidth={4} rx={8}/>
-                                    {umapData.map((point, i) => (
-                                        <React.Fragment>
-                                        <circle
-                                            cx={xScale(point.x)}
-                                            cy={yScale(point.y)}
-                                            r={3}
-                                            fill={point.color}
-                                        />
-                                        </React.Fragment>
-                                    ))}
-                                    <rect
-                                        width={parentWidth - 100}
-                                        height={parentHeight - 100}
-                                        fill="#0d0f98"
-                                        fillOpacity={0.2}
-                                        stroke="#0d0f98"
-                                        strokeWidth={4}
-                                        rx={8}
-                                        transform={zoom.toStringInvert()}
-                                    />
-                                    </g>
+                                        <svg width={(parentWidth-100) / 4} height={(parentHeight-100) / 4}>
+                                            <g
+                                            clipPath="url(#clip-minimap)"
+                                            transform={`
+                                                scale(0.25)
+                                            `}
+                                            >
+                                            <rect width={parentWidth - 100} height={parentHeight - 100} fill="white" stroke='grey' strokeWidth={4} rx={8}/>
+                                            {umapData.map((point, i) => (
+                                                <React.Fragment>
+                                                <circle
+                                                    cx={xScale(point.x)}
+                                                    cy={yScale(point.y)}
+                                                    r={3}
+                                                    fill={point.color}
+                                                />
+                                                </React.Fragment>
+                                            ))}
+                                            <rect
+                                                width={parentWidth - 100}
+                                                height={parentHeight - 100}
+                                                fill="#0d0f98"
+                                                fillOpacity={0.2}
+                                                stroke="#0d0f98"
+                                                strokeWidth={4}
+                                                rx={8}
+                                                transform={zoom.toStringInvert()}
+                                            />
+                                            </g>
+                                        </svg>
+                                    </div>,
+                                    miniMap.ref ? miniMap.ref.current : document.body
                                 )}
-                            </svg>
+                            
                             {useEffect(() => {
                                 if(zoomScale.scaleX === 1) {
                                     zoom.reset();
