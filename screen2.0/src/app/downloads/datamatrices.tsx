@@ -33,7 +33,6 @@ import { UMAP_QUERY } from "./queries"
 import BiosampleTables from "../_biosampleTables/BiosampleTables"
 import { ParentSize } from '@visx/responsive';
 import { Chart } from '../_scatterPlot/scatterPlot'
-import { metadata } from "../layout"
 
 type Selected = {
   assembly: "Human" | "Mouse"
