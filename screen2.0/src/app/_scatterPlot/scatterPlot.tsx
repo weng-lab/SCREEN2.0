@@ -12,23 +12,33 @@ import { curveBasis } from '@visx/curve';
 import { Zoom } from '@visx/zoom';
 import { createPortal } from 'react-dom';
 
+/*
+    All information given to a point on the plot, including its coordinates(x and y), its radius, color, and opacity, and its metadata information
+    which can be any amount of strings used to display in the tooltip
+*/
 interface Point {
     x: number;
     y: number;
     r?: number;
     color: string;
     opacity?: number;
-    name: string;
-    accession: string;
+    metaData: Record<string, any>;
 }
 
+/*
+    Properties given to the minimap including if its visible or not (shown) and its positioon in relation to its reference (both optional)
+    If not position or reference is given, it will default to the bottom right corner of the screen if shown
+*/
 interface MiniMapProps {
     show: boolean;
     position?: {right: number; bottom: number};
     ref?: MutableRefObject<any>;
 }
 
-interface UmapProps {
+/*
+    Basic chart properties
+*/
+interface ChartProps {
     width: number;
     height: number;
     pointData: Point[];
@@ -37,6 +47,8 @@ interface UmapProps {
     onSelectionChange?: (selectedPoints: any[]) => void;
     zoomScale: { scaleX: number; scaleY: number };
     miniMap: MiniMapProps;
+    leftAxisLable: string;
+    bottomAxisLabel: string;
 }
 
 type TooltipData = Point;
@@ -52,7 +64,7 @@ const initialTransformMatrix={
     skewY: 0,
 }
 
-function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, loading, selectionType, onSelectionChange, zoomScale, miniMap }: UmapProps) {
+function Chart({ width: parentWidth, height: parentHeight, pointData: umapData, loading, selectionType, onSelectionChange, zoomScale, miniMap, leftAxisLable, bottomAxisLabel }: ChartProps) {
     const [tooltipData, setTooltipData] = React.useState<TooltipData | null>(null);
     const [tooltipOpen, setTooltipOpen] = React.useState(false);
     const [lines, setLines] = useState<Lines>([]);
@@ -259,7 +271,7 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
             x={0}
             dx={-50} //adjust to move outside of chart area
         >
-            UMAP-2
+            {leftAxisLable}
         </Text>
     );
 
@@ -272,7 +284,7 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
             x={boundedWidth / 2}
             dy={50}
         >
-            UMAP-1
+            {bottomAxisLabel}
         </Text>
     );
 
@@ -479,12 +491,14 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                             {tooltipOpen && tooltipData && isHoveredPointWithinBounds &&(
                                 <Tooltip left={xScaleTransformed(tooltipData.x) + 50} top={yScaleTransformed(tooltipData.y) + 50}>
                                     <div>
-                                        <strong>Name: </strong> 
-                                        {tooltipData.name.replace(/_/g, " ").slice(0, 45)}
-                                        {tooltipData.name.length > 45 ? "..." : ""}
-                                    </div>
-                                    <div>
-                                        <strong>Accession:</strong> {tooltipData.accession}
+                                        {Object.entries(tooltipData.metaData).map(([key, value]) => (
+                                            <div key={key}>
+                                                <strong>{key.charAt(0).toUpperCase() + key.slice(1)}: </strong> 
+                                                {typeof value === "string" && value.length > 45 
+                                                    ? `${value.replace(/_/g, " ").slice(0, 45)}...` 
+                                                    : value.replace(/_/g, " ")}
+                                            </div>
+                                        ))}
                                     </div>
                                 </Tooltip>
                             )}
@@ -496,4 +510,4 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
     );
 }
 
-export { Umap };
+export { Chart };

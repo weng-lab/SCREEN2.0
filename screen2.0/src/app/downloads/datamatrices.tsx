@@ -32,7 +32,8 @@ import { client } from "../search/_ccredetails/client"
 import { UMAP_QUERY } from "./queries"
 import BiosampleTables from "../_biosampleTables/BiosampleTables"
 import { ParentSize } from '@visx/responsive';
-import { Umap } from '../_umapPlot/umapPlot'
+import { Chart } from '../_scatterPlot/scatterPlot'
+import { metadata } from "../layout"
 
 type Selected = {
   assembly: "Human" | "Mouse"
@@ -294,8 +295,10 @@ export function DataMatrices() {
           ? (colorBy === "sampleType" ? sampleTypeColors : ontologyColors)[x[colorBy]]
           : "#aaaaaa",
         opacity: biosampleIds.length === 0 ? 1 : (isInBiosample ? 1 : 0.1),
-        name: x.displayname,
-        accession: x.experimentAccession
+        metaData: {
+          name: x.displayname,
+          accession: x.experimentAccession
+        }
       };
     });
   }, [fData, searched, colorBy, sampleTypeColors, ontologyColors, isInbounds, biosamples]);
@@ -523,7 +526,7 @@ export function DataMatrices() {
                   </Stack>
                   <Stack justifyContent="center" alignItems="center" direction="row" sx={{ position: "relative", maxHeight: height }}>
                     <Box sx={{ width: squareSize, height: squareSize }} ref={graphRef}>
-                      <Umap
+                      <Chart
                         width={squareSize - 25}
                         height={squareSize - 25}
                         pointData={scatterData}
@@ -532,6 +535,8 @@ export function DataMatrices() {
                         onSelectionChange={handleSelectionChange}
                         zoomScale={zoom}
                         miniMap={map}
+                        leftAxisLable="UMAP-2"
+                        bottomAxisLabel="UMAP-1"
                       />
                     </Box>
                   </Stack>
