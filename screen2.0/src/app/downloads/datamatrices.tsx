@@ -1,30 +1,25 @@
-import { ChangeEvent, useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState, useRef } from "react"
 import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Autocomplete,
   Button,
   Divider,
-  FormControl,
-  FormControlLabel,
-  FormLabel,
   Modal,
-  Radio,
-  RadioGroup,
-  TextField,
   Typography,
   Box,
   Stack,
-  CircularProgress,
+  InputLabel,
+  Select,
+  MenuItem,
+  SelectChangeEvent,
+  IconButton,
+  Paper,
+  Tooltip
 } from "@mui/material"
 import { useQuery } from "@apollo/client"
 import Grid from "@mui/material/Grid2"
-import { ArrowForward, Download, ExpandMore, Visibility } from "@mui/icons-material"
+import { Download, Visibility, ZoomIn, ZoomOut, PanTool, Edit, CancelRounded, HighlightAlt } from "@mui/icons-material"
 import Image from "next/image"
 import humanTransparentIcon from "../../../public/Transparent_HumanIcon.png"
 import mouseTransparentIcon from "../../../public/Transparent_MouseIcon.png"
-import { Chart, Scatter, Annotation, Range2D } from "jubilant-carnival"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import Config from "../../config.json"
 import { BiosampleUMAP } from "./types"
@@ -35,6 +30,9 @@ import { CA_CTCF } from "../../common/lib/colors"
 import { tissueColors } from "../../common/lib/colors"
 import { client } from "../search/_ccredetails/client"
 import { UMAP_QUERY } from "./queries"
+import BiosampleTables from "../_biosampleTables/BiosampleTables"
+import { ParentSize } from '@visx/responsive';
+import { Umap } from '../_umapPlot/umapPlot'
 
 type Selected = {
   assembly: "Human" | "Mouse"
@@ -45,20 +43,6 @@ type Selected = {
 function nearest5(x, low?) {
   if (low) return Math.floor(x) - (x > 0 ? Math.floor(x) % 5 : 5 + (Math.floor(x) % 5))
   return Math.ceil(x) + (x > 0 ? Math.ceil(x) % 5 : 5 + (Math.ceil(x) % 5))
-}
-
-// Direct copy from old SCREEN
-function fiveRange(min, max) {
-  const r = []
-  for (let i = min; i <= max; i += 5) r.push(i)
-  return r
-}
-
-// Direct copy from old SCREEN
-function oneRange(min, max) {
-  const r = []
-  for (let i = min; i <= max; ++i) r.push(i)
-  return r
 }
 
 // Direct copy from old SCREEN
@@ -86,6 +70,19 @@ const style = {
   boxShadow: 24,
 }
 
+// Styling for download modal
+const downloadStyle = {
+  position: "absolute" as "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: "15%",
+  boxShadow: 24,
+  padding: "16px",
+  bgcolor: "background.paper",
+  borderRadius: "8px",
+};
+
 export function DataMatrices() {
   const [selectedAssay, setSelectedAssay] = useState<Selected>({assembly: "Human", assay: "DNase" })
   
@@ -99,32 +96,123 @@ export function DataMatrices() {
   const [lifeStage, setLifeStage] = useState("all")
   const [colorBy, setColorBy] = useState<"ontology" | "sampleType">("ontology")
   const [tSelected, setTSelected] = useState(new Set([]))
-  const [searched, setSearched] = useState<BiosampleUMAP>(null)
+  const [searched, setSearched] = useState<String>(null)
   const [biosamples, setBiosamples] = useState<BiosampleUMAP[]>([])
-  const [selectMode, setSelectMode] = useState<"select" | "zoom">("select")
-  const [tooltip, setTooltip] = useState(-1)
-  
-  const data = useMemo(() =>{
-    return umapData && umapData.ccREBiosampleQuery.biosamples.length>0 ? umapData: {} 
-  }, [umapData])
+  const [selectMode, setSelectMode] = useState<"select" | "pan">("select")
+  const [openModalType, setOpenModalType] = useState<null | "biosamples" | "download">(null);
+  const [zoom, setZoom] = useState({ scaleX: 1, scaleY: 1 });
+  const [showMiniMap, setShowMiniMap] = useState(false);
+  const [miniMapXPos, setMiniMapXPos] = useState(0);
+  const [miniMapYPos, setMiniMapYPos] = useState(0);
 
-  const [open, setOpen] = useState(false)
-  const handleOpenModal = () => {
-    biosamples.length !== 0 && setOpen(true)
+  const handleZoomIn = useCallback(() => {
+      setZoom({
+          scaleX: 1.2,
+          scaleY: 1.2,
+      });
+  }, [zoom]);
+
+  const handleZoomOut = useCallback(() => {
+      setZoom({
+          scaleX: 0.8,
+          scaleY: 0.8,
+      });
+  }, [zoom]);
+
+  const handleReset = useCallback(() => {
+    setZoom({
+        scaleX: 1,
+        scaleY: 1,
+    });
+  }, [zoom]);
+
+  const toggleMiniMap = useCallback(() => {
+    setShowMiniMap(!showMiniMap);
+  }, [showMiniMap]);
+
+  const graphRef = useRef(null);
+
+  useEffect(() => {
+    const graphElement = graphRef.current;
+
+    const handleWheel = (event: WheelEvent) => {
+      // Prevent default scroll behavior when using the wheel in the graph
+      event.preventDefault();
+    };
+    if (graphElement) {
+      graphElement.addEventListener('wheel', handleWheel, { passive: false });
+    }
+    return () => {
+      if (graphElement) {
+        graphElement.removeEventListener('wheel', handleWheel);
+      }
+    };
+  }, []);
+
+  const handleSetSelectedSample = (selected: any) => {
+    setSearched(selected.displayname)
   }
-  const handleCloseModal = () => setOpen(false)
+
+  const handleOpenModal = () => {
+    if (biosamples.length !== 0) {
+      setOpenModalType("biosamples");
+    }
+  };
+
+  const handleOpenDownloadModal = () => {
+    setOpenModalType("download");
+  };
+
+  const handleCloseModal = () => {
+    setOpenModalType(null);
+  };
   
   useEffect(()=> setBiosamples([]) ,[selectedAssay])
 
+  useEffect(() => {
+    // Function to handle key press
+    const handleKeyDown = (e) => {
+      if (e.key === 'Shift') {
+        setSelectMode('pan'); // Switch to pan mode when Shift is pressed
+      }
+    };
+
+    // Function to handle key release
+    const handleKeyUp = (e) => {
+      if (e.key === 'Shift') {
+        setSelectMode('select'); // Switch back to select mode when Shift is released
+      }
+    };
+
+    // Add event listeners for key press and release
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    // Clean up event listeners on unmount
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
+
+  const map = useMemo(() => {
+    return {
+        show: showMiniMap,
+        position: {
+            x: miniMapXPos,
+            y: miniMapYPos, 
+        }
+    };
+  }, [showMiniMap]);
+
   const fData = useMemo(() => {
     return (
-      data &&
-      data.ccREBiosampleQuery &&
-      data.ccREBiosampleQuery.biosamples
+      umapData &&
+      umapData.ccREBiosampleQuery.biosamples
         .filter((x) => x.umap_coordinates)
         .filter((x) => (lifeStage === "all" || lifeStage === x.lifeStage) && (tSelected.size === 0 || tSelected.has(x[colorBy])))
     )
-  }, [data, lifeStage, colorBy, tSelected])
+  }, [umapData, lifeStage, colorBy, tSelected])
 
   const xMin = useMemo(
     () => (bounds ? Math.floor(bounds.x.start) : nearest5(Math.min(...((fData && fData.map((x) => x.umap_coordinates[0])) || [0])), true)),
@@ -155,66 +243,69 @@ export function DataMatrices() {
   const [sampleTypeColors, sampleTypeCounts] = useMemo(
     () =>
       colorMap(
-        (data && data.ccREBiosampleQuery &&
-          data.ccREBiosampleQuery.biosamples.filter((x) => x.umap_coordinates && isInbounds(x)).map((x) => x.sampleType)) ||
+        (umapData && umapData.ccREBiosampleQuery &&
+          umapData.ccREBiosampleQuery.biosamples.filter((x) => x.umap_coordinates && isInbounds(x)).map((x) => x.sampleType)) ||
         []
       ),
-    [data, isInbounds]
+    [umapData, isInbounds]
   )
   const [ontologyColors, ontologyCounts] = useMemo(
     () =>
       colorMap(
-        (data && data.ccREBiosampleQuery &&
+        (umapData && umapData.ccREBiosampleQuery &&
           //Check if umap coordinates exist, then map each entry to it's ontology (tissue type). This array of strings is passed to colorMap
-          data.ccREBiosampleQuery.biosamples.filter((x) => x.umap_coordinates && isInbounds(x)).map((x) => x.ontology)) ||
+          umapData.ccREBiosampleQuery.biosamples.filter((x) => x.umap_coordinates && isInbounds(x)).map((x) => x.ontology)) ||
         []
       ),
-    [data, isInbounds]
+    [umapData, isInbounds]
   )
 
-  const scatterData = useMemo(
-    () =>
-      (fData &&
-        fData
-          .map((x) => ({
-            x: x.umap_coordinates[0],
-            y: x.umap_coordinates[1],
-            svgProps: {
-              r: searched && x.experimentAccession === searched.experimentAccession ? 10 : 4,
-              fill:
-                searched === null || x.experimentAccession === searched.experimentAccession
-                  ? (colorBy === "sampleType" ? sampleTypeColors : ontologyColors)[x[colorBy]]
-                  : "#aaaaaa",
-              fillOpacity: isInbounds(x) ? (searched === null || x.experimentAccession === searched.experimentAccession ? 1 : 0.2) : 0,
-            },
-          }))) ||
-      [],
-    [fData, searched, colorBy, sampleTypeColors, ontologyColors, isInbounds]
-  )  
+  const handleSelectionChange = (selectedPoints) => {
+    const selected = selectedPoints.map(point => point.x);
+    const selectedBiosamples = fData
+        .filter(biosample =>
+            selected.includes(biosample.umap_coordinates[0]) &&
+            biosample.umap_coordinates
+        )
+        .map(biosample => ({
+            name: biosample.name,
+            displayname: biosample.displayname,
+            ontology: biosample.ontology,
+            sampleType: biosample.sampleType,
+            lifeStage: biosample.lifeStage,
+            umap_coordinates: biosample.umap_coordinates!,
+            experimentAccession: biosample.experimentAccession,
+        }));
+    setBiosamples(selectedBiosamples);
+  };
+
+  const scatterData = useMemo(() => {
+    if (!fData) return [];
+    const biosampleIds = biosamples.map(sample => sample.umap_coordinates);
+  
+    return fData.map((x) => {
+      const isInBiosample = biosampleIds.includes(x.umap_coordinates);
+  
+      return {
+        x: x.umap_coordinates![0],
+        y: x.umap_coordinates![1],
+        r: searched && x.displayname === searched ? 5 : 2,
+        color: searched === null || x.displayname === searched
+          ? (colorBy === "sampleType" ? sampleTypeColors : ontologyColors)[x[colorBy]]
+          : "#aaaaaa",
+        opacity: biosampleIds.length === 0 ? 1 : (isInBiosample ? 1 : 0.1),
+        name: x.displayname,
+        accession: x.experimentAccession
+      };
+    });
+  }, [fData, searched, colorBy, sampleTypeColors, ontologyColors, isInbounds, biosamples]);
+  
   // Direct copy from old SCREEN
   const [legendEntries, height] = useMemo(() => {
     const g = colorBy === "sampleType" ? sampleTypeColors : ontologyColors
     const gc = colorBy === "sampleType" ? sampleTypeCounts : ontologyCounts
     return [Object.keys(g).map((x) => ({ label: x, color: g[x], value: gc[x] })).sort((a,b) => b.value - a.value), Object.keys(g).length * 50]
   }, [colorBy, sampleTypeColors, ontologyColors, sampleTypeCounts, ontologyCounts])
-
-  /**
-   * Checks and reverses the order of coordinates provided by Jubilant Carnival selection if needed, then calls setBounds()
-   * @param bounds a Range2D object to check
-   */
-  function handleSetBounds(bounds: Range2D) {
-    if (bounds.x.start > bounds.x.end) {
-      const tempX = bounds.x.start
-      bounds.x.start = bounds.x.end
-      bounds.x.end = tempX
-    }
-    if (bounds.y.start > bounds.y.end) {
-      const tempY = bounds.y.start
-      bounds.y.start = bounds.y.end
-      bounds.y.end = tempY
-    }
-    setBounds(bounds)
-  }
 
   /**
    * @param assay an assay
@@ -237,24 +328,25 @@ export function DataMatrices() {
   const selectorButton = (variant: Selected) => {
     return (
       <Button
-        variant="outlined"
+        variant="text"
         fullWidth
         onClick={() => {
-          //if ((selectedAssay && selectedAssay.assembly !== variant.assembly) || selectedAssay.assay !== variant.assay) {
-          //  router.push(`/downloads?tab=2&assembly=${variant.assembly}&assay=${variant.assay}`)
           setBounds(undefined)  
           setSelectedAssay(variant)
-          //}
         }}
-        endIcon={
-          selectedAssay && selectedAssay.assembly === variant.assembly && selectedAssay.assay === variant.assay ? <ArrowForward /> : null
-        }
         sx={{
           mb: 1,
           textTransform: "none",
-          borderLeft: `${selectedAssay && selectedAssay.assembly === variant.assembly && selectedAssay.assay === variant.assay ? "1.5rem" : "0.40rem"
-            } solid ${borderColor(variant.assay)}`,
-          "&:hover": { borderLeft: `1.5rem solid ${borderColor(variant.assay)}` },
+          backgroundColor: `${selectedAssay && selectedAssay.assembly === variant.assembly && selectedAssay.assay === variant.assay ? borderColor(variant.assay) : "initial"}`,
+          borderLeft: `0.40rem solid ${borderColor(variant.assay)}`,
+          borderRight: `0.40rem solid ${selectedAssay && selectedAssay.assembly === variant.assembly && selectedAssay.assay === variant.assay ? borderColor(variant.assay) : "white"}`,
+          color: `${selectedAssay && selectedAssay.assembly === variant.assembly && selectedAssay.assay === variant.assay && selectedAssay.assay === "H3K4me3" ? "white" : "initial"}`,
+          boxShadow: '0px 5px 5px rgba(0, 0, 0, 0.25)',
+          "&:hover": {
+            transform: 'translateY(-0.75px)',
+            boxShadow: '0px 8px 12px rgba(0, 0, 0, 0.35)',
+            backgroundColor: `${selectedAssay && selectedAssay.assembly === variant.assembly && selectedAssay.assay === variant.assay ? borderColor(variant.assay) : "initial"}`,
+          },
         }}
       >
         {`${variant.assay}`}
@@ -319,202 +411,216 @@ export function DataMatrices() {
   ]
 
   return (
-    <div role="tabpanel" id={`simple-tabpanel-${2}`} aria-labelledby={`simple-tab-${2}`}>
-      <Grid container spacing={3} columnSpacing={5}>
-        <Grid container justifyContent="flex-start" alignContent="flex-start" spacing={2} size={2.5}>
-          <Grid size={12}>
-            <Stack direction={"row"} justifyContent={"space-between"}>
-              <div>
-                <Typography mt="auto" variant="h5">
-                  Human
-                </Typography>
-                <Divider />
-                <Typography variant="subtitle2">2,348,854 cCREs</Typography>
-                <Typography variant="subtitle2">1,678 cell types</Typography>
-              </div>
-              <Image src={humanTransparentIcon} alt={"Human Icon"} style={{maxWidth: '75px', maxHeight: '75px'}} />
-            </Stack>
-          </Grid>
-          <Grid size={12}>
-            {selectorButton({ assembly: "Human", assay: "DNase" })}
-            {selectorButton({ assembly: "Human", assay: "H3K4me3" })}
-            {selectorButton({ assembly: "Human", assay: "H3K27ac" })}
-            {selectorButton({ assembly: "Human", assay: "CTCF" })}
-          </Grid>
-          <Grid size={12}>
-            <Stack direction={"row"} justifyContent={"space-between"}>
-              <div>
-                <Typography mt="auto" variant="h5">
-                  Mouse
-                </Typography>
-                <Divider />
-                <Typography variant="subtitle2">926,843 cCREs</Typography>
-                <Typography variant="subtitle2">366 cell types</Typography>
-              </div>
-              <Image src={mouseTransparentIcon} alt={"Mouse Icon"} style={{maxWidth: '75px', maxHeight: '75px'}} />
-            </Stack>
-          </Grid>
-          <Grid size={12}>
-            {selectorButton({ assembly: "Mouse", assay: "DNase" })}
-            {selectorButton({ assembly: "Mouse", assay: "H3K4me3" })}
-            {selectorButton({ assembly: "Mouse", assay: "H3K27ac" })}
-            {selectorButton({ assembly: "Mouse", assay: "CTCF" })}
-          </Grid>
-        </Grid>
-        <Grid container size={9.5}>
-          <Grid size={4}>
-            <Button
-              variant="outlined"
-              fullWidth
-              onClick={() => null}
-              endIcon={<Download />}
-              sx={{ mr: 1, mb: 1, mt: 3, textTransform: "none" }}
-              href={matrixDownloadURL(selectedAssay, "signal")}
-            >
-              {`${selectedAssay.assay === "DNase" ? "Read-Depth Normalized Signal Matrix" : "Fold-Change Signal Matrix"}`}
-            </Button>
-            <Button
-              variant="outlined"
-              fullWidth
-              endIcon={<Download />}
-              sx={{ textTransform: "none", mb: 1 }}
-              href={matrixDownloadURL(selectedAssay, "zScore")}
-            >
-              Z-Score Matrix
-            </Button>
-            <Autocomplete
-              sx={{ mb: 3 }}
-              disablePortal
-              id="combo-box-demo"
-              options={fData}
-              renderInput={(params) => <TextField {...params} label={"Search for a Biosample"} />}
-              groupBy={(option) => option.ontology}
-              getOptionLabel={(biosample: BiosampleUMAP) => biosample.displayname + " — Exp ID: " + biosample.experimentAccession}
-              blurOnSelect
-              onChange={(_, value: any) => setSearched(value)}
-              size="small"
-            />
-            <FormControl>
-              <FormLabel id="demo-radio-buttons-group-label">Color By:</FormLabel>
-              <RadioGroup
-                aria-labelledby="demo-radio-buttons-group-label"
-                name="radio-buttons-group"
-                sx={{ mb: 2 }}
-                onChange={(_, value: "ontology" | "sampleType") => setColorBy(value)}
-                value={colorBy}
-              >
-                <FormControlLabel value="ontology" control={<Radio />} label="Tissue/Organ" />
-                <FormControlLabel value="sampleType" control={<Radio />} label="Biosample type" />
-              </RadioGroup>
-            </FormControl>
-            <FormControl>
-              <FormLabel id="demo-radio-buttons-group-label">Show:</FormLabel>
-              <RadioGroup
-                aria-labelledby="demo-radio-buttons-group-label"
-                defaultValue="all"
-                name="radio-buttons-group"
-                sx={{ mb: 2 }}
-                onChange={(event: ChangeEvent<HTMLInputElement>, value: string) => setLifeStage(value)}
-              >
-                <FormControlLabel value="all" control={<Radio />} label="All" />
-                <FormControlLabel value="adult" control={<Radio />} label="Adult" />
-                <FormControlLabel value="embryonic" control={<Radio />} label="Embyronic" />
-              </RadioGroup>
-            </FormControl>
-            <FormControl>
-              <FormLabel id="demo-radio-buttons-group-label">Hold shift, click, and draw a selection to:</FormLabel>
-              <RadioGroup
-                aria-labelledby="demo-radio-buttons-group-label"
-                defaultValue="select"
-                name="radio-buttons-group"
-                onChange={(event: ChangeEvent<HTMLInputElement>, value: "select" | "zoom") => setSelectMode(value)}
-              >
-                <FormControlLabel value="select" control={<Radio />} label="Select Experiments" />
-                <FormControlLabel value="zoom" control={<Radio />} label="Zoom In" />
-              </RadioGroup>
-            </FormControl>
-             <Button disabled={!bounds} variant="contained" onClick={() => setBounds(undefined)}>Reset Zoom</Button>
-          </Grid>
-          <Grid position={"relative"} padding={2} size={8}>
-            <Chart
-              domain={{ x: { start: xMin, end: xMax }, y: { start: yMin, end: yMax } }}
-              innerSize={{ width: 1000, height: 1000 }}
-              xAxisProps={{ ticks: (bounds ? oneRange : fiveRange)(xMin, xMax), title: "UMAP-1", fontSize: 40 }}
-              yAxisProps={{ ticks: (bounds ? oneRange : fiveRange)(yMin, yMax), title: "UMAP-2", fontSize: 40 }}
-              scatterData={[scatterData]}
-              plotAreaProps={{
-                onFreeformSelectionEnd: (_, c) => setBiosamples(c[0].map((x) => fData[x])),
-                onSelectionEnd: (x) => handleSetBounds(x),
-                freeformSelection: selectMode === "select",
-              }}
-            >
-              <Scatter
-                data={scatterData}
-                pointStyle={{ r: bounds ? 8 : 6 }}
-                onPointMouseOver={(i,_)=> setTimeout(() => {
-                  setTooltip(i)
-                }, 100)}
-                onPointMouseOut={() => setTimeout(() => {
-                  setTooltip(-1)
-                }, 100)}
-                onPointClick={(i) => setBiosamples([fData[i]])}
-              />
-              {tooltip !== -1 && (
-                //X and Y attributes added due to error. Not sure if setting to zero has unintended consequences
-                (<Annotation notScaled notTranslated x={0} y={0}>
-                  <rect x={35} y={100} width={740} height={120} strokeWidth={2} stroke="#000000" fill="#ffffffdd" />
-                  <rect x={55} y={120} width={740 * 0.04} height={740 * 0.04} strokeWidth={1} stroke="#000000" fill={(colorBy === "sampleType" ? sampleTypeColors : ontologyColors)[colorBy === "sampleType" ? fData[tooltip].sampleType : fData[tooltip].ontology]} />
-                  <text x={100} y={140} fontSize="26px" fontWeight="bold">
-                    {fData[tooltip].displayname.replace(/_/g, " ").slice(0, 45)}
-                    {fData[tooltip].displayname.length > 45 ? "..." : ""}
-                  </text>
-                  <text x={55} y={185} fontSize="24px">
-                    {fData[tooltip].experimentAccession}
-                  </text>
-                </Annotation>)
-              )}
-            </Chart>
-            {biosamples.length !== 0 && (
-              <Stack direction="row" justifyContent="space-between" mb={1}>
-                <Button endIcon={biosamples.length !== 0 && <Visibility />} onClick={handleOpenModal}>
-                  {`${biosamples.length} Experiments Selected`}
-                </Button>
-                <Button onClick={() => setBiosamples([])}>Clear</Button>
+    <Grid container mt={1} direction="column" sx={{paddingX:5}}>
+      <Stack direction="row" spacing={10}>
+        <Stack direction="column" spacing={2}>
+          <Stack direction="row" spacing={20}>
+
+            {/* human section */}
+            <Stack direction="column" spacing={1}>
+              <Grid container direction="row" alignItems="flex-start" spacing={2}>
+                <Grid>
+                  <Image src={humanTransparentIcon} alt={"Human Icon"} style={{ maxWidth: '75px', maxHeight: '75px' }} />
+                </Grid>
+                <Grid size="grow">
+                  <Stack direction="column" spacing={1}>
+                    <Typography variant="h5">Human</Typography>
+                    <Divider />
+                    <Stack direction="row" justifyContent="space-between">
+                      <Typography variant="subtitle2"><b>2,348,854</b> cCREs</Typography>
+                      <Typography variant="subtitle2"><b>1,678</b> cell types</Typography>
+                    </Stack>
+                  </Stack>
+                </Grid>
+              </Grid>
+              <Stack direction="row" spacing={2} alignItems="center">
+                {selectorButton({ assembly: "Human", assay: "DNase" })}
+                {selectorButton({ assembly: "Human", assay: "H3K4me3" })}
+                {selectorButton({ assembly: "Human", assay: "H3K27ac" })}
+                {selectorButton({ assembly: "Human", assay: "CTCF" })}
               </Stack>
-            )}
-            <Accordion elevation={2}>
-              <AccordionSummary expandIcon={<ExpandMore />}>Legend</AccordionSummary>
-              <AccordionDetails>
-                {legendEntries.map((element, index) => {
-                  return (
-                    <Typography key={index} borderLeft={`0.2rem solid ${element.color}`} paddingLeft={1}>
-                      {`${element.label}: ${element.value} experiments`}
-                    </Typography>
-                  )
-                })}
-              </AccordionDetails>
-            </Accordion>
-            {umapLoading &&
-              <Box
-                  position={"absolute"}
-                  top={0}
-                  left={0}
-                  width={'100%'}
-                  height={'100%'}
-                  display={'flex'}
-                  justifyContent={"center"}
-                  alignItems={"center"}
-                  sx={{
-                      backdropFilter: 'blur(3px)'
-                  }}
-              >
-                  <CircularProgress />
-              </Box>
-           }
-          </Grid>
+              <Stack direction="row" justifyContent="space-between">
+                <Grid container spacing={2} sx={{ flex: 1 }}>
+                  <Grid size={{ xs: 6}} mt={1}>
+                    <InputLabel id="color-by-label">Color By</InputLabel>
+                    <Select
+                      size="small"
+                      id="color-by"
+                      value={colorBy}
+                      onChange={(event: SelectChangeEvent) => {
+                        setColorBy(event.target.value as "ontology" | "sampleType");
+                      }}
+                      fullWidth
+                      >
+                      <MenuItem value="ontology">Tissue/Organ</MenuItem>
+                      <MenuItem value="sampleType">Biosample Type</MenuItem>
+                    </Select>
+                  </Grid>
+                  <Grid size={{ xs: 6}} mt={1}>
+                    <InputLabel id="show-label">Show</InputLabel>
+                    <Select
+                      size="small"
+                      id="show"
+                      value={lifeStage}
+                      onChange={(event: SelectChangeEvent) => {
+                        setLifeStage(event.target.value as "all" | "adult" | "embryonic");
+                      }}
+                      fullWidth
+                      >
+                      <MenuItem value="all">All</MenuItem>
+                      <MenuItem value="adult">Adult</MenuItem>
+                      <MenuItem value="embryonic">Embryonic</MenuItem>
+                    </Select>
+                  </Grid>
+                </Grid>
+              </Stack>
+            </Stack>
+
+            {/* mouse section */}
+            <Stack direction="column" spacing={1}>
+              <Grid container direction="row" alignItems="flex-start" spacing={2}>
+                <Grid>
+                  <Image src={mouseTransparentIcon} alt={"Mouse Icon"} style={{ maxWidth: '75px', maxHeight: '75px' }} />
+                </Grid>
+                <Grid size="grow">
+                  <Stack direction="column" spacing={1}>
+                    <Typography variant="h5">Mouse</Typography>
+                    <Divider />
+                    <Stack direction="row" justifyContent="space-between">
+                      <Typography variant="subtitle2"><b>926,843</b> cCREs</Typography>
+                      <Typography variant="subtitle2"><b>366</b> cell types</Typography>
+                    </Stack>
+                  </Stack>
+                </Grid>
+              </Grid>
+              <Stack direction="row" spacing={2} alignItems="center">
+                {selectorButton({ assembly: "Mouse", assay: "DNase" })}
+                {selectorButton({ assembly: "Mouse", assay: "H3K4me3" })}
+                {selectorButton({ assembly: "Mouse", assay: "H3K27ac" })}
+                {selectorButton({ assembly: "Mouse", assay: "CTCF" })}
+              </Stack>
+              <Grid container justifyContent="flex-end">
+                <Grid size={{ xs: 5.75 }} mt={1}>
+                  <InputLabel sx={{ color: 'white' }} id="download-label">Download</InputLabel>
+                  <Button sx={{ height: '40px', lineHeight: '20px', textTransform: 'none' }} size="medium" variant="contained" fullWidth endIcon={<Download />} onClick={handleOpenDownloadModal}>Download Data</Button>
+                </Grid>
+              </Grid>
+            </Stack>
+          </Stack>
+
+          {/* graph section */}
+          <ParentSize>
+            {({ width, height }) => {
+              const squareSize = Math.min(width, height);
+              setMiniMapXPos(width * 2.5);
+              setMiniMapYPos(height * 2.5);
+
+              return (
+                <Stack overflow={"hidden"} padding={1} sx={{ border: '2px solid', borderColor: 'grey.400', borderRadius: '8px', height: '57vh', position: 'relative' }}>
+                  <Stack direction="row" justifyContent="space-between" mt={1} sx={{ backgroundColor: '#dbdefc', borderRadius: '8px', zIndex: 10 }}>
+                    <Button endIcon={biosamples.length !== 0 && <Visibility />} onClick={handleOpenModal}>
+                      {`${biosamples.length} Experiments Selected`}
+                    </Button>
+                    <Button onClick={() => setBiosamples([])}>Clear Selection</Button>
+                  </Stack>
+                  <Stack justifyContent="center" alignItems="center" direction="row" sx={{ position: "relative", maxHeight: height }}>
+                    <Box sx={{ width: squareSize, height: squareSize }} ref={graphRef}>
+                      <Umap
+                        width={squareSize - 25}
+                        height={squareSize - 25}
+                        pointData={scatterData}
+                        loading={umapLoading}
+                        selectionType={selectMode}
+                        onSelectionChange={handleSelectionChange}
+                        zoomScale={zoom}
+                        miniMap={map}
+                      />
+                    </Box>
+                  </Stack>
+                  <Stack direction="column" justifyContent="flex-start" alignItems="center" spacing={5} sx={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }}>
+                    <Tooltip title="Drag to select">
+                      <IconButton aria-label="edit" onClick={() => setSelectMode('select')} sx={{ color: selectMode === "select" ? "primary.main" : "default" }}>
+                        <Edit />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Drag to pan, or hold Shift and drag">
+                      <IconButton aria-label="pan" onClick={() => setSelectMode('pan')} sx={{ color: selectMode === "pan" ? "primary.main" : "default" }}>
+                        <PanTool />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Zoom In">
+                      <IconButton aria-label="zoom-in" onClick={handleZoomIn}>
+                        <ZoomIn />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Zoom Out">
+                      <IconButton aria-label="zoom-out" onClick={handleZoomOut}>
+                        <ZoomOut />
+                      </IconButton>
+                    </Tooltip>
+                    <Button sx={{ height: '30px', textTransform: 'none' }} size="small" variant="outlined" onClick={handleReset}>
+                      Reset
+                    </Button>
+                  </Stack>
+                  <Tooltip title="Toggle Minimap">
+                    <Button sx={{ position: 'absolute', right: 0, bottom: 10 }} size="small" onClick={toggleMiniMap}>
+                      <HighlightAlt />
+                    </Button>
+                  </Tooltip>
+                </Stack>
+              )}
+            }
+          </ParentSize>
+        </Stack>
+
+        {/* biosample table*/}
+        <Grid paddingBottom={0} sx={{ display: 'flex', flexDirection: 'column', flex: 1}}>
+          {searched && (
+            <Paper sx={{ mb: 1 }}>
+              <Stack borderRadius={1} direction={"row"} spacing={3} sx={{ backgroundColor: "#E7EEF8" }} alignItems={"center"}>
+                <Typography flexGrow={1} sx={{ color: "#2C5BA0", pl: 1 }}>{searched}</Typography>
+                <IconButton onClick={() => setSearched(null)} sx={{ m: 'auto', flexGrow: 0 }}>
+                  <CancelRounded />
+                </IconButton>
+              </Stack>
+            </Paper>
+          )}
+          <BiosampleTables
+            assembly={selectedAssay?.assembly === "Human" ? "GRCh38" : "mm10"}
+            fetchBiosamplesWith={[selectedAssay.assay.toLowerCase() as ("dnase" | "h3k4me3" | "h3k27ac" | "ctcf")]}
+            onBiosampleClicked={handleSetSelectedSample}
+            slotProps={{
+              paperStack: { overflow: 'hidden', flexGrow: 1 }
+            }}
+          />
         </Grid>
-      </Grid>
-      <Modal open={open} onClose={handleCloseModal} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
+      </Stack>
+
+      {/* legend section */}
+      <Box mt={2} mb={5} sx={{ display: 'flex', flexDirection: 'column' }}>
+        <Typography mb={1}><b>Legend</b></Typography>
+        <Box sx={{ display: 'flex' }} justifyContent={"space-between"}>
+          {Array.from({ length: Math.ceil(legendEntries.length / 6) }, (_, colIndex) => (
+            <Box key={colIndex} sx={{ marginRight: 2 }}>
+              {legendEntries.slice(colIndex * 6, colIndex * 6 + 6).map((element, index) => (
+                <Box key={index} sx={{display: 'flex', alignItems: 'center', marginBottom: 1,}}>
+                  <Box sx={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: element.color, marginRight: 1,}}/>
+                  <Typography>
+                    {`${element.label
+                      .split(' ')
+                      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                      .join(' ')
+                    }: ${element.value}`}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          ))}
+        </Box>
+      </Box>
+
+      {/* modals */}
+      <Modal open={openModalType === "biosamples"} onClose={handleCloseModal} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
         <Box sx={style}>
           <DataTable
             sortDescending
@@ -526,6 +632,57 @@ export function DataMatrices() {
           />
         </Box>
       </Modal>
-    </div>
-  );
+      
+      <Modal
+        open={openModalType === "download"}
+        onClose={handleCloseModal}
+        aria-labelledby="download-modal-title"
+        aria-describedby="download-modal-description"
+        >
+        <Box sx={downloadStyle}>
+          <Typography id="download-modal-title" variant="h6">
+            Download
+          </Typography>
+          <Typography id="download-modal-description" variant="subtitle1" sx={{ mt: 1 }}>
+            Select format to download
+          </Typography>
+          <Stack sx={{ mt: 2 }} spacing={2}>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Stack direction="row" alignItems="center">
+                <IconButton
+                  color="primary"
+                  onClick={() => {
+                    const url = matrixDownloadURL(selectedAssay, "signal");
+                    window.location.href = url;
+                  }}
+                  >
+                  <Download />
+                </IconButton>
+                <Typography>
+                  {selectedAssay.assay === "DNase" ? "Read-Depth Normalized Signal Matrix" : "Fold-Change Signal Matrix"}
+                </Typography>
+              </Stack>
+            </Stack>
+            <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Stack direction="row" alignItems="center">
+                <IconButton
+                  color="primary"
+                  onClick={() => {
+                    const url = matrixDownloadURL(selectedAssay, "zScore");
+                    window.location.href = url;
+                  }}
+                  >
+                  <Download />
+                </IconButton>
+                <Typography>Z-Score Matrix</Typography>
+              </Stack>
+            </Stack>
+          </Stack>
+          <Stack direction="row" spacing={2} justifyContent="flex-end" sx={{ mt: 3 }}>
+            <Button sx={{ textTransform: 'none' }} onClick={handleCloseModal}>Cancel</Button>
+          </Stack>
+        </Box>
+      </Modal>
+    </Grid>
+  )
 }

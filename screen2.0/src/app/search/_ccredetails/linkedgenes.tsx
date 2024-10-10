@@ -5,11 +5,11 @@ import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { createLink, toScientificNotationElement } from "../../../common/lib/utility"
 import { Box, Link, Paper, Typography } from "@mui/material"
 import { LinkedGeneInfo } from "./ccredetails"
-import { gql, useLazyQuery, useQuery } from "@apollo/client"
-import { useRouter, useSearchParams } from "next/navigation"
+import GeneLink from "../../_utility/GeneLink"
 
 type props = {
-  linkedGenes: LinkedGeneInfo[]
+  linkedGenes: LinkedGeneInfo[],
+  assembly: "mm10" | "GRCh38"
 }
 
 export const LinkedGenes: React.FC<props> = (props) => {
@@ -17,9 +17,6 @@ export const LinkedGenes: React.FC<props> = (props) => {
   const ChIAPETLinked = props.linkedGenes.filter((x) => x.assay === "RNAPII-ChIAPET" || x.assay === "CTCF-ChIAPET")
   const crisprLinked = props.linkedGenes.filter((x) => x.method === "CRISPR")
   const eqtlLinked = props.linkedGenes.filter((x) => x.method === "eQTLs")
-
-  const searchParams = useSearchParams()
-  const router = useRouter()
 
   type EmptyTileProps = {
     title: string,
@@ -34,55 +31,6 @@ export const LinkedGenes: React.FC<props> = (props) => {
       </Box>
     </Paper>
 
-  
-  const GENE_LOCATION = gql`
-    query geneLocation ($name: String!, $assembly: String!, $version: Int!){
-      gene(name: [$name], assembly: $assembly, version: $version){
-        name
-        coordinates {
-          chromosome
-          start
-          end
-        }
-      }
-    }
-  `
-  type GeneLocationVars = {
-    name: string,
-    assembly: "grch38" | "mm10",
-    version: 25 | 40
-  }
-  
-  type GenomicRegion = {
-    chromosome: string
-    start: number
-    end: number
-  }
-
-  type GeneLocationData = {
-    gene: [
-      {
-        name: string
-        coordinates: GenomicRegion
-      }
-    ]
-  }
-  
-  const [getGeneLocation] = useLazyQuery<GeneLocationData, GeneLocationVars>(GENE_LOCATION)
-
-  
-  const openNewGeneSearch = (gene: string) => {
-    const assembly = searchParams.get("assembly") //assuming assembly is correct in url
-    //removing space after gene name due to issue with return data having trailing space
-    getGeneLocation({variables: {name: gene, assembly: assembly.toLowerCase() as ('mm10' | 'grch38'), version: assembly.toLowerCase() === "grch38" ? 40 : 25}})
-    .then((geneLocation) => {
-      const coordinates = geneLocation.data.gene[0].coordinates
-      const gene = geneLocation.data.gene[0].name
-      window.open(`/search?assembly=${assembly}&chromosome=${coordinates.chromosome}&start=${coordinates.start}&end=${coordinates.end}&gene=${gene}&tssDistance=0`, '_blank')
-    })
-    .catch((error) => window.alert("Something went wrong fetching the location of " + gene + ", please try again or start a new search for this gene. Error: " + error))
-  }
-
   return (
     <Grid container spacing={3} sx={{ mt: "0rem", mb: "2rem" }}>
       <Grid size={12}>
@@ -92,8 +40,7 @@ export const LinkedGenes: React.FC<props> = (props) => {
               {
                 header: "Common Gene Name",
                 value: (row: LinkedGeneInfo) => row.gene,
-                //Bit hacky, using link with nested button to get desired color/mouse/underline
-                render: (row: LinkedGeneInfo) => <Link variant="inherit" onClick={() => openNewGeneSearch(row.gene)}><button><i>{row.gene}</i></button></Link>
+                render: (row: LinkedGeneInfo) => <GeneLink assembly={props.assembly} geneName={row.gene} />
               },
               {
                 header: "Gene Type",
@@ -142,8 +89,7 @@ export const LinkedGenes: React.FC<props> = (props) => {
               {
                 header: "Common Gene Name",
                 value: (row: LinkedGeneInfo) => row.gene,
-                //Bit hacky, using link with nested button to get desired color/mouse/underline
-                render: (row: LinkedGeneInfo) => <Link variant="inherit" onClick={() => openNewGeneSearch(row.gene)}><button><i>{row.gene}</i></button></Link>
+                render: (row: LinkedGeneInfo) =><GeneLink assembly={props.assembly} geneName={row.gene} />
               },
               {
                 header: "Gene Type",
@@ -185,8 +131,7 @@ export const LinkedGenes: React.FC<props> = (props) => {
               {
                 header: "Common Gene Name",
                 value: (row: LinkedGeneInfo) => row.gene,
-                //Bit hacky, using link with nested button to get desired color/mouse/underline
-                render: (row: LinkedGeneInfo) => <Link variant="inherit" onClick={() => openNewGeneSearch(row.gene)}><button><i>{row.gene}</i></button></Link>
+                render: (row: LinkedGeneInfo) => <GeneLink assembly={props.assembly} geneName={row.gene} />
               },
               {
                 header: "Gene Type",
@@ -240,8 +185,7 @@ export const LinkedGenes: React.FC<props> = (props) => {
               {
                 header: "Common Gene Name",
                 value: (row: LinkedGeneInfo) => row.gene,
-                //Bit hacky, using link with nested button to get desired color/mouse/underline
-                render: (row: LinkedGeneInfo) => <Link variant="inherit" onClick={() => openNewGeneSearch(row.gene)}><button><i>{row.gene}</i></button></Link>
+                render: (row: LinkedGeneInfo) => <GeneLink assembly={props.assembly} geneName={row.gene} />
               },
               {
                 header: "Gene Type",
