@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useState, useEffect } from 'react';
+import React, { useMemo, useCallback, useState, useEffect, MutableRefObject } from 'react';
 import { Group } from '@visx/group';
 import { scaleLinear } from '@visx/scale';
 import { AxisBottom, AxisLeft } from '@visx/axis';
@@ -10,23 +10,35 @@ import { useDrag } from '@visx/drag';
 import CircularProgress from '@mui/material/CircularProgress';
 import { curveBasis } from '@visx/curve';
 import { Zoom } from '@visx/zoom';
+import { createPortal } from 'react-dom';
 
+/*
+    All information given to a point on the plot, including its coordinates(x and y), its radius, color, and opacity, and its metadata information
+    which can be any amount of strings used to display in the tooltip
+*/
 interface Point {
     x: number;
     y: number;
     r?: number;
     color: string;
     opacity?: number;
-    name: string;
-    accession: string;
+    metaData: Record<string, any>;
 }
 
+/*
+    Properties given to the minimap including if its visible or not (shown) and its positioon in relation to its reference (both optional)
+    If not position or reference is given, it will default to the bottom right corner of the screen if shown
+*/
 interface MiniMapProps {
     show: boolean;
-    position?: {x: number; y: number};
+    position?: {right: number; bottom: number};
+    ref?: MutableRefObject<any>;
 }
 
-interface UmapProps {
+/*
+    Basic chart properties
+*/
+interface ChartProps {
     width: number;
     height: number;
     pointData: Point[];
@@ -35,6 +47,8 @@ interface UmapProps {
     onSelectionChange?: (selectedPoints: any[]) => void;
     zoomScale: { scaleX: number; scaleY: number };
     miniMap: MiniMapProps;
+    leftAxisLable: string;
+    bottomAxisLabel: string;
 }
 
 type TooltipData = Point;
@@ -50,7 +64,7 @@ const initialTransformMatrix={
     skewY: 0,
 }
 
-function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, loading, selectionType, onSelectionChange, zoomScale, miniMap }: UmapProps) {
+function Chart({ width: parentWidth, height: parentHeight, pointData: umapData, loading, selectionType, onSelectionChange, zoomScale, miniMap, leftAxisLable, bottomAxisLabel }: ChartProps) {
     const [tooltipData, setTooltipData] = React.useState<TooltipData | null>(null);
     const [tooltipOpen, setTooltipOpen] = React.useState(false);
     const [lines, setLines] = useState<Lines>([]);
@@ -257,7 +271,7 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
             x={0}
             dx={-50} //adjust to move outside of chart area
         >
-            UMAP-2
+            {leftAxisLable}
         </Text>
     );
 
@@ -270,7 +284,7 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
             x={boundedWidth / 2}
             dy={50}
         >
-            UMAP-1
+            {bottomAxisLabel}
         </Text>
     );
 
@@ -292,7 +306,7 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                         yScaleTransformed(hoveredPoint.y) <= boundedHeight;
                     return (
                         <>   
-                            <svg width={parentWidth + 200} height={parentHeight} onMouseMove={(e) => handleMouseMove(e, zoom)} onMouseLeave={handleMouseLeave} style={{ cursor: selectionType === "select" ? (isDragging ? 'none' : 'default') : (zoom.isDragging ? 'grabbing' : 'grab'), userSelect: 'none' }}>
+                            <svg width={parentWidth} height={parentHeight} onMouseMove={(e) => handleMouseMove(e, zoom)} onMouseLeave={handleMouseLeave} style={{ cursor: selectionType === "select" ? (isDragging ? 'none' : 'default') : (zoom.isDragging ? 'grabbing' : 'grab'), userSelect: 'none' }}>
                                 {/* Zoomable Group for Points */}
                                 <Group top={margin.top} left={margin.left}>
                                     {umapData.map((point, index) => {
@@ -418,43 +432,54 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                                         zoom.scale({ scaleX: zoomDirection, scaleY: zoomDirection, point });
                                     }}
                                 />
+                                </svg>
                                 <defs>
                                     <clipPath id="clip-minimap">
                                         <rect width={parentWidth - 100} height={parentHeight - 100} />
                                     </clipPath>
                                 </defs>
-                                {miniMap.show && (
-                                    <g
-                                    clipPath="url(#clip-minimap)"
-                                    transform={`
-                                        scale(0.25)
-                                        translate(${miniMap.position ? miniMap.position.x : 0}, ${miniMap.position ? miniMap.position.y : 0})
-                                    `}
+                                {miniMap.show && createPortal(
+                                    <div
+                                    style={{
+                                    position: 'absolute',
+                                    bottom: miniMap.position ? miniMap.position.bottom : 10,
+                                    right: miniMap.position ? miniMap.position.right : 10,
+                                    }}
                                     >
-                                    <rect width={parentWidth - 100} height={parentHeight - 100} fill="white" stroke='grey' strokeWidth={4} rx={8}/>
-                                    {umapData.map((point, i) => (
-                                        <React.Fragment>
-                                        <circle
-                                            cx={xScale(point.x)}
-                                            cy={yScale(point.y)}
-                                            r={3}
-                                            fill={point.color}
-                                        />
-                                        </React.Fragment>
-                                    ))}
-                                    <rect
-                                        width={parentWidth - 100}
-                                        height={parentHeight - 100}
-                                        fill="#0d0f98"
-                                        fillOpacity={0.2}
-                                        stroke="#0d0f98"
-                                        strokeWidth={4}
-                                        rx={8}
-                                        transform={zoom.toStringInvert()}
-                                    />
-                                    </g>
+                                        <svg width={(parentWidth-100) / 4} height={(parentHeight-100) / 4}>
+                                            <g
+                                            clipPath="url(#clip-minimap)"
+                                            transform={`
+                                                scale(0.25)
+                                            `}
+                                            >
+                                            <rect width={parentWidth - 100} height={parentHeight - 100} fill="white" stroke='grey' strokeWidth={4} rx={8}/>
+                                            {umapData.map((point, i) => (
+                                                <React.Fragment>
+                                                <circle
+                                                    cx={xScale(point.x)}
+                                                    cy={yScale(point.y)}
+                                                    r={3}
+                                                    fill={point.color}
+                                                />
+                                                </React.Fragment>
+                                            ))}
+                                            <rect
+                                                width={parentWidth - 100}
+                                                height={parentHeight - 100}
+                                                fill="#0d0f98"
+                                                fillOpacity={0.2}
+                                                stroke="#0d0f98"
+                                                strokeWidth={4}
+                                                rx={8}
+                                                transform={zoom.toStringInvert()}
+                                            />
+                                            </g>
+                                        </svg>
+                                    </div>,
+                                    miniMap.ref ? miniMap.ref.current : document.body
                                 )}
-                            </svg>
+                            
                             {useEffect(() => {
                                 if(zoomScale.scaleX === 1) {
                                     zoom.reset();
@@ -466,12 +491,14 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
                             {tooltipOpen && tooltipData && isHoveredPointWithinBounds &&(
                                 <Tooltip left={xScaleTransformed(tooltipData.x) + 50} top={yScaleTransformed(tooltipData.y) + 50}>
                                     <div>
-                                        <strong>Name: </strong> 
-                                        {tooltipData.name.replace(/_/g, " ").slice(0, 45)}
-                                        {tooltipData.name.length > 45 ? "..." : ""}
-                                    </div>
-                                    <div>
-                                        <strong>Accession:</strong> {tooltipData.accession}
+                                        {Object.entries(tooltipData.metaData).map(([key, value]) => (
+                                            <div key={key}>
+                                                <strong>{key.charAt(0).toUpperCase() + key.slice(1)}: </strong> 
+                                                {typeof value === "string" && value.length > 45 
+                                                    ? `${value.replace(/_/g, " ").slice(0, 45)}...` 
+                                                    : value.replace(/_/g, " ")}
+                                            </div>
+                                        ))}
                                     </div>
                                 </Tooltip>
                             )}
@@ -483,4 +510,4 @@ function Umap({ width: parentWidth, height: parentHeight, pointData: umapData, l
     );
 }
 
-export { Umap };
+export { Chart };
