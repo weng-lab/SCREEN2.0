@@ -1,12 +1,44 @@
-import * as React from "react"
-import DownloadsPage from "./downloads"
-import { biosampleQuery } from "../../common/lib/queries"
+"use client"
 
-export default async function Downloads({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
-  const biosamples = await biosampleQuery()
+import * as React from "react"
+import { Tabs, Tab, Box, Container, Divider, Stack} from "@mui/material"
+import Grid from "@mui/material/Grid2"
+import { Annotations } from "./annotations"
+import { DataMatrices } from "./datamatrices"
+import { useState } from "react"
+import { DownloadRange } from "./downloadrange"
+
+function a11yProps(index: number) {
+  return {
+    id: `simple-tab-${index}`,
+    "aria-controls": `simple-tabpanel-${index}`,
+  }
+}
+
+export default function Downloads() {
+  const [page, setPage] = useState(0)
+  
+  const handleChange = (_, newValue: number) => {    
+    setPage(newValue)
+  }
+
   return (
-    <main>
-      <DownloadsPage biosamples={biosamples} searchParams={searchParams} />
-    </main>
+    <Stack sx={{paddingX:15}}>
+      <Grid mt={2} container spacing={2}>
+        <Grid size={{ xs: 12 }}>
+          <Tabs value={page} onChange={handleChange} aria-label="basic tabs example" variant="scrollable" allowScrollButtonsMobile>
+            <Tab label="Annotations" sx={{ textTransform: "none" }} {...a11yProps(0)} />
+            <Tab label="Data Matrices" sx={{ textTransform: "none" }} {...a11yProps(1)} />
+            <Tab label="Download cCREs in Genomic Region" sx={{ textTransform: "none" }} {...a11yProps(2)} />
+          </Tabs>
+          <Divider />
+        </Grid>
+        <Grid size={12}>
+          {page === 0 && <Annotations />}
+          {page === 1 && <DataMatrices/>}
+          {page === 2 && <DownloadRange />}
+        </Grid>
+      </Grid>
+    </Stack>
   )
 }

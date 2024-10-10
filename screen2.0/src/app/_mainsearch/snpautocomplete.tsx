@@ -6,7 +6,7 @@ import Typography from "@mui/material/Typography"
 import { debounce } from "@mui/material/utils"
 import { SNP_AUTOCOMPLETE_QUERY } from "./queries"
 import Config from "../../config.json"
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import Grid from "@mui/material/Grid2"
 import { IconButton, Stack } from "@mui/material"
 import { Search } from "@mui/icons-material"
 
@@ -18,7 +18,7 @@ export const SnpAutoComplete: React.FC<{ assembly: string, header?: boolean }> =
 
   const onSearchChange = async (value: string, assembly: string) => {
     setOptions([])
-    const response = await fetch(Config.API.GraphqlAPI, {
+    const response = await fetch(Config.API.CcreAPI, {
       method: "POST",
       body: JSON.stringify({
         query: SNP_AUTOCOMPLETE_QUERY,
@@ -118,8 +118,8 @@ export const SnpAutoComplete: React.FC<{ assembly: string, header?: boolean }> =
         renderOption={(props, option) => {
           return (
             <li {...props} key={props.id}>
-              <Grid2 container alignItems="center">
-                <Grid2 sx={{ width: "calc(100%)", wordWrap: "break-word" }}>
+              <Grid container alignItems="center">
+                <Grid sx={{ width: "calc(100%)", wordWrap: "break-word" }}>
                   <Box component="span" sx={{ fontWeight: "regular" }}>
                     {option}
                   </Box>
@@ -128,8 +128,8 @@ export const SnpAutoComplete: React.FC<{ assembly: string, header?: boolean }> =
                       {`${snpids.find((g) => g.id === option)?.chrom}:${snpids.find((g) => g.id === option)?.end}`}
                     </Typography>
                   )}
-                </Grid2>
-              </Grid2>
+                </Grid>
+              </Grid>
             </li>
           )
         }}

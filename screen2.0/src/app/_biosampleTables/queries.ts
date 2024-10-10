@@ -1,16 +1,17 @@
-import { gql } from "@apollo/client"
+import { gql } from "../../graphql/__generated__/gql"
 
-export const RNA_SEQ_QUERY = gql`
+
+export const RNA_SEQ_QUERY = gql(`
   query RNASeqQuery($assembly: String!){
     rnaSeqQuery(assembly:$assembly) {
       biosample
     }
   }
-`
+`)
 
-export const BIOSAMPLE_QUERY = gql`
-  query biosamples($assembly: String!) {
-    ccREBiosampleQuery(assembly: $assembly) {
+export const BIOSAMPLE_QUERY = gql(`
+  query biosamples_1($assembly: String!, $assays: [String!]) {
+    ccREBiosampleQuery(assembly: $assembly, assay: $assays) {
       biosamples {
         name
         ontology
@@ -30,4 +31,4 @@ export const BIOSAMPLE_QUERY = gql`
       }
     }
   }
-`
+`)

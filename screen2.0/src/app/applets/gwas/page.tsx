@@ -3,7 +3,7 @@ import { Accordion, AccordionDetails, AccordionSummary, IconButton, Paper, Stack
 import React, { useState, useMemo } from "react"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { CreateLink, createLink, LoadingMessage } from "../../../common/lib/utility"
-import Grid from "@mui/material/Unstable_Grid2/Grid2"
+import Grid from "@mui/material/Grid2"
 import { CircularProgress } from "@mui/material"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import { client } from "../../search/_ccredetails/client"
@@ -14,14 +14,13 @@ import { RegistryBiosamplePlusRNA } from "../../search/types"
 import { EnrichmentLollipopPlot, RawEnrichmentData, TransformedEnrichmentData } from "./_lollipop-plot/lollipopplot"
 import { ParentSize } from "@visx/responsive"
 import { ParentSizeProvidedProps } from "@visx/responsive/lib/components/ParentSize"
-import { BiosampleNameData, BiosampleNameVars, EnrichmentData, EnrichmentVars } from "./types"
 import { tissueColors } from "../../../common/lib/colors"
 import { CancelRounded, Info } from "@mui/icons-material"
 import { capitalizeFirstLetter } from "./helpers"
+import GeneLink from "../../_utility/GeneLink"
 
-//Background colors for the accordions
-const lightBlue = "#5F8ED3"
-const darkBlue = "#2C5BA0"
+//Colors for the accordions and background
+const lighterBlue = "#4B56BD"
 const orange = "#F1884D"
 const lightOrange = "#FDEFE7 !important"
 const background = "#F9F9F9"
@@ -162,7 +161,7 @@ export default function GWAS() {
   }, [cCREsIntersectionData])
 
 
-  const { data: enrichmentData, loading: enrichmentLoading, error: enrichmentError } = useQuery<EnrichmentData, EnrichmentVars>(
+  const { data: enrichmentData, loading: enrichmentLoading, error: enrichmentError } = useQuery(
     CT_ENRICHMENT,
     {
       variables: {
@@ -173,7 +172,7 @@ export default function GWAS() {
     }
   )
 
-  const { data: biosampleNames, loading: loadingBiosampleNames, error: errorBiosampleNames } = useQuery<BiosampleNameData, BiosampleNameVars>(
+  const { data: biosampleNames, loading: loadingBiosampleNames, error: errorBiosampleNames } = useQuery(
     BIOSAMPLE_DISPLAYNAMES,
     {
       variables: {
@@ -258,7 +257,7 @@ export default function GWAS() {
       {
         header: "Gene",
         value: (row: TableRow) => row.gene,
-        render: (row: TableRow) => <i><CreateLink linkPrefix={"/applets/gene-expression?assembly=GRCh38&gene="} linkArg={row.gene} label={row.gene} underline={"none"} /></i>
+        render: (row: TableRow) => <GeneLink geneName={row.gene} assembly={'GRCh38'} />
       },
     ]
 
@@ -305,7 +304,7 @@ export default function GWAS() {
     return gwasstudiesLoading ? LoadingMessage() : gwasstudies && gwasstudies.getAllGwasStudies.length > 0 &&
       <div id="study-selection">
         <Accordion expanded={studiesOpen} onChange={handleSetStudiesOpen} sx={{borderRadius: '4px !important'}}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: lightBlue, color: lightTextColor, borderRadius: '4px' }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: theme.palette.primary.main, color: lightTextColor, borderRadius: '4px' }}>
             <Typography variant="h6">GWAS Studies</Typography>
             <Tooltip title={"Select a study to view cCREs overlapping associated SNPs"} sx={{alignSelf: "center", ml: 1}}>
               <Info />
@@ -350,7 +349,7 @@ export default function GWAS() {
     return (
       <div>
         <Accordion expanded={samplesOpen} onChange={handleSetSamplesOpen} disabled={!study} sx={{ borderRadius: '4px !important' }}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: lightBlue, color: lightTextColor, borderRadius: '4px' }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: theme.palette.primary.main, color: lightTextColor, borderRadius: '4px' }}>
             <Typography variant="h6">Select a Biosample</Typography>
             <Tooltip title={"Optionally select a biosample to view biosample-specific assay z-scores"} sx={{ alignSelf: "center", ml: 1 }}>
               <Info />
@@ -363,7 +362,7 @@ export default function GWAS() {
               }
               <BiosampleTables
                 assembly={"GRCh38"}
-                preFilterBiosamples={(sample: RegistryBiosamplePlusRNA) => sample.dnase !== null}
+                fetchBiosamplesWith={['dnase']}
                 selected={selectedSample?.name}
                 onBiosampleClicked={handleSetSelectedSample}
                 slotProps={{paperStack: {elevation: 0}, headerStack: {mt: 1}}}
@@ -382,7 +381,7 @@ export default function GWAS() {
     return (
       <div>
         <Accordion defaultExpanded>
-          <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: darkBlue, color: lightTextColor, borderRadius: '4px' }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: lighterBlue, color: lightTextColor, borderRadius: '4px' }}>
             <Typography variant="h6">LD Blocks</Typography>
             <Tooltip title={"LD Blocks are regions of the genome where genetic variants are inherited together due to high levels of linkage disequilibrium (LD)"} sx={{alignSelf: "center", ml: 1}}>
               <Info />
@@ -416,7 +415,7 @@ export default function GWAS() {
     return (
       <div>
         <Accordion defaultExpanded>
-          <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: darkBlue, color: lightTextColor, borderRadius: '4px' }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon htmlColor={lightTextColor} />} sx={{ backgroundColor: lighterBlue, color: lightTextColor, borderRadius: '4px' }}>
             <Typography variant="h6">Intersecting cCREs</Typography>
             <Tooltip title={"cCREs intersected against SNPs identified by selected GWAS study"} sx={{alignSelf: "center", ml: 1}}>
               <Info />
@@ -501,14 +500,20 @@ export default function GWAS() {
   return (
     <main style={{ backgroundColor: background }}>
       <Grid container spacing={2} padding={5}>
-        <Grid xs={12} lg={4}>
+        <Grid
+          size={{
+            xs: 12,
+            lg: 4
+          }}>
           <Stack spacing={2} alignItems={"center"}>
             <Selections />
             {!isLg && <DataToDisplay />}
             {!isLg && SuggestionsPlot}
           </Stack>
         </Grid>
-        <Grid lg={8} display={{ xs: 'none', lg: 'block' }}>
+        <Grid display={{ xs: 'none', lg: 'block' }} size={{
+          lg: 8
+        }}>
           <Stack spacing={2}>
             <DataToDisplay />
             {SuggestionsPlot}
@@ -516,5 +521,5 @@ export default function GWAS() {
         </Grid>
       </Grid>
     </main>
-  )
+  );
 }

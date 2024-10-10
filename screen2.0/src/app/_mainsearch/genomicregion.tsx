@@ -14,7 +14,7 @@ import {
 } from "@mui/material"
 import { useState, SetStateAction, useEffect, useMemo } from "react"
 import { Search } from "@mui/icons-material"
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import Grid from "@mui/material/Grid2"
 import { parseGenomicRegion } from "./parsegenomicregion"
 
 //https://mui.com/material-ui/react-text-field/#integration-with-3rd-party-input-libraries
@@ -193,9 +193,9 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
   }, [value, inputType, props.assembly, chromosome, start, end])
 
   return (
-    <Grid2 container spacing={2}>
+    <Grid container spacing={2}>
       {!props.header && (
-        <Grid2 xs={12} pt={0}>
+        <Grid pt={0} size={12}>
           <FormControl>
             {/* <FormLabel id="demo-row-radio-buttons-group-label">Input Format</FormLabel> */}
             <RadioGroup
@@ -209,9 +209,9 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
               <FormControlLabel value="Separated" control={<Radio />} label="Individual Inputs" />
             </RadioGroup>
           </FormControl>
-        </Grid2>
+        </Grid>
       )}
-      <Grid2 xs={12}>
+      <Grid size={12}>
         <Stack direction="row" alignItems="center">
           {inputType === "Separated" ? (
             <>
@@ -333,7 +333,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
             </>
           ) : (
             //UCSC Input
-            <TextField
+            (<TextField
               variant="outlined"
               InputLabelProps={{
                 shrink: true,
@@ -373,7 +373,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
               size={props.header ? "small" : "medium"}
               error={error}
               helperText={error ? (props.header ? "" : "Invalid format or range.") : ""}
-            />
+            />)
           )}
           <IconButton
             aria-label="Search"
@@ -388,9 +388,9 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
             <Search />
           </IconButton>
         </Stack>
-      </Grid2>
-    </Grid2>
-  )
+      </Grid>
+    </Grid>
+  );
 }
 
 export default GenomicRegion

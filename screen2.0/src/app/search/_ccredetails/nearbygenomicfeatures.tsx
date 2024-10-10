@@ -3,15 +3,16 @@ import React from "react"
 import { client } from "./client"
 import { useQuery } from "@apollo/client"
 import { NEARBY_GENOMIC_FEATURES_QUERY, NEARBY_GENOMIC_FEATURES_NOSNPS_QUERY } from "./queries"
-import Grid2 from "@mui/material/Unstable_Grid2/Grid2"
+import Grid from "@mui/material/Grid2"
 import { Typography } from "@mui/material"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { LoadingMessage } from "../../../common/lib/utility"
 import { calcDistRegionToPosition, calcDistRegionToRegion } from "./utils"
 import { calcDistToTSS } from "./utils"
+import GeneLink from "../../_utility/GeneLink"
 
 export const NearByGenomicFeatures: React.FC<{
-  assembly: string
+  assembly: "mm10" | "GRCh38"
   accession: string
   coordinates: { chromosome: string; start: number; end: number }
   handleOpencCRE: (row: any) => void
@@ -96,119 +97,123 @@ export const NearByGenomicFeatures: React.FC<{
         snp_end: s.coordinates.end,
       }
     })
-  return (
-    <>
-      {loading || !data ? (
-        <LoadingMessage />
-      ) : (
-        <>
-          <Grid2 container spacing={5}>
-            <Grid2 xs={12} md={6} xl={4}>
-              {
-                <DataTable
-                  columns={[
-                    {
-                      header: "Symbol",
-                      value: (row) => row.name,
-                      render: (row) =>
-                        <Typography
-                          component="a"
-                          variant="body2"
-                          color="primary"
-                        >
-                          <i>{row.name}</i>
-                        </Typography>,
-                    },
-                    {
-                      header: "Distance to Nearest TSS (in bp)",
-                      value: (row) => row.distance,
-                      render: (row) => row.distance.toLocaleString("en-US"),
-                    },
-                  ]}
-                  onRowClick={(row) => {
-                    window.open(`/applets/gene-expression?assembly=${assembly}&gene=${row.name}`, "_blank")
-                  }}
-                  sortColumn={1}
-                  tableTitle="Nearby Genes"
-                  rows={genes || []}
-                  itemsPerPage={10}
-                  searchable
-                  sortDescending={true}
-                />
-              }
-            </Grid2>
-            <Grid2 xs={12} md={6} xl={4}>
-              {
-                <DataTable
-                  columns={[
-                    {
-                      header: "Accession",
-                      value: (row) => row.name,
-                      render: (row) => (
-                        <Typography
-                          component="a"
-                          variant="body2"
-                          color="primary"
-                        >
-                          {row.name}
-                        </Typography>
-                      ),
-                    },
-                    {
-                      header: "Distance (in bp)",
-                      value: (row) => row.distance,
-                      render: (row) => row.distance.toLocaleString("en-US"),
-                    },
-                  ]}
-                  onRowClick={(row) => {
-                    handleOpencCRE({...row, accession: row.name })
-                  }}
-                  sortColumn={1}
-                  tableTitle="Nearby cCREs"
-                  rows={ccres.filter(c => c.distance != 0) || []}
-                  itemsPerPage={10}
-                  searchable
-                  sortDescending={true}
-                />
-              }
-            </Grid2>
-            <Grid2 xs={12} md={6} xl={4}>
-              {
-                <DataTable
-                  columns={[
-                    {
-                      header: "SNP ID",
-                      value: (row) => row.name,
-                      render: (row) =>
-                        <Typography
-                          component="a"
-                          variant="body2"
-                          color="primary"
-                        >
-                          {row.name}
-                        </Typography>,
-                    },
-                    {
-                      header: "Distance (in bp)",
-                      value: (row) => row.distance,
-                      render: (row) => row.distance.toLocaleString("en-US"),
-                    },
-                  ]}
-                  onRowClick={(row) => {
-                    window.open(`http://ensembl.org/${row.assembly.toLowerCase() === "grch38" ? "Homo_sapiens" : "Mus_musculus"}/Variation/Explore?vdb=variation;v=${row.name}`, "_blank")
-                  }}
-                  sortColumn={1}
-                  tableTitle="Nearby SNPs"
-                  rows={snps || []}
-                  itemsPerPage={10}
-                  searchable
-                  sortDescending={true}
-                />
-              }
-            </Grid2>
-          </Grid2>
-        </>
-      )}
-    </>
-  )
+  return (<>
+    {loading || !data ? (
+      <LoadingMessage />
+    ) : (
+      <>
+        <Grid container spacing={5}>
+          <Grid
+            size={{
+              xs: 12,
+              md: 6,
+              xl: 4
+            }}>
+            {
+              <DataTable
+                columns={[
+                  {
+                    header: "Symbol",
+                    value: (row) => row.name,
+                    render: (row) =>
+                      <GeneLink assembly={assembly} geneName={row.name} />
+                  },
+                  {
+                    header: "Distance to Nearest TSS (in bp)",
+                    value: (row) => row.distance,
+                    render: (row) => row.distance.toLocaleString("en-US"),
+                  },
+                ]}
+                sortColumn={1}
+                tableTitle="Nearby Genes"
+                rows={genes || []}
+                itemsPerPage={10}
+                searchable
+                sortDescending={true}
+              />
+            }
+          </Grid>
+          <Grid
+            size={{
+              xs: 12,
+              md: 6,
+              xl: 4
+            }}>
+            {
+              <DataTable
+                columns={[
+                  {
+                    header: "Accession",
+                    value: (row) => row.name,
+                    render: (row) => (
+                      <Typography
+                        component="a"
+                        variant="body2"
+                        color="primary"
+                      >
+                        {row.name}
+                      </Typography>
+                    ),
+                  },
+                  {
+                    header: "Distance (in bp)",
+                    value: (row) => row.distance,
+                    render: (row) => row.distance.toLocaleString("en-US"),
+                  },
+                ]}
+                onRowClick={(row) => {
+                  handleOpencCRE({...row, accession: row.name })
+                }}
+                sortColumn={1}
+                tableTitle="Nearby cCREs"
+                rows={ccres.filter(c => c.distance != 0) || []}
+                itemsPerPage={10}
+                searchable
+                sortDescending={true}
+              />
+            }
+          </Grid>
+          <Grid
+            size={{
+              xs: 12,
+              md: 6,
+              xl: 4
+            }}>
+            {
+              <DataTable
+                columns={[
+                  {
+                    header: "SNP ID",
+                    value: (row) => row.name,
+                    render: (row) =>
+                      <Typography
+                        component="a"
+                        variant="body2"
+                        color="primary"
+                      >
+                        {row.name}
+                      </Typography>,
+                  },
+                  {
+                    header: "Distance (in bp)",
+                    value: (row) => row.distance,
+                    render: (row) => row.distance.toLocaleString("en-US"),
+                  },
+                ]}
+                onRowClick={(row) => {
+                  window.open(`http://ensembl.org/${row.assembly.toLowerCase() === "grch38" ? "Homo_sapiens" : "Mus_musculus"}/Variation/Explore?vdb=variation;v=${row.name}`, "_blank")
+                }}
+                sortColumn={1}
+                tableTitle="Nearby SNPs"
+                rows={snps || []}
+                itemsPerPage={10}
+                searchable
+                sortDescending={true}
+              />
+            }
+          </Grid>
+        </Grid>
+      </>
+    )}
+  </>);
 }
