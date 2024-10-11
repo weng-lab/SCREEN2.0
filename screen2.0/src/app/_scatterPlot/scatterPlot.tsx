@@ -16,40 +16,45 @@ import { createPortal } from 'react-dom';
     All information given to a point on the plot, including its coordinates(x and y), its radius, color, and opacity, and its metadata information
     which can be any amount of strings used to display in the tooltip
 */
-interface Point {
+type Point<T = {}> = {
     x: number;
     y: number;
     r?: number;
     color: string;
     opacity?: number;
-    metaData: Record<string, any>;
-}
+    metaData?: T;
+};
 
 /*
     Properties given to the minimap including if its visible or not (shown) and its positioon in relation to its reference (both optional)
     If not position or reference is given, it will default to the bottom right corner of the screen if shown
 */
-interface MiniMapProps {
+type MiniMapProps = {
     show: boolean;
     position?: {right: number; bottom: number};
     ref?: MutableRefObject<any>;
-}
+};
 
 /*
     Basic chart properties
 */
-interface ChartProps {
+type ChartProps<T = {}> = {
     width: number;
     height: number;
-    pointData: Point[];
+    pointData: Point<T>[];
     loading: boolean;
     selectionType: "select" | "pan";
-    onSelectionChange?: (selectedPoints: any[]) => void;
+    //returns an array of selected points inside a lasso (optional)
+    onSelectionChange?: (selectedPoints: Point<T>[]) => void;
+    //returns a point when clicked on (optional)
+    onPointClicked?: (point: Point<T>) => void;
+    //custom tooltip formating (optional)
+    tooltipBody?: (point: Point<T>) => JSX.Element;
     zoomScale: { scaleX: number; scaleY: number };
     miniMap: MiniMapProps;
     leftAxisLable: string;
     bottomAxisLabel: string;
-}
+};
 
 type TooltipData = Point;
 type Line = { x: number; y: number }[];
@@ -64,7 +69,7 @@ const initialTransformMatrix={
     skewY: 0,
 }
 
-function Chart({ width: parentWidth, height: parentHeight, pointData: umapData, loading, selectionType, onSelectionChange, zoomScale, miniMap, leftAxisLable, bottomAxisLabel }: ChartProps) {
+function Chart({ width: parentWidth, height: parentHeight, pointData: umapData, loading, selectionType, onSelectionChange, onPointClicked, tooltipBody, zoomScale, miniMap, leftAxisLable, bottomAxisLabel }: ChartProps) {
     const [tooltipData, setTooltipData] = React.useState<TooltipData | null>(null);
     const [tooltipOpen, setTooltipOpen] = React.useState(false);
     const [lines, setLines] = useState<Lines>([]);
@@ -132,7 +137,7 @@ function Chart({ width: parentWidth, height: parentHeight, pointData: umapData, 
                 setLines((currLines) => [...currLines, [{ x: adjustedX, y: adjustedY }]]);
             }
         },
-        [setLines],
+        [setLines, margin.left, margin.right, selectionType],
       );
 
     const onDragMove = useCallback(
@@ -150,7 +155,7 @@ function Chart({ width: parentWidth, height: parentHeight, pointData: umapData, 
                 });
             }
         },
-        [setLines],
+        [setLines, margin.left, margin.right, selectionType],
     );
 
     //find all points within the drawn lasso for selection purposes
@@ -329,19 +334,6 @@ function Chart({ width: parentWidth, height: parentHeight, pointData: umapData, 
                                         );
                                     })}
 
-                                    {/* Render hovered point last to bring it to foreground */}
-                                    {isHoveredPointWithinBounds && hoveredPoint && (
-                                        <Circle
-                                            cx={xScaleTransformed(hoveredPoint.x)}
-                                            cy={yScaleTransformed(hoveredPoint.y)}
-                                            r={hoveredPoint.r + 2}
-                                            fill={hoveredPoint.color}
-                                            stroke="black"
-                                            strokeWidth={1}
-                                            opacity={1}
-                                        />
-                                    )}
-
                                     {selectionType === "select" && (
                                         <>
                                             {/* Render lasso */}
@@ -382,6 +374,43 @@ function Chart({ width: parentWidth, height: parentHeight, pointData: umapData, 
                                             )}
                                         </>
                                     )}
+                                    {/* Interactable surface */}
+                                    <rect
+                                        fill="transparent"
+                                        width={parentWidth}
+                                        height={parentHeight}
+                                        onMouseDown={selectionType === "select" ?  dragStart : zoom.dragStart}
+                                        onMouseUp={ selectionType === "select" ? (event) => {
+                                            dragEnd(event);
+                                            onDragEnd(zoom);
+                                        } : zoom.dragEnd}
+                                        onMouseMove={ selectionType === "select" ? (isDragging ? dragMove : undefined) : zoom.dragMove}
+                                        onTouchStart={selectionType === "select" ?  dragStart : zoom.dragStart}
+                                        onTouchEnd={ selectionType === "select" ? (event) => {
+                                            dragEnd(event);
+                                            onDragEnd(zoom);
+                                        } : zoom.dragEnd}
+                                        onTouchMove={selectionType === "select" ? (isDragging ? dragMove : undefined) : zoom.dragMove}
+                                        onWheel={(event) => {
+                                            const point = localPoint(event) || { x: 0, y: 0 };
+                                            const zoomDirection = event.deltaY < 0 ? 1.1 : 0.9;
+                                            zoom.scale({ scaleX: zoomDirection, scaleY: zoomDirection, point });
+                                        }}
+                                    />
+
+                                    {/* Render hovered point last to bring it to foreground */}
+                                    {isHoveredPointWithinBounds && hoveredPoint && (
+                                        <Circle
+                                            cx={xScaleTransformed(hoveredPoint.x)}
+                                            cy={yScaleTransformed(hoveredPoint.y)}
+                                            r={hoveredPoint.r + 2}
+                                            fill={hoveredPoint.color}
+                                            stroke="black"
+                                            strokeWidth={1}
+                                            opacity={1}
+                                            onClick={() => onPointClicked && onPointClicked(hoveredPoint)}
+                                        />
+                                    )}
                                 </Group>
                                 {/* Static Axes Group */}
                                 <Group top={margin.top} left={margin.left}>
@@ -409,35 +438,8 @@ function Chart({ width: parentWidth, height: parentHeight, pointData: umapData, 
                                     {axisLeftLabel}
                                     {axisBottomLabel}
                                 </Group>
-                                {/* Interactable surface */}
-                                <rect
-                                    fill="transparent"
-                                    width={parentWidth}
-                                    height={parentHeight}
-                                    onMouseDown={selectionType === "select" ?  dragStart : zoom.dragStart}
-                                    onMouseUp={ selectionType === "select" ? (event) => {
-                                        dragEnd(event);
-                                        onDragEnd(zoom);
-                                    } : zoom.dragEnd}
-                                    onMouseMove={ selectionType === "select" ? (isDragging ? dragMove : undefined) : zoom.dragMove}
-                                    onTouchStart={selectionType === "select" ?  dragStart : zoom.dragStart}
-                                    onTouchEnd={ selectionType === "select" ? (event) => {
-                                        dragEnd(event);
-                                        onDragEnd(zoom);
-                                    } : zoom.dragEnd}
-                                    onTouchMove={selectionType === "select" ? (isDragging ? dragMove : undefined) : zoom.dragMove}
-                                    onWheel={(event) => {
-                                        const point = localPoint(event) || { x: 0, y: 0 };
-                                        const zoomDirection = event.deltaY < 0 ? 1.1 : 0.9;
-                                        zoom.scale({ scaleX: zoomDirection, scaleY: zoomDirection, point });
-                                    }}
-                                />
+                                
                                 </svg>
-                                <defs>
-                                    <clipPath id="clip-minimap">
-                                        <rect width={parentWidth - 100} height={parentHeight - 100} />
-                                    </clipPath>
-                                </defs>
                                 {miniMap.show && createPortal(
                                     <div
                                     style={{
@@ -448,14 +450,13 @@ function Chart({ width: parentWidth, height: parentHeight, pointData: umapData, 
                                     >
                                         <svg width={(parentWidth-100) / 4} height={(parentHeight-100) / 4}>
                                             <g
-                                            clipPath="url(#clip-minimap)"
                                             transform={`
                                                 scale(0.25)
                                             `}
                                             >
                                             <rect width={parentWidth - 100} height={parentHeight - 100} fill="white" stroke='grey' strokeWidth={4} rx={8}/>
                                             {umapData.map((point, i) => (
-                                                <React.Fragment>
+                                                <React.Fragment key={i}>
                                                 <circle
                                                     cx={xScale(point.x)}
                                                     cy={yScale(point.y)}
@@ -488,17 +489,23 @@ function Chart({ width: parentWidth, height: parentHeight, pointData: umapData, 
                                 }
                             }, [zoomScale])}
                             {/* tooltip */}
-                            {tooltipOpen && tooltipData && isHoveredPointWithinBounds &&(
+                            {tooltipOpen && tooltipData && isHoveredPointWithinBounds && (
                                 <Tooltip left={xScaleTransformed(tooltipData.x) + 50} top={yScaleTransformed(tooltipData.y) + 50}>
                                     <div>
-                                        {Object.entries(tooltipData.metaData).map(([key, value]) => (
-                                            <div key={key}>
-                                                <strong>{key.charAt(0).toUpperCase() + key.slice(1)}: </strong> 
-                                                {typeof value === "string" && value.length > 45 
-                                                    ? `${value.replace(/_/g, " ").slice(0, 45)}...` 
-                                                    : value.replace(/_/g, " ")}
+                                        {tooltipBody ? tooltipBody(tooltipData) : (
+                                            <div>
+                                                {tooltipData.metaData && Object.entries(tooltipData.metaData).map(([key, value]) => (
+                                                    <div key={key}>
+                                                        <strong>{key.charAt(0).toUpperCase() + key.slice(1)}: </strong>
+                                                        {typeof value === 'string'
+                                                            ? (value.length > 45
+                                                                ? `${value.replace(/_/g, " ").slice(0, 45)}...`
+                                                                : value.replace(/_/g, " "))
+                                                            : String(value)}
+                                                    </div>
+                                                ))}
                                             </div>
-                                        ))}
+                                    )}
                                     </div>
                                 </Tooltip>
                             )}
