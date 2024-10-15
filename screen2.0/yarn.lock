@@ -3279,7 +3279,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@visx/tooltip@npm:3.3.0, @visx/tooltip@npm:^3.3.0":
+"@visx/tooltip@npm:3.3.0":
   version: 3.3.0
   resolution: "@visx/tooltip@npm:3.3.0"
   dependencies:
@@ -3622,25 +3622,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@weng-lab/psychscreen-ui-components@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "@weng-lab/psychscreen-ui-components@npm:2.0.0"
+"@weng-lab/psychscreen-ui-components@npm:^2.0.4":
+  version: 2.0.4
+  resolution: "@weng-lab/psychscreen-ui-components@npm:2.0.4"
   dependencies:
-    "@visx/tooltip": "npm:^3.3.0"
-    cytoscape: "npm:^3.29.2"
-    cytoscape-cose-bilkent: "npm:^4.1.0"
-    cytoscape-popper: "npm:^4.0.0"
-    html2canvas: "npm:^1.4.1"
-    tippy.js: "npm:^6.3.7"
-    use-react-screenshot: "npm:^4.0.0"
+    cytoscape: ^3.30.2
+    cytoscape-cose-bilkent: ^4.1.0
+    cytoscape-popper: ^4.0.1
+    tippy.js: ^6.3.7
+    use-react-screenshot: ^4.0.0
   peerDependencies:
     "@emotion/react": ^11.13.3
     "@emotion/styled": ^11.13.0
     "@mui/icons-material": ^6.1.1
     "@mui/material": ^6.1.1
-    react: ^18.2.0
-    react-dom: ^18.2.0
-  checksum: 354a95a94beb1795d30437df2efde9ff88717556c536c660f5d503f29cc5820cca8962cc696d41b581ac4b5550b46a2bd83d0b0c7815997e162990371c94e45b
+    react: ^18.3.1
+    react-dom: ^18.3.1
+  checksum: f0246dc11dc455456dfabae334cfda353dbf211098b4b244b63ad6edfe064dc27eb696f378380a8ad1c520c6ebf29eb572198a2f93070c03f8a4232d2ba24b2e
   languageName: node
   linkType: hard
 
@@ -4283,13 +4281,6 @@ __metadata:
   version: 1.0.2
   resolution: "balanced-match@npm:1.0.2"
   checksum: 9706c088a283058a8a99e0bf91b0a2f75497f185980d9ffa8b304de1d9e58ebda7c72c07ebf01dadedaac5b2907b2c6f566f660d62bd336c3468e960403b9d65
-  languageName: node
-  linkType: hard
-
-"base64-arraybuffer@npm:^1.0.2":
-  version: 1.0.2
-  resolution: "base64-arraybuffer@npm:1.0.2"
-  checksum: 15e6400d2d028bf18be4ed97702b11418f8f8779fb8c743251c863b726638d52f69571d4cc1843224da7838abef0949c670bde46936663c45ad078e89fee5c62
   languageName: node
   linkType: hard
 
@@ -5164,15 +5155,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"css-line-break@npm:^2.1.0":
-  version: 2.1.0
-  resolution: "css-line-break@npm:2.1.0"
-  dependencies:
-    utrie: "npm:^1.0.2"
-  checksum: 37b1fe632b03be7a287cd394cef8b5285666343443125c510df9cfb6a4734a2c71e154ec8f7bbff72d7c339e1e5872989b1c52d86162aed27d6cc114725bb4d0
-  languageName: node
-  linkType: hard
-
 "cssesc@npm:^3.0.0":
   version: 3.0.0
   resolution: "cssesc@npm:3.0.0"
@@ -5212,7 +5194,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cytoscape-popper@npm:^4.0.0":
+"cytoscape-popper@npm:^4.0.1":
   version: 4.0.1
   resolution: "cytoscape-popper@npm:4.0.1"
   peerDependencies:
@@ -5221,7 +5203,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cytoscape@npm:^3.29.2":
+"cytoscape@npm:^3.30.2":
   version: 3.30.2
   resolution: "cytoscape@npm:3.30.2"
   checksum: 45ec8f256b6bb59d505bf92f937d86d2547c62cd45e02e7e873320f321d39bb57261aad0dad06d0903f2af50decb367aa0a05193043da5332dc6feb37dce888c
@@ -7235,16 +7217,6 @@ __metadata:
   dependencies:
     react-is: "npm:^16.7.0"
   checksum: b1538270429b13901ee586aa44f4cc3ecd8831c061d06cb8322e50ea17b3f5ce4d0e2e66394761e6c8e152cd8c34fb3b4b690116c6ce2bd45b18c746516cb9e8
-  languageName: node
-  linkType: hard
-
-"html2canvas@npm:^1.4.1":
-  version: 1.4.1
-  resolution: "html2canvas@npm:1.4.1"
-  dependencies:
-    css-line-break: "npm:^2.1.0"
-    text-segmentation: "npm:^1.0.3"
-  checksum: c134324af57f3262eecf982e436a4843fded3c6cf61954440ffd682527e4dd350e0c2fafd217c0b6f9a455fe345d0c67b4505689796ab160d4ca7c91c3766739
   languageName: node
   linkType: hard
 
@@ -10485,7 +10457,7 @@ __metadata:
     "@visx/event": ^3.3.0
     "@visx/responsive": ^3.10.2
     "@visx/visx": ^3.11.0
-    "@weng-lab/psychscreen-ui-components": ^2.0.0
+    "@weng-lab/psychscreen-ui-components": ^2.0.4
     "@weng-lab/ts-ztable": ^4.0.1
     autoprefixer: 10.4.20
     bpnet-ui: ^0.3.8
@@ -11376,15 +11348,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"text-segmentation@npm:^1.0.3":
-  version: 1.0.3
-  resolution: "text-segmentation@npm:1.0.3"
-  dependencies:
-    utrie: "npm:^1.0.2"
-  checksum: 2e24632d59567c55ab49ac324815e2f7a8043e63e26b109636322ac3e30692cee8679a448fd5d0f0598a345f407afd0e34ba612e22524cf576d382d84058c013
-  languageName: node
-  linkType: hard
-
 "text-table@npm:^0.2.0":
   version: 0.2.0
   resolution: "text-table@npm:0.2.0"
@@ -11913,15 +11876,6 @@ __metadata:
   version: 1.0.1
   resolution: "utils-merge@npm:1.0.1"
   checksum: c81095493225ecfc28add49c106ca4f09cdf56bc66731aa8dabc2edbbccb1e1bfe2de6a115e5c6a380d3ea166d1636410b62ef216bb07b3feb1cfde1d95d5080
-  languageName: node
-  linkType: hard
-
-"utrie@npm:^1.0.2":
-  version: 1.0.2
-  resolution: "utrie@npm:1.0.2"
-  dependencies:
-    base64-arraybuffer: "npm:^1.0.2"
-  checksum: c96fbb7d4d8855a154327da0b18e39b7511cc70a7e4bcc3658e24f424bb884312d72b5ba777500b8858e34d365dc6b1a921dc5ca2f0d341182519c6b78e280a5
   languageName: node
   linkType: hard
 
