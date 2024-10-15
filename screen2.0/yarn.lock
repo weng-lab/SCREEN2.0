@@ -679,6 +679,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/runtime@npm:^7.25.7":
+  version: 7.25.7
+  resolution: "@babel/runtime@npm:7.25.7"
+  dependencies:
+    regenerator-runtime: ^0.14.0
+  checksum: 1d6133ed1cf1de1533cfe84a4a8f94525271a0d93f6af4f2cdae14884ec3c8a7148664ddf7fd2a14f82cc4485904a1761821a55875ad241c8b4034e95e7134b2
+  languageName: node
+  linkType: hard
+
 "@babel/template@npm:^7.18.10, @babel/template@npm:^7.20.7, @babel/template@npm:^7.24.7, @babel/template@npm:^7.25.0":
   version: 7.25.0
   resolution: "@babel/template@npm:7.25.0"
@@ -1751,19 +1760,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/icons-material@npm:^6.1.1":
-  version: 6.1.1
-  resolution: "@mui/icons-material@npm:6.1.1"
+"@mui/icons-material@npm:^6.1.4":
+  version: 6.1.4
+  resolution: "@mui/icons-material@npm:6.1.4"
   dependencies:
-    "@babel/runtime": "npm:^7.25.6"
+    "@babel/runtime": ^7.25.7
   peerDependencies:
-    "@mui/material": ^6.1.1
+    "@mui/material": ^6.1.4
     "@types/react": ^17.0.0 || ^18.0.0 || ^19.0.0
     react: ^17.0.0 || ^18.0.0 || ^19.0.0
   peerDependenciesMeta:
     "@types/react":
       optional: true
-  checksum: d03a410f8a73be026c296dfa2eefef57c86534618005a3abcb051c9327d1ca91d7db3aa8ed0d9f7d06588c3a41bb0fa6ec928427ace03e943cd534af522ec18a
+  checksum: 9de4e83defdbe05656145dc30d18236020cdb43404df0b65539c8cc8d2c0112be3ae65d7cbe70bfe0690dda424294e89f327497a9b0e62395a01ab1c52a0d27b
   languageName: node
   linkType: hard
 
@@ -10474,7 +10483,7 @@ __metadata:
     "@graphql-codegen/cli": ^5.0.2
     "@graphql-codegen/client-preset": ^4.3.3
     "@graphql-typed-document-node/core": ^3.2.0
-    "@mui/icons-material": ^6.1.1
+    "@mui/icons-material": ^6.1.4
     "@mui/lab": ^6.0.0-beta.10
     "@mui/material": ^6.1.1
     "@mui/material-nextjs": ^6.1.1
