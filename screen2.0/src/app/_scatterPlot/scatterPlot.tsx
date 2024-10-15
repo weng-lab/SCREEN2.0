@@ -16,7 +16,7 @@ import { createPortal } from 'react-dom';
     All information given to a point on the plot, including its coordinates(x and y), its radius, color, and opacity, and its metadata information
     which can be any amount of strings used to display in the tooltip
 */
-type Point<T = {}> = {
+type Point<T extends {}> = {
     x: number;
     y: number;
     r?: number;
@@ -56,7 +56,6 @@ type ChartProps<T = {}> = {
     bottomAxisLabel: string;
 };
 
-type TooltipData = Point;
 type Line = { x: number; y: number }[];
 type Lines = Line[];
 
@@ -69,8 +68,8 @@ const initialTransformMatrix={
     skewY: 0,
 }
 
-function Chart({ width: parentWidth, height: parentHeight, pointData: umapData, loading, selectionType, onSelectionChange, onPointClicked, tooltipBody, zoomScale, miniMap, leftAxisLable, bottomAxisLabel }: ChartProps) {
-    const [tooltipData, setTooltipData] = React.useState<TooltipData | null>(null);
+export const Chart = <T extends {}>({ width: parentWidth, height: parentHeight, pointData: umapData, loading, selectionType, onSelectionChange, onPointClicked, tooltipBody, zoomScale, miniMap, leftAxisLable, bottomAxisLabel }: ChartProps<T>) => {
+    const [tooltipData, setTooltipData] = React.useState<Point<T> | null>(null);
     const [tooltipOpen, setTooltipOpen] = React.useState(false);
     const [lines, setLines] = useState<Lines>([]);
     const margin = { top: 20, right: 20, bottom: 70, left: 70 };
@@ -137,7 +136,7 @@ function Chart({ width: parentWidth, height: parentHeight, pointData: umapData, 
                 setLines((currLines) => [...currLines, [{ x: adjustedX, y: adjustedY }]]);
             }
         },
-        [setLines, margin.left, margin.right, selectionType],
+        [selectionType, margin.left, margin.top],
       );
 
     const onDragMove = useCallback(
@@ -155,7 +154,7 @@ function Chart({ width: parentWidth, height: parentHeight, pointData: umapData, 
                 });
             }
         },
-        [setLines, margin.left, margin.right, selectionType],
+        [selectionType, margin.left, margin.top],
     );
 
     //find all points within the drawn lasso for selection purposes
@@ -309,6 +308,8 @@ function Chart({ width: parentWidth, height: parentHeight, pointData: umapData, 
                         xScaleTransformed(hoveredPoint.x) <= boundedWidth && 
                         yScaleTransformed(hoveredPoint.y) >= 0 && 
                         yScaleTransformed(hoveredPoint.y) <= boundedHeight;
+
+                    
                     return (
                         <>   
                             <svg width={parentWidth} height={parentHeight} onMouseMove={(e) => handleMouseMove(e, zoom)} onMouseLeave={handleMouseLeave} style={{ cursor: selectionType === "select" ? (isDragging ? 'none' : 'default') : (zoom.isDragging ? 'grabbing' : 'grab'), userSelect: 'none' }}>
@@ -516,5 +517,3 @@ function Chart({ width: parentWidth, height: parentHeight, pointData: umapData, 
         </>
     );
 }
-
-export { Chart };
