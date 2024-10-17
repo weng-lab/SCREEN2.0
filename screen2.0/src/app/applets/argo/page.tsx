@@ -1,7 +1,7 @@
 "use client"
 import React, { startTransition, useEffect } from "react"
 import {useState } from "react"
-import { Stack, Typography, Box, TextField, Button, Alert, FormGroup, Checkbox, FormControlLabel, CircularProgress, Paper, IconButton, Tooltip, Accordion, AccordionSummary, AccordionDetails } from "@mui/material"
+import { Stack, Typography, Box, TextField, Button, Alert, FormGroup, Checkbox, FormControlLabel, CircularProgress, Paper, IconButton, Tooltip, Accordion, AccordionSummary, AccordionDetails, RadioGroup, Radio, InputLabel, FormLabel, Drawer } from "@mui/material"
 import MenuItem from "@mui/material/MenuItem"
 import ClearIcon from '@mui/icons-material/Clear'
 import FormControl from "@mui/material/FormControl"
@@ -17,14 +17,24 @@ import { RegistryBiosample } from "../../search/types"
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { BED_INTERSECT_QUERY } from "../../_mainsearch/queries"
 import BiosampleTables from "../../_biosampleTables/BiosampleTables"
-
+import Grid from "@mui/material/Grid2"
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 
 export default function Argo(props: {header?: false, optionalFunction?: Function}) {
+    const [drawerOpen, setDrawerOpen] = useState(true);
+    const toggleDrawer = () => setDrawerOpen(!drawerOpen);
     const scoreNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
     const conservationNames = ["vertebrates", "mammals", "primates"]
     const linkedGenesMethods = ["Intact-HiC", "CTCF-ChIAPET", "RNAPII-ChIAPET", "CRISPRi-FlowFISH", "eQTLs"]
     const allScoreNames = scoreNames.concat(conservationNames).concat(linkedGenesMethods)
-    const allScoresObj = {"dnase": false, "h3k4me3": false, "h3k27ac": false, "ctcf": false, "atac": false, "vertebrates": false, "mammals": false, "primates": false, "Intact-HiC": false, "CTCF-ChIAPET": false, "RNAPII-ChIAPET": false, "CRISPRi-FlowFISH" : false, "eQTLs": false}
+    const allScoresObj = {"dnase": false, "h3k4me3": false, "h3k27ac": false, "ctcf": false, "atac": false, "conservation": true, "TFMotifs": false, "cCREs": true, "CA": true, "CA_CTCF": true, "CA_H3K4me3": true, "CA_TF": true, "dELS": true, "pELS": true, "PLS": true, "TF": true, "vertebrates": false, "mammals": false, "primates": false, "Intact-HiC": false, "CTCF-ChIAPET": false, "RNAPII-ChIAPET": false, "CRISPRi-FlowFISH" : false, "eQTLs": false}
+    const allFiltersObj = {
+        headerFilters: {"conservation": true, "TFMotifs": false, "cCREs": true,},
+        conservationFilters: {"240_mam_phyloP": true, "240_mam_phastCons": false, "43_prim_phyloP": false, "43_prim_phastCons": false, "100_vert_phyloP": false, "100_vert_phastCons": false},
+        classFilters: { "CA": true, "CA_CTCF": true, "CA_H3K4me3": true, "CA_TF": true, "dELS": true, "pELS": true, "PLS": true, "TF": true },
+        assayFilters: { "dnase": false, "h3k4me3": false, "h3k27ac": false, "ctcf": false, "atac": false},
+        linkedGeneFilters: {"Intact-HiC": false, "CTCF-ChIAPET": false, "RNAPII-ChIAPET": false, "CRISPRi-FlowFISH": false, "eQTLs": false },
+    };
 
     const allColumns = [
         { header: "DNase", value: (row) => row.dnase, render: (row) => row.dnase.toFixed(2) },
@@ -49,8 +59,10 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     const [key, setKey] = useState<string>()
     const [columns, setColumns] = useState([]) // State variable used to display the columns in the DataTable
     const [selectedBiosample, setSelectedBiosample] = useState<RegistryBiosample>(null)
-    const [availableScores, setAvailableScores] = useState(allScoresObj) // This is all the scores available according to the query, all false scores are disabled checkboxes below
-    const [checkedScores, setCheckedScores] = useState(allScoresObj) // This is the scores the user has selected, used for checkbox control
+    const [availableScores, setAvailableScores] = useState(allFiltersObj) // This is all the scores available according to the query, all false scores are disabled checkboxes below
+    const [checkedScores, setCheckedScores] = useState(allFiltersObj) // This is the scores the user has selected, used for checkbox control
+    const allChecked = Object.values(checkedScores).every(Boolean);
+    const someChecked = Object.values(checkedScores).some(Boolean);
     
     const [getOutput] = useLazyQuery(BED_INTERSECT_QUERY)
     
@@ -128,10 +140,10 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
             // Linked genes is by default unavailable and disabled, it is made available inside the query below
             allScoreNames.forEach( (s) => {
                 if (scoresToInclude.indexOf(s) !== -1) {
-                    availableScoresCopy[s] = true
+                    availableScoresCopy.assayFilters[s] = true
                 }
                 else {
-                    availableScoresCopy[s] = false
+                    availableScoresCopy.assayFilters[s] = false
                 }
             })
             setAvailableScores(availableScoresCopy)
@@ -184,7 +196,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
             })
             if (listGenes.length > 0) {
                 let availableScoresCopy = {...availableScores}
-                linkedGenesMethods.forEach((m) => availableScoresCopy[m] = false)
+                linkedGenesMethods.forEach((m) => availableScoresCopy.linkedGeneFilters[m] = false)
                 let newScores = rows.map((obj) => {
                     let objCopy = {...obj}
                     objCopy.linked_genes = objCopy.linked_genes.map((gene) => {
@@ -194,7 +206,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                         let max_tpm = 0
                         matchingGenes.forEach((matchingGene) => {
                             // If a matching gene is found for any method, the method is made available to select
-                            availableScoresCopy[`${gene.method}`] = true
+                            availableScoresCopy.linkedGeneFilters[`${gene.method}`] = true
                             
                             if (matchingGene.tpm > max_tpm) {
                                 max_tpm = matchingGene.tpm
@@ -215,8 +227,8 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
 
     const handleSearchChange = (event: SelectChangeEvent) => {
         setDataAPI([])
-        setAvailableScores(allScoresObj)
-        setCheckedScores(allScoresObj)
+        setAvailableScores(allFiltersObj)
+        setCheckedScores(allFiltersObj)
         setSelectedBiosample(null)
         setRows([])
         setColumns([])
@@ -225,8 +237,8 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
 
     const handleAssemblyChange = (event: SelectChangeEvent) => {
         setDataAPI([])
-        setAvailableScores(allScoresObj)
-        setCheckedScores(allScoresObj)
+        setAvailableScores(allFiltersObj)
+        setCheckedScores(allFiltersObj)
         setSelectedBiosample(null)
         setRows([])
         setColumns([])
@@ -249,7 +261,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     function evaluateRankings(data, available) { 
         // This below code is inspired from this link to create a ranking column for each score for every row
         // https://stackoverflow.com/questions/60989105/ranking-numbers-in-an-array-using-javascript
-        let scoresToInclude = allScoreNames.filter((s) => available[s])
+        let scoresToInclude = allScoreNames.filter((s) => available.assayFilters[s])
         scoresToInclude.forEach((scoreName) => {
             let score_column = data.map((r, i) => [i, r[scoreName]])
             score_column.sort((a,b) => b[1] - a[1])
@@ -258,7 +270,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
             })
         })
         setColumns(allColumns.filter(
-            (e) => available[e.header.toLowerCase()] || available[e.header]
+            (e) => available.assayFilters[e.header.toLowerCase()] || available.assayFilters[e.header]
         ))
         let random_string = Math.random().toString(36).slice(2, 10)
         setKey(random_string) // Setting a key to force update the DataTable component to refresh with the new columns
@@ -291,160 +303,474 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         return data
     }
 
-    function handleCheckBoxChange(event) {
-        // This function updates the checkedScores state variable and also updates columns to reflect the same
-        let checkedCopy = {...checkedScores}
-        checkedCopy[event.target.value] = event.target.checked
-        setCheckedScores(checkedCopy)
-        
-        // scoresToInclude = scoresToInclude.filter((e) => !e.disabled && e.checked).map((e) => e.value)
-        let scoresToInclude = Object.keys(checkedCopy).filter((e) => checkedCopy[e])
-        setRows(calculateAggregateRank([...rows], scoresToInclude))
+    function handleCheckBoxChange(event, groupName) {
+        let checkedCopy = JSON.parse(JSON.stringify(checkedScores));
+        checkedCopy[groupName][event.target.value] = event.target.checked;
+        setCheckedScores(checkedCopy);
+    
+        let scoresToInclude = Object.keys(checkedCopy[groupName]).filter((e) => checkedCopy[groupName][e]);
+        setRows(calculateAggregateRank([...rows], scoresToInclude));
         setColumns(allColumns.filter(
-            (e) => checkedCopy[e.header.toLowerCase().split(' ')[0]] || checkedCopy[e.header]
-        ))
-        setKey(scoresToInclude.join(' '))
+            (e) => checkedCopy[groupName][e.header.toLowerCase().split(' ')[0]] || checkedCopy[groupName][e.header]
+        ));
+        setKey(scoresToInclude.join(' '));
     }
 
+    const handleSelectAll = (event, groupName, keys) => {
+        const isChecked = event.target.checked;
+        let updatedScores = { ...checkedScores };
+      
+        // Update only the specific group
+        keys.forEach((key) => {
+            updatedScores[groupName][key] = isChecked;
+        });
+      
+        setCheckedScores(updatedScores);
+      
+        // let scoresToInclude = Object.keys(updatedScores[groupName]).filter((e) => updatedScores[groupName][e]);
+        // setRows(calculateAggregateRank([...rows], scoresToInclude));
+        // setColumns(allColumns.filter(
+        //   (e) => updatedScores[groupName][e.header.toLowerCase().split(' ')[0]] || updatedScores[e.header]
+        // ));
+        // setKey(scoresToInclude.join(' '));
+      };
+
+      const areAllChecked = (groupName, keys) => {
+        return keys.every((key) => checkedScores[groupName][key]);
+      };
+      
+      const isIndeterminate = (groupName, keys) => {
+        const totalChecked = keys.filter((key) => checkedScores[groupName][key]).length;
+        return totalChecked > 0 && totalChecked < keys.length;
+      };
+      
     return (
-    <Box maxWidth="95%" margin="auto" marginTop={3}>
-        <Typography
-        alignSelf={"flex-end"}
-        variant="h4">
-            <b>A</b>ggregate <b>R</b>ank <b>G</b>enerat<b>o</b>r
-        </Typography>
-        {error_scores && <Alert variant="filled" severity="error">{error_scores.message}</Alert>}
-        {error_genes && <Alert variant="filled" severity="error">{error_genes.message}</Alert>}
-        {error_quantifications && <Alert variant="filled" severity="error">{error_quantifications.message}</Alert>}
-        <Box>
-        <Stack direction={props.header ? "row" : "column"} spacing={3} mt="10px">
-            <Stack direction={"row"} alignItems={"center"} flexWrap={"wrap"}>
-                {!props.header && <Typography variant={"h5"} mr={1} alignSelf="center">Upload Through</Typography>}
-                <Stack direction={"row"} alignItems={"center"} flexWrap={props.header ? "nowrap" : "wrap"}>
-                    <FormControl variant="standard" size="medium" sx={{ '& .MuiInputBase-root': { fontSize: '1.5rem' } }}>
-                        <Select
-                        fullWidth
-                        id="select-search"
-                        value={selectedSearch}
-                        onChange={handleSearchChange}
-                        //Manually aligning like this isn't ideal
-                        SelectDisplayProps={{ style: { paddingBottom: '0px', paddingTop: '1px' } }}
+        <Box display="flex" height="100vh">
+            {!drawerOpen && (
+                <IconButton
+                    onClick={toggleDrawer}
+                    color="primary"
+                >
+                    <FilterListIcon />
+                </IconButton>
+            )}
+            <Drawer
+                anchor="left"
+                open={drawerOpen}
+                onClose={toggleDrawer}
+                variant="persistent"
+                sx={{
+                    '& .MuiDrawer-paper': {
+                        width: '40vh',
+                        top: theme => `${theme.mixins.toolbar.minHeight}px`,
+                        zIndex: theme => theme.zIndex.appBar - 1,
+                    }
+                }}
+            >
+                <Box
+                    height="100vh"
+                    overflow="auto"
+                >
+                    <Stack direction={"row"} justifyContent={"space-between"} padding={1}>
+                        <Typography alignContent={"center"}>Filters</Typography>
+                        <IconButton
+                            color="primary"
+                            onClick={toggleDrawer}
                         >
-                        <MenuItem value={"BED File"}>BED File</MenuItem>
-                        <MenuItem value={"Text Box"}>Text Box</MenuItem>
-                        </Select>
-                    </FormControl>
-                    <Typography variant={props.header ? "body1" : "h5"} ml={1} mr={1} alignSelf="center">in</Typography>
-                    <FormControl variant="standard" size="medium" sx={{ '& .MuiInputBase-root': { fontSize: '1.5rem' } }}>
-                        <Select
-                        fullWidth
-                        id="select-search"
-                        value={assembly}
-                        onChange={handleAssemblyChange}
-                        SelectDisplayProps={{ style: { paddingBottom: '0px', paddingTop: '1px' } }}
-                        >
-                        <MenuItem value={"GRCh38"}>GRCh38</MenuItem>
-                        <MenuItem value={"mm10"}>mm10</MenuItem>
-                        </Select>
-                    </FormControl>
-                </Stack>
-            </Stack>
-        </Stack>
-            <Box mt="20px" maxWidth="40vw">
-                {selectedSearch === "BED File" ? (
-                        <BedUpload
-                            assembly = {assembly}
-                            appletCallback={appletCallBack}
-                        />
-                ):
-                <FormControl fullWidth>
-                    <form action={handleTextUpload}>
-                        <TextField name="textUploadFile" multiline fullWidth rows={5} 
-                        placeholder="Copy and paste your data from Excel here"
-                        ></TextField>
-                        <Button type="submit" size="medium" variant="outlined">Submit</Button>
-                    </form>
-                </FormControl>
-                
-                }   
+                            <FilterListIcon />
+                        </IconButton>
+                    </Stack>
+                    <Accordion defaultExpanded square disableGutters>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                            Sequence
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            <FormGroup>
+                                <FormControlLabel value="conservation" control={<Checkbox onChange={(event) => handleCheckBoxChange(event, "headerFilters")} checked={checkedScores.headerFilters.conservation} />} label="Conservation" />
+                                <FormControl fullWidth>
+                                    <Select size="small" defaultValue={"240-mam-phyloP"} disabled={!checkedScores.headerFilters.conservation}>
+                                        <MenuItem value={"240-mam-phyloP"}>240-Mammal(phyloP)</MenuItem>
+                                        <MenuItem value={"240-mam-phastCons"}>240-Mammal(phastCons)</MenuItem>
+                                        <MenuItem value={"43-prim-phyloP"}>43-Primate(phyloP)</MenuItem>
+                                        <MenuItem value={"43-prim-phastCons"}>43-Primate(phastCons)</MenuItem>
+                                        <MenuItem value={"100-vert-phyloP"}>100-Vertebrate(phyloP)</MenuItem>
+                                        <MenuItem value={"100-vert-phastCons"}>100-Vertebrate(phastCons)</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </FormGroup>
+                            <FormControl sx={{ width: "50%" }}>
+                                <FormLabel>Rank By</FormLabel>
+                                <Select size="small" defaultValue={"max"} disabled={!checkedScores.headerFilters.conservation}>
+                                    <MenuItem value={"min"}>Min</MenuItem>
+                                    <MenuItem value={"max"}>Max</MenuItem>
+                                    <MenuItem value={"avg"}>Average</MenuItem>
+                                </Select>
+                            </FormControl>
+                            <FormGroup>
+                                <FormControlLabel value="TFMotifs" control={<Checkbox onChange={(event) => handleCheckBoxChange(event, "headerFilters")} checked={checkedScores.headerFilters.TFMotifs} />} label="TF Motifs" />
+                                <RadioGroup>
+                                    <FormControlLabel value="factorbook" control={<Radio />} label="Factorbook" disabled={!checkedScores.headerFilters.TFMotifs} />
+                                    <FormControlLabel value="factorbookTF" control={<Radio />} label="Factorbook + TF Motif" disabled={!checkedScores.headerFilters.TFMotifs} />
+                                    <FormControlLabel value="hocomoco" control={<Radio />} label="HOCOMOCO" disabled={!checkedScores.headerFilters.TFMotifs} />
+                                    <FormControlLabel value="zMotif" control={<Radio />} label="ZMotif" disabled={!checkedScores.headerFilters.TFMotifs} />
+                                </RadioGroup>
+                            </FormGroup>
+                            <FormGroup>
+                                <Typography lineHeight={"40px"}>Rank By</Typography>
+                                <FormControlLabel value="numMotifs" control={<Checkbox />} label="Number of Motifs" disabled={!checkedScores.headerFilters.TFMotifs} />
+                                <FormControlLabel value="motifScoreDelta" control={<Checkbox />} label="Motif Score Delta" disabled={!checkedScores.headerFilters.TFMotifs} />
+                                <FormControlLabel value="TFPeakStrength" control={<Checkbox />} label="TF Peak Strength" disabled={!checkedScores.headerFilters.TFMotifs} />
+                            </FormGroup>
+                        </AccordionDetails>
+                    </Accordion>
+                    <Accordion square disableGutters>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                            Element
+                        </AccordionSummary>
+                        <AccordionDetails>
+
+                            <FormControlLabel value="cCREs" control={<Checkbox onChange={(event) => handleCheckBoxChange(event, "headerFilters")} checked={checkedScores.headerFilters.cCREs} />} label="cCREs" />
+                            <Accordion square disableGutters disabled={!checkedScores.headerFilters.cCREs}>
+                                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                                    Within a Biosample
+                                </AccordionSummary>
+                                <AccordionDetails>
+                                    {selectedBiosample && (
+                                        <Paper elevation={0}>
+                                            <IconButton
+                                                size="small"
+                                                sx={{ p: 0 }}
+                                                onClick={(event) => {
+                                                    setSelectedBiosample(null);
+                                                    event.stopPropagation();
+                                                }}
+                                            >
+                                                <Tooltip
+                                                    placement="top"
+                                                    title={"Clear Biosample"}
+                                                >
+                                                    <ClearIcon />
+                                                </Tooltip>
+                                                <Typography>
+                                                    {selectedBiosample.ontology.charAt(0).toUpperCase() +
+                                                        selectedBiosample.ontology.slice(1) +
+                                                        " - " +
+                                                        selectedBiosample.displayname}
+                                                </Typography>
+                                            </IconButton>
+                                        </Paper>
+                                    )}
+                                    <BiosampleTables
+                                        selected={selectedBiosample?.name}
+                                        onBiosampleClicked={setSelectedBiosample}
+                                        assembly={assembly}
+                                    />
+                                </AccordionDetails>
+                            </Accordion>
+                            <FormGroup>
+                                <Typography>Include Classes</Typography>
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={areAllChecked("classFilters", ["CA", "CA_CTCF", "CA_H3K4me3", "CA_TF", "dELS", "pELS", "PLS", "TF"])}
+                                            indeterminate={isIndeterminate("classFilters", ["CA", "CA_CTCF", "CA_H3K4me3", "CA_TF", "dELS", "pELS", "PLS", "TF"])}
+                                            onChange={(event) => handleSelectAll(event, "classFilters", ["CA", "CA_CTCF", "CA_H3K4me3", "CA_TF", "dELS", "pELS", "PLS", "TF"])}
+                                        />
+                                    }
+                                    label="Select All"
+                                    disabled={!checkedScores.headerFilters.cCREs}
+                                />
+                                <Grid container spacing={0} ml={2}>
+                                    <Grid size={6}>
+                                        <FormGroup>
+                                            <FormControlLabel
+                                                checked={checkedScores.classFilters.CA}
+                                                onChange={(event) => handleCheckBoxChange(event, "classFilters")}
+                                                control={<Checkbox />}
+                                                label="CA"
+                                                value="CA"
+                                                disabled={!checkedScores.headerFilters.cCREs}
+                                            />
+                                            <FormControlLabel
+                                                checked={checkedScores.classFilters.CA_CTCF}
+                                                onChange={(event) => handleCheckBoxChange(event, "classFilters")}
+                                                control={<Checkbox />}
+                                                label="CA-CTCF"
+                                                value="CA_CTCF"
+                                                disabled={!checkedScores.headerFilters.cCREs}
+                                            />
+                                            <FormControlLabel
+                                                checked={checkedScores.classFilters.CA_H3K4me3}
+                                                onChange={(event) => handleCheckBoxChange(event, "classFilters")}
+                                                control={<Checkbox />}
+                                                label="CA-H3K4me3"
+                                                value="CA_H3K4me3"
+                                                disabled={!checkedScores.headerFilters.cCREs}
+                                            />
+                                            <FormControlLabel
+                                                checked={checkedScores.classFilters.CA_TF}
+                                                onChange={(event) => handleCheckBoxChange(event, "classFilters")}
+                                                control={<Checkbox />}
+                                                label="CA-TF"
+                                                value="CA_TF"
+                                                disabled={!checkedScores.headerFilters.cCREs}
+                                            />
+                                        </FormGroup>
+                                    </Grid>
+                                    <Grid size={6}>
+                                        <FormGroup>
+                                            <FormControlLabel
+                                                checked={checkedScores.classFilters.dELS}
+                                                onChange={(event) => handleCheckBoxChange(event, "classFilters")}
+                                                control={<Checkbox />}
+                                                label="dELS"
+                                                value="dELS"
+                                                disabled={!checkedScores.headerFilters.cCREs}
+                                            />
+                                            <FormControlLabel
+                                                checked={checkedScores.classFilters.pELS}
+                                                onChange={(event) => handleCheckBoxChange(event, "classFilters")}
+                                                control={<Checkbox />}
+                                                label="pELS"
+                                                value="pELS"
+                                                disabled={!checkedScores.headerFilters.cCREs}
+                                            />
+                                            <FormControlLabel
+                                                checked={checkedScores.classFilters.PLS}
+                                                onChange={(event) => handleCheckBoxChange(event, "classFilters")}
+                                                control={<Checkbox />}
+                                                label="PLS"
+                                                value="PLS"
+                                                disabled={!checkedScores.headerFilters.cCREs}
+                                            />
+                                            <FormControlLabel
+                                                checked={checkedScores.classFilters.TF}
+                                                onChange={(event) => handleCheckBoxChange(event, "classFilters")}
+                                                control={<Checkbox />}
+                                                label="TF"
+                                                value="TF"
+                                                disabled={!checkedScores.headerFilters.cCREs}
+                                            />
+                                        </FormGroup>
+                                    </Grid>
+                                </Grid>
+                            </FormGroup>
+                            <FormGroup>
+                                <Typography>Include Assay Z-Scores</Typography>
+                                <FormControlLabel
+                                    control={
+                                        <Checkbox
+                                            checked={areAllChecked("assayFilters", ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"])}
+                                            indeterminate={isIndeterminate("assayFilters", ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"])}
+                                            onChange={(event) => handleSelectAll(event, "assayFilters", ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"])}
+                                        />
+                                    }
+                                    label="Select All"
+                                    disabled={!checkedScores.headerFilters.cCREs}
+                                />
+                                <Grid container spacing={0} ml={2}>
+                                    <Grid size={6}>
+                                        <FormControlLabel
+                                            label="DNase"
+                                            control={
+                                                <Checkbox
+                                                    onChange={(event) => handleCheckBoxChange(event, "assayFilters")}
+                                                    disabled={!availableScores.assayFilters.dnase || !checkedScores.headerFilters.cCREs}
+                                                    checked={checkedScores.assayFilters.dnase}
+                                                    value="dnase"
+                                                />
+                                            }
+                                        />
+                                        <FormControlLabel
+                                            label="H3K4me3"
+                                            control={
+                                                <Checkbox
+                                                    onChange={(event) => handleCheckBoxChange(event, "assayFilters")}
+                                                    disabled={!availableScores.assayFilters.h3k4me3 || !checkedScores.headerFilters.cCREs}
+                                                    checked={checkedScores.assayFilters.h3k4me3}
+                                                    value="h3k4me3"
+                                                />
+                                            }
+                                        />
+                                        <FormControlLabel
+                                            label="H3K27ac"
+                                            control={
+                                                <Checkbox
+                                                    onChange={(event) => handleCheckBoxChange(event, "assayFilters")}
+                                                    disabled={!availableScores.assayFilters.h3k27ac || !checkedScores.headerFilters.cCREs}
+                                                    checked={checkedScores.assayFilters.h3k27ac}
+                                                    value="h3k27ac"
+                                                />
+                                            }
+                                        />
+                                    </Grid>
+                                    <Grid size={6}>
+                                        <FormControlLabel
+                                            label="CTCF"
+                                            control={
+                                                <Checkbox
+                                                    onChange={(event) => handleCheckBoxChange(event, "assayFilters")}
+                                                    disabled={!availableScores.assayFilters.ctcf || !checkedScores.headerFilters.cCREs}
+                                                    checked={checkedScores.assayFilters.ctcf}
+                                                    value="ctcf"
+                                                />
+                                            }
+                                        />
+                                        <FormControlLabel
+                                            label="ATAC"
+                                            control={
+                                                <Checkbox
+                                                    onChange={(event) => handleCheckBoxChange(event, "assayFilters")}
+                                                    disabled={!availableScores.assayFilters.atac || !checkedScores.headerFilters.cCREs}
+                                                    checked={checkedScores.assayFilters.atac}
+                                                    value="atac"
+                                                />
+                                            }
+                                        />
+                                    </Grid>
+                                </Grid>
+                            </FormGroup>
+                        </AccordionDetails>
+                    </Accordion>
+
+                    <Accordion square disableGutters>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                            Gene
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            <Stack>
+                                <Typography lineHeight={"40px"}>Linked Genes</Typography>
+                                <FormGroup>
+                                    <FormControlLabel label="Intact Hi-C Loops" control={<Checkbox onChange={handleCheckBoxChange} disabled={!!selectedBiosample || !availableScores["Intact-HiC"]} checked={checkedScores["Intact-HiC"]} value="Intact-HiC"></Checkbox>}></FormControlLabel>
+                                    <FormControlLabel label="CTCF ChIA-PET Interaction" control={<Checkbox onChange={handleCheckBoxChange} disabled={!!selectedBiosample || !availableScores["CTCF-ChIAPET"]} checked={checkedScores["CTCF-ChIAPET"]} value="CTCF-ChIAPET"></Checkbox>}></FormControlLabel>
+                                    <FormControlLabel label="RNAPII ChIA-PET Interaction" control={<Checkbox onChange={handleCheckBoxChange} disabled={!!selectedBiosample || !availableScores["RNAPII-ChIAPET"]} checked={checkedScores["RNAPII-ChIAPET"]} value="RNAPII-ChIAPET"></Checkbox>}></FormControlLabel>
+                                    <FormControlLabel label="CRISPRi-FlowFISH" control={<Checkbox onChange={handleCheckBoxChange} disabled={!!selectedBiosample || !availableScores["CRISPRi-FlowFISH"]} checked={checkedScores["CRISPRi-FlowFISH"]} value="CRISPRi-FlowFISH"></Checkbox>}></FormControlLabel>
+                                    <FormControlLabel label="eQTLs" control={<Checkbox onChange={handleCheckBoxChange} disabled={!!selectedBiosample || !availableScores["eQTLs"]} checked={checkedScores["eQTLs"]} value="eQTLs"></Checkbox>}></FormControlLabel>
+                                </FormGroup>
+                            </Stack>
+                        </AccordionDetails>
+                    </Accordion>
+                </Box>
+            </Drawer>
+            <Box
+                ml="25vw"
+                padding={3}
+                flexGrow={1}
+            >
+                <Typography variant="h4" mb={3}>
+                    <b>A</b>ggregate <b>R</b>ank <b>G</b>enerat<b>o</b>r
+                </Typography>
+
+                {error_scores && (
+                    <Alert variant="filled" severity="error">
+                        {error_scores.message}
+                    </Alert>
+                )}
+                {error_genes && (
+                    <Alert variant="filled" severity="error">
+                        {error_genes.message}
+                    </Alert>
+                )}
+                {error_quantifications && (
+                    <Alert variant="filled" severity="error">
+                        {error_quantifications.message}
+                    </Alert>
+                )}
+                <Box>
+                    <Stack direction={props.header ? "row" : "column"} spacing={3} mt="10px">
+                        <Stack direction={"row"} alignItems={"center"} flexWrap={"wrap"}>
+                            {!props.header && (
+                                <Typography variant={"h5"} mr={1} alignSelf="center">
+                                    Upload Through
+                                </Typography>
+                            )}
+                            <Stack
+                                direction={"row"}
+                                alignItems={"center"}
+                                flexWrap={props.header ? "nowrap" : "wrap"}
+                            >
+                                <FormControl
+                                    variant="standard"
+                                    size="medium"
+                                    sx={{ '& .MuiInputBase-root': { fontSize: '1.5rem' } }}
+                                >
+                                    <Select
+                                        fullWidth
+                                        id="select-search"
+                                        value={selectedSearch}
+                                        onChange={handleSearchChange}
+                                        SelectDisplayProps={{
+                                            style: { paddingBottom: '0px', paddingTop: '1px' },
+                                        }}
+                                    >
+                                        <MenuItem value={"BED File"}>BED File</MenuItem>
+                                        <MenuItem value={"Text Box"}>Text Box</MenuItem>
+                                    </Select>
+                                </FormControl>
+                                <Typography variant={props.header ? "body1" : "h5"} ml={1} mr={1} alignSelf="center">
+                                    in
+                                </Typography>
+                                <FormControl
+                                    variant="standard"
+                                    size="medium"
+                                    sx={{ '& .MuiInputBase-root': { fontSize: '1.5rem' } }}
+                                >
+                                    <Select
+                                        fullWidth
+                                        id="select-search"
+                                        value={assembly}
+                                        onChange={handleAssemblyChange}
+                                        SelectDisplayProps={{
+                                            style: { paddingBottom: '0px', paddingTop: '1px' },
+                                        }}
+                                    >
+                                        <MenuItem value={"GRCh38"}>GRCh38</MenuItem>
+                                        <MenuItem value={"mm10"}>mm10</MenuItem>
+                                    </Select>
+                                </FormControl>
+                            </Stack>
+                        </Stack>
+                    </Stack>
+                    <Box mt="20px" maxWidth="40vw">
+                        {selectedSearch === "BED File" ? (
+                            <BedUpload
+                                assembly={assembly}
+                                appletCallback={appletCallBack}
+                            />
+                        ) :
+                            <FormControl fullWidth>
+                                <form action={handleTextUpload}>
+                                    <TextField name="textUploadFile" multiline fullWidth rows={5}
+                                        placeholder="Copy and paste your data from Excel here"
+                                    ></TextField>
+                                    <Button type="submit" size="medium" variant="outlined">Submit</Button>
+                                </form>
+                            </FormControl>
+
+                        }
+                    </Box>
+                </Box>
+                {rows.length > 0 &&
+                    <Box mt="20px">
+                        {(loading_scores || loading_genes || loading_quantifications) ? <CircularProgress /> :
+                            <DataTable
+                                key={key}
+                                columns={[{ header: "Accession", value: (row) => row.accession },
+                                { header: "User ID", value: (row) => row.user_id },
+                                { header: "Aggregate Rank", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) }]
+                                    .concat(columns)}
+                                rows={rows}
+                                sortColumn={2}
+                                sortDescending
+                                itemsPerPage={10}
+                                searchable
+                                tableTitle="User Uploaded cCREs Ranked By Scores"
+                            >
+                            </DataTable>
+                        }
+                    </Box>
+                }
             </Box>
         </Box>
-    {rows.length > 0 && 
-    <Box mt="20px">
-        <Accordion style={{"border": "1px solid", "marginBottom": "15px"}}>
-            <AccordionSummary expandIcon={<FilterListIcon />}>Filters</AccordionSummary>
-            <AccordionDetails>
-                <Stack direction="row" spacing="7%" height="32vh">
-                    <Box width="40%" overflow="scroll">
-                    <Typography lineHeight={"40px"}>Within a Biosample</Typography>
-                        {selectedBiosample &&
-                            <Paper elevation={0}>
-                                <IconButton size="small" sx={{ p: 0 }} onClick={(event) => { setSelectedBiosample(null); event.stopPropagation() }}>
-                                    <Tooltip placement="top" title={"Clear Biosample"}>
-                                        <ClearIcon />
-                                    </Tooltip>
-                                    <Typography>{selectedBiosample.ontology.charAt(0).toUpperCase() + selectedBiosample.ontology.slice(1) + " - " + selectedBiosample.displayname}</Typography>
-                                </IconButton>
-                            </Paper>
-                        }
-                        <BiosampleTables
-                            selected={selectedBiosample?.name}
-                            onBiosampleClicked={setSelectedBiosample}
-                            assembly={assembly}
-                        />
-                    </Box>
-                    <Stack>
-                        <Typography lineHeight={"40px"}>Assays</Typography>
-                        <FormGroup>
-                            <FormControlLabel label="DNase" control={<Checkbox onChange={handleCheckBoxChange} disabled={!availableScores.dnase} checked={checkedScores.dnase} value="dnase"></Checkbox>}></FormControlLabel>
-                            <FormControlLabel label="H3K4me3" control={<Checkbox onChange={handleCheckBoxChange} disabled={!availableScores.h3k4me3} checked={checkedScores.h3k4me3} value="h3k4me3"></Checkbox>}></FormControlLabel>
-                            <FormControlLabel label="H3K27ac" control={<Checkbox onChange={handleCheckBoxChange} disabled={!availableScores.h3k27ac} checked={checkedScores.h3k27ac} value="h3k27ac"></Checkbox>}></FormControlLabel>
-                            <FormControlLabel label="CTCF" control={<Checkbox onChange={handleCheckBoxChange} disabled={!availableScores.ctcf} checked={checkedScores.ctcf} value="ctcf"></Checkbox>}></FormControlLabel>
-                            <FormControlLabel label="ATAC" control={<Checkbox onChange={handleCheckBoxChange} disabled={!availableScores.atac} checked={checkedScores.atac} value="atac"></Checkbox>}></FormControlLabel>
-                        </FormGroup>
-                    </Stack>
-                    <Stack>
-                        <Typography lineHeight={"40px"}>Conservation</Typography>
-                        <FormGroup>
-                            <FormControlLabel label="Vertebrates" control={<Checkbox onChange={handleCheckBoxChange} disabled={!availableScores.vertebrates} checked={checkedScores.vertebrates} value="vertebrates"></Checkbox>}></FormControlLabel>
-                            <FormControlLabel label="Mammals" control={<Checkbox onChange={handleCheckBoxChange} disabled={!availableScores.mammals} checked={checkedScores.mammals} value="mammals"></Checkbox>}></FormControlLabel>
-                            <FormControlLabel label="Primates" control={<Checkbox onChange={handleCheckBoxChange} disabled={!availableScores.primates} checked={checkedScores.primates} value="primates"></Checkbox>}></FormControlLabel>
-                        </FormGroup>
-                    </Stack>
-                    <Stack>
-                        <Typography lineHeight={"40px"}>Linked Genes</Typography>
-                        <FormGroup>
-                            <FormControlLabel label="Intact Hi-C Loops" control={<Checkbox onChange={handleCheckBoxChange} disabled={!!selectedBiosample || !availableScores["Intact-HiC"]} checked={checkedScores["Intact-HiC"]} value="Intact-HiC"></Checkbox>}></FormControlLabel>
-                            <FormControlLabel label="CTCF ChIA-PET Interaction" control={<Checkbox onChange={handleCheckBoxChange} disabled={!!selectedBiosample || !availableScores["CTCF-ChIAPET"]} checked={checkedScores["CTCF-ChIAPET"]} value="CTCF-ChIAPET"></Checkbox>}></FormControlLabel>
-                            <FormControlLabel label="RNAPII ChIA-PET Interaction" control={<Checkbox onChange={handleCheckBoxChange} disabled={!!selectedBiosample || !availableScores["RNAPII-ChIAPET"]} checked={checkedScores["RNAPII-ChIAPET"]} value="RNAPII-ChIAPET"></Checkbox>}></FormControlLabel>
-                            <FormControlLabel label="CRISPRi-FlowFISH" control={<Checkbox onChange={handleCheckBoxChange} disabled={!!selectedBiosample || !availableScores["CRISPRi-FlowFISH"]} checked={checkedScores["CRISPRi-FlowFISH"]} value="CRISPRi-FlowFISH"></Checkbox>}></FormControlLabel>
-                            <FormControlLabel label="eQTLs" control={<Checkbox onChange={handleCheckBoxChange} disabled={!!selectedBiosample || !availableScores["eQTLs"]} checked={checkedScores["eQTLs"]} value="eQTLs"></Checkbox>}></FormControlLabel>
-                        </FormGroup>
-                    </Stack>
-                </Stack>
-            </AccordionDetails>
-        </Accordion>
-
-        {(loading_scores || loading_genes || loading_quantifications) ? <CircularProgress/>:
-        <DataTable
-        key={key}
-        columns={[{ header: "Accession", value: (row) => row.accession },
-            { header: "User ID", value: (row) => row.user_id },
-            { header: "Aggregate Rank", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) }]
-            .concat(columns)}
-        rows={rows}
-        sortColumn={2}
-        sortDescending
-        itemsPerPage={10}
-        searchable
-        tableTitle="User Uploaded cCREs Ranked By Scores"
-        >
-        </DataTable>
-        } 
-    </Box>
-        
-    }
-
-    </Box>
     )
 }
