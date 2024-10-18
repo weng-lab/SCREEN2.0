@@ -30,3 +30,30 @@ export type ZScores = {
     "eQTLs_rank": number
     aggRank?: number
 }
+
+export type GenomicRegion = {
+    chr: string
+    start: number
+    end: number
+}
+
+export type RankedRegions = (GenomicRegion & {rank: number})[]
+
+export type CCREClasses = {
+    CA: boolean
+    CACTCF: boolean
+    CAH3K4me3: boolean
+    CATF: boolean
+    dELS: boolean
+    pELS: boolean
+    PLS: boolean
+    TF: boolean
+}
+
+export type CCREAssays = {
+    DNase: boolean
+    ATAC: boolean
+    CTCF: boolean
+    H3K4me3: boolean
+    H3K27ac: boolean
+}

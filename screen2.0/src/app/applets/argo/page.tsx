@@ -11,7 +11,7 @@ import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { GENE_EXP_QUERY, LINKED_GENES, Z_SCORES_QUERY } from "./queries"
 import { ApolloQueryResult, useLazyQuery, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
-import { ZScores, LinkedGenes } from "./types"
+import { ZScores, LinkedGenes, GenomicRegion, CCREAssays, CCREClasses, RankedRegions } from "./types"
 import { BIOSAMPLE_Data, biosampleQuery } from "../../../common/lib/queries"
 import { RegistryBiosample } from "../../search/types"
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -19,17 +19,54 @@ import { BED_INTERSECT_QUERY } from "../../_mainsearch/queries"
 import BiosampleTables from "../../_biosampleTables/BiosampleTables"
 import Grid from "@mui/material/Grid2"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
+import { CancelRounded } from "@mui/icons-material"
 
 export default function Argo(props: {header?: false, optionalFunction?: Function}) {
     const [drawerOpen, setDrawerOpen] = useState(true);
     const toggleDrawer = () => setDrawerOpen(!drawerOpen);
+
+    // New state variables
+    const [alignment, setAlignment] = useState("241-mam-phyloP");
+    const [rankBy, setRankBy] = useState("max");
+    const [motifCatalog, setMotifCatalog] = useState<"factorbook" | "factorbookTF" | "hocomoco" | "zMotif">("factorbook");
+    const [numOverlappingMotifs, setNumOverlappingMotifs] = useState(false);
+    const [motifScoreDelta, setMotifScoreDelta] = useState(false);
+    const [overlapsTFPeak, setOverlapsTFPeak] = useState(false);
+    const [cCREAssembly, setCCREAssembly] = useState<"GRCh38" | "mm10">("GRCh38");
+    const [selectedBiosample, setSelectedBiosample] = useState<RegistryBiosample>(null);
+    const [assays, setAssays] = useState<CCREAssays>({
+        DNase: true,
+        ATAC: true,
+        CTCF: true,
+        H3K4me3: true,
+        H3K27ac: true,
+    });
+    const [availableAssays, setAvailableAssays] = useState<CCREAssays>({
+        DNase: true,
+        ATAC: true,
+        CTCF: true,
+        H3K4me3: true,
+        H3K27ac: true,
+    });
+    const [classes, setClasses] = useState<CCREClasses>({
+        CA: true,
+        CACTCF: true,
+        CAH3K4me3: true,
+        CATF: true,
+        dELS: true,
+        pELS: true,
+        PLS: true,
+        TF: true,
+    });
+    const [mustHaveOrtholog, setMustHaveOrtholog] = useState(false);
+
     const scoreNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
     const conservationNames = ["vertebrates", "mammals", "primates"]
     const linkedGenesMethods = ["Intact-HiC", "CTCF-ChIAPET", "RNAPII-ChIAPET", "CRISPRi-FlowFISH", "eQTLs"]
     const allScoreNames = scoreNames.concat(conservationNames).concat(linkedGenesMethods)
     const allScoresObj = {"dnase": false, "h3k4me3": false, "h3k27ac": false, "ctcf": false, "atac": false, "conservation": true, "TFMotifs": false, "cCREs": true, "CA": true, "CA_CTCF": true, "CA_H3K4me3": true, "CA_TF": true, "dELS": true, "pELS": true, "PLS": true, "TF": true, "vertebrates": false, "mammals": false, "primates": false, "Intact-HiC": false, "CTCF-ChIAPET": false, "RNAPII-ChIAPET": false, "CRISPRi-FlowFISH" : false, "eQTLs": false}
     const allFiltersObj = {
-        headerFilters: {"conservation": true, "TFMotifs": false, "cCREs": true,},
+        headerFilters: {"conservation": true, "TFMotifs": false, "cCREs": false,},
         conservationFilters: {"240_mam_phyloP": true, "240_mam_phastCons": false, "43_prim_phyloP": false, "43_prim_phastCons": false, "100_vert_phyloP": false, "100_vert_phastCons": false},
         classFilters: { "CA": true, "CA_CTCF": true, "CA_H3K4me3": true, "CA_TF": true, "dELS": true, "pELS": true, "PLS": true, "TF": true },
         assayFilters: { "dnase": false, "h3k4me3": false, "h3k27ac": false, "ctcf": false, "atac": false},
@@ -58,13 +95,23 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     const [rows, setRows] = useState<ZScores[]>([]) // The main data displayed on the table
     const [key, setKey] = useState<string>()
     const [columns, setColumns] = useState([]) // State variable used to display the columns in the DataTable
-    const [selectedBiosample, setSelectedBiosample] = useState<RegistryBiosample>(null)
+    
     const [availableScores, setAvailableScores] = useState(allFiltersObj) // This is all the scores available according to the query, all false scores are disabled checkboxes below
     const [checkedScores, setCheckedScores] = useState(allFiltersObj) // This is the scores the user has selected, used for checkbox control
-    const allChecked = Object.values(checkedScores).every(Boolean);
-    const someChecked = Object.values(checkedScores).some(Boolean);
     
     const [getOutput] = useLazyQuery(BED_INTERSECT_QUERY)
+
+    const [expandedAccordions, setExpandedAccordions] = useState<string[]>([]);
+
+    const handleAccordionChange = (panel: string) => () => {
+        setExpandedAccordions((prevExpanded) => 
+            prevExpanded.includes(panel) 
+                ? prevExpanded.filter((p) => p !== panel)
+                : [...prevExpanded, panel]
+        );
+    };
+
+    const isExpanded = (panel: string) => expandedAccordions.includes(panel);
     
     const {loading: loading_scores, error: error_scores} = useQuery(Z_SCORES_QUERY, {
         variables: {
@@ -316,33 +363,92 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         setKey(scoresToInclude.join(' '));
     }
 
-    const handleSelectAll = (event, groupName, keys) => {
+    const handleSelectAllAssays = (event) => {
         const isChecked = event.target.checked;
-        let updatedScores = { ...checkedScores };
-      
-        // Update only the specific group
-        keys.forEach((key) => {
-            updatedScores[groupName][key] = isChecked;
-        });
-      
-        setCheckedScores(updatedScores);
-      
-        // let scoresToInclude = Object.keys(updatedScores[groupName]).filter((e) => updatedScores[groupName][e]);
-        // setRows(calculateAggregateRank([...rows], scoresToInclude));
-        // setColumns(allColumns.filter(
-        //   (e) => updatedScores[groupName][e.header.toLowerCase().split(' ')[0]] || updatedScores[e.header]
-        // ));
-        // setKey(scoresToInclude.join(' '));
-      };
 
-      const areAllChecked = (groupName, keys) => {
-        return keys.every((key) => checkedScores[groupName][key]);
-      };
-      
-      const isIndeterminate = (groupName, keys) => {
-        const totalChecked = keys.filter((key) => checkedScores[groupName][key]).length;
-        return totalChecked > 0 && totalChecked < keys.length;
-      };
+        setAssays((prevAssays) => {
+            const updatedAssays = { ...prevAssays };
+
+            Object.keys(availableAssays).forEach((key) => {
+                if (availableAssays[key]) {
+                    updatedAssays[key] = isChecked;
+                }
+            });
+
+            return updatedAssays;
+        });
+    };            
+
+    const areAllAssaysChecked = () => {
+        return Object.keys(availableAssays).every((key) => (availableAssays[key] && assays[key]) || (!availableAssays[key] && !assays[key]));
+    };
+
+    const isIndeterminateAssay = () => {
+        const checkedCount = Object.keys(availableAssays).filter((key) => availableAssays[key] && assays[key]).length;
+        const totalAvailable = Object.keys(availableAssays).filter((key) => availableAssays[key]).length;
+
+        return checkedCount > 0 && checkedCount < totalAvailable;
+    };
+    
+    const handleSelectAllClasses = (event) => {
+        const isChecked = event.target.checked;
+
+        // Update all classes based on whether the select all is checked or not
+        setClasses((prevClasses) => {
+            const updatedClasses = { ...prevClasses };
+
+            Object.keys(prevClasses).forEach((key) => {
+                updatedClasses[key] = isChecked;
+            });
+
+            return updatedClasses;
+        });
+    };
+
+    const areAllClassesChecked = () => {
+        return Object.values(classes).every((isChecked) => isChecked);
+    };
+
+    const isIndeterminateClass = () => {
+        const checkedCount = Object.values(classes).filter((isChecked) => isChecked).length;
+        const totalClasses = Object.keys(classes).length;
+
+        return checkedCount > 0 && checkedCount < totalClasses;
+    };
+
+    useEffect(() => {
+        if (selectedBiosample) {
+            setAvailableAssays({
+                DNase: !!selectedBiosample.dnase,
+                H3K4me3: !!selectedBiosample.h3k4me3,
+                H3K27ac: !!selectedBiosample.h3k27ac,
+                CTCF: !!selectedBiosample.ctcf,
+                ATAC: !!selectedBiosample.atac_signal,
+            });
+            setAssays({
+                DNase: !!selectedBiosample.dnase,
+                H3K4me3: !!selectedBiosample.h3k4me3,
+                H3K27ac: !!selectedBiosample.h3k27ac,
+                CTCF: !!selectedBiosample.ctcf,
+                ATAC: !!selectedBiosample.atac_signal,
+            });
+        } if (!selectedBiosample) {
+            setAvailableAssays({
+                DNase: true,
+                H3K4me3: true,
+                H3K27ac: true,
+                CTCF: true,
+                ATAC: true,
+            });
+            setAssays({
+                DNase: true,
+                H3K4me3: true,
+                H3K27ac: true,
+                CTCF: true,
+                ATAC: true,
+            });
+        }
+    }, [selectedBiosample]);
       
     return (
         <Box display="flex" height="100vh">
@@ -361,7 +467,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                 variant="persistent"
                 sx={{
                     '& .MuiDrawer-paper': {
-                        width: '40vh',
+                        width: '25vw',
                         top: theme => `${theme.mixins.toolbar.minHeight}px`,
                         zIndex: theme => theme.zIndex.appBar - 1,
                     }
@@ -380,260 +486,317 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                             <FilterListIcon />
                         </IconButton>
                     </Stack>
-                    <Accordion defaultExpanded square disableGutters>
+                    <Accordion 
+                        defaultExpanded 
+                        square 
+                        disableGutters
+                        expanded={isExpanded('sequence')} 
+                        onChange={handleAccordionChange('sequence')}
+                        sx={{
+                            borderLeft: isExpanded('sequence') ? '6px solid #030f98' : 'none'
+                        }}
+                    >
                         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                             Sequence
                         </AccordionSummary>
                         <AccordionDetails>
-                            <FormGroup>
-                                <FormControlLabel value="conservation" control={<Checkbox onChange={(event) => handleCheckBoxChange(event, "headerFilters")} checked={checkedScores.headerFilters.conservation} />} label="Conservation" />
-                                <FormControl fullWidth>
-                                    <Select size="small" defaultValue={"240-mam-phyloP"} disabled={!checkedScores.headerFilters.conservation}>
-                                        <MenuItem value={"240-mam-phyloP"}>240-Mammal(phyloP)</MenuItem>
-                                        <MenuItem value={"240-mam-phastCons"}>240-Mammal(phastCons)</MenuItem>
-                                        <MenuItem value={"43-prim-phyloP"}>43-Primate(phyloP)</MenuItem>
-                                        <MenuItem value={"43-prim-phastCons"}>43-Primate(phastCons)</MenuItem>
-                                        <MenuItem value={"100-vert-phyloP"}>100-Vertebrate(phyloP)</MenuItem>
-                                        <MenuItem value={"100-vert-phastCons"}>100-Vertebrate(phastCons)</MenuItem>
+                        <FormControlLabel value="conservation" control={<Checkbox onChange={(event) => handleCheckBoxChange(event, "headerFilters")} checked={checkedScores.headerFilters.conservation} />} label="Conservation" />
+                            <Stack ml={2}>
+                                <FormGroup>
+                                    <FormControl fullWidth>
+                                        <Select size="small" value={alignment} disabled={!checkedScores.headerFilters.conservation} onChange={(event) => setAlignment(event.target.value)}>
+                                            <MenuItem value={"241-mam-phyloP"}>241-Mammal(phyloP)</MenuItem>
+                                            <MenuItem value={"447-mam-phyloP"}>447-Mammal(phyloP)</MenuItem>
+                                            <MenuItem value={"241-mam-phastCons"}>241-Mammal(phastCons)</MenuItem>
+                                            <MenuItem value={"43-prim-phyloP"}>43-Primate(phyloP)</MenuItem>
+                                            <MenuItem value={"43-prim-phastCons"}>43-Primate(phastCons)</MenuItem>
+                                            <MenuItem value={"243-prim-phastCons"}>243-Primate(phastCons)</MenuItem>
+                                            <MenuItem value={"100-vert-phyloP"}>100-Vertebrate(phyloP)</MenuItem>
+                                            <MenuItem value={"100-vert-phastCons"}>100-Vertebrate(phastCons)</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                </FormGroup>
+                                <FormControl sx={{ width: "50%" }}>
+                                    <FormLabel>Rank By</FormLabel>
+                                    <Select size="small" value={rankBy} disabled={!checkedScores.headerFilters.conservation} onChange={(event) => setRankBy(event.target.value)}>
+                                        <MenuItem value={"min"}>Min</MenuItem>
+                                        <MenuItem value={"max"}>Max</MenuItem>
+                                        <MenuItem value={"avg"}>Average</MenuItem>
                                     </Select>
                                 </FormControl>
-                            </FormGroup>
-                            <FormControl sx={{ width: "50%" }}>
-                                <FormLabel>Rank By</FormLabel>
-                                <Select size="small" defaultValue={"max"} disabled={!checkedScores.headerFilters.conservation}>
-                                    <MenuItem value={"min"}>Min</MenuItem>
-                                    <MenuItem value={"max"}>Max</MenuItem>
-                                    <MenuItem value={"avg"}>Average</MenuItem>
-                                </Select>
-                            </FormControl>
+                            </Stack>
                             <FormGroup>
                                 <FormControlLabel value="TFMotifs" control={<Checkbox onChange={(event) => handleCheckBoxChange(event, "headerFilters")} checked={checkedScores.headerFilters.TFMotifs} />} label="TF Motifs" />
-                                <RadioGroup>
-                                    <FormControlLabel value="factorbook" control={<Radio />} label="Factorbook" disabled={!checkedScores.headerFilters.TFMotifs} />
-                                    <FormControlLabel value="factorbookTF" control={<Radio />} label="Factorbook + TF Motif" disabled={!checkedScores.headerFilters.TFMotifs} />
-                                    <FormControlLabel value="hocomoco" control={<Radio />} label="HOCOMOCO" disabled={!checkedScores.headerFilters.TFMotifs} />
-                                    <FormControlLabel value="zMotif" control={<Radio />} label="ZMotif" disabled={!checkedScores.headerFilters.TFMotifs} />
-                                </RadioGroup>
+                                <Stack ml={2}>
+                                    <RadioGroup value={motifCatalog} onChange={(event) => setMotifCatalog(event.target.value as "factorbook" | "factorbookTF" | "hocomoco" | "zMotif")}>
+                                        <FormControlLabel value="factorbook" control={<Radio />} label="Factorbook" disabled={!checkedScores.headerFilters.TFMotifs} />
+                                        <FormControlLabel value="factorbookTF" control={<Radio />} label="Factorbook + TF Motif" disabled={!checkedScores.headerFilters.TFMotifs} />
+                                        <FormControlLabel value="hocomoco" control={<Radio />} label="HOCOMOCO" disabled={!checkedScores.headerFilters.TFMotifs} />
+                                        <FormControlLabel value="zMotif" control={<Radio />} label="ZMotif" disabled={!checkedScores.headerFilters.TFMotifs} />
+                                    </RadioGroup>
+                                </Stack>
                             </FormGroup>
                             <FormGroup>
-                                <Typography lineHeight={"40px"}>Rank By</Typography>
-                                <FormControlLabel value="numMotifs" control={<Checkbox />} label="Number of Motifs" disabled={!checkedScores.headerFilters.TFMotifs} />
-                                <FormControlLabel value="motifScoreDelta" control={<Checkbox />} label="Motif Score Delta" disabled={!checkedScores.headerFilters.TFMotifs} />
-                                <FormControlLabel value="TFPeakStrength" control={<Checkbox />} label="TF Peak Strength" disabled={!checkedScores.headerFilters.TFMotifs} />
+                                <Stack ml={2}>
+                                    <Typography lineHeight={"40px"}>Rank By</Typography>
+                                    <FormControlLabel value="numMotifs" control={<Checkbox onChange={() => setNumOverlappingMotifs(!numOverlappingMotifs)}/>} label="Number of Motifs" disabled={!checkedScores.headerFilters.TFMotifs} />
+                                    <FormControlLabel value="motifScoreDelta" control={<Checkbox onChange={() => setMotifScoreDelta(!motifScoreDelta)}/>} label="Motif Score Delta" disabled={!checkedScores.headerFilters.TFMotifs} />
+                                    <FormControlLabel value="overlapsTFPeak" control={<Checkbox onChange={() => setOverlapsTFPeak(!overlapsTFPeak)}/>} label="Overlaps TF Peak " disabled={!checkedScores.headerFilters.TFMotifs} />
+                                </Stack>
                             </FormGroup>
                         </AccordionDetails>
                     </Accordion>
-                    <Accordion square disableGutters>
+                    <Accordion 
+                        defaultExpanded 
+                        square 
+                        disableGutters
+                        expanded={isExpanded('element')} 
+                        onChange={handleAccordionChange('element')}
+                        sx={{
+                            borderLeft: isExpanded('element') ? '6px solid #030f98' : 'none'
+                        }}
+                    >
                         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                             Element
                         </AccordionSummary>
                         <AccordionDetails>
-
                             <FormControlLabel value="cCREs" control={<Checkbox onChange={(event) => handleCheckBoxChange(event, "headerFilters")} checked={checkedScores.headerFilters.cCREs} />} label="cCREs" />
-                            <Accordion square disableGutters disabled={!checkedScores.headerFilters.cCREs}>
-                                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                                    Within a Biosample
-                                </AccordionSummary>
-                                <AccordionDetails>
-                                    {selectedBiosample && (
-                                        <Paper elevation={0}>
-                                            <IconButton
-                                                size="small"
-                                                sx={{ p: 0 }}
-                                                onClick={(event) => {
-                                                    setSelectedBiosample(null);
-                                                    event.stopPropagation();
-                                                }}
-                                            >
-                                                <Tooltip
-                                                    placement="top"
-                                                    title={"Clear Biosample"}
+                            <Stack ml={2}>
+                                <RadioGroup row value={cCREAssembly} onChange={(event) => setCCREAssembly(event.target.value as "GRCh38" | "mm10")}>
+                                    <FormControlLabel value="GRCh38" control={<Radio />} label="GRCH38" disabled={!checkedScores.headerFilters.cCREs} />
+                                    <FormControlLabel value="mm10" control={<Radio />} label="mm10" disabled={!checkedScores.headerFilters.cCREs} />
+                                </RadioGroup>
+                                <FormControlLabel
+                                    label="Only Orthologous cCREs"
+                                    control={
+                                        <Checkbox
+                                            onChange={() => setMustHaveOrtholog(!mustHaveOrtholog)}
+                                            disabled={!checkedScores.headerFilters.cCREs || cCREAssembly == "mm10"}
+                                            checked={mustHaveOrtholog}
+                                        />
+                                    }
+                                />
+                                <Accordion square disableGutters disabled={!checkedScores.headerFilters.cCREs}>
+                                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                                        Within a Biosample
+                                    </AccordionSummary>
+                                    <AccordionDetails>
+                                        {selectedBiosample && (
+                                            <Paper elevation={0}>
+                                                <Stack
+                                                    borderRadius={1}
+                                                    direction={"row"}
+                                                    spacing={3}
+                                                    sx={{ backgroundColor: "#E7EEF8" }}
+                                                    alignItems={"center"}
                                                 >
-                                                    <ClearIcon />
-                                                </Tooltip>
-                                                <Typography>
-                                                    {selectedBiosample.ontology.charAt(0).toUpperCase() +
-                                                        selectedBiosample.ontology.slice(1) +
-                                                        " - " +
-                                                        selectedBiosample.displayname}
-                                                </Typography>
-                                            </IconButton>
-                                        </Paper>
-                                    )}
-                                    <BiosampleTables
-                                        selected={selectedBiosample?.name}
-                                        onBiosampleClicked={setSelectedBiosample}
-                                        assembly={assembly}
+                                                    <Typography
+                                                        flexGrow={1}
+                                                        sx={{ color: "#2C5BA0", pl: 1 }}
+                                                    >
+                                                        {selectedBiosample.ontology.charAt(0).toUpperCase() +
+                                                            selectedBiosample.ontology.slice(1) +
+                                                            " - " +
+                                                            selectedBiosample.displayname}
+                                                    </Typography>
+                                                    <IconButton
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            setSelectedBiosample(null);
+                                                        }}
+                                                        sx={{ m: 'auto', flexGrow: 0 }}
+                                                    >
+                                                        <CancelRounded />
+                                                    </IconButton>
+                                                </Stack>
+                                            </Paper>
+
+
+                                        )}
+                                        <BiosampleTables
+                                            selected={selectedBiosample?.name}
+                                            onBiosampleClicked={setSelectedBiosample}
+                                            assembly={cCREAssembly}
+                                        />
+                                    </AccordionDetails>
+                                </Accordion>
+                                
+                                <FormGroup>
+                                    <Typography mt={2}>Include Classes</Typography>
+                                    <FormControlLabel
+                                        control={
+                                            <Checkbox
+                                                checked={areAllClassesChecked()}
+                                                indeterminate={isIndeterminateClass()}
+                                                onChange={(event) => {handleSelectAllClasses(event)}}
+                                            />
+                                        }
+                                        label="Select All"
+                                        disabled={!checkedScores.headerFilters.cCREs}
                                     />
-                                </AccordionDetails>
-                            </Accordion>
-                            <FormGroup>
-                                <Typography>Include Classes</Typography>
-                                <FormControlLabel
-                                    control={
-                                        <Checkbox
-                                            checked={areAllChecked("classFilters", ["CA", "CA_CTCF", "CA_H3K4me3", "CA_TF", "dELS", "pELS", "PLS", "TF"])}
-                                            indeterminate={isIndeterminate("classFilters", ["CA", "CA_CTCF", "CA_H3K4me3", "CA_TF", "dELS", "pELS", "PLS", "TF"])}
-                                            onChange={(event) => handleSelectAll(event, "classFilters", ["CA", "CA_CTCF", "CA_H3K4me3", "CA_TF", "dELS", "pELS", "PLS", "TF"])}
-                                        />
-                                    }
-                                    label="Select All"
-                                    disabled={!checkedScores.headerFilters.cCREs}
-                                />
-                                <Grid container spacing={0} ml={2}>
-                                    <Grid size={6}>
-                                        <FormGroup>
-                                            <FormControlLabel
-                                                checked={checkedScores.classFilters.CA}
-                                                onChange={(event) => handleCheckBoxChange(event, "classFilters")}
-                                                control={<Checkbox />}
-                                                label="CA"
-                                                value="CA"
-                                                disabled={!checkedScores.headerFilters.cCREs}
-                                            />
-                                            <FormControlLabel
-                                                checked={checkedScores.classFilters.CA_CTCF}
-                                                onChange={(event) => handleCheckBoxChange(event, "classFilters")}
-                                                control={<Checkbox />}
-                                                label="CA-CTCF"
-                                                value="CA_CTCF"
-                                                disabled={!checkedScores.headerFilters.cCREs}
-                                            />
-                                            <FormControlLabel
-                                                checked={checkedScores.classFilters.CA_H3K4me3}
-                                                onChange={(event) => handleCheckBoxChange(event, "classFilters")}
-                                                control={<Checkbox />}
-                                                label="CA-H3K4me3"
-                                                value="CA_H3K4me3"
-                                                disabled={!checkedScores.headerFilters.cCREs}
-                                            />
-                                            <FormControlLabel
-                                                checked={checkedScores.classFilters.CA_TF}
-                                                onChange={(event) => handleCheckBoxChange(event, "classFilters")}
-                                                control={<Checkbox />}
-                                                label="CA-TF"
-                                                value="CA_TF"
-                                                disabled={!checkedScores.headerFilters.cCREs}
-                                            />
-                                        </FormGroup>
+                                    <Grid container spacing={0} ml={2}>
+                                        <Grid size={6}>
+                                            <FormGroup>
+                                                <FormControlLabel
+                                                    checked={classes.CA}
+                                                    onChange={() => setClasses((prev) => ({ ...prev, CA: !prev.CA }))}
+                                                    control={<Checkbox />}
+                                                    label="CA"
+                                                    value="CA"
+                                                    disabled={!checkedScores.headerFilters.cCREs}
+                                                />
+                                                <FormControlLabel
+                                                    checked={classes.CACTCF}
+                                                    onChange={() => setClasses((prev) => ({ ...prev, CACTCF: !prev.CACTCF }))}
+                                                    control={<Checkbox />}
+                                                    label="CA-CTCF"
+                                                    value="CACTCF"
+                                                    disabled={!checkedScores.headerFilters.cCREs}
+                                                />
+                                                <FormControlLabel
+                                                    checked={classes.CAH3K4me3}
+                                                    onChange={() => setClasses((prev) => ({ ...prev, CAH3K4me3: !prev.CAH3K4me3 }))}
+                                                    control={<Checkbox />}
+                                                    label="CA-H3K4me3"
+                                                    value="CAH3K4me3"
+                                                    disabled={!checkedScores.headerFilters.cCREs}
+                                                />
+                                                <FormControlLabel
+                                                    checked={classes.CATF}
+                                                    onChange={() => setClasses((prev) => ({ ...prev, CATF: !prev.CATF }))}
+                                                    control={<Checkbox />}
+                                                    label="CA-TF"
+                                                    value="CATF"
+                                                    disabled={!checkedScores.headerFilters.cCREs}
+                                                />
+                                            </FormGroup>
+                                        </Grid>
+                                        <Grid size={6}>
+                                            <FormGroup>
+                                                <FormControlLabel
+                                                    checked={classes.dELS}
+                                                    onChange={() => setClasses((prev) => ({ ...prev, dELS: !prev.dELS }))}
+                                                    control={<Checkbox />}
+                                                    label="dELS"
+                                                    value="dELS"
+                                                    disabled={!checkedScores.headerFilters.cCREs}
+                                                />
+                                                <FormControlLabel
+                                                    checked={classes.pELS}
+                                                    onChange={() => setClasses((prev) => ({ ...prev, pELS: !prev.pELS }))}
+                                                    control={<Checkbox />}
+                                                    label="pELS"
+                                                    value="pELS"
+                                                    disabled={!checkedScores.headerFilters.cCREs}
+                                                />
+                                                <FormControlLabel
+                                                    checked={classes.PLS}
+                                                    onChange={() => setClasses((prev) => ({ ...prev, PLS: !prev.PLS }))}
+                                                    control={<Checkbox />}
+                                                    label="PLS"
+                                                    value="PLS"
+                                                    disabled={!checkedScores.headerFilters.cCREs}
+                                                />
+                                                <FormControlLabel
+                                                    checked={classes.TF}
+                                                    onChange={() => setClasses((prev) => ({ ...prev, TF: !prev.TF }))}
+                                                    control={<Checkbox />}
+                                                    label="TF"
+                                                    value="TF"
+                                                    disabled={!checkedScores.headerFilters.cCREs}
+                                                />
+                                            </FormGroup>
+                                        </Grid>
                                     </Grid>
-                                    <Grid size={6}>
-                                        <FormGroup>
+                                </FormGroup>
+                                <FormGroup>
+                                    <Typography>Include Assay Z-Scores</Typography>
+                                    <FormControlLabel
+                                        control={
+                                            <Checkbox
+                                                checked={areAllAssaysChecked()}
+                                                indeterminate={isIndeterminateAssay()}
+                                                onChange={(event) => handleSelectAllAssays(event)}
+                                            />
+                                        }
+                                        label="Select All"
+                                        disabled={!checkedScores.headerFilters.cCREs}
+                                    />
+                                    <Grid container spacing={0} ml={2}>
+                                        <Grid size={6}>
                                             <FormControlLabel
-                                                checked={checkedScores.classFilters.dELS}
-                                                onChange={(event) => handleCheckBoxChange(event, "classFilters")}
-                                                control={<Checkbox />}
-                                                label="dELS"
-                                                value="dELS"
-                                                disabled={!checkedScores.headerFilters.cCREs}
+                                                label="DNase"
+                                                control={
+                                                    <Checkbox
+                                                        onChange={() => setAssays((prev) => ({ ...prev, DNase: !prev.DNase }))}
+                                                        disabled={!availableAssays.DNase || !checkedScores.headerFilters.cCREs}
+                                                        checked={assays.DNase}
+                                                        value="dnase"
+                                                    />
+                                                }
                                             />
                                             <FormControlLabel
-                                                checked={checkedScores.classFilters.pELS}
-                                                onChange={(event) => handleCheckBoxChange(event, "classFilters")}
-                                                control={<Checkbox />}
-                                                label="pELS"
-                                                value="pELS"
-                                                disabled={!checkedScores.headerFilters.cCREs}
+                                                label="H3K4me3"
+                                                control={
+                                                    <Checkbox
+                                                        onChange={() => setAssays((prev) => ({ ...prev, H3K4me3: !prev.H3K4me3 }))}
+                                                        disabled={!availableAssays.H3K4me3 || !checkedScores.headerFilters.cCREs}
+                                                        checked={assays.H3K4me3}
+                                                        value="h3k4me3"
+                                                    />
+                                                }
                                             />
                                             <FormControlLabel
-                                                checked={checkedScores.classFilters.PLS}
-                                                onChange={(event) => handleCheckBoxChange(event, "classFilters")}
-                                                control={<Checkbox />}
-                                                label="PLS"
-                                                value="PLS"
-                                                disabled={!checkedScores.headerFilters.cCREs}
+                                                label="H3K27ac"
+                                                control={
+                                                    <Checkbox
+                                                        onChange={() => setAssays((prev) => ({ ...prev, H3K27ac: !prev.H3K27ac }))}
+                                                        disabled={!availableAssays.H3K27ac|| !checkedScores.headerFilters.cCREs}
+                                                        checked={assays.H3K27ac}
+                                                        value="h3k27ac"
+                                                    />
+                                                }
+                                            />
+                                        </Grid>
+                                        <Grid size={3}>
+                                            <FormControlLabel
+                                                label="CTCF"
+                                                control={
+                                                    <Checkbox
+                                                        onChange={() => setAssays((prev) => ({ ...prev, CTCF: !prev.CTCF }))}
+                                                        disabled={!availableAssays.CTCF || !checkedScores.headerFilters.cCREs}
+                                                        checked={assays.CTCF}
+                                                        value="ctcf"
+                                                    />
+                                                }
                                             />
                                             <FormControlLabel
-                                                checked={checkedScores.classFilters.TF}
-                                                onChange={(event) => handleCheckBoxChange(event, "classFilters")}
-                                                control={<Checkbox />}
-                                                label="TF"
-                                                value="TF"
-                                                disabled={!checkedScores.headerFilters.cCREs}
+                                                label="ATAC"
+                                                control={
+                                                    <Checkbox
+                                                        onChange={() => setAssays((prev) => ({ ...prev, ATAC: !prev.ATAC }))}
+                                                        disabled={!availableAssays.ATAC || !checkedScores.headerFilters.cCREs}
+                                                        checked={assays.ATAC}
+                                                        value="atac"
+                                                    />
+                                                }
                                             />
-                                        </FormGroup>
+                                        </Grid>
                                     </Grid>
-                                </Grid>
-                            </FormGroup>
-                            <FormGroup>
-                                <Typography>Include Assay Z-Scores</Typography>
-                                <FormControlLabel
-                                    control={
-                                        <Checkbox
-                                            checked={areAllChecked("assayFilters", ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"])}
-                                            indeterminate={isIndeterminate("assayFilters", ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"])}
-                                            onChange={(event) => handleSelectAll(event, "assayFilters", ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"])}
-                                        />
-                                    }
-                                    label="Select All"
-                                    disabled={!checkedScores.headerFilters.cCREs}
-                                />
-                                <Grid container spacing={0} ml={2}>
-                                    <Grid size={6}>
-                                        <FormControlLabel
-                                            label="DNase"
-                                            control={
-                                                <Checkbox
-                                                    onChange={(event) => handleCheckBoxChange(event, "assayFilters")}
-                                                    disabled={!availableScores.assayFilters.dnase || !checkedScores.headerFilters.cCREs}
-                                                    checked={checkedScores.assayFilters.dnase}
-                                                    value="dnase"
-                                                />
-                                            }
-                                        />
-                                        <FormControlLabel
-                                            label="H3K4me3"
-                                            control={
-                                                <Checkbox
-                                                    onChange={(event) => handleCheckBoxChange(event, "assayFilters")}
-                                                    disabled={!availableScores.assayFilters.h3k4me3 || !checkedScores.headerFilters.cCREs}
-                                                    checked={checkedScores.assayFilters.h3k4me3}
-                                                    value="h3k4me3"
-                                                />
-                                            }
-                                        />
-                                        <FormControlLabel
-                                            label="H3K27ac"
-                                            control={
-                                                <Checkbox
-                                                    onChange={(event) => handleCheckBoxChange(event, "assayFilters")}
-                                                    disabled={!availableScores.assayFilters.h3k27ac || !checkedScores.headerFilters.cCREs}
-                                                    checked={checkedScores.assayFilters.h3k27ac}
-                                                    value="h3k27ac"
-                                                />
-                                            }
-                                        />
-                                    </Grid>
-                                    <Grid size={6}>
-                                        <FormControlLabel
-                                            label="CTCF"
-                                            control={
-                                                <Checkbox
-                                                    onChange={(event) => handleCheckBoxChange(event, "assayFilters")}
-                                                    disabled={!availableScores.assayFilters.ctcf || !checkedScores.headerFilters.cCREs}
-                                                    checked={checkedScores.assayFilters.ctcf}
-                                                    value="ctcf"
-                                                />
-                                            }
-                                        />
-                                        <FormControlLabel
-                                            label="ATAC"
-                                            control={
-                                                <Checkbox
-                                                    onChange={(event) => handleCheckBoxChange(event, "assayFilters")}
-                                                    disabled={!availableScores.assayFilters.atac || !checkedScores.headerFilters.cCREs}
-                                                    checked={checkedScores.assayFilters.atac}
-                                                    value="atac"
-                                                />
-                                            }
-                                        />
-                                    </Grid>
-                                </Grid>
-                            </FormGroup>
+                                </FormGroup>
+                            </Stack>
                         </AccordionDetails>
                     </Accordion>
-
-                    <Accordion square disableGutters>
+                    <Accordion 
+                        defaultExpanded 
+                        square 
+                        disableGutters
+                        expanded={isExpanded('gene')} 
+                        onChange={handleAccordionChange('gene')}
+                        sx={{
+                            borderLeft: isExpanded('gene') ? '6px solid #030f98' : 'none'
+                        }}
+                    >
                         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                             Gene
                         </AccordionSummary>
@@ -653,7 +816,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                 </Box>
             </Drawer>
             <Box
-                ml="25vw"
+                ml= {drawerOpen ? "25vw" : 0}
                 padding={3}
                 flexGrow={1}
             >
