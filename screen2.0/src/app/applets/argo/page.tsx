@@ -20,12 +20,16 @@ import BiosampleTables from "../../_biosampleTables/BiosampleTables"
 import Grid from "@mui/material/Grid2"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import { CancelRounded } from "@mui/icons-material"
+import InfoIcon from '@mui/icons-material/Info';
 
 export default function Argo(props: {header?: false, optionalFunction?: Function}) {
-    const [drawerOpen, setDrawerOpen] = useState(true);
+    const [drawerOpen, setDrawerOpen] = useState(false);
     const toggleDrawer = () => setDrawerOpen(!drawerOpen);
 
-    // New state variables
+    const [inputRegions, setInputRegions] = useState<GenomicRegion[]>([]);
+    const [shownTable, setShownTable] = useState<"sequence" | "element" | "gene">(null);
+
+    // Filter state variables
     const [alignment, setAlignment] = useState("241-mam-phyloP");
     const [rankBy, setRankBy] = useState("max");
     const [motifCatalog, setMotifCatalog] = useState<"factorbook" | "factorbookTF" | "hocomoco" | "zMotif">("factorbook");
@@ -66,7 +70,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     const allScoreNames = scoreNames.concat(conservationNames).concat(linkedGenesMethods)
     const allScoresObj = {"dnase": false, "h3k4me3": false, "h3k27ac": false, "ctcf": false, "atac": false, "conservation": true, "TFMotifs": false, "cCREs": true, "CA": true, "CA_CTCF": true, "CA_H3K4me3": true, "CA_TF": true, "dELS": true, "pELS": true, "PLS": true, "TF": true, "vertebrates": false, "mammals": false, "primates": false, "Intact-HiC": false, "CTCF-ChIAPET": false, "RNAPII-ChIAPET": false, "CRISPRi-FlowFISH" : false, "eQTLs": false}
     const allFiltersObj = {
-        headerFilters: {"conservation": true, "TFMotifs": false, "cCREs": false,},
+        headerFilters: {"conservation": true, "TFMotifs": false, "cCREs": true,},
         conservationFilters: {"240_mam_phyloP": true, "240_mam_phastCons": false, "43_prim_phyloP": false, "43_prim_phastCons": false, "100_vert_phyloP": false, "100_vert_phastCons": false},
         classFilters: { "CA": true, "CA_CTCF": true, "CA_H3K4me3": true, "CA_TF": true, "dELS": true, "pELS": true, "PLS": true, "TF": true },
         assayFilters: { "dnase": false, "h3k4me3": false, "h3k27ac": false, "ctcf": false, "atac": false},
@@ -101,7 +105,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     
     const [getOutput] = useLazyQuery(BED_INTERSECT_QUERY)
 
-    const [expandedAccordions, setExpandedAccordions] = useState<string[]>([]);
+    const [expandedAccordions, setExpandedAccordions] = useState<string[]>(["sequence"]);
 
     const handleAccordionChange = (panel: string) => () => {
         setExpandedAccordions((prevExpanded) => 
@@ -166,10 +170,15 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                 // The order of the array is the same as the order of the ccre file
                                 // Index 4 is accessions, 6 is chr, 7 is start, 8 is stop 
                                 // chr, start, stop should be of user uploaded file and not of our files hence not index 0,1,2
-
+                                
                                 accession: e[4],
                                 user_id: `${e[6]}_${e[7]}_${e[8]}${ (e[9] && e[10]) ? '_'+e[9]: ''}`,
-                                linked_genes: []
+                                linked_genes: [],
+                                genomicRegion: {
+                                    chr: e[0],
+                                    start: e[1],
+                                    end: e[2]
+                                }
                             }
                         })
                         .map(mapFunc)
@@ -286,6 +295,31 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         setSelectedBiosample(null)
         setDataAPI(data)
         setRows([])
+        configureInputedRegions(data)
+        setDrawerOpen(true)
+    }
+
+    function configureInputedRegions(data) {
+        const regions = data.map(item => ({
+            chr: item[0],         // Index 0 for inputed chromosome
+            start: Number(item[1]), // Index 1 for inputed start, convert to number
+            end: Number(item[2])     // Index 2 for inputed end, convert to number
+        }));
+    
+        // Sort the regions
+        const sortedRegions = regions.sort((a, b) => {
+            const chrA = a.chr.replace('chr', '');
+            const chrB = b.chr.replace('chr', '');
+        
+            if (chrA !== chrB) {
+                return chrA - chrB;
+            }
+            if (a.start !== b.start) {
+                return a.start - b.start;
+            }
+        });
+
+        setInputRegions(sortedRegions);
     }
 
     function handleTextUpload(event) {
@@ -437,6 +471,42 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
             });
         }
     }, [selectedBiosample]);
+
+    const SequenceHeader = ({ onClick }) => (
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+            Sequence
+                <IconButton
+                    size="small"
+                    onClick={onClick}
+                >
+                    <InfoIcon fontSize="inherit" />
+                </IconButton>
+        </div>
+    );
+
+    const ElementHeader = ({ onClick }) => (
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+            Element
+                <IconButton
+                    size="small"
+                    onClick={onClick}
+                >
+                    <InfoIcon fontSize="inherit" />
+                </IconButton>
+        </div>
+    );
+
+    const GeneHeader = ({ onClick }) => (
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+            Gene
+                <IconButton
+                    size="small"
+                    onClick={onClick}
+                >
+                    <InfoIcon fontSize="inherit" />
+                </IconButton>
+        </div>
+    );
       
     return (
         <Box display="flex" height="100vh">
@@ -445,6 +515,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                     <IconButton
                         onClick={toggleDrawer}
                         color="primary"
+                        disabled={rows.length <= 0}
                     >
                         <FilterListIcon />
                     </IconButton>
@@ -482,11 +553,11 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                         disableGutters
                         expanded={isExpanded('sequence')} 
                         onChange={handleAccordionChange('sequence')}
-                        sx={{
-                            borderLeft: isExpanded('sequence') ? '6px solid #030f98' : 'none'
-                        }}
                     >
-                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: isExpanded('sequence') ? '#030f98' : 'inherit' }}/>} sx={{
+                            color: isExpanded('sequence') ? '#030f98' : 'inherit',
+                            fontSize: isExpanded('sequence') ? 'large' : 'normal',
+                        }}>
                             Sequence
                         </AccordionSummary>
                         <AccordionDetails>
@@ -542,11 +613,11 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                         disableGutters
                         expanded={isExpanded('element')} 
                         onChange={handleAccordionChange('element')}
-                        sx={{
-                            borderLeft: isExpanded('element') ? '6px solid #030f98' : 'none'
-                        }}
                     >
-                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: isExpanded('element') ? '#030f98' : 'inherit' }}/>} sx={{
+                            color: isExpanded('element') ? '#030f98' : 'inherit',
+                            fontSize: isExpanded('element') ? 'large' : 'normal',
+                        }}>
                             Element
                         </AccordionSummary>
                         <AccordionDetails>
@@ -783,11 +854,11 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                         disableGutters
                         expanded={isExpanded('gene')} 
                         onChange={handleAccordionChange('gene')}
-                        sx={{
-                            borderLeft: isExpanded('gene') ? '6px solid #030f98' : 'none'
-                        }}
                     >
-                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: isExpanded('gene') ? '#030f98' : 'inherit' }}/>} sx={{
+                            color: isExpanded('gene') ? '#030f98' : 'inherit',
+                            fontSize: isExpanded('gene') ? 'large' : 'normal',
+                        }}>
                             Gene
                         </AccordionSummary>
                         <AccordionDetails>
@@ -884,11 +955,11 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                     <Box mt="20px">
                         <DataTable
                             key={key}
-                            columns={[{ header: "Input Region", value: (row) => row.user_id },
+                            columns={[{ header: "Input Region", value: (row) => `${row.genomicRegion.chr}:${row.genomicRegion.start}-${row.genomicRegion.end}` },
                             { header: "Aggregate", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) },
-                            { header: "Sequence", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) },
-                            { header: "Element", value: (row) => row.accession },
-                            { header: "Gene", value: (row) => row.accession }]}
+                            { header: "Seqence", HeaderRender: () => <SequenceHeader onClick={() => setShownTable("sequence")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) },
+                            { header: "Element", HeaderRender: () => <ElementHeader onClick={() => setShownTable("element")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) },
+                            { header: "Gene", HeaderRender: () => <GeneHeader onClick={() => setShownTable("gene")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) }]}
                             rows={rows}
                             sortColumn={2}
                             sortDescending
@@ -897,25 +968,83 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                             tableTitle="ARGO"
                         />
                     </Box>
-                    // <Box mt="20px">
-                    //     {(loading_scores || loading_genes || loading_quantifications) ? <CircularProgress /> :
-                    //         <DataTable
-                    //             key={key}
-                    //             columns={[{ header: "Accession", value: (row) => row.accession },
-                    //             { header: "User ID", value: (row) => row.user_id },
-                    //             { header: "Aggregate Rank", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) }]
-                    //                 .concat(columns)}
-                    //             rows={rows}
-                    //             sortColumn={2}
-                    //             sortDescending
-                    //             itemsPerPage={10}
-                    //             searchable
-                    //             tableTitle="User Uploaded cCREs Ranked By Scores"
-                    //         >
-                    //         </DataTable>
-                    //     }
-                    // </Box>
                 }
+                {shownTable === "sequence" && (
+                    <Box mt="20px">
+                        <DataTable
+                            key={`sequence-${key}`}
+                            columns={[
+                                {
+                                    header: "Accession",
+                                    value: (row) => row.accession
+                                },
+                                {
+                                    header: "User ID",
+                                    value: (row) => row.user_id
+                                },
+                                {
+                                    header: "Aggregate Rank",
+                                    value: (row) => row.aggRank,
+                                    render: (row) => row.aggRank.toFixed(2)
+                                },
+                            ]}
+                            rows={rows}
+                            sortColumn={2}
+                            sortDescending
+                            itemsPerPage={5}
+                            searchable
+                            tableTitle="Sequence Details"
+                        />
+                    </Box>
+                )}
+                {shownTable === "element" && (
+                    <Box mt="20px">
+                        {(loading_scores || loading_genes || loading_quantifications) ? <CircularProgress /> :
+                            <DataTable
+                                key={key}
+                                columns={[{ header: "Accession", value: (row) => row.accession },
+                                { header: "User ID", value: (row) => row.user_id },
+                                { header: "Aggregate Rank", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) }]
+                                    .concat(columns)}
+                                rows={rows}
+                                sortColumn={2}
+                                sortDescending
+                                itemsPerPage={10}
+                                searchable
+                                tableTitle="User Uploaded cCREs Ranked By Scores"
+                            >
+                            </DataTable>
+                        }
+                    </Box>
+                )}
+                {shownTable === "gene" && (
+                    <Box mt="20px">
+                        <DataTable
+                            key={`sequence-${key}`}
+                            columns={[
+                                {
+                                    header: "Accession",
+                                    value: (row) => row.accession
+                                },
+                                {
+                                    header: "User ID",
+                                    value: (row) => row.user_id
+                                },
+                                {
+                                    header: "Aggregate Rank",
+                                    value: (row) => row.aggRank,
+                                    render: (row) => row.aggRank.toFixed(2)
+                                },
+                            ]}
+                            rows={rows}
+                            sortColumn={2}
+                            sortDescending
+                            itemsPerPage={5}
+                            searchable
+                            tableTitle="Gene Details"
+                        />
+                    </Box>
+                )}
             </Box>
         </Box>
     )
