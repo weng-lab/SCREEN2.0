@@ -15,7 +15,7 @@ query cCREQuery($accession_prefix: [String!], $limit: Int, $assembly: String!) {
 
 
 export const GENE_AUTOCOMPLETE_QUERY = `
-query ($assembly: String!, $name_prefix: [String!], $limit: Int, $version: Int) {
+query geneAutocomplete($assembly: String!, $name_prefix: [String!], $limit: Int, $version: Int) {
     gene(assembly: $assembly, name_prefix: $name_prefix, limit: $limit, version: $version) {
       name
       id

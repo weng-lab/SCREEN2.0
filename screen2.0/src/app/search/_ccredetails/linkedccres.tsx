@@ -15,7 +15,12 @@ type orthologRow = {
   stop: number
 }
 
-export const Ortholog = ({ accession, assembly }) => {
+type OrthologTabProps = {
+  accession: string,
+  assembly: "GRCh38" | "mm10"
+}
+
+export const Ortholog = ({ accession, assembly }: OrthologTabProps) => {
   const { loading, error, data } = useQuery(ORTHOLOG_QUERY, {
     variables: {
       assembly: assembly === "GRCh38" ? "grch38" : "mm10",
@@ -28,7 +33,7 @@ export const Ortholog = ({ accession, assembly }) => {
 
   let ortholog: orthologRow[] = []
   if (data) {
-    for (let ccre of data.orthologQuery.ortholog) {
+    for (let ccre of data.orthologQuery[0].ortholog) {
       ortholog.push({
         accession: ccre.accession,
         chrom: ccre.chromosome,
