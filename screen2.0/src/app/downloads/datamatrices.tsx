@@ -281,6 +281,7 @@ export function DataMatrices() {
 
   const scatterData = useMemo(() => {
     if (!fData) return [];
+    console.log(fData)
     const biosampleIds = biosamples.map(sample => sample.umap_coordinates);
   
     return fData.map((x) => {
@@ -302,12 +303,23 @@ export function DataMatrices() {
     });
   }, [fData, searched, colorBy, sampleTypeColors, ontologyColors, isInbounds, biosamples]);
   
-  // Direct copy from old SCREEN
-  const [legendEntries, height] = useMemo(() => {
-    const g = colorBy === "sampleType" ? sampleTypeColors : ontologyColors
-    const gc = colorBy === "sampleType" ? sampleTypeCounts : ontologyCounts
-    return [Object.keys(g).map((x) => ({ label: x, color: g[x], value: gc[x] })).sort((a,b) => b.value - a.value), Object.keys(g).length * 50]
-  }, [colorBy, sampleTypeColors, ontologyColors, sampleTypeCounts, ontologyCounts])
+  const legendEntries = useMemo(() => {
+    // Create a color-count map based on scatterData
+    const colorCounts = scatterData.reduce((acc, point) => {
+      const color = point.color;
+      acc[color] = (acc[color] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    const colorMapping = colorBy === "sampleType" ? sampleTypeColors : ontologyColors;
+  
+    // Map the color counts to the same format as before: label, color, and value
+    return Object.entries(colorCounts).map(([color, count]) => ({
+      label: Object.keys(colorMapping).find(key => colorMapping[key] === color) || color,
+      color,
+      value: count
+    })).sort((a, b) => b.value - a.value);
+  }, [scatterData, colorBy, sampleTypeColors, ontologyColors]);
+  
 
   /**
    * @param assay an assay
@@ -601,18 +613,18 @@ export function DataMatrices() {
       {/* legend section */}
       <Box mt={2} mb={5} sx={{ display: 'flex', flexDirection: 'column' }}>
         <Typography mb={1}><b>Legend</b></Typography>
-        <Box sx={{ display: 'flex' }} justifyContent={"space-between"}>
+        <Box sx={{ display: 'flex', justifyContent: legendEntries.length / 6 >= 3 ? "space-between" : "flex-start", gap: legendEntries.length / 6 >= 4 ? 0 : 10 }}>
           {Array.from({ length: Math.ceil(legendEntries.length / 6) }, (_, colIndex) => (
             <Box key={colIndex} sx={{ marginRight: 2 }}>
               {legendEntries.slice(colIndex * 6, colIndex * 6 + 6).map((element, index) => (
-                <Box key={index} sx={{display: 'flex', alignItems: 'center', marginBottom: 1,}}>
-                  <Box sx={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: element.color, marginRight: 1,}}/>
+                <Box key={index} sx={{ display: 'flex', alignItems: 'center', marginBottom: 1 }}>
+                  <Box sx={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: element.color, marginRight: 1 }} />
                   <Typography>
                     {`${element.label
                       .split(' ')
                       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                       .join(' ')
-                    }: ${element.value}`}
+                      }: ${element.value}`}
                   </Typography>
                 </Box>
               ))}
