@@ -44,7 +44,7 @@ function CircularProgressWithLabel(
  */
 export const DownloadRange: React.FC = () => {
   const [assembly, setAssembly] = useState<"GRCh38" | "mm10">("GRCh38")
-  const [inputValue, setInputValue] = useState<string>('chr11:5205263-5381894')
+  const [inputValue, setInputValue] = useState<string>('chr12:53380176-53416446')
   const [selectedBiosample, setSelectedBiosample] = useState<RegistryBiosample>(null)
   const [bedLoadingPercent, setBedLoadingPercent] = useState<number>(null)
   //Used to disable assay checkboxes
@@ -141,9 +141,9 @@ export const DownloadRange: React.FC = () => {
         </FormControl>
         <TextField
           variant="outlined"
-          InputLabelProps={{ shrink: true }}
+          slotProps={{inputLabel: {shrink: true}}}
           label="Enter a genomic region"
-          placeholder={`chr11:${(5205263).toLocaleString()}-${(5381894).toLocaleString()}`}
+          placeholder={`chr12:${(53380176).toLocaleString()}-${(53416446).toLocaleString()}`}
           value={inputValue}
           fullWidth
           onChange={handleChange}

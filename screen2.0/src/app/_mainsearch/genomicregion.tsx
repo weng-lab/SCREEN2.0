@@ -22,7 +22,7 @@ import { parseGenomicRegion } from "./parsegenomicregion"
 
 const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean }) => {
   const [value, setValue] = useState("")
-  const [chromosome, setChromosome] = useState("11")
+  const [chromosome, setChromosome] = useState("12")
   const [start, setStart] = useState("")
   const [end, setEnd] = useState("")
   const [inputType, setInputType] = useState("UCSC")
@@ -172,10 +172,10 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
     end: string
   ): string {
     if (inputType === "Separated") {
-      return `/search?assembly=${assembly}&chromosome=${"chr" + chromosome}&start=${start.replace(new RegExp(",", "g"), "") ?? "5205263"}&end=${end.replace(new RegExp(",", "g"), "") ?? "5381894"}`
+      return `/search?assembly=${assembly}&chromosome=${"chr" + chromosome}&start=${start.replace(new RegExp(",", "g"), "") ?? "53380176"}&end=${end.replace(new RegExp(",", "g"), "") ?? "53416446"}`
     } else {
       if (!value) {
-        return `/search?assembly=${assembly}&chromosome=chr11&start=5205263&end=5381894`
+        return `/search?assembly=${assembly}&chromosome=chr12&start=53380176&end=53416446`
       }
       try {
         const region = parseGenomicRegion(value)
@@ -259,9 +259,9 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
               </Typography>
               <TextField
                 variant="outlined"
-                InputLabelProps={{ shrink: true }}
+                slotProps={{inputLabel: { shrink: true }}}
                 label="Start"
-                placeholder="5205263"
+                placeholder="53380176"
                 value={start}
                 onChange={(event: { target: { value: SetStateAction<string> } }) => {
                   setStart(event.target.value)
@@ -272,7 +272,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
                     window.open(url, "_self")
                   }
                   if (event.key === "Tab" && !start) {
-                    setStart("5205263")
+                    setStart("53380176")
                   }
                 }}
                 sx={
@@ -296,9 +296,9 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
               <Typography sx={{ justifySelf: "center" }}>–</Typography>
               <TextField
                 variant="outlined"
-                InputLabelProps={{ shrink: true }}
+                slotProps={{inputLabel: {shrink: true}}}
                 label="End"
-                placeholder="5381894"
+                placeholder="53416446"
                 value={end}
                 onChange={(event: { target: { value: SetStateAction<string> } }) => {
                   setEnd(event.target.value)
@@ -309,7 +309,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
                     window.open(url, "_self")
                   }
                   if (event.key === "Tab" && !end) {
-                    setEnd("5381894")
+                    setEnd("53416446")
                   }
                 }}
                 sx={
@@ -335,14 +335,17 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
             //UCSC Input
             (<TextField
               variant="outlined"
-              InputLabelProps={{
-                shrink: true,
-                htmlFor: "region-input",
-                style: error ? null : props.header ? { color: "white" } : { color: "black" },
+              slotProps={{
+                inputLabel: {
+                  shrink: true,
+                  htmlFor: "region-input",
+                  style: error ? null : props.header ? { color: "white" } : { color: "black" },
+                },
+                input: props.header ? { style: { color: "white" } } : {}
               }}
               id="region-input"
               label="Enter a genomic region"
-              placeholder={`chr11:${(5205263).toLocaleString()}-${(5381894).toLocaleString()}`}
+              placeholder={`chr12:${(53380176).toLocaleString()}-${(53416446).toLocaleString()}`}
               value={value}
               onChange={handleChange}
               onKeyDown={(event) => {
@@ -352,11 +355,10 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
                   }
                 }
                 if (event.key === "Tab" && !value) {
-                  const defaultGenomicRegion = `chr11:${(5205263).toLocaleString()}-${(5381894).toLocaleString()}`
+                  const defaultGenomicRegion = `chr12:${(53380176).toLocaleString()}-${(53416446).toLocaleString()}`
                   setValue(defaultGenomicRegion)
                 }
               }}
-              InputProps={props.header ? { style: { color: "white" } } : {}}
               sx={{
                 mr: "1rem",
                 minWidth: "16rem",
