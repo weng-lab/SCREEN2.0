@@ -43,7 +43,7 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
           setValueRegion("")
         }
       } else {
-        region = { chromosome: 'chr11', start: "5205263", end: "5381894" }
+        region = { chromosome: 'chr12', start: "53380176", end: "53416446" }
         return (
           `/search?assembly=${props.assembly}&chromosome=${region.chromosome}&start=${Math.max(0, Number(region.start))}&end=${region.end}&BiosampleTissue=${tissue}&BiosampleSummary=${biosample_summary}&Biosample=${biosample}`
         )
@@ -120,7 +120,7 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
         variant="outlined"
         InputLabelProps={{ shrink: true, style: props.header ? { color: "white" } : { color: "black" } }}
         label="Enter a genomic region"
-        placeholder={`chr11:${(5205263).toLocaleString()}-${(5381894).toLocaleString()}`}
+        placeholder={`chr12:${(53380176).toLocaleString()}-${(53416446).toLocaleString()}`}
         value={valueRegion}
         onChange={(event: { target: { value: SetStateAction<string> } }) => {
           setValueRegion(event.target.value)
@@ -130,7 +130,7 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
             window.open(handleSubmit(), "_self")
           }
           if (event.key === "Tab" && !valueRegion) {
-            const defaultGenomicRegion = `chr11:${(5205263).toLocaleString()}-${(5381894).toLocaleString()}`
+            const defaultGenomicRegion = `chr12:${(53380176).toLocaleString()}-${(53416446).toLocaleString()}`
             setValueRegion(defaultGenomicRegion)
           }
         }}

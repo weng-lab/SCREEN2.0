@@ -11,7 +11,7 @@ import BiosampleTables from "../../_biosampleTables/BiosampleTables";
 
 
 const CREATE_TRACKHUB_QUERY = `
-  query ($assembly: String!,$uuid: String!,$celltypes: [CellTypeInput]!) {
+  query createTrackhub($assembly: String!,$uuid: String!,$celltypes: [CellTypeInput]!) {
     createTrackhubQuery(uuid: $uuid, celltypes: $celltypes, assembly:$assembly)
   }  
 `

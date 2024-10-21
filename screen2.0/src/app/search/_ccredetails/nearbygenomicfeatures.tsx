@@ -10,6 +10,19 @@ import { LoadingMessage } from "../../../common/lib/utility"
 import { calcDistRegionToPosition, calcDistRegionToRegion } from "./utils"
 import { calcDistToTSS } from "./utils"
 import GeneLink from "../../_utility/GeneLink"
+import { NearbyGenomicFeaturesQuery, NearbyGenomicFeaturesNoSnPsQuery } from "../../../graphql/__generated__/graphql"
+
+type SNP = {
+  assembly: "mm10" | "GRCh38";
+  accession: string;
+  chrom: string;
+  cre_start: number;
+  cre_end: number;
+  distance: number;
+  name: string;
+  snp_start: number;
+  snp_end: number;
+};
 
 export const NearByGenomicFeatures: React.FC<{
   assembly: "mm10" | "GRCh38"
@@ -18,25 +31,11 @@ export const NearByGenomicFeatures: React.FC<{
   handleOpencCRE: (row: any) => void
 }> = ({ assembly, accession, coordinates, handleOpencCRE }) => {
 
-  const { loading, data } = useQuery(
-    assembly.toLowerCase() === "mm10" ? NEARBY_GENOMIC_FEATURES_NOSNPS_QUERY : NEARBY_GENOMIC_FEATURES_QUERY,
+  const { loading: loadingHuman, data: dataHuman } = useQuery(
+    NEARBY_GENOMIC_FEATURES_QUERY,
     {
       variables:
-        assembly.toLowerCase() === "mm10"
-          ? {
-            b: assembly.toLowerCase(),
-            c: assembly.toLowerCase(),
-            coordinates: {
-              chromosome: coordinates.chromosome,
-              start: coordinates.start - 1000000,
-              end: coordinates.end + 1000000,
-            },
-            chromosome: coordinates.chromosome,
-            start: coordinates.start - 1000000,
-            end: coordinates.end + 1000000,
-            version: 25
-          }
-          : {
+         {
             a: "hg38",
             b: assembly.toLowerCase(),
             c: assembly.toLowerCase(),
@@ -50,11 +49,38 @@ export const NearByGenomicFeatures: React.FC<{
             end: coordinates.end + 1000000,
             version: 40
           },
+      skip: assembly !== "GRCh38",
       fetchPolicy: "cache-and-network",
       nextFetchPolicy: "cache-first",
       client,
     }
   )
+
+  const { loading: loadingMouse, data: dataMouse } = useQuery(
+    NEARBY_GENOMIC_FEATURES_NOSNPS_QUERY,
+    {
+      variables:{
+            b: assembly.toLowerCase(),
+            c: assembly.toLowerCase(),
+            coordinates: {
+              chromosome: coordinates.chromosome,
+              start: coordinates.start - 1000000,
+              end: coordinates.end + 1000000,
+            },
+            chromosome: coordinates.chromosome,
+            start: coordinates.start - 1000000,
+            end: coordinates.end + 1000000,
+            version: 25
+          },
+      skip: assembly !== "mm10",
+      fetchPolicy: "cache-and-network",
+      nextFetchPolicy: "cache-first",
+      client,
+    }
+  )
+
+  const data = (assembly === "GRCh38") ? dataHuman : dataMouse
+  const loading = (assembly === "GRCh38") ? loadingHuman : loadingMouse
 
   let genes =
     data &&
@@ -66,7 +92,7 @@ export const NearByGenomicFeatures: React.FC<{
         chrom: g.coordinates.chromosome,
         start: g.coordinates.start,
         stop: g.coordinates.end,
-        distance: calcDistToTSS({...coordinates, chrom: coordinates.chromosome}, g.transcripts, g.strand)
+        distance: calcDistToTSS({...coordinates, chrom: coordinates.chromosome}, g.transcripts, g.strand as "+" | "-")
       }
     })
   let ccres =
@@ -81,10 +107,11 @@ export const NearByGenomicFeatures: React.FC<{
         end: c.coordinates.end
       }
     })
-  let snps =
-    data &&
-    data.snpQuery &&
-    data.snpQuery.map((s) => {
+
+  let snps: SNP[] | undefined;
+
+  if (assembly === "GRCh38" && data && (data as NearbyGenomicFeaturesQuery).snpQuery) {
+    snps = (data as NearbyGenomicFeaturesQuery).snpQuery.map((s) => {
       return {
         assembly,
         accession: accession,
@@ -95,8 +122,10 @@ export const NearByGenomicFeatures: React.FC<{
         name: s.id,
         snp_start: s.coordinates.start,
         snp_end: s.coordinates.end,
-      }
-    })
+      };
+    });
+  }
+
   return (<>
     {loading || !data ? (
       <LoadingMessage />
@@ -104,11 +133,17 @@ export const NearByGenomicFeatures: React.FC<{
       <>
         <Grid container spacing={5}>
           <Grid
-            size={{
-              xs: 12,
-              md: 6,
-              xl: 4
-            }}>
+            size={
+              assembly === "GRCh38" ? {
+                xs: 12,
+                md: 6,
+                xl: 4
+              } : {
+                xs: 12,
+                md: 6,
+              }
+            }
+          >
             {
               <DataTable
                 columns={[
@@ -134,11 +169,17 @@ export const NearByGenomicFeatures: React.FC<{
             }
           </Grid>
           <Grid
-            size={{
-              xs: 12,
-              md: 6,
-              xl: 4
-            }}>
+            size={
+              assembly === "GRCh38" ? {
+                xs: 12,
+                md: 6,
+                xl: 4
+              } : {
+                xs: 12,
+                md: 6,
+              }
+            }
+          >
             {
               <DataTable
                 columns={[
@@ -173,6 +214,7 @@ export const NearByGenomicFeatures: React.FC<{
               />
             }
           </Grid>
+          {assembly === "GRCh38" && 
           <Grid
             size={{
               xs: 12,
@@ -211,7 +253,7 @@ export const NearByGenomicFeatures: React.FC<{
                 sortDescending={true}
               />
             }
-          </Grid>
+          </Grid>}
         </Grid>
       </>
     )}
