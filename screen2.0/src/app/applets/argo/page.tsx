@@ -282,18 +282,6 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         setSelectedSearch(event.target.value)
     }
 
-    const handleAssemblyChange = (event: SelectChangeEvent) => {
-        setDataAPI([])
-        setAvailableScores(allFiltersObj)
-        setCheckedScores(allFiltersObj)
-        setSelectedBiosample(null)
-        setRows([])
-        setColumns([])
-        if ((event.target.value === "GRCh38") || (event.target.value === "mm10")) {
-            setAssembly(event.target.value)
-        }  
-    }
-
     function appletCallBack(data) {
         setSelectedBiosample(null)
         setDataAPI(data)
@@ -453,12 +441,14 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     return (
         <Box display="flex" height="100vh">
             {!drawerOpen && (
-                <IconButton
-                    onClick={toggleDrawer}
-                    color="primary"
-                >
-                    <FilterListIcon />
-                </IconButton>
+                <Box alignItems={"flex-start"} padding={2}>
+                    <IconButton
+                        onClick={toggleDrawer}
+                        color="primary"
+                    >
+                        <FilterListIcon />
+                    </IconButton>
+                </Box>
             )}
             <Drawer
                 anchor="left"
@@ -816,7 +806,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                 </Box>
             </Drawer>
             <Box
-                ml= {drawerOpen ? "25vw" : 0}
+                ml={drawerOpen ? "25vw" : 0}
                 padding={3}
                 flexGrow={1}
             >
@@ -839,99 +829,92 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                         {error_quantifications.message}
                     </Alert>
                 )}
-                <Box>
-                    <Stack direction={props.header ? "row" : "column"} spacing={3} mt="10px">
-                        <Stack direction={"row"} alignItems={"center"} flexWrap={"wrap"}>
-                            {!props.header && (
-                                <Typography variant={"h5"} mr={1} alignSelf="center">
-                                    Upload Through
-                                </Typography>
-                            )}
-                            <Stack
-                                direction={"row"}
-                                alignItems={"center"}
-                                flexWrap={props.header ? "nowrap" : "wrap"}
+                <Stack direction={props.header ? "row" : "column"} spacing={3} mt="10px">
+                    <Stack direction={"row"} alignItems={"center"} flexWrap={"wrap"}>
+                        {!props.header && (
+                            <Typography variant={"h5"} mr={1} alignSelf="center">
+                                Upload Through
+                            </Typography>
+                        )}
+                        <Stack
+                            direction={"row"}
+                            alignItems={"center"}
+                            flexWrap={props.header ? "nowrap" : "wrap"}
+                        >
+                            <FormControl
+                                variant="standard"
+                                size="medium"
+                                sx={{ '& .MuiInputBase-root': { fontSize: '1.5rem' } }}
                             >
-                                <FormControl
-                                    variant="standard"
-                                    size="medium"
-                                    sx={{ '& .MuiInputBase-root': { fontSize: '1.5rem' } }}
+                                <Select
+                                    fullWidth
+                                    id="select-search"
+                                    value={selectedSearch}
+                                    onChange={handleSearchChange}
+                                    SelectDisplayProps={{
+                                        style: { paddingBottom: '0px', paddingTop: '1px' },
+                                    }}
                                 >
-                                    <Select
-                                        fullWidth
-                                        id="select-search"
-                                        value={selectedSearch}
-                                        onChange={handleSearchChange}
-                                        SelectDisplayProps={{
-                                            style: { paddingBottom: '0px', paddingTop: '1px' },
-                                        }}
-                                    >
-                                        <MenuItem value={"BED File"}>BED File</MenuItem>
-                                        <MenuItem value={"Text Box"}>Text Box</MenuItem>
-                                    </Select>
-                                </FormControl>
-                                <Typography variant={props.header ? "body1" : "h5"} ml={1} mr={1} alignSelf="center">
-                                    in
-                                </Typography>
-                                <FormControl
-                                    variant="standard"
-                                    size="medium"
-                                    sx={{ '& .MuiInputBase-root': { fontSize: '1.5rem' } }}
-                                >
-                                    <Select
-                                        fullWidth
-                                        id="select-search"
-                                        value={assembly}
-                                        onChange={handleAssemblyChange}
-                                        SelectDisplayProps={{
-                                            style: { paddingBottom: '0px', paddingTop: '1px' },
-                                        }}
-                                    >
-                                        <MenuItem value={"GRCh38"}>GRCh38</MenuItem>
-                                        <MenuItem value={"mm10"}>mm10</MenuItem>
-                                    </Select>
-                                </FormControl>
-                            </Stack>
+                                    <MenuItem value={"BED File"}>BED File</MenuItem>
+                                    <MenuItem value={"Text Box"}>Text Box</MenuItem>
+                                </Select>
+                            </FormControl>
                         </Stack>
                     </Stack>
-                    <Box mt="20px" maxWidth="40vw">
-                        {selectedSearch === "BED File" ? (
-                            <BedUpload
-                                assembly={assembly}
-                                appletCallback={appletCallBack}
-                            />
-                        ) :
-                            <FormControl fullWidth>
-                                <form action={handleTextUpload}>
-                                    <TextField name="textUploadFile" multiline fullWidth rows={5}
-                                        placeholder="Copy and paste your data from Excel here"
-                                    ></TextField>
-                                    <Button type="submit" size="medium" variant="outlined">Submit</Button>
-                                </form>
-                            </FormControl>
+                </Stack>
+                <Box mt="20px" width="30vw">
+                    {selectedSearch === "BED File" ? (
+                        <BedUpload
+                            assembly={assembly}
+                            appletCallback={appletCallBack}
+                        />
+                    ) :
+                        <FormControl fullWidth>
+                            <form action={handleTextUpload}>
+                                <TextField name="textUploadFile" multiline fullWidth rows={5}
+                                    placeholder="Copy and paste your data from Excel here"
+                                ></TextField>
+                                <Button type="submit" size="medium" variant="outlined">Submit</Button>
+                            </form>
+                        </FormControl>
 
-                        }
-                    </Box>
+                    }
                 </Box>
                 {rows.length > 0 &&
                     <Box mt="20px">
-                        {(loading_scores || loading_genes || loading_quantifications) ? <CircularProgress /> :
-                            <DataTable
-                                key={key}
-                                columns={[{ header: "Accession", value: (row) => row.accession },
-                                { header: "User ID", value: (row) => row.user_id },
-                                { header: "Aggregate Rank", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) }]
-                                    .concat(columns)}
-                                rows={rows}
-                                sortColumn={2}
-                                sortDescending
-                                itemsPerPage={10}
-                                searchable
-                                tableTitle="User Uploaded cCREs Ranked By Scores"
-                            >
-                            </DataTable>
-                        }
+                        <DataTable
+                            key={key}
+                            columns={[{ header: "Input Region", value: (row) => row.user_id },
+                            { header: "Aggregate", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) },
+                            { header: "Sequence", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) },
+                            { header: "Element", value: (row) => row.accession },
+                            { header: "Gene", value: (row) => row.accession }]}
+                            rows={rows}
+                            sortColumn={2}
+                            sortDescending
+                            itemsPerPage={5}
+                            searchable
+                            tableTitle="ARGO"
+                        />
                     </Box>
+                    // <Box mt="20px">
+                    //     {(loading_scores || loading_genes || loading_quantifications) ? <CircularProgress /> :
+                    //         <DataTable
+                    //             key={key}
+                    //             columns={[{ header: "Accession", value: (row) => row.accession },
+                    //             { header: "User ID", value: (row) => row.user_id },
+                    //             { header: "Aggregate Rank", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) }]
+                    //                 .concat(columns)}
+                    //             rows={rows}
+                    //             sortColumn={2}
+                    //             sortDescending
+                    //             itemsPerPage={10}
+                    //             searchable
+                    //             tableTitle="User Uploaded cCREs Ranked By Scores"
+                    //         >
+                    //         </DataTable>
+                    //     }
+                    // </Box>
                 }
             </Box>
         </Box>
