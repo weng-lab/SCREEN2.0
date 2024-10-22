@@ -1,5 +1,5 @@
 "use client"
-import React, { startTransition, useEffect } from "react"
+import React, { startTransition, useEffect, useMemo } from "react"
 import {useState } from "react"
 import { Stack, Typography, Box, TextField, Button, Alert, FormGroup, Checkbox, FormControlLabel, CircularProgress, Paper, IconButton, Tooltip, Accordion, AccordionSummary, AccordionDetails, RadioGroup, Radio, InputLabel, FormLabel, Drawer } from "@mui/material"
 import MenuItem from "@mui/material/MenuItem"
@@ -77,11 +77,59 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         linkedGeneFilters: {"Intact-HiC": false, "CTCF-ChIAPET": false, "RNAPII-ChIAPET": false, "CRISPRi-FlowFISH": false, "eQTLs": false },
     };
 
-    const mainColumns = [
-        { header: "Seqence", HeaderRender: () => <SequenceHeader onClick={() => setShownTable("sequence")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) },
-        { header: "Element", HeaderRender: () => <ElementHeader onClick={() => setShownTable("element")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) },
-        { header: "Gene", HeaderRender: () => <GeneHeader onClick={() => setShownTable("gene")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) }
-    ]
+    const SequenceHeader = ({ onClick }) => (
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+            Sequence
+                <IconButton
+                    size="small"
+                    onClick={onClick}
+                >
+                    <InfoIcon fontSize={shownTable === "sequence" ? "large" : "inherit"} color={shownTable === "sequence" ? "primary" : "inherit"}/>
+                </IconButton>
+        </div>
+    );
+
+    const ElementHeader = ({ onClick }) => (
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+            Element
+                <IconButton
+                    size="small"
+                    onClick={onClick}
+                >
+                    <InfoIcon fontSize="inherit" />
+                </IconButton>
+        </div>
+    );
+
+    const GeneHeader = ({ onClick }) => (
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+            Gene
+                <IconButton
+                    size="small"
+                    onClick={onClick}
+                >
+                    <InfoIcon fontSize="inherit" />
+                </IconButton>
+        </div>
+    );
+
+    const mainColumns: DataTableColumn<any>[] = useMemo(() => {
+        
+        const cols: DataTableColumn<any>[] = [
+            { header: "Input Region", value: (row) => `${row.genomicRegion.chr}:${row.genomicRegion.start}-${row.genomicRegion.end}` },
+            { header: "Aggregate", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) }
+        ]
+        /**
+         * @todo add corresponding checkbox states to these checks
+         * and type "rows" state variable properly, and add to type arguments above DataTableColumn<NEW_TYPE>
+         */
+        true && cols.push({ header: "Seqence", HeaderRender: () => <SequenceHeader onClick={() => setShownTable("sequence")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
+        true && cols.push({ header: "Element", HeaderRender: () => <ElementHeader onClick={() => setShownTable("element")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
+        true && cols.push({ header: "Gene", HeaderRender: () => <GeneHeader onClick={() => setShownTable("gene")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
+
+        return cols
+
+    }, [SequenceHeader, ElementHeader, GeneHeader, setShownTable])
 
     const assayColumns = [
         { header: "DNase", value: (row) => row.dnase, render: (row) => row.dnase.toFixed(2) },
@@ -102,10 +150,9 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     const [assembly, setAssembly] = useState<"GRCh38" | "mm10">("GRCh38")
     const [selectedSearch, setSelectedSearch] = useState<string>("BED File")
     const [dataAPI, setDataAPI] = useState<[]>([]) // The intersection data returned from BedUpload component
-    const [rows, setRows] = useState<ZScores[]>([]) // The main data displayed on the table
+    const [rows, setRows] = useState<any[]>([]) // The main data displayed on the table
     const [key, setKey] = useState<string>()
     const [columns, setColumns] = useState([]) // State variable used to display the columns in the DataTable
-    const [mainTableColumns, setMainTableColumns] = useState([])
     
     const [availableScores, setAvailableScores] = useState(allFiltersObj) // This is all the scores available according to the query, all false scores are disabled checkboxes below
     const [checkedScores, setCheckedScores] = useState(allFiltersObj) // This is the scores the user has selected, used for checkbox control
@@ -304,7 +351,6 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         setRows([])
         configureInputedRegions(data)
         setDrawerOpen(true)
-        setMainTableColumns(mainColumns)
     }
 
     function configureInputedRegions(data) {
@@ -480,41 +526,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         }
     }, [selectedBiosample]);
 
-    const SequenceHeader = ({ onClick }) => (
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-            Sequence
-                <IconButton
-                    size="small"
-                    onClick={onClick}
-                >
-                    <InfoIcon fontSize={shownTable === "sequence" ? "large" : "inherit"} color={shownTable === "sequence" ? "primary" : "inherit"}/>
-                </IconButton>
-        </div>
-    );
-
-    const ElementHeader = ({ onClick }) => (
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-            Element
-                <IconButton
-                    size="small"
-                    onClick={onClick}
-                >
-                    <InfoIcon fontSize="inherit" />
-                </IconButton>
-        </div>
-    );
-
-    const GeneHeader = ({ onClick }) => (
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-            Gene
-                <IconButton
-                    size="small"
-                    onClick={onClick}
-                >
-                    <InfoIcon fontSize="inherit" />
-                </IconButton>
-        </div>
-    );
+    
       
     return (
         <Box display="flex" >
@@ -961,11 +973,11 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                     }
                 </Box>
                 {rows.length > 0 &&
-                    <Box mt="20px">
+                    <Box mt="20px" id="123456">
                         <DataTable
-                            key={key}
-                            columns={[{ header: "Input Region", value: (row) => `${row.genomicRegion.chr}:${row.genomicRegion.start}-${row.genomicRegion.end}` },
-                            { header: "Aggregate", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) },].concat(mainTableColumns)}
+                            key={Math.random()}
+                            
+                            columns={mainColumns}
                             rows={rows}
                             sortColumn={2}
                             sortDescending
