@@ -7,7 +7,7 @@ import ClearIcon from '@mui/icons-material/Clear'
 import FormControl from "@mui/material/FormControl"
 import Select, { SelectChangeEvent } from "@mui/material/Select"
 import BedUpload, { getIntersect, parseDataInput } from "../../_mainsearch/bedupload"
-import { DataTable } from "@weng-lab/psychscreen-ui-components"
+import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { GENE_EXP_QUERY, LINKED_GENES, Z_SCORES_QUERY } from "./queries"
 import { ApolloQueryResult, useLazyQuery, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
@@ -77,20 +77,26 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         linkedGeneFilters: {"Intact-HiC": false, "CTCF-ChIAPET": false, "RNAPII-ChIAPET": false, "CRISPRi-FlowFISH": false, "eQTLs": false },
     };
 
-    const allColumns = [
+    const mainColumns = [
+        { header: "Seqence", HeaderRender: () => <SequenceHeader onClick={() => setShownTable("sequence")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) },
+        { header: "Element", HeaderRender: () => <ElementHeader onClick={() => setShownTable("element")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) },
+        { header: "Gene", HeaderRender: () => <GeneHeader onClick={() => setShownTable("gene")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) }
+    ]
+
+    const assayColumns = [
         { header: "DNase", value: (row) => row.dnase, render: (row) => row.dnase.toFixed(2) },
         { header: "H3K4me3", value: (row) => row.h3k4me3, render: (row) => row.h3k4me3.toFixed(2) },
         { header: "H3K27ac", value: (row) => row.h3k27ac, render: (row) => row.h3k27ac.toFixed(2) },
         { header: "CTCF", value: (row) => row.ctcf, render: (row) => row.ctcf.toFixed(2) },
         { header: "ATAC", value: (row) => row.atac, render: (row) => row.atac.toFixed(2) },
-        { header: "Vertebrates", value: (row) => row.vertebrates, render: (row) => row.vertebrates.toFixed(2) },
-        { header: "Mammals", value: (row) => row.mammals, render: (row) => row.mammals.toFixed(2) },
-        { header: "Primates", value: (row) => row.primates, render: (row) => row.primates.toFixed(2) },
-        { header: "Intact-HiC", value: (row) => row["Intact-HiC"], render: (row) => row["Intact-HiC"].toFixed(2) },
-        { header: "CTCF-ChIAPET", value: (row) => row["CTCF-ChIAPET"], render: (row) => row["CTCF-ChIAPET"].toFixed(2) },
-        { header: "RNAPII-ChIAPET", value: (row) => row["RNAPII-ChIAPET"], render: (row) => row["RNAPII-ChIAPET"].toFixed(2) },
-        { header: "CRISPRi-FlowFISH", value: (row) => row["CRISPRi-FlowFISH"], render: (row) => row["CRISPRi-FlowFISH"].toFixed(2) },
-        { header: "eQTLs", value: (row) => row.eQTLs, render: (row) => row.eQTLs.toFixed(2) },
+        // { header: "Vertebrates", value: (row) => row.vertebrates, render: (row) => row.vertebrates.toFixed(2) },
+        // { header: "Mammals", value: (row) => row.mammals, render: (row) => row.mammals.toFixed(2) },
+        // { header: "Primates", value: (row) => row.primates, render: (row) => row.primates.toFixed(2) },
+        // { header: "Intact-HiC", value: (row) => row["Intact-HiC"], render: (row) => row["Intact-HiC"].toFixed(2) },
+        // { header: "CTCF-ChIAPET", value: (row) => row["CTCF-ChIAPET"], render: (row) => row["CTCF-ChIAPET"].toFixed(2) },
+        // { header: "RNAPII-ChIAPET", value: (row) => row["RNAPII-ChIAPET"], render: (row) => row["RNAPII-ChIAPET"].toFixed(2) },
+        // { header: "CRISPRi-FlowFISH", value: (row) => row["CRISPRi-FlowFISH"], render: (row) => row["CRISPRi-FlowFISH"].toFixed(2) },
+        // { header: "eQTLs", value: (row) => row.eQTLs, render: (row) => row.eQTLs.toFixed(2) },
     ]
 
     const [assembly, setAssembly] = useState<"GRCh38" | "mm10">("GRCh38")
@@ -99,6 +105,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     const [rows, setRows] = useState<ZScores[]>([]) // The main data displayed on the table
     const [key, setKey] = useState<string>()
     const [columns, setColumns] = useState([]) // State variable used to display the columns in the DataTable
+    const [mainTableColumns, setMainTableColumns] = useState([])
     
     const [availableScores, setAvailableScores] = useState(allFiltersObj) // This is all the scores available according to the query, all false scores are disabled checkboxes below
     const [checkedScores, setCheckedScores] = useState(allFiltersObj) // This is the scores the user has selected, used for checkbox control
@@ -297,6 +304,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         setRows([])
         configureInputedRegions(data)
         setDrawerOpen(true)
+        setMainTableColumns(mainColumns)
     }
 
     function configureInputedRegions(data) {
@@ -338,7 +346,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                 data[row[0]][`${scoreName}_rank`] = i + 1
             })
         })
-        setColumns(allColumns.filter(
+        setColumns(assayColumns.filter(
             (e) => available.assayFilters[e.header.toLowerCase()] || available.assayFilters[e.header]
         ))
         let random_string = Math.random().toString(36).slice(2, 10)
@@ -379,7 +387,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     
         let scoresToInclude = Object.keys(checkedCopy[groupName]).filter((e) => checkedCopy[groupName][e]);
         setRows(calculateAggregateRank([...rows], scoresToInclude));
-        setColumns(allColumns.filter(
+        setColumns(assayColumns.filter(
             (e) => checkedCopy[groupName][e.header.toLowerCase().split(' ')[0]] || checkedCopy[groupName][e.header]
         ));
         setKey(scoresToInclude.join(' '));
@@ -479,7 +487,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                     size="small"
                     onClick={onClick}
                 >
-                    <InfoIcon fontSize="inherit" />
+                    <InfoIcon fontSize={shownTable === "sequence" ? "large" : "inherit"} color={shownTable === "sequence" ? "primary" : "inherit"}/>
                 </IconButton>
         </div>
     );
@@ -509,7 +517,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     );
       
     return (
-        <Box display="flex" height="100vh">
+        <Box display="flex" >
             {!drawerOpen && (
                 <Box alignItems={"flex-start"} padding={2}>
                     <IconButton
@@ -880,6 +888,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                 ml={drawerOpen ? "25vw" : 0}
                 padding={3}
                 flexGrow={1}
+                height={"100%"}
             >
                 <Typography variant="h4" mb={3}>
                     <b>A</b>ggregate <b>R</b>ank <b>G</b>enerat<b>o</b>r
@@ -956,10 +965,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                         <DataTable
                             key={key}
                             columns={[{ header: "Input Region", value: (row) => `${row.genomicRegion.chr}:${row.genomicRegion.start}-${row.genomicRegion.end}` },
-                            { header: "Aggregate", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) },
-                            { header: "Seqence", HeaderRender: () => <SequenceHeader onClick={() => setShownTable("sequence")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) },
-                            { header: "Element", HeaderRender: () => <ElementHeader onClick={() => setShownTable("element")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) },
-                            { header: "Gene", HeaderRender: () => <GeneHeader onClick={() => setShownTable("gene")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) }]}
+                            { header: "Aggregate", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) },].concat(mainTableColumns)}
                             rows={rows}
                             sortColumn={2}
                             sortDescending
