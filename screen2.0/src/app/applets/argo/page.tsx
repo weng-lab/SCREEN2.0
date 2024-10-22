@@ -22,21 +22,41 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import { CancelRounded } from "@mui/icons-material"
 import InfoIcon from '@mui/icons-material/Info';
 
+const scoreNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
+    const conservationNames = ["vertebrates", "mammals", "primates"]
+    const linkedGenesMethods = ["Intact-HiC", "CTCF-ChIAPET", "RNAPII-ChIAPET", "CRISPRi-FlowFISH", "eQTLs"]
+    const allScoreNames = scoreNames.concat(conservationNames).concat(linkedGenesMethods)
+    const allScoresObj = {"dnase": false, "h3k4me3": false, "h3k27ac": false, "ctcf": false, "atac": false, "conservation": true, "TFMotifs": false, "cCREs": true, "CA": true, "CA_CTCF": true, "CA_H3K4me3": true, "CA_TF": true, "dELS": true, "pELS": true, "PLS": true, "TF": true, "vertebrates": false, "mammals": false, "primates": false, "Intact-HiC": false, "CTCF-ChIAPET": false, "RNAPII-ChIAPET": false, "CRISPRi-FlowFISH" : false, "eQTLs": false}
+    const allFiltersObj = {
+        headerFilters: {"conservation": true, "TFMotifs": false, "cCREs": true,},
+        conservationFilters: {"240_mam_phyloP": true, "240_mam_phastCons": false, "43_prim_phyloP": false, "43_prim_phastCons": false, "100_vert_phyloP": false, "100_vert_phastCons": false},
+        classFilters: { "CA": true, "CA_CTCF": true, "CA_H3K4me3": true, "CA_TF": true, "dELS": true, "pELS": true, "PLS": true, "TF": true },
+        assayFilters: { "dnase": false, "h3k4me3": false, "h3k27ac": false, "ctcf": false, "atac": false},
+        linkedGeneFilters: {"Intact-HiC": false, "CTCF-ChIAPET": false, "RNAPII-ChIAPET": false, "CRISPRi-FlowFISH": false, "eQTLs": false },
+    };
+
 export default function Argo(props: {header?: false, optionalFunction?: Function}) {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const toggleDrawer = () => setDrawerOpen(!drawerOpen);
-
-    const [inputRegions, setInputRegions] = useState<GenomicRegion[]>([]);
+    const [expandedAccordions, setExpandedAccordions] = useState<string[]>(["sequence"]);
     const [shownTable, setShownTable] = useState<"sequence" | "element" | "gene">(null);
 
     // Filter state variables
+    /**
+     * @todo group necesary filter states together
+     */
+    const [inputRegions, setInputRegions] = useState<GenomicRegion[]>([]);
+    const [useConservation, setUseConservation] = useState(true);
     const [alignment, setAlignment] = useState("241-mam-phyloP");
     const [rankBy, setRankBy] = useState("max");
+    const [useMotifs, setUseMotifs] = useState(false);
     const [motifCatalog, setMotifCatalog] = useState<"factorbook" | "factorbookTF" | "hocomoco" | "zMotif">("factorbook");
-    const [numOverlappingMotifs, setNumOverlappingMotifs] = useState(false);
+    const [numOverlappingMotifs, setNumOverlappingMotifs] = useState(true);
     const [motifScoreDelta, setMotifScoreDelta] = useState(false);
     const [overlapsTFPeak, setOverlapsTFPeak] = useState(false);
+    const [usecCREs, setUsecCREs] = useState(true);
     const [cCREAssembly, setCCREAssembly] = useState<"GRCh38" | "mm10">("GRCh38");
+    const [mustHaveOrtholog, setMustHaveOrtholog] = useState(false);
     const [selectedBiosample, setSelectedBiosample] = useState<RegistryBiosample>(null);
     const [assays, setAssays] = useState<CCREAssays>({
         DNase: true,
@@ -62,91 +82,9 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         PLS: true,
         TF: true,
     });
-    const [mustHaveOrtholog, setMustHaveOrtholog] = useState(false);
+    const [useGenes, setUseGenes] = useState(true);
 
-    const scoreNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
-    const conservationNames = ["vertebrates", "mammals", "primates"]
-    const linkedGenesMethods = ["Intact-HiC", "CTCF-ChIAPET", "RNAPII-ChIAPET", "CRISPRi-FlowFISH", "eQTLs"]
-    const allScoreNames = scoreNames.concat(conservationNames).concat(linkedGenesMethods)
-    const allScoresObj = {"dnase": false, "h3k4me3": false, "h3k27ac": false, "ctcf": false, "atac": false, "conservation": true, "TFMotifs": false, "cCREs": true, "CA": true, "CA_CTCF": true, "CA_H3K4me3": true, "CA_TF": true, "dELS": true, "pELS": true, "PLS": true, "TF": true, "vertebrates": false, "mammals": false, "primates": false, "Intact-HiC": false, "CTCF-ChIAPET": false, "RNAPII-ChIAPET": false, "CRISPRi-FlowFISH" : false, "eQTLs": false}
-    const allFiltersObj = {
-        headerFilters: {"conservation": true, "TFMotifs": false, "cCREs": true,},
-        conservationFilters: {"240_mam_phyloP": true, "240_mam_phastCons": false, "43_prim_phyloP": false, "43_prim_phastCons": false, "100_vert_phyloP": false, "100_vert_phastCons": false},
-        classFilters: { "CA": true, "CA_CTCF": true, "CA_H3K4me3": true, "CA_TF": true, "dELS": true, "pELS": true, "PLS": true, "TF": true },
-        assayFilters: { "dnase": false, "h3k4me3": false, "h3k27ac": false, "ctcf": false, "atac": false},
-        linkedGeneFilters: {"Intact-HiC": false, "CTCF-ChIAPET": false, "RNAPII-ChIAPET": false, "CRISPRi-FlowFISH": false, "eQTLs": false },
-    };
-
-    const SequenceHeader = ({ onClick }) => (
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-            Sequence
-                <IconButton
-                    size="small"
-                    onClick={onClick}
-                >
-                    <InfoIcon fontSize={shownTable === "sequence" ? "large" : "inherit"} color={shownTable === "sequence" ? "primary" : "inherit"}/>
-                </IconButton>
-        </div>
-    );
-
-    const ElementHeader = ({ onClick }) => (
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-            Element
-                <IconButton
-                    size="small"
-                    onClick={onClick}
-                >
-                    <InfoIcon fontSize="inherit" />
-                </IconButton>
-        </div>
-    );
-
-    const GeneHeader = ({ onClick }) => (
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-            Gene
-                <IconButton
-                    size="small"
-                    onClick={onClick}
-                >
-                    <InfoIcon fontSize="inherit" />
-                </IconButton>
-        </div>
-    );
-
-    const mainColumns: DataTableColumn<any>[] = useMemo(() => {
-        
-        const cols: DataTableColumn<any>[] = [
-            { header: "Input Region", value: (row) => `${row.genomicRegion.chr}:${row.genomicRegion.start}-${row.genomicRegion.end}` },
-            { header: "Aggregate", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) }
-        ]
-        /**
-         * @todo add corresponding checkbox states to these checks
-         * and type "rows" state variable properly, and add to type arguments above DataTableColumn<NEW_TYPE>
-         */
-        true && cols.push({ header: "Seqence", HeaderRender: () => <SequenceHeader onClick={() => setShownTable("sequence")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
-        true && cols.push({ header: "Element", HeaderRender: () => <ElementHeader onClick={() => setShownTable("element")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
-        true && cols.push({ header: "Gene", HeaderRender: () => <GeneHeader onClick={() => setShownTable("gene")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
-
-        return cols
-
-    }, [SequenceHeader, ElementHeader, GeneHeader, setShownTable])
-
-    const assayColumns = [
-        { header: "DNase", value: (row) => row.dnase, render: (row) => row.dnase.toFixed(2) },
-        { header: "H3K4me3", value: (row) => row.h3k4me3, render: (row) => row.h3k4me3.toFixed(2) },
-        { header: "H3K27ac", value: (row) => row.h3k27ac, render: (row) => row.h3k27ac.toFixed(2) },
-        { header: "CTCF", value: (row) => row.ctcf, render: (row) => row.ctcf.toFixed(2) },
-        { header: "ATAC", value: (row) => row.atac, render: (row) => row.atac.toFixed(2) },
-        // { header: "Vertebrates", value: (row) => row.vertebrates, render: (row) => row.vertebrates.toFixed(2) },
-        // { header: "Mammals", value: (row) => row.mammals, render: (row) => row.mammals.toFixed(2) },
-        // { header: "Primates", value: (row) => row.primates, render: (row) => row.primates.toFixed(2) },
-        // { header: "Intact-HiC", value: (row) => row["Intact-HiC"], render: (row) => row["Intact-HiC"].toFixed(2) },
-        // { header: "CTCF-ChIAPET", value: (row) => row["CTCF-ChIAPET"], render: (row) => row["CTCF-ChIAPET"].toFixed(2) },
-        // { header: "RNAPII-ChIAPET", value: (row) => row["RNAPII-ChIAPET"], render: (row) => row["RNAPII-ChIAPET"].toFixed(2) },
-        // { header: "CRISPRi-FlowFISH", value: (row) => row["CRISPRi-FlowFISH"], render: (row) => row["CRISPRi-FlowFISH"].toFixed(2) },
-        // { header: "eQTLs", value: (row) => row.eQTLs, render: (row) => row.eQTLs.toFixed(2) },
-    ]
-
+    //Old state variables
     const [assembly, setAssembly] = useState<"GRCh38" | "mm10">("GRCh38")
     const [selectedSearch, setSelectedSearch] = useState<string>("BED File")
     const [dataAPI, setDataAPI] = useState<[]>([]) // The intersection data returned from BedUpload component
@@ -159,7 +97,125 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     
     const [getOutput] = useLazyQuery(BED_INTERSECT_QUERY)
 
-    const [expandedAccordions, setExpandedAccordions] = useState<string[]>(["sequence"]);
+    const MainColHeader = ({ tableName, onClick }) => (
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+            {tableName}
+            <IconButton
+                size="small"
+                onClick={onClick}
+            >
+                <InfoIcon 
+                    fontSize="inherit" 
+                    color={shownTable === tableName.toLowerCase() ? "primary" : "inherit"}
+                />
+            </IconButton>
+        </div>
+    );
+
+    const mainColumns: DataTableColumn<any>[] = useMemo(() => {
+        
+        const cols: DataTableColumn<any>[] = [
+            { header: "Input Region", value: (row) => `${row.genomicRegion.chr}:${row.genomicRegion.start}-${row.genomicRegion.end}` },
+            { header: "Aggregate", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) }
+        ]
+        /**
+         * @todo add corresponding checkbox states to these checks
+         * and type "rows" state variable properly, and add to type arguments above DataTableColumn<NEW_TYPE>
+         * correctly populate input region
+         * correctly populate row values
+         */
+        if (useConservation || useMotifs) {
+            cols.push({ header: "Seqence", HeaderRender: () => <MainColHeader tableName="Sequence" onClick={() => setShownTable("sequence")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
+        }
+        usecCREs && cols.push({ header: "Element", HeaderRender: () => <MainColHeader tableName="Element" onClick={() => setShownTable("element")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
+        useGenes && cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Gene" onClick={() => setShownTable("gene")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
+
+        return cols
+
+    }, [MainColHeader, setShownTable])
+
+    const sequenceColumns: DataTableColumn<any>[] = useMemo(() => {
+        
+        const cols: DataTableColumn<any>[] = [
+            { header: "Input Region", value: (row) => `${row.genomicRegion.chr}:${row.genomicRegion.start}-${row.genomicRegion.end}` },
+        ]
+        /**
+         * @todo add corresponding checkbox states to these checks
+         * and type "rows" state variable properly, and add to type arguments above DataTableColumn<NEW_TYPE>
+         * correctly populate input region
+         * correctly populate row values
+         */
+        
+        if (useConservation) {
+            switch (alignment) {
+                case "241-mam-phyloP":
+                    cols.push({header: "241-Mammal(phyloP) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2)});
+                    break;
+                case "447-mam-phyloP":
+                    cols.push({header: "447-Mammal(phyloP) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2)});
+                    break;
+                case "241-mam-phastCons":
+                    cols.push({header: "241-Mammal(phastCons) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2)});
+                    break;
+                case "43-prim-phyloP":
+                    cols.push({header: "43-Primate(phyloP) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2)});
+                    break;
+                case "43-prim-phastCons":
+                    cols.push({header: "43-Primate(phastCons) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2)});
+                    break;
+                case "243-prim-phastCons":
+                    cols.push({header: "243-Primate(phastCons) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2)});
+                    break;
+                case "100-vert-phyloP":
+                    cols.push({header: "100-Vertebrate(phyloP) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2)});
+                    break;
+                case "100-vert-phastCons":
+                    cols.push({header: "100-Vertebrate(phastCons) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2)});
+                    break;
+                default:
+                    break;
+            }
+        }
+        if (useMotifs) {
+            numOverlappingMotifs && cols.push({ header: "# of Overlapping Motifs", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
+            motifScoreDelta && cols.push({ header: "Motif Score Delta", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
+            overlapsTFPeak && cols.push({ header: "Overlaps TF Peak", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
+        }        
+
+        return cols
+
+    }, [alignment, numOverlappingMotifs, motifScoreDelta, overlapsTFPeak, useMotifs, useConservation])
+
+    const elementColumns: DataTableColumn<any>[] = useMemo(() => {
+        
+        const cols: DataTableColumn<any>[] = [
+            { header: "Input Region", value: (row) => `${row.genomicRegion.chr}:${row.genomicRegion.start}-${row.genomicRegion.end}` },
+        ]
+        /**
+         * @todo add corresponding checkbox states to these checks
+         * and type "rows" state variable properly, and add to type arguments above DataTableColumn<NEW_TYPE>
+         * correctly populate input region
+         * correctly populate row values
+         */
+        if (usecCREs) {
+            assays.DNase && cols.push({ header: "DNase", value: (row) => row.dnase, render: (row) => row.dnase.toFixed(2)})
+            assays.H3K4me3 && cols.push({ header: "H3K4me3", value: (row) => row.h3k4me3, render: (row) => row.h3k4me3.toFixed(2) })
+            assays.H3K27ac && cols.push({ header: "H3K27ac", value: (row) => row.h3k27ac, render: (row) => row.h3k27ac.toFixed(2) })
+            assays.CTCF && cols.push({ header: "CTCF", value: (row) => row.ctcf, render: (row) => row.ctcf.toFixed(2) })
+            assays.ATAC && cols.push({ header: "ATAC", value: (row) => row.atac, render: (row) => row.atac.toFixed(2) })
+        }
+
+        return cols
+
+    }, [assays, usecCREs, classes])
+
+    const assayColumns = [
+        { header: "DNase", value: (row) => row.dnase, render: (row) => row.dnase.toFixed(2) },
+        { header: "H3K4me3", value: (row) => row.h3k4me3, render: (row) => row.h3k4me3.toFixed(2) },
+        { header: "H3K27ac", value: (row) => row.h3k27ac, render: (row) => row.h3k27ac.toFixed(2) },
+        { header: "CTCF", value: (row) => row.ctcf, render: (row) => row.ctcf.toFixed(2) },
+        { header: "ATAC", value: (row) => row.atac, render: (row) => row.atac.toFixed(2) },
+    ]
 
     const handleAccordionChange = (panel: string) => () => {
         setExpandedAccordions((prevExpanded) => 
@@ -581,11 +637,11 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                             Sequence
                         </AccordionSummary>
                         <AccordionDetails>
-                        <FormControlLabel value="conservation" control={<Checkbox onChange={(event) => handleCheckBoxChange(event, "headerFilters")} checked={checkedScores.headerFilters.conservation} />} label="Conservation" />
+                        <FormControlLabel value="conservation" control={<Checkbox onChange={() => setUseConservation(!useConservation)} checked={useConservation} />} label="Conservation" />
                             <Stack ml={2}>
                                 <FormGroup>
                                     <FormControl fullWidth>
-                                        <Select size="small" value={alignment} disabled={!checkedScores.headerFilters.conservation} onChange={(event) => setAlignment(event.target.value)}>
+                                        <Select size="small" value={alignment} disabled={!useConservation} onChange={(event) => setAlignment(event.target.value)}>
                                             <MenuItem value={"241-mam-phyloP"}>241-Mammal(phyloP)</MenuItem>
                                             <MenuItem value={"447-mam-phyloP"}>447-Mammal(phyloP)</MenuItem>
                                             <MenuItem value={"241-mam-phastCons"}>241-Mammal(phastCons)</MenuItem>
@@ -599,7 +655,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                 </FormGroup>
                                 <FormControl sx={{ width: "50%" }}>
                                     <FormLabel>Rank By</FormLabel>
-                                    <Select size="small" value={rankBy} disabled={!checkedScores.headerFilters.conservation} onChange={(event) => setRankBy(event.target.value)}>
+                                    <Select size="small" value={rankBy} disabled={!useConservation} onChange={(event) => setRankBy(event.target.value)}>
                                         <MenuItem value={"min"}>Min</MenuItem>
                                         <MenuItem value={"max"}>Max</MenuItem>
                                         <MenuItem value={"avg"}>Average</MenuItem>
@@ -607,22 +663,22 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                 </FormControl>
                             </Stack>
                             <FormGroup>
-                                <FormControlLabel value="TFMotifs" control={<Checkbox onChange={(event) => handleCheckBoxChange(event, "headerFilters")} checked={checkedScores.headerFilters.TFMotifs} />} label="TF Motifs" />
+                                <FormControlLabel value="TFMotifs" control={<Checkbox onChange={() => setUseMotifs(!useMotifs)} checked={useMotifs} />} label="TF Motifs" />
                                 <Stack ml={2}>
                                     <RadioGroup value={motifCatalog} onChange={(event) => setMotifCatalog(event.target.value as "factorbook" | "factorbookTF" | "hocomoco" | "zMotif")}>
-                                        <FormControlLabel value="factorbook" control={<Radio />} label="Factorbook" disabled={!checkedScores.headerFilters.TFMotifs} />
-                                        <FormControlLabel value="factorbookTF" control={<Radio />} label="Factorbook + TF Motif" disabled={!checkedScores.headerFilters.TFMotifs} />
-                                        <FormControlLabel value="hocomoco" control={<Radio />} label="HOCOMOCO" disabled={!checkedScores.headerFilters.TFMotifs} />
-                                        <FormControlLabel value="zMotif" control={<Radio />} label="ZMotif" disabled={!checkedScores.headerFilters.TFMotifs} />
+                                        <FormControlLabel value="factorbook" control={<Radio />} label="Factorbook" disabled={!useMotifs} />
+                                        <FormControlLabel value="factorbookTF" control={<Radio />} label="Factorbook + TF Motif" disabled={!useMotifs} />
+                                        <FormControlLabel value="hocomoco" control={<Radio />} label="HOCOMOCO" disabled={!useMotifs} />
+                                        <FormControlLabel value="zMotif" control={<Radio />} label="ZMotif" disabled={!useMotifs} />
                                     </RadioGroup>
                                 </Stack>
                             </FormGroup>
                             <FormGroup>
                                 <Stack ml={2}>
                                     <Typography lineHeight={"40px"}>Rank By</Typography>
-                                    <FormControlLabel value="numMotifs" control={<Checkbox onChange={() => setNumOverlappingMotifs(!numOverlappingMotifs)}/>} label="Number of Motifs" disabled={!checkedScores.headerFilters.TFMotifs} />
-                                    <FormControlLabel value="motifScoreDelta" control={<Checkbox onChange={() => setMotifScoreDelta(!motifScoreDelta)}/>} label="Motif Score Delta" disabled={!checkedScores.headerFilters.TFMotifs} />
-                                    <FormControlLabel value="overlapsTFPeak" control={<Checkbox onChange={() => setOverlapsTFPeak(!overlapsTFPeak)}/>} label="Overlaps TF Peak " disabled={!checkedScores.headerFilters.TFMotifs} />
+                                    <FormControlLabel value="numMotifs" control={<Checkbox onChange={() => setNumOverlappingMotifs(!numOverlappingMotifs)} checked={numOverlappingMotifs}/>} label="Number of Overlaping Motifs" disabled={!useMotifs} />
+                                    <FormControlLabel value="motifScoreDelta" control={<Checkbox onChange={() => setMotifScoreDelta(!motifScoreDelta)} checked={motifScoreDelta}/>} label="Motif Score Delta" disabled={!useMotifs} />
+                                    <FormControlLabel value="overlapsTFPeak" control={<Checkbox onChange={() => setOverlapsTFPeak(!overlapsTFPeak)} checked={overlapsTFPeak}/>} label="Overlaps TF Peak " disabled={!useMotifs} />
                                 </Stack>
                             </FormGroup>
                         </AccordionDetails>
@@ -641,23 +697,23 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                             Element
                         </AccordionSummary>
                         <AccordionDetails>
-                            <FormControlLabel value="cCREs" control={<Checkbox onChange={(event) => handleCheckBoxChange(event, "headerFilters")} checked={checkedScores.headerFilters.cCREs} />} label="cCREs" />
+                            <FormControlLabel value="cCREs" control={<Checkbox onChange={() => setUsecCREs(!usecCREs)} checked={usecCREs} />} label="cCREs" />
                             <Stack ml={2}>
                                 <RadioGroup row value={cCREAssembly} onChange={(event) => setCCREAssembly(event.target.value as "GRCh38" | "mm10")}>
-                                    <FormControlLabel value="GRCh38" control={<Radio />} label="GRCH38" disabled={!checkedScores.headerFilters.cCREs} />
-                                    <FormControlLabel value="mm10" control={<Radio />} label="mm10" disabled={!checkedScores.headerFilters.cCREs} />
+                                    <FormControlLabel value="GRCh38" control={<Radio />} label="GRCH38" disabled={!usecCREs} />
+                                    <FormControlLabel value="mm10" control={<Radio />} label="mm10" disabled={!usecCREs} />
                                 </RadioGroup>
                                 <FormControlLabel
                                     label="Only Orthologous cCREs"
                                     control={
                                         <Checkbox
                                             onChange={() => setMustHaveOrtholog(!mustHaveOrtholog)}
-                                            disabled={!checkedScores.headerFilters.cCREs || cCREAssembly == "mm10"}
+                                            disabled={!usecCREs || cCREAssembly == "mm10"}
                                             checked={mustHaveOrtholog}
                                         />
                                     }
                                 />
-                                <Accordion square disableGutters disabled={!checkedScores.headerFilters.cCREs}>
+                                <Accordion square disableGutters disabled={!usecCREs}>
                                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                                         Within a Biosample
                                     </AccordionSummary>
@@ -713,7 +769,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                             />
                                         }
                                         label="Select All"
-                                        disabled={!checkedScores.headerFilters.cCREs}
+                                        disabled={!usecCREs}
                                     />
                                     <Grid container spacing={0} ml={2}>
                                         <Grid size={6}>
@@ -724,7 +780,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                                     control={<Checkbox />}
                                                     label="CA"
                                                     value="CA"
-                                                    disabled={!checkedScores.headerFilters.cCREs}
+                                                    disabled={!usecCREs}
                                                 />
                                                 <FormControlLabel
                                                     checked={classes.CACTCF}
@@ -732,7 +788,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                                     control={<Checkbox />}
                                                     label="CA-CTCF"
                                                     value="CACTCF"
-                                                    disabled={!checkedScores.headerFilters.cCREs}
+                                                    disabled={!usecCREs}
                                                 />
                                                 <FormControlLabel
                                                     checked={classes.CAH3K4me3}
@@ -740,7 +796,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                                     control={<Checkbox />}
                                                     label="CA-H3K4me3"
                                                     value="CAH3K4me3"
-                                                    disabled={!checkedScores.headerFilters.cCREs}
+                                                    disabled={!usecCREs}
                                                 />
                                                 <FormControlLabel
                                                     checked={classes.CATF}
@@ -748,7 +804,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                                     control={<Checkbox />}
                                                     label="CA-TF"
                                                     value="CATF"
-                                                    disabled={!checkedScores.headerFilters.cCREs}
+                                                    disabled={!usecCREs}
                                                 />
                                             </FormGroup>
                                         </Grid>
@@ -760,7 +816,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                                     control={<Checkbox />}
                                                     label="dELS"
                                                     value="dELS"
-                                                    disabled={!checkedScores.headerFilters.cCREs}
+                                                    disabled={!usecCREs}
                                                 />
                                                 <FormControlLabel
                                                     checked={classes.pELS}
@@ -768,7 +824,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                                     control={<Checkbox />}
                                                     label="pELS"
                                                     value="pELS"
-                                                    disabled={!checkedScores.headerFilters.cCREs}
+                                                    disabled={!usecCREs}
                                                 />
                                                 <FormControlLabel
                                                     checked={classes.PLS}
@@ -776,7 +832,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                                     control={<Checkbox />}
                                                     label="PLS"
                                                     value="PLS"
-                                                    disabled={!checkedScores.headerFilters.cCREs}
+                                                    disabled={!usecCREs}
                                                 />
                                                 <FormControlLabel
                                                     checked={classes.TF}
@@ -784,7 +840,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                                     control={<Checkbox />}
                                                     label="TF"
                                                     value="TF"
-                                                    disabled={!checkedScores.headerFilters.cCREs}
+                                                    disabled={!usecCREs}
                                                 />
                                             </FormGroup>
                                         </Grid>
@@ -801,7 +857,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                             />
                                         }
                                         label="Select All"
-                                        disabled={!checkedScores.headerFilters.cCREs}
+                                        disabled={!usecCREs}
                                     />
                                     <Grid container spacing={0} ml={2}>
                                         <Grid size={6}>
@@ -810,7 +866,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                                 control={
                                                     <Checkbox
                                                         onChange={() => setAssays((prev) => ({ ...prev, DNase: !prev.DNase }))}
-                                                        disabled={!availableAssays.DNase || !checkedScores.headerFilters.cCREs}
+                                                        disabled={!availableAssays.DNase || !usecCREs}
                                                         checked={assays.DNase}
                                                         value="dnase"
                                                     />
@@ -821,7 +877,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                                 control={
                                                     <Checkbox
                                                         onChange={() => setAssays((prev) => ({ ...prev, H3K4me3: !prev.H3K4me3 }))}
-                                                        disabled={!availableAssays.H3K4me3 || !checkedScores.headerFilters.cCREs}
+                                                        disabled={!availableAssays.H3K4me3 || !usecCREs}
                                                         checked={assays.H3K4me3}
                                                         value="h3k4me3"
                                                     />
@@ -832,7 +888,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                                 control={
                                                     <Checkbox
                                                         onChange={() => setAssays((prev) => ({ ...prev, H3K27ac: !prev.H3K27ac }))}
-                                                        disabled={!availableAssays.H3K27ac|| !checkedScores.headerFilters.cCREs}
+                                                        disabled={!availableAssays.H3K27ac|| !usecCREs}
                                                         checked={assays.H3K27ac}
                                                         value="h3k27ac"
                                                     />
@@ -845,7 +901,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                                 control={
                                                     <Checkbox
                                                         onChange={() => setAssays((prev) => ({ ...prev, CTCF: !prev.CTCF }))}
-                                                        disabled={!availableAssays.CTCF || !checkedScores.headerFilters.cCREs}
+                                                        disabled={!availableAssays.CTCF || !usecCREs}
                                                         checked={assays.CTCF}
                                                         value="ctcf"
                                                     />
@@ -856,7 +912,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                                 control={
                                                     <Checkbox
                                                         onChange={() => setAssays((prev) => ({ ...prev, ATAC: !prev.ATAC }))}
-                                                        disabled={!availableAssays.ATAC || !checkedScores.headerFilters.cCREs}
+                                                        disabled={!availableAssays.ATAC || !usecCREs}
                                                         checked={assays.ATAC}
                                                         value="atac"
                                                     />
@@ -976,10 +1032,9 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                     <Box mt="20px" id="123456">
                         <DataTable
                             key={Math.random()}
-                            
                             columns={mainColumns}
                             rows={rows}
-                            sortColumn={2}
+                            sortColumn={1}
                             sortDescending
                             itemsPerPage={5}
                             searchable
@@ -987,27 +1042,13 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                         />
                     </Box>
                 }
-                {shownTable === "sequence" && (
+                {(shownTable === "sequence" && (useConservation || useMotifs)) && (
                     <Box mt="20px">
                         <DataTable
-                            key={`sequence-${key}`}
-                            columns={[
-                                {
-                                    header: "Accession",
-                                    value: (row) => row.accession
-                                },
-                                {
-                                    header: "User ID",
-                                    value: (row) => row.user_id
-                                },
-                                {
-                                    header: "Aggregate Rank",
-                                    value: (row) => row.aggRank,
-                                    render: (row) => row.aggRank.toFixed(2)
-                                },
-                            ]}
+                            key={Math.random()}
+                            columns={sequenceColumns}
                             rows={rows}
-                            sortColumn={2}
+                            sortColumn={0}
                             sortDescending
                             itemsPerPage={5}
                             searchable
@@ -1015,17 +1056,14 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                         />
                     </Box>
                 )}
-                {shownTable === "element" && (
+                {(shownTable === "element" && usecCREs) && (
                     <Box mt="20px">
                         {(loading_scores || loading_genes || loading_quantifications) ? <CircularProgress /> :
                             <DataTable
-                                key={key}
-                                columns={[{ header: "Accession", value: (row) => row.accession },
-                                { header: "User ID", value: (row) => row.user_id },
-                                { header: "Aggregate Rank", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) }]
-                                    .concat(columns)}
+                                key={Math.random()}
+                                columns={elementColumns}
                                 rows={rows}
-                                sortColumn={2}
+                                sortColumn={0}
                                 sortDescending
                                 itemsPerPage={10}
                                 searchable
@@ -1055,7 +1093,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                 },
                             ]}
                             rows={rows}
-                            sortColumn={2}
+                            sortColumn={1}
                             sortDescending
                             itemsPerPage={5}
                             searchable
