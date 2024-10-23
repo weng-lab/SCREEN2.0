@@ -83,3 +83,13 @@ export type UpdateFilter = <K extends keyof FilterState>(
     key: K,
     value: FilterState[K]
 ) => void;
+
+export type FilterProps = {
+    filterVariables: FilterState;
+    updateFilter: UpdateFilter;
+    toggleAssay: (assayName: keyof FilterState['assays']) => void;
+    toggleClass: (className: keyof FilterState['classes']) => void;
+    drawerOpen: boolean;
+    toggleDrawer: () => void;
+    rows: any;
+}

@@ -1,21 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { FilterState, UpdateFilter } from './types';
+import { FilterProps, FilterState, UpdateFilter } from './types';
 import { Accordion, AccordionDetails, AccordionSummary, Box, Checkbox, Drawer, FormControl, FormControlLabel, FormGroup, FormLabel, IconButton, MenuItem, Paper, Radio, RadioGroup, Select, Stack, Typography } from '@mui/material';
 import BiosampleTables from '../../_biosampleTables/BiosampleTables';
 import Grid from "@mui/material/Grid2"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import { CancelRounded } from "@mui/icons-material"
 import FilterListIcon from '@mui/icons-material/FilterList';
-
-interface FilterProps {
-    filterVariables: FilterState;
-    updateFilter: UpdateFilter;
-    toggleAssay: (assayName: keyof FilterState['assays']) => void;
-    toggleClass: (className: keyof FilterState['classes']) => void;
-    drawerOpen: boolean;
-    toggleDrawer: () => void;
-    rows: any;
-}
 
 const Filters: React.FC<FilterProps> = ({
     filterVariables,
@@ -27,8 +17,8 @@ const Filters: React.FC<FilterProps> = ({
     rows,
 }) => {
 
+    //Keep track of which tab is expanded in the drawer
     const [expandedAccordions, setExpandedAccordions] = useState<string[]>(["sequence"]);
-
     const handleAccordionChange = (panel: string) => () => {
         setExpandedAccordions((prevExpanded) =>
             prevExpanded.includes(panel)
@@ -36,9 +26,9 @@ const Filters: React.FC<FilterProps> = ({
                 : [...prevExpanded, panel]
         );
     };
-
     const isExpanded = (panel: string) => expandedAccordions.includes(panel);
 
+    //functionality for the select all box for assays
     const handleSelectAllAssays = (event) => {
         const isChecked = event.target.checked;
 
@@ -62,6 +52,7 @@ const Filters: React.FC<FilterProps> = ({
         return checkedCount > 0 && checkedCount < totalAvailable;
     };
 
+    //functionality for the select all box for classes
     const handleSelectAllClasses = (event) => {
         const isChecked = event.target.checked;
 
@@ -85,6 +76,7 @@ const Filters: React.FC<FilterProps> = ({
         return checkedCount > 0 && checkedCount < totalClasses;
     };
 
+    //change assays and availible assays depending on if there is a biosample selected or not
     useEffect(() => {
         if (filterVariables.selectedBiosample) {
             updateFilter('availableAssays', {

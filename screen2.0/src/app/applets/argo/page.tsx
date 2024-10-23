@@ -93,7 +93,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         useGenes: true,
     });
 
-    //update the filter variable state
+    //update a specific filter state
     const updateFilter = (key: keyof FilterState, value: any) => {
         setFilterVariables((prevState) => ({
             ...prevState,
@@ -101,7 +101,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         }));
     };
 
-    // To update a specific assay
+    //update a specific assay
     const toggleAssay = (assayName: keyof CCREAssays) => {
         updateFilter('assays', {
             ...filterVariables.assays,
@@ -109,7 +109,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         });
     };
 
-    // To update a specific class
+    //update a specific class
     const toggleClass = (className: keyof CCREClasses) => {
         updateFilter('classes', {
             ...filterVariables.classes,
@@ -117,6 +117,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         });
     };
 
+    //stylized header for main rank table columns
     const MainColHeader = ({ tableName, onClick }) => (
         <div style={{ display: 'flex', alignItems: 'center' }}>
             {tableName}
@@ -132,6 +133,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         </div>
     );
 
+    //handle column changes for the main rank table
     const mainColumns: DataTableColumn<any>[] = useMemo(() => {
 
         const cols: DataTableColumn<any>[] = [
@@ -154,6 +156,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
 
     }, [MainColHeader, setShownTable])
 
+    //handle column changes for the Sequence rank table
     const sequenceColumns: DataTableColumn<any>[] = useMemo(() => {
 
         const cols: DataTableColumn<any>[] = [
@@ -206,6 +209,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
 
     }, [filterVariables.alignment, filterVariables.numOverlappingMotifs, filterVariables.motifScoreDelta, filterVariables.overlapsTFPeak, filterVariables.useMotifs, filterVariables.useConservation])
 
+    //handle column changes for the Element rank table
     const elementColumns: DataTableColumn<any>[] = useMemo(() => {
 
         const cols: DataTableColumn<any>[] = [
@@ -236,8 +240,6 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         { header: "CTCF", value: (row) => row.ctcf, render: (row) => row.ctcf.toFixed(2) },
         { header: "ATAC", value: (row) => row.atac, render: (row) => row.atac.toFixed(2) },
     ]
-
-
 
     const { loading: loading_scores, error: error_scores } = useQuery(Z_SCORES_QUERY, {
         variables: {
@@ -604,7 +606,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                             sortDescending
                             itemsPerPage={5}
                             searchable
-                            tableTitle="ARGO"
+                            tableTitle="Ranked Regions"
                         />
                     </Box>
                 }
@@ -633,7 +635,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                                 sortDescending
                                 itemsPerPage={10}
                                 searchable
-                                tableTitle="User Uploaded cCREs Ranked By Scores"
+                                tableTitle="Element Details"
                             >
                             </DataTable>
                         }
