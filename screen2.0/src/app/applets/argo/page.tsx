@@ -1,6 +1,6 @@
 "use client"
 import React, { startTransition, useEffect, useMemo } from "react"
-import {useState } from "react"
+import { useState } from "react"
 import { Stack, Typography, Box, TextField, Button, Alert, FormGroup, Checkbox, FormControlLabel, CircularProgress, Paper, IconButton, Tooltip, Accordion, AccordionSummary, AccordionDetails, RadioGroup, Radio, InputLabel, FormLabel, Drawer } from "@mui/material"
 import MenuItem from "@mui/material/MenuItem"
 import ClearIcon from '@mui/icons-material/Clear'
@@ -11,7 +11,7 @@ import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { GENE_EXP_QUERY, LINKED_GENES, Z_SCORES_QUERY } from "./queries"
 import { ApolloQueryResult, useLazyQuery, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
-import { ZScores, LinkedGenes, GenomicRegion, CCREAssays, CCREClasses, RankedRegions } from "./types"
+import { ZScores, LinkedGenes, GenomicRegion, CCREAssays, CCREClasses, RankedRegions, FilterState } from "./types"
 import { BIOSAMPLE_Data, biosampleQuery } from "../../../common/lib/queries"
 import { RegistryBiosample } from "../../search/types"
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -23,19 +23,33 @@ import { CancelRounded } from "@mui/icons-material"
 import InfoIcon from '@mui/icons-material/Info';
 
 const scoreNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
-    const conservationNames = ["vertebrates", "mammals", "primates"]
-    const linkedGenesMethods = ["Intact-HiC", "CTCF-ChIAPET", "RNAPII-ChIAPET", "CRISPRi-FlowFISH", "eQTLs"]
-    const allScoreNames = scoreNames.concat(conservationNames).concat(linkedGenesMethods)
-    const allScoresObj = {"dnase": false, "h3k4me3": false, "h3k27ac": false, "ctcf": false, "atac": false, "conservation": true, "TFMotifs": false, "cCREs": true, "CA": true, "CA_CTCF": true, "CA_H3K4me3": true, "CA_TF": true, "dELS": true, "pELS": true, "PLS": true, "TF": true, "vertebrates": false, "mammals": false, "primates": false, "Intact-HiC": false, "CTCF-ChIAPET": false, "RNAPII-ChIAPET": false, "CRISPRi-FlowFISH" : false, "eQTLs": false}
-    const allFiltersObj = {
-        headerFilters: {"conservation": true, "TFMotifs": false, "cCREs": true,},
-        conservationFilters: {"240_mam_phyloP": true, "240_mam_phastCons": false, "43_prim_phyloP": false, "43_prim_phastCons": false, "100_vert_phyloP": false, "100_vert_phastCons": false},
-        classFilters: { "CA": true, "CA_CTCF": true, "CA_H3K4me3": true, "CA_TF": true, "dELS": true, "pELS": true, "PLS": true, "TF": true },
-        assayFilters: { "dnase": false, "h3k4me3": false, "h3k27ac": false, "ctcf": false, "atac": false},
-        linkedGeneFilters: {"Intact-HiC": false, "CTCF-ChIAPET": false, "RNAPII-ChIAPET": false, "CRISPRi-FlowFISH": false, "eQTLs": false },
-    };
+const conservationNames = ["vertebrates", "mammals", "primates"]
+const linkedGenesMethods = ["Intact-HiC", "CTCF-ChIAPET", "RNAPII-ChIAPET", "CRISPRi-FlowFISH", "eQTLs"]
+const allScoreNames = scoreNames.concat(conservationNames).concat(linkedGenesMethods)
+const allScoresObj = { "dnase": false, "h3k4me3": false, "h3k27ac": false, "ctcf": false, "atac": false, "conservation": true, "TFMotifs": false, "cCREs": true, "CA": true, "CA_CTCF": true, "CA_H3K4me3": true, "CA_TF": true, "dELS": true, "pELS": true, "PLS": true, "TF": true, "vertebrates": false, "mammals": false, "primates": false, "Intact-HiC": false, "CTCF-ChIAPET": false, "RNAPII-ChIAPET": false, "CRISPRi-FlowFISH": false, "eQTLs": false }
+const allFiltersObj = {
+    headerFilters: { "conservation": true, "TFMotifs": false, "cCREs": true, },
+    conservationFilters: { "240_mam_phyloP": true, "240_mam_phastCons": false, "43_prim_phyloP": false, "43_prim_phastCons": false, "100_vert_phyloP": false, "100_vert_phastCons": false },
+    classFilters: { "CA": true, "CA_CTCF": true, "CA_H3K4me3": true, "CA_TF": true, "dELS": true, "pELS": true, "PLS": true, "TF": true },
+    assayFilters: { "dnase": false, "h3k4me3": false, "h3k27ac": false, "ctcf": false, "atac": false },
+    linkedGeneFilters: { "Intact-HiC": false, "CTCF-ChIAPET": false, "RNAPII-ChIAPET": false, "CRISPRi-FlowFISH": false, "eQTLs": false },
+};
 
-export default function Argo(props: {header?: false, optionalFunction?: Function}) {
+export default function Argo(props: { header?: false, optionalFunction?: Function }) {
+    //Old state variables
+    const [assembly, setAssembly] = useState<"GRCh38" | "mm10">("GRCh38")
+    const [selectedSearch, setSelectedSearch] = useState<string>("BED File")
+    const [dataAPI, setDataAPI] = useState<[]>([]) // The intersection data returned from BedUpload component
+    const [rows, setRows] = useState<any[]>([]) // The main data displayed on the table
+    const [key, setKey] = useState<string>()
+    const [columns, setColumns] = useState([]) // State variable used to display the columns in the DataTable
+
+    const [availableScores, setAvailableScores] = useState(allFiltersObj) // This is all the scores available according to the query, all false scores are disabled checkboxes below
+    const [checkedScores, setCheckedScores] = useState(allFiltersObj) // This is the scores the user has selected, used for checkbox control
+
+    const [getOutput] = useLazyQuery(BED_INTERSECT_QUERY)
+
+    //UI state variables
     const [drawerOpen, setDrawerOpen] = useState(false);
     const toggleDrawer = () => setDrawerOpen(!drawerOpen);
     const [expandedAccordions, setExpandedAccordions] = useState<string[]>(["sequence"]);
@@ -46,56 +60,72 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
      * @todo group necesary filter states together
      */
     const [inputRegions, setInputRegions] = useState<GenomicRegion[]>([]);
-    const [useConservation, setUseConservation] = useState(true);
-    const [alignment, setAlignment] = useState("241-mam-phyloP");
-    const [rankBy, setRankBy] = useState("max");
-    const [useMotifs, setUseMotifs] = useState(false);
-    const [motifCatalog, setMotifCatalog] = useState<"factorbook" | "factorbookTF" | "hocomoco" | "zMotif">("factorbook");
-    const [numOverlappingMotifs, setNumOverlappingMotifs] = useState(true);
-    const [motifScoreDelta, setMotifScoreDelta] = useState(false);
-    const [overlapsTFPeak, setOverlapsTFPeak] = useState(false);
-    const [usecCREs, setUsecCREs] = useState(true);
-    const [cCREAssembly, setCCREAssembly] = useState<"GRCh38" | "mm10">("GRCh38");
-    const [mustHaveOrtholog, setMustHaveOrtholog] = useState(false);
-    const [selectedBiosample, setSelectedBiosample] = useState<RegistryBiosample>(null);
-    const [assays, setAssays] = useState<CCREAssays>({
-        DNase: true,
-        ATAC: true,
-        CTCF: true,
-        H3K4me3: true,
-        H3K27ac: true,
-    });
-    const [availableAssays, setAvailableAssays] = useState<CCREAssays>({
-        DNase: true,
-        ATAC: true,
-        CTCF: true,
-        H3K4me3: true,
-        H3K27ac: true,
-    });
-    const [classes, setClasses] = useState<CCREClasses>({
-        CA: true,
-        CACTCF: true,
-        CAH3K4me3: true,
-        CATF: true,
-        dELS: true,
-        pELS: true,
-        PLS: true,
-        TF: true,
-    });
-    const [useGenes, setUseGenes] = useState(true);
 
-    //Old state variables
-    const [assembly, setAssembly] = useState<"GRCh38" | "mm10">("GRCh38")
-    const [selectedSearch, setSelectedSearch] = useState<string>("BED File")
-    const [dataAPI, setDataAPI] = useState<[]>([]) // The intersection data returned from BedUpload component
-    const [rows, setRows] = useState<any[]>([]) // The main data displayed on the table
-    const [key, setKey] = useState<string>()
-    const [columns, setColumns] = useState([]) // State variable used to display the columns in the DataTable
-    
-    const [availableScores, setAvailableScores] = useState(allFiltersObj) // This is all the scores available according to the query, all false scores are disabled checkboxes below
-    const [checkedScores, setCheckedScores] = useState(allFiltersObj) // This is the scores the user has selected, used for checkbox control
-    
-    const [getOutput] = useLazyQuery(BED_INTERSECT_QUERY)
+    const [filterVariables, setFilterVariables] = useState<FilterState>({
+        useConservation: true,
+        alignment: "241-mam-phyloP",
+        rankBy: "max",
+        useMotifs: false,
+        motifCatalog: "factorbook",
+        numOverlappingMotifs: true,
+        motifScoreDelta: false,
+        overlapsTFPeak: false,
+        usecCREs: true,
+        cCREAssembly: "GRCh38",
+        mustHaveOrtholog: false,
+        selectedBiosample: null,
+        assays: {
+            DNase: true,
+            ATAC: true,
+            CTCF: true,
+            H3K4me3: true,
+            H3K27ac: true,
+        },
+        availableAssays: {
+            DNase: true,
+            ATAC: true,
+            CTCF: true,
+            H3K4me3: true,
+            H3K27ac: true,
+        },
+        classes: {
+            CA: true,
+            CACTCF: true,
+            CAH3K4me3: true,
+            CATF: true,
+            dELS: true,
+            pELS: true,
+            PLS: true,
+            TF: true,
+        },
+        useGenes: true,
+    });
+
+    //update the filter variable state
+    const updateFilter = (key: keyof FilterState, value: any) => {
+        setFilterVariables((prevState) => ({
+            ...prevState,
+            [key]: value,
+        }));
+    };
+
+    // To update a specific assay
+    const toggleAssay = (assayName: keyof CCREAssays) => {
+        updateFilter('assays', {
+            ...filterVariables.assays,
+            [assayName]: !filterVariables.assays[assayName]
+        });
+    };
+
+    // To update a specific class
+    const toggleClass = (className: keyof CCREClasses) => {
+        updateFilter('classes', {
+            ...filterVariables.classes,
+            [className]: !filterVariables.classes[className]
+        });
+    };
+
+
 
     const MainColHeader = ({ tableName, onClick }) => (
         <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -104,8 +134,8 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                 size="small"
                 onClick={onClick}
             >
-                <InfoIcon 
-                    fontSize="inherit" 
+                <InfoIcon
+                    fontSize="inherit"
                     color={shownTable === tableName.toLowerCase() ? "primary" : "inherit"}
                 />
             </IconButton>
@@ -113,7 +143,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     );
 
     const mainColumns: DataTableColumn<any>[] = useMemo(() => {
-        
+
         const cols: DataTableColumn<any>[] = [
             { header: "Input Region", value: (row) => `${row.genomicRegion.chr}:${row.genomicRegion.start}-${row.genomicRegion.end}` },
             { header: "Aggregate", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) }
@@ -124,18 +154,18 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
          * correctly populate input region
          * correctly populate row values
          */
-        if (useConservation || useMotifs) {
+        if (filterVariables.useConservation || filterVariables.useMotifs) {
             cols.push({ header: "Seqence", HeaderRender: () => <MainColHeader tableName="Sequence" onClick={() => setShownTable("sequence")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
         }
-        usecCREs && cols.push({ header: "Element", HeaderRender: () => <MainColHeader tableName="Element" onClick={() => setShownTable("element")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
-        useGenes && cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Gene" onClick={() => setShownTable("gene")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
+        filterVariables.usecCREs && cols.push({ header: "Element", HeaderRender: () => <MainColHeader tableName="Element" onClick={() => setShownTable("element")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
+        filterVariables.useGenes && cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Gene" onClick={() => setShownTable("gene")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
 
         return cols
 
     }, [MainColHeader, setShownTable])
 
     const sequenceColumns: DataTableColumn<any>[] = useMemo(() => {
-        
+
         const cols: DataTableColumn<any>[] = [
             { header: "Input Region", value: (row) => `${row.genomicRegion.chr}:${row.genomicRegion.start}-${row.genomicRegion.end}` },
         ]
@@ -145,49 +175,49 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
          * correctly populate input region
          * correctly populate row values
          */
-        
-        if (useConservation) {
-            switch (alignment) {
+
+        if (filterVariables.useConservation) {
+            switch (filterVariables.alignment) {
                 case "241-mam-phyloP":
-                    cols.push({header: "241-Mammal(phyloP) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2)});
+                    cols.push({ header: "241-Mammal(phyloP) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) });
                     break;
                 case "447-mam-phyloP":
-                    cols.push({header: "447-Mammal(phyloP) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2)});
+                    cols.push({ header: "447-Mammal(phyloP) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) });
                     break;
                 case "241-mam-phastCons":
-                    cols.push({header: "241-Mammal(phastCons) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2)});
+                    cols.push({ header: "241-Mammal(phastCons) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) });
                     break;
                 case "43-prim-phyloP":
-                    cols.push({header: "43-Primate(phyloP) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2)});
+                    cols.push({ header: "43-Primate(phyloP) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) });
                     break;
                 case "43-prim-phastCons":
-                    cols.push({header: "43-Primate(phastCons) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2)});
+                    cols.push({ header: "43-Primate(phastCons) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) });
                     break;
                 case "243-prim-phastCons":
-                    cols.push({header: "243-Primate(phastCons) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2)});
+                    cols.push({ header: "243-Primate(phastCons) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) });
                     break;
                 case "100-vert-phyloP":
-                    cols.push({header: "100-Vertebrate(phyloP) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2)});
+                    cols.push({ header: "100-Vertebrate(phyloP) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) });
                     break;
                 case "100-vert-phastCons":
-                    cols.push({header: "100-Vertebrate(phastCons) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2)});
+                    cols.push({ header: "100-Vertebrate(phastCons) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) });
                     break;
                 default:
                     break;
             }
         }
-        if (useMotifs) {
-            numOverlappingMotifs && cols.push({ header: "# of Overlapping Motifs", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
-            motifScoreDelta && cols.push({ header: "Motif Score Delta", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
-            overlapsTFPeak && cols.push({ header: "Overlaps TF Peak", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
-        }        
+        if (filterVariables.useMotifs) {
+            filterVariables.numOverlappingMotifs && cols.push({ header: "# of Overlapping Motifs", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
+            filterVariables.motifScoreDelta && cols.push({ header: "Motif Score Delta", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
+            filterVariables.overlapsTFPeak && cols.push({ header: "Overlaps TF Peak", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
+        }
 
         return cols
 
-    }, [alignment, numOverlappingMotifs, motifScoreDelta, overlapsTFPeak, useMotifs, useConservation])
+    }, [filterVariables.alignment, filterVariables.numOverlappingMotifs, filterVariables.motifScoreDelta, filterVariables.overlapsTFPeak, filterVariables.useMotifs, filterVariables.useConservation])
 
     const elementColumns: DataTableColumn<any>[] = useMemo(() => {
-        
+
         const cols: DataTableColumn<any>[] = [
             { header: "Input Region", value: (row) => `${row.genomicRegion.chr}:${row.genomicRegion.start}-${row.genomicRegion.end}` },
         ]
@@ -197,17 +227,17 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
          * correctly populate input region
          * correctly populate row values
          */
-        if (usecCREs) {
-            assays.DNase && cols.push({ header: "DNase", value: (row) => row.dnase, render: (row) => row.dnase.toFixed(2)})
-            assays.H3K4me3 && cols.push({ header: "H3K4me3", value: (row) => row.h3k4me3, render: (row) => row.h3k4me3.toFixed(2) })
-            assays.H3K27ac && cols.push({ header: "H3K27ac", value: (row) => row.h3k27ac, render: (row) => row.h3k27ac.toFixed(2) })
-            assays.CTCF && cols.push({ header: "CTCF", value: (row) => row.ctcf, render: (row) => row.ctcf.toFixed(2) })
-            assays.ATAC && cols.push({ header: "ATAC", value: (row) => row.atac, render: (row) => row.atac.toFixed(2) })
+        if (filterVariables.usecCREs) {
+            filterVariables.assays.DNase && cols.push({ header: "DNase", value: (row) => row.dnase, render: (row) => row.dnase.toFixed(2) })
+            filterVariables.assays.H3K4me3 && cols.push({ header: "H3K4me3", value: (row) => row.h3k4me3, render: (row) => row.h3k4me3.toFixed(2) })
+            filterVariables.assays.H3K27ac && cols.push({ header: "H3K27ac", value: (row) => row.h3k27ac, render: (row) => row.h3k27ac.toFixed(2) })
+            filterVariables.assays.CTCF && cols.push({ header: "CTCF", value: (row) => row.ctcf, render: (row) => row.ctcf.toFixed(2) })
+            filterVariables.assays.ATAC && cols.push({ header: "ATAC", value: (row) => row.atac, render: (row) => row.atac.toFixed(2) })
         }
 
         return cols
 
-    }, [assays, usecCREs, classes])
+    }, [filterVariables.assays, filterVariables.usecCREs, filterVariables.classes])
 
     const assayColumns = [
         { header: "DNase", value: (row) => row.dnase, render: (row) => row.dnase.toFixed(2) },
@@ -218,20 +248,20 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     ]
 
     const handleAccordionChange = (panel: string) => () => {
-        setExpandedAccordions((prevExpanded) => 
-            prevExpanded.includes(panel) 
+        setExpandedAccordions((prevExpanded) =>
+            prevExpanded.includes(panel)
                 ? prevExpanded.filter((p) => p !== panel)
                 : [...prevExpanded, panel]
         );
     };
 
     const isExpanded = (panel: string) => expandedAccordions.includes(panel);
-    
-    const {loading: loading_scores, error: error_scores} = useQuery(Z_SCORES_QUERY, {
+
+    const { loading: loading_scores, error: error_scores } = useQuery(Z_SCORES_QUERY, {
         variables: {
             assembly: assembly,
-            accessions: rows.length > 0 ? rows.map((s) => s.accession): dataAPI.map((r) => r[4]) ,
-            cellType: selectedBiosample ? selectedBiosample.name: null
+            accessions: rows.length > 0 ? rows.map((s) => s.accession) : dataAPI.map((r) => r[4]),
+            cellType: filterVariables.selectedBiosample ? filterVariables.selectedBiosample.name : null
         },
         skip: rows.length == 0 && dataAPI.length == 0,
         client: client,
@@ -239,10 +269,10 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         onCompleted(d) {
             let data = d['cCRESCREENSearch']
             let result = null
-            if (selectedBiosample) {
+            if (filterVariables.selectedBiosample) {
                 // This makes a copy of the existing row and just updates the scores to ctspecific
                 result = rows.map((obj) => {
-                    let o = {...obj}
+                    let o = { ...obj }
                     let matchingObj = data.find((e) => o.accession == e.info.accession)
                     o.dnase = matchingObj.ctspecific.dnase_zscore
                     o.h3k4me3 = matchingObj.ctspecific.h3k4me3_zscore
@@ -257,7 +287,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                 // The else is only for when the query runs the first time
                 // This is done so that if a biosample is deselected, the linked genes data is not lost
                 let mapFunc = (obj) => {
-                    let o = {...obj}
+                    let o = { ...obj }
                     let matchingObj = data.find((e) => o.accession == e.info.accession)
                     o.dnase = matchingObj.dnase_zscore
                     o.h3k4me3 = matchingObj.promoter_zscore
@@ -280,9 +310,9 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                 // The order of the array is the same as the order of the ccre file
                                 // Index 4 is accessions, 6 is chr, 7 is start, 8 is stop 
                                 // chr, start, stop should be of user uploaded file and not of our files hence not index 0,1,2
-                                
+
                                 accession: e[4],
-                                user_id: `${e[6]}_${e[7]}_${e[8]}${ (e[9] && e[10]) ? '_'+e[9]: ''}`,
+                                user_id: `${e[6]}_${e[7]}_${e[8]}${(e[9] && e[10]) ? '_' + e[9] : ''}`,
                                 linked_genes: [],
                                 genomicRegion: {
                                     chr: e[0],
@@ -292,19 +322,19 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                             }
                         })
                         .map(mapFunc)
-                }          
-            }        
-            
-            let scoresToInclude = selectedBiosample ? scoreNames.filter((s) => selectedBiosample[s]): scoreNames
-            let availableScoresCopy = {...availableScores}
-            
+                }
+            }
+
+            let scoresToInclude = filterVariables.selectedBiosample ? scoreNames.filter((s) => filterVariables.selectedBiosample[s]) : scoreNames
+            let availableScoresCopy = { ...availableScores }
+
             if (assembly != "mm10") {
                 // Including conservation scores if assembly is not mouse
                 scoresToInclude = scoresToInclude.concat(conservationNames)
             }
 
             // Linked genes is by default unavailable and disabled, it is made available inside the query below
-            allScoreNames.forEach( (s) => {
+            allScoreNames.forEach((s) => {
                 if (scoresToInclude.indexOf(s) !== -1) {
                     availableScoresCopy.assayFilters[s] = true
                 }
@@ -317,39 +347,39 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
             setRows(evaluateRankings(result, availableScoresCopy))
         }
     })
-    
 
-    const {loading: loading_genes, error: error_genes} = useQuery(LINKED_GENES, {
+
+    const { loading: loading_genes, error: error_genes } = useQuery(LINKED_GENES, {
         variables: {
             assembly: assembly.toLowerCase(),
-            accessions: (rows.length > 0 && selectedBiosample) ? rows.map((s) => s.accession): [],
+            accessions: (rows.length > 0 && filterVariables.selectedBiosample) ? rows.map((s) => s.accession) : [],
         },
-        skip: rows.length == 0 || !!selectedBiosample,
+        skip: rows.length == 0 || !!filterVariables.selectedBiosample,
         client: client,
         fetchPolicy: 'cache-and-network',
         onCompleted(data) {
             if (data.linkedGenes.length > 0) {
                 setRows(rows.map((obj) => {
-                    let objCopy = {...obj}
+                    let objCopy = { ...obj }
                     let matchingObjs = data.linkedGenes.filter((e) => e.accession == obj.accession)
                     let linkedGenes: LinkedGenes[] = matchingObjs.map((e) => {
                         // The Chromatin part is because Chromatin has sub-methods which is present in the assay field
-                        return {gene_id: e.geneid, method: e.method == "Chromatin" ? e.assay: e.method, tpm: 0}
+                        return { gene_id: e.geneid, method: e.method == "Chromatin" ? e.assay : e.method, tpm: 0 }
                     })
                     objCopy.linked_genes = linkedGenes
                     return objCopy
                 }))
-            } 
+            }
         },
     })
 
-    const {loading: loading_quantifications, error: error_quantifications} = useQuery(GENE_EXP_QUERY, {
+    const { loading: loading_quantifications, error: error_quantifications } = useQuery(GENE_EXP_QUERY, {
         variables: {
             assembly: assembly,
-            biosample_value: selectedBiosample ? selectedBiosample.name: "",
+            biosample_value: filterVariables.selectedBiosample ? filterVariables.selectedBiosample.name : "",
             gene_id: Array.from(rows.reduce((acc, e) => { e.linked_genes.map((e) => e.gene_id).forEach((el) => acc.add(el)); return acc }, new Set([]))) // Using Set to avoid duplicates
         },
-        skip: !!selectedBiosample || rows.length == 0,
+        skip: !!filterVariables.selectedBiosample || rows.length == 0,
         client: client,
         fetchPolicy: 'cache-and-network',
         onCompleted(data) {
@@ -358,22 +388,22 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                 e.gene_quantification_files.forEach((el) => {
                     listGenes = listGenes.concat(el.quantifications)
                 }
-            )
+                )
             })
             if (listGenes.length > 0) {
-                let availableScoresCopy = {...availableScores}
+                let availableScoresCopy = { ...availableScores }
                 linkedGenesMethods.forEach((m) => availableScoresCopy.linkedGeneFilters[m] = false)
                 let newScores = rows.map((obj) => {
-                    let objCopy = {...obj}
+                    let objCopy = { ...obj }
                     objCopy.linked_genes = objCopy.linked_genes.map((gene) => {
-                        let geneCopy = {...gene}
+                        let geneCopy = { ...gene }
                         let matchingGenes = listGenes.filter((o) => o.gene.id.split(".")[0] == gene.gene_id)
-                        
+
                         let max_tpm = 0
                         matchingGenes.forEach((matchingGene) => {
                             // If a matching gene is found for any method, the method is made available to select
                             availableScoresCopy.linkedGeneFilters[`${gene.method}`] = true
-                            
+
                             if (matchingGene.tpm > max_tpm) {
                                 max_tpm = matchingGene.tpm
                             }
@@ -395,14 +425,14 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         setDataAPI([])
         setAvailableScores(allFiltersObj)
         setCheckedScores(allFiltersObj)
-        setSelectedBiosample(null)
+        updateFilter('selectedBiosample', null)
         setRows([])
         setColumns([])
         setSelectedSearch(event.target.value)
     }
 
     function appletCallBack(data) {
-        setSelectedBiosample(null)
+        updateFilter('selectedBiosample', null)
         setDataAPI(data)
         setRows([])
         configureInputedRegions(data)
@@ -415,12 +445,12 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
             start: Number(item[1]), // Index 1 for inputed start, convert to number
             end: Number(item[2])     // Index 2 for inputed end, convert to number
         }));
-    
+
         // Sort the regions
         const sortedRegions = regions.sort((a, b) => {
             const chrA = a.chr.replace('chr', '');
             const chrB = b.chr.replace('chr', '');
-        
+
             if (chrA !== chrB) {
                 return chrA - chrB;
             }
@@ -437,13 +467,13 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         getIntersect(getOutput, parseDataInput(uploadedData), assembly, appletCallBack, console.error)
     }
 
-    function evaluateRankings(data, available) { 
+    function evaluateRankings(data, available) {
         // This below code is inspired from this link to create a ranking column for each score for every row
         // https://stackoverflow.com/questions/60989105/ranking-numbers-in-an-array-using-javascript
         let scoresToInclude = allScoreNames.filter((s) => available.assayFilters[s])
         scoresToInclude.forEach((scoreName) => {
             let score_column = data.map((r, i) => [i, r[scoreName]])
-            score_column.sort((a,b) => b[1] - a[1])
+            score_column.sort((a, b) => b[1] - a[1])
             score_column.forEach((row, i) => {
                 data[row[0]][`${scoreName}_rank`] = i + 1
             })
@@ -458,11 +488,11 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
 
     function evaluateMaxTPM(score: ZScores) {
         // This finds the Max TPM for each method in a given row
-        let scoreCopy = {...score}
+        let scoreCopy = { ...score }
         linkedGenesMethods.forEach((method) => {
             let maxTPM = 0
-            let method_genes = scoreCopy.linked_genes.filter( (gene) => gene.method == method)
-            method_genes.forEach((e) => maxTPM = e.tpm > maxTPM ? e.tpm: maxTPM)
+            let method_genes = scoreCopy.linked_genes.filter((gene) => gene.method == method)
+            method_genes.forEach((e) => maxTPM = e.tpm > maxTPM ? e.tpm : maxTPM)
             scoreCopy[method] = maxTPM
         })
         return scoreCopy
@@ -470,7 +500,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
 
     function calculateAggregateRank(data, scoresToInclude) {
         // This finds the Aggregate Rank depending on which scores are checked by the user
-        data.forEach( (row) => {
+        data.forEach((row) => {
             let count = 0;
             let sum = 0;
             scoresToInclude.forEach((score) => {
@@ -486,7 +516,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
         let checkedCopy = JSON.parse(JSON.stringify(checkedScores));
         checkedCopy[groupName][event.target.value] = event.target.checked;
         setCheckedScores(checkedCopy);
-    
+
         let scoresToInclude = Object.keys(checkedCopy[groupName]).filter((e) => checkedCopy[groupName][e]);
         setRows(calculateAggregateRank([...rows], scoresToInclude));
         setColumns(assayColumns.filter(
@@ -498,81 +528,74 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
     const handleSelectAllAssays = (event) => {
         const isChecked = event.target.checked;
 
-        setAssays((prevAssays) => {
-            const updatedAssays = { ...prevAssays };
-
-            Object.keys(availableAssays).forEach((key) => {
-                if (availableAssays[key]) {
-                    updatedAssays[key] = isChecked;
-                }
-            });
-
-            return updatedAssays;
+        const updatedAssays = { ...filterVariables.assays };
+        Object.keys(filterVariables.availableAssays).forEach((key) => {
+            if (filterVariables.availableAssays[key]) {
+                updatedAssays[key] = isChecked;
+            }
         });
-    };            
+        updateFilter("assays", updatedAssays);
+    };
 
     const areAllAssaysChecked = () => {
-        return Object.keys(availableAssays).every((key) => (availableAssays[key] && assays[key]) || (!availableAssays[key] && !assays[key]));
+        return Object.keys(filterVariables.availableAssays).every((key) => (filterVariables.availableAssays[key] && filterVariables.assays[key]) || (!filterVariables.availableAssays[key] && !filterVariables.assays[key]));
     };
 
     const isIndeterminateAssay = () => {
-        const checkedCount = Object.keys(availableAssays).filter((key) => availableAssays[key] && assays[key]).length;
-        const totalAvailable = Object.keys(availableAssays).filter((key) => availableAssays[key]).length;
+        const checkedCount = Object.keys(filterVariables.availableAssays).filter((key) => filterVariables.availableAssays[key] && filterVariables.assays[key]).length;
+        const totalAvailable = Object.keys(filterVariables.availableAssays).filter((key) => filterVariables.availableAssays[key]).length;
 
         return checkedCount > 0 && checkedCount < totalAvailable;
     };
-    
+
     const handleSelectAllClasses = (event) => {
         const isChecked = event.target.checked;
 
-        // Update all classes based on whether the select all is checked or not
-        setClasses((prevClasses) => {
-            const updatedClasses = { ...prevClasses };
-
-            Object.keys(prevClasses).forEach((key) => {
-                updatedClasses[key] = isChecked;
-            });
-
-            return updatedClasses;
+        updateFilter("classes", {
+            ...filterVariables.classes,
+            ...Object.keys(filterVariables.classes).reduce((acc, key) => {
+                acc[key] = isChecked;
+                return acc;
+            }, {})
         });
     };
 
     const areAllClassesChecked = () => {
-        return Object.values(classes).every((isChecked) => isChecked);
+        return Object.values(filterVariables.classes).every((isChecked) => isChecked);
     };
 
     const isIndeterminateClass = () => {
-        const checkedCount = Object.values(classes).filter((isChecked) => isChecked).length;
-        const totalClasses = Object.keys(classes).length;
+        const checkedCount = Object.values(filterVariables.classes).filter((isChecked) => isChecked).length;
+        const totalClasses = Object.keys(filterVariables.classes).length;
 
         return checkedCount > 0 && checkedCount < totalClasses;
     };
 
     useEffect(() => {
-        if (selectedBiosample) {
-            setAvailableAssays({
-                DNase: !!selectedBiosample.dnase,
-                H3K4me3: !!selectedBiosample.h3k4me3,
-                H3K27ac: !!selectedBiosample.h3k27ac,
-                CTCF: !!selectedBiosample.ctcf,
-                ATAC: !!selectedBiosample.atac_signal,
+        if (filterVariables.selectedBiosample) {
+            updateFilter('availableAssays', {
+                DNase: !!filterVariables.selectedBiosample.dnase,
+                H3K4me3: !!filterVariables.selectedBiosample.h3k4me3,
+                H3K27ac: !!filterVariables.selectedBiosample.h3k27ac,
+                CTCF: !!filterVariables.selectedBiosample.ctcf,
+                ATAC: !!filterVariables.selectedBiosample.atac_signal,
             });
-            setAssays({
-                DNase: !!selectedBiosample.dnase,
-                H3K4me3: !!selectedBiosample.h3k4me3,
-                H3K27ac: !!selectedBiosample.h3k27ac,
-                CTCF: !!selectedBiosample.ctcf,
-                ATAC: !!selectedBiosample.atac_signal,
+            updateFilter('assays', {
+                DNase: !!filterVariables.selectedBiosample.dnase,
+                H3K4me3: !!filterVariables.selectedBiosample.h3k4me3,
+                H3K27ac: !!filterVariables.selectedBiosample.h3k27ac,
+                CTCF: !!filterVariables.selectedBiosample.ctcf,
+                ATAC: !!filterVariables.selectedBiosample.atac_signal,
             });
-        } if (!selectedBiosample) {
-            setAvailableAssays({
+        } if (!filterVariables.selectedBiosample) {
+            updateFilter('availableAssays', {
                 DNase: true,
                 H3K4me3: true,
                 H3K27ac: true,
                 CTCF: true,
                 ATAC: true,
             });
-            setAssays({
+            updateFilter('assays', {
                 DNase: true,
                 H3K4me3: true,
                 H3K27ac: true,
@@ -580,10 +603,8 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                 ATAC: true,
             });
         }
-    }, [selectedBiosample]);
+    }, [filterVariables.selectedBiosample]);
 
-    
-      
     return (
         <Box display="flex" >
             {!drawerOpen && (
@@ -623,25 +644,25 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                             <FilterListIcon />
                         </IconButton>
                     </Stack>
-                    <Accordion 
-                        defaultExpanded 
-                        square 
+                    <Accordion
+                        defaultExpanded
+                        square
                         disableGutters
-                        expanded={isExpanded('sequence')} 
+                        expanded={isExpanded('sequence')}
                         onChange={handleAccordionChange('sequence')}
                     >
-                        <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: isExpanded('sequence') ? '#030f98' : 'inherit' }}/>} sx={{
+                        <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: isExpanded('sequence') ? '#030f98' : 'inherit' }} />} sx={{
                             color: isExpanded('sequence') ? '#030f98' : 'inherit',
                             fontSize: isExpanded('sequence') ? 'large' : 'normal',
                         }}>
                             Sequence
                         </AccordionSummary>
                         <AccordionDetails>
-                        <FormControlLabel value="conservation" control={<Checkbox onChange={() => setUseConservation(!useConservation)} checked={useConservation} />} label="Conservation" />
+                            <FormControlLabel value="conservation" control={<Checkbox onChange={() => updateFilter("useConservation", !filterVariables.useConservation)} checked={filterVariables.useConservation} />} label="Conservation" />
                             <Stack ml={2}>
                                 <FormGroup>
                                     <FormControl fullWidth>
-                                        <Select size="small" value={alignment} disabled={!useConservation} onChange={(event) => setAlignment(event.target.value)}>
+                                        <Select size="small" value={filterVariables.alignment} disabled={!filterVariables.useConservation} onChange={(event) => updateFilter("alignment", event.target.value)}>
                                             <MenuItem value={"241-mam-phyloP"}>241-Mammal(phyloP)</MenuItem>
                                             <MenuItem value={"447-mam-phyloP"}>447-Mammal(phyloP)</MenuItem>
                                             <MenuItem value={"241-mam-phastCons"}>241-Mammal(phastCons)</MenuItem>
@@ -655,7 +676,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                 </FormGroup>
                                 <FormControl sx={{ width: "50%" }}>
                                     <FormLabel>Rank By</FormLabel>
-                                    <Select size="small" value={rankBy} disabled={!useConservation} onChange={(event) => setRankBy(event.target.value)}>
+                                    <Select size="small" value={filterVariables.rankBy} disabled={!filterVariables.useConservation} onChange={(event) => updateFilter("rankBy", event.target.value)}>
                                         <MenuItem value={"min"}>Min</MenuItem>
                                         <MenuItem value={"max"}>Max</MenuItem>
                                         <MenuItem value={"avg"}>Average</MenuItem>
@@ -663,62 +684,62 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                 </FormControl>
                             </Stack>
                             <FormGroup>
-                                <FormControlLabel value="TFMotifs" control={<Checkbox onChange={() => setUseMotifs(!useMotifs)} checked={useMotifs} />} label="TF Motifs" />
+                                <FormControlLabel value="TFMotifs" control={<Checkbox onChange={() => updateFilter("useMotifs", !filterVariables.useMotifs)} checked={filterVariables.useMotifs} />} label="TF Motifs" />
                                 <Stack ml={2}>
-                                    <RadioGroup value={motifCatalog} onChange={(event) => setMotifCatalog(event.target.value as "factorbook" | "factorbookTF" | "hocomoco" | "zMotif")}>
-                                        <FormControlLabel value="factorbook" control={<Radio />} label="Factorbook" disabled={!useMotifs} />
-                                        <FormControlLabel value="factorbookTF" control={<Radio />} label="Factorbook + TF Motif" disabled={!useMotifs} />
-                                        <FormControlLabel value="hocomoco" control={<Radio />} label="HOCOMOCO" disabled={!useMotifs} />
-                                        <FormControlLabel value="zMotif" control={<Radio />} label="ZMotif" disabled={!useMotifs} />
+                                    <RadioGroup value={filterVariables.motifCatalog} onChange={(event) => updateFilter("motifCatalog", event.target.value as "factorbook" | "factorbookTF" | "hocomoco" | "zMotif")}>
+                                        <FormControlLabel value="factorbook" control={<Radio />} label="Factorbook" disabled={!filterVariables.useMotifs} />
+                                        <FormControlLabel value="factorbookTF" control={<Radio />} label="Factorbook + TF Motif" disabled={!filterVariables.useMotifs} />
+                                        <FormControlLabel value="hocomoco" control={<Radio />} label="HOCOMOCO" disabled={!filterVariables.useMotifs} />
+                                        <FormControlLabel value="zMotif" control={<Radio />} label="ZMotif" disabled={!filterVariables.useMotifs} />
                                     </RadioGroup>
                                 </Stack>
                             </FormGroup>
                             <FormGroup>
                                 <Stack ml={2}>
                                     <Typography lineHeight={"40px"}>Rank By</Typography>
-                                    <FormControlLabel value="numMotifs" control={<Checkbox onChange={() => setNumOverlappingMotifs(!numOverlappingMotifs)} checked={numOverlappingMotifs}/>} label="Number of Overlaping Motifs" disabled={!useMotifs} />
-                                    <FormControlLabel value="motifScoreDelta" control={<Checkbox onChange={() => setMotifScoreDelta(!motifScoreDelta)} checked={motifScoreDelta}/>} label="Motif Score Delta" disabled={!useMotifs} />
-                                    <FormControlLabel value="overlapsTFPeak" control={<Checkbox onChange={() => setOverlapsTFPeak(!overlapsTFPeak)} checked={overlapsTFPeak}/>} label="Overlaps TF Peak " disabled={!useMotifs} />
+                                    <FormControlLabel value="numMotifs" control={<Checkbox onChange={() => updateFilter("numOverlappingMotifs", !filterVariables.numOverlappingMotifs)} checked={filterVariables.numOverlappingMotifs} />} label="Number of Overlaping Motifs" disabled={!filterVariables.useMotifs} />
+                                    <FormControlLabel value="motifScoreDelta" control={<Checkbox onChange={() => updateFilter("motifScoreDelta", !filterVariables.motifScoreDelta)} checked={filterVariables.motifScoreDelta} />} label="Motif Score Delta" disabled={!filterVariables.useMotifs} />
+                                    <FormControlLabel value="overlapsTFPeak" control={<Checkbox onChange={() => updateFilter("overlapsTFPeak", !filterVariables.overlapsTFPeak)} checked={filterVariables.overlapsTFPeak} />} label="Overlaps TF Peak " disabled={!filterVariables.useMotifs} />
                                 </Stack>
                             </FormGroup>
                         </AccordionDetails>
                     </Accordion>
-                    <Accordion 
-                        defaultExpanded 
-                        square 
+                    <Accordion
+                        defaultExpanded
+                        square
                         disableGutters
-                        expanded={isExpanded('element')} 
+                        expanded={isExpanded('element')}
                         onChange={handleAccordionChange('element')}
                     >
-                        <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: isExpanded('element') ? '#030f98' : 'inherit' }}/>} sx={{
+                        <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: isExpanded('element') ? '#030f98' : 'inherit' }} />} sx={{
                             color: isExpanded('element') ? '#030f98' : 'inherit',
                             fontSize: isExpanded('element') ? 'large' : 'normal',
                         }}>
                             Element
                         </AccordionSummary>
                         <AccordionDetails>
-                            <FormControlLabel value="cCREs" control={<Checkbox onChange={() => setUsecCREs(!usecCREs)} checked={usecCREs} />} label="cCREs" />
+                            <FormControlLabel value="cCREs" control={<Checkbox onChange={() => updateFilter("usecCREs", !filterVariables.usecCREs)} checked={filterVariables.usecCREs} />} label="cCREs" />
                             <Stack ml={2}>
-                                <RadioGroup row value={cCREAssembly} onChange={(event) => setCCREAssembly(event.target.value as "GRCh38" | "mm10")}>
-                                    <FormControlLabel value="GRCh38" control={<Radio />} label="GRCH38" disabled={!usecCREs} />
-                                    <FormControlLabel value="mm10" control={<Radio />} label="mm10" disabled={!usecCREs} />
+                                <RadioGroup row value={filterVariables.cCREAssembly} onChange={(event) => updateFilter("cCREAssembly", event.target.value as "GRCh38" | "mm10")}>
+                                    <FormControlLabel value="GRCh38" control={<Radio />} label="GRCH38" disabled={!filterVariables.usecCREs} />
+                                    <FormControlLabel value="mm10" control={<Radio />} label="mm10" disabled={!filterVariables.usecCREs} />
                                 </RadioGroup>
                                 <FormControlLabel
                                     label="Only Orthologous cCREs"
                                     control={
                                         <Checkbox
-                                            onChange={() => setMustHaveOrtholog(!mustHaveOrtholog)}
-                                            disabled={!usecCREs || cCREAssembly == "mm10"}
-                                            checked={mustHaveOrtholog}
+                                            onChange={() => updateFilter("mustHaveOrtholog", !filterVariables.mustHaveOrtholog)}
+                                            disabled={!filterVariables.usecCREs || filterVariables.cCREAssembly == "mm10"}
+                                            checked={filterVariables.mustHaveOrtholog}
                                         />
                                     }
                                 />
-                                <Accordion square disableGutters disabled={!usecCREs}>
+                                <Accordion square disableGutters disabled={!filterVariables.usecCREs}>
                                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                                         Within a Biosample
                                     </AccordionSummary>
                                     <AccordionDetails>
-                                        {selectedBiosample && (
+                                        {filterVariables.selectedBiosample && (
                                             <Paper elevation={0}>
                                                 <Stack
                                                     borderRadius={1}
@@ -731,15 +752,15 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                                         flexGrow={1}
                                                         sx={{ color: "#2C5BA0", pl: 1 }}
                                                     >
-                                                        {selectedBiosample.ontology.charAt(0).toUpperCase() +
-                                                            selectedBiosample.ontology.slice(1) +
+                                                        {filterVariables.selectedBiosample.ontology.charAt(0).toUpperCase() +
+                                                            filterVariables.selectedBiosample.ontology.slice(1) +
                                                             " - " +
-                                                            selectedBiosample.displayname}
+                                                            filterVariables.selectedBiosample.displayname}
                                                     </Typography>
                                                     <IconButton
                                                         onClick={(event) => {
                                                             event.stopPropagation();
-                                                            setSelectedBiosample(null);
+                                                            updateFilter("selectedBiosample", null);
                                                         }}
                                                         sx={{ m: 'auto', flexGrow: 0 }}
                                                     >
@@ -751,13 +772,13 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
 
                                         )}
                                         <BiosampleTables
-                                            selected={selectedBiosample?.name}
-                                            onBiosampleClicked={setSelectedBiosample}
-                                            assembly={cCREAssembly}
+                                            selected={filterVariables.selectedBiosample?.name}
+                                            onBiosampleClicked={(biosample) => updateFilter("selectedBiosample", biosample)}
+                                            assembly={filterVariables.cCREAssembly}
                                         />
                                     </AccordionDetails>
                                 </Accordion>
-                                
+
                                 <FormGroup>
                                     <Typography mt={2}>Include Classes</Typography>
                                     <FormControlLabel
@@ -765,82 +786,82 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                             <Checkbox
                                                 checked={areAllClassesChecked()}
                                                 indeterminate={isIndeterminateClass()}
-                                                onChange={(event) => {handleSelectAllClasses(event)}}
+                                                onChange={(event) => { handleSelectAllClasses(event) }}
                                             />
                                         }
                                         label="Select All"
-                                        disabled={!usecCREs}
+                                        disabled={!filterVariables.usecCREs}
                                     />
                                     <Grid container spacing={0} ml={2}>
                                         <Grid size={6}>
                                             <FormGroup>
                                                 <FormControlLabel
-                                                    checked={classes.CA}
-                                                    onChange={() => setClasses((prev) => ({ ...prev, CA: !prev.CA }))}
+                                                    checked={filterVariables.classes.CA}
+                                                    onChange={() => toggleClass('CA')}
                                                     control={<Checkbox />}
                                                     label="CA"
                                                     value="CA"
-                                                    disabled={!usecCREs}
+                                                    disabled={!filterVariables.usecCREs}
                                                 />
                                                 <FormControlLabel
-                                                    checked={classes.CACTCF}
-                                                    onChange={() => setClasses((prev) => ({ ...prev, CACTCF: !prev.CACTCF }))}
+                                                    checked={filterVariables.classes.CACTCF}
+                                                    onChange={() => toggleClass('CACTCF')}
                                                     control={<Checkbox />}
                                                     label="CA-CTCF"
                                                     value="CACTCF"
-                                                    disabled={!usecCREs}
+                                                    disabled={!filterVariables.usecCREs}
                                                 />
                                                 <FormControlLabel
-                                                    checked={classes.CAH3K4me3}
-                                                    onChange={() => setClasses((prev) => ({ ...prev, CAH3K4me3: !prev.CAH3K4me3 }))}
+                                                    checked={filterVariables.classes.CAH3K4me3}
+                                                    onChange={() => toggleClass('CAH3K4me3')}
                                                     control={<Checkbox />}
                                                     label="CA-H3K4me3"
                                                     value="CAH3K4me3"
-                                                    disabled={!usecCREs}
+                                                    disabled={!filterVariables.usecCREs}
                                                 />
                                                 <FormControlLabel
-                                                    checked={classes.CATF}
-                                                    onChange={() => setClasses((prev) => ({ ...prev, CATF: !prev.CATF }))}
+                                                    checked={filterVariables.classes.CATF}
+                                                    onChange={() => toggleClass('CATF')}
                                                     control={<Checkbox />}
                                                     label="CA-TF"
                                                     value="CATF"
-                                                    disabled={!usecCREs}
+                                                    disabled={!filterVariables.usecCREs}
                                                 />
                                             </FormGroup>
                                         </Grid>
                                         <Grid size={6}>
                                             <FormGroup>
                                                 <FormControlLabel
-                                                    checked={classes.dELS}
-                                                    onChange={() => setClasses((prev) => ({ ...prev, dELS: !prev.dELS }))}
+                                                    checked={filterVariables.classes.dELS}
+                                                    onChange={() => toggleClass('dELS')}
                                                     control={<Checkbox />}
                                                     label="dELS"
                                                     value="dELS"
-                                                    disabled={!usecCREs}
+                                                    disabled={!filterVariables.usecCREs}
                                                 />
                                                 <FormControlLabel
-                                                    checked={classes.pELS}
-                                                    onChange={() => setClasses((prev) => ({ ...prev, pELS: !prev.pELS }))}
+                                                    checked={filterVariables.classes.pELS}
+                                                    onChange={() => toggleClass('pELS')}
                                                     control={<Checkbox />}
                                                     label="pELS"
                                                     value="pELS"
-                                                    disabled={!usecCREs}
+                                                    disabled={!filterVariables.usecCREs}
                                                 />
                                                 <FormControlLabel
-                                                    checked={classes.PLS}
-                                                    onChange={() => setClasses((prev) => ({ ...prev, PLS: !prev.PLS }))}
+                                                    checked={filterVariables.classes.PLS}
+                                                    onChange={() => toggleClass('PLS')}
                                                     control={<Checkbox />}
                                                     label="PLS"
                                                     value="PLS"
-                                                    disabled={!usecCREs}
+                                                    disabled={!filterVariables.usecCREs}
                                                 />
                                                 <FormControlLabel
-                                                    checked={classes.TF}
-                                                    onChange={() => setClasses((prev) => ({ ...prev, TF: !prev.TF }))}
+                                                    checked={filterVariables.classes.TF}
+                                                    onChange={() => toggleClass('TF')}
                                                     control={<Checkbox />}
                                                     label="TF"
                                                     value="TF"
-                                                    disabled={!usecCREs}
+                                                    disabled={!filterVariables.usecCREs}
                                                 />
                                             </FormGroup>
                                         </Grid>
@@ -857,7 +878,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                             />
                                         }
                                         label="Select All"
-                                        disabled={!usecCREs}
+                                        disabled={!filterVariables.usecCREs}
                                     />
                                     <Grid container spacing={0} ml={2}>
                                         <Grid size={6}>
@@ -865,9 +886,9 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                                 label="DNase"
                                                 control={
                                                     <Checkbox
-                                                        onChange={() => setAssays((prev) => ({ ...prev, DNase: !prev.DNase }))}
-                                                        disabled={!availableAssays.DNase || !usecCREs}
-                                                        checked={assays.DNase}
+                                                        onChange={() => toggleAssay('DNase')}
+                                                        disabled={!filterVariables.availableAssays.DNase || !filterVariables.usecCREs}
+                                                        checked={filterVariables.assays.DNase}
                                                         value="dnase"
                                                     />
                                                 }
@@ -876,9 +897,9 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                                 label="H3K4me3"
                                                 control={
                                                     <Checkbox
-                                                        onChange={() => setAssays((prev) => ({ ...prev, H3K4me3: !prev.H3K4me3 }))}
-                                                        disabled={!availableAssays.H3K4me3 || !usecCREs}
-                                                        checked={assays.H3K4me3}
+                                                        onChange={() => toggleAssay('H3K4me3')}
+                                                        disabled={!filterVariables.availableAssays.H3K4me3 || !filterVariables.usecCREs}
+                                                        checked={filterVariables.assays.H3K4me3}
                                                         value="h3k4me3"
                                                     />
                                                 }
@@ -887,9 +908,9 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                                 label="H3K27ac"
                                                 control={
                                                     <Checkbox
-                                                        onChange={() => setAssays((prev) => ({ ...prev, H3K27ac: !prev.H3K27ac }))}
-                                                        disabled={!availableAssays.H3K27ac|| !usecCREs}
-                                                        checked={assays.H3K27ac}
+                                                        onChange={() => toggleAssay('H3K27ac')}
+                                                        disabled={!filterVariables.availableAssays.H3K27ac || !filterVariables.usecCREs}
+                                                        checked={filterVariables.assays.H3K27ac}
                                                         value="h3k27ac"
                                                     />
                                                 }
@@ -900,9 +921,9 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                                 label="CTCF"
                                                 control={
                                                     <Checkbox
-                                                        onChange={() => setAssays((prev) => ({ ...prev, CTCF: !prev.CTCF }))}
-                                                        disabled={!availableAssays.CTCF || !usecCREs}
-                                                        checked={assays.CTCF}
+                                                        onChange={() => toggleAssay('CTCF')}
+                                                        disabled={!filterVariables.availableAssays.CTCF || !filterVariables.usecCREs}
+                                                        checked={filterVariables.assays.CTCF}
                                                         value="ctcf"
                                                     />
                                                 }
@@ -911,9 +932,9 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                                                 label="ATAC"
                                                 control={
                                                     <Checkbox
-                                                        onChange={() => setAssays((prev) => ({ ...prev, ATAC: !prev.ATAC }))}
-                                                        disabled={!availableAssays.ATAC || !usecCREs}
-                                                        checked={assays.ATAC}
+                                                        onChange={() => toggleAssay('ATAC')}
+                                                        disabled={!filterVariables.availableAssays.ATAC || !filterVariables.usecCREs}
+                                                        checked={filterVariables.assays.ATAC}
                                                         value="atac"
                                                     />
                                                 }
@@ -924,14 +945,14 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                             </Stack>
                         </AccordionDetails>
                     </Accordion>
-                    <Accordion 
-                        defaultExpanded 
-                        square 
+                    <Accordion
+                        defaultExpanded
+                        square
                         disableGutters
-                        expanded={isExpanded('gene')} 
+                        expanded={isExpanded('gene')}
                         onChange={handleAccordionChange('gene')}
                     >
-                        <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: isExpanded('gene') ? '#030f98' : 'inherit' }}/>} sx={{
+                        <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: isExpanded('gene') ? '#030f98' : 'inherit' }} />} sx={{
                             color: isExpanded('gene') ? '#030f98' : 'inherit',
                             fontSize: isExpanded('gene') ? 'large' : 'normal',
                         }}>
@@ -941,11 +962,11 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                             <Stack>
                                 <Typography lineHeight={"40px"}>Linked Genes</Typography>
                                 <FormGroup>
-                                    <FormControlLabel label="Intact Hi-C Loops" control={<Checkbox onChange={handleCheckBoxChange} disabled={!!selectedBiosample || !availableScores["Intact-HiC"]} checked={checkedScores["Intact-HiC"]} value="Intact-HiC"></Checkbox>}></FormControlLabel>
-                                    <FormControlLabel label="CTCF ChIA-PET Interaction" control={<Checkbox onChange={handleCheckBoxChange} disabled={!!selectedBiosample || !availableScores["CTCF-ChIAPET"]} checked={checkedScores["CTCF-ChIAPET"]} value="CTCF-ChIAPET"></Checkbox>}></FormControlLabel>
-                                    <FormControlLabel label="RNAPII ChIA-PET Interaction" control={<Checkbox onChange={handleCheckBoxChange} disabled={!!selectedBiosample || !availableScores["RNAPII-ChIAPET"]} checked={checkedScores["RNAPII-ChIAPET"]} value="RNAPII-ChIAPET"></Checkbox>}></FormControlLabel>
-                                    <FormControlLabel label="CRISPRi-FlowFISH" control={<Checkbox onChange={handleCheckBoxChange} disabled={!!selectedBiosample || !availableScores["CRISPRi-FlowFISH"]} checked={checkedScores["CRISPRi-FlowFISH"]} value="CRISPRi-FlowFISH"></Checkbox>}></FormControlLabel>
-                                    <FormControlLabel label="eQTLs" control={<Checkbox onChange={handleCheckBoxChange} disabled={!!selectedBiosample || !availableScores["eQTLs"]} checked={checkedScores["eQTLs"]} value="eQTLs"></Checkbox>}></FormControlLabel>
+                                    <FormControlLabel label="Intact Hi-C Loops" control={<Checkbox onChange={handleCheckBoxChange} disabled={!!filterVariables.selectedBiosample || !availableScores["Intact-HiC"]} checked={checkedScores["Intact-HiC"]} value="Intact-HiC"></Checkbox>}></FormControlLabel>
+                                    <FormControlLabel label="CTCF ChIA-PET Interaction" control={<Checkbox onChange={handleCheckBoxChange} disabled={!!filterVariables.selectedBiosample || !availableScores["CTCF-ChIAPET"]} checked={checkedScores["CTCF-ChIAPET"]} value="CTCF-ChIAPET"></Checkbox>}></FormControlLabel>
+                                    <FormControlLabel label="RNAPII ChIA-PET Interaction" control={<Checkbox onChange={handleCheckBoxChange} disabled={!!filterVariables.selectedBiosample || !availableScores["RNAPII-ChIAPET"]} checked={checkedScores["RNAPII-ChIAPET"]} value="RNAPII-ChIAPET"></Checkbox>}></FormControlLabel>
+                                    <FormControlLabel label="CRISPRi-FlowFISH" control={<Checkbox onChange={handleCheckBoxChange} disabled={!!filterVariables.selectedBiosample || !availableScores["CRISPRi-FlowFISH"]} checked={checkedScores["CRISPRi-FlowFISH"]} value="CRISPRi-FlowFISH"></Checkbox>}></FormControlLabel>
+                                    <FormControlLabel label="eQTLs" control={<Checkbox onChange={handleCheckBoxChange} disabled={!!filterVariables.selectedBiosample || !availableScores["eQTLs"]} checked={checkedScores["eQTLs"]} value="eQTLs"></Checkbox>}></FormControlLabel>
                                 </FormGroup>
                             </Stack>
                         </AccordionDetails>
@@ -1042,7 +1063,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                         />
                     </Box>
                 }
-                {(shownTable === "sequence" && (useConservation || useMotifs)) && (
+                {(shownTable === "sequence" && (filterVariables.useConservation || filterVariables.useMotifs)) && (
                     <Box mt="20px">
                         <DataTable
                             key={Math.random()}
@@ -1056,7 +1077,7 @@ export default function Argo(props: {header?: false, optionalFunction?: Function
                         />
                     </Box>
                 )}
-                {(shownTable === "element" && usecCREs) && (
+                {(shownTable === "element" && filterVariables.usecCREs) && (
                     <Box mt="20px">
                         {(loading_scores || loading_genes || loading_quantifications) ? <CircularProgress /> :
                             <DataTable

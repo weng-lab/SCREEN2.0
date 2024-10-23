@@ -1,3 +1,5 @@
+import { RegistryBiosample } from "../../_biosampleTables/types"
+
 export type LinkedGenes = {
     gene_id: string
     method: string
@@ -57,3 +59,22 @@ export type CCREAssays = {
     H3K4me3: boolean
     H3K27ac: boolean
 }
+
+export type FilterState = {
+    useConservation: boolean;
+    alignment: string;
+    rankBy: string;
+    useMotifs: boolean;
+    motifCatalog: "factorbook" | "factorbookTF" | "hocomoco" | "zMotif";
+    numOverlappingMotifs: boolean;
+    motifScoreDelta: boolean;
+    overlapsTFPeak: boolean;
+    usecCREs: boolean;
+    cCREAssembly: "GRCh38" | "mm10";
+    mustHaveOrtholog: boolean;
+    selectedBiosample: RegistryBiosample | null;
+    assays: CCREAssays;
+    availableAssays: CCREAssays;
+    classes: CCREClasses;
+    useGenes: boolean;
+  }
