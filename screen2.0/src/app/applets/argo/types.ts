@@ -78,3 +78,8 @@ export type FilterState = {
     classes: CCREClasses;
     useGenes: boolean;
   }
+
+export type UpdateFilter = <K extends keyof FilterState>(
+    key: K,
+    value: FilterState[K]
+) => void;
