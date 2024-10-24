@@ -10,7 +10,7 @@ import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { GENE_EXP_QUERY, LINKED_GENES, Z_SCORES_QUERY } from "./queries"
 import { ApolloQueryResult, useLazyQuery, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
-import { ZScores, LinkedGenes, GenomicRegion, CCREAssays, CCREClasses, RankedRegions, FilterState } from "./types"
+import { ZScores, LinkedGenes, GenomicRegion, CCREAssays, CCREClasses, RankedRegions, FilterState, ElementFilterState, SequenceFilterState, GeneFilterState } from "./types"
 import { BED_INTERSECT_QUERY } from "../../_mainsearch/queries"
 import InfoIcon from '@mui/icons-material/Info';
 import Filters from "./filters"
@@ -53,7 +53,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
      */
     const [inputRegions, setInputRegions] = useState<GenomicRegion[]>([]);
 
-    const [filterVariables, setFilterVariables] = useState<FilterState>({
+    const [sequenceFilterVariables, setSequenceFilterVariables] = useState<SequenceFilterState>({
         useConservation: true,
         alignment: "241-mam-phyloP",
         rankBy: "max",
@@ -61,7 +61,10 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         motifCatalog: "factorbook",
         numOverlappingMotifs: true,
         motifScoreDelta: false,
-        overlapsTFPeak: false,
+        overlapsTFPeak: false
+    });
+
+    const [elementFilterVariables, setElementFilterVariables] = useState<ElementFilterState>({
         usecCREs: true,
         cCREAssembly: "GRCh38",
         mustHaveOrtholog: false,
@@ -89,13 +92,22 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
             pELS: true,
             PLS: true,
             TF: true,
-        },
-        useGenes: true,
+        }
     });
 
-    //update a specific filter state
-    const updateFilter = (key: keyof FilterState, value: any) => {
-        setFilterVariables((prevState) => ({
+    const [geneFilterVariables, setGeneFilterVariables] = useState<GeneFilterState>({
+        useGenes: true
+    });
+
+    const updateSequenceFilter = (key: keyof SequenceFilterState, value: any) => {
+        setSequenceFilterVariables((prevState) => ({
+            ...prevState,
+            [key]: value,
+        }));
+    };
+
+    const updateElementFilter = (key: keyof ElementFilterState, value: any) => {
+        setElementFilterVariables((prevState) => ({
             ...prevState,
             [key]: value,
         }));
@@ -103,18 +115,25 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
 
     //update a specific assay
     const toggleAssay = (assayName: keyof CCREAssays) => {
-        updateFilter('assays', {
-            ...filterVariables.assays,
-            [assayName]: !filterVariables.assays[assayName]
+        updateElementFilter('assays', {
+            ...elementFilterVariables.assays,
+            [assayName]: !elementFilterVariables.assays[assayName]
         });
     };
 
     //update a specific class
     const toggleClass = (className: keyof CCREClasses) => {
-        updateFilter('classes', {
-            ...filterVariables.classes,
-            [className]: !filterVariables.classes[className]
+        updateElementFilter('classes', {
+            ...elementFilterVariables.classes,
+            [className]: !elementFilterVariables.classes[className]
         });
+    };
+
+    const updateGeneFilter = (key: keyof GeneFilterState, value: any) => {
+        setGeneFilterVariables((prevState) => ({
+            ...prevState,
+            [key]: value,
+        }));
     };
 
     //stylized header for main rank table columns
@@ -146,11 +165,11 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
          * correctly populate input region
          * correctly populate row values
          */
-        if (filterVariables.useConservation || filterVariables.useMotifs) {
+        if (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs) {
             cols.push({ header: "Seqence", HeaderRender: () => <MainColHeader tableName="Sequence" onClick={() => setShownTable("sequence")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
         }
-        filterVariables.usecCREs && cols.push({ header: "Element", HeaderRender: () => <MainColHeader tableName="Element" onClick={() => setShownTable("element")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
-        filterVariables.useGenes && cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Gene" onClick={() => setShownTable("gene")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
+        elementFilterVariables.usecCREs && cols.push({ header: "Element", HeaderRender: () => <MainColHeader tableName="Element" onClick={() => setShownTable("element")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
+        geneFilterVariables.useGenes && cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Gene" onClick={() => setShownTable("gene")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
 
         return cols
 
@@ -169,8 +188,8 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
          * correctly populate row values
          */
 
-        if (filterVariables.useConservation) {
-            switch (filterVariables.alignment) {
+        if (sequenceFilterVariables.useConservation) {
+            switch (sequenceFilterVariables.alignment) {
                 case "241-mam-phyloP":
                     cols.push({ header: "241-Mammal(phyloP) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) });
                     break;
@@ -199,15 +218,15 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                     break;
             }
         }
-        if (filterVariables.useMotifs) {
-            filterVariables.numOverlappingMotifs && cols.push({ header: "# of Overlapping Motifs", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
-            filterVariables.motifScoreDelta && cols.push({ header: "Motif Score Delta", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
-            filterVariables.overlapsTFPeak && cols.push({ header: "Overlaps TF Peak", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
+        if (sequenceFilterVariables.useMotifs) {
+            sequenceFilterVariables.numOverlappingMotifs && cols.push({ header: "# of Overlapping Motifs", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
+            sequenceFilterVariables.motifScoreDelta && cols.push({ header: "Motif Score Delta", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
+            sequenceFilterVariables.overlapsTFPeak && cols.push({ header: "Overlaps TF Peak", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
         }
 
         return cols
 
-    }, [filterVariables.alignment, filterVariables.numOverlappingMotifs, filterVariables.motifScoreDelta, filterVariables.overlapsTFPeak, filterVariables.useMotifs, filterVariables.useConservation])
+    }, [sequenceFilterVariables])
 
     //handle column changes for the Element rank table
     const elementColumns: DataTableColumn<any>[] = useMemo(() => {
@@ -221,17 +240,17 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
          * correctly populate input region
          * correctly populate row values
          */
-        if (filterVariables.usecCREs) {
-            filterVariables.assays.DNase && cols.push({ header: "DNase", value: (row) => row.dnase, render: (row) => row.dnase.toFixed(2) })
-            filterVariables.assays.H3K4me3 && cols.push({ header: "H3K4me3", value: (row) => row.h3k4me3, render: (row) => row.h3k4me3.toFixed(2) })
-            filterVariables.assays.H3K27ac && cols.push({ header: "H3K27ac", value: (row) => row.h3k27ac, render: (row) => row.h3k27ac.toFixed(2) })
-            filterVariables.assays.CTCF && cols.push({ header: "CTCF", value: (row) => row.ctcf, render: (row) => row.ctcf.toFixed(2) })
-            filterVariables.assays.ATAC && cols.push({ header: "ATAC", value: (row) => row.atac, render: (row) => row.atac.toFixed(2) })
+        if (elementFilterVariables.usecCREs) {
+            elementFilterVariables.assays.DNase && cols.push({ header: "DNase", value: (row) => row.dnase, render: (row) => row.dnase.toFixed(2) })
+            elementFilterVariables.assays.H3K4me3 && cols.push({ header: "H3K4me3", value: (row) => row.h3k4me3, render: (row) => row.h3k4me3.toFixed(2) })
+            elementFilterVariables.assays.H3K27ac && cols.push({ header: "H3K27ac", value: (row) => row.h3k27ac, render: (row) => row.h3k27ac.toFixed(2) })
+            elementFilterVariables.assays.CTCF && cols.push({ header: "CTCF", value: (row) => row.ctcf, render: (row) => row.ctcf.toFixed(2) })
+            elementFilterVariables.assays.ATAC && cols.push({ header: "ATAC", value: (row) => row.atac, render: (row) => row.atac.toFixed(2) })
         }
 
         return cols
 
-    }, [filterVariables.assays, filterVariables.usecCREs, filterVariables.classes])
+    }, [elementFilterVariables])
 
     const assayColumns = [
         { header: "DNase", value: (row) => row.dnase, render: (row) => row.dnase.toFixed(2) },
@@ -245,7 +264,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         variables: {
             assembly: assembly,
             accessions: rows.length > 0 ? rows.map((s) => s.accession) : dataAPI.map((r) => r[4]),
-            cellType: filterVariables.selectedBiosample ? filterVariables.selectedBiosample.name : null
+            cellType: elementFilterVariables.selectedBiosample ? elementFilterVariables.selectedBiosample.name : null
         },
         skip: rows.length == 0 && dataAPI.length == 0,
         client: client,
@@ -253,7 +272,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         onCompleted(d) {
             let data = d['cCRESCREENSearch']
             let result = null
-            if (filterVariables.selectedBiosample) {
+            if (elementFilterVariables.selectedBiosample) {
                 // This makes a copy of the existing row and just updates the scores to ctspecific
                 result = rows.map((obj) => {
                     let o = { ...obj }
@@ -309,7 +328,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                 }
             }
 
-            let scoresToInclude = filterVariables.selectedBiosample ? scoreNames.filter((s) => filterVariables.selectedBiosample[s]) : scoreNames
+            let scoresToInclude = elementFilterVariables.selectedBiosample ? scoreNames.filter((s) => elementFilterVariables.selectedBiosample[s]) : scoreNames
             let availableScoresCopy = { ...availableScores }
 
             if (assembly != "mm10") {
@@ -336,9 +355,9 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     const { loading: loading_genes, error: error_genes } = useQuery(LINKED_GENES, {
         variables: {
             assembly: assembly.toLowerCase(),
-            accessions: (rows.length > 0 && filterVariables.selectedBiosample) ? rows.map((s) => s.accession) : [],
+            accessions: (rows.length > 0 && elementFilterVariables.selectedBiosample) ? rows.map((s) => s.accession) : [],
         },
-        skip: rows.length == 0 || !!filterVariables.selectedBiosample,
+        skip: rows.length == 0 || !!elementFilterVariables.selectedBiosample,
         client: client,
         fetchPolicy: 'cache-and-network',
         onCompleted(data) {
@@ -360,10 +379,10 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     const { loading: loading_quantifications, error: error_quantifications } = useQuery(GENE_EXP_QUERY, {
         variables: {
             assembly: assembly,
-            biosample_value: filterVariables.selectedBiosample ? filterVariables.selectedBiosample.name : "",
+            biosample_value: elementFilterVariables.selectedBiosample ? elementFilterVariables.selectedBiosample.name : "",
             gene_id: Array.from(rows.reduce((acc, e) => { e.linked_genes.map((e) => e.gene_id).forEach((el) => acc.add(el)); return acc }, new Set([]))) // Using Set to avoid duplicates
         },
-        skip: !!filterVariables.selectedBiosample || rows.length == 0,
+        skip: !!elementFilterVariables.selectedBiosample || rows.length == 0,
         client: client,
         fetchPolicy: 'cache-and-network',
         onCompleted(data) {
@@ -409,14 +428,14 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         setDataAPI([])
         setAvailableScores(allFiltersObj)
         setCheckedScores(allFiltersObj)
-        updateFilter('selectedBiosample', null)
+        updateElementFilter('selectedBiosample', null)
         setRows([])
         setColumns([])
         setSelectedSearch(event.target.value)
     }
 
     function appletCallBack(data) {
-        updateFilter('selectedBiosample', null)
+        updateElementFilter('selectedBiosample', null)
         setDataAPI(data)
         setRows([])
         configureInputedRegions(data)
@@ -512,8 +531,12 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     return (
         <Box display="flex" >
             <Filters
-                filterVariables={filterVariables}
-                updateFilter={updateFilter}
+                sequenceFilterVariables={sequenceFilterVariables}
+                elementFilterVariables={elementFilterVariables}
+                geneFilterVariables={geneFilterVariables}
+                updateSequenceFilter={updateSequenceFilter}
+                updateElementFilter={updateElementFilter}
+                updateGeneFilter={updateGeneFilter}
                 toggleAssay={toggleAssay}
                 toggleClass={toggleClass}
                 drawerOpen={drawerOpen}
@@ -610,7 +633,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                         />
                     </Box>
                 }
-                {(shownTable === "sequence" && (filterVariables.useConservation || filterVariables.useMotifs)) && (
+                {(shownTable === "sequence" && (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs)) && (
                     <Box mt="20px">
                         <DataTable
                             key={Math.random()}
@@ -624,7 +647,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                         />
                     </Box>
                 )}
-                {(shownTable === "element" && filterVariables.usecCREs) && (
+                {(shownTable === "element" && elementFilterVariables.usecCREs) && (
                     <Box mt="20px">
                         {(loading_scores || loading_genes || loading_quantifications) ? <CircularProgress /> :
                             <DataTable

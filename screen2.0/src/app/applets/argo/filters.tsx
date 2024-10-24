@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FilterProps, FilterState, UpdateFilter } from './types';
+import { FilterProps } from './types';
 import { Accordion, AccordionDetails, AccordionSummary, Box, Checkbox, Drawer, FormControl, FormControlLabel, FormGroup, FormLabel, IconButton, MenuItem, Paper, Radio, RadioGroup, Select, Stack, Typography } from '@mui/material';
 import BiosampleTables from '../../_biosampleTables/BiosampleTables';
 import Grid from "@mui/material/Grid2"
@@ -8,8 +8,12 @@ import { CancelRounded } from "@mui/icons-material"
 import FilterListIcon from '@mui/icons-material/FilterList';
 
 const Filters: React.FC<FilterProps> = ({
-    filterVariables,
-    updateFilter,
+    sequenceFilterVariables,
+    elementFilterVariables,
+    geneFilterVariables,
+    updateSequenceFilter,
+    updateElementFilter,
+    updateGeneFilter,
     toggleAssay,
     toggleClass,
     drawerOpen,
@@ -32,22 +36,22 @@ const Filters: React.FC<FilterProps> = ({
     const handleSelectAllAssays = (event) => {
         const isChecked = event.target.checked;
 
-        const updatedAssays = { ...filterVariables.assays };
-        Object.keys(filterVariables.availableAssays).forEach((key) => {
-            if (filterVariables.availableAssays[key]) {
+        const updatedAssays = { ...elementFilterVariables.assays };
+        Object.keys(elementFilterVariables.availableAssays).forEach((key) => {
+            if (elementFilterVariables.availableAssays[key]) {
                 updatedAssays[key] = isChecked;
             }
         });
-        updateFilter("assays", updatedAssays);
+        updateElementFilter("assays", updatedAssays);
     };
 
     const areAllAssaysChecked = () => {
-        return Object.keys(filterVariables.availableAssays).every((key) => (filterVariables.availableAssays[key] && filterVariables.assays[key]) || (!filterVariables.availableAssays[key] && !filterVariables.assays[key]));
+        return Object.keys(elementFilterVariables.availableAssays).every((key) => (elementFilterVariables.availableAssays[key] && elementFilterVariables.assays[key]) || (!elementFilterVariables.availableAssays[key] && !elementFilterVariables.assays[key]));
     };
 
     const isIndeterminateAssay = () => {
-        const checkedCount = Object.keys(filterVariables.availableAssays).filter((key) => filterVariables.availableAssays[key] && filterVariables.assays[key]).length;
-        const totalAvailable = Object.keys(filterVariables.availableAssays).filter((key) => filterVariables.availableAssays[key]).length;
+        const checkedCount = Object.keys(elementFilterVariables.availableAssays).filter((key) => elementFilterVariables.availableAssays[key] && elementFilterVariables.assays[key]).length;
+        const totalAvailable = Object.keys(elementFilterVariables.availableAssays).filter((key) => elementFilterVariables.availableAssays[key]).length;
 
         return checkedCount > 0 && checkedCount < totalAvailable;
     };
@@ -56,9 +60,9 @@ const Filters: React.FC<FilterProps> = ({
     const handleSelectAllClasses = (event) => {
         const isChecked = event.target.checked;
 
-        updateFilter("classes", {
-            ...filterVariables.classes,
-            ...Object.keys(filterVariables.classes).reduce((acc, key) => {
+        updateElementFilter("classes", {
+            ...elementFilterVariables.classes,
+            ...Object.keys(elementFilterVariables.classes).reduce((acc, key) => {
                 acc[key] = isChecked;
                 return acc;
             }, {})
@@ -66,42 +70,42 @@ const Filters: React.FC<FilterProps> = ({
     };
 
     const areAllClassesChecked = () => {
-        return Object.values(filterVariables.classes).every((isChecked) => isChecked);
+        return Object.values(elementFilterVariables.classes).every((isChecked) => isChecked);
     };
 
     const isIndeterminateClass = () => {
-        const checkedCount = Object.values(filterVariables.classes).filter((isChecked) => isChecked).length;
-        const totalClasses = Object.keys(filterVariables.classes).length;
+        const checkedCount = Object.values(elementFilterVariables.classes).filter((isChecked) => isChecked).length;
+        const totalClasses = Object.keys(elementFilterVariables.classes).length;
 
         return checkedCount > 0 && checkedCount < totalClasses;
     };
 
     //change assays and availible assays depending on if there is a biosample selected or not
     useEffect(() => {
-        if (filterVariables.selectedBiosample) {
-            updateFilter('availableAssays', {
-                DNase: !!filterVariables.selectedBiosample.dnase,
-                H3K4me3: !!filterVariables.selectedBiosample.h3k4me3,
-                H3K27ac: !!filterVariables.selectedBiosample.h3k27ac,
-                CTCF: !!filterVariables.selectedBiosample.ctcf,
-                ATAC: !!filterVariables.selectedBiosample.atac_signal,
+        if (elementFilterVariables.selectedBiosample) {
+            updateElementFilter('availableAssays', {
+                DNase: !!elementFilterVariables.selectedBiosample.dnase,
+                H3K4me3: !!elementFilterVariables.selectedBiosample.h3k4me3,
+                H3K27ac: !!elementFilterVariables.selectedBiosample.h3k27ac,
+                CTCF: !!elementFilterVariables.selectedBiosample.ctcf,
+                ATAC: !!elementFilterVariables.selectedBiosample.atac_signal,
             });
-            updateFilter('assays', {
-                DNase: !!filterVariables.selectedBiosample.dnase,
-                H3K4me3: !!filterVariables.selectedBiosample.h3k4me3,
-                H3K27ac: !!filterVariables.selectedBiosample.h3k27ac,
-                CTCF: !!filterVariables.selectedBiosample.ctcf,
-                ATAC: !!filterVariables.selectedBiosample.atac_signal,
+            updateElementFilter('assays', {
+                DNase: !!elementFilterVariables.selectedBiosample.dnase,
+                H3K4me3: !!elementFilterVariables.selectedBiosample.h3k4me3,
+                H3K27ac: !!elementFilterVariables.selectedBiosample.h3k27ac,
+                CTCF: !!elementFilterVariables.selectedBiosample.ctcf,
+                ATAC: !!elementFilterVariables.selectedBiosample.atac_signal,
             });
-        } if (!filterVariables.selectedBiosample) {
-            updateFilter('availableAssays', {
+        } if (!elementFilterVariables.selectedBiosample) {
+            updateElementFilter('availableAssays', {
                 DNase: true,
                 H3K4me3: true,
                 H3K27ac: true,
                 CTCF: true,
                 ATAC: true,
             });
-            updateFilter('assays', {
+            updateElementFilter('assays', {
                 DNase: true,
                 H3K4me3: true,
                 H3K27ac: true,
@@ -109,7 +113,7 @@ const Filters: React.FC<FilterProps> = ({
                 ATAC: true,
             });
         }
-    }, [filterVariables.selectedBiosample]);
+    }, [elementFilterVariables.selectedBiosample]);
 
     return (
         <div>
@@ -164,11 +168,11 @@ const Filters: React.FC<FilterProps> = ({
                             Sequence
                         </AccordionSummary>
                         <AccordionDetails>
-                            <FormControlLabel value="conservation" control={<Checkbox onChange={() => updateFilter("useConservation", !filterVariables.useConservation)} checked={filterVariables.useConservation} />} label="Conservation" />
+                            <FormControlLabel value="conservation" control={<Checkbox onChange={() => updateSequenceFilter("useConservation", !sequenceFilterVariables.useConservation)} checked={sequenceFilterVariables.useConservation} />} label="Conservation" />
                             <Stack ml={2}>
                                 <FormGroup>
                                     <FormControl fullWidth>
-                                        <Select size="small" value={filterVariables.alignment} disabled={!filterVariables.useConservation} onChange={(event) => updateFilter("alignment", event.target.value)}>
+                                        <Select size="small" value={sequenceFilterVariables.alignment} disabled={!sequenceFilterVariables.useConservation} onChange={(event) => updateSequenceFilter("alignment", event.target.value)}>
                                             <MenuItem value={"241-mam-phyloP"}>241-Mammal(phyloP)</MenuItem>
                                             <MenuItem value={"447-mam-phyloP"}>447-Mammal(phyloP)</MenuItem>
                                             <MenuItem value={"241-mam-phastCons"}>241-Mammal(phastCons)</MenuItem>
@@ -182,7 +186,7 @@ const Filters: React.FC<FilterProps> = ({
                                 </FormGroup>
                                 <FormControl sx={{ width: "50%" }}>
                                     <FormLabel>Rank By</FormLabel>
-                                    <Select size="small" value={filterVariables.rankBy} disabled={!filterVariables.useConservation} onChange={(event) => updateFilter("rankBy", event.target.value)}>
+                                    <Select size="small" value={sequenceFilterVariables.rankBy} disabled={!sequenceFilterVariables.useConservation} onChange={(event) => updateSequenceFilter("rankBy", event.target.value)}>
                                         <MenuItem value={"min"}>Min</MenuItem>
                                         <MenuItem value={"max"}>Max</MenuItem>
                                         <MenuItem value={"avg"}>Average</MenuItem>
@@ -190,22 +194,22 @@ const Filters: React.FC<FilterProps> = ({
                                 </FormControl>
                             </Stack>
                             <FormGroup>
-                                <FormControlLabel value="TFMotifs" control={<Checkbox onChange={() => updateFilter("useMotifs", !filterVariables.useMotifs)} checked={filterVariables.useMotifs} />} label="TF Motifs" />
+                                <FormControlLabel value="TFMotifs" control={<Checkbox onChange={() => updateSequenceFilter("useMotifs", !sequenceFilterVariables.useMotifs)} checked={sequenceFilterVariables.useMotifs} />} label="TF Motifs" />
                                 <Stack ml={2}>
-                                    <RadioGroup value={filterVariables.motifCatalog} onChange={(event) => updateFilter("motifCatalog", event.target.value as "factorbook" | "factorbookTF" | "hocomoco" | "zMotif")}>
-                                        <FormControlLabel value="factorbook" control={<Radio />} label="Factorbook" disabled={!filterVariables.useMotifs} />
-                                        <FormControlLabel value="factorbookTF" control={<Radio />} label="Factorbook + TF Motif" disabled={!filterVariables.useMotifs} />
-                                        <FormControlLabel value="hocomoco" control={<Radio />} label="HOCOMOCO" disabled={!filterVariables.useMotifs} />
-                                        <FormControlLabel value="zMotif" control={<Radio />} label="ZMotif" disabled={!filterVariables.useMotifs} />
+                                    <RadioGroup value={sequenceFilterVariables.motifCatalog} onChange={(event) => updateSequenceFilter("motifCatalog", event.target.value as "factorbook" | "factorbookTF" | "hocomoco" | "zMotif")}>
+                                        <FormControlLabel value="factorbook" control={<Radio />} label="Factorbook" disabled={!sequenceFilterVariables.useMotifs} />
+                                        <FormControlLabel value="factorbookTF" control={<Radio />} label="Factorbook + TF Motif" disabled={!sequenceFilterVariables.useMotifs} />
+                                        <FormControlLabel value="hocomoco" control={<Radio />} label="HOCOMOCO" disabled={!sequenceFilterVariables.useMotifs} />
+                                        <FormControlLabel value="zMotif" control={<Radio />} label="ZMotif" disabled={!sequenceFilterVariables.useMotifs} />
                                     </RadioGroup>
                                 </Stack>
                             </FormGroup>
                             <FormGroup>
                                 <Stack ml={2}>
                                     <Typography lineHeight={"40px"}>Rank By</Typography>
-                                    <FormControlLabel value="numMotifs" control={<Checkbox onChange={() => updateFilter("numOverlappingMotifs", !filterVariables.numOverlappingMotifs)} checked={filterVariables.numOverlappingMotifs} />} label="Number of Overlaping Motifs" disabled={!filterVariables.useMotifs} />
-                                    <FormControlLabel value="motifScoreDelta" control={<Checkbox onChange={() => updateFilter("motifScoreDelta", !filterVariables.motifScoreDelta)} checked={filterVariables.motifScoreDelta} />} label="Motif Score Delta" disabled={!filterVariables.useMotifs} />
-                                    <FormControlLabel value="overlapsTFPeak" control={<Checkbox onChange={() => updateFilter("overlapsTFPeak", !filterVariables.overlapsTFPeak)} checked={filterVariables.overlapsTFPeak} />} label="Overlaps TF Peak " disabled={!filterVariables.useMotifs} />
+                                    <FormControlLabel value="numMotifs" control={<Checkbox onChange={() => updateSequenceFilter("numOverlappingMotifs", !sequenceFilterVariables.numOverlappingMotifs)} checked={sequenceFilterVariables.numOverlappingMotifs} />} label="Number of Overlaping Motifs" disabled={!sequenceFilterVariables.useMotifs} />
+                                    <FormControlLabel value="motifScoreDelta" control={<Checkbox onChange={() => updateSequenceFilter("motifScoreDelta", !sequenceFilterVariables.motifScoreDelta)} checked={sequenceFilterVariables.motifScoreDelta} />} label="Motif Score Delta" disabled={!sequenceFilterVariables.useMotifs} />
+                                    <FormControlLabel value="overlapsTFPeak" control={<Checkbox onChange={() => updateSequenceFilter("overlapsTFPeak", !sequenceFilterVariables.overlapsTFPeak)} checked={sequenceFilterVariables.overlapsTFPeak} />} label="Overlaps TF Peak " disabled={!sequenceFilterVariables.useMotifs} />
                                 </Stack>
                             </FormGroup>
                         </AccordionDetails>
@@ -224,28 +228,28 @@ const Filters: React.FC<FilterProps> = ({
                             Element
                         </AccordionSummary>
                         <AccordionDetails>
-                            <FormControlLabel value="cCREs" control={<Checkbox onChange={() => updateFilter("usecCREs", !filterVariables.usecCREs)} checked={filterVariables.usecCREs} />} label="cCREs" />
+                            <FormControlLabel value="cCREs" control={<Checkbox onChange={() => updateElementFilter("usecCREs", !elementFilterVariables.usecCREs)} checked={elementFilterVariables.usecCREs} />} label="cCREs" />
                             <Stack ml={2}>
-                                <RadioGroup row value={filterVariables.cCREAssembly} onChange={(event) => updateFilter("cCREAssembly", event.target.value as "GRCh38" | "mm10")}>
-                                    <FormControlLabel value="GRCh38" control={<Radio />} label="GRCH38" disabled={!filterVariables.usecCREs} />
-                                    <FormControlLabel value="mm10" control={<Radio />} label="mm10" disabled={!filterVariables.usecCREs} />
+                                <RadioGroup row value={elementFilterVariables.cCREAssembly} onChange={(event) => updateElementFilter("cCREAssembly", event.target.value as "GRCh38" | "mm10")}>
+                                    <FormControlLabel value="GRCh38" control={<Radio />} label="GRCH38" disabled={!elementFilterVariables.usecCREs} />
+                                    <FormControlLabel value="mm10" control={<Radio />} label="mm10" disabled={!elementFilterVariables.usecCREs} />
                                 </RadioGroup>
                                 <FormControlLabel
                                     label="Only Orthologous cCREs"
                                     control={
                                         <Checkbox
-                                            onChange={() => updateFilter("mustHaveOrtholog", !filterVariables.mustHaveOrtholog)}
-                                            disabled={!filterVariables.usecCREs || filterVariables.cCREAssembly == "mm10"}
-                                            checked={filterVariables.mustHaveOrtholog}
+                                            onChange={() => updateElementFilter("mustHaveOrtholog", !elementFilterVariables.mustHaveOrtholog)}
+                                            disabled={!elementFilterVariables.usecCREs || elementFilterVariables.cCREAssembly == "mm10"}
+                                            checked={elementFilterVariables.mustHaveOrtholog}
                                         />
                                     }
                                 />
-                                <Accordion square disableGutters disabled={!filterVariables.usecCREs}>
+                                <Accordion square disableGutters disabled={!elementFilterVariables.usecCREs}>
                                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                                         Within a Biosample
                                     </AccordionSummary>
                                     <AccordionDetails>
-                                        {filterVariables.selectedBiosample && (
+                                        {elementFilterVariables.selectedBiosample && (
                                             <Paper elevation={0}>
                                                 <Stack
                                                     borderRadius={1}
@@ -258,15 +262,15 @@ const Filters: React.FC<FilterProps> = ({
                                                         flexGrow={1}
                                                         sx={{ color: "#2C5BA0", pl: 1 }}
                                                     >
-                                                        {filterVariables.selectedBiosample.ontology.charAt(0).toUpperCase() +
-                                                            filterVariables.selectedBiosample.ontology.slice(1) +
+                                                        {elementFilterVariables.selectedBiosample.ontology.charAt(0).toUpperCase() +
+                                                            elementFilterVariables.selectedBiosample.ontology.slice(1) +
                                                             " - " +
-                                                            filterVariables.selectedBiosample.displayname}
+                                                            elementFilterVariables.selectedBiosample.displayname}
                                                     </Typography>
                                                     <IconButton
                                                         onClick={(event) => {
                                                             event.stopPropagation();
-                                                            updateFilter("selectedBiosample", null);
+                                                            updateElementFilter("selectedBiosample", null);
                                                         }}
                                                         sx={{ m: 'auto', flexGrow: 0 }}
                                                     >
@@ -278,9 +282,9 @@ const Filters: React.FC<FilterProps> = ({
 
                                         )}
                                         <BiosampleTables
-                                            selected={filterVariables.selectedBiosample?.name}
-                                            onBiosampleClicked={(biosample) => updateFilter("selectedBiosample", biosample)}
-                                            assembly={filterVariables.cCREAssembly}
+                                            selected={elementFilterVariables.selectedBiosample?.name}
+                                            onBiosampleClicked={(biosample) => updateElementFilter("selectedBiosample", biosample)}
+                                            assembly={elementFilterVariables.cCREAssembly}
                                         />
                                     </AccordionDetails>
                                 </Accordion>
@@ -296,78 +300,78 @@ const Filters: React.FC<FilterProps> = ({
                                             />
                                         }
                                         label="Select All"
-                                        disabled={!filterVariables.usecCREs}
+                                        disabled={!elementFilterVariables.usecCREs}
                                     />
                                     <Grid container spacing={0} ml={2}>
                                         <Grid size={6}>
                                             <FormGroup>
                                                 <FormControlLabel
-                                                    checked={filterVariables.classes.CA}
+                                                    checked={elementFilterVariables.classes.CA}
                                                     onChange={() => toggleClass('CA')}
                                                     control={<Checkbox />}
                                                     label="CA"
                                                     value="CA"
-                                                    disabled={!filterVariables.usecCREs}
+                                                    disabled={!elementFilterVariables.usecCREs}
                                                 />
                                                 <FormControlLabel
-                                                    checked={filterVariables.classes.CACTCF}
+                                                    checked={elementFilterVariables.classes.CACTCF}
                                                     onChange={() => toggleClass('CACTCF')}
                                                     control={<Checkbox />}
                                                     label="CA-CTCF"
                                                     value="CACTCF"
-                                                    disabled={!filterVariables.usecCREs}
+                                                    disabled={!elementFilterVariables.usecCREs}
                                                 />
                                                 <FormControlLabel
-                                                    checked={filterVariables.classes.CAH3K4me3}
+                                                    checked={elementFilterVariables.classes.CAH3K4me3}
                                                     onChange={() => toggleClass('CAH3K4me3')}
                                                     control={<Checkbox />}
                                                     label="CA-H3K4me3"
                                                     value="CAH3K4me3"
-                                                    disabled={!filterVariables.usecCREs}
+                                                    disabled={!elementFilterVariables.usecCREs}
                                                 />
                                                 <FormControlLabel
-                                                    checked={filterVariables.classes.CATF}
+                                                    checked={elementFilterVariables.classes.CATF}
                                                     onChange={() => toggleClass('CATF')}
                                                     control={<Checkbox />}
                                                     label="CA-TF"
                                                     value="CATF"
-                                                    disabled={!filterVariables.usecCREs}
+                                                    disabled={!elementFilterVariables.usecCREs}
                                                 />
                                             </FormGroup>
                                         </Grid>
                                         <Grid size={6}>
                                             <FormGroup>
                                                 <FormControlLabel
-                                                    checked={filterVariables.classes.dELS}
+                                                    checked={elementFilterVariables.classes.dELS}
                                                     onChange={() => toggleClass('dELS')}
                                                     control={<Checkbox />}
                                                     label="dELS"
                                                     value="dELS"
-                                                    disabled={!filterVariables.usecCREs}
+                                                    disabled={!elementFilterVariables.usecCREs}
                                                 />
                                                 <FormControlLabel
-                                                    checked={filterVariables.classes.pELS}
+                                                    checked={elementFilterVariables.classes.pELS}
                                                     onChange={() => toggleClass('pELS')}
                                                     control={<Checkbox />}
                                                     label="pELS"
                                                     value="pELS"
-                                                    disabled={!filterVariables.usecCREs}
+                                                    disabled={!elementFilterVariables.usecCREs}
                                                 />
                                                 <FormControlLabel
-                                                    checked={filterVariables.classes.PLS}
+                                                    checked={elementFilterVariables.classes.PLS}
                                                     onChange={() => toggleClass('PLS')}
                                                     control={<Checkbox />}
                                                     label="PLS"
                                                     value="PLS"
-                                                    disabled={!filterVariables.usecCREs}
+                                                    disabled={!elementFilterVariables.usecCREs}
                                                 />
                                                 <FormControlLabel
-                                                    checked={filterVariables.classes.TF}
+                                                    checked={elementFilterVariables.classes.TF}
                                                     onChange={() => toggleClass('TF')}
                                                     control={<Checkbox />}
                                                     label="TF"
                                                     value="TF"
-                                                    disabled={!filterVariables.usecCREs}
+                                                    disabled={!elementFilterVariables.usecCREs}
                                                 />
                                             </FormGroup>
                                         </Grid>
@@ -384,7 +388,7 @@ const Filters: React.FC<FilterProps> = ({
                                             />
                                         }
                                         label="Select All"
-                                        disabled={!filterVariables.usecCREs}
+                                        disabled={!elementFilterVariables.usecCREs}
                                     />
                                     <Grid container spacing={0} ml={2}>
                                         <Grid size={6}>
@@ -393,8 +397,8 @@ const Filters: React.FC<FilterProps> = ({
                                                 control={
                                                     <Checkbox
                                                         onChange={() => toggleAssay('DNase')}
-                                                        disabled={!filterVariables.availableAssays.DNase || !filterVariables.usecCREs}
-                                                        checked={filterVariables.assays.DNase}
+                                                        disabled={!elementFilterVariables.availableAssays.DNase || !elementFilterVariables.usecCREs}
+                                                        checked={elementFilterVariables.assays.DNase}
                                                         value="dnase"
                                                     />
                                                 }
@@ -404,8 +408,8 @@ const Filters: React.FC<FilterProps> = ({
                                                 control={
                                                     <Checkbox
                                                         onChange={() => toggleAssay('H3K4me3')}
-                                                        disabled={!filterVariables.availableAssays.H3K4me3 || !filterVariables.usecCREs}
-                                                        checked={filterVariables.assays.H3K4me3}
+                                                        disabled={!elementFilterVariables.availableAssays.H3K4me3 || !elementFilterVariables.usecCREs}
+                                                        checked={elementFilterVariables.assays.H3K4me3}
                                                         value="h3k4me3"
                                                     />
                                                 }
@@ -415,8 +419,8 @@ const Filters: React.FC<FilterProps> = ({
                                                 control={
                                                     <Checkbox
                                                         onChange={() => toggleAssay('H3K27ac')}
-                                                        disabled={!filterVariables.availableAssays.H3K27ac || !filterVariables.usecCREs}
-                                                        checked={filterVariables.assays.H3K27ac}
+                                                        disabled={!elementFilterVariables.availableAssays.H3K27ac || !elementFilterVariables.usecCREs}
+                                                        checked={elementFilterVariables.assays.H3K27ac}
                                                         value="h3k27ac"
                                                     />
                                                 }
@@ -428,8 +432,8 @@ const Filters: React.FC<FilterProps> = ({
                                                 control={
                                                     <Checkbox
                                                         onChange={() => toggleAssay('CTCF')}
-                                                        disabled={!filterVariables.availableAssays.CTCF || !filterVariables.usecCREs}
-                                                        checked={filterVariables.assays.CTCF}
+                                                        disabled={!elementFilterVariables.availableAssays.CTCF || !elementFilterVariables.usecCREs}
+                                                        checked={elementFilterVariables.assays.CTCF}
                                                         value="ctcf"
                                                     />
                                                 }
@@ -439,8 +443,8 @@ const Filters: React.FC<FilterProps> = ({
                                                 control={
                                                     <Checkbox
                                                         onChange={() => toggleAssay('ATAC')}
-                                                        disabled={!filterVariables.availableAssays.ATAC || !filterVariables.usecCREs}
-                                                        checked={filterVariables.assays.ATAC}
+                                                        disabled={!elementFilterVariables.availableAssays.ATAC || !elementFilterVariables.usecCREs}
+                                                        checked={elementFilterVariables.assays.ATAC}
                                                         value="atac"
                                                     />
                                                 }
