@@ -271,6 +271,20 @@ const Filters: React.FC<FilterProps> = ({
                                                         onClick={(event) => {
                                                             event.stopPropagation();
                                                             updateElementFilter("selectedBiosample", null);
+                                                            updateElementFilter('availableAssays', {
+                                                                DNase: true,
+                                                                H3K4me3: true,
+                                                                H3K27ac: true,
+                                                                CTCF: true,
+                                                                ATAC: true,
+                                                            });
+                                                            updateElementFilter('assays', {
+                                                                DNase: true,
+                                                                H3K4me3: true,
+                                                                H3K27ac: true,
+                                                                CTCF: true,
+                                                                ATAC: true,
+                                                            });
                                                         }}
                                                         sx={{ m: 'auto', flexGrow: 0 }}
                                                     >

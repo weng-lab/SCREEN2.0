@@ -48,9 +48,6 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     const [shownTable, setShownTable] = useState<"sequence" | "element" | "gene">(null);
 
     // Filter state variables
-    /**
-     * @todo group necesary filter states together
-     */
     const [inputRegions, setInputRegions] = useState<GenomicRegion[]>([]);
 
     const [sequenceFilterVariables, setSequenceFilterVariables] = useState<SequenceFilterState>({
@@ -99,6 +96,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         useGenes: true
     });
 
+    //update specific variable in sequence filters
     const updateSequenceFilter = (key: keyof SequenceFilterState, value: any) => {
         setSequenceFilterVariables((prevState) => ({
             ...prevState,
@@ -106,6 +104,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         }));
     };
 
+    //update specific variable in element filters
     const updateElementFilter = (key: keyof ElementFilterState, value: any) => {
         setElementFilterVariables((prevState) => ({
             ...prevState,
@@ -129,6 +128,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         });
     };
 
+    //update specific variable in gene filters
     const updateGeneFilter = (key: keyof GeneFilterState, value: any) => {
         setGeneFilterVariables((prevState) => ({
             ...prevState,
