@@ -12,8 +12,9 @@ import { ApolloQueryResult, useLazyQuery, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
 import { ZScores, LinkedGenes, GenomicRegion, CCREAssays, CCREClasses, RankedRegions, FilterState, ElementFilterState, SequenceFilterState, GeneFilterState } from "./types"
 import { BED_INTERSECT_QUERY } from "../../_mainsearch/queries"
-import InfoIcon from '@mui/icons-material/Info';
+import ExpandCircleDownIcon from '@mui/icons-material/ExpandCircleDown';
 import Filters from "./filters"
+import { CancelRounded } from "@mui/icons-material"
 
 const scoreNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
 const conservationNames = ["vertebrates", "mammals", "primates"]
@@ -144,7 +145,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                 size="small"
                 onClick={onClick}
             >
-                <InfoIcon
+                <ExpandCircleDownIcon
                     fontSize="inherit"
                     color={shownTable === tableName.toLowerCase() ? "primary" : "inherit"}
                 />
@@ -152,11 +153,30 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         </div>
     );
 
+    //stylized title for the sequence,element, and gene data tables
+    const SubTableTitle = ({ title }) => (
+        <Stack direction={"row"} alignItems={"center"} spacing={1}>
+            <IconButton onClick={() => setShownTable(null)} color={"primary"}>
+                <CancelRounded />
+            </IconButton>
+            <Typography
+                variant="h5"
+                noWrap
+                component="div"
+                sx={{
+                    display: { xs: 'none', sm: 'block' },
+                    fontWeight: 'normal',
+                }}>
+                {title}
+            </Typography>
+        </Stack>
+    );
+
     //handle column changes for the main rank table
     const mainColumns: DataTableColumn<any>[] = useMemo(() => {
 
         const cols: DataTableColumn<any>[] = [
-            { header: "Input Region", value: (row) => `${row.genomicRegion.chr}:${row.genomicRegion.start}-${row.genomicRegion.end}` },
+            { header: "Input Region", value: (row) => `${row.genomicRegion.chr}: ${row.genomicRegion.start}-${row.genomicRegion.end}`, sort: (a, b) => a.genomicRegion.start - b.genomicRegion.start },
             { header: "Aggregate", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) }
         ]
         /**
@@ -643,7 +663,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                             sortDescending
                             itemsPerPage={5}
                             searchable
-                            tableTitle="Sequence Details"
+                            tableTitle={<SubTableTitle title="Sequence Details" />}
                         />
                     </Box>
                 )}
@@ -658,7 +678,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                                 sortDescending
                                 itemsPerPage={10}
                                 searchable
-                                tableTitle="Element Details"
+                                tableTitle={<SubTableTitle title="Element Details" />}
                             >
                             </DataTable>
                         }
@@ -688,7 +708,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                             sortDescending
                             itemsPerPage={5}
                             searchable
-                            tableTitle="Gene Details"
+                            tableTitle={<SubTableTitle title="Gene Details" />}
                         />
                     </Box>
                 )}
