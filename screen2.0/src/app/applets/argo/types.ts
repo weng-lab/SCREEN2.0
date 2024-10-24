@@ -104,17 +104,17 @@ export type FilterState = {
     useGenes: boolean;
   }
 
-export type UpdateSequenceFilter = <K extends keyof SequenceFilterState>(
+type UpdateSequenceFilter = <K extends keyof SequenceFilterState>(
     key: K,
     value: FilterState[K]
 ) => void;
 
-export type UpdateElementFilter = <K extends keyof ElementFilterState>(
+type UpdateElementFilter = <K extends keyof ElementFilterState>(
     key: K,
     value: FilterState[K]
 ) => void;
 
-export type UpdateGeneFilter = <K extends keyof GeneFilterState>(
+type UpdateGeneFilter = <K extends keyof GeneFilterState>(
     key: K,
     value: FilterState[K]
 ) => void;
