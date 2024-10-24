@@ -374,6 +374,7 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
           tableTitle="Cell type agnostic classification"
           columns={ctAgnosticColumns()}
           sortColumn={1}
+          itemsPerPage={1}
           searchable
           downloadFileName={`${assembly} ${accession} - Cell type agnostic classification.tsv`}
         />
@@ -387,7 +388,6 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
           tableTitle="Core Collection"
           rows={coreCollection}
           sortColumn={1}
-          itemsPerPage={5}
           searchable
           downloadFileName={`${assembly} ${accession} - Core Collection.tsv`}
         />
@@ -401,7 +401,6 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
           sortColumn={1}
           tableTitle="Partial Data Collection"
           rows={partialDataCollection}
-          itemsPerPage={5}
           searchable
           downloadFileName={`${assembly} ${accession} - Partial Data Collection.tsv`}
         />
@@ -415,7 +414,6 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
           tableTitle="Ancillary Collection"
           rows={ancillaryCollection}
           sortColumn={1}
-          itemsPerPage={5}
           searchable
           downloadFileName={`${assembly} ${accession} - Ancillary Collection.tsv`}
         />

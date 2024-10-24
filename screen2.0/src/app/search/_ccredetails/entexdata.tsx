@@ -137,14 +137,14 @@ export const ENTExData = (props: { accession, coordinates }) =>{
                 {
                     header: "Supporting Assays",
                     HeaderRender: () => <b>Supporting Assays</b>,
-                    value: (row) => row.assay_score.split("|").map(s=>s.split(":")[0]).join(",")
+                    value: (row) => row.assay_score.split("|").map(s=>s.split(":")[0]).join(", ")
                 }
             ]}
             rows={entexActiveAnno.entexActiveAnnotationsQuery || []}
             sortColumn={0}
             searchable
             sortDescending
-            itemsPerPage={10}
+            itemsPerPage={[10, 25, 100]}
             />
         </Grid> 
 

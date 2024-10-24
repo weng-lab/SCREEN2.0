@@ -75,7 +75,6 @@ export const LinkedGenes: React.FC<props> = (props) => {
             rows={HiCLinked}
             sortColumn={6}
             sortDescending
-            itemsPerPage={5}
             searchable
           />
           :
@@ -117,7 +116,6 @@ export const LinkedGenes: React.FC<props> = (props) => {
             tableTitle="ChIA-PET Interactions"
             rows={ChIAPETLinked}
             sortColumn={5}
-            itemsPerPage={5}
             searchable
           />
           :
@@ -171,7 +169,6 @@ export const LinkedGenes: React.FC<props> = (props) => {
             emptyText="test"
             sortColumn={7}
             sortDescending
-            itemsPerPage={5}
             searchable
           />
           :
@@ -218,7 +215,6 @@ export const LinkedGenes: React.FC<props> = (props) => {
             rows={eqtlLinked}
             sortColumn={6}
             sortDescending
-            itemsPerPage={5}
             searchable
           />
           :
