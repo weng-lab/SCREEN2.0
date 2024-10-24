@@ -279,61 +279,13 @@ export function DataMatrices() {
     setBiosamples(selectedBiosamples);
   };
 
-  // const scatterData = useMemo(() => {
-  //   if (!fData) return [];
-  //   const biosampleIds = biosamples.map(sample => sample.umap_coordinates);
-  
-  //   return fData.map((x) => {
-  //     const isInBiosample = biosampleIds.includes(x.umap_coordinates);
-  
-  //     return {
-  //       x: x.umap_coordinates![0],
-  //       y: x.umap_coordinates![1],
-  //       r: searched && x.displayname === searched ? 5 : 2,
-  //       color: searched === null || x.displayname === searched
-  //         ? (colorBy === "sampleType" ? sampleTypeColors : ontologyColors)[x[colorBy]]
-  //         : "#aaaaaa",
-  //       opacity: biosampleIds.length === 0 ? 1 : (isInBiosample ? 1 : 0.1),
-  //       metaData: {
-  //         name: x.displayname,
-  //         accession: x.experimentAccession
-  //       }
-  //     };
-  //   });
-  // }, [fData, searched, colorBy, sampleTypeColors, ontologyColors, isInbounds, biosamples]);
-
   const scatterData = useMemo(() => {
     if (!fData) return [];
-
-    // Get existing data
     const biosampleIds = biosamples.map(sample => sample.umap_coordinates);
-
-    // Set the desired number of points
-    const desiredPointCount = 6000;
-    const existingPointCount = fData.length;
-
-    // Calculate how many additional points are needed
-    const additionalPointsNeeded = Math.max(0, desiredPointCount - existingPointCount);
-
-    // Generate additional random points
-    const randomPoints = Array.from({ length: additionalPointsNeeded }, () => {
-      return {
-        x: Math.random() * (xMax - xMin) + xMin, // Random x within bounds
-        y: Math.random() * (yMax - yMin) + yMin, // Random y within bounds
-        r: 2, // Default radius for new points
-        color: "#aaaaaa", // Default color for new points
-        opacity: 0.1, // Default opacity for new points
-        metaData: {
-          name: "Synthetic Point", // Example metadata
-          accession: null, // No accession for synthetic points
-        }
-      };
-    });
-
-    // Combine existing data with new random points
+  
     return fData.map((x) => {
       const isInBiosample = biosampleIds.includes(x.umap_coordinates);
-
+  
       return {
         x: x.umap_coordinates![0],
         y: x.umap_coordinates![1],
@@ -347,9 +299,8 @@ export function DataMatrices() {
           accession: x.experimentAccession
         }
       };
-    }).concat(randomPoints); // Combine existing data with random points
+    });
   }, [fData, searched, colorBy, sampleTypeColors, ontologyColors, isInbounds, biosamples]);
-  
   
   const legendEntries = useMemo(() => {
     // Create a color-count map based on scatterData

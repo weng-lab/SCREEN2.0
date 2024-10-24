@@ -314,17 +314,19 @@ export const Chart = <T extends {}>({ width: parentWidth, height: parentHeight, 
                     return (
                         <>
                             {/* Zoomable Group for Points */}
-                            <div style={{ position: 'relative', width: parentWidth, height: parentHeight }}>
+                            <div style={{ position: 'relative'}}>
                                 <canvas
                                     ref={canvasRef}
-                                    width={parentWidth}
-                                    height={parentHeight}
+                                    width={parentWidth * 2}
+                                    height={parentHeight * 2}
                                     style={{
                                         cursor: selectionType === "select" ? (isDragging ? 'none' : 'default') : (zoom.isDragging ? 'grabbing' : 'grab'),
                                         userSelect: 'none',
                                         position: "absolute",
                                         top: margin.top,
                                         left: margin.left,
+                                        width: parentWidth,
+                                        height: parentHeight,
                                     }}
                                 />
                                 <svg width={parentWidth} height={parentHeight} style={{ position: "absolute", cursor: selectionType === "select" ? (isDragging ? 'none' : 'default') : (zoom.isDragging ? 'grabbing' : 'grab'), userSelect: 'none' }} onMouseMove={(e) => handleMouseMove(e, zoom)} onMouseLeave={handleMouseLeave} >
@@ -446,7 +448,7 @@ export const Chart = <T extends {}>({ width: parentWidth, height: parentHeight, 
                                             right: miniMap.position ? miniMap.position.right : 10,
                                         }}
                                     >
-                                        {/* Canvas for rendering points */}
+                                        {/* Canvas for rendering points on minimap */}
                                         <canvas
                                             width={(parentWidth - 100) / 4}
                                             height={(parentHeight - 100) / 4}
@@ -524,6 +526,7 @@ export const Chart = <T extends {}>({ width: parentWidth, height: parentHeight, 
                                     const canvas = canvasRef.current;
                                     if (canvas) {
                                         const context = canvas.getContext('2d');
+                                        context.setTransform(2,0,0,2,0,0);
 
                                         // Clear the canvas before rendering
                                         context.clearRect(0, 0, parentWidth, parentHeight);
