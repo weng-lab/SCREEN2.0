@@ -87,7 +87,7 @@ const tssMarks = [
 ];
 
 const GENE_TRANSCRIPTS_QUERY = gql`
- query ($assembly: String!, $name: [String!], $limit: Int, $version: Int) {
+ query geneTSS($assembly: String!, $name: [String!], $limit: Int, $version: Int) {
    gene(assembly: $assembly, name: $name, limit: $limit, version: $version) {
      name
      id

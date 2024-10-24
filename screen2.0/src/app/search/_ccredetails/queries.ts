@@ -1,44 +1,15 @@
-import { TypedDocumentNode, gql } from "@apollo/client"
+import { gql } from "../../../graphql/__generated__"
 
-type Data = {
-  ccREBiosampleQuery: {
-    biosamples: {
-      sampleType: string;
-      displayname: string;
-      cCREZScores: {
-        score: number;
-        assay: string;
-        experiment_accession: string;
-      }[];
-      name: string;
-      ontology: string;
-    }[]
-  },
-  cCREQuery: [{
-    accession: string,
-    group: string,
-    dnase: number,
-    h3k4me3: number,
-    h3k27ac: number,
-    ctcf: number
-  }]
-}
-
-type Variables = {
-  assembly: "mm10" | "grch38",
-  accession: [string],
-}
-
-export const GET_CCRE_CT_TF = gql`
-query q_2($accession: String!, $assembly: String!) {
+export const GET_CCRE_CT_TF = gql(`
+query cCRETF($accession: String!, $assembly: String!) {
 getcCRETFQuery(accession: $accession, assembly: $assembly) {
     celltype
     tf
   }
 }
-`
-export const TOP_TISSUES: TypedDocumentNode<Data, Variables> = gql`
-  query q_3($accession: [String!], $assembly: String!) {
+`)
+export const TOP_TISSUES = gql(`
+  query topTissues($accession: [String!], $assembly: String!) {
     ccREBiosampleQuery(assembly: $assembly) {
       biosamples {
         sampleType
@@ -62,9 +33,10 @@ export const TOP_TISSUES: TypedDocumentNode<Data, Variables> = gql`
       atac: maxZ(assay: "ATAC")
     }
   }
-`
-export const LINKED_GENES = gql`
-  query(
+`)
+
+export const LINKED_GENES = gql(`
+  query linkedGenes(
     $assembly: String!
     $accessions: [String]!
     $methods: [String]
@@ -96,9 +68,10 @@ export const LINKED_GENES = gql`
       displayname
     }
   }
-`
-export const MPRA_FUNCTIONAL_DATA_QUERY = gql `
-query ($coordinates: [GenomicRangeInput!]) {
+`)
+
+export const MPRA_FUNCTIONAL_DATA_QUERY = gql(`
+query MPRA_FCC($coordinates: [GenomicRangeInput!]) {
   mpraFccQuery(coordinates: $coordinates) {
     celltype
     chromosome
@@ -113,9 +86,9 @@ query ($coordinates: [GenomicRangeInput!]) {
     barcode_location
   }
 }
-`
-export const CAPRA_SOLO_FUNCTIONAL_DATA_QUERY = gql `
-query ($accession: [String]!) {
+`)
+export const CAPRA_SOLO_FUNCTIONAL_DATA_QUERY = gql(`
+query capraFccSoloQuery($accession: [String]!) {
   capraFccSoloQuery(accession: $accession) {
     rdhs
     log2fc
@@ -128,9 +101,10 @@ query ($accession: [String]!) {
     experiment
   }
 }
-`
-export const CAPRA_DOUBLE_FUNCTIONAL_DATA_QUERY = gql `
-query ($accession: [String]!) {
+`)
+
+export const CAPRA_DOUBLE_FUNCTIONAL_DATA_QUERY = gql(`
+query capraFccDoubleQuery($accession: [String]!) {
   capraFccDoubleQuery(accession: $accession) {
     rdhs_p1
     rdhs_p2
@@ -144,17 +118,18 @@ query ($accession: [String]!) {
     experiment
   }
 }
-`
-export const CCRE_RDHS_QUERY = gql`
-query ($rDHS: [String!],$assembly: String!) {
+`)
+
+export const CCRE_RDHS_QUERY = gql(`
+query rdhs($rDHS: [String!],$assembly: String!) {
   cCREQuery(assembly: $assembly, rDHS: $rDHS) {
     accession
   }
 }
-`
+`)
 
-export const FUNCTIONAL_DATA_QUERY= gql`
-query ($coordinates: [GenomicRangeInput!],$assembly: String!) {
+export const FUNCTIONAL_DATA_QUERY= gql(`
+query functionalCharacterizationQuery($coordinates: [GenomicRangeInput!],$assembly: String!) {
   functionalCharacterizationQuery(assembly: $assembly, coordinates: $coordinates) {
     tissues
     element_id
@@ -164,18 +139,19 @@ query ($coordinates: [GenomicRangeInput!],$assembly: String!) {
     start
   }
 }
+`)
 
-`
-export const GENE_NAME = gql`
-  query ($assembly: String!, $name_prefix: [String!], $version: Int) {
+export const GENE_NAME = gql(`
+  query geneName($assembly: String!, $name_prefix: [String!], $version: Int) {
     gene(assembly: $assembly, name_prefix: $name_prefix, version: $version) {
       name
       id
     }
   }
-`
-export const ORTHOLOG_QUERY = gql`
-  query ($assembly: String!, $accession: String!) {
+`)
+
+export const ORTHOLOG_QUERY = gql(`
+  query orthologTab($assembly: String!, $accession: [String!]) {
     orthologQuery(accession: $accession, assembly: $assembly) {
       assembly
       accession
@@ -187,10 +163,10 @@ export const ORTHOLOG_QUERY = gql`
       }
     }
   }
-`
+`)
 
-export const NEARBY_GENOMIC_FEATURES_QUERY = gql`
-  query features_1($coordinates: [GenomicRangeInput!], $chromosome: String, $start: Int, $end: Int, $b: String!, $c: String!, $a: String!, $version: Int) {
+export const NEARBY_GENOMIC_FEATURES_QUERY = gql(`
+  query nearbyGenomicFeatures($coordinates: [GenomicRangeInput!], $chromosome: String, $start: Int, $end: Int, $b: String!, $c: String!, $a: String!, $version: Int) {
     gene(chromosome: $chromosome, start: $start, end: $end, assembly: $b, version: $version) {
       name
       id
@@ -229,10 +205,10 @@ export const NEARBY_GENOMIC_FEATURES_QUERY = gql`
       }
     }
   }
-`
+`)
 
-export const NEARBY_GENOMIC_FEATURES_NOSNPS_QUERY = gql`
-  query features_2($coordinates: [GenomicRangeInput!], $chromosome: String, $start: Int, $end: Int, $b: String!, $c: String!, $version: Int) {
+export const NEARBY_GENOMIC_FEATURES_NOSNPS_QUERY = gql(`
+  query nearbyGenomicFeaturesNoSNPs($coordinates: [GenomicRangeInput!], $chromosome: String, $start: Int, $end: Int, $b: String!, $c: String!, $version: Int) {
     gene(chromosome: $chromosome, start: $start, end: $end, assembly: $b, version: $version) {
       name
       id
@@ -262,8 +238,8 @@ export const NEARBY_GENOMIC_FEATURES_NOSNPS_QUERY = gql`
       group
     }
   }
-`
-export const CRE_TF_DCC_QUERY = gql`
+`)
+export const CRE_TF_DCC_QUERY = gql(`
   query tfpeaks_1($assembly: String, $range: [ChromosomeRangeInput]!, $target: String) {
     peaks(assembly: $assembly, range: $range, target: $target) {
       peaks {
@@ -281,9 +257,9 @@ export const CRE_TF_DCC_QUERY = gql`
       }
     }
   }
-`
+`)
 
-export const TF_INTERSECTION_QUERY = gql`
+export const TF_INTERSECTION_QUERY = gql(`
   query tfpeaks_2($assembly: String, $range: [ChromosomeRangeInput]!, $species: String) {
     peaks(assembly: $assembly, range: $range) {
       peaks {
@@ -308,8 +284,9 @@ export const TF_INTERSECTION_QUERY = gql`
       }
     }
   }
-`
-export const NEARBY_AND_LINKED_GENES = gql`
+`)
+
+export const NEARBY_AND_LINKED_GENES = gql(`
   query nearbyAndLinkedGenes(
     $accessions: [String!]!
     $assembly: String!
@@ -363,14 +340,4 @@ export const NEARBY_AND_LINKED_GENES = gql`
       displayname
     }
   }
-`
-
-const LINKED_GENES_CELLTYPES = gql`
-  query getlistofLinkedGenesCelltypes {
-    linkedGenesCelltypes: getLinkedGenesCelltypes {
-      celltype
-      displayname
-      method
-    }
-  }
-`
+`)

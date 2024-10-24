@@ -433,13 +433,13 @@ export function constructMainQueryParamsFromURL(searchParams: { [key: string]: s
         assembly: searchParams.assembly === "GRCh38" || searchParams.assembly === "mm10" ?
           searchParams.assembly : "GRCh38",
         chromosome: (searchParams.intersect && checkTrueFalse(searchParams.intersect)) ?
-          null : searchParams.chromosome ?? "chr11",
+          null : searchParams.chromosome ?? "chr12",
         start: (searchParams.intersect && checkTrueFalse(searchParams.intersect)) ?
           null : searchParams.start ?
-            +(searchParams.start) : 5205263,
+            +(searchParams.start) : 53380176,
         end: (searchParams.intersect && checkTrueFalse(searchParams.intersect)) ?
           null : searchParams.end ?
-            +(searchParams.end) : 5381894,
+            +(searchParams.end) : 53416446,
       },
       //Incomplete data, will be filled in once biosample query is loaded
       biosample: searchParams.Biosample ?
