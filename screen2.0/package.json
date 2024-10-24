@@ -59,7 +59,7 @@
     "autoprefixer": "10.4.20",
     "bpnet-ui": "^0.3.8",
     "eslint": "9.11.1",
-    "eslint-config-next": "14.2.13",
+    "eslint-config-next": "15.0.1",
     "graphql": "^16.9.0",
     "jubilant-carnival": "^0.6.0",
     "logots-react": "^0.2.0",
