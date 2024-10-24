@@ -66,7 +66,7 @@ export const LinkedGenes: React.FC<props> = (props) => {
               },
               {
                 header: "P",
-                HeaderRender: (row: LinkedGeneInfo) => <Typography variant="body2"><i>P</i></Typography>,
+                HeaderRender: () => <Typography variant="body2"><i>P</i></Typography>,
                 value: (row: LinkedGeneInfo) => row.p_val,
                 render: (row: LinkedGeneInfo) => row.p_val === 0 ? '0' : toScientificNotationElement(row.p_val, 2, {variant: "body2"})
               },
@@ -161,7 +161,7 @@ export const LinkedGenes: React.FC<props> = (props) => {
               },
               {
                 header: "P",
-                HeaderRender: (row: LinkedGeneInfo) => <Typography variant="body2"><i>P</i></Typography>,
+                HeaderRender: () => <Typography variant="body2"><i>P</i></Typography>,
                 value: (row: LinkedGeneInfo) => row.p_val,
                 render: (row: LinkedGeneInfo) => toScientificNotationElement(row.p_val, 2, {variant: 'body2'})
               },

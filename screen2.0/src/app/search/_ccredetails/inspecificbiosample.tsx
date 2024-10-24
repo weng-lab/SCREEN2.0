@@ -6,6 +6,7 @@ import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { z_score, z_score_render, GROUP_COLOR_MAP } from "./utils"
 import Grid from "@mui/material/Grid2"
 import { LoadingMessage } from "../../../common/lib/utility"
+import { DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 
 export type cCRERow = {
   ct?: string
@@ -121,37 +122,46 @@ const tableCols = (typeC = false) => {
   return cols
 }
 
-const ctAgnosticColumns = () => [
+const ctAgnosticColumns: () => DataTableColumn<{
+  __typename?: "CCRE";
+  accession: string;
+  group: string;
+  dnase?: number | null;
+  h3k4me3?: number | null;
+  h3k27ac?: number | null;
+  ctcf?: number | null;
+  atac?: number | null;
+}>[] = () => [
   { header: "Cell Type", value: () => "cell type agnostic" },
   {
     header: "DNase max-Z",
-    value: (row: cCRERow) => z_score(row.dnase),
-    render: (row: cCRERow) => z_score_render(row.dnase),
+    value: (row) => z_score(row.dnase),
+    render: (row) => z_score_render(row.dnase),
   },
   {
     header: "ATAC max-Z",
-    value: (row: cCRERow) => z_score(row.atac),
-    render: (row: cCRERow) => z_score_render(row.atac),
+    value: (row) => z_score(row.atac),
+    render: (row) => z_score_render(row.atac),
   },
   {
     header: "H3K4me3 max-Z",
-    value: (row: cCRERow) => z_score(row.h3k4me3),
-    render: (row: cCRERow) => z_score_render(row.h3k4me3),
+    value: (row) => z_score(row.h3k4me3),
+    render: (row) => z_score_render(row.h3k4me3),
   },
   {
     header: "H3K27ac max-Z",
-    value: (row: cCRERow) => z_score(row.h3k27ac),
-    render: (row: cCRERow) => z_score_render(row.h3k27ac),
+    value: (row) => z_score(row.h3k27ac),
+    render: (row) => z_score_render(row.h3k27ac),
   },
   {
     header: "CTCF max-Z",
-    value: (row: cCRERow) => z_score(row.ctcf),
-    render: (row: cCRERow) => z_score_render(row.ctcf),
+    value: (row) => z_score(row.ctcf),
+    render: (row) => z_score_render(row.ctcf),
   },
   {
     header: "Classification",
-    value: (row: cCRERow) =>  GROUP_COLOR_MAP.get(row.group) ? GROUP_COLOR_MAP.get(row.group).split(":")[0] : "DNase only",
-    render: (row: cCRERow) => {
+    value: (row) =>  GROUP_COLOR_MAP.get(row.group) ? GROUP_COLOR_MAP.get(row.group).split(":")[0] : "DNase only",
+    render: (row) => {
       let group =  row.group.split(",")[0]
       
       let colormap = GROUP_COLOR_MAP.get(group)
