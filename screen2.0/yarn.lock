@@ -9930,16 +9930,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dropzone@npm:^14.2.3":
-  version: 14.2.3
-  resolution: "react-dropzone@npm:14.2.3"
+"react-dropzone@npm:^14.2.10":
+  version: 14.2.10
+  resolution: "react-dropzone@npm:14.2.10"
   dependencies:
-    attr-accept: "npm:^2.2.2"
-    file-selector: "npm:^0.6.0"
-    prop-types: "npm:^15.8.1"
+    attr-accept: ^2.2.2
+    file-selector: ^0.6.0
+    prop-types: ^15.8.1
   peerDependencies:
     react: ">= 16.8 || 18.0.0"
-  checksum: 174b744d5ca898cf3d84ec1aeb6cef5211c446697e45dc8ece8287a03d291f8d07253206d5a1247ef156fd385d65e7de666d4d5c2986020b8543b8f2434e8b40
+  checksum: af6b80295680854d072a9123b6027dad20642eb7a14927304861c1c51c2b5dc20776232600e8cf2d9a15ac89a791042cdfd11afe6020524d52cbf12e934acc2d
   languageName: node
   linkType: hard
 
@@ -10476,7 +10476,7 @@ __metadata:
     queryz: ^0.0.3
     react: 18.3.1
     react-dom: 18.3.1
-    react-dropzone: ^14.2.3
+    react-dropzone: ^14.2.10
     semantic-ui-react: ^2.1.5
     server: ^1.0.41
     tailwindcss: 3.4.13
