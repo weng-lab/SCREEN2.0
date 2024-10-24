@@ -8,16 +8,22 @@ import Checkbox from '@mui/material/Checkbox';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import { Divider, Stack, Typography } from '@mui/material';
 
-interface DownloadDialogProps {
+/**
+ * @todo This component is being referrenced by gene expression plot also, maybe move this
+ */
+
+interface DownloadDialogProps<T extends FileOption[]> {
   open: boolean;
+  fileFormats: T
+  defaultSelected: Array<T[number]>
   onClose: () => void;
-  onSubmit: (selections: string[]) => void;
+  onSubmit: (selections: Array<T[number]>) => void;
 }
 
 export type FileOption = 'png' | 'svg' | 'tsv' | 'json'
 
-const DownloadDialog: React.FC<DownloadDialogProps> = ({ open, onClose, onSubmit }) => {
-  const [selectedOptions, setSelectedOptions] = React.useState<FileOption[]>(['png']);
+const DownloadDialog = <T extends FileOption[]>({ open, fileFormats, defaultSelected, onClose, onSubmit }: DownloadDialogProps<T>) => {
+  const [selectedOptions, setSelectedOptions] = React.useState<FileOption[]>(defaultSelected);
 
   const handleToggle = (value: string) => {
     const currentIndex = selectedOptions.indexOf(value as FileOption);
@@ -43,22 +49,22 @@ const DownloadDialog: React.FC<DownloadDialogProps> = ({ open, onClose, onSubmit
       <DialogContent sx={{pb: 1}}>
         <Typography variant='subtitle1' color={"DimGrey"} sx={{pb: 1}}>Select format for download</Typography>
         <Stack>
-          <FormControlLabel
+          {fileFormats.includes('png') && <FormControlLabel
             control={<Checkbox checked={selectedOptions.includes('png')} onChange={() => handleToggle('png')} />}
             label="Plot (.png)"
-          />
-          <FormControlLabel
+          />}
+          {fileFormats.includes('svg') && <FormControlLabel
             control={<Checkbox checked={selectedOptions.includes('svg')} onChange={() => handleToggle('svg')} />}
             label="Plot (.svg)"
-          />
-          <FormControlLabel
+          />}
+          {fileFormats.includes('tsv') && <FormControlLabel
             control={<Checkbox checked={selectedOptions.includes('tsv')} onChange={() => handleToggle('tsv')} />}
             label="Data (.tsv)"
-          />
-          <FormControlLabel
+          />}
+          {fileFormats.includes('json') && <FormControlLabel
             control={<Checkbox checked={selectedOptions.includes('json')} onChange={() => handleToggle('json')} />}
             label="Data (.json)"
-          />
+          />}
         </Stack>
       </DialogContent>
       <Divider />
