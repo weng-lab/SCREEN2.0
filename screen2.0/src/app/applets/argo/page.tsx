@@ -29,7 +29,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
 
     //UI state variables
     const [selectedSearch, setSelectedSearch] = useState<string>("BED File")
-    const [drawerOpen, setDrawerOpen] = useState(false);
+    const [drawerOpen, setDrawerOpen] = useState(true);
     const toggleDrawer = () => setDrawerOpen(!drawerOpen);
     const [shownTable, setShownTable] = useState<"sequence" | "element" | "gene">(null);
 

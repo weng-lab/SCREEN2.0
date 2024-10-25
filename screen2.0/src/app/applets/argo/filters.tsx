@@ -122,7 +122,6 @@ const Filters: React.FC<FilterProps> = ({
                     <IconButton
                         onClick={toggleDrawer}
                         color="primary"
-                        disabled={rows.length <= 0}
                     >
                         <FilterListIcon />
                     </IconButton>
