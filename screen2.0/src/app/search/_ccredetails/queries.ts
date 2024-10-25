@@ -392,7 +392,7 @@ query tssRampage($peak: String, $gene: String) {
 }
 `)
 export const GENE_QUERY = gql(`
-query ($assembly: String!, $name_prefix: [String!], $limit: Int, $version: Int) {
+query geneQuery($assembly: String!, $name_prefix: [String!], $limit: Int, $version: Int) {
   gene(assembly: $assembly, name_prefix: $name_prefix, limit: $limit, version: $version) {
     name
     id
