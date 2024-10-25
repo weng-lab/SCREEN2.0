@@ -60,25 +60,6 @@ export type CCREAssays = {
     H3K27ac: boolean
 }
 
-export type FilterState = {
-    useConservation: boolean;
-    alignment: string;
-    rankBy: string;
-    useMotifs: boolean;
-    motifCatalog: "factorbook" | "factorbookTF" | "hocomoco" | "zMotif";
-    numOverlappingMotifs: boolean;
-    motifScoreDelta: boolean;
-    overlapsTFPeak: boolean;
-    usecCREs: boolean;
-    cCREAssembly: "GRCh38" | "mm10";
-    mustHaveOrtholog: boolean;
-    selectedBiosample: RegistryBiosample | null;
-    assays: CCREAssays;
-    availableAssays: CCREAssays;
-    classes: CCREClasses;
-    useGenes: boolean;
-  }
-
   export type SequenceFilterState = {
     useConservation: boolean;
     alignment: string;
@@ -106,17 +87,17 @@ export type FilterState = {
 
 type UpdateSequenceFilter = <K extends keyof SequenceFilterState>(
     key: K,
-    value: FilterState[K]
+    value: SequenceFilterState[K]
 ) => void;
 
 type UpdateElementFilter = <K extends keyof ElementFilterState>(
     key: K,
-    value: FilterState[K]
+    value: ElementFilterState[K]
 ) => void;
 
 type UpdateGeneFilter = <K extends keyof GeneFilterState>(
     key: K,
-    value: FilterState[K]
+    value: GeneFilterState[K]
 ) => void;
 
 export type FilterProps = {
@@ -126,8 +107,8 @@ export type FilterProps = {
     updateSequenceFilter: UpdateSequenceFilter;
     updateElementFilter: UpdateElementFilter;
     updateGeneFilter: UpdateGeneFilter;
-    toggleAssay: (assayName: keyof FilterState['assays']) => void;
-    toggleClass: (className: keyof FilterState['classes']) => void;
+    toggleAssay: (assayName: keyof ElementFilterState['assays']) => void;
+    toggleClass: (className: keyof ElementFilterState['classes']) => void;
     drawerOpen: boolean;
     toggleDrawer: () => void;
     rows: any;

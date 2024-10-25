@@ -10,7 +10,7 @@ import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { GENE_EXP_QUERY, LINKED_GENES, Z_SCORES_QUERY } from "./queries"
 import { ApolloQueryResult, useLazyQuery, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
-import { ZScores, LinkedGenes, GenomicRegion, CCREAssays, CCREClasses, RankedRegions, FilterState, ElementFilterState, SequenceFilterState, GeneFilterState } from "./types"
+import { ZScores, LinkedGenes, GenomicRegion, CCREAssays, CCREClasses, RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState } from "./types"
 import { BED_INTERSECT_QUERY } from "../../_mainsearch/queries"
 import ExpandCircleDownIcon from '@mui/icons-material/ExpandCircleDown';
 import Filters from "./filters"
@@ -20,37 +20,34 @@ const scoreNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
 const conservationNames = ["vertebrates", "mammals", "primates"]
 const linkedGenesMethods = ["Intact-HiC", "CTCF-ChIAPET", "RNAPII-ChIAPET", "CRISPRi-FlowFISH", "eQTLs"]
 const allScoreNames = scoreNames.concat(conservationNames).concat(linkedGenesMethods)
-const allScoresObj = { "dnase": false, "h3k4me3": false, "h3k27ac": false, "ctcf": false, "atac": false, "conservation": true, "TFMotifs": false, "cCREs": true, "CA": true, "CA_CTCF": true, "CA_H3K4me3": true, "CA_TF": true, "dELS": true, "pELS": true, "PLS": true, "TF": true, "vertebrates": false, "mammals": false, "primates": false, "Intact-HiC": false, "CTCF-ChIAPET": false, "RNAPII-ChIAPET": false, "CRISPRi-FlowFISH": false, "eQTLs": false }
-const allFiltersObj = {
-    headerFilters: { "conservation": true, "TFMotifs": false, "cCREs": true, },
-    conservationFilters: { "240_mam_phyloP": true, "240_mam_phastCons": false, "43_prim_phyloP": false, "43_prim_phastCons": false, "100_vert_phyloP": false, "100_vert_phastCons": false },
-    classFilters: { "CA": true, "CA_CTCF": true, "CA_H3K4me3": true, "CA_TF": true, "dELS": true, "pELS": true, "PLS": true, "TF": true },
-    assayFilters: { "dnase": false, "h3k4me3": false, "h3k27ac": false, "ctcf": false, "atac": false },
-    linkedGeneFilters: { "Intact-HiC": false, "CTCF-ChIAPET": false, "RNAPII-ChIAPET": false, "CRISPRi-FlowFISH": false, "eQTLs": false },
-};
 
 export default function Argo(props: { header?: false, optionalFunction?: Function }) {
     //Old state variables
-    const [assembly, setAssembly] = useState<"GRCh38" | "mm10">("GRCh38")
-    const [selectedSearch, setSelectedSearch] = useState<string>("BED File")
     const [dataAPI, setDataAPI] = useState<[]>([]) // The intersection data returned from BedUpload component
-    const [rows, setRows] = useState<any[]>([]) // The main data displayed on the table
-    const [key, setKey] = useState<string>()
-    const [columns, setColumns] = useState([]) // State variable used to display the columns in the DataTable
-
-    const [availableScores, setAvailableScores] = useState(allFiltersObj) // This is all the scores available according to the query, all false scores are disabled checkboxes below
-    const [checkedScores, setCheckedScores] = useState(allFiltersObj) // This is the scores the user has selected, used for checkbox control
 
     const [getOutput] = useLazyQuery(BED_INTERSECT_QUERY)
 
     //UI state variables
+    const [selectedSearch, setSelectedSearch] = useState<string>("BED File")
     const [drawerOpen, setDrawerOpen] = useState(false);
     const toggleDrawer = () => setDrawerOpen(!drawerOpen);
     const [shownTable, setShownTable] = useState<"sequence" | "element" | "gene">(null);
 
-    // Filter state variables
+    // Table variables
     const [inputRegions, setInputRegions] = useState<GenomicRegion[]>([]);
+    const [sequenceRanks, setSequenceRanks] = useState<RankedRegions>([]);
+    const [elementRanks, setElementRanks] = useState<RankedRegions>([]);
+    const [geneRanks, setGeneRanks] = useState<RankedRegions>([]);
+    /**
+     * @todo
+     * strictly type rows
+     */
+    const [mainRows, setMainRows] = useState<any[]>([]) // Data displayed on the main table
+    const [sequenceRows, setSequenceRows] = useState<any[]>([]) // Data displayed on the sequence table
+    const [elementRows, setElementRows] = useState<any[]>([]) // Data displayed on the element table
+    const [geneRows, setGeneRows] = useState<any[]>([]) // Data displayed on the gene table
 
+    // Filter state variables
     const [sequenceFilterVariables, setSequenceFilterVariables] = useState<SequenceFilterState>({
         useConservation: true,
         alignment: "241-mam-phyloP",
@@ -176,20 +173,20 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     const mainColumns: DataTableColumn<any>[] = useMemo(() => {
 
         const cols: DataTableColumn<any>[] = [
-            { header: "Input Region", value: (row) => `${row.genomicRegion.chr}: ${row.genomicRegion.start}-${row.genomicRegion.end}`, sort: (a, b) => a.genomicRegion.start - b.genomicRegion.start },
-            { header: "Aggregate", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) }
+            { header: "Input Region", value: (row) => "N/A" },
+            { header: "Aggregate", value: (row) => "N/A" }
         ]
         /**
-         * @todo add corresponding checkbox states to these checks
-         * and type "rows" state variable properly, and add to type arguments above DataTableColumn<NEW_TYPE>
+         * @todo
+         * type "rows" state variable properly, and add to type arguments above DataTableColumn<NEW_TYPE>
          * correctly populate input region
          * correctly populate row values
          */
         if (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs) {
-            cols.push({ header: "Seqence", HeaderRender: () => <MainColHeader tableName="Sequence" onClick={() => setShownTable("sequence")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
+            cols.push({ header: "Seqence", HeaderRender: () => <MainColHeader tableName="Sequence" onClick={() => setShownTable("sequence")} />, value: (row) => "N/A" })
         }
-        elementFilterVariables.usecCREs && cols.push({ header: "Element", HeaderRender: () => <MainColHeader tableName="Element" onClick={() => setShownTable("element")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
-        geneFilterVariables.useGenes && cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Gene" onClick={() => setShownTable("gene")} />, value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
+        elementFilterVariables.usecCREs && cols.push({ header: "Element", HeaderRender: () => <MainColHeader tableName="Element" onClick={() => setShownTable("element")} />, value: (row) => "N/A" })
+        geneFilterVariables.useGenes && cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Gene" onClick={() => setShownTable("gene")} />, value: (row) => "N/A" })
 
         return cols
 
@@ -199,11 +196,11 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     const sequenceColumns: DataTableColumn<any>[] = useMemo(() => {
 
         const cols: DataTableColumn<any>[] = [
-            { header: "Input Region", value: (row) => `${row.genomicRegion.chr}:${row.genomicRegion.start}-${row.genomicRegion.end}` },
+            { header: "Input Region", value: (row) => "N/A" },
         ]
         /**
-         * @todo add corresponding checkbox states to these checks
-         * and type "rows" state variable properly, and add to type arguments above DataTableColumn<NEW_TYPE>
+         * @todo
+         * type "rows" state variable properly, and add to type arguments above DataTableColumn<NEW_TYPE>
          * correctly populate input region
          * correctly populate row values
          */
@@ -211,37 +208,37 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         if (sequenceFilterVariables.useConservation) {
             switch (sequenceFilterVariables.alignment) {
                 case "241-mam-phyloP":
-                    cols.push({ header: "241-Mammal(phyloP) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) });
+                    cols.push({ header: "241-Mammal(phyloP) Score", value: (row) => "N/A" });
                     break;
                 case "447-mam-phyloP":
-                    cols.push({ header: "447-Mammal(phyloP) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) });
+                    cols.push({ header: "447-Mammal(phyloP) Score", value: (row) => "N/A" });
                     break;
                 case "241-mam-phastCons":
-                    cols.push({ header: "241-Mammal(phastCons) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) });
+                    cols.push({ header: "241-Mammal(phastCons) Score", value: (row) => "N/A" });
                     break;
                 case "43-prim-phyloP":
-                    cols.push({ header: "43-Primate(phyloP) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) });
+                    cols.push({ header: "43-Primate(phyloP) Score", value: (row) => "N/A" });
                     break;
                 case "43-prim-phastCons":
-                    cols.push({ header: "43-Primate(phastCons) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) });
+                    cols.push({ header: "43-Primate(phastCons) Score", value: (row) => "N/A" });
                     break;
                 case "243-prim-phastCons":
-                    cols.push({ header: "243-Primate(phastCons) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) });
+                    cols.push({ header: "243-Primate(phastCons) Score", value: (row) => "N/A" });
                     break;
                 case "100-vert-phyloP":
-                    cols.push({ header: "100-Vertebrate(phyloP) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) });
+                    cols.push({ header: "100-Vertebrate(phyloP) Score", value: (row) => "N/A" });
                     break;
                 case "100-vert-phastCons":
-                    cols.push({ header: "100-Vertebrate(phastCons) Score", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) });
+                    cols.push({ header: "100-Vertebrate(phastCons) Score", value: (row) => "N/A" });
                     break;
                 default:
                     break;
             }
         }
         if (sequenceFilterVariables.useMotifs) {
-            sequenceFilterVariables.numOverlappingMotifs && cols.push({ header: "# of Overlapping Motifs", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
-            sequenceFilterVariables.motifScoreDelta && cols.push({ header: "Motif Score Delta", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
-            sequenceFilterVariables.overlapsTFPeak && cols.push({ header: "Overlaps TF Peak", value: (row) => row.aggRank, render: (row) => row.aggRank.toFixed(2) })
+            sequenceFilterVariables.numOverlappingMotifs && cols.push({ header: "# of Overlapping Motifs", value: (row) => "N/A" })
+            sequenceFilterVariables.motifScoreDelta && cols.push({ header: "Motif Score Delta", value: (row) => "N/A" })
+            sequenceFilterVariables.overlapsTFPeak && cols.push({ header: "Overlaps TF Peak", value: (row) => "N/A" })
         }
 
         return cols
@@ -252,11 +249,11 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     const elementColumns: DataTableColumn<any>[] = useMemo(() => {
 
         const cols: DataTableColumn<any>[] = [
-            { header: "Input Region", value: (row) => `${row.genomicRegion.chr}:${row.genomicRegion.start}-${row.genomicRegion.end}` },
+            { header: "Input Region", value: (row) => `${row.genomicRegion.chr}:${row.genomicRegion.start}-${row.genomicRegion.end}`, sort: (a, b) => a.genomicRegion.start - b.genomicRegion.start },
         ]
         /**
-         * @todo add corresponding checkbox states to these checks
-         * and type "rows" state variable properly, and add to type arguments above DataTableColumn<NEW_TYPE>
+         * @todo
+         * type "rows" state variable properly, and add to type arguments above DataTableColumn<NEW_TYPE>
          * correctly populate input region
          * correctly populate row values
          */
@@ -270,23 +267,15 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
 
         return cols
 
-    }, [elementFilterVariables])
-
-    const assayColumns = [
-        { header: "DNase", value: (row) => row.dnase, render: (row) => row.dnase.toFixed(2) },
-        { header: "H3K4me3", value: (row) => row.h3k4me3, render: (row) => row.h3k4me3.toFixed(2) },
-        { header: "H3K27ac", value: (row) => row.h3k27ac, render: (row) => row.h3k27ac.toFixed(2) },
-        { header: "CTCF", value: (row) => row.ctcf, render: (row) => row.ctcf.toFixed(2) },
-        { header: "ATAC", value: (row) => row.atac, render: (row) => row.atac.toFixed(2) },
-    ]
+    }, [elementFilterVariables, dataAPI])
 
     const { loading: loading_scores, error: error_scores } = useQuery(Z_SCORES_QUERY, {
         variables: {
-            assembly: assembly,
-            accessions: rows.length > 0 ? rows.map((s) => s.accession) : dataAPI.map((r) => r[4]),
+            assembly: elementFilterVariables.cCREAssembly,
+            accessions: elementRows.length > 0 ? elementRows.map((s) => s.accession) : dataAPI.map((r) => r[4]),
             cellType: elementFilterVariables.selectedBiosample ? elementFilterVariables.selectedBiosample.name : null
         },
-        skip: rows.length == 0 && dataAPI.length == 0,
+        skip: elementRows.length == 0 && dataAPI.length == 0,
         client: client,
         fetchPolicy: 'cache-and-network',
         onCompleted(d) {
@@ -294,7 +283,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
             let result = null
             if (elementFilterVariables.selectedBiosample) {
                 // This makes a copy of the existing row and just updates the scores to ctspecific
-                result = rows.map((obj) => {
+                result = elementRows.map((obj) => {
                     let o = { ...obj }
                     let matchingObj = data.find((e) => o.accession == e.info.accession)
                     o.dnase = matchingObj.ctspecific.dnase_zscore
@@ -322,8 +311,8 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                     o.primates = matchingObj.primates
                     return o
                 }
-                if (rows.length > 0) {
-                    result = rows.map(mapFunc)
+                if (elementRows.length > 0) {
+                    result = elementRows.map(mapFunc)
                 }
                 else {
                     result = dataAPI
@@ -348,118 +337,32 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                 }
             }
 
-            let scoresToInclude = elementFilterVariables.selectedBiosample ? scoreNames.filter((s) => elementFilterVariables.selectedBiosample[s]) : scoreNames
-            let availableScoresCopy = { ...availableScores }
-
-            if (assembly != "mm10") {
-                // Including conservation scores if assembly is not mouse
-                scoresToInclude = scoresToInclude.concat(conservationNames)
-            }
-
-            // Linked genes is by default unavailable and disabled, it is made available inside the query below
-            allScoreNames.forEach((s) => {
-                if (scoresToInclude.indexOf(s) !== -1) {
-                    availableScoresCopy.assayFilters[s] = true
-                }
-                else {
-                    availableScoresCopy.assayFilters[s] = false
-                }
-            })
-            setAvailableScores(availableScoresCopy)
-            setCheckedScores(availableScoresCopy)
-            setRows(evaluateRankings(result, availableScoresCopy))
+            setElementRows(evaluateRankings(result, elementFilterVariables.assays))
+            console.log(dataAPI)
         }
-    })
-
-
-    const { loading: loading_genes, error: error_genes } = useQuery(LINKED_GENES, {
-        variables: {
-            assembly: assembly.toLowerCase(),
-            accessions: (rows.length > 0 && elementFilterVariables.selectedBiosample) ? rows.map((s) => s.accession) : [],
-        },
-        skip: rows.length == 0 || !!elementFilterVariables.selectedBiosample,
-        client: client,
-        fetchPolicy: 'cache-and-network',
-        onCompleted(data) {
-            if (data.linkedGenes.length > 0) {
-                setRows(rows.map((obj) => {
-                    let objCopy = { ...obj }
-                    let matchingObjs = data.linkedGenes.filter((e) => e.accession == obj.accession)
-                    let linkedGenes: LinkedGenes[] = matchingObjs.map((e) => {
-                        // The Chromatin part is because Chromatin has sub-methods which is present in the assay field
-                        return { gene_id: e.geneid, method: e.method == "Chromatin" ? e.assay : e.method, tpm: 0 }
-                    })
-                    objCopy.linked_genes = linkedGenes
-                    return objCopy
-                }))
-            }
-        },
-    })
-
-    const { loading: loading_quantifications, error: error_quantifications } = useQuery(GENE_EXP_QUERY, {
-        variables: {
-            assembly: assembly,
-            biosample_value: elementFilterVariables.selectedBiosample ? elementFilterVariables.selectedBiosample.name : "",
-            gene_id: Array.from(rows.reduce((acc, e) => { e.linked_genes.map((e) => e.gene_id).forEach((el) => acc.add(el)); return acc }, new Set([]))) // Using Set to avoid duplicates
-        },
-        skip: !!elementFilterVariables.selectedBiosample || rows.length == 0,
-        client: client,
-        fetchPolicy: 'cache-and-network',
-        onCompleted(data) {
-            let listGenes = []
-            data.gene_dataset.forEach((e) => {
-                e.gene_quantification_files.forEach((el) => {
-                    listGenes = listGenes.concat(el.quantifications)
-                }
-                )
-            })
-            if (listGenes.length > 0) {
-                let availableScoresCopy = { ...availableScores }
-                linkedGenesMethods.forEach((m) => availableScoresCopy.linkedGeneFilters[m] = false)
-                let newScores = rows.map((obj) => {
-                    let objCopy = { ...obj }
-                    objCopy.linked_genes = objCopy.linked_genes.map((gene) => {
-                        let geneCopy = { ...gene }
-                        let matchingGenes = listGenes.filter((o) => o.gene.id.split(".")[0] == gene.gene_id)
-
-                        let max_tpm = 0
-                        matchingGenes.forEach((matchingGene) => {
-                            // If a matching gene is found for any method, the method is made available to select
-                            availableScoresCopy.linkedGeneFilters[`${gene.method}`] = true
-
-                            if (matchingGene.tpm > max_tpm) {
-                                max_tpm = matchingGene.tpm
-                            }
-                        })
-                        geneCopy.tpm = max_tpm
-                        return geneCopy
-                    })
-                    objCopy = evaluateMaxTPM(objCopy)
-                    return objCopy
-                })
-                setAvailableScores(availableScoresCopy)
-                setCheckedScores(availableScoresCopy)
-                setRows(evaluateRankings(newScores, availableScoresCopy))
-            }
-        },
     })
 
     const handleSearchChange = (event: SelectChangeEvent) => {
         setDataAPI([])
-        setAvailableScores(allFiltersObj)
-        setCheckedScores(allFiltersObj)
         updateElementFilter('selectedBiosample', null)
-        setRows([])
-        setColumns([])
+        setMainRows([])
+        setSequenceRows([])
+        setElementRows([])
+        setGeneRows([])
         setSelectedSearch(event.target.value)
+        setShownTable(null)
     }
 
     function appletCallBack(data) {
         updateElementFilter('selectedBiosample', null)
         setDataAPI(data)
-        setRows([])
+        setMainRows([])
+        setSequenceRows([])
+        setElementRows([])
+        setGeneRows([])
         configureInputedRegions(data)
         setDrawerOpen(true)
+        setShownTable(null)
     }
 
     function configureInputedRegions(data) {
@@ -487,13 +390,13 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
 
     function handleTextUpload(event) {
         let uploadedData = event.get("textUploadFile").toString()
-        getIntersect(getOutput, parseDataInput(uploadedData), assembly, appletCallBack, console.error)
+        getIntersect(getOutput, parseDataInput(uploadedData), "GRCh38", appletCallBack, console.error)
     }
 
     function evaluateRankings(data, available) {
         // This below code is inspired from this link to create a ranking column for each score for every row
         // https://stackoverflow.com/questions/60989105/ranking-numbers-in-an-array-using-javascript
-        let scoresToInclude = allScoreNames.filter((s) => available.assayFilters[s])
+        let scoresToInclude = allScoreNames.filter((s) => available[s])
         scoresToInclude.forEach((scoreName) => {
             let score_column = data.map((r, i) => [i, r[scoreName]])
             score_column.sort((a, b) => b[1] - a[1])
@@ -501,11 +404,6 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                 data[row[0]][`${scoreName}_rank`] = i + 1
             })
         })
-        setColumns(assayColumns.filter(
-            (e) => available.assayFilters[e.header.toLowerCase()] || available.assayFilters[e.header]
-        ))
-        let random_string = Math.random().toString(36).slice(2, 10)
-        setKey(random_string) // Setting a key to force update the DataTable component to refresh with the new columns
         return calculateAggregateRank(data, scoresToInclude)
     }
 
@@ -535,19 +433,6 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         return data
     }
 
-    function handleCheckBoxChange(event, groupName) {
-        let checkedCopy = JSON.parse(JSON.stringify(checkedScores));
-        checkedCopy[groupName][event.target.value] = event.target.checked;
-        setCheckedScores(checkedCopy);
-
-        let scoresToInclude = Object.keys(checkedCopy[groupName]).filter((e) => checkedCopy[groupName][e]);
-        setRows(calculateAggregateRank([...rows], scoresToInclude));
-        setColumns(assayColumns.filter(
-            (e) => checkedCopy[groupName][e.header.toLowerCase().split(' ')[0]] || checkedCopy[groupName][e.header]
-        ));
-        setKey(scoresToInclude.join(' '));
-    }
-
     return (
         <Box display="flex" >
             <Filters
@@ -561,7 +446,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                 toggleClass={toggleClass}
                 drawerOpen={drawerOpen}
                 toggleDrawer={toggleDrawer}
-                rows={rows}
+                rows={elementRows}
             />
             <Box
                 ml={drawerOpen ? "25vw" : 0}
@@ -576,16 +461,6 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                 {error_scores && (
                     <Alert variant="filled" severity="error">
                         {error_scores.message}
-                    </Alert>
-                )}
-                {error_genes && (
-                    <Alert variant="filled" severity="error">
-                        {error_genes.message}
-                    </Alert>
-                )}
-                {error_quantifications && (
-                    <Alert variant="filled" severity="error">
-                        {error_quantifications.message}
                     </Alert>
                 )}
                 <Stack direction={props.header ? "row" : "column"} spacing={3} mt="10px">
@@ -624,7 +499,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                 <Box mt="20px" width="30vw">
                     {selectedSearch === "BED File" ? (
                         <BedUpload
-                            assembly={assembly}
+                            assembly={"GRCh38"}
                             appletCallback={appletCallBack}
                         />
                     ) :
@@ -639,79 +514,83 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
 
                     }
                 </Box>
-                {rows.length > 0 &&
-                    <Box mt="20px" id="123456">
-                        <DataTable
-                            key={Math.random()}
-                            columns={mainColumns}
-                            rows={rows}
-                            sortColumn={1}
-                            sortDescending
-                            itemsPerPage={5}
-                            searchable
-                            tableTitle="Ranked Regions"
-                        />
-                    </Box>
-                }
-                {(shownTable === "sequence" && (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs)) && (
-                    <Box mt="20px">
-                        <DataTable
-                            key={Math.random()}
-                            columns={sequenceColumns}
-                            rows={rows}
-                            sortColumn={0}
-                            sortDescending
-                            itemsPerPage={5}
-                            searchable
-                            tableTitle={<SubTableTitle title="Sequence Details" />}
-                        />
-                    </Box>
-                )}
-                {(shownTable === "element" && elementFilterVariables.usecCREs) && (
-                    <Box mt="20px">
-                        {(loading_scores || loading_genes || loading_quantifications) ? <CircularProgress /> :
+                {dataAPI.length > 0 && (
+                    <>
+                        <Box mt="20px" id="123456">
                             <DataTable
                                 key={Math.random()}
-                                columns={elementColumns}
-                                rows={rows}
-                                sortColumn={0}
+                                columns={mainColumns}
+                                rows={mainRows}
+                                sortColumn={1}
                                 sortDescending
-                                itemsPerPage={10}
+                                itemsPerPage={5}
                                 searchable
-                                tableTitle={<SubTableTitle title="Element Details" />}
-                            >
-                            </DataTable>
-                        }
-                    </Box>
+                                tableTitle="Ranked Regions"
+                            />
+                        </Box>
+
+                        {(shownTable === "sequence" && (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs)) && (
+                            <Box mt="20px">
+                                <DataTable
+                                    key={Math.random()}
+                                    columns={sequenceColumns}
+                                    rows={sequenceRows}
+                                    sortColumn={0}
+                                    sortDescending
+                                    itemsPerPage={5}
+                                    searchable
+                                    tableTitle={<SubTableTitle title="Sequence Details" />}
+                                />
+                            </Box>
+                        )}
+
+                        {(shownTable === "element" && elementFilterVariables.usecCREs) && (
+                            <Box mt="20px">
+                                {loading_scores ? <CircularProgress /> :
+                                    <DataTable
+                                        key={Math.random()}
+                                        columns={elementColumns}
+                                        rows={elementRows}
+                                        sortColumn={0}
+                                        sortDescending
+                                        itemsPerPage={10}
+                                        searchable
+                                        tableTitle={<SubTableTitle title="Element Details" />}
+                                    />
+                                }
+                            </Box>
+                        )}
+
+                        {shownTable === "gene" && (
+                            <Box mt="20px">
+                                <DataTable
+                                    key={Math.random()}
+                                    columns={[
+                                        {
+                                            header: "Accession",
+                                            value: (row) => "N/A"
+                                        },
+                                        {
+                                            header: "User ID",
+                                            value: (row) => "N/A"
+                                        },
+                                        {
+                                            header: "Aggregate Rank",
+                                            value: (row) => "N/A"
+                                        },
+                                    ]}
+                                    rows={geneRows}
+                                    sortColumn={1}
+                                    sortDescending
+                                    itemsPerPage={5}
+                                    searchable
+                                    tableTitle={<SubTableTitle title="Gene Details" />}
+                                />
+                            </Box>
+                        )}
+                    </>
                 )}
-                {shownTable === "gene" && (
-                    <Box mt="20px">
-                        <DataTable
-                            key={`sequence-${key}`}
-                            columns={[
-                                {
-                                    header: "Accession",
-                                    value: (row) => row.accession
-                                },
-                                {
-                                    header: "User ID",
-                                    value: (row) => row.user_id
-                                },
-                                {
-                                    header: "Aggregate Rank",
-                                    value: (row) => row.aggRank,
-                                    render: (row) => row.aggRank.toFixed(2)
-                                },
-                            ]}
-                            rows={rows}
-                            sortColumn={1}
-                            sortDescending
-                            itemsPerPage={5}
-                            searchable
-                            tableTitle={<SubTableTitle title="Gene Details" />}
-                        />
-                    </Box>
-                )}
+
             </Box>
         </Box>
     )
