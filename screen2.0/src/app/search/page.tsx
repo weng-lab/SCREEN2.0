@@ -592,7 +592,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                       intersectFilenames.current}`
                     :
                     null}
-                  itemsPerPage={10}
+                  itemsPerPage={[10, 25, 50]}
                   assembly={mainQueryParams.coordinates.assembly}
                   onRowClick={handlecCREClick}
                   useLinkedGenes={useLinkedGenes}

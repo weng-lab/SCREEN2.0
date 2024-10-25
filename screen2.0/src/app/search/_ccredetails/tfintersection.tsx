@@ -5,8 +5,15 @@ import { client } from "./client"
 import { useQuery } from "@apollo/client"
 import { TF_INTERSECTION_QUERY, CRE_TF_DCC_QUERY } from "./queries"
 import Grid from "@mui/material/Grid2"
-import { DataTable } from "@weng-lab/psychscreen-ui-components"
+import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { LoadingMessage } from "../../../common/lib/utility"
+
+type TFBindData = {
+  name: string;
+  n: number;
+  total: number;
+  test: number;
+}
 
 export const TfIntersection: React.FC<{ assembly: string; coordinates: { chromosome: string; start: number; end: number } }> = ({
   assembly,
@@ -61,12 +68,14 @@ export const TfIntersection: React.FC<{ assembly: string; coordinates: { chromos
       }
       peakmap[d.dataset.target].add(d.dataset.accession)
     })
+    
   let totalmap = {}
   data &&
     data.peakDataset.partitionByTarget.forEach((x) => {
       totalmap[x.target.name] = x.counts.total
     })
-  let tableData =
+
+  let tableData: TFBindData[] =
     data &&
     Object.keys(peakmap).map((k) => {
       return {
@@ -76,6 +85,26 @@ export const TfIntersection: React.FC<{ assembly: string; coordinates: { chromos
         test: peakmap[k],
       }
     })
+
+  const cols: DataTableColumn<TFBindData>[] = [
+      {
+        header: "Factor",
+        value: (row) => row.name,
+        render: (row) => (
+          <Link href={`https://www.factorbook.org/tf/human/${row.name}/function`} rel="noopener noreferrer" target="_blank">
+            <button>{row.name}</button>
+          </Link>
+        ),
+      },
+      {
+        header: "# of experiments that support TF binding",
+        value: (row) => row.n,
+      },
+      {
+        header: "# experiments in total",
+        value: (row) => row.total,
+      },
+    ]
 
   return (<>
     {loading || !data ? (
@@ -98,33 +127,14 @@ export const TfIntersection: React.FC<{ assembly: string; coordinates: { chromos
               lg: factor != "" ? 6 : 12
             }}>
             <DataTable
-              columns={[
-                {
-                  header: "Factor",
-                  value: (row) => row.name,
-                  render: (row) => (
-                    <Link href={`https://www.factorbook.org/tf/human/${row.name}/function`} rel="noopener noreferrer" target="_blank">
-                      <button>{row.name}</button>
-                    </Link>
-                  ),
-                },
-                {
-                  header: "# of experiments that support TF binding",
-                  value: (row) => row.n,
-                },
-                {
-                  header: "# experiments in total",
-                  value: (row) => row.total,
-                },
-              ]}
+              columns={cols}
               tableTitle="TFs that bind this cCRE "
               rows={tableData || []}
-              onRowClick={(row) => {
+              onRowClick={(row: TFBindData) => {
                 setFactor(row.name)
                 setFactorHighlight(row)
               }}
               sortColumn={1}
-              itemsPerPage={5}
               highlighted={factorHighlight}
             />
           </Grid>

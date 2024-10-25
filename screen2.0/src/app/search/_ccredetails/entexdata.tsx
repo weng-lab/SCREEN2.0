@@ -1,12 +1,13 @@
-import { gql, useQuery } from "@apollo/client"
+import { useQuery } from "@apollo/client"
 import React from "react"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import Grid from "@mui/material/Grid2"
 import { client } from "./client"
 import { Typography, CircularProgress } from "@mui/material"
 import { createLink } from "../../../common/lib/utility"
+import { gql } from "../../../graphql/__generated__/gql"
 
-const ENTEx_QUERY = gql`
+const ENTEx_QUERY = gql(`
 query ENTEXQuery($accession: String!){
   entexQuery(accession: $accession){
     assay
@@ -21,16 +22,17 @@ query ENTEXQuery($accession: String!){
     imbalance_significance
   }
 }
-`
+`)
 
-const ENTEx_Active_Annotations_QUERY = gql`
+const ENTEx_Active_Annotations_QUERY = gql(`
 query entexActiveAnnotationsQuery( $coordinates: GenomicRangeInput! ) {
     entexActiveAnnotationsQuery(coordinates: $coordinates) {
         tissue
         assay_score
     }
 
-}`
+}`)
+
 export const ENTExData = (props: { accession, coordinates }) =>{
     console.log(props.coordinates)
     const { data, loading } = useQuery(ENTEx_QUERY, {
@@ -92,7 +94,8 @@ export const ENTExData = (props: { accession, coordinates }) =>{
                     {
                         header: "Experiment Accession",
                         HeaderRender: () => <b>Experiment Accession</b>,
-                        value: (row) =>  createLink("https://www.encodeproject.org/experiments/", row.experiment_accession, row.experiment_accession, true),
+                        value: (row) => row.experiment_accession,
+                        render: (row) => createLink("https://www.encodeproject.org/experiments/", row.experiment_accession, row.experiment_accession, true)
                     },
                     {
                         header: "p beta binom",
@@ -134,14 +137,14 @@ export const ENTExData = (props: { accession, coordinates }) =>{
                 {
                     header: "Supporting Assays",
                     HeaderRender: () => <b>Supporting Assays</b>,
-                    value: (row) => row.assay_score.split("|").map(s=>s.split(":")[0]).join(",")
+                    value: (row) => row.assay_score.split("|").map(s=>s.split(":")[0]).join(", ")
                 }
             ]}
             rows={entexActiveAnno.entexActiveAnnotationsQuery || []}
             sortColumn={0}
             searchable
             sortDescending
-            itemsPerPage={10}
+            itemsPerPage={[10, 25, 100]}
             />
         </Grid> 
 

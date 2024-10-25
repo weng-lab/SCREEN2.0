@@ -329,6 +329,7 @@ export const BiosampleTables = <T extends boolean = false>({
                   columns={cols}
                   rows={biosamples}
                   dense
+                  itemsPerPage={5}
                   searchable
                   highlighted={highlighted}
                   sortColumn={1}

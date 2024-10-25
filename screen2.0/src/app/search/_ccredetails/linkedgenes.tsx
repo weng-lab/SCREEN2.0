@@ -66,7 +66,7 @@ export const LinkedGenes: React.FC<props> = (props) => {
               },
               {
                 header: "P",
-                HeaderRender: (row: LinkedGeneInfo) => <Typography variant="body2"><i>P</i></Typography>,
+                HeaderRender: () => <Typography variant="body2"><i>P</i></Typography>,
                 value: (row: LinkedGeneInfo) => row.p_val,
                 render: (row: LinkedGeneInfo) => row.p_val === 0 ? '0' : toScientificNotationElement(row.p_val, 2, {variant: "body2"})
               },
@@ -75,7 +75,6 @@ export const LinkedGenes: React.FC<props> = (props) => {
             rows={HiCLinked}
             sortColumn={6}
             sortDescending
-            itemsPerPage={5}
             searchable
           />
           :
@@ -117,7 +116,6 @@ export const LinkedGenes: React.FC<props> = (props) => {
             tableTitle="ChIA-PET Interactions"
             rows={ChIAPETLinked}
             sortColumn={5}
-            itemsPerPage={5}
             searchable
           />
           :
@@ -161,7 +159,7 @@ export const LinkedGenes: React.FC<props> = (props) => {
               },
               {
                 header: "P",
-                HeaderRender: (row: LinkedGeneInfo) => <Typography variant="body2"><i>P</i></Typography>,
+                HeaderRender: () => <Typography variant="body2"><i>P</i></Typography>,
                 value: (row: LinkedGeneInfo) => row.p_val,
                 render: (row: LinkedGeneInfo) => toScientificNotationElement(row.p_val, 2, {variant: 'body2'})
               },
@@ -171,7 +169,6 @@ export const LinkedGenes: React.FC<props> = (props) => {
             emptyText="test"
             sortColumn={7}
             sortDescending
-            itemsPerPage={5}
             searchable
           />
           :
@@ -218,7 +215,6 @@ export const LinkedGenes: React.FC<props> = (props) => {
             rows={eqtlLinked}
             sortColumn={6}
             sortDescending
-            itemsPerPage={5}
             searchable
           />
           :
