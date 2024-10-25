@@ -340,9 +340,9 @@ export const NEARBY_AND_LINKED_GENES = gql(`
       displayname
     }
   }
-`
+`)
 
-const LINKED_GENES_CELLTYPES = gql`
+const LINKED_GENES_CELLTYPES = gql(`
   query getlistofLinkedGenesCelltypes {
     linkedGenesCelltypes: getLinkedGenesCelltypes {
       celltype
@@ -350,8 +350,8 @@ const LINKED_GENES_CELLTYPES = gql`
       method
     }
   }
-`
-export const TSS_RAMPAGE_PEAKS = gql`
+`)
+export const TSS_RAMPAGE_PEAKS = gql(`
 query getTSSRampagePeaks($coordinates: ChromRange!) {
   gettssRampagePeaks(coordinates: $coordinates) {
     peakType
@@ -366,9 +366,9 @@ query getTSSRampagePeaks($coordinates: ChromRange!) {
     }
   }
 }
-`
+`)
 
-export const TSS_RAMPAGE_QUERY = gql`
+export const TSS_RAMPAGE_QUERY = gql(`
 query tssRampage($peak: String, $gene: String) {
   tssrampageQuery(peakId: $peak, genename: $gene) {
     start    
@@ -390,8 +390,8 @@ query tssRampage($peak: String, $gene: String) {
     }
   }
 }
-`
-export const GENE_QUERY = gql`
+`)
+export const GENE_QUERY = gql(`
 query ($assembly: String!, $name_prefix: [String!], $limit: Int, $version: Int) {
   gene(assembly: $assembly, name_prefix: $name_prefix, limit: $limit, version: $version) {
     name
@@ -402,4 +402,4 @@ query ($assembly: String!, $name_prefix: [String!], $limit: Int, $version: Int) 
       end
     }
   }
-} `
+} `)
