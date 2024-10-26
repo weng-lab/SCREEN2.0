@@ -2,6 +2,7 @@
   "name": "screen2.0",
   "version": "0.0.5",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -58,8 +59,6 @@
     "@weng-lab/ts-ztable": "^4.0.1",
     "autoprefixer": "10.4.20",
     "bpnet-ui": "^0.3.8",
-    "eslint": "9.11.1",
-    "eslint-config-next": "14.2.13",
     "graphql": "^16.9.0",
     "jubilant-carnival": "^0.6.0",
     "logots-react": "^0.2.0",
@@ -79,13 +78,20 @@
     "uuid": "^10.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.13.0",
     "@graphql-codegen/cli": "^5.0.2",
     "@graphql-codegen/client-preset": "^4.3.3",
     "@graphql-typed-document-node/core": "^3.2.0",
+    "eslint": "9.13.0",
+    "eslint-config-next": "15.0.1",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.14",
     "file-loader": "^6.2.0",
     "lint-staged": "^15.2.10",
     "prettier": "^3.3.3",
     "typescript": "5.6.2",
+    "typescript-eslint": "^8.11.0",
     "webpack": "^5.94.0",
     "webpack-cli": "^5.1.4"
   },
@@ -104,5 +110,5 @@
     "not ie <= 11",
     "not op_mini all"
   ],
-  "packageManager": "yarn@3.5.0+sha512.2dc70be5fce9f66756d25b00a888f3ca66f86b502b76750e72ba54cec89da767b938c54124595e26f868825688e0fe3552c26c76a330673343057acadd5cfcf2"
+  "packageManager": "yarn@4.5.1"
 }

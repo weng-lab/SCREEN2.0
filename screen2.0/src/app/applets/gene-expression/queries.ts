@@ -1,5 +1,6 @@
-import { gql } from "@apollo/client"
-export const GENE_EXP_QUERY = gql`
+import { gql } from "../../../graphql/__generated__/gql"
+
+export const GENE_EXP_QUERY = gql(`
 query geneexpression($assembly: String!, $accessions: [String], $gene_id: [String]) {
   gene_dataset(accession: $accessions) {
     biosample
@@ -14,13 +15,12 @@ query geneexpression($assembly: String!, $accessions: [String], $gene_id: [Strin
       quantifications(gene_id_prefix: $gene_id) {
         tpm
         file_accession
-        fpkm
       }
     }
   }
 }
- `
-export const GENE_QUERY = gql`
+ `)
+export const GENE_QUERY = gql(`
  query geneAutocomplete($assembly: String!, $name: [String!], $limit: Int, $version: Int) {
    gene(assembly: $assembly, name: $name, limit: $limit, version: $version) {
      name
@@ -31,7 +31,7 @@ export const GENE_QUERY = gql`
        end
      }
    }
- } ` 
+ } ` )
 
 export type GET_ORTHOLOG_VARS = {
   name: string[],
@@ -45,11 +45,11 @@ export type GET_ORTHOLOG_DATA = {
   }[]
 }
 
-export const GET_ORTHOLOG = gql`
+export const GET_ORTHOLOG = gql(`
   query geneOrthologQuery($name: [String]!, $assembly: String!) {
     geneOrthologQuery: geneorthologQuery(name: $name, assembly: $assembly) {
       humanGene: external_gene_name
       mouseGene: mmusculus_homolog_associated_gene_name
     }
   }
-`
+`)

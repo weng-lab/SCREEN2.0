@@ -208,7 +208,7 @@ export function PlotGeneExpression(props: {
           let info = entry[1]
           let view: string = "0 0 1200 " + (info.values.length * (props.group === 'byTissueTPM' ? 20 : 3) + 20)
           return (
-            <svg className="graph" aria-labelledby="title desc" role="img" viewBox={view} key={index}>
+            <svg className="graph" aria-labelledby="title desc" role="img" viewBox={view} key={index} ref={null}>
               <g className="data" data-setname="gene expression plot">
                 {/* Why 5? */}
                 {plotGeneExp(entry, index, 5)}

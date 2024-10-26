@@ -1,9 +1,9 @@
 "use client"
-import React, { useMemo, useState } from "react"
+import React, { useCallback, useMemo, useRef, useState } from "react"
 import { LoadingMessage } from "../../../common/lib/utility"
 import { PlotGeneExpression } from "../../applets/gene-expression/geneexpressionplot"
 import { useQuery } from "@apollo/client"
-import { Button, Typography, Stack, MenuItem, FormControl, SelectChangeEvent, Checkbox, InputLabel, ListItemText, OutlinedInput, Select, ToggleButton, ToggleButtonGroup, FormLabel, Box } from "@mui/material"
+import { Button, Typography, Stack, MenuItem, FormControl, SelectChangeEvent, Checkbox, InputLabel, ListItemText, OutlinedInput, Select, ToggleButton, ToggleButtonGroup, FormLabel, Box, Tooltip } from "@mui/material"
 import Grid from "@mui/material/Grid2"
 import Image from "next/image"
 import { HUMAN_GENE_EXP, MOUSE_GENE_EXP } from "../../applets/gene-expression/const"
@@ -12,13 +12,20 @@ import { ReadonlyURLSearchParams, usePathname, useSearchParams, useRouter } from
 import ConfigureGBModal from "./configuregbmodal"
 import { GeneAutocomplete } from "../_geneAutocomplete/GeneAutocomplete"
 import { GeneInfo } from "../_geneAutocomplete/types"
-import { SyncAlt } from "@mui/icons-material"
+import { Download, SyncAlt } from "@mui/icons-material"
 import { LoadingButton } from "@mui/lab"
+import DownloadDialog, { FileOption } from "../../applets/gwas/_lollipop-plot/DownloadDialog"
+import { downloadSVG, downloadSvgAsPng } from "../../applets/gwas/helpers"
+import VerticalBarPlot, { BarData } from "../../applets/gene-expression/BarPlot"
+import { GeneDataset } from "../../../graphql/__generated__/graphql"
+import { ParentSize } from "@visx/responsive"
+import { tissueColors } from "../../../common/lib/colors"
 
 /**
  * @todo
- * Download
- * Tooltip with correct info
+ * Downloads
+ * PLot tooltip
+ * Filter by tissue
  * 
  */
 
@@ -37,6 +44,8 @@ const biosampleTypes = ["cell line", "in vitro differentiated cells", "primary c
 
 type Assembly = "GRCh38" | "mm10"
 
+
+
 export function GeneExpression(props: {
   assembly: Assembly
   genes?: { name: string, linkedBy?: string[] }[]
@@ -54,16 +63,17 @@ export function GeneExpression(props: {
   const [searchAssembly, setSearchAssembly] = useState<Assembly>(((urlAssembly === "GRCh38") || (urlAssembly === "mm10")) ? urlAssembly : props.assembly)
 
   const [biosamples, setBiosamples] = useState<string[]>(["cell line", "in vitro differentiated cells", "primary cell", "tissue"])
-  const [group, setGroup] = useState<"byTissueMaxTPM" | "byExperimentTPM" | "byTissueTPM">("byExperimentTPM")
+  const [viewBy, setViewBy] = useState<"byTissueMaxTPM" | "byExperimentTPM" | "byTissueTPM">("byExperimentTPM")
   const [RNAtype, setRNAType] = useState<"all" | "polyA plus RNA-seq" | "total RNA-seq">("total RNA-seq")
   const [scale, setScale] = useState<"linearTPM" | "logTPM">("linearTPM")
   const [replicates, setReplicates] = useState<"mean" | "all">("mean")
   const [configGBopen, setConfigGBOpen] = useState(false);
+  const [downloadOpen, setDownloadOpen] = useState(false)
+
+  const plotRef = useRef<SVGSVGElement>()
 
   const handleOpenConfigGB = () => {
-    // (assembly === "GRCh38" ? dataHumanGene?.gene[0] : dataMouseGene?.gene[0]) && setConfigGBOpen(true)
-    //Why was the first return data being checked before allowing it to be opened? I get checking to see if the gene state var is set...
-    gene && setConfigGBOpen(true)
+    if (gene) setConfigGBOpen(true)
   }
 
   //Fetch Gene info to get ID
@@ -121,12 +131,69 @@ export function GeneExpression(props: {
     } else return []
   }, [RNAtype, biosamples, dataExperiments])
 
+
+
+  const makeLabel = (tpm: number, biosample: string, accession: string, biorep?: number): string => {
+    return `${tpm.toFixed(2)}, ${biosample.length > 25 ? biosample.slice(0, 23) + '...' : biosample} (${accession}${biorep ? ', rep. ' + biorep : ''})`
+  }
+
+  const scaleData = useCallback((value: number) => {
+    switch (scale) {
+      case ("linearTPM"): return value;
+      case ("logTPM"): return Math.log10(value + 1)
+    }
+  }, [scale])
+
+  const plotData: BarData<GeneDataset>[] = useMemo(() => {
+    if (dataExperiments && dataExperiments.gene_dataset.length > 0) {
+      const filteredData = dataExperiments.gene_dataset
+        .filter(d => biosamples.includes(d.biosample_type)) //filter by sample type
+        .filter(() => true) //TODO put tissue filter here
+        .filter(r => RNAtype === "all" || r.assay_term_name === RNAtype) //filter by RNA type
+      const parsedReplicates: BarData<GeneDataset>[] = []
+      filteredData.forEach((biosample) => {
+        if (replicates === "all") {
+          biosample.gene_quantification_files.forEach((exp) => {      
+            parsedReplicates.push({
+              category: biosample.tissue,
+              label: makeLabel(scaleData(exp.quantifications?.[0]?.tpm || 0), biosample.biosample, biosample.accession, exp.biorep),
+              value: scaleData(exp.quantifications?.[0]?.tpm || 0), //IMPORTANT casting empty quantifications array to 0 tpm. Maybe bad assumption
+              color: tissueColors[biosample.tissue] ?? tissueColors.missing,
+              metadata: biosample as GeneDataset
+            })
+          })
+        } else { //average replicates
+          let sum = 0
+          biosample.gene_quantification_files.forEach((exp) => {
+            sum += (exp.quantifications?.[0]?.tpm ?? 0) //using reduce had terrible readability so doing avg manually
+          })
+          const avgTPM = sum / biosample.gene_quantification_files.length
+          parsedReplicates.push({
+            category: biosample.tissue,
+            label: makeLabel(scaleData(avgTPM), biosample.biosample, biosample.accession), //omit biorep
+            value: scaleData(avgTPM),
+            color: tissueColors[biosample.tissue] ?? tissueColors.missing,
+            metadata: biosample as GeneDataset
+          })
+        }
+      })
+      // switch(viewBy){
+      //   case ("byExperimentTPM"):
+      //   case ("byTissueTPM"): 
+      //   case ("byTissueMaxTPM"): 
+      // }
+      parsedReplicates.sort((a, b) => b.value - a.value)
+      //TODO add sort for "view by"
+      return parsedReplicates
+    } else return []
+  }, [RNAtype, biosamples, dataExperiments, replicates, scaleData])
+
   //Handle assembly switch for search
   const handleSetDataAssembly = (newAssembly: Assembly) => {
     if (props.applet) {
       setDataAssembly(newAssembly)
       //Switch back RNA type if going from mouse to human, as all data there is total
-      if (dataAssembly === "GRCh38") {
+      if (newAssembly === "GRCh38") {
         setRNAType("total RNA-seq")
       }
     }
@@ -137,7 +204,7 @@ export function GeneExpression(props: {
     newView: string | null,
   ) => {
     if ((newView !== null) && ((newView === "byTissueMaxTPM") || (newView === "byExperimentTPM") || (newView === "byTissueTPM"))) {
-      setGroup(newView)
+      setViewBy(newView)
     }
   };
 
@@ -178,6 +245,12 @@ export function GeneExpression(props: {
     );
   };
 
+  const handleDownload = useCallback((selectedOptions: FileOption[]) => {
+    if (selectedOptions.includes('svg')) { downloadSVG(plotRef, gene) }
+    if (selectedOptions.includes('png')) { downloadSvgAsPng(plotRef, gene) }
+    //todo tsv
+  }, [plotRef, gene])
+
   return (
     <Stack spacing={2}>
       <Stack direction="row" justifyContent={"space-between"}>
@@ -205,6 +278,11 @@ export function GeneExpression(props: {
           >
             <Image style={{ objectFit: "contain" }} src="https://geneanalytics.genecards.org/media/81632/gc.png" fill alt="gene-card-button" />
           </Button>
+          <Tooltip title="Select from SVG (plot), PNG (plot), or TSV (data)">
+            <Button disabled={!gene} variant="outlined" endIcon={<Download />} sx={{ textTransform: 'none', height: 40, flexShrink: 0 }} onClick={() => setDownloadOpen(true)}>
+              Download
+            </Button>
+          </Tooltip>
         </Stack>
       </Stack>
       {props.applet ?
@@ -258,7 +336,7 @@ export function GeneExpression(props: {
               const newGene = dataOrtholog.geneOrthologQuery[0][dataAssembly === "GRCh38" ? 'mouseGene' : 'humanGene']
               const newAssembly = dataAssembly === "GRCh38" ? "mm10" : "GRCh38"
               setGene(newGene)
-              setDataAssembly(newAssembly)
+              handleSetDataAssembly(newAssembly)
               router.push(`${pathname}?assembly=${newAssembly}&gene=${newGene}`)
             }}
           >
@@ -351,7 +429,7 @@ export function GeneExpression(props: {
           <FormLabel>View By</FormLabel>
           <ToggleButtonGroup
             color="primary"
-            value={group}
+            value={viewBy}
             exclusive
             onChange={handleGroupChange}
             aria-label="View By"
@@ -394,10 +472,16 @@ export function GeneExpression(props: {
           :
           dataExperiments ?
             <Grid size={12}>
+              <Typography variant="h5" mb={1}>Gene Expression of <i>{gene}</i> in {dataAssembly}:</Typography>
+              <VerticalBarPlot
+                data={plotData}
+                topAxisLabel="TPM"
+                SVGref={plotRef}
+                onBarClicked={(x) => console.log(x)}
+              />
               <Box maxWidth={{ xl: '75%', xs: '100%' }}>
-                <Typography variant="h5" mb={1}>Gene Expression of <i>{gene}</i> in {dataAssembly}:</Typography>
                 <PlotGeneExpression
-                  data={plotGeneExpData}
+                  data={plotGeneExpData as any}
                   range={{
                     x: { start: 0, end: 4 },
                     y: { start: 0, end: 0 },
@@ -406,7 +490,7 @@ export function GeneExpression(props: {
                     x: { start: 0, end: 650 },
                     y: { start: 250, end: 0 },
                   }}
-                  group={group}
+                  group={viewBy}
                   scale={scale}
                   replicates={replicates}
                 />
@@ -428,6 +512,14 @@ export function GeneExpression(props: {
         accession={gene} //This is hacky, need to change configGBModal to change this prop -Jonathan 7/25/24
         open={configGBopen}
         setOpen={setConfigGBOpen}
+      />
+      {/* Download Dialog */}
+      <DownloadDialog
+        open={downloadOpen}
+        fileFormats={['svg', 'png', 'tsv']}
+        defaultSelected={['svg', 'png', 'tsv']}
+        onClose={() => setDownloadOpen(false)}
+        onSubmit={handleDownload}
       />
     </Stack>
   );

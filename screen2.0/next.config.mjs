@@ -1,7 +1,8 @@
-/** @type {import('next').NextConfig} */
-
-let assetPrefix = ''
-let basePath = ''
+// @ts-check
+ 
+/**
+ * @type {import('next').NextConfig}
+ */
 
 const nextConfig = {
   // output: "export",
@@ -12,8 +13,8 @@ const nextConfig = {
   },
   generateEtags: false,
   trailingSlash: false,
-  assetPrefix: assetPrefix,
-  basePath: basePath,
+  assetPrefix: '',
+  basePath: '',
   logging: {
     fetches: {
       fullUrl: true,
@@ -32,4 +33,4 @@ const nextConfig = {
   }
 }
 
-module.exports = nextConfig
+export default nextConfig
