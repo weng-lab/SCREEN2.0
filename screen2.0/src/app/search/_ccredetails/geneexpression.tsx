@@ -284,16 +284,17 @@ export function GeneExpression(props: {
   const PlotTooltip = useCallback((bar: BarData<GeneDataset>) => {
     return (
       <>
-        <Typography variant="body2">Sample: {capitalizeFirstLetter(bar.metadata.biosample)}</Typography>
-        <Typography variant="body2">Tissue: {capitalizeFirstLetter(bar.metadata.tissue)}</Typography>
-        <Typography variant="body2">Biosample Type: {capitalizeFirstLetter(bar.metadata.biosample_type)}</Typography>
-        {scale === "linearTPM" ?
-          <Typography variant="body2">TPM: {bar.value}</Typography>
-          :
-          <Typography variant="body2">Log<sub>10</sub>(TPM + 1): {bar.value}</Typography>
-        }
-        <Typography variant="body2">Accession: {bar.metadata.accession}</Typography>
         <Typography variant="body2">Clicking opens this experiment on ENCODE <OpenInNew fontSize="inherit" /></Typography>
+        <br/>
+        <Typography variant="body2"><b>Accession:</b> {bar.metadata.accession}</Typography>
+        <Typography variant="body2"><b>Sample:</b> {capitalizeFirstLetter(bar.metadata.biosample)}</Typography>
+        <Typography variant="body2"><b>Tissue:</b> {capitalizeFirstLetter(bar.metadata.tissue)}</Typography>
+        <Typography variant="body2"><b>Biosample Type:</b> {capitalizeFirstLetter(bar.metadata.biosample_type)}</Typography>
+        {scale === "linearTPM" ?
+          <Typography variant="body2"><b>TPM:</b> {bar.value}</Typography>
+          :
+          <Typography variant="body2"><b>Log<sub>10</sub>(TPM + 1):</b> {bar.value}</Typography>
+        }
       </>
     )
   } , [scale]) 
@@ -325,11 +326,6 @@ export function GeneExpression(props: {
           >
             <Image style={{ objectFit: "contain" }} src="https://geneanalytics.genecards.org/media/81632/gc.png" fill alt="gene-card-button" />
           </Button>
-          <Tooltip title="Select from SVG (plot), PNG (plot), or TSV (data)">
-            <Button disabled={!gene} variant="outlined" endIcon={<Download />} sx={{ textTransform: 'none', height: 40, flexShrink: 0 }} onClick={() => setDownloadOpen(true)}>
-              Download
-            </Button>
-          </Tooltip>
         </Stack>
       </Stack>
       {props.applet ?
@@ -505,6 +501,11 @@ export function GeneExpression(props: {
           <InputLabel size='small'>Search Samples</InputLabel>
           <OutlinedInput size='small' endAdornment={search ? <IconButton onClick={() => setSearch("")}><Close /></IconButton> : <Search />} label="Search Samples" value={search} onChange={handleSetSearch} />
         </FormControl>
+        <Tooltip title="Select from SVG (plot), PNG (plot), or TSV (data)">
+          <Button disabled={!gene} variant="outlined" endIcon={<Download />} sx={{ textTransform: 'none', height: 40, flexShrink: 0 }} onClick={() => setDownloadOpen(true)}>
+            Download
+          </Button>
+        </Tooltip>
       </Stack>
       {
         loadingGeneID || loadingExperiments ?
