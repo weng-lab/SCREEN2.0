@@ -1,9 +1,8 @@
 "use client"
 import React, { useCallback, useMemo, useRef, useState } from "react"
 import { LoadingMessage } from "../../../common/lib/utility"
-import { PlotGeneExpression } from "../../applets/gene-expression/geneexpressionplot"
 import { useQuery } from "@apollo/client"
-import { Button, Typography, Stack, MenuItem, FormControl, SelectChangeEvent, Checkbox, InputLabel, ListItemText, OutlinedInput, Select, ToggleButton, ToggleButtonGroup, FormLabel, Box, Tooltip } from "@mui/material"
+import { Button, Typography, Stack, MenuItem, FormControl, SelectChangeEvent, Checkbox, InputLabel, ListItemText, OutlinedInput, Select, ToggleButton, ToggleButtonGroup, FormLabel, Tooltip, IconButton } from "@mui/material"
 import Grid from "@mui/material/Grid2"
 import Image from "next/image"
 import { HUMAN_GENE_EXP, MOUSE_GENE_EXP } from "../../applets/gene-expression/const"
@@ -12,22 +11,13 @@ import { ReadonlyURLSearchParams, usePathname, useSearchParams, useRouter } from
 import ConfigureGBModal from "./configuregbmodal"
 import { GeneAutocomplete } from "../_geneAutocomplete/GeneAutocomplete"
 import { GeneInfo } from "../_geneAutocomplete/types"
-import { Download, SyncAlt } from "@mui/icons-material"
+import { Close, Download, OpenInNew, Search, SyncAlt } from "@mui/icons-material"
 import { LoadingButton } from "@mui/lab"
 import DownloadDialog, { FileOption } from "../../applets/gwas/_lollipop-plot/DownloadDialog"
-import { downloadSVG, downloadSvgAsPng } from "../../applets/gwas/helpers"
+import { capitalizeFirstLetter, downloadObjArrayAsTSV, downloadSVG, downloadSvgAsPng } from "../../applets/gwas/helpers"
 import VerticalBarPlot, { BarData } from "../../applets/gene-expression/BarPlot"
 import { GeneDataset } from "../../../graphql/__generated__/graphql"
-import { ParentSize } from "@visx/responsive"
 import { tissueColors } from "../../../common/lib/colors"
-
-/**
- * @todo
- * Downloads
- * PLot tooltip
- * Filter by tissue
- * 
- */
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -69,12 +59,26 @@ export function GeneExpression(props: {
   const [replicates, setReplicates] = useState<"mean" | "all">("mean")
   const [configGBopen, setConfigGBOpen] = useState(false);
   const [downloadOpen, setDownloadOpen] = useState(false)
+  const [search, setSearch] = useState<string>("")
 
   const plotRef = useRef<SVGSVGElement>()
 
   const handleOpenConfigGB = () => {
     if (gene) setConfigGBOpen(true)
   }
+
+  const handleSetSearch = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setSearch(event.target.value)
+  };
+
+  const sampleMatchesSearch = useCallback((x: GeneDataset): boolean => {
+    if (search) {
+      return x.accession.toLowerCase().includes(search.toLowerCase())
+        || x.biosample.toLowerCase().includes(search.toLowerCase())
+        || x.tissue.toLowerCase().includes(search.toLowerCase())
+        || !!x.gene_quantification_files.map(x => x.accession).find(y => y.toLowerCase().includes(search.toLowerCase()))
+    } else return true
+  }, [search])
 
   //Fetch Gene info to get ID
   //This query seems like it shouldn't be necessary, but ID needed in second query
@@ -117,22 +121,6 @@ export function GeneExpression(props: {
     skip: !gene
   })
 
-  //Generate gene expression data for chart
-  //Filter it based on biosample types and RNA types selections
-  const plotGeneExpData = useMemo(() => {
-    if (dataExperiments && dataExperiments.gene_dataset.length > 0) {
-      return RNAtype === "all" ?
-        dataExperiments.gene_dataset
-          .filter(d => biosamples.includes(d.biosample_type))
-        :
-        dataExperiments.gene_dataset
-          .filter(d => biosamples.includes(d.biosample_type))
-          .filter(r => r.assay_term_name === RNAtype)
-    } else return []
-  }, [RNAtype, biosamples, dataExperiments])
-
-
-
   const makeLabel = (tpm: number, biosample: string, accession: string, biorep?: number): string => {
     return `${tpm.toFixed(2)}, ${biosample.length > 25 ? biosample.slice(0, 23) + '...' : biosample} (${accession}${biorep ? ', rep. ' + biorep : ''})`
   }
@@ -149,8 +137,9 @@ export function GeneExpression(props: {
       const filteredData = dataExperiments.gene_dataset
         .filter(d => biosamples.includes(d.biosample_type)) //filter by sample type
         .filter(() => true) //TODO put tissue filter here
-        .filter(r => RNAtype === "all" || r.assay_term_name === RNAtype) //filter by RNA type
-      const parsedReplicates: BarData<GeneDataset>[] = []
+        .filter(d => RNAtype === "all" || d.assay_term_name === RNAtype) //filter by RNA type
+        .filter(d => sampleMatchesSearch(d as GeneDataset))
+      let parsedReplicates: BarData<GeneDataset>[] = []
       filteredData.forEach((biosample) => {
         if (replicates === "all") {
           biosample.gene_quantification_files.forEach((exp) => {      
@@ -177,16 +166,38 @@ export function GeneExpression(props: {
           })
         }
       })
-      // switch(viewBy){
-      //   case ("byExperimentTPM"):
-      //   case ("byTissueTPM"): 
-      //   case ("byTissueMaxTPM"): 
-      // }
-      parsedReplicates.sort((a, b) => b.value - a.value)
-      //TODO add sort for "view by"
+      switch (viewBy) {
+        case ("byExperimentTPM"):
+          //sort by value
+          parsedReplicates.sort((a, b) => b.value - a.value);
+          break;
+        case ("byTissueTPM"): {
+          //find max value for each tissue
+          const maxValuesByTissue: {[key: string]: number} = parsedReplicates.reduce((acc, item) => {
+            acc[item.category] = Math.max(acc[item.category] || -Infinity, item.value);
+            return acc;
+          }, {});
+
+          //sort by max value for tissue, and sort within the tissue itself
+          parsedReplicates.sort((a, b) => {
+            const maxDiff = maxValuesByTissue[b.category] - maxValuesByTissue[a.category];
+            return maxDiff !== 0 ? maxDiff : b.value - a.value;
+          });
+          break;
+        }
+        case ("byTissueMaxTPM"): {
+          const maxValuesByTissue: {[key: string]: number} = parsedReplicates.reduce((acc, item) => {
+            acc[item.category] = Math.max(acc[item.category] || -Infinity, item.value);
+            return acc;
+          }, {});
+
+          parsedReplicates = parsedReplicates.filter(x => x.value === maxValuesByTissue[x.category])
+          parsedReplicates.sort((a, b) => b.value - a.value);
+        }
+      }
       return parsedReplicates
     } else return []
-  }, [RNAtype, biosamples, dataExperiments, replicates, scaleData])
+  }, [RNAtype, biosamples, dataExperiments, replicates, sampleMatchesSearch, scaleData, viewBy])
 
   //Handle assembly switch for search
   const handleSetDataAssembly = (newAssembly: Assembly) => {
@@ -196,6 +207,13 @@ export function GeneExpression(props: {
       if (newAssembly === "GRCh38") {
         setRNAType("total RNA-seq")
       }
+    }
+  }
+
+  //handler assembly switch for searching
+  const handleSetSearchAssembly = (newAssembly: Assembly) => {
+    if (props.applet) {
+      setSearchAssembly(newAssembly)
     }
   }
 
@@ -246,10 +264,39 @@ export function GeneExpression(props: {
   };
 
   const handleDownload = useCallback((selectedOptions: FileOption[]) => {
-    if (selectedOptions.includes('svg')) { downloadSVG(plotRef, gene) }
-    if (selectedOptions.includes('png')) { downloadSvgAsPng(plotRef, gene) }
-    //todo tsv
-  }, [plotRef, gene])
+    if (selectedOptions.includes('svg')) { downloadSVG(plotRef, gene + '_gene_expression') }
+    if (selectedOptions.includes('png')) { downloadSvgAsPng(plotRef, gene + '_gene_expression') }
+    if (selectedOptions.includes('tsv')) { 
+      const toDownload: { accession: string, biosample: string, tissue: string, tpm: number }[] = [...dataExperiments.gene_dataset]
+        .map(x => {
+          return {
+            accession: x.accession,
+            biosample: x.biosample,
+            tissue: x.tissue,
+            tpm: x.gene_quantification_files.reduce((acc, cur) => acc + cur.quantifications?.[0]?.tpm, 0) / x.gene_quantification_files.length
+          }
+        })
+        .sort((a, b) => a.accession.localeCompare(b.accession))
+      downloadObjArrayAsTSV(toDownload, gene + '_gene_expression')
+     }
+  }, [dataExperiments?.gene_dataset, gene])
+
+  const PlotTooltip = useCallback((bar: BarData<GeneDataset>) => {
+    return (
+      <>
+        <Typography variant="body2">Sample: {capitalizeFirstLetter(bar.metadata.biosample)}</Typography>
+        <Typography variant="body2">Tissue: {capitalizeFirstLetter(bar.metadata.tissue)}</Typography>
+        <Typography variant="body2">Biosample Type: {capitalizeFirstLetter(bar.metadata.biosample_type)}</Typography>
+        {scale === "linearTPM" ?
+          <Typography variant="body2">TPM: {bar.value}</Typography>
+          :
+          <Typography variant="body2">Log<sub>10</sub>(TPM + 1): {bar.value}</Typography>
+        }
+        <Typography variant="body2">Accession: {bar.metadata.accession}</Typography>
+        <Typography variant="body2">Clicking opens this experiment on ENCODE <OpenInNew fontSize="inherit" /></Typography>
+      </>
+    )
+  } , [scale]) 
 
   return (
     <Stack spacing={2}>
@@ -290,7 +337,7 @@ export function GeneExpression(props: {
           <Select
             value={searchAssembly}
             variant="outlined"
-            onChange={(event) => setSearchAssembly(event.target.value as "GRCh38" | "mm10")}
+            onChange={(event) => handleSetSearchAssembly(event.target.value as "GRCh38" | "mm10")}
           >
             <MenuItem value={"GRCh38"}>GRCh38</MenuItem>
             <MenuItem value={"mm10"}>mm10</MenuItem>
@@ -373,7 +420,7 @@ export function GeneExpression(props: {
           </Select>
         </Grid>
       }
-      <Stack direction="row" gap={2} flexWrap={"wrap"}>
+      <Stack direction="row" gap={2} flexWrap={"wrap"} alignItems={"flex-end"}>
         <FormControl sx={{ width: 300 }}>
           <FormLabel>Biosample Types</FormLabel>
           <Select
@@ -454,9 +501,9 @@ export function GeneExpression(props: {
             <ToggleButton sx={{ textTransform: "none" }} value="all">Individual Replicates</ToggleButton>
           </ToggleButtonGroup>
         </FormControl>
-        <FormControl>
-          <FormLabel></FormLabel>
-
+        <FormControl sx={{ minWidth: 150 }}>
+          <InputLabel size='small'>Search Samples</InputLabel>
+          <OutlinedInput size='small' endAdornment={search ? <IconButton onClick={() => setSearch("")}><Close /></IconButton> : <Search />} label="Search Samples" value={search} onChange={handleSetSearch} />
         </FormControl>
       </Stack>
       {
@@ -472,29 +519,13 @@ export function GeneExpression(props: {
           :
           dataExperiments ?
             <Grid size={12}>
-              <Typography variant="h5" mb={1}>Gene Expression of <i>{gene}</i> in {dataAssembly}:</Typography>
               <VerticalBarPlot
                 data={plotData}
-                topAxisLabel="TPM"
+                topAxisLabel={(gene + " Gene Expression in " + dataAssembly + ' - ') + (scale === "linearTPM" ? "Linear TPM" : "Log10(TPM + 1)")}
                 SVGref={plotRef}
-                onBarClicked={(x) => console.log(x)}
+                onBarClicked={(x) => window.open("https://www.encodeproject.org/experiments/" + x.metadata.accession, "_blank", "noopener,noreferrer")}
+                TooltipContents={(bar) => <PlotTooltip {...bar} />}
               />
-              <Box maxWidth={{ xl: '75%', xs: '100%' }}>
-                <PlotGeneExpression
-                  data={plotGeneExpData as any}
-                  range={{
-                    x: { start: 0, end: 4 },
-                    y: { start: 0, end: 0 },
-                  }}
-                  dimensions={{
-                    x: { start: 0, end: 650 },
-                    y: { start: 250, end: 0 },
-                  }}
-                  group={viewBy}
-                  scale={scale}
-                  replicates={replicates}
-                />
-              </Box>
             </Grid>
             :
             <Typography variant="h5">

@@ -98,7 +98,7 @@ export const downloadSvgAsPng = (ref: React.MutableRefObject<SVGSVGElement>, fil
 /**
  * 
  * @param exportObj 
- * @param filename 
+ * @param filename prefix (.json added)
  * 
  * @info Taken straight from ChatGPT, use with caution
  */
@@ -115,7 +115,7 @@ export const downloadObjectAsJson = (exportObj: {[key: string]: any}, filename: 
 /**
  * 
  * @param exportArr 
- * @param filename 
+ * @param filename prefix (.tsv added)
  * 
  * @info Taken straight from ChatGPT, use with caution
  */
