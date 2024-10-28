@@ -35,6 +35,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
 
     // Table variables
     const [inputRegions, setInputRegions] = useState<GenomicRegion[]>([]);
+    const [mainRanks, setMainRanks] = useState<RankedRegions>([]);
     const [sequenceRanks, setSequenceRanks] = useState<RankedRegions>([]);
     const [elementRanks, setElementRanks] = useState<RankedRegions>([]);
     const [geneRanks, setGeneRanks] = useState<RankedRegions>([]);
@@ -170,7 +171,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
 
         const cols: DataTableColumn<MainTableRow>[] = [
             { header: "Input Region", value: (row) => `${row.inputRegion.chr}:${row.inputRegion.start}-${row.inputRegion.end}`, sort: (a, b) => a.inputRegion.start - b.inputRegion.start },
-            { header: "Aggregate", value: (row) => "N/A" }
+            { header: "Aggregate", value: (row) => row.aggregateRank }
         ]
         /**
          * @todo
@@ -330,7 +331,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                 }
             }
 
-            setElementRows(evaluateRankings(result, elementFilterVariables.assays))
+            setElementRows(result)
         }
     })
 
@@ -361,8 +362,14 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                 end: Number(item[2])
             },
         }));
-
         setMainRows(initialMainRows);
+        const initialMainRanks = data.map(item => ({
+            chr: item[0],
+            start: Number(item[1]),
+            end: Number(item[2]),
+            rank: 0
+        }));
+        setMainRanks(initialMainRanks);
     }
 
     function configureInputedRegions(data) {
@@ -393,20 +400,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         getIntersect(getOutput, parseDataInput(uploadedData), "GRCh38", appletCallBack, console.error)
     }
 
-    function evaluateRankings(data, available) {
-        // This below code is inspired from this link to create a ranking column for each score for every row
-        // https://stackoverflow.com/questions/60989105/ranking-numbers-in-an-array-using-javascript
-        let scoresToInclude = allScoreNames.filter((s) => available[s])
-        scoresToInclude.forEach((scoreName) => {
-            let score_column = data.map((r, i) => [i, r[scoreName]])
-            score_column.sort((a, b) => b[1] - a[1])
-            score_column.forEach((row, i) => {
-                data[row[0]][`${scoreName}_rank`] = i + 1
-            })
-        })
-        return calculateAggregateRank(data, scoresToInclude)
-    }
-
+    //update main table ranks
     useMemo(() => {
         if (elementRanks.length === 0) return;
 
@@ -419,52 +413,96 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                     element.end == row.inputRegion.end
             );
 
-            console.log(row.inputRegion.start)
-
             const elementRank = matchingElement ? matchingElement.rank : 0;
+            
+            const matchingMainRank = mainRanks.find(
+                mainRank =>
+                    mainRank.chr == row.inputRegion.chr &&
+                    mainRank.start == row.inputRegion.start &&
+                    mainRank.end == row.inputRegion.end
+            );
 
+            const updatedAggregateRank = (matchingMainRank ? matchingMainRank.rank : -1);
+    
             return {
                 ...row,
                 elementRank,
+                aggregateRank: updatedAggregateRank, // Update the aggregateRank
             };
         });
 
         setMainRows(updatedMainRows);
-    }, [elementRanks]);
+    }, [mainRanks]);
 
+    // Generate element ranks
     useMemo(() => {
         //rank regions by element filters
-        function generateElementRanks() {
-            const scoresWithRegions = elementRows.map(row => {
-                //sum assay scores
-                const totalScore = assayNames.reduce((sum, assay) => {
-                    return (row[assay] !== null && elementFilterVariables.assays[assay]) ? sum + row[assay] : sum;
-                }, 0);
+        const scoresWithRegions = elementRows.map(row => {
+            //sum assay scores
+            const totalScore = assayNames.reduce((sum, assay) => {
+                return (row[assay] !== null && elementFilterVariables.assays[assay]) ? sum + row[assay] : sum;
+            }, 0);
 
-                return {
-                    chr: row.inputRegion.chr,
-                    start: row.inputRegion.start,
-                    end: row.inputRegion.end,
-                    totalScore: totalScore
-                };
-            });
+            return {
+                chr: row.inputRegion.chr,
+                start: row.inputRegion.start,
+                end: row.inputRegion.end,
+                totalScore: totalScore
+            };
+        });
 
-            //Sort rows by totalScore in descending order and assign rank based on order
-            const rankedRegions = scoresWithRegions
-                .sort((a, b) => b.totalScore - a.totalScore)
-                .map((region, index) => ({
-                    chr: region.chr,
-                    start: region.start,
-                    end: region.end,
-                    rank: index + 1
-                }));
+        //Sort rows by totalScore in descending order and assign rank based on order
+        const rankedRegions = scoresWithRegions
+            .sort((a, b) => b.totalScore - a.totalScore)
+            .map((region, index) => ({
+                chr: region.chr,
+                start: region.start,
+                end: region.end,
+                rank: index + 1
+            }));
 
-            setElementRanks(rankedRegions);
-        }
-
-        generateElementRanks();
+        setElementRanks(rankedRegions);
 
     }, [elementRows, elementFilterVariables]);
+
+    //update aggregate rank
+    useMemo(() => {
+        if (sequenceRanks.length === 0 && elementRanks.length === 0 && geneRanks.length === 0) return;
+
+        const updatedMainRanks = mainRanks.map(row => {
+            // Find matching ranks based on inputRegion coordinates
+            const matchingSequence = sequenceRanks.find(seq =>
+                seq.chr == row.chr &&
+                seq.start == row.start &&
+                seq.end == row.end
+            );
+
+            const matchingElement = elementRanks.find(ele =>
+                ele.chr == row.chr &&
+                ele.start == row.start &&
+                ele.end == row.end
+            );
+
+            const matchingGene = geneRanks.find(gene =>
+                gene.chr == row.chr &&
+                gene.start == row.start &&
+                gene.end == row.end
+            );
+
+            // Calculate the aggregate rank, using 0 if no matching rank is found for any
+            const aggregateRank = (matchingSequence?.rank || 0) +
+                (matchingElement?.rank || 0) +
+                (matchingGene?.rank || 0);
+
+            return {
+                ...row,
+                rank: aggregateRank
+            };
+        });
+
+        setMainRanks(updatedMainRanks);
+    }, [sequenceRanks, elementRanks, geneRanks]);
+
 
     function evaluateMaxTPM(score: ZScores) {
         // This finds the Max TPM for each method in a given row
@@ -476,20 +514,6 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
             scoreCopy[method] = maxTPM
         })
         return scoreCopy
-    }
-
-    function calculateAggregateRank(data, scoresToInclude) {
-        // This finds the Aggregate Rank depending on which scores are checked by the user
-        data.forEach((row) => {
-            let count = 0;
-            let sum = 0;
-            scoresToInclude.forEach((score) => {
-                sum += row[`${score}_rank`]
-                count += 1
-            })
-            row.aggRank = sum / count
-        })
-        return data
     }
 
     return (
@@ -580,7 +604,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                                 key={Math.random()}
                                 columns={mainColumns}
                                 rows={mainRows}
-                                sortColumn={1}
+                                sortColumn={0}
                                 sortDescending
                                 itemsPerPage={5}
                                 searchable
