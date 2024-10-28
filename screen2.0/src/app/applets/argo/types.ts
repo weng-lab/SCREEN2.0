@@ -1,3 +1,4 @@
+import { InputRegion } from "umms-gb"
 import { RegistryBiosample } from "../../_biosampleTables/types"
 
 export type LinkedGenes = {
@@ -53,11 +54,11 @@ export type CCREClasses = {
 }
 
 export type CCREAssays = {
-    DNase: boolean
-    ATAC: boolean
-    CTCF: boolean
-    H3K4me3: boolean
-    H3K27ac: boolean
+    dnase: boolean
+    atac: boolean
+    ctcf: boolean
+    h3k4me3: boolean
+    h3k27ac: boolean
 }
 
   export type SequenceFilterState = {
@@ -112,4 +113,34 @@ export type FilterProps = {
     drawerOpen: boolean;
     toggleDrawer: () => void;
     rows: any;
+}
+
+export type MainTableRow = {
+    inputRegion: GenomicRegion
+    aggregateRank?: number
+    sequenceRank?: number
+    elementRank?: number
+    geneRank?: number
+}
+
+export type SequenceTableRow = {
+    inputRegion: GenomicRegion
+    conservationScore?: number
+    numOverlappingMotifs?: number
+    motifScoreDelta?: number
+}
+
+export type ElementTableRow = {
+    inputRegion: GenomicRegion
+    accession: string
+    // class: string
+    dnase?: number
+    atac?: number
+    h3k4me3?: number
+    h3k27ac?: number
+    ctcf?: number
+}
+
+export type GeneTableRow = {
+    inputRegion: GenomicRegion
 }

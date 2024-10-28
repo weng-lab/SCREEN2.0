@@ -84,33 +84,33 @@ const Filters: React.FC<FilterProps> = ({
     useEffect(() => {
         if (elementFilterVariables.selectedBiosample) {
             updateElementFilter('availableAssays', {
-                DNase: !!elementFilterVariables.selectedBiosample.dnase,
-                H3K4me3: !!elementFilterVariables.selectedBiosample.h3k4me3,
-                H3K27ac: !!elementFilterVariables.selectedBiosample.h3k27ac,
-                CTCF: !!elementFilterVariables.selectedBiosample.ctcf,
-                ATAC: !!elementFilterVariables.selectedBiosample.atac_signal,
+                dnase: !!elementFilterVariables.selectedBiosample.dnase,
+                h3k4me3: !!elementFilterVariables.selectedBiosample.h3k4me3,
+                h3k27ac: !!elementFilterVariables.selectedBiosample.h3k27ac,
+                ctcf: !!elementFilterVariables.selectedBiosample.ctcf,
+                atac: !!elementFilterVariables.selectedBiosample.atac_signal,
             });
             updateElementFilter('assays', {
-                DNase: !!elementFilterVariables.selectedBiosample.dnase,
-                H3K4me3: !!elementFilterVariables.selectedBiosample.h3k4me3,
-                H3K27ac: !!elementFilterVariables.selectedBiosample.h3k27ac,
-                CTCF: !!elementFilterVariables.selectedBiosample.ctcf,
-                ATAC: !!elementFilterVariables.selectedBiosample.atac_signal,
+                dnase: !!elementFilterVariables.selectedBiosample.dnase,
+                h3k4me3: !!elementFilterVariables.selectedBiosample.h3k4me3,
+                h3k27ac: !!elementFilterVariables.selectedBiosample.h3k27ac,
+                ctcf: !!elementFilterVariables.selectedBiosample.ctcf,
+                atac: !!elementFilterVariables.selectedBiosample.atac_signal,
             });
         } if (!elementFilterVariables.selectedBiosample) {
             updateElementFilter('availableAssays', {
-                DNase: true,
-                H3K4me3: true,
-                H3K27ac: true,
-                CTCF: true,
-                ATAC: true,
+                dnase: true,
+                h3k4me3: true,
+                h3k27ac: true,
+                ctcf: true,
+                atac: true,
             });
             updateElementFilter('assays', {
-                DNase: true,
-                H3K4me3: true,
-                H3K27ac: true,
-                CTCF: true,
-                ATAC: true,
+                dnase: true,
+                h3k4me3: true,
+                h3k27ac: true,
+                ctcf: true,
+                atac: true,
             });
         }
     }, [elementFilterVariables.selectedBiosample]);
@@ -271,18 +271,18 @@ const Filters: React.FC<FilterProps> = ({
                                                             event.stopPropagation();
                                                             updateElementFilter("selectedBiosample", null);
                                                             updateElementFilter('availableAssays', {
-                                                                DNase: true,
-                                                                H3K4me3: true,
-                                                                H3K27ac: true,
-                                                                CTCF: true,
-                                                                ATAC: true,
+                                                                dnase: true,
+                                                                h3k4me3: true,
+                                                                h3k27ac: true,
+                                                                ctcf: true,
+                                                                atac: true,
                                                             });
                                                             updateElementFilter('assays', {
-                                                                DNase: true,
-                                                                H3K4me3: true,
-                                                                H3K27ac: true,
-                                                                CTCF: true,
-                                                                ATAC: true,
+                                                                dnase: true,
+                                                                h3k4me3: true,
+                                                                h3k27ac: true,
+                                                                ctcf: true,
+                                                                atac: true,
                                                             });
                                                         }}
                                                         sx={{ m: 'auto', flexGrow: 0 }}
@@ -409,9 +409,9 @@ const Filters: React.FC<FilterProps> = ({
                                                 label="DNase"
                                                 control={
                                                     <Checkbox
-                                                        onChange={() => toggleAssay('DNase')}
-                                                        disabled={!elementFilterVariables.availableAssays.DNase || !elementFilterVariables.usecCREs}
-                                                        checked={elementFilterVariables.assays.DNase}
+                                                        onChange={() => toggleAssay('dnase')}
+                                                        disabled={!elementFilterVariables.availableAssays.dnase || !elementFilterVariables.usecCREs}
+                                                        checked={elementFilterVariables.assays.dnase}
                                                         value="dnase"
                                                     />
                                                 }
@@ -420,9 +420,9 @@ const Filters: React.FC<FilterProps> = ({
                                                 label="H3K4me3"
                                                 control={
                                                     <Checkbox
-                                                        onChange={() => toggleAssay('H3K4me3')}
-                                                        disabled={!elementFilterVariables.availableAssays.H3K4me3 || !elementFilterVariables.usecCREs}
-                                                        checked={elementFilterVariables.assays.H3K4me3}
+                                                        onChange={() => toggleAssay('h3k4me3')}
+                                                        disabled={!elementFilterVariables.availableAssays.h3k4me3 || !elementFilterVariables.usecCREs}
+                                                        checked={elementFilterVariables.assays.h3k4me3}
                                                         value="h3k4me3"
                                                     />
                                                 }
@@ -431,9 +431,9 @@ const Filters: React.FC<FilterProps> = ({
                                                 label="H3K27ac"
                                                 control={
                                                     <Checkbox
-                                                        onChange={() => toggleAssay('H3K27ac')}
-                                                        disabled={!elementFilterVariables.availableAssays.H3K27ac || !elementFilterVariables.usecCREs}
-                                                        checked={elementFilterVariables.assays.H3K27ac}
+                                                        onChange={() => toggleAssay('h3k27ac')}
+                                                        disabled={!elementFilterVariables.availableAssays.h3k27ac || !elementFilterVariables.usecCREs}
+                                                        checked={elementFilterVariables.assays.h3k27ac}
                                                         value="h3k27ac"
                                                     />
                                                 }
@@ -444,9 +444,9 @@ const Filters: React.FC<FilterProps> = ({
                                                 label="CTCF"
                                                 control={
                                                     <Checkbox
-                                                        onChange={() => toggleAssay('CTCF')}
-                                                        disabled={!elementFilterVariables.availableAssays.CTCF || !elementFilterVariables.usecCREs}
-                                                        checked={elementFilterVariables.assays.CTCF}
+                                                        onChange={() => toggleAssay('ctcf')}
+                                                        disabled={!elementFilterVariables.availableAssays.ctcf || !elementFilterVariables.usecCREs}
+                                                        checked={elementFilterVariables.assays.ctcf}
                                                         value="ctcf"
                                                     />
                                                 }
@@ -455,9 +455,9 @@ const Filters: React.FC<FilterProps> = ({
                                                 label="ATAC"
                                                 control={
                                                     <Checkbox
-                                                        onChange={() => toggleAssay('ATAC')}
-                                                        disabled={!elementFilterVariables.availableAssays.ATAC || !elementFilterVariables.usecCREs}
-                                                        checked={elementFilterVariables.assays.ATAC}
+                                                        onChange={() => toggleAssay('atac')}
+                                                        disabled={!elementFilterVariables.availableAssays.atac || !elementFilterVariables.usecCREs}
+                                                        checked={elementFilterVariables.assays.atac}
                                                         value="atac"
                                                     />
                                                 }

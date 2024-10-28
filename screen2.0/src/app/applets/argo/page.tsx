@@ -1,5 +1,5 @@
 "use client"
-import React, { useMemo } from "react"
+import React, { useEffect, useMemo } from "react"
 import { useState } from "react"
 import { Stack, Typography, Box, TextField, Button, Alert, CircularProgress, IconButton } from "@mui/material"
 import MenuItem from "@mui/material/MenuItem"
@@ -10,16 +10,16 @@ import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { GENE_EXP_QUERY, LINKED_GENES, Z_SCORES_QUERY } from "./queries"
 import { ApolloQueryResult, useLazyQuery, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
-import { ZScores, LinkedGenes, GenomicRegion, CCREAssays, CCREClasses, RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState } from "./types"
+import { ZScores, LinkedGenes, GenomicRegion, CCREAssays, CCREClasses, RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow } from "./types"
 import { BED_INTERSECT_QUERY } from "../../_mainsearch/queries"
 import ExpandCircleDownIcon from '@mui/icons-material/ExpandCircleDown';
 import Filters from "./filters"
 import { CancelRounded } from "@mui/icons-material"
 
-const scoreNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
+const assayNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
 const conservationNames = ["vertebrates", "mammals", "primates"]
 const linkedGenesMethods = ["Intact-HiC", "CTCF-ChIAPET", "RNAPII-ChIAPET", "CRISPRi-FlowFISH", "eQTLs"]
-const allScoreNames = scoreNames.concat(conservationNames).concat(linkedGenesMethods)
+const allScoreNames = assayNames.concat(conservationNames).concat(linkedGenesMethods)
 
 export default function Argo(props: { header?: false, optionalFunction?: Function }) {
     //Old state variables
@@ -38,14 +38,10 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     const [sequenceRanks, setSequenceRanks] = useState<RankedRegions>([]);
     const [elementRanks, setElementRanks] = useState<RankedRegions>([]);
     const [geneRanks, setGeneRanks] = useState<RankedRegions>([]);
-    /**
-     * @todo
-     * strictly type rows
-     */
-    const [mainRows, setMainRows] = useState<any[]>([]) // Data displayed on the main table
-    const [sequenceRows, setSequenceRows] = useState<any[]>([]) // Data displayed on the sequence table
-    const [elementRows, setElementRows] = useState<any[]>([]) // Data displayed on the element table
-    const [geneRows, setGeneRows] = useState<any[]>([]) // Data displayed on the gene table
+    const [mainRows, setMainRows] = useState<MainTableRow[]>([]) // Data displayed on the main table
+    const [sequenceRows, setSequenceRows] = useState<SequenceTableRow[]>([]) // Data displayed on the sequence table
+    const [elementRows, setElementRows] = useState<ElementTableRow[]>([]) // Data displayed on the element table
+    const [geneRows, setGeneRows] = useState<GeneTableRow[]>([]) // Data displayed on the gene table
 
     // Filter state variables
     const [sequenceFilterVariables, setSequenceFilterVariables] = useState<SequenceFilterState>({
@@ -65,18 +61,18 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         mustHaveOrtholog: false,
         selectedBiosample: null,
         assays: {
-            DNase: true,
-            ATAC: true,
-            CTCF: true,
-            H3K4me3: true,
-            H3K27ac: true,
+            dnase: true,
+            atac: true,
+            ctcf: true,
+            h3k4me3: true,
+            h3k27ac: true,
         },
         availableAssays: {
-            DNase: true,
-            ATAC: true,
-            CTCF: true,
-            H3K4me3: true,
-            H3K27ac: true,
+            dnase: true,
+            atac: true,
+            ctcf: true,
+            h3k4me3: true,
+            h3k27ac: true,
         },
         classes: {
             CA: true,
@@ -170,22 +166,20 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     );
 
     //handle column changes for the main rank table
-    const mainColumns: DataTableColumn<any>[] = useMemo(() => {
+    const mainColumns: DataTableColumn<MainTableRow>[] = useMemo(() => {
 
-        const cols: DataTableColumn<any>[] = [
-            { header: "Input Region", value: (row) => "N/A" },
+        const cols: DataTableColumn<MainTableRow>[] = [
+            { header: "Input Region", value: (row) => `${row.inputRegion.chr}:${row.inputRegion.start}-${row.inputRegion.end}`, sort: (a, b) => a.inputRegion.start - b.inputRegion.start },
             { header: "Aggregate", value: (row) => "N/A" }
         ]
         /**
          * @todo
-         * type "rows" state variable properly, and add to type arguments above DataTableColumn<NEW_TYPE>
-         * correctly populate input region
          * correctly populate row values
          */
         if (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs) {
             cols.push({ header: "Seqence", HeaderRender: () => <MainColHeader tableName="Sequence" onClick={() => setShownTable("sequence")} />, value: (row) => "N/A" })
         }
-        elementFilterVariables.usecCREs && cols.push({ header: "Element", HeaderRender: () => <MainColHeader tableName="Element" onClick={() => setShownTable("element")} />, value: (row) => "N/A" })
+        elementFilterVariables.usecCREs && cols.push({ header: "Element", HeaderRender: () => <MainColHeader tableName="Element" onClick={() => { setShownTable("element") }} />, value: (row) => row.elementRank })
         geneFilterVariables.useGenes && cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Gene" onClick={() => setShownTable("gene")} />, value: (row) => "N/A" })
 
         return cols
@@ -193,14 +187,13 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     }, [MainColHeader, setShownTable])
 
     //handle column changes for the Sequence rank table
-    const sequenceColumns: DataTableColumn<any>[] = useMemo(() => {
+    const sequenceColumns: DataTableColumn<SequenceTableRow>[] = useMemo(() => {
 
-        const cols: DataTableColumn<any>[] = [
+        const cols: DataTableColumn<SequenceTableRow>[] = [
             { header: "Input Region", value: (row) => "N/A" },
         ]
         /**
          * @todo
-         * type "rows" state variable properly, and add to type arguments above DataTableColumn<NEW_TYPE>
          * correctly populate input region
          * correctly populate row values
          */
@@ -246,23 +239,23 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     }, [sequenceFilterVariables])
 
     //handle column changes for the Element rank table
-    const elementColumns: DataTableColumn<any>[] = useMemo(() => {
+    const elementColumns: DataTableColumn<ElementTableRow>[] = useMemo(() => {
 
-        const cols: DataTableColumn<any>[] = [
-            { header: "Input Region", value: (row) => `${row.genomicRegion.chr}:${row.genomicRegion.start}-${row.genomicRegion.end}`, sort: (a, b) => a.genomicRegion.start - b.genomicRegion.start },
+        const cols: DataTableColumn<ElementTableRow>[] = [
+            { header: "Input Region", value: (row) => `${row.inputRegion.chr}:${row.inputRegion.start}-${row.inputRegion.end}`, sort: (a, b) => a.inputRegion.start - b.inputRegion.start },
+            { header: "Accession", value: (row) => row.accession },
         ]
         /**
          * @todo
-         * type "rows" state variable properly, and add to type arguments above DataTableColumn<NEW_TYPE>
          * correctly populate input region
          * correctly populate row values
          */
         if (elementFilterVariables.usecCREs) {
-            elementFilterVariables.assays.DNase && cols.push({ header: "DNase", value: (row) => row.dnase, render: (row) => row.dnase.toFixed(2) })
-            elementFilterVariables.assays.H3K4me3 && cols.push({ header: "H3K4me3", value: (row) => row.h3k4me3, render: (row) => row.h3k4me3.toFixed(2) })
-            elementFilterVariables.assays.H3K27ac && cols.push({ header: "H3K27ac", value: (row) => row.h3k27ac, render: (row) => row.h3k27ac.toFixed(2) })
-            elementFilterVariables.assays.CTCF && cols.push({ header: "CTCF", value: (row) => row.ctcf, render: (row) => row.ctcf.toFixed(2) })
-            elementFilterVariables.assays.ATAC && cols.push({ header: "ATAC", value: (row) => row.atac, render: (row) => row.atac.toFixed(2) })
+            elementFilterVariables.assays.dnase && cols.push({ header: "DNase", value: (row) => row.dnase !== null ? row.dnase.toFixed(2) : null })
+            elementFilterVariables.assays.h3k4me3 && cols.push({ header: "H3K4me3", value: (row) => row.h3k4me3 !== null ? row.h3k4me3.toFixed(2) : null })
+            elementFilterVariables.assays.h3k27ac && cols.push({ header: "H3K27ac", value: (row) => row.h3k27ac !== null ? row.h3k27ac.toFixed(2) : null })
+            elementFilterVariables.assays.ctcf && cols.push({ header: "CTCF", value: (row) => row.ctcf !== null ? row.ctcf.toFixed(2) : null })
+            elementFilterVariables.assays.atac && cols.push({ header: "ATAC", value: (row) => row.atac !== null ? row.atac.toFixed(2) : null })
         }
 
         return cols
@@ -326,7 +319,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                                 accession: e[4],
                                 user_id: `${e[6]}_${e[7]}_${e[8]}${(e[9] && e[10]) ? '_' + e[9] : ''}`,
                                 linked_genes: [],
-                                genomicRegion: {
+                                inputRegion: {
                                     chr: e[0],
                                     start: e[1],
                                     end: e[2]
@@ -338,7 +331,6 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
             }
 
             setElementRows(evaluateRankings(result, elementFilterVariables.assays))
-            console.log(dataAPI)
         }
     })
 
@@ -356,13 +348,21 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     function appletCallBack(data) {
         updateElementFilter('selectedBiosample', null)
         setDataAPI(data)
-        setMainRows([])
         setSequenceRows([])
         setElementRows([])
         setGeneRows([])
         configureInputedRegions(data)
         setDrawerOpen(true)
         setShownTable(null)
+        const initialMainRows = data.map(item => ({
+            inputRegion: {
+                chr: item[0],
+                start: Number(item[1]),
+                end: Number(item[2])
+            },
+        }));
+
+        setMainRows(initialMainRows);
     }
 
     function configureInputedRegions(data) {
@@ -406,6 +406,65 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         })
         return calculateAggregateRank(data, scoresToInclude)
     }
+
+    useMemo(() => {
+        if (elementRanks.length === 0) return;
+
+        const updatedMainRows = mainRows.map(row => {
+            // Find the matching rank for this `inputRegion`
+            const matchingElement = elementRanks.find(
+                element =>
+                    element.chr == row.inputRegion.chr &&
+                    element.start == row.inputRegion.start &&
+                    element.end == row.inputRegion.end
+            );
+
+            console.log(row.inputRegion.start)
+
+            const elementRank = matchingElement ? matchingElement.rank : 0;
+
+            return {
+                ...row,
+                elementRank,
+            };
+        });
+
+        setMainRows(updatedMainRows);
+    }, [elementRanks]);
+
+    useMemo(() => {
+        //rank regions by element filters
+        function generateElementRanks() {
+            const scoresWithRegions = elementRows.map(row => {
+                //sum assay scores
+                const totalScore = assayNames.reduce((sum, assay) => {
+                    return (row[assay] !== null && elementFilterVariables.assays[assay]) ? sum + row[assay] : sum;
+                }, 0);
+
+                return {
+                    chr: row.inputRegion.chr,
+                    start: row.inputRegion.start,
+                    end: row.inputRegion.end,
+                    totalScore: totalScore
+                };
+            });
+
+            //Sort rows by totalScore in descending order and assign rank based on order
+            const rankedRegions = scoresWithRegions
+                .sort((a, b) => b.totalScore - a.totalScore)
+                .map((region, index) => ({
+                    chr: region.chr,
+                    start: region.start,
+                    end: region.end,
+                    rank: index + 1
+                }));
+
+            setElementRanks(rankedRegions);
+        }
+
+        generateElementRanks();
+
+    }, [elementRows, elementFilterVariables]);
 
     function evaluateMaxTPM(score: ZScores) {
         // This finds the Max TPM for each method in a given row
