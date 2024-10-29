@@ -133,7 +133,7 @@ export type SequenceTableRow = {
 export type ElementTableRow = {
     inputRegion: GenomicRegion
     accession: string
-    // class: string
+    class: string
     dnase?: number
     atac?: number
     h3k4me3?: number

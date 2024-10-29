@@ -1,6 +1,6 @@
-import { gql } from "@apollo/client"
+import { gql } from "../../../graphql/__generated__"
 
-export const Z_SCORES_QUERY = gql`
+export const Z_SCORES_QUERY = gql(`
 query ccreSearchQuery($assembly: String!, $accessions: [String!], $cellType: String) {
    cCRESCREENSearch(assembly: $assembly, accessions: $accessions, cellType: $cellType) {
       dnase_zscore      
@@ -10,7 +10,8 @@ query ccreSearchQuery($assembly: String!, $accessions: [String!], $cellType: Str
       atac_zscore
       vertebrates
       mammals
-      primates 
+      primates
+      pct 
       info {
         accession
       } 
@@ -24,9 +25,9 @@ query ccreSearchQuery($assembly: String!, $accessions: [String!], $cellType: Str
       }
    }
 }
-`
+`)
 
-export const LINKED_GENES = gql`
+export const LINKED_GENES = gql(`
   query(
     $assembly: String!
     $accessions: [String]!
@@ -59,10 +60,10 @@ export const LINKED_GENES = gql`
       displayname
     }
   }
-`
+`)
 
-export const GENE_EXP_QUERY = gql`
-query geneexpression($assembly: String!, $biosample_value: [String], $gene_id: [String]) {
+export const GENE_EXP_QUERY = gql(`
+query geneExpression($assembly: String!, $biosample_value: [String], $gene_id: [String]) {
   gene_dataset(biosample_value: $biosample_value) {  
     gene_quantification_files(assembly: $assembly) {
       quantifications(gene_id_prefix: $gene_id) {
@@ -74,5 +75,5 @@ query geneexpression($assembly: String!, $biosample_value: [String], $gene_id: [
     }
   }
 }
- `
+ `)
 

@@ -245,6 +245,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         const cols: DataTableColumn<ElementTableRow>[] = [
             { header: "Input Region", value: (row) => `${row.inputRegion.chr}:${row.inputRegion.start}-${row.inputRegion.end}`, sort: (a, b) => a.inputRegion.start - b.inputRegion.start },
             { header: "Accession", value: (row) => row.accession },
+            { header: "Class", value: (row) => row.class === "PLS" ? "Promoter" : row.class === "pELS" ? "Proximal Enhancer" : row.class === "dELS" ? "Distal Enhancer" : row.class },
         ]
         /**
          * @todo
@@ -303,6 +304,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                     o.vertebrates = matchingObj.vertebrates
                     o.mammals = matchingObj.mammals
                     o.primates = matchingObj.primates
+                    o.class = matchingObj.pct
                     return o
                 }
                 if (elementRows.length > 0) {
@@ -604,7 +606,6 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                                 key={Math.random()}
                                 columns={mainColumns}
                                 rows={mainRows}
-                                sortColumn={0}
                                 sortDescending
                                 itemsPerPage={5}
                                 searchable
@@ -618,7 +619,6 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                                     key={Math.random()}
                                     columns={sequenceColumns}
                                     rows={sequenceRows}
-                                    sortColumn={0}
                                     sortDescending
                                     itemsPerPage={5}
                                     searchable
@@ -634,7 +634,6 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                                         key={Math.random()}
                                         columns={elementColumns}
                                         rows={elementRows}
-                                        sortColumn={0}
                                         sortDescending
                                         itemsPerPage={10}
                                         searchable
@@ -663,9 +662,8 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                                         },
                                     ]}
                                     rows={geneRows}
-                                    sortColumn={1}
                                     sortDescending
-                                    itemsPerPage={5}
+                                    itemsPerPage={10}
                                     searchable
                                     tableTitle={<SubTableTitle title="Gene Details" />}
                                 />
