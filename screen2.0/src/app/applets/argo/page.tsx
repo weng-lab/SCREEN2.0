@@ -40,8 +40,9 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     const [elementRanks, setElementRanks] = useState<RankedRegions>([]);
     const [geneRanks, setGeneRanks] = useState<RankedRegions>([]);
     const [mainRows, setMainRows] = useState<MainTableRow[]>([]) // Data displayed on the main table
+    const [allMainRows, setAllMainRows] = useState<MainTableRow[]>([]) // All main rows recieved from bedupload
     const [sequenceRows, setSequenceRows] = useState<SequenceTableRow[]>([]) // Data displayed on the sequence table
-    const [allElementRows, setAllElementRows] = useState<ElementTableRow[]>([]) // All rows recieved from query
+    const [allElementRows, setAllElementRows] = useState<ElementTableRow[]>([]) // All element rows recieved from query
     const [elementRows, setElementRows] = useState<ElementTableRow[]>([]) // Data displayed on the element table
     const [geneRows, setGeneRows] = useState<GeneTableRow[]>([]) // Data displayed on the gene table
 
@@ -368,6 +369,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
             },
         }));
         setMainRows(initialMainRows);
+        setAllMainRows(initialMainRows);
         const initialMainRanks = data.map(item => ({
             chr: item[0],
             start: Number(item[1]),
@@ -408,17 +410,21 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     // Generate element ranks
     useMemo(() => {
         //rank regions by element filters
-        const scoresWithRegions = elementRows.map(row => {
-            //sum assay scores
-            const totalScore = assayNames.reduce((sum, assay) => {
-                return (row[assay] !== null && elementFilterVariables.assays[assay]) ? sum + row[assay] : sum;
-            }, 0);
-
+        const scoresWithRegions = allElementRows.map(row => {
+            // Check if the row's class is enabled in elementFilterVariables
+            const isClassEnabled = elementFilterVariables.classes[row.class];
+    
+            // Sum assay scores only if the class is enabled, otherwise set totalScore to 0
+            const totalScore = isClassEnabled
+                ? assayNames.reduce((sum, assay) => {
+                    return (row[assay] !== null && elementFilterVariables.assays[assay]) ? sum + row[assay] : sum;
+                  }, 0)
+                : 0;
             return {
                 chr: row.inputRegion.chr,
                 start: row.inputRegion.start,
                 end: row.inputRegion.end,
-                totalScore: totalScore
+                totalScore: totalScore,
             };
         });
 
@@ -429,7 +435,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                 chr: region.chr,
                 start: region.start,
                 end: region.end,
-                rank: index + 1
+                rank: region.totalScore == 0 ? 0 : index + 1
             }));
 
         setElementRanks(rankedRegions);
@@ -486,7 +492,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     useMemo(() => {
         if (elementRanks.length === 0) return;
 
-        const updatedMainRows = mainRows.map(row => {
+        const updatedMainRows = allMainRows.map(row => {
             // Find the matching rank for this `inputRegion`
             const matchingElement = elementRanks.find(
                 element =>
@@ -504,7 +510,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                     mainRank.end == row.inputRegion.end
             );
 
-            const updatedAggregateRank = (matchingMainRank ? matchingMainRank.rank : -1);
+            const updatedAggregateRank = (matchingMainRank ? matchingMainRank.rank : 0);
     
             return {
                 ...row,
