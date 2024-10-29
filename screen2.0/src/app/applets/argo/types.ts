@@ -44,9 +44,9 @@ export type RankedRegions = (GenomicRegion & {rank: number})[]
 
 export type CCREClasses = {
     CA: boolean
-    CACTCF: boolean
-    CAH3K4me3: boolean
-    CATF: boolean
+    "CA-CTCF": boolean
+    "CA-H3K4me3": boolean
+    "CA-TF": boolean
     dELS: boolean
     pELS: boolean
     PLS: boolean

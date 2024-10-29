@@ -327,24 +327,24 @@ const Filters: React.FC<FilterProps> = ({
                                                     disabled={!elementFilterVariables.usecCREs}
                                                 />
                                                 <FormControlLabel
-                                                    checked={elementFilterVariables.classes.CACTCF}
-                                                    onChange={() => toggleClass('CACTCF')}
+                                                    checked={elementFilterVariables.classes["CA-CTCF"]}
+                                                    onChange={() => toggleClass('CA-CTCF')}
                                                     control={<Checkbox />}
                                                     label="CA-CTCF"
                                                     value="CACTCF"
                                                     disabled={!elementFilterVariables.usecCREs}
                                                 />
                                                 <FormControlLabel
-                                                    checked={elementFilterVariables.classes.CAH3K4me3}
-                                                    onChange={() => toggleClass('CAH3K4me3')}
+                                                    checked={elementFilterVariables.classes["CA-H3K4me3"]}
+                                                    onChange={() => toggleClass('CA-H3K4me3')}
                                                     control={<Checkbox />}
                                                     label="CA-H3K4me3"
                                                     value="CAH3K4me3"
                                                     disabled={!elementFilterVariables.usecCREs}
                                                 />
                                                 <FormControlLabel
-                                                    checked={elementFilterVariables.classes.CATF}
-                                                    onChange={() => toggleClass('CATF')}
+                                                    checked={elementFilterVariables.classes["CA-TF"]}
+                                                    onChange={() => toggleClass('CA-TF')}
                                                     control={<Checkbox />}
                                                     label="CA-TF"
                                                     value="CATF"

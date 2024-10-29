@@ -41,6 +41,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     const [geneRanks, setGeneRanks] = useState<RankedRegions>([]);
     const [mainRows, setMainRows] = useState<MainTableRow[]>([]) // Data displayed on the main table
     const [sequenceRows, setSequenceRows] = useState<SequenceTableRow[]>([]) // Data displayed on the sequence table
+    const [allElementRows, setAllElementRows] = useState<ElementTableRow[]>([]) // All rows recieved from query
     const [elementRows, setElementRows] = useState<ElementTableRow[]>([]) // Data displayed on the element table
     const [geneRows, setGeneRows] = useState<GeneTableRow[]>([]) // Data displayed on the gene table
 
@@ -77,9 +78,9 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         },
         classes: {
             CA: true,
-            CACTCF: true,
-            CAH3K4me3: true,
-            CATF: true,
+            "CA-CTCF": true,
+            "CA-H3K4me3": true,
+            "CA-TF": true,
             dELS: true,
             pELS: true,
             PLS: true,
@@ -332,7 +333,9 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                         .map(mapFunc)
                 }
             }
-
+            if (allElementRows.length === 0) {
+                setAllElementRows(result)
+            }
             setElementRows(result)
         }
     })
@@ -402,40 +405,6 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         getIntersect(getOutput, parseDataInput(uploadedData), "GRCh38", appletCallBack, console.error)
     }
 
-    //update main table ranks
-    useMemo(() => {
-        if (elementRanks.length === 0) return;
-
-        const updatedMainRows = mainRows.map(row => {
-            // Find the matching rank for this `inputRegion`
-            const matchingElement = elementRanks.find(
-                element =>
-                    element.chr == row.inputRegion.chr &&
-                    element.start == row.inputRegion.start &&
-                    element.end == row.inputRegion.end
-            );
-
-            const elementRank = matchingElement ? matchingElement.rank : 0;
-            
-            const matchingMainRank = mainRanks.find(
-                mainRank =>
-                    mainRank.chr == row.inputRegion.chr &&
-                    mainRank.start == row.inputRegion.start &&
-                    mainRank.end == row.inputRegion.end
-            );
-
-            const updatedAggregateRank = (matchingMainRank ? matchingMainRank.rank : -1);
-    
-            return {
-                ...row,
-                elementRank,
-                aggregateRank: updatedAggregateRank, // Update the aggregateRank
-            };
-        });
-
-        setMainRows(updatedMainRows);
-    }, [mainRanks]);
-
     // Generate element ranks
     useMemo(() => {
         //rank regions by element filters
@@ -466,6 +435,14 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         setElementRanks(rankedRegions);
 
     }, [elementRows, elementFilterVariables]);
+
+    // Remove filtered classes from element table
+    useMemo(() => {
+        const filteredClasses = allElementRows.filter(row => {
+            return elementFilterVariables.classes[row.class] !== false;
+        });
+        setElementRows(filteredClasses);
+    }, [elementFilterVariables.classes]);
 
     //update aggregate rank
     useMemo(() => {
@@ -504,6 +481,40 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
 
         setMainRanks(updatedMainRanks);
     }, [sequenceRanks, elementRanks, geneRanks]);
+
+    //update main table ranks
+    useMemo(() => {
+        if (elementRanks.length === 0) return;
+
+        const updatedMainRows = mainRows.map(row => {
+            // Find the matching rank for this `inputRegion`
+            const matchingElement = elementRanks.find(
+                element =>
+                    element.chr == row.inputRegion.chr &&
+                    element.start == row.inputRegion.start &&
+                    element.end == row.inputRegion.end
+            );
+
+            const elementRank = matchingElement ? matchingElement.rank : 0;
+            
+            const matchingMainRank = mainRanks.find(
+                mainRank =>
+                    mainRank.chr == row.inputRegion.chr &&
+                    mainRank.start == row.inputRegion.start &&
+                    mainRank.end == row.inputRegion.end
+            );
+
+            const updatedAggregateRank = (matchingMainRank ? matchingMainRank.rank : -1);
+    
+            return {
+                ...row,
+                elementRank,
+                aggregateRank: updatedAggregateRank, // Update the aggregateRank
+            };
+        }).filter(row => row.aggregateRank !== 0);
+
+        setMainRows(updatedMainRows);
+    }, [mainRanks]);
 
 
     function evaluateMaxTPM(score: ZScores) {
@@ -631,7 +642,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                             <Box mt="20px">
                                 {loading_scores ? <CircularProgress /> :
                                     <DataTable
-                                        key={Math.random()}
+                                        key={elementRows[0] && elementRows[0].dnase + elementRows[0].ctcf + elementRows[0].h3k27ac + elementRows[0].h3k4me3 + elementRows[0].atac + elementRows[0].class + elementColumns.toString()}
                                         columns={elementColumns}
                                         rows={elementRows}
                                         sortDescending
