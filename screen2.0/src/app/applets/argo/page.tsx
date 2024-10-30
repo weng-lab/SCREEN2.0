@@ -10,7 +10,7 @@ import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { GENE_EXP_QUERY, LINKED_GENES, Z_SCORES_QUERY } from "./queries"
 import { ApolloQueryResult, useLazyQuery, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
-import { ZScores, LinkedGenes, GenomicRegion, CCREAssays, CCREClasses, RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow } from "./types"
+import { ZScores, LinkedGenes, GenomicRegion, CCREAssays, CCREClasses, RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, AssayRankEntry } from "./types"
 import { BED_INTERSECT_QUERY } from "../../_mainsearch/queries"
 import ExpandCircleDownIcon from '@mui/icons-material/ExpandCircleDown';
 import Filters from "./filters"
@@ -269,10 +269,10 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     const { loading: loading_scores, error: error_scores } = useQuery(Z_SCORES_QUERY, {
         variables: {
             assembly: elementFilterVariables.cCREAssembly,
-            accessions: elementRows.length > 0 ? elementRows.map((s) => s.accession) : dataAPI.map((r) => r[4]),
+            accessions: allElementRows.length > 0 ? allElementRows.map((s) => s.accession) : dataAPI.map((r) => r[4]),
             cellType: elementFilterVariables.selectedBiosample ? elementFilterVariables.selectedBiosample.name : null
         },
-        skip: elementRows.length == 0 && dataAPI.length == 0,
+        skip: allElementRows.length == 0 && dataAPI.length == 0,
         client: client,
         fetchPolicy: 'cache-and-network',
         onCompleted(d) {
@@ -345,6 +345,9 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         setDataAPI([])
         updateElementFilter('selectedBiosample', null)
         setMainRows([])
+        setAllMainRows([])
+        setMainRanks([])
+        setAllElementRows([])
         setSequenceRows([])
         setElementRows([])
         setGeneRows([])
@@ -353,9 +356,11 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     }
 
     function appletCallBack(data) {
+        console.log("XXX")
         updateElementFilter('selectedBiosample', null)
         setDataAPI(data)
         setSequenceRows([])
+        setAllElementRows([])
         setElementRows([])
         setGeneRows([])
         configureInputedRegions(data)
@@ -409,35 +414,60 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
 
     // Generate element ranks
     useMemo(() => {
-        //rank regions by element filters
-        const scoresWithRegions = allElementRows.map(row => {
-            // Check if the row's class is enabled in elementFilterVariables
-            const isClassEnabled = elementFilterVariables.classes[row.class];
+        const assayRanks: { [key: number]: AssayRankEntry } = {};
     
-            // Sum assay scores only if the class is enabled, otherwise set totalScore to 0
-            const totalScore = isClassEnabled
-                ? assayNames.reduce((sum, assay) => {
-                    return (row[assay] !== null && elementFilterVariables.assays[assay]) ? sum + row[assay] : sum;
-                  }, 0)
-                : 0;
+        //assign a rank to each assay
+        assayNames.forEach(assay => {
+            const sortedRows = allElementRows
+                .sort((a, b) => {
+                    if (elementFilterVariables.classes[a.class] && elementFilterVariables.classes[b.class]) {
+                        return b[assay] - a[assay];
+                    }
+                    return 0;
+                });
+    
+            sortedRows.forEach((row, index) => {
+                const isClassEnabled = elementFilterVariables.classes[row.class];
+                const score = row[assay];
+    
+                if (!assayRanks[row.inputRegion.start]) {
+                    assayRanks[row.inputRegion.start] = {
+                        chr: row.inputRegion.chr,
+                        start: row.inputRegion.start,
+                        end: row.inputRegion.end,
+                        ranks: {}
+                    };
+                }
+    
+                // Assign rank based on score order if the class is enabled, otherwise assign rank 0
+                assayRanks[row.inputRegion.start].ranks[assay] = isClassEnabled && score !== null ? index + 1 : 0;
+            });
+        });
+    
+        // add up all assay ranks
+        const scoresWithRegions = Object.values(assayRanks).map((row) => {
+            const totalRank = assayNames.reduce((sum, assay) => {
+                return elementFilterVariables.assays[assay] ? sum + (row.ranks[assay] || 0) : sum;
+            }, 0);
+    
             return {
-                chr: row.inputRegion.chr,
-                start: row.inputRegion.start,
-                end: row.inputRegion.end,
-                totalScore: totalScore,
+                chr: row.chr,
+                start: row.start,
+                end: row.end,
+                totalRank: totalRank,
             };
         });
 
-        //Sort rows by totalScore in descending order and assign rank based on order
+        // Sort by total rank score in ascending order and assign ranks
         const rankedRegions = scoresWithRegions
-            .sort((a, b) => b.totalScore - a.totalScore)
+            .sort((a, b) => a.totalRank - b.totalRank)
             .map((region, index) => ({
                 chr: region.chr,
                 start: region.start,
                 end: region.end,
-                rank: region.totalScore == 0 ? 0 : index + 1
+                rank: region.totalRank === 0 ? 0 : index + 1
             }));
-
+    
         setElementRanks(rankedRegions);
 
     }, [elementRows, elementFilterVariables]);
@@ -648,7 +678,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                             <Box mt="20px">
                                 {loading_scores ? <CircularProgress /> :
                                     <DataTable
-                                        key={elementRows[0] && elementRows[0].dnase + elementRows[0].ctcf + elementRows[0].h3k27ac + elementRows[0].h3k4me3 + elementRows[0].atac + elementRows[0].class + elementColumns.toString()}
+                                        key={Math.random()}
                                         columns={elementColumns}
                                         rows={elementRows}
                                         sortDescending

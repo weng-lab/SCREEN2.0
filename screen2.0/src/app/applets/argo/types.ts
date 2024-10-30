@@ -144,3 +144,10 @@ export type ElementTableRow = {
 export type GeneTableRow = {
     inputRegion: GenomicRegion
 }
+
+export type AssayRankEntry = {
+    chr: string;
+    start: number;
+    end: number;
+    ranks: { [assayName: string]: number };
+};
