@@ -5,7 +5,7 @@ import { useQuery } from "@apollo/client"
 import { Button, Typography, Stack, MenuItem, FormControl, SelectChangeEvent, Checkbox, InputLabel, ListItemText, OutlinedInput, Select, ToggleButton, ToggleButtonGroup, FormLabel, Tooltip, IconButton } from "@mui/material"
 import Grid from "@mui/material/Grid2"
 import Image from "next/image"
-import { HUMAN_GENE_EXP, MOUSE_GENE_EXP } from "./const"
+import { HUMAN_GENE_EXP, humanTissues, MOUSE_GENE_EXP, mouseTissues } from "./const"
 import { GENE_EXP_QUERY, GENE_QUERY, GET_ORTHOLOG, GET_ORTHOLOG_DATA, GET_ORTHOLOG_VARS } from "./queries"
 import { ReadonlyURLSearchParams, usePathname, useSearchParams, useRouter } from "next/navigation"
 import ConfigureGBModal from "../../search/_ccredetails/configuregbmodal"
@@ -35,6 +35,13 @@ const biosampleTypes = ["cell line", "in vitro differentiated cells", "primary c
 
 type Assembly = "GRCh38" | "mm10"
 
+const initialTissues = (assembly: Assembly) => {
+  if (assembly === "GRCh38") {
+    return humanTissues
+  } else {
+    return mouseTissues
+  }
+}
 
 export function GeneExpression(props: {
   assembly: Assembly
@@ -43,16 +50,17 @@ export function GeneExpression(props: {
 }) {
   const searchParams: ReadonlyURLSearchParams = useSearchParams()
   const urlAssembly = searchParams.get("assembly")
+  const initialAssembly = ((urlAssembly === "GRCh38") || (urlAssembly === "mm10")) ? urlAssembly : props.assembly
   const urlGene = searchParams.get("gene")
   const router = useRouter()
   const pathname = usePathname()
 
   //If genes passed as prop, use those. This is case in cCRE Details. Else use url gene if passed, default to APOE
   const [gene, setGene] = useState<string>(props.genes ? props?.genes[0]?.name : (urlGene ?? "APOE"))
-  const [dataAssembly, setDataAssembly] = useState<Assembly>(((urlAssembly === "GRCh38") || (urlAssembly === "mm10")) ? urlAssembly : props.assembly)
-  const [searchAssembly, setSearchAssembly] = useState<Assembly>(((urlAssembly === "GRCh38") || (urlAssembly === "mm10")) ? urlAssembly : props.assembly)
-
+  const [dataAssembly, setDataAssembly] = useState<Assembly>(initialAssembly)
+  const [searchAssembly, setSearchAssembly] = useState<Assembly>(initialAssembly)
   const [biosamples, setBiosamples] = useState<string[]>(["cell line", "in vitro differentiated cells", "primary cell", "tissue"])
+  const [tissues, setTissues] = useState<string[]>(() => initialTissues(initialAssembly))
   const [viewBy, setViewBy] = useState<"byTissueMaxTPM" | "byExperimentTPM" | "byTissueTPM">("byExperimentTPM")
   const [RNAtype, setRNAType] = useState<"all" | "polyA plus RNA-seq" | "total RNA-seq">("total RNA-seq")
   const [scale, setScale] = useState<"linearTPM" | "logTPM">("linearTPM")
@@ -136,7 +144,7 @@ export function GeneExpression(props: {
     if (dataExperiments && dataExperiments.gene_dataset.length > 0) {
       const filteredData = dataExperiments.gene_dataset
         .filter(d => biosamples.includes(d.biosample_type)) //filter by sample type
-        .filter(() => true) //TODO put tissue filter here
+        .filter((d) => tissues.includes(d.tissue)) //TODO put tissue filter here
         .filter(d => RNAtype === "all" || d.assay_term_name === RNAtype) //filter by RNA type
         .filter(d => sampleMatchesSearch(d as GeneDataset))
       let parsedReplicates: BarData<GeneDataset>[] = []
@@ -197,15 +205,18 @@ export function GeneExpression(props: {
       }
       return parsedReplicates
     } else return []
-  }, [RNAtype, biosamples, dataExperiments, replicates, sampleMatchesSearch, scaleData, viewBy])
+  }, [RNAtype, biosamples, dataExperiments, replicates, sampleMatchesSearch, scaleData, tissues, viewBy])
 
   //Handle assembly switch for search
   const handleSetDataAssembly = (newAssembly: Assembly) => {
     if (props.applet) {
       setDataAssembly(newAssembly)
-      //Switch back RNA type if going from mouse to human, as all data there is total
+
       if (newAssembly === "GRCh38") {
-        setRNAType("total RNA-seq")
+        setTissues(humanTissues) //Reset Tissue Filter
+        setRNAType("total RNA-seq") //Switch back RNA type if going from mouse to human, as all data there is total
+      } else {
+        setTissues(mouseTissues) //Reset Tissue Filter
       }
     }
   }
@@ -299,11 +310,8 @@ export function GeneExpression(props: {
     )
   }, [scale])
 
-  const handleTissueSelect: TissueMultiSelectOnChange = (event, value, reason, details?) => {
-    // console.log(event)
-    // console.log(value)
-    // console.log(reason)
-    // console.log(details)
+  const handleTissueSelect: TissueMultiSelectOnChange = (_, value) => {
+    setTissues(value)
   }
 
   return (
@@ -367,12 +375,12 @@ export function GeneExpression(props: {
             colorTheme={"light"}
             onGeneSelected={(gene: GeneInfo) => {
               setGene(gene ? gene.name : null)
-              setDataAssembly(searchAssembly)
+              handleSetDataAssembly(searchAssembly)
               router.push(`${pathname}?assembly=${searchAssembly}&gene=${gene ? gene.name : ''}`)
             }}
             onGeneSubmitted={(gene: GeneInfo) => {
               setGene(gene ? gene.name : null)
-              setDataAssembly(searchAssembly)
+              handleSetDataAssembly(searchAssembly)
               router.push(`${pathname}?assembly=${searchAssembly}&gene=${gene ? gene.name : ''}`)
             }}
           />

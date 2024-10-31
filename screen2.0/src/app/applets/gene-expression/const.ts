@@ -386,7 +386,54 @@ export const HUMAN_GENE_EXP = ["ENCSR828TEI",
 "ENCSR938LSP"
 ]
 
+export const humanTissues = [
+  "adipose",
+  "adrenal gland",
+  "blood",
+  "blood vessel",
+  "bone",
+  "brain",
+  "breast",
+  "connective tissue",
+  "embryo",
+  "epithelium",
+  "esophagus",
+  "gallbladder",
+  "heart",
+  "kidney",
+  "large intestine",
+  "liver",
+  "lung",
+  "muscle",
+  "nerve",
+  "ovary",
+  "pancreas",
+  "penis",
+  "placenta",
+  "prostate",
+  "skin",
+  "small intestine",
+  "spleen",
+  "stomach",
+  "testis",
+  "thyroid",
+  "uterus",
+  "vagina"
+]
 
-
-export const GeneExpressionInfoTooltip =
-  "This bar plot displays the expression level of a given gene across available cell types and tissues derived from RNA-seq data. By default, the data displayed is log2(TPM + 0.01), but this may be customized by selecting from the data dropdown; FPKM values are also available and the log scale may be turned off. TPM and RPKM are two metrics of gene expression levels and they differ slightly in their approaches to normalizing for sequencing depth and gene length. The sort order dropdown allows sorting of the data by TPM or FPKM and also allows grouping of the expression values by tissue. Mousing over the bars displays more information about the expriments that produced the data points, and clicking on a bar redirects to the corresponging experiment at the ENCODE portal."
+export const mouseTissues = [
+  "adrenal gland",
+  "blood",
+  "brain",
+  "embryo",
+  "epithelium",
+  "heart",
+  "intestine",
+  "kidney",
+  "limb",
+  "liver",
+  "lung",
+  "muscle",
+  "stomach",
+  "thymus"
+]

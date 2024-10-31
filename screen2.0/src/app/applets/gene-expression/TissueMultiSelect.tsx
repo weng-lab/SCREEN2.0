@@ -5,6 +5,7 @@ import Autocomplete, { AutocompleteChangeDetails, AutocompleteChangeReason } fro
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import { Box, Divider, FormControlLabel, Paper } from '@mui/material';
+import { humanTissues, mouseTissues } from './const';
 
 function capitalizeWords(input: string): string {
   return input.replace(/\b\w/g, char => char.toUpperCase());
@@ -13,7 +14,7 @@ function capitalizeWords(input: string): string {
 const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
 const checkedIcon = <CheckBoxIcon fontSize="small" />;
 
-export type TissueMultiSelectOnChange = (event: React.SyntheticEvent, value: string[], reason: AutocompleteChangeReason | 'selectAll', details?: AutocompleteChangeDetails<string>) => void
+export type TissueMultiSelectOnChange = (event: React.SyntheticEvent, value: string[], reason: AutocompleteChangeReason, details?: AutocompleteChangeDetails<string | string[]>) => void
 
 export interface TissueMultiSelectProps {
   assembly: "GRCh38" | "mm10"
@@ -27,40 +28,36 @@ const TissueMultiSelect = ({
 }: TissueMultiSelectProps) => {
   const options = (assembly === "GRCh38" ? humanTissues : mouseTissues)
   const [value, setValue] = React.useState<string[] | null>(options);
-  const [allSelected, setAllSelected] = React.useState<boolean>(true);
   const scrollRef = React.useRef<number>(0) //needed to preserve the scroll position of the ListBox. Overriding PaperComponent changes the way that the Listbox renders and resets scroll on interaction
 
-  const handleChange: TissueMultiSelectOnChange = (event, value, reason, details?) => {
-    if (reason === "clear" || reason === "removeOption") setAllSelected(false);
-    if (reason === "selectOption" && value.length === options.length) setAllSelected(true);
-    setValue(value)
-    console.log(event)
-    if (onChange) onChange(event, value, reason, details)
-  }
+  //reset value when assembly changes
+  React.useEffect(() => {
+    setValue(options)
+  }, [assembly, options])
 
-  const handleToggleSelectAll = React.useCallback(() => {
-    setAllSelected((prev) => {
-      const newValue = !prev ? [...options] : [];
-      setValue(newValue);
-      if (onChange) {
-        if (newValue.length > 0) {
-          onChange(null, newValue, 'selectAll', null)
-        } else {
-          onChange(null, newValue, 'clear', null)
-        }
-      }
-      return !prev;
-    });
-  }, [onChange, options]);
+  const handleChange: TissueMultiSelectOnChange = React.useCallback((event, value, reason, details?) => {
+    setValue(value)
+    if (onChange) onChange(event, value, reason, details)
+  }, [onChange])
+
+  const handleToggleSelectAll = React.useCallback((event: React.MouseEvent<HTMLDivElement, MouseEvent>, checked: boolean) => {
+    const checkedOptions = options.filter(x => value.includes(x))
+    const uncheckedOptions = options.filter(x => !value.includes(x))
+    if (checked) {
+      handleChange(event, options, "selectOption", { option: uncheckedOptions })
+    } else {
+      handleChange(event, [], "removeOption", { option: checkedOptions })
+    }
+  }, [handleChange, options, value])
 
   // A warning forced usage of React.forwardRef here, even though the ref is not used
   const ListboxComponent = React.forwardRef(function ListboxComponent(
     listboxProps: React.HTMLAttributes<HTMLElement>,
     ref: React.ForwardedRef<HTMLUListElement>
-  ){
+  ) {
     const { children, ...props } = listboxProps;
     const listboxScrollRef = React.useRef<HTMLUListElement>(null)
-    
+
     //use saved scroll value on initial load. For some reason overriding PaperComponent broke the scroll behavior
     React.useEffect(() => {
       const current = listboxScrollRef.current;
@@ -82,7 +79,7 @@ const TissueMultiSelect = ({
       }
       listboxScrollRef.current = element; // Set the internal scroll ref
     };
-    
+
     return (
       <ul role='listbox' {...props} ref={setRefs} onScroll={handleScroll}>
         {children}
@@ -91,7 +88,12 @@ const TissueMultiSelect = ({
   })
 
   return (
-    <Autocomplete
+    /**
+     * Manually specify type arguments, since when overriding AutocompleteChangeDetails in TissueMultiSelectOnChange to be
+     * AutocompleteChangeDetails<string | string[]> (for select all compatibility), the type of option in renderOption was inferred to be string | string[]
+     * for some reason. Couldn't figure out why -JF 10/31/24
+     */
+    <Autocomplete<string, true, false, false, undefined>
       multiple
       limitTags={3}
       size='small'
@@ -109,23 +111,23 @@ const TissueMultiSelect = ({
       //Immediate child of popper
       PaperComponent={(paperProps) => (
         <Paper {...paperProps}>
-          <Box onMouseDown={(e) => e.preventDefault()} pl={1.5} py={0.5}>
+          <Box
+            onMouseDown={(e) => e.preventDefault()} //prevents closing popper
+            onClick={(event) => handleToggleSelectAll(event, value.length === options.length ? false : true)}
+            pl={1.5}
+            py={0.5}
+          >
             <FormControlLabel
               sx={{ zIndex: 10 }}
-              onClick={(e) => {
-                handleToggleSelectAll();
-                console.log(e)
-              }}
               label="All Tissues"
               control={
                 <Checkbox
-                size="small"
-                id="select-all-checkbox"
-                checked={allSelected}
-                indeterminate={!allSelected && value.length > 0}
+                  size="small"
+                  id="select-all-checkbox"
+                  checked={value.length === options.length}
                 />
               }
-              />
+            />
           </Box>
           <Divider />
           {paperProps.children}
@@ -149,60 +151,8 @@ const TissueMultiSelect = ({
           </li>
         );
       }}
-      />
-    );
-  }
-  
-  const humanTissues = [
-    "adipose",
-  "adrenal gland",
-  "blood",
-  "blood vessel",
-  "bone",
-  "brain",
-  "breast",
-  "connective tissue",
-  "embryo",
-  "epithelium",
-  "esophagus",
-  "gallbladder",
-  "heart",
-  "kidney",
-  "large intestine",
-  "liver",
-  "lung",
-  "muscle",
-  "nerve",
-  "ovary",
-  "pancreas",
-  "penis",
-  "placenta",
-  "prostate",
-  "skin",
-  "small intestine",
-  "spleen",
-  "stomach",
-  "testis",
-  "thyroid",
-  "uterus",
-  "vagina"
-]
-
-const mouseTissues = [
-  "adrenal gland",
-  "blood",
-  "brain",
-  "embryo",
-  "epithelium",
-  "heart",
-  "intestine",
-  "kidney",
-  "limb",
-  "liver",
-  "lung",
-  "muscle",
-  "stomach",
-  "thymus"
-]
+    />
+  );
+}
 
 export default TissueMultiSelect
