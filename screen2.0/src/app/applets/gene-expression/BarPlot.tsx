@@ -146,12 +146,13 @@ const VerticalBarPlot = <T,>({
         </svg>
         
       }
+      {/* Maybe should provide a default tooltip */}
       {TooltipContents && tooltipOpen && (
         <Portal>
           <TooltipWithBounds
             top={tooltipTop}
             left={tooltipLeft}
-            style={{ ...defaultTooltipStyles, backgroundColor: '#283238', color: 'white' }}
+            style={{ ...defaultTooltipStyles, backgroundColor: '#283238', color: 'white', zIndex: 1000 }}
           >
             <TooltipContents {...tooltipData} />
           </TooltipWithBounds>

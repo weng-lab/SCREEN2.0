@@ -5,19 +5,20 @@ import { useQuery } from "@apollo/client"
 import { Button, Typography, Stack, MenuItem, FormControl, SelectChangeEvent, Checkbox, InputLabel, ListItemText, OutlinedInput, Select, ToggleButton, ToggleButtonGroup, FormLabel, Tooltip, IconButton } from "@mui/material"
 import Grid from "@mui/material/Grid2"
 import Image from "next/image"
-import { HUMAN_GENE_EXP, MOUSE_GENE_EXP } from "../../applets/gene-expression/const"
-import { GENE_EXP_QUERY, GENE_QUERY, GET_ORTHOLOG, GET_ORTHOLOG_DATA, GET_ORTHOLOG_VARS } from "../../applets/gene-expression/queries"
+import { HUMAN_GENE_EXP, MOUSE_GENE_EXP } from "./const"
+import { GENE_EXP_QUERY, GENE_QUERY, GET_ORTHOLOG, GET_ORTHOLOG_DATA, GET_ORTHOLOG_VARS } from "./queries"
 import { ReadonlyURLSearchParams, usePathname, useSearchParams, useRouter } from "next/navigation"
-import ConfigureGBModal from "./configuregbmodal"
-import { GeneAutocomplete } from "../_geneAutocomplete/GeneAutocomplete"
-import { GeneInfo } from "../_geneAutocomplete/types"
+import ConfigureGBModal from "../../search/_ccredetails/configuregbmodal"
+import { GeneAutocomplete } from "../../search/_geneAutocomplete/GeneAutocomplete"
+import { GeneInfo } from "../../search/_geneAutocomplete/types"
 import { Close, Download, OpenInNew, Search, SyncAlt } from "@mui/icons-material"
 import { LoadingButton } from "@mui/lab"
-import DownloadDialog, { FileOption } from "../../applets/gwas/_lollipop-plot/DownloadDialog"
-import { capitalizeFirstLetter, downloadObjArrayAsTSV, downloadSVG, downloadSvgAsPng } from "../../applets/gwas/helpers"
-import VerticalBarPlot, { BarData } from "../../applets/gene-expression/BarPlot"
+import DownloadDialog, { FileOption } from "../gwas/_lollipop-plot/DownloadDialog"
+import { capitalizeFirstLetter, downloadObjArrayAsTSV, downloadSVG, downloadSvgAsPng } from "../gwas/helpers"
+import VerticalBarPlot, { BarData } from "./BarPlot"
 import { GeneDataset } from "../../../graphql/__generated__/graphql"
 import { tissueColors } from "../../../common/lib/colors"
+import TissueMultiSelect, { TissueMultiSelectOnChange } from "./TissueMultiSelect"
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -33,7 +34,6 @@ const MenuProps = {
 const biosampleTypes = ["cell line", "in vitro differentiated cells", "primary cell", "tissue"];
 
 type Assembly = "GRCh38" | "mm10"
-
 
 
 export function GeneExpression(props: {
@@ -266,19 +266,19 @@ export function GeneExpression(props: {
   const handleDownload = useCallback((selectedOptions: FileOption[]) => {
     if (selectedOptions.includes('svg')) { downloadSVG(plotRef, gene + '_gene_expression') }
     if (selectedOptions.includes('png')) { downloadSvgAsPng(plotRef, gene + '_gene_expression') }
-    if (selectedOptions.includes('tsv')) { 
-      const toDownload: { accession: string, biosample: string, tissue: string, tpm: number }[] = [...dataExperiments.gene_dataset]
+    if (selectedOptions.includes('tsv')) {
+      const toDownload: { accession: string, biosample: string, tissue: string, tpm: string }[] = [...dataExperiments.gene_dataset]
         .map(x => {
           return {
             accession: x.accession,
             biosample: x.biosample,
             tissue: x.tissue,
-            tpm: x.gene_quantification_files.reduce((acc, cur) => acc + cur.quantifications?.[0]?.tpm, 0) / x.gene_quantification_files.length
+            tpm: (x.gene_quantification_files.reduce((acc, cur) => acc + cur.quantifications?.[0]?.tpm, 0) / x.gene_quantification_files.length).toFixed(2)
           }
         })
         .sort((a, b) => a.accession.localeCompare(b.accession))
       downloadObjArrayAsTSV(toDownload, gene + '_gene_expression')
-     }
+    }
   }, [dataExperiments?.gene_dataset, gene])
 
   const PlotTooltip = useCallback((bar: BarData<GeneDataset>) => {
@@ -297,7 +297,14 @@ export function GeneExpression(props: {
         }
       </>
     )
-  } , [scale]) 
+  }, [scale])
+
+  const handleTissueSelect: TissueMultiSelectOnChange = (event, value, reason, details?) => {
+    // console.log(event)
+    // console.log(value)
+    // console.log(reason)
+    // console.log(details)
+  }
 
   return (
     <Stack spacing={2}>
@@ -438,6 +445,7 @@ export function GeneExpression(props: {
             ))}
           </Select>
         </FormControl>
+
         {/* RNA Type, hide for human as all data is total RNA-seq */}
         {dataAssembly === "mm10" && <FormControl>
           <FormLabel>RNA Type</FormLabel>
@@ -498,7 +506,7 @@ export function GeneExpression(props: {
           </ToggleButtonGroup>
         </FormControl>
         <FormControl sx={{ minWidth: 150 }}>
-          <InputLabel size='small'>Search Samples</InputLabel>
+          <InputLabel size='small' style={{zIndex: 0}}>Search Samples</InputLabel>
           <OutlinedInput size='small' endAdornment={search ? <IconButton onClick={() => setSearch("")}><Close /></IconButton> : <Search />} label="Search Samples" value={search} onChange={handleSetSearch} />
         </FormControl>
         <Tooltip title="Select from SVG (plot), PNG (plot), or TSV (data)">
@@ -506,6 +514,13 @@ export function GeneExpression(props: {
             Download
           </Button>
         </Tooltip>
+        <FormControl>
+          <FormLabel>Tissues</FormLabel>
+          <TissueMultiSelect 
+            assembly={dataAssembly}
+            onChange={handleTissueSelect}
+          />
+        </FormControl>
       </Stack>
       {
         loadingGeneID || loadingExperiments ?
