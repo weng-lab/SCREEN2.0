@@ -229,7 +229,7 @@ const Filters: React.FC<FilterProps> = ({
                         <AccordionDetails>
                             <FormControlLabel value="cCREs" control={<Checkbox onChange={() => updateElementFilter("usecCREs", !elementFilterVariables.usecCREs)} checked={elementFilterVariables.usecCREs} />} label="cCREs" />
                             <Stack ml={2}>
-                                <RadioGroup row value={elementFilterVariables.cCREAssembly} onChange={(event) => updateElementFilter("cCREAssembly", event.target.value as "GRCh38" | "mm10")}>
+                                <RadioGroup row value={elementFilterVariables.cCREAssembly} onChange={(event) => { updateElementFilter("cCREAssembly", event.target.value as "GRCh38" | "mm10"), updateElementFilter("selectedBiosample", null) }}>
                                     <FormControlLabel value="GRCh38" control={<Radio />} label="GRCH38" disabled={!elementFilterVariables.usecCREs} />
                                     <FormControlLabel value="mm10" control={<Radio />} label="mm10" disabled={!elementFilterVariables.usecCREs} />
                                 </RadioGroup>
@@ -243,57 +243,55 @@ const Filters: React.FC<FilterProps> = ({
                                         />
                                     }
                                 />
+                                {elementFilterVariables.selectedBiosample && (
+                                    <Paper elevation={0}>
+                                        <Stack
+                                            borderRadius={1}
+                                            direction={"row"}
+                                            spacing={3}
+                                            sx={{ backgroundColor: "#E7EEF8" }}
+                                            alignItems={"center"}
+                                        >
+                                            <Typography
+                                                flexGrow={1}
+                                                sx={{ color: "#2C5BA0", pl: 1 }}
+                                            >
+                                                {elementFilterVariables.selectedBiosample.ontology.charAt(0).toUpperCase() +
+                                                    elementFilterVariables.selectedBiosample.ontology.slice(1) +
+                                                    " - " +
+                                                    elementFilterVariables.selectedBiosample.displayname}
+                                            </Typography>
+                                            <IconButton
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    updateElementFilter("selectedBiosample", null);
+                                                    updateElementFilter('availableAssays', {
+                                                        dnase: true,
+                                                        h3k4me3: true,
+                                                        h3k27ac: true,
+                                                        ctcf: true,
+                                                        atac: true,
+                                                    });
+                                                    updateElementFilter('assays', {
+                                                        dnase: true,
+                                                        h3k4me3: true,
+                                                        h3k27ac: true,
+                                                        ctcf: true,
+                                                        atac: true,
+                                                    });
+                                                }}
+                                                sx={{ m: 'auto', flexGrow: 0 }}
+                                            >
+                                                <CancelRounded />
+                                            </IconButton>
+                                        </Stack>
+                                    </Paper>
+                                )}
                                 <Accordion square disableGutters disabled={!elementFilterVariables.usecCREs}>
                                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                                         Within a Biosample
                                     </AccordionSummary>
                                     <AccordionDetails>
-                                        {elementFilterVariables.selectedBiosample && (
-                                            <Paper elevation={0}>
-                                                <Stack
-                                                    borderRadius={1}
-                                                    direction={"row"}
-                                                    spacing={3}
-                                                    sx={{ backgroundColor: "#E7EEF8" }}
-                                                    alignItems={"center"}
-                                                >
-                                                    <Typography
-                                                        flexGrow={1}
-                                                        sx={{ color: "#2C5BA0", pl: 1 }}
-                                                    >
-                                                        {elementFilterVariables.selectedBiosample.ontology.charAt(0).toUpperCase() +
-                                                            elementFilterVariables.selectedBiosample.ontology.slice(1) +
-                                                            " - " +
-                                                            elementFilterVariables.selectedBiosample.displayname}
-                                                    </Typography>
-                                                    <IconButton
-                                                        onClick={(event) => {
-                                                            event.stopPropagation();
-                                                            updateElementFilter("selectedBiosample", null);
-                                                            updateElementFilter('availableAssays', {
-                                                                dnase: true,
-                                                                h3k4me3: true,
-                                                                h3k27ac: true,
-                                                                ctcf: true,
-                                                                atac: true,
-                                                            });
-                                                            updateElementFilter('assays', {
-                                                                dnase: true,
-                                                                h3k4me3: true,
-                                                                h3k27ac: true,
-                                                                ctcf: true,
-                                                                atac: true,
-                                                            });
-                                                        }}
-                                                        sx={{ m: 'auto', flexGrow: 0 }}
-                                                    >
-                                                        <CancelRounded />
-                                                    </IconButton>
-                                                </Stack>
-                                            </Paper>
-
-
-                                        )}
                                         <BiosampleTables
                                             selected={elementFilterVariables.selectedBiosample?.name}
                                             onBiosampleClicked={(biosample) => updateElementFilter("selectedBiosample", biosample)}
