@@ -77,3 +77,16 @@ query geneExpression($assembly: String!, $biosample_value: [String], $gene_id: [
 }
  `)
 
+export const ORTHOLOG_QUERY = gql(`
+  query orthoQuery($accessions: [String], $assembly: String){
+  orthologQuery(accession: $accessions, assembly: $assembly) {
+    assembly
+    accession
+    ortholog
+     {
+      accession
+    }
+  }
+}
+   `)
+

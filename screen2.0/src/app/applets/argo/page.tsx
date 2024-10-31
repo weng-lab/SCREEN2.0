@@ -7,7 +7,7 @@ import FormControl from "@mui/material/FormControl"
 import Select, { SelectChangeEvent } from "@mui/material/Select"
 import BedUpload, { getIntersect, parseDataInput } from "../../_mainsearch/bedupload"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
-import { GENE_EXP_QUERY, LINKED_GENES, Z_SCORES_QUERY } from "./queries"
+import { GENE_EXP_QUERY, LINKED_GENES, ORTHOLOG_QUERY, Z_SCORES_QUERY } from "./queries"
 import { ApolloQueryResult, useLazyQuery, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
 import { ZScores, LinkedGenes, GenomicRegion, CCREAssays, CCREClasses, RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, AssayRankEntry } from "./types"
@@ -23,8 +23,7 @@ const allScoreNames = assayNames.concat(conservationNames).concat(linkedGenesMet
 
 export default function Argo(props: { header?: false, optionalFunction?: Function }) {
     //Old state variables
-    const [dataAPI, setDataAPI] = useState<[]>([]) // The intersection data returned from BedUpload component
-
+    const [intersectData, setIntersectData] = useState<[]>([]) // The intersection data returned from BedUpload component
     const [getOutput] = useLazyQuery(BED_INTERSECT_QUERY)
 
     //UI state variables
@@ -44,6 +43,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     const [sequenceRows, setSequenceRows] = useState<SequenceTableRow[]>([]) // Data displayed on the sequence table
     const [allElementRows, setAllElementRows] = useState<ElementTableRow[]>([]) // All element rows recieved from query
     const [elementRows, setElementRows] = useState<ElementTableRow[]>([]) // Data displayed on the element table
+    const [temp, setTemp] = useState(false) // use when switching between queries to remember previous filters
     const [geneRows, setGeneRows] = useState<GeneTableRow[]>([]) // Data displayed on the gene table
 
     // Filter state variables
@@ -246,8 +246,8 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
 
         const cols: DataTableColumn<ElementTableRow>[] = [
             { header: "Input Region", value: (row) => `${row.inputRegion.chr}:${row.inputRegion.start}-${row.inputRegion.end}`, sort: (a, b) => a.inputRegion.start - b.inputRegion.start },
-            { header: "Accession", value: (row) => row.accession },
             { header: "Class", value: (row) => row.class === "PLS" ? "Promoter" : row.class === "pELS" ? "Proximal Enhancer" : row.class === "dELS" ? "Distal Enhancer" : row.class },
+            { header: "Accession", value: (row) => row.accession },
         ]
         /**
          * @todo
@@ -255,6 +255,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
          * correctly populate row values
          */
         if (elementFilterVariables.usecCREs) {
+            elementFilterVariables.mustHaveOrtholog && cols.push({header: "Orthologous Accesion", value: (row) => row.ortholog})
             elementFilterVariables.assays.dnase && cols.push({ header: "DNase", value: (row) => row.dnase !== null ? row.dnase.toFixed(2) : null })
             elementFilterVariables.assays.h3k4me3 && cols.push({ header: "H3K4me3", value: (row) => row.h3k4me3 !== null ? row.h3k4me3.toFixed(2) : null })
             elementFilterVariables.assays.h3k27ac && cols.push({ header: "H3K27ac", value: (row) => row.h3k27ac !== null ? row.h3k27ac.toFixed(2) : null })
@@ -264,20 +265,53 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
 
         return cols
 
-    }, [elementFilterVariables, dataAPI])
+    }, [elementFilterVariables])
 
     const { loading: loading_scores, error: error_scores } = useQuery(Z_SCORES_QUERY, {
         variables: {
             assembly: elementFilterVariables.cCREAssembly,
-            accessions: allElementRows.length > 0 ? allElementRows.map((s) => s.accession) : dataAPI.map((r) => r[4]),
+            accessions: intersectData.map((r) => r[4]),
             cellType: elementFilterVariables.selectedBiosample ? elementFilterVariables.selectedBiosample.name : null
         },
-        skip: allElementRows.length == 0 && dataAPI.length == 0,
+        skip: intersectData.length == 0 || elementFilterVariables.mustHaveOrtholog,
         client: client,
         fetchPolicy: 'cache-and-network',
         onCompleted(d) {
             let data = d['cCRESCREENSearch']
             let result = null
+            let mapFunc = (obj) => {
+                let o = { ...obj }
+                let matchingObj = data.find((e) => o.accession == e.info.accession)
+                o.dnase = matchingObj.dnase_zscore
+                o.h3k4me3 = matchingObj.promoter_zscore
+                o.h3k27ac = matchingObj.enhancer_zscore
+                o.ctcf = matchingObj.ctcf_zscore
+                o.atac = matchingObj.atac_zscore
+                o.vertebrates = matchingObj.vertebrates
+                o.mammals = matchingObj.mammals
+                o.primates = matchingObj.primates
+                o.class = matchingObj.pct
+                return o
+            }
+            let allDataResult = intersectData
+            .map((e) => {
+                return {
+                    // This is annoying because currently an array of objects is not being returned
+                    // The order of the array is the same as the order of the ccre file
+                    // Index 4 is accessions, 6 is chr, 7 is start, 8 is stop 
+                    // chr, start, stop should be of user uploaded file and not of our files hence not index 0,1,2
+
+                    accession: e[4],
+                    user_id: `${e[6]}_${e[7]}_${e[8]}${(e[9] && e[10]) ? '_' + e[9] : ''}`,
+                    linked_genes: [],
+                    inputRegion: {
+                        chr: e[0],
+                        start: e[1],
+                        end: e[2]
+                    }
+                }
+            })
+            .map(mapFunc)
             if (elementFilterVariables.selectedBiosample) {
                 // This makes a copy of the existing row and just updates the scores to ctspecific
                 result = elementRows.map((obj) => {
@@ -293,56 +327,67 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                 )
             }
             else {
-                // The else is only for when the query runs the first time
-                // This is done so that if a biosample is deselected, the linked genes data is not lost
-                let mapFunc = (obj) => {
-                    let o = { ...obj }
-                    let matchingObj = data.find((e) => o.accession == e.info.accession)
-                    o.dnase = matchingObj.dnase_zscore
-                    o.h3k4me3 = matchingObj.promoter_zscore
-                    o.h3k27ac = matchingObj.enhancer_zscore
-                    o.ctcf = matchingObj.ctcf_zscore
-                    o.atac = matchingObj.atac_zscore
-                    o.vertebrates = matchingObj.vertebrates
-                    o.mammals = matchingObj.mammals
-                    o.primates = matchingObj.primates
-                    o.class = matchingObj.pct
-                    return o
-                }
                 if (elementRows.length > 0) {
-                    result = elementRows.map(mapFunc)
+                    if(temp === true) {
+                        const filteredClasses = allDataResult.filter(row => {
+                            return elementFilterVariables.classes[row.class] !== false;
+                        });
+                        result = filteredClasses
+                        setTemp(false);
+                    } else {
+                        result = elementRows.map(mapFunc)
+                    }
                 }
                 else {
-                    result = dataAPI
-                        .map((e) => {
-                            return {
-                                // This is annoying because currently an array of objects is not being returned
-                                // The order of the array is the same as the order of the ccre file
-                                // Index 4 is accessions, 6 is chr, 7 is start, 8 is stop 
-                                // chr, start, stop should be of user uploaded file and not of our files hence not index 0,1,2
-
-                                accession: e[4],
-                                user_id: `${e[6]}_${e[7]}_${e[8]}${(e[9] && e[10]) ? '_' + e[9] : ''}`,
-                                linked_genes: [],
-                                inputRegion: {
-                                    chr: e[0],
-                                    start: e[1],
-                                    end: e[2]
-                                }
-                            }
-                        })
-                        .map(mapFunc)
+                    result = allDataResult
                 }
             }
-            if (allElementRows.length === 0) {
-                setAllElementRows(result)
-            }
+            setAllElementRows(allDataResult)
             setElementRows(result)
+            console.log(result);
+        }
+    })
+
+    const { loading: loading_ortho, error: error_ortho } = useQuery(ORTHOLOG_QUERY, {
+        variables: {
+            assembly: elementFilterVariables.cCREAssembly,
+            accessions: intersectData.map((r) => r[4]),
+        },
+        skip: !elementFilterVariables.mustHaveOrtholog,
+        client: client,
+        fetchPolicy: 'cache-and-network',
+        onCompleted(data) {
+            setTemp(true);
+            const orthologMapping: { [accession: string]: string | undefined } = {};
+
+            data.orthologQuery.forEach((entry: { accession: string; ortholog: Array<{ accession: string }> }) => {
+                if (entry.ortholog.length > 0) {
+                    orthologMapping[entry.accession] = entry.ortholog[0].accession;
+                }
+            });
+
+            // Update elementRows with ortholog information
+            const updatedElementRows = elementRows
+                .map((row) => ({
+                    ...row,
+                    ortholog: orthologMapping[row.accession]
+                }))
+                .filter((row) => row.ortholog !== undefined);
+
+            const updatedAllElementRows = allElementRows
+                .map((row) => ({
+                    ...row,
+                    ortholog: orthologMapping[row.accession]
+                }))
+                .filter((row) => row.ortholog !== undefined);
+
+            setElementRows(updatedElementRows);
+            setAllElementRows(updatedAllElementRows);
         }
     })
 
     const handleSearchChange = (event: SelectChangeEvent) => {
-        setDataAPI([])
+        setIntersectData([])
         updateElementFilter('selectedBiosample', null)
         setMainRows([])
         setAllMainRows([])
@@ -356,9 +401,8 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     }
 
     function appletCallBack(data) {
-        console.log("XXX")
         updateElementFilter('selectedBiosample', null)
-        setDataAPI(data)
+        setIntersectData(data)
         setSequenceRows([])
         setAllElementRows([])
         setElementRows([])
@@ -415,7 +459,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     // Generate element ranks
     useMemo(() => {
         const assayRanks: { [key: number]: AssayRankEntry } = {};
-    
+
         //assign a rank to each assay
         assayNames.forEach(assay => {
             const sortedRows = allElementRows
@@ -425,11 +469,11 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                     }
                     return 0;
                 });
-    
+
             sortedRows.forEach((row, index) => {
                 const isClassEnabled = elementFilterVariables.classes[row.class];
                 const score = row[assay];
-    
+
                 if (!assayRanks[row.inputRegion.start]) {
                     assayRanks[row.inputRegion.start] = {
                         chr: row.inputRegion.chr,
@@ -438,18 +482,18 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                         ranks: {}
                     };
                 }
-    
+
                 // Assign rank based on score order if the class is enabled, otherwise assign rank 0
                 assayRanks[row.inputRegion.start].ranks[assay] = isClassEnabled && score !== null ? index + 1 : 0;
             });
         });
-    
+
         // add up all assay ranks
         const scoresWithRegions = Object.values(assayRanks).map((row) => {
             const totalRank = assayNames.reduce((sum, assay) => {
                 return elementFilterVariables.assays[assay] ? sum + (row.ranks[assay] || 0) : sum;
             }, 0);
-    
+
             return {
                 chr: row.chr,
                 start: row.start,
@@ -467,10 +511,10 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                 end: region.end,
                 rank: region.totalRank === 0 ? 0 : index + 1
             }));
-    
+
         setElementRanks(rankedRegions);
 
-    }, [elementRows, elementFilterVariables]);
+    }, [elementRows, elementFilterVariables, allElementRows]);
 
     // Remove filtered classes from element table
     useMemo(() => {
@@ -532,7 +576,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
             );
 
             const elementRank = matchingElement ? matchingElement.rank : 0;
-            
+
             const matchingMainRank = mainRanks.find(
                 mainRank =>
                     mainRank.chr == row.inputRegion.chr &&
@@ -541,7 +585,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
             );
 
             const updatedAggregateRank = (matchingMainRank ? matchingMainRank.rank : 0);
-    
+
             return {
                 ...row,
                 elementRank,
@@ -646,7 +690,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
 
                     }
                 </Box>
-                {dataAPI.length > 0 && (
+                {intersectData.length > 0 && (
                     <>
                         <Box mt="20px" id="123456">
                             <DataTable
@@ -676,7 +720,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
 
                         {(shownTable === "element" && elementFilterVariables.usecCREs) && (
                             <Box mt="20px">
-                                {loading_scores ? <CircularProgress /> :
+                                {loading_scores || loading_ortho ? <CircularProgress /> :
                                     <DataTable
                                         key={Math.random()}
                                         columns={elementColumns}
