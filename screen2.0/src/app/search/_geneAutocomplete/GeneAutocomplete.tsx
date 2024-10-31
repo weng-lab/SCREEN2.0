@@ -19,18 +19,18 @@ import { GeneAutoComplete2Props, GeneInfo, QueryResponse } from "./types"
 export const GeneAutocomplete = (
   props: GeneAutoComplete2Props
 ) => {
-  const { 
-    assembly, 
-    slotProps, 
-    endIcon = 'search', 
+  const {
+    assembly,
+    slotProps,
+    endIcon = 'search',
     CustomEndIcon,
     //  onIconClick, 
-     onTextBoxClick, 
-     onGeneSelected,
-     onGeneSubmitted,
-     renderOption,
-     colorTheme 
-    } = props;
+    onTextBoxClick,
+    onGeneSelected,
+    onGeneSubmitted,
+    renderOption,
+    colorTheme
+  } = props;
 
   const [inputValue, setInputValue] = useState("")
   const [options, setOptions] = useState<GeneInfo[]>([])
@@ -40,7 +40,7 @@ export const GeneAutocomplete = (
   //Fetch gene desciptions
   useEffect(() => {
     const fetchData = async () => {
-      let descriptions = await Promise.all(
+      const descriptions = await Promise.all(
         options.map((gene) =>
           fetch("https://clinicaltables.nlm.nih.gov/api/ncbi_genes/v3/search?authenticity_token=&terms=" + gene.name.toUpperCase())
             .then((x) => x && x.json())
@@ -59,7 +59,7 @@ export const GeneAutocomplete = (
       setDescriptions(descriptions)
     }
 
-    options && fetchData()
+    if (options) fetchData()
   }, [options])
 
   const onSearchChange = async (value: string, assembly: string) => {
@@ -144,9 +144,10 @@ export const GeneAutocomplete = (
   
   const attemptSubmit = (inputVal: string) => {
     const gene = options.find(x => x.name.toLowerCase() === inputVal.toLowerCase())
-    gene && onGeneSubmitted && onGeneSubmitted(gene)
-    gene && setInputValue(gene.name)
-    // gene && setValue(gene)
+    if (gene) {
+      setInputValue(gene.name)
+      if (onGeneSubmitted) onGeneSubmitted(gene)
+    }
   }
 
   return (
