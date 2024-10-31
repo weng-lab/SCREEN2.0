@@ -43,7 +43,8 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     const [sequenceRows, setSequenceRows] = useState<SequenceTableRow[]>([]) // Data displayed on the sequence table
     const [allElementRows, setAllElementRows] = useState<ElementTableRow[]>([]) // All element rows recieved from query
     const [elementRows, setElementRows] = useState<ElementTableRow[]>([]) // Data displayed on the element table
-    const [temp, setTemp] = useState(false) // use when switching between queries to remember previous filters
+    const [orthoFlag, setOrthoFlag] = useState(false) // remember if otholog has been switched
+    const [biosampleFlag, setBiosampleFlag] = useState(false) // remember if biosamples have been switched
     const [geneRows, setGeneRows] = useState<GeneTableRow[]>([]) // Data displayed on the gene table
 
     // Filter state variables
@@ -136,7 +137,9 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     //stylized header for main rank table columns
     const MainColHeader = ({ tableName, onClick }) => (
         <div style={{ display: 'flex', alignItems: 'center' }}>
-            {tableName}
+            <span style={{ color: shownTable === tableName.toLowerCase() ? '#030f98' : 'inherit', fontWeight: shownTable === tableName.toLowerCase() ? 'bolder' : 'normal' }}>
+                {tableName}
+            </span>
             <IconButton
                 size="small"
                 onClick={onClick}
@@ -180,9 +183,9 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
          * correctly populate row values
          */
         if (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs) {
-            cols.push({ header: "Seqence", HeaderRender: () => <MainColHeader tableName="Sequence" onClick={() => setShownTable("sequence")} />, value: (row) => "N/A" })
+            cols.push({ header: "Seqence", HeaderRender: () => <MainColHeader tableName="Sequence" onClick={() =>  setShownTable("sequence")} />, value: (row) => "N/A" })
         }
-        elementFilterVariables.usecCREs && cols.push({ header: "Element", HeaderRender: () => <MainColHeader tableName="Element" onClick={() => { setShownTable("element") }} />, value: (row) => row.elementRank })
+        elementFilterVariables.usecCREs && cols.push({ header: "Element", HeaderRender: () => <MainColHeader tableName="Element" onClick={() => setShownTable("element")} />, value: (row) => row.elementRank })
         geneFilterVariables.useGenes && cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Gene" onClick={() => setShownTable("gene")} />, value: (row) => "N/A" })
 
         return cols
@@ -255,7 +258,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
          * correctly populate row values
          */
         if (elementFilterVariables.usecCREs) {
-            elementFilterVariables.mustHaveOrtholog && cols.push({header: "Orthologous Accesion", value: (row) => row.ortholog})
+            elementFilterVariables.mustHaveOrtholog && cols.push({ header: "Orthologous Accesion", value: (row) => row.ortholog })
             elementFilterVariables.assays.dnase && cols.push({ header: "DNase", value: (row) => row.dnase !== null ? row.dnase.toFixed(2) : null })
             elementFilterVariables.assays.h3k4me3 && cols.push({ header: "H3K4me3", value: (row) => row.h3k4me3 !== null ? row.h3k4me3.toFixed(2) : null })
             elementFilterVariables.assays.h3k27ac && cols.push({ header: "H3K27ac", value: (row) => row.h3k27ac !== null ? row.h3k27ac.toFixed(2) : null })
@@ -267,16 +270,17 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
 
     }, [elementFilterVariables])
 
-    const { loading: loading_scores, error: error_scores } = useQuery(Z_SCORES_QUERY, {
+    const { loading: loading_scores, error: error_scores, refetch } = useQuery(Z_SCORES_QUERY, {
         variables: {
             assembly: elementFilterVariables.cCREAssembly,
             accessions: intersectData.map((r) => r[4]),
             cellType: elementFilterVariables.selectedBiosample ? elementFilterVariables.selectedBiosample.name : null
         },
-        skip: intersectData.length == 0 || elementFilterVariables.mustHaveOrtholog,
+        skip: intersectData.length == 0,
         client: client,
         fetchPolicy: 'cache-and-network',
         onCompleted(d) {
+            setBiosampleFlag(true)
             let data = d['cCRESCREENSearch']
             let result = null
             let mapFunc = (obj) => {
@@ -287,31 +291,28 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                 o.h3k27ac = matchingObj.enhancer_zscore
                 o.ctcf = matchingObj.ctcf_zscore
                 o.atac = matchingObj.atac_zscore
-                o.vertebrates = matchingObj.vertebrates
-                o.mammals = matchingObj.mammals
-                o.primates = matchingObj.primates
                 o.class = matchingObj.pct
                 return o
             }
             let allDataResult = intersectData
-            .map((e) => {
-                return {
-                    // This is annoying because currently an array of objects is not being returned
-                    // The order of the array is the same as the order of the ccre file
-                    // Index 4 is accessions, 6 is chr, 7 is start, 8 is stop 
-                    // chr, start, stop should be of user uploaded file and not of our files hence not index 0,1,2
+                .map((e) => {
+                    return {
+                        // This is annoying because currently an array of objects is not being returned
+                        // The order of the array is the same as the order of the ccre file
+                        // Index 4 is accessions, 6 is chr, 7 is start, 8 is stop 
+                        // chr, start, stop should be of user uploaded file and not of our files hence not index 0,1,2
 
-                    accession: e[4],
-                    user_id: `${e[6]}_${e[7]}_${e[8]}${(e[9] && e[10]) ? '_' + e[9] : ''}`,
-                    linked_genes: [],
-                    inputRegion: {
-                        chr: e[0],
-                        start: e[1],
-                        end: e[2]
+                        accession: e[4],
+                        user_id: `${e[6]}_${e[7]}_${e[8]}${(e[9] && e[10]) ? '_' + e[9] : ''}`,
+                        linked_genes: [],
+                        inputRegion: {
+                            chr: e[0],
+                            start: e[1],
+                            end: e[2]
+                        }
                     }
-                }
-            })
-            .map(mapFunc)
+                })
+                .map(mapFunc)
             if (elementFilterVariables.selectedBiosample) {
                 // This makes a copy of the existing row and just updates the scores to ctspecific
                 result = elementRows.map((obj) => {
@@ -323,30 +324,79 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                     o.ctcf = matchingObj.ctspecific.ctcf_zscore
                     o.atac = matchingObj.ctspecific.atac_zscore
                     return o
+                })
+                //handle logic for if there is a biosample selected and switch from ortho to all
+                if (!elementFilterVariables.mustHaveOrtholog && orthoFlag === true) {
+                    //refilter classes when unchecking ortholog
+                    const filteredClasses = allDataResult.filter(row => {
+                        return elementFilterVariables.classes[row.class] !== false;
+                    });
+                    //find ctspecific scores
+                    result = filteredClasses.map((obj) => {
+                        let o = { ...obj }
+                        let matchingObj = data.find((e) => o.accession == e.info.accession)
+                        o.dnase = matchingObj.ctspecific.dnase_zscore
+                        o.h3k4me3 = matchingObj.ctspecific.h3k4me3_zscore
+                        o.h3k27ac = matchingObj.ctspecific.h3k27ac_zscore
+                        o.ctcf = matchingObj.ctspecific.ctcf_zscore
+                        o.atac = matchingObj.ctspecific.atac_zscore
+                        return o
+                    })
+                    setAllElementRows(allDataResult.map((obj) => {
+                        let o = { ...obj }
+                        let matchingObj = data.find((e) => o.accession == e.info.accession)
+                        o.dnase = matchingObj.ctspecific.dnase_zscore
+                        o.h3k4me3 = matchingObj.ctspecific.h3k4me3_zscore
+                        o.h3k27ac = matchingObj.ctspecific.h3k27ac_zscore
+                        o.ctcf = matchingObj.ctspecific.ctcf_zscore
+                        o.atac = matchingObj.ctspecific.atac_zscore
+                        return o
+                    }))
                 }
-                )
+                if (elementRows.length == 0) {
+                    setAllElementRows(allDataResult)
+                }
+                setElementRows(result)
             }
             else {
-                if (elementRows.length > 0) {
-                    if(temp === true) {
-                        const filteredClasses = allDataResult.filter(row => {
-                            return elementFilterVariables.classes[row.class] !== false;
-                        });
-                        result = filteredClasses
-                        setTemp(false);
-                    } else {
+                if (!elementFilterVariables.mustHaveOrtholog) {
+                    //going from ortho view back to main view
+                    if (elementRows.length > 0) {
+                        //refilter classes when unchecking ortholog
+                        if (orthoFlag === true) {
+                            const filteredClasses = allDataResult.filter(row => {
+                                return elementFilterVariables.classes[row.class] !== false;
+                            });
+                            result = filteredClasses
+                            setOrthoFlag(false);
+                        } else {
+                            result = elementRows.map(mapFunc)
+                        }
+                    }
+                    else {
+                        result = allDataResult
+                    }
+                    setAllElementRows(allDataResult)
+                    setElementRows(result)
+                } else {
+                    //in ortho view and deselect biosample
+                    if (biosampleFlag === true) {
                         result = elementRows.map(mapFunc)
+                        setElementRows(result)
+                        setBiosampleFlag(false)
                     }
                 }
-                else {
-                    result = allDataResult
-                }
             }
-            setAllElementRows(allDataResult)
-            setElementRows(result)
-            console.log(result);
+                
         }
     })
+
+    useEffect(() => {
+        // Trigger refetch whenever mustHaveOrtholog changes
+        if(!elementFilterVariables.mustHaveOrtholog) {
+            refetch();
+        }
+    }, [elementFilterVariables.mustHaveOrtholog, refetch]);
 
     const { loading: loading_ortho, error: error_ortho } = useQuery(ORTHOLOG_QUERY, {
         variables: {
@@ -357,7 +407,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         client: client,
         fetchPolicy: 'cache-and-network',
         onCompleted(data) {
-            setTemp(true);
+            setOrthoFlag(true);
             const orthologMapping: { [accession: string]: string | undefined } = {};
 
             data.orthologQuery.forEach((entry: { accession: string; ortholog: Array<{ accession: string }> }) => {
