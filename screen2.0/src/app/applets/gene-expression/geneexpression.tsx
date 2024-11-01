@@ -5,7 +5,7 @@ import { useQuery } from "@apollo/client"
 import { Button, Typography, Stack, MenuItem, FormControl, InputLabel, OutlinedInput, Select, ToggleButton, ToggleButtonGroup, FormLabel, Tooltip, IconButton, Divider } from "@mui/material"
 import Grid from "@mui/material/Grid2"
 import Image from "next/image"
-import { HUMAN_GENE_EXP, humanTissues, MOUSE_GENE_EXP, mouseTissues } from "./const"
+import { humanTissues, mouseTissues } from "./const"
 import { GENE_EXP_QUERY, GENE_QUERY, GET_ORTHOLOG, GET_ORTHOLOG_DATA, GET_ORTHOLOG_VARS } from "./queries"
 import { ReadonlyURLSearchParams, usePathname, useSearchParams, useRouter } from "next/navigation"
 import ConfigureGBModal from "../../search/_ccredetails/configuregbmodal"
@@ -16,7 +16,6 @@ import { LoadingButton } from "@mui/lab"
 import DownloadDialog, { FileOption } from "../gwas/_lollipop-plot/DownloadDialog"
 import { capitalizeFirstLetter, downloadObjArrayAsTSV, downloadSVG, downloadSvgAsPng } from "../gwas/helpers"
 import VerticalBarPlot, { BarData } from "./BarPlot"
-import { GeneDataset } from "../../../graphql/__generated__/graphql"
 import { tissueColors } from "../../../common/lib/colors"
 import MultiSelect, { MultiSelectOnChange } from "./MultiSelect"
 
@@ -31,6 +30,9 @@ const initialTissues = (assembly: Assembly) => {
     return mouseTissues
   }
 }
+
+//extracted from generated types, needed the nested type to pass as type argument to BarData<T>
+type GeneDataset = { __typename?: 'GeneDataset', biosample: string, tissue?: string | null, cell_compartment?: string | null, biosample_type?: string | null, assay_term_name?: string | null, accession: string, gene_quantification_files?: Array<{ __typename?: 'GeneQuantificationFile', accession: string, biorep?: number | null, quantifications?: Array<{ __typename?: 'GeneQuantification', tpm: number, file_accession: string } | null> | null } | null> | null }
 
 export function GeneExpression(props: {
   assembly: Assembly
@@ -101,8 +103,7 @@ export function GeneExpression(props: {
   } = useQuery(GENE_EXP_QUERY, {
     variables: {
       assembly: assembly,
-      gene_id: dataGeneID && dataGeneID.gene.length > 0 && dataGeneID.gene[0].id.split(".")[0],
-      accessions: assembly === "GRCh38" ? HUMAN_GENE_EXP : MOUSE_GENE_EXP
+      gene_id: dataGeneID && dataGeneID.gene.length > 0 && dataGeneID.gene[0].id.split(".")[0]
     },
     skip: !gene || !dataGeneID || (dataGeneID && dataGeneID.gene.length === 0),
     fetchPolicy: "cache-and-network",
@@ -134,7 +135,7 @@ export function GeneExpression(props: {
         .filter(d => biosamples.includes(d.biosample_type)) //filter by sample type
         .filter((d) => tissues.includes(d.tissue)) //TODO put tissue filter here
         .filter(d => RNAtype === "all" || d.assay_term_name === RNAtype) //filter by RNA type
-        .filter(d => sampleMatchesSearch(d as GeneDataset))
+        .filter(d => sampleMatchesSearch(d))
       let parsedReplicates: BarData<GeneDataset>[] = []
       filteredData.forEach((biosample) => {
         if (replicates === "all") {
@@ -413,20 +414,20 @@ export function GeneExpression(props: {
       {/* Plot controls/filters */}
       <Stack direction="row" gap={2} flexWrap={"wrap"}>
        <FormControl>
-          <FormLabel>RNA Type</FormLabel>
+          <FormLabel>RNA-seq Type</FormLabel>
           <ToggleButtonGroup
             color="primary"
             value={RNAtype}
             exclusive
             onChange={handleRNATypeChange}
-            aria-label="RNA Type"
+            aria-label="RNA-seq Type"
             size="small"
           >
             {/* Human only has total RNA-seq, so disable other options when in human */}
-            <ToggleButton sx={{ textTransform: "none" }} value="total RNA-seq">Total RNA-seq</ToggleButton>
+            <ToggleButton sx={{ textTransform: "none" }} value="total RNA-seq">Total</ToggleButton>
             <Tooltip title={assembly === "GRCh38" && "Only available in mm10"}>
               <div> {/** div needed to show tooltip when button disabled */}
-                <ToggleButton disabled={assembly === "GRCh38"} sx={{ textTransform: "none" }} value="polyA plus RNA-seq">PolyA plus RNA-seq</ToggleButton>
+                <ToggleButton disabled={assembly === "GRCh38"} sx={{ textTransform: "none" }} value="polyA plus RNA-seq">PolyA+</ToggleButton>
               </div>
             </Tooltip>
             <Tooltip title={assembly === "GRCh38" && "Only available in mm10"}>
@@ -475,8 +476,8 @@ export function GeneExpression(props: {
             aria-label="Scale"
             size="small"
           >
-            <ToggleButton sx={{ textTransform: "none" }} value="mean">Average Replicates</ToggleButton>
-            <ToggleButton sx={{ textTransform: "none" }} value="all">Individual Replicates</ToggleButton>
+            <ToggleButton sx={{ textTransform: "none" }} value="mean">Average</ToggleButton>
+            <ToggleButton sx={{ textTransform: "none" }} value="all">Show Replicates</ToggleButton>
           </ToggleButtonGroup>
         </FormControl>
 
