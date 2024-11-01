@@ -5,7 +5,6 @@ import Autocomplete, { AutocompleteChangeDetails, AutocompleteChangeReason } fro
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import { Box, Divider, FormControlLabel, Paper } from '@mui/material';
-import { humanTissues, mouseTissues } from './const';
 
 function capitalizeWords(input: string): string {
   return input.replace(/\b\w/g, char => char.toUpperCase());
@@ -14,28 +13,31 @@ function capitalizeWords(input: string): string {
 const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
 const checkedIcon = <CheckBoxIcon fontSize="small" />;
 
-export type TissueMultiSelectOnChange = (event: React.SyntheticEvent, value: string[], reason: AutocompleteChangeReason, details?: AutocompleteChangeDetails<string | string[]>) => void
+export type MultiSelectOnChange = (event: React.SyntheticEvent, value: string[], reason: AutocompleteChangeReason, details?: AutocompleteChangeDetails<string | string[]>) => void
 
-export interface TissueMultiSelectProps {
-  assembly: "GRCh38" | "mm10"
-  onChange?: TissueMultiSelectOnChange
-  //Todo add disabled options with getOptionDisabled
+export interface MultiSelectProps {
+  onChange?: MultiSelectOnChange,
+  options: string[],
+  placeholder: string
+  limitTags?: number
+  //todo add width here
 }
 
-const TissueMultiSelect = ({
-  assembly,
-  onChange
-}: TissueMultiSelectProps) => {
-  const options = (assembly === "GRCh38" ? humanTissues : mouseTissues)
+const MultiSelect = ({
+  onChange,
+  options,
+  placeholder,
+  limitTags
+}: MultiSelectProps) => {
   const [value, setValue] = React.useState<string[] | null>(options);
   const scrollRef = React.useRef<number>(0) //needed to preserve the scroll position of the ListBox. Overriding PaperComponent changes the way that the Listbox renders and resets scroll on interaction
 
-  //reset value when assembly changes
+  //reset value when options changes
   React.useEffect(() => {
     setValue(options)
-  }, [assembly, options])
+  }, [options])
 
-  const handleChange: TissueMultiSelectOnChange = React.useCallback((event, value, reason, details?) => {
+  const handleChange: MultiSelectOnChange = React.useCallback((event, value, reason, details?) => {
     setValue(value)
     if (onChange) onChange(event, value, reason, details)
   }, [onChange])
@@ -95,7 +97,7 @@ const TissueMultiSelect = ({
      */
     <Autocomplete<string, true, false, false, undefined>
       multiple
-      limitTags={3}
+      limitTags={limitTags}
       size='small'
       value={value}
       onChange={handleChange}
@@ -104,9 +106,9 @@ const TissueMultiSelect = ({
       disableCloseOnSelect
       disablePortal
       slotProps={{ popper: { sx: { zIndex: 1 } } }} //used to make options appear under header
-      style={{ width: 500 }}
+      style={{ width: 400 }}
       renderInput={(params) => (
-        <TextField {...params} placeholder="Select Tissues" />
+        <TextField {...params} placeholder={placeholder} />
       )}
       //Immediate child of popper
       PaperComponent={(paperProps) => (
@@ -119,7 +121,7 @@ const TissueMultiSelect = ({
           >
             <FormControlLabel
               sx={{ zIndex: 10 }}
-              label="All Tissues"
+              label="Select All"
               control={
                 <Checkbox
                   size="small"
@@ -155,4 +157,4 @@ const TissueMultiSelect = ({
   );
 }
 
-export default TissueMultiSelect
+export default MultiSelect

@@ -2,7 +2,7 @@
 import React, { useCallback, useMemo, useRef, useState } from "react"
 import { LoadingMessage } from "../../../common/lib/utility"
 import { useQuery } from "@apollo/client"
-import { Button, Typography, Stack, MenuItem, FormControl, SelectChangeEvent, Checkbox, InputLabel, ListItemText, OutlinedInput, Select, ToggleButton, ToggleButtonGroup, FormLabel, Tooltip, IconButton } from "@mui/material"
+import { Button, Typography, Stack, MenuItem, FormControl, InputLabel, OutlinedInput, Select, ToggleButton, ToggleButtonGroup, FormLabel, Tooltip, IconButton, Divider } from "@mui/material"
 import Grid from "@mui/material/Grid2"
 import Image from "next/image"
 import { HUMAN_GENE_EXP, humanTissues, MOUSE_GENE_EXP, mouseTissues } from "./const"
@@ -18,20 +18,9 @@ import { capitalizeFirstLetter, downloadObjArrayAsTSV, downloadSVG, downloadSvgA
 import VerticalBarPlot, { BarData } from "./BarPlot"
 import { GeneDataset } from "../../../graphql/__generated__/graphql"
 import { tissueColors } from "../../../common/lib/colors"
-import TissueMultiSelect, { TissueMultiSelectOnChange } from "./TissueMultiSelect"
+import MultiSelect, { MultiSelectOnChange } from "./MultiSelect"
 
-const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 8.5 + ITEM_PADDING_TOP,
-      width: 200,
-    },
-  },
-};
-
-const biosampleTypes = ["cell line", "in vitro differentiated cells", "primary cell", "tissue"];
+const biosampleTypes = ["cell line", "primary cell", "tissue", "in vitro differentiated cells" ];
 
 type Assembly = "GRCh38" | "mm10"
 
@@ -59,7 +48,7 @@ export function GeneExpression(props: {
   const [gene, setGene] = useState<string>(props.genes ? props?.genes[0]?.name : (urlGene ?? "APOE"))
   const [dataAssembly, setDataAssembly] = useState<Assembly>(initialAssembly)
   const [searchAssembly, setSearchAssembly] = useState<Assembly>(initialAssembly)
-  const [biosamples, setBiosamples] = useState<string[]>(["cell line", "in vitro differentiated cells", "primary cell", "tissue"])
+  const [biosamples, setBiosamples] = useState<string[]>(biosampleTypes)
   const [tissues, setTissues] = useState<string[]>(() => initialTissues(initialAssembly))
   const [viewBy, setViewBy] = useState<"byTissueMaxTPM" | "byExperimentTPM" | "byTissueTPM">("byExperimentTPM")
   const [RNAtype, setRNAType] = useState<"all" | "polyA plus RNA-seq" | "total RNA-seq">("total RNA-seq")
@@ -263,17 +252,6 @@ export function GeneExpression(props: {
       setReplicates(newReplicates)
     }
   };
-
-  const handleBiosampleChange = (event: SelectChangeEvent<typeof biosampleTypes>) => {
-    const {
-      target: { value },
-    } = event;
-    setBiosamples(
-      // On autofill we get a stringified value.
-      typeof value === 'string' ? value.split(',') : value,
-    );
-  };
-
   const handleDownload = useCallback((selectedOptions: FileOption[]) => {
     if (selectedOptions.includes('svg')) { downloadSVG(plotRef, gene + '_gene_expression') }
     if (selectedOptions.includes('png')) { downloadSvgAsPng(plotRef, gene + '_gene_expression') }
@@ -310,8 +288,12 @@ export function GeneExpression(props: {
     )
   }, [scale])
 
-  const handleTissueSelect: TissueMultiSelectOnChange = (_, value) => {
+  const handleSetTissues: MultiSelectOnChange = (_, value) => {
     setTissues(value)
+  }
+
+  const handleSetBiosamples: MultiSelectOnChange = (_, value) => {
+    setBiosamples(value)
   }
 
   return (
@@ -431,29 +413,8 @@ export function GeneExpression(props: {
           </Select>
         </Grid>
       }
-      <Stack direction="row" gap={2} flexWrap={"wrap"} alignItems={"flex-end"}>
-        <FormControl sx={{ width: 300 }}>
-          <FormLabel>Biosample Types</FormLabel>
-          <Select
-            labelId="demo-multiple-checkbox-label"
-            id="demo-multiple-checkbox"
-            multiple
-            size="small"
-            value={biosamples}
-            onChange={handleBiosampleChange}
-            input={<OutlinedInput size="medium" />}
-            renderValue={(selected) => selected.join(', ')}
-            MenuProps={MenuProps}
-          >
-            {biosampleTypes.map((name) => (
-              <MenuItem key={name} value={name}>
-                <Checkbox checked={biosamples.indexOf(name) > -1} />
-                <ListItemText primary={name} />
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
+      {/* Plot controls/filters */}
+      <Stack direction="row" gap={2} flexWrap={"wrap"}>
         {/* RNA Type, hide for human as all data is total RNA-seq */}
         {dataAssembly === "mm10" && <FormControl>
           <FormLabel>RNA Type</FormLabel>
@@ -513,22 +474,43 @@ export function GeneExpression(props: {
             <ToggleButton sx={{ textTransform: "none" }} value="all">Individual Replicates</ToggleButton>
           </ToggleButtonGroup>
         </FormControl>
+
+        <FormControl>
+          <FormLabel>{biosamples.length === biosampleTypes.length ? "Biosample Types" : <i>Biosample Types*</i>}</FormLabel>
+          <MultiSelect
+            options={biosampleTypes}
+            onChange={handleSetBiosamples}
+            placeholder="Filter Biosamples"
+            limitTags={2}
+          />
+        </FormControl>
+        <FormControl>
+          <FormLabel>{tissues.length === initialTissues(dataAssembly).length ? "Tissues" : <i>Tissues*</i>}</FormLabel>
+          <MultiSelect
+            options={dataAssembly === "GRCh38" ? humanTissues : mouseTissues}
+            onChange={handleSetTissues}
+            placeholder="Filter Tissues"
+            limitTags={2}
+          />
+        </FormControl>
+      </Stack>
+      <Divider />
+      <Stack direction={"row"} gap={2} flexWrap={"wrap"}>
         <FormControl sx={{ minWidth: 150 }}>
-          <InputLabel size='small' style={{zIndex: 0}}>Search Samples</InputLabel>
-          <OutlinedInput size='small' endAdornment={search ? <IconButton onClick={() => setSearch("")}><Close /></IconButton> : <Search />} label="Search Samples" value={search} onChange={handleSetSearch} />
+          <InputLabel size='small' style={{ zIndex: 0 }}>Search Samples</InputLabel>
+          <OutlinedInput
+            size='small'
+            endAdornment={search ? <IconButton onClick={() => setSearch("")}><Close /></IconButton> : <Search />}
+            label="Search Samples"
+            placeholder="ID, Tissue, Biosample"
+            value={search}
+            onChange={handleSetSearch} />
         </FormControl>
         <Tooltip title="Select from SVG (plot), PNG (plot), or TSV (data)">
           <Button disabled={!gene} variant="outlined" endIcon={<Download />} sx={{ textTransform: 'none', height: 40, flexShrink: 0 }} onClick={() => setDownloadOpen(true)}>
             Download
           </Button>
         </Tooltip>
-        <FormControl>
-          <FormLabel>Tissues</FormLabel>
-          <TissueMultiSelect 
-            assembly={dataAssembly}
-            onChange={handleTissueSelect}
-          />
-        </FormControl>
       </Stack>
       {
         loadingGeneID || loadingExperiments ?
@@ -559,7 +541,7 @@ export function GeneExpression(props: {
       {/* Configure Trackhub */}
       <ConfigureGBModal
         coordinates={{
-          assembly: props.assembly,
+          assembly: dataAssembly,
           chromosome: dataGeneID?.gene[0]?.coordinates.chromosome,
           start: dataGeneID?.gene[0]?.coordinates.start,
           end: dataGeneID?.gene[0]?.coordinates.end,
