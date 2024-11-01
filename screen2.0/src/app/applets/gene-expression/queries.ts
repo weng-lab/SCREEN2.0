@@ -1,8 +1,8 @@
 import { gql } from "../../../graphql/__generated__/gql"
 
 export const GENE_EXP_QUERY = gql(`
-query geneexpression($assembly: String!, $accessions: [String], $gene_id: [String]) {
-  gene_dataset(accession: $accessions) {
+query geneexpression($assembly: String!, $gene_id: [String]) {
+  gene_dataset(processed_assembly: $assembly) {
     biosample
     tissue
   	cell_compartment
