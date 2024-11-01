@@ -334,6 +334,7 @@ export function GeneExpression(props: {
             <MenuItem value={"mm10"}>mm10</MenuItem>
           </Select>
           <GeneAutocomplete
+            key={assembly} //force reset of component state when assembly changes. Without this, the value of the component is old gene when toggling to ortholog
             assembly={assembly}
             slotProps={{
               autocompleteProps: {

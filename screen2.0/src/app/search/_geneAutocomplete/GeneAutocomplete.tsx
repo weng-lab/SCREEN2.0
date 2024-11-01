@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react"
+import React, { useState, useEffect, useMemo, useCallback } from "react"
 import Box from "@mui/material/Box"
 import Grid from "@mui/material/Grid2"
 import Typography from "@mui/material/Typography"
@@ -24,20 +24,18 @@ export const GeneAutocomplete = (
     slotProps,
     endIcon = 'search',
     CustomEndIcon,
-    //  onIconClick, 
-    onTextBoxClick,
     onGeneSelected,
     onGeneSubmitted,
     renderOption,
     colorTheme
   } = props;
-
-  const [inputValue, setInputValue] = useState("")
+  const [value, setValue] = useState<GeneInfo>(props.slotProps?.autocompleteProps?.defaultValue)
+  const [inputValue, setInputValue] = useState<string>("")
   const [options, setOptions] = useState<GeneInfo[]>([])
   const [descriptions, setDescriptions] = useState<{ name: string; desc: string }[]>([])
   const [loadingOptions, setLoadingOptions] = useState<boolean>(false)
 
-  //Fetch gene desciptions
+  //Fetch and set gene desciptions. Descriptions should probably not be it's own state variable, but rather added to options
   useEffect(() => {
     const fetchData = async () => {
       const descriptions = await Promise.all(
@@ -62,6 +60,7 @@ export const GeneAutocomplete = (
     if (options) fetchData()
   }, [options])
 
+  //handles setting options on search change
   const onSearchChange = async (value: string, assembly: string) => {
     setOptions([])
     setLoadingOptions(true)
@@ -91,15 +90,14 @@ export const GeneAutocomplete = (
           }
         }
       })
-      setOptions(g)
+      setOptions(g.sort((a, b) => a.name.localeCompare(b.name)))
     } else if (genesSuggestion && genesSuggestion.length === 0) {
       setOptions([])
     }
     setLoadingOptions(false)
   }
 
-  const debounceFn = useMemo(() => debounce(onSearchChange, 500), [])
-
+  const debounceOnSearchChange = useMemo(() => debounce(onSearchChange, 500), [])
 
   // Merge the ListboxProps
   const mergedListboxProps = {
@@ -141,39 +139,57 @@ export const GeneAutocomplete = (
       ...slotProps?.inputTextFieldProps?.sx
     }
   }
-  
-  const attemptSubmit = (inputVal: string) => {
-    const gene = options.find(x => x.name.toLowerCase() === inputVal.toLowerCase())
-    if (gene) {
-      setInputValue(gene.name)
-      if (onGeneSubmitted) onGeneSubmitted(gene)
-    }
+
+  //changes to text input
+  const handleInputChange = (
+    _,
+    value: string,
+  ) => {
+    if (value != "") { debounceOnSearchChange(value, assembly) } //fetch new gene suggestions
+    setInputValue(value)
   }
+  
+  //changes to value of component
+  const handleChange = (
+    _,
+    value: GeneInfo,
+  ) => {
+    setValue(value)
+    if (onGeneSelected) onGeneSelected(value)
+  }
+
+  //checks for enter key and tries to match with listed options
+  const handleKeyDown = useCallback((
+    event: React.KeyboardEvent<HTMLDivElement> & { defaultMuiPrevented?: boolean;}
+  ) => {
+    if (event.key === "Enter") {
+      const matchingGene = options.find(x => x.name.toLowerCase() === inputValue.toLowerCase())
+      if (matchingGene) {
+        setValue(matchingGene)
+        if (onGeneSubmitted) onGeneSubmitted(matchingGene)
+      }
+    }
+  }, [inputValue, onGeneSubmitted, options])
+
+  const handleIconClick = useCallback(() => {
+    if (onGeneSubmitted && value) onGeneSubmitted(value)
+  }, [onGeneSubmitted, value])
 
   return (
     <Stack direction="row" spacing={2} {...slotProps?.stackProps}>
       <Autocomplete
         multiple={false} //How can I easily support this
         ListboxProps={mergedListboxProps}
-        options={options.sort((a, b) => a.name.localeCompare(b.name))} //How do I type this properly?
+        options={options}
+        value={value}
         inputValue={inputValue}
-        onInputChange={(_, newInputValue) => {
-          if (newInputValue != "") {
-            debounceFn(newInputValue, assembly) // This triggers sending new request for genes
-          }
-          setInputValue(newInputValue)
-        }}
-        onChange={(_, value) => onGeneSelected && onGeneSelected(value)} //Should I just expose the whole onChange function?
-        onKeyDown={(event) => {
-          if (event.key === "Enter") {
-            attemptSubmit(inputValue)
-          }
-        }}
+        onInputChange={handleInputChange}
+        onChange={handleChange} //Should I just expose the whole onChange function?
+        onKeyDown={handleKeyDown}
         noOptionsText={loadingOptions ? "Loading..." : "No Genes Found"} //Maybe expose?
         renderInput={(params) => (
           <i>
             <TextField
-              onClick={onTextBoxClick}
               {...params}
               {...mergedTextFieldProps}
             />
@@ -207,7 +223,7 @@ export const GeneAutocomplete = (
         <IconButton
           aria-label="Search"
           type="submit"
-          onClick={() => attemptSubmit(inputValue)}
+          onClick={handleIconClick}
           {...mergedIconProps}
         >
           {CustomEndIcon ?
