@@ -46,8 +46,7 @@ export function GeneExpression(props: {
 
   //If genes passed as prop, use those. This is case in cCRE Details. Else use url gene if passed, default to APOE
   const [gene, setGene] = useState<string>(props.genes ? props?.genes[0]?.name : (urlGene ?? "APOE"))
-  const [dataAssembly, setDataAssembly] = useState<Assembly>(initialAssembly)
-  const [searchAssembly, setSearchAssembly] = useState<Assembly>(initialAssembly)
+  const [assembly, setAssembly] = useState<Assembly>(initialAssembly)
   const [biosamples, setBiosamples] = useState<string[]>(biosampleTypes)
   const [tissues, setTissues] = useState<string[]>(() => initialTissues(initialAssembly))
   const [viewBy, setViewBy] = useState<"byTissueMaxTPM" | "byExperimentTPM" | "byTissueTPM">("byExperimentTPM")
@@ -86,9 +85,9 @@ export function GeneExpression(props: {
     loading: loadingGeneID
   } = useQuery(GENE_QUERY, {
     variables: {
-      assembly: dataAssembly.toLowerCase(),
+      assembly: assembly.toLowerCase(),
       name: [gene],
-      version: dataAssembly === "GRCh38" ? 40 : 25
+      version: assembly === "GRCh38" ? 40 : 25
     },
     skip: !gene,
     fetchPolicy: "cache-and-network",
@@ -101,9 +100,9 @@ export function GeneExpression(props: {
     loading: loadingExperiments
   } = useQuery(GENE_EXP_QUERY, {
     variables: {
-      assembly: dataAssembly,
+      assembly: assembly,
       gene_id: dataGeneID && dataGeneID.gene.length > 0 && dataGeneID.gene[0].id.split(".")[0],
-      accessions: dataAssembly === "GRCh38" ? HUMAN_GENE_EXP : MOUSE_GENE_EXP
+      accessions: assembly === "GRCh38" ? HUMAN_GENE_EXP : MOUSE_GENE_EXP
     },
     skip: !gene || !dataGeneID || (dataGeneID && dataGeneID.gene.length === 0),
     fetchPolicy: "cache-and-network",
@@ -113,7 +112,7 @@ export function GeneExpression(props: {
   const { data: dataOrtholog, loading: loadingOrtholog, error: errorOrtholog } = useQuery<GET_ORTHOLOG_DATA, GET_ORTHOLOG_VARS>(GET_ORTHOLOG, {
     variables: {
       name: [gene],
-      assembly: dataAssembly.toLowerCase() as "mm10" | "grch38"
+      assembly: assembly.toLowerCase() as "mm10" | "grch38"
     },
     skip: !gene
   })
@@ -196,24 +195,15 @@ export function GeneExpression(props: {
     } else return []
   }, [RNAtype, biosamples, dataExperiments, replicates, sampleMatchesSearch, scaleData, tissues, viewBy])
 
-  //Handle assembly switch for search
-  const handleSetDataAssembly = (newAssembly: Assembly) => {
-    if (props.applet) {
-      setDataAssembly(newAssembly)
-
+  const handleSetAssembly = (newAssembly: Assembly) => {
+    if (props.applet) { //only allow switch in applet. Check should never fail but keeping
+      setAssembly(newAssembly)
       if (newAssembly === "GRCh38") {
         setTissues(humanTissues) //Reset Tissue Filter
         setRNAType("total RNA-seq") //Switch back RNA type if going from mouse to human, as all data there is total
       } else {
         setTissues(mouseTissues) //Reset Tissue Filter
       }
-    }
-  }
-
-  //handler assembly switch for searching
-  const handleSetSearchAssembly = (newAssembly: Assembly) => {
-    if (props.applet) {
-      setSearchAssembly(newAssembly)
     }
   }
 
@@ -252,6 +242,7 @@ export function GeneExpression(props: {
       setReplicates(newReplicates)
     }
   };
+  
   const handleDownload = useCallback((selectedOptions: FileOption[]) => {
     if (selectedOptions.includes('svg')) { downloadSVG(plotRef, gene + '_gene_expression') }
     if (selectedOptions.includes('png')) { downloadSvgAsPng(plotRef, gene + '_gene_expression') }
@@ -296,6 +287,10 @@ export function GeneExpression(props: {
     setBiosamples(value)
   }
 
+  const handleSetGene = (newGene: string) => {
+    setGene(newGene)
+  }
+
   return (
     <Stack spacing={2}>
       <Stack direction="row" justifyContent={"space-between"}>
@@ -328,15 +323,18 @@ export function GeneExpression(props: {
       {props.applet ?
         <Stack direction="row" gap={2} flexWrap={"wrap"}>
           <Select
-            value={searchAssembly}
+            value={assembly}
             variant="outlined"
-            onChange={(event) => handleSetSearchAssembly(event.target.value as "GRCh38" | "mm10")}
+            onChange={(event) => {
+              handleSetAssembly(event.target.value as Assembly)
+              handleSetGene(null) //clear gene since it's no longer valid with selected assembly
+            }}
           >
             <MenuItem value={"GRCh38"}>GRCh38</MenuItem>
             <MenuItem value={"mm10"}>mm10</MenuItem>
           </Select>
           <GeneAutocomplete
-            assembly={searchAssembly}
+            assembly={assembly}
             slotProps={{
               autocompleteProps: {
                 fullWidth: true,
@@ -356,14 +354,12 @@ export function GeneExpression(props: {
             endIcon="none"
             colorTheme={"light"}
             onGeneSelected={(gene: GeneInfo) => {
-              setGene(gene ? gene.name : null)
-              handleSetDataAssembly(searchAssembly)
-              router.push(`${pathname}?assembly=${searchAssembly}&gene=${gene ? gene.name : ''}`)
+              handleSetGene(gene ? gene.name : null)
+              router.push(`${pathname}?assembly=${assembly}&gene=${gene ? gene.name : ''}`)
             }}
             onGeneSubmitted={(gene: GeneInfo) => {
-              setGene(gene ? gene.name : null)
-              handleSetDataAssembly(searchAssembly)
-              router.push(`${pathname}?assembly=${searchAssembly}&gene=${gene ? gene.name : ''}`)
+              handleSetGene(gene ? gene.name : null)
+              router.push(`${pathname}?assembly=${assembly}&gene=${gene ? gene.name : ''}`)
             }}
           />
           <LoadingButton
@@ -373,19 +369,19 @@ export function GeneExpression(props: {
             variant="outlined"
             endIcon={<SyncAlt />}
             onClick={() => {
-              const newGene = dataOrtholog.geneOrthologQuery[0][dataAssembly === "GRCh38" ? 'mouseGene' : 'humanGene']
-              const newAssembly = dataAssembly === "GRCh38" ? "mm10" : "GRCh38"
-              setGene(newGene)
-              handleSetDataAssembly(newAssembly)
+              const newGene = dataOrtholog.geneOrthologQuery[0][assembly === "GRCh38" ? 'mouseGene' : 'humanGene']
+              const newAssembly = assembly === "GRCh38" ? "mm10" : "GRCh38"
+              handleSetGene(newGene)
+              handleSetAssembly(newAssembly)
               router.push(`${pathname}?assembly=${newAssembly}&gene=${newGene}`)
             }}
           >
             {dataOrtholog?.geneOrthologQuery.length > 0 ?
               <>
-              {`Go to ${dataAssembly === "GRCh38" ? "mm10" : "GRCh38"} ortholog:`}&thinsp;<i>{dataOrtholog?.geneOrthologQuery[0][dataAssembly === "GRCh38" ? 'mouseGene' : 'humanGene']}</i>
+              {`Go to ${assembly === "GRCh38" ? "mm10" : "GRCh38"} ortholog:`}&thinsp;<i>{dataOrtholog?.geneOrthologQuery[0][assembly === "GRCh38" ? 'mouseGene' : 'humanGene']}</i>
               </>
               :
-              `No ortholog found in ${dataAssembly === "GRCh38" ? "mm10" : "GRCh38"}`
+              `No ortholog found in ${assembly === "GRCh38" ? "mm10" : "GRCh38"}`
             }
           </LoadingButton>
         </Stack>
@@ -403,7 +399,7 @@ export function GeneExpression(props: {
                   key={gene.name}
                   sx={{ display: "block" }}
                   value={gene.name}
-                  onClick={() => setGene(gene.name)}
+                  onClick={() => handleSetGene(gene.name)}
                 >
                   <Typography><i>{gene.name}</i></Typography>
                   {gene?.linkedBy && <Typography variant="body2" color={"text.secondary"}>Linked By: {gene.linkedBy.join(', ')}</Typography>}
@@ -415,8 +411,7 @@ export function GeneExpression(props: {
       }
       {/* Plot controls/filters */}
       <Stack direction="row" gap={2} flexWrap={"wrap"}>
-        {/* RNA Type, hide for human as all data is total RNA-seq */}
-        {dataAssembly === "mm10" && <FormControl>
+       <FormControl>
           <FormLabel>RNA Type</FormLabel>
           <ToggleButtonGroup
             color="primary"
@@ -426,11 +421,20 @@ export function GeneExpression(props: {
             aria-label="RNA Type"
             size="small"
           >
+            {/* Human only has total RNA-seq, so disable other options when in human */}
             <ToggleButton sx={{ textTransform: "none" }} value="total RNA-seq">Total RNA-seq</ToggleButton>
-            <ToggleButton sx={{ textTransform: "none" }} value="polyA plus RNA-seq">PolyA plus RNA-seq</ToggleButton>
-            <ToggleButton sx={{ textTransform: "none" }} value="all">All</ToggleButton>
+            <Tooltip title={assembly === "GRCh38" && "Only available in mm10"}>
+              <div> {/** div needed to show tooltip when button disabled */}
+                <ToggleButton disabled={assembly === "GRCh38"} sx={{ textTransform: "none" }} value="polyA plus RNA-seq">PolyA plus RNA-seq</ToggleButton>
+              </div>
+            </Tooltip>
+            <Tooltip title={assembly === "GRCh38" && "Only available in mm10"}>
+              <div>
+                <ToggleButton disabled={assembly === "GRCh38"} sx={{ textTransform: "none" }} value="all">All</ToggleButton>
+              </div>
+            </Tooltip>
           </ToggleButtonGroup>
-        </FormControl>}
+        </FormControl>
         <FormControl>
           <FormLabel>Scale</FormLabel>
           <ToggleButtonGroup
@@ -485,9 +489,9 @@ export function GeneExpression(props: {
           />
         </FormControl>
         <FormControl>
-          <FormLabel>{tissues.length === initialTissues(dataAssembly).length ? "Tissues" : <i>Tissues*</i>}</FormLabel>
+          <FormLabel>{tissues.length === initialTissues(assembly).length ? "Tissues" : <i>Tissues*</i>}</FormLabel>
           <MultiSelect
-            options={dataAssembly === "GRCh38" ? humanTissues : mouseTissues}
+            options={assembly === "GRCh38" ? humanTissues : mouseTissues}
             onChange={handleSetTissues}
             placeholder="Filter Tissues"
             limitTags={2}
@@ -527,7 +531,7 @@ export function GeneExpression(props: {
             <Grid size={12}>
               <VerticalBarPlot
                 data={plotData}
-                topAxisLabel={(gene + " Gene Expression in " + dataAssembly + ' - ') + (scale === "linearTPM" ? "Linear TPM" : "Log10(TPM + 1)")}
+                topAxisLabel={(gene + " Gene Expression in " + assembly + ' - ') + (scale === "linearTPM" ? "Linear TPM" : "Log10(TPM + 1)")}
                 SVGref={plotRef}
                 onBarClicked={(x) => window.open("https://www.encodeproject.org/experiments/" + x.metadata.accession, "_blank", "noopener,noreferrer")}
                 TooltipContents={(bar) => <PlotTooltip {...bar} />}
@@ -541,7 +545,7 @@ export function GeneExpression(props: {
       {/* Configure Trackhub */}
       <ConfigureGBModal
         coordinates={{
-          assembly: dataAssembly,
+          assembly: assembly,
           chromosome: dataGeneID?.gene[0]?.coordinates.chromosome,
           start: dataGeneID?.gene[0]?.coordinates.start,
           end: dataGeneID?.gene[0]?.coordinates.end,
