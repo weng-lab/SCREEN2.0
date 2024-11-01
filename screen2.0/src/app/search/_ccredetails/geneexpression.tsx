@@ -6,7 +6,6 @@ import { useQuery } from "@apollo/client"
 import { Button, Typography, Stack, MenuItem, FormControl, SelectChangeEvent, Checkbox, InputLabel, ListItemText, OutlinedInput, Select, ToggleButton, ToggleButtonGroup, FormLabel, Box } from "@mui/material"
 import Grid from "@mui/material/Grid2"
 import Image from "next/image"
-import { HUMAN_GENE_EXP, MOUSE_GENE_EXP } from "../../applets/gene-expression/const"
 import { GENE_EXP_QUERY, GENE_QUERY, GET_ORTHOLOG, GET_ORTHOLOG_DATA, GET_ORTHOLOG_VARS } from "../../applets/gene-expression/queries"
 import { ReadonlyURLSearchParams, usePathname, useSearchParams, useRouter } from "next/navigation"
 import ConfigureGBModal from "./configuregbmodal"
@@ -91,8 +90,7 @@ export function GeneExpression(props: {
   } = useQuery(GENE_EXP_QUERY, {
     variables: {
       assembly: dataAssembly,
-      gene_id: dataGeneID && dataGeneID.gene.length > 0 && dataGeneID.gene[0].id.split(".")[0],
-      accessions: dataAssembly === "GRCh38" ? HUMAN_GENE_EXP : MOUSE_GENE_EXP
+      gene_id: dataGeneID && dataGeneID.gene.length > 0 && dataGeneID.gene[0].id.split(".")[0]      
     },
     skip: !gene || !dataGeneID || (dataGeneID && dataGeneID.gene.length === 0),
     fetchPolicy: "cache-and-network",
