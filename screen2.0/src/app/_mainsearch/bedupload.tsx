@@ -37,7 +37,7 @@ export function getIntersect(getOutput, inputData, assembly, successF, errF) {
     client: client,
     fetchPolicy: 'cache-and-network',
     onCompleted(data) {
-      successF(data['intersection'])
+      successF(data['intersection'], inputData.slice(0, 1000))
     },
     onError(error) {
         errF(error)
@@ -81,7 +81,7 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean, apple
       reader.onload = (r) => {
         const contents = r.target.result
         const lines = contents.toString()
-        allLines = parseDataInput(lines)
+        allLines = parseDataInput(lines).slice(0, 1000)
       }
       reader.onabort = () => console.log("file reading was aborted")
       reader.onerror = () => console.log("file reading has failed")
@@ -103,7 +103,7 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean, apple
               window.open(`/search?intersect=t&assembly=${props.assembly}`, "_self")
             }
             else {
-              props.appletCallback(data)
+              props.appletCallback(data, allLines)
               setLoading(false)
             }
 
@@ -191,7 +191,7 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean, apple
             endIcon={<Search />}
           >
             <span>
-              Find Intersecting cCREs
+              Submit
             </span>
           </LoadingButton>
         </>

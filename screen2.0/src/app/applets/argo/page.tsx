@@ -36,7 +36,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     const [inputRegions, setInputRegions] = useState<GenomicRegion[]>([]);
     const [mainRanks, setMainRanks] = useState<RankedRegions>([]);
     const [sequenceRanks, setSequenceRanks] = useState<RankedRegions>([]);
-    const [elementRanks, setElementRanks] = useState<RankedRegions>([]);
+    // const [elementRanks, setElementRanks] = useState<RankedRegions>([]);
     const [geneRanks, setGeneRanks] = useState<RankedRegions>([]);
     const [mainRows, setMainRows] = useState<MainTableRow[]>([]) // Data displayed on the main table
     const [allMainRows, setAllMainRows] = useState<MainTableRow[]>([]) // All main rows recieved from bedupload
@@ -183,7 +183,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
          * correctly populate row values
          */
         if (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs) {
-            cols.push({ header: "Seqence", HeaderRender: () => <MainColHeader tableName="Sequence" onClick={() =>  setShownTable("sequence")} />, value: (row) => "N/A" })
+            cols.push({ header: "Seqence", HeaderRender: () => <MainColHeader tableName="Sequence" onClick={() => setShownTable("sequence")} />, value: (row) => "N/A" })
         }
         elementFilterVariables.usecCREs && cols.push({ header: "Element", HeaderRender: () => <MainColHeader tableName="Element" onClick={() => setShownTable("element")} />, value: (row) => row.elementRank })
         geneFilterVariables.useGenes && cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Gene" onClick={() => setShownTable("gene")} />, value: (row) => "N/A" })
@@ -200,7 +200,6 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         ]
         /**
          * @todo
-         * correctly populate input region
          * correctly populate row values
          */
 
@@ -248,15 +247,11 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     const elementColumns: DataTableColumn<ElementTableRow>[] = useMemo(() => {
 
         const cols: DataTableColumn<ElementTableRow>[] = [
-            { header: "Input Region", value: (row) => `${row.inputRegion.chr}:${row.inputRegion.start}-${row.inputRegion.end}`, sort: (a, b) => a.inputRegion.start - b.inputRegion.start },
+            { header: "Genomic Region", value: (row) => `${row.region.chr}:${row.region.start}-${row.region.end}`, sort: (a, b) => a.region.start - b.region.start },
             { header: "Class", value: (row) => row.class === "PLS" ? "Promoter" : row.class === "pELS" ? "Proximal Enhancer" : row.class === "dELS" ? "Distal Enhancer" : row.class },
             { header: "Accession", value: (row) => row.accession },
         ]
-        /**
-         * @todo
-         * correctly populate input region
-         * correctly populate row values
-         */
+
         if (elementFilterVariables.usecCREs) {
             elementFilterVariables.mustHaveOrtholog && cols.push({ header: "Orthologous Accesion", value: (row) => row.ortholog })
             elementFilterVariables.assays.dnase && cols.push({ header: "DNase", value: (row) => row.dnase !== null ? row.dnase.toFixed(2) : null })
@@ -303,12 +298,16 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                         // chr, start, stop should be of user uploaded file and not of our files hence not index 0,1,2
 
                         accession: e[4],
-                        user_id: `${e[6]}_${e[7]}_${e[8]}${(e[9] && e[10]) ? '_' + e[9] : ''}`,
                         linked_genes: [],
-                        inputRegion: {
+                        region: {
                             chr: e[0],
                             start: e[1],
                             end: e[2]
+                        },
+                        inputRegion: {
+                            chr: e[6],
+                            start: e[7],
+                            end: e[8]
                         }
                     }
                 })
@@ -387,13 +386,13 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                     }
                 }
             }
-                
+
         }
     })
 
     useEffect(() => {
         // Trigger refetch whenever mustHaveOrtholog changes
-        if(!elementFilterVariables.mustHaveOrtholog) {
+        if (!elementFilterVariables.mustHaveOrtholog && intersectData.length > 0) {
             refetch();
         }
     }, [elementFilterVariables.mustHaveOrtholog, refetch]);
@@ -450,32 +449,43 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         setShownTable(null)
     }
 
-    function appletCallBack(data) {
+    function appletCallBack(data, inputData) {
         updateElementFilter('selectedBiosample', null)
         setIntersectData(data)
         setSequenceRows([])
         setAllElementRows([])
         setElementRows([])
         setGeneRows([])
-        configureInputedRegions(data)
         setDrawerOpen(true)
         setShownTable(null)
-        const initialMainRows = data.map(item => ({
-            inputRegion: {
+        if (inputData !== undefined) {
+            configureInputedRegions(inputData)
+            const initialMainRows = inputData.map(item => ({
+                inputRegion: {
+                    chr: item[0],
+                    start: Number(item[1]),
+                    end: Number(item[2])
+                },
+            }));
+            setMainRows(initialMainRows);
+            setAllMainRows(initialMainRows);
+            const initialMainRanks = inputData.map(item => ({
                 chr: item[0],
                 start: Number(item[1]),
-                end: Number(item[2])
-            },
-        }));
-        setMainRows(initialMainRows);
-        setAllMainRows(initialMainRows);
-        const initialMainRanks = data.map(item => ({
-            chr: item[0],
-            start: Number(item[1]),
-            end: Number(item[2]),
-            rank: 0
-        }));
-        setMainRanks(initialMainRanks);
+                end: Number(item[2]),
+                rank: 0
+            }));
+            setMainRanks(initialMainRanks);
+        }
+    }
+
+    function handleTextUpload(event) {
+        let uploadedData = event.get("textUploadFile").toString()
+        let inputData = parseDataInput(uploadedData)
+        if (inputData !== undefined) {
+            configureInputedRegions(inputData)
+        }
+        getIntersect(getOutput, inputData, "GRCh38", appletCallBack, console.error)
     }
 
     function configureInputedRegions(data) {
@@ -499,15 +509,11 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         });
 
         setInputRegions(sortedRegions);
-    }
 
-    function handleTextUpload(event) {
-        let uploadedData = event.get("textUploadFile").toString()
-        getIntersect(getOutput, parseDataInput(uploadedData), "GRCh38", appletCallBack, console.error)
     }
 
     // Generate element ranks
-    useMemo(() => {
+    const elementRanks = useMemo<RankedRegions>(() => {
         const assayRanks: { [key: number]: AssayRankEntry } = {};
 
         //assign a rank to each assay
@@ -539,7 +545,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         });
 
         // add up all assay ranks
-        const scoresWithRegions = Object.values(assayRanks).map((row) => {
+        const totalAssayRanks = Object.values(assayRanks).map((row) => {
             const totalRank = assayNames.reduce((sum, assay) => {
                 return elementFilterVariables.assays[assay] ? sum + (row.ranks[assay] || 0) : sum;
             }, 0);
@@ -552,19 +558,30 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
             };
         });
 
-        // Sort by total rank score in ascending order and assign ranks
-        const rankedRegions = scoresWithRegions
-            .sort((a, b) => a.totalRank - b.totalRank)
-            .map((region, index) => ({
+        // Sort by total rank score in ascending order
+        const rankedRegions = [];
+        totalAssayRanks.sort((a, b) => a.totalRank - b.totalRank);
+
+        // Assign ranks, accounting for ties
+        let currentRank = 1;
+        let prevTotalRank = null;
+
+        totalAssayRanks.forEach((region, index) => {
+            if (region.totalRank !== prevTotalRank) {
+                currentRank = index + 1;
+                prevTotalRank = region.totalRank;
+            }
+            rankedRegions.push({
                 chr: region.chr,
                 start: region.start,
                 end: region.end,
-                rank: region.totalRank === 0 ? 0 : index + 1
-            }));
-
-        setElementRanks(rankedRegions);
+                rank: region.totalRank === 0 ? 0 : currentRank,
+            });
+        });
+        return rankedRegions;
 
     }, [elementRows, elementFilterVariables, allElementRows]);
+
 
     // Remove filtered classes from element table
     useMemo(() => {
@@ -577,7 +594,6 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     //update aggregate rank
     useMemo(() => {
         if (sequenceRanks.length === 0 && elementRanks.length === 0 && geneRanks.length === 0) return;
-
         const updatedMainRanks = mainRanks.map(row => {
             // Find matching ranks based on inputRegion coordinates
             const matchingSequence = sequenceRanks.find(seq =>
@@ -615,7 +631,6 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     //update main table ranks
     useMemo(() => {
         if (elementRanks.length === 0) return;
-
         const updatedMainRows = allMainRows.map(row => {
             // Find the matching rank for this `inputRegion`
             const matchingElement = elementRanks.find(
