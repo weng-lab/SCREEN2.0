@@ -75,7 +75,7 @@
     "tailwindcss": "3.4.13",
     "umap-js": "1.4.0",
     "umms-gb": "^3.10.0",
-    "uuid": "^10.0.0"
+    "uuid": "^11.0.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",
