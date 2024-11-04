@@ -271,124 +271,92 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
             accessions: intersectData.map((r) => r[4]),
             cellType: elementFilterVariables.selectedBiosample ? elementFilterVariables.selectedBiosample.name : null
         },
-        skip: intersectData.length == 0,
+        skip: intersectData.length === 0,
         client: client,
         fetchPolicy: 'cache-and-network',
         onCompleted(d) {
-            setBiosampleFlag(true)
-            let data = d['cCRESCREENSearch']
-            let result = null
-            let mapFunc = (obj) => {
-                let o = { ...obj }
-                let matchingObj = data.find((e) => o.accession == e.info.accession)
-                o.dnase = matchingObj.dnase_zscore
-                o.h3k4me3 = matchingObj.promoter_zscore
-                o.h3k27ac = matchingObj.enhancer_zscore
-                o.ctcf = matchingObj.ctcf_zscore
-                o.atac = matchingObj.atac_zscore
-                o.class = matchingObj.pct
-                return o
-            }
-            let allDataResult = intersectData
-                .map((e) => {
-                    return {
-                        // This is annoying because currently an array of objects is not being returned
-                        // The order of the array is the same as the order of the ccre file
-                        // Index 4 is accessions, 6 is chr, 7 is start, 8 is stop 
-                        // chr, start, stop should be of user uploaded file and not of our files hence not index 0,1,2
-
-                        accession: e[4],
-                        linked_genes: [],
-                        region: {
-                            chr: e[0],
-                            start: e[1],
-                            end: e[2]
-                        },
-                        inputRegion: {
-                            chr: e[6],
-                            start: e[7],
-                            end: e[8]
-                        }
-                    }
-                })
-                .map(mapFunc)
+            setBiosampleFlag(true);
+            const data = d['cCRESCREENSearch'];
+            
+            const allDataResult = intersectData.map((e) => ({
+                accession: e[4],
+                linked_genes: [],
+                region: { chr: e[0], start: e[1], end: e[2] },
+                inputRegion: { chr: e[6], start: e[7], end: e[8] }
+            })).map(obj => mapScores(obj, data));
+    
             if (elementFilterVariables.selectedBiosample) {
-                // This makes a copy of the existing row and just updates the scores to ctspecific
-                result = elementRows.map((obj) => {
-                    let o = { ...obj }
-                    let matchingObj = data.find((e) => o.accession == e.info.accession)
-                    o.dnase = matchingObj.ctspecific.dnase_zscore
-                    o.h3k4me3 = matchingObj.ctspecific.h3k4me3_zscore
-                    o.h3k27ac = matchingObj.ctspecific.h3k27ac_zscore
-                    o.ctcf = matchingObj.ctspecific.ctcf_zscore
-                    o.atac = matchingObj.ctspecific.atac_zscore
-                    return o
-                })
-                //handle logic for if there is a biosample selected and switch from ortho to all
-                if (!elementFilterVariables.mustHaveOrtholog && orthoFlag === true) {
-                    //refilter classes when unchecking ortholog
-                    const filteredClasses = allDataResult.filter(row => {
-                        return elementFilterVariables.classes[row.class] !== false;
-                    });
-                    //find ctspecific scores
-                    result = filteredClasses.map((obj) => {
-                        let o = { ...obj }
-                        let matchingObj = data.find((e) => o.accession == e.info.accession)
-                        o.dnase = matchingObj.ctspecific.dnase_zscore
-                        o.h3k4me3 = matchingObj.ctspecific.h3k4me3_zscore
-                        o.h3k27ac = matchingObj.ctspecific.h3k27ac_zscore
-                        o.ctcf = matchingObj.ctspecific.ctcf_zscore
-                        o.atac = matchingObj.ctspecific.atac_zscore
-                        return o
-                    })
-                    setAllElementRows(allDataResult.map((obj) => {
-                        let o = { ...obj }
-                        let matchingObj = data.find((e) => o.accession == e.info.accession)
-                        o.dnase = matchingObj.ctspecific.dnase_zscore
-                        o.h3k4me3 = matchingObj.ctspecific.h3k4me3_zscore
-                        o.h3k27ac = matchingObj.ctspecific.h3k27ac_zscore
-                        o.ctcf = matchingObj.ctspecific.ctcf_zscore
-                        o.atac = matchingObj.ctspecific.atac_zscore
-                        return o
-                    }))
-                }
-                if (elementRows.length == 0) {
-                    setAllElementRows(allDataResult)
-                }
-                setElementRows(result)
+                handleSelectedBiosample(allDataResult, data);
+            } else {
+                handleDeselectedBiosample(allDataResult, data);
             }
-            else {
-                if (!elementFilterVariables.mustHaveOrtholog) {
-                    //going from ortho view back to main view
-                    if (elementRows.length > 0) {
-                        //refilter classes when unchecking ortholog
-                        if (orthoFlag === true) {
-                            const filteredClasses = allDataResult.filter(row => {
-                                return elementFilterVariables.classes[row.class] !== false;
-                            });
-                            result = filteredClasses
-                            setOrthoFlag(false);
-                        } else {
-                            result = elementRows.map(mapFunc)
-                        }
-                    }
-                    else {
-                        result = allDataResult
-                    }
-                    setAllElementRows(allDataResult)
-                    setElementRows(result)
-                } else {
-                    //in ortho view and deselect biosample
-                    if (biosampleFlag === true) {
-                        result = elementRows.map(mapFunc)
-                        setElementRows(result)
-                        setBiosampleFlag(false)
-                    }
-                }
-            }
-
         }
-    })
+    });
+    
+    const mapScores = (obj, data) => {
+        const matchingObj = data.find((e) => obj.accession === e.info.accession);
+        if (!matchingObj) return obj; // Handle cases where no match is found
+        return {
+            ...obj,
+            dnase: matchingObj.dnase_zscore,
+            h3k4me3: matchingObj.promoter_zscore,
+            h3k27ac: matchingObj.enhancer_zscore,
+            ctcf: matchingObj.ctcf_zscore,
+            atac: matchingObj.atac_zscore,
+            class: matchingObj.pct
+        };
+    };
+    
+    const handleSelectedBiosample = (allDataResult, data) => {
+        let result = elementRows.map((obj) => {
+            const matchingObj = data.find((e) => obj.accession === e.info.accession);
+            return {
+                ...obj,
+                dnase: matchingObj.ctspecific.dnase_zscore,
+                h3k4me3: matchingObj.ctspecific.h3k4me3_zscore,
+                h3k27ac: matchingObj.ctspecific.h3k4me3_zscore,
+                ctcf: matchingObj.ctspecific.ctcf_zscore,
+                atac: matchingObj.ctspecific.atac_zscore
+            };
+        });
+    
+        if (!elementFilterVariables.mustHaveOrtholog && orthoFlag) {
+            const filteredClasses = allDataResult.filter(row => elementFilterVariables.classes[row.class] !== false);
+            result = filteredClasses.map(obj => mapScores(obj, data));
+        }
+    
+        setAllElementRows(allDataResult);
+        setElementRows(result);
+    };
+    
+    const handleDeselectedBiosample = (allDataResult, data) => {
+        let result; 
+        if (!elementFilterVariables.mustHaveOrtholog) {
+            // Handle the case when going from ortho view back to the main view
+            if (elementRows.length > 0) {
+                // refilter classes
+                if (orthoFlag) {
+                    const filteredClasses = allDataResult.filter(row => 
+                        elementFilterVariables.classes[row.class] !== false
+                    );
+                    result = filteredClasses;
+                    setOrthoFlag(false);
+                } else {
+                    result = elementRows.map(obj => mapScores(obj, data));
+                }
+            } else {
+                // If elementRows is empty, just use allDataResult
+                result = allDataResult;
+            }
+            setAllElementRows(allDataResult);
+            setElementRows(result);
+        } else if (biosampleFlag) {
+            result = elementRows.map(obj => mapScores(obj, data));
+            setElementRows(result);
+            setBiosampleFlag(false);
+        }
+    };
+    
 
     useEffect(() => {
         // Trigger refetch whenever mustHaveOrtholog changes
