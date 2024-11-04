@@ -6,13 +6,16 @@ export const capitalizeFirstLetter = (string) => {
  * Downloads .svg from given SVG ref
  * 
  * @param ref ref passed to parent svg container
- * @param filename 
+ * @param filename prefix (.svg added)
  * 
  * @info Taken straight from ChatGPT, use with caution
  * 
  */
 export const downloadSVG = (ref: React.MutableRefObject<SVGSVGElement>, filename: string) => {
-  if (!ref.current) return;
+  if (!ref.current) {
+    console.error('SVG reference is not set.');
+    return;
+  }
   
   const serializer = new XMLSerializer();
   const source = serializer.serializeToString(ref.current);
@@ -30,7 +33,7 @@ export const downloadSVG = (ref: React.MutableRefObject<SVGSVGElement>, filename
  * Downloads .png from given SVG ref
  * 
  * @param ref ref passed to parent svg container
- * @param filename 
+ * @param filename prefix (.png added)
  * 
  * @info Mostly taken straight from ChatGPT, use with caution
  * 
@@ -95,7 +98,7 @@ export const downloadSvgAsPng = (ref: React.MutableRefObject<SVGSVGElement>, fil
 /**
  * 
  * @param exportObj 
- * @param filename 
+ * @param filename prefix (.json added)
  * 
  * @info Taken straight from ChatGPT, use with caution
  */
@@ -112,7 +115,7 @@ export const downloadObjectAsJson = (exportObj: {[key: string]: any}, filename: 
 /**
  * 
  * @param exportArr 
- * @param filename 
+ * @param filename prefix (.tsv added)
  * 
  * @info Taken straight from ChatGPT, use with caution
  */

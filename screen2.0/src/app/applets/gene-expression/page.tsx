@@ -1,6 +1,6 @@
 "use client"
 import { Box } from "@mui/material"
-import { GeneExpression } from "../../search/_ccredetails/geneexpression"
+import { GeneExpression } from "./geneexpression"
 import { Suspense } from "react"
 
 

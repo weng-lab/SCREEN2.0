@@ -49,8 +49,6 @@ endIcon?: 'search' | 'add' | 'none'
 CustomEndIcon?: OverridableComponent<SvgIconTypeMap<{}, "svg">> & {
   muiName: string;
 }
-// onIconClick?: React.MouseEventHandler<HTMLButtonElement>
-onTextBoxClick?: React.MouseEventHandler<HTMLDivElement>
 /**
  * 
  * Callback fired when a gene is selected from the dropdown options. Not fired on submission (enter, clicking endIcon)

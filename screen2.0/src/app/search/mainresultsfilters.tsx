@@ -919,9 +919,9 @@ export function MainResultsFilters(
                             null,
                           getOptionDisabled: option => !linkedGenesWithNums.find(x => x.geneName === option.name),
                         },
+                        inputTextFieldProps: {onClick: () => !dataLinkedGenes && !loadingLinkedGenes && getLinkedGenes()},
                         stackProps: { mt: 1 }
                       }}
-                      onTextBoxClick={() => !dataLinkedGenes && !loadingLinkedGenes && getLinkedGenes()}
                       endIcon="none"
                       colorTheme="light"
                       onGeneSelected={(gene) =>
