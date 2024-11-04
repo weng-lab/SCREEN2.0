@@ -90,12 +90,7 @@ const MultiSelect = ({
   })
 
   return (
-    /**
-     * Manually specify type arguments, since when overriding AutocompleteChangeDetails in TissueMultiSelectOnChange to be
-     * AutocompleteChangeDetails<string | string[]> (for select all compatibility), the type of option in renderOption was inferred to be string | string[]
-     * for some reason. Couldn't figure out why -JF 10/31/24
-     */
-    <Autocomplete<string, true, false, false, undefined>
+    <Autocomplete
       multiple
       limitTags={limitTags}
       size='small'
@@ -138,7 +133,7 @@ const MultiSelect = ({
       //Parent element of options contained within above {paperProps.children}
       ListboxComponent={ListboxComponent}
       //Each option
-      renderOption={(props, option, { selected }) => {
+      renderOption={(props, option: string, { selected }) => {
         const { key, ...optionProps } = props;
         return (
           <li key={key} {...optionProps}>

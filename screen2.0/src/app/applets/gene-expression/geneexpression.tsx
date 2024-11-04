@@ -129,21 +129,24 @@ export function GeneExpression(props: {
     }
   }, [scale])
 
+  
   const plotData: BarData<GeneDataset>[] = useMemo(() => {
     if (dataExperiments && dataExperiments.gene_dataset.length > 0) {
+      //Filter data points
       const filteredData = dataExperiments.gene_dataset
-        .filter(d => biosamples.includes(d.biosample_type)) //filter by sample type
-        .filter((d) => tissues.includes(d.tissue)) //TODO put tissue filter here
-        .filter(d => RNAtype === "all" || d.assay_term_name === RNAtype) //filter by RNA type
-        .filter(d => sampleMatchesSearch(d))
+        .filter(d => biosamples.includes(d.biosample_type)) //biosample type
+        .filter(d => tissues.includes(d.tissue)) //tissue
+        .filter(d => RNAtype === "all" || d.assay_term_name === RNAtype) //RNA type
+        .filter(d => sampleMatchesSearch(d)) //search
+      //holder for plot data as replicates are parsed for each experiment
       let parsedReplicates: BarData<GeneDataset>[] = []
       filteredData.forEach((biosample) => {
-        if (replicates === "all") {
+        if (replicates === "all") { //push all replicates
           biosample.gene_quantification_files.forEach((exp) => {      
             parsedReplicates.push({
               category: biosample.tissue,
-              label: makeLabel(scaleData(exp.quantifications?.[0]?.tpm || 0), biosample.biosample, biosample.accession, exp.biorep),
-              value: scaleData(exp.quantifications?.[0]?.tpm || 0), //IMPORTANT casting empty quantifications array to 0 tpm. Maybe bad assumption
+              label: makeLabel(scaleData(exp.quantifications[0].tpm), biosample.biosample, biosample.accession, exp.biorep),
+              value: scaleData(exp.quantifications[0].tpm), //indexing into 0th position, only one gene so quantifications should always be length 1
               color: tissueColors[biosample.tissue] ?? tissueColors.missing,
               metadata: biosample as GeneDataset
             })
@@ -151,7 +154,7 @@ export function GeneExpression(props: {
         } else { //average replicates
           let sum = 0
           biosample.gene_quantification_files.forEach((exp) => {
-            sum += (exp.quantifications?.[0]?.tpm ?? 0) //using reduce had terrible readability so doing avg manually
+            sum += (exp.quantifications[0].tpm) //using reduce had terrible readability so doing avg manually
           })
           const avgTPM = sum / biosample.gene_quantification_files.length
           parsedReplicates.push({
@@ -164,10 +167,11 @@ export function GeneExpression(props: {
         }
       })
       switch (viewBy) {
-        case ("byExperimentTPM"):
+        case ("byExperimentTPM"):{
           //sort by value
           parsedReplicates.sort((a, b) => b.value - a.value);
           break;
+        }
         case ("byTissueTPM"): {
           //find max value for each tissue
           const maxValuesByTissue: {[key: string]: number} = parsedReplicates.reduce((acc, item) => {
@@ -183,11 +187,13 @@ export function GeneExpression(props: {
           break;
         }
         case ("byTissueMaxTPM"): {
+          //find max value for each tissue
           const maxValuesByTissue: {[key: string]: number} = parsedReplicates.reduce((acc, item) => {
             acc[item.category] = Math.max(acc[item.category] || -Infinity, item.value);
             return acc;
           }, {});
 
+          //filter out all but max value for each tissue, then sort descending
           parsedReplicates = parsedReplicates.filter(x => x.value === maxValuesByTissue[x.category])
           parsedReplicates.sort((a, b) => b.value - a.value);
         }
@@ -480,7 +486,6 @@ export function GeneExpression(props: {
             <ToggleButton sx={{ textTransform: "none" }} value="all">Show Replicates</ToggleButton>
           </ToggleButtonGroup>
         </FormControl>
-
         <FormControl>
           <FormLabel>{biosamples.length === biosampleTypes.length ? "Biosample Types" : <i>Biosample Types*</i>}</FormLabel>
           <MultiSelect
