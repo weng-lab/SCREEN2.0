@@ -3,7 +3,6 @@
 import React, { useCallback, useState } from "react"
 import { Button, Typography, Stack, Container, IconButton, Alert } from "@mui/material"
 import { useDropzone } from "react-dropzone"
-import { useRouter } from 'next/navigation'
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { Cancel, Search } from "@mui/icons-material"
 import { LoadingButton } from "@mui/lab"
@@ -46,8 +45,6 @@ export function getIntersect(getOutput, inputData, assembly, successF, errF) {
 }
 
 const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean, appletCallback?: Function}) => {
-  const router = useRouter()
-
   const [files, setFiles] = useState<File[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState([false, ""]) // status, message
