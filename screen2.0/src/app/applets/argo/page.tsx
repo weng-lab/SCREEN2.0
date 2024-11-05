@@ -302,23 +302,22 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
 
                 setElementRows(updatedElementRows);
                 setAllElementRows(updatedAllElementRows);
-            } else {
-                handleMouse(data)
             }
         }
     })
 
-    const getMouseAccessions = (orthoData) => {
-        if (!orthoData || !orthoData.orthologQuery) return [];
-        return orthoData.orthologQuery
-            .flatMap(entry => entry.ortholog)
-            .map(orthologEntry => orthologEntry.accession);
-    };
+    const mouseAccessions = useMemo (()=> {
+        if(elementFilterVariables.cCREAssembly === "mm10") {
+            return orthoData.orthologQuery
+                .flatMap(entry => entry.ortholog)
+                .map(orthologEntry => orthologEntry.accession);
+        }
+    }, [orthoData]);
 
     const { loading: loading_scores, error: error_scores, refetch: refetchZScores } = useQuery(Z_SCORES_QUERY, {
         variables: {
             assembly: elementFilterVariables.cCREAssembly,
-            accessions: elementFilterVariables.cCREAssembly === "mm10" ? getMouseAccessions(orthoData) : intersectData.map((r) => r[4]),
+            accessions: elementFilterVariables.cCREAssembly === "mm10" ? mouseAccessions : intersectData.map((r) => r[4]),
             cellType: elementFilterVariables.selectedBiosample ? elementFilterVariables.selectedBiosample.name : null
         },
         skip: intersectData.length === 0,
@@ -328,17 +327,21 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
             setBiosampleFlag(true);
             const data = d['cCRESCREENSearch'];
 
-            const allDataResult = intersectData.map((e) => ({
-                accession: e[4],
-                linked_genes: [],
-                region: { chr: e[0], start: e[1], end: e[2] },
-                inputRegion: { chr: e[6], start: e[7], end: e[8] }
-            })).map(obj => mapScores(obj, data));
-
-            if (elementFilterVariables.selectedBiosample) {
-                handleSelectedBiosample(allDataResult, data);
+            if(elementFilterVariables.cCREAssembly !== "mm10") {
+                const allDataResult = intersectData.map((e) => ({
+                    accession: e[4],
+                    linked_genes: [],
+                    region: { chr: e[0], start: e[1], end: e[2] },
+                    inputRegion: { chr: e[6], start: e[7], end: e[8] }
+                })).map(obj => mapScores(obj, data));
+    
+                if (elementFilterVariables.selectedBiosample) {
+                    handleSelectedBiosample(allDataResult, data);
+                } else {
+                    handleDeselectedBiosample(allDataResult, data);
+                }
             } else {
-                handleDeselectedBiosample(allDataResult, data);
+                console.log(mouseAccessions);
             }
         }
     });
@@ -369,11 +372,6 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
             atac: matchingObj.ctspecific.atac_zscore
         };
     };
-
-    const handleMouse = (data) => {
-        console.log(orthoData)
-        console.log(data)
-    }
 
     const handleSelectedBiosample = (allDataResult, data) => {
         let result = elementRows.map((obj) => mapScoresCTSpecific(obj, data));
