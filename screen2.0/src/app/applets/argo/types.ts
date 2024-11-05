@@ -1,4 +1,3 @@
-import { InputRegion } from "umms-gb"
 import { RegistryBiosample } from "../../_biosampleTables/types"
 
 export type LinkedGenes = {
@@ -61,9 +60,19 @@ export type CCREAssays = {
     h3k27ac: boolean
 }
 
+export type Alignment = 
+    "241-mam-phyloP" | 
+    "447-mam-phyloP" | 
+    "241-mam-phastCons" |
+    "43-prim-phyloP" |
+    "43-prim-phastCons" |
+    "243-prim-phastCons" |
+    "100-vert-phyloP" |
+    "100-vert-phastCons"
+
   export type SequenceFilterState = {
     useConservation: boolean;
-    alignment: string;
+    alignment: Alignment;
     rankBy: string;
     useMotifs: boolean;
     motifCatalog: "factorbook" | "factorbookTF" | "hocomoco" | "zMotif";
@@ -84,6 +93,7 @@ export type CCREAssays = {
 
   export type GeneFilterState = {
     useGenes: boolean;
+    idk: string;
   }
 
 type UpdateSequenceFilter = <K extends keyof SequenceFilterState>(

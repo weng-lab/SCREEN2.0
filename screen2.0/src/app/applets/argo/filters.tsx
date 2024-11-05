@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FilterProps } from './types';
+import { Alignment, FilterProps } from './types';
 import { Accordion, AccordionDetails, AccordionSummary, Box, Checkbox, Drawer, FormControl, FormControlLabel, FormGroup, FormLabel, IconButton, MenuItem, Paper, Radio, RadioGroup, Select, Stack, Typography } from '@mui/material';
 import BiosampleTables from '../../_biosampleTables/BiosampleTables';
 import Grid from "@mui/material/Grid2"
@@ -115,6 +115,8 @@ const Filters: React.FC<FilterProps> = ({
         }
     }, [elementFilterVariables.selectedBiosample]);
 
+    
+
     return (
         <div>
             {!drawerOpen && (
@@ -171,7 +173,7 @@ const Filters: React.FC<FilterProps> = ({
                             <Stack ml={2}>
                                 <FormGroup>
                                     <FormControl fullWidth>
-                                        <Select size="small" value={sequenceFilterVariables.alignment} disabled={!sequenceFilterVariables.useConservation} onChange={(event) => updateSequenceFilter("alignment", event.target.value)}>
+                                        <Select size="small" value={sequenceFilterVariables.alignment} disabled={!sequenceFilterVariables.useConservation} onChange={(event) => updateSequenceFilter("alignment", event.target.value as Alignment)}>
                                             <MenuItem value={"241-mam-phyloP"}>241-Mammal(phyloP)</MenuItem>
                                             <MenuItem value={"447-mam-phyloP"}>447-Mammal(phyloP)</MenuItem>
                                             <MenuItem value={"241-mam-phastCons"}>241-Mammal(phastCons)</MenuItem>

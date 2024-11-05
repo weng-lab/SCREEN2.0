@@ -7,21 +7,19 @@ import FormControl from "@mui/material/FormControl"
 import Select, { SelectChangeEvent } from "@mui/material/Select"
 import BedUpload, { getIntersect, parseDataInput } from "../../_mainsearch/bedupload"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
-import { GENE_EXP_QUERY, LINKED_GENES, ORTHOLOG_QUERY, Z_SCORES_QUERY } from "./queries"
-import { ApolloQueryResult, useLazyQuery, useQuery } from "@apollo/client"
+import { ORTHOLOG_QUERY, Z_SCORES_QUERY } from "./queries"
+import { useLazyQuery, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
-import { ZScores, LinkedGenes, GenomicRegion, CCREAssays, CCREClasses, RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, AssayRankEntry } from "./types"
+import { ZScores, GenomicRegion, CCREAssays, CCREClasses, RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, AssayRankEntry } from "./types"
 import { BED_INTERSECT_QUERY } from "../../_mainsearch/queries"
 import ExpandCircleDownIcon from '@mui/icons-material/ExpandCircleDown';
 import Filters from "./filters"
 import { CancelRounded } from "@mui/icons-material"
 
 const assayNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
-const conservationNames = ["vertebrates", "mammals", "primates"]
 const linkedGenesMethods = ["Intact-HiC", "CTCF-ChIAPET", "RNAPII-ChIAPET", "CRISPRi-FlowFISH", "eQTLs"]
-const allScoreNames = assayNames.concat(conservationNames).concat(linkedGenesMethods)
 
-export default function Argo(props: { header?: false, optionalFunction?: Function }) {
+export default function Argo() {
     //Old state variables
     const [intersectData, setIntersectData] = useState<[]>([]) // The intersection data returned from BedUpload component
     const [getOutput] = useLazyQuery(BED_INTERSECT_QUERY)
@@ -91,11 +89,12 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     });
 
     const [geneFilterVariables, setGeneFilterVariables] = useState<GeneFilterState>({
-        useGenes: true
+        useGenes: true,
+        idk: "no"
     });
 
     //update specific variable in sequence filters
-    const updateSequenceFilter = (key: keyof SequenceFilterState, value: any) => {
+    const updateSequenceFilter = (key: keyof SequenceFilterState, value: unknown) => {
         setSequenceFilterVariables((prevState) => ({
             ...prevState,
             [key]: value,
@@ -103,7 +102,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     };
 
     //update specific variable in element filters
-    const updateElementFilter = (key: keyof ElementFilterState, value: any) => {
+    const updateElementFilter = (key: keyof ElementFilterState, value: unknown) => {
         setElementFilterVariables((prevState) => ({
             ...prevState,
             [key]: value,
@@ -127,7 +126,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
     };
 
     //update specific variable in gene filters
-    const updateGeneFilter = (key: keyof GeneFilterState, value: any) => {
+    const updateGeneFilter = (key: keyof GeneFilterState, value: unknown) => {
         setGeneFilterVariables((prevState) => ({
             ...prevState,
             [key]: value,
@@ -185,12 +184,12 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         if (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs) {
             cols.push({ header: "Seqence", HeaderRender: () => <MainColHeader tableName="Sequence" onClick={() => setShownTable("sequence")} />, value: (row) => "N/A" })
         }
-        elementFilterVariables.usecCREs && cols.push({ header: "Element", HeaderRender: () => <MainColHeader tableName="Element" onClick={() => setShownTable("element")} />, value: (row) => row.elementRank })
-        geneFilterVariables.useGenes && cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Gene" onClick={() => setShownTable("gene")} />, value: (row) => "N/A" })
+        if (elementFilterVariables.usecCREs) { cols.push({ header: "Element", HeaderRender: () => <MainColHeader tableName="Element" onClick={() => setShownTable("element")} />, value: (row) => row.elementRank }) }
+        if (geneFilterVariables.useGenes) { cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Gene" onClick={() => setShownTable("gene")} />, value: (row) => "N/A" }) }
 
         return cols
 
-    }, [MainColHeader, setShownTable])
+    }, [MainColHeader, elementFilterVariables.usecCREs, geneFilterVariables.useGenes, sequenceFilterVariables.useConservation, sequenceFilterVariables.useMotifs])
 
     //handle column changes for the Sequence rank table
     const sequenceColumns: DataTableColumn<SequenceTableRow>[] = useMemo(() => {
@@ -234,9 +233,9 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
             }
         }
         if (sequenceFilterVariables.useMotifs) {
-            sequenceFilterVariables.numOverlappingMotifs && cols.push({ header: "# of Overlapping Motifs", value: (row) => "N/A" })
-            sequenceFilterVariables.motifScoreDelta && cols.push({ header: "Motif Score Delta", value: (row) => "N/A" })
-            sequenceFilterVariables.overlapsTFPeak && cols.push({ header: "Overlaps TF Peak", value: (row) => "N/A" })
+            if (sequenceFilterVariables.numOverlappingMotifs) { cols.push({ header: "# of Overlapping Motifs", value: (row) => "N/A" }) }
+            if (sequenceFilterVariables.motifScoreDelta) { cols.push({ header: "Motif Score Delta", value: (row) => "N/A" }) }
+            if (sequenceFilterVariables.overlapsTFPeak) { cols.push({ header: "Overlaps TF Peak", value: (row) => "N/A" }) }
         }
 
         return cols
@@ -253,19 +252,19 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         ]
 
         if (elementFilterVariables.usecCREs) {
-            elementFilterVariables.mustHaveOrtholog && cols.push({ header: "Orthologous Accesion", value: (row) => row.ortholog })
-            elementFilterVariables.assays.dnase && cols.push({ header: "DNase", value: (row) => row.dnase !== null ? row.dnase.toFixed(2) : null })
-            elementFilterVariables.assays.h3k4me3 && cols.push({ header: "H3K4me3", value: (row) => row.h3k4me3 !== null ? row.h3k4me3.toFixed(2) : null })
-            elementFilterVariables.assays.h3k27ac && cols.push({ header: "H3K27ac", value: (row) => row.h3k27ac !== null ? row.h3k27ac.toFixed(2) : null })
-            elementFilterVariables.assays.ctcf && cols.push({ header: "CTCF", value: (row) => row.ctcf !== null ? row.ctcf.toFixed(2) : null })
-            elementFilterVariables.assays.atac && cols.push({ header: "ATAC", value: (row) => row.atac !== null ? row.atac.toFixed(2) : null })
+            if (elementFilterVariables.mustHaveOrtholog) { cols.push({ header: "Orthologous Accesion", value: (row) => row.ortholog }) }
+            if (elementFilterVariables.assays.dnase) { cols.push({ header: "DNase", value: (row) => row.dnase !== null ? row.dnase.toFixed(2) : null }) }
+            if (elementFilterVariables.assays.h3k4me3) { cols.push({ header: "H3K4me3", value: (row) => row.h3k4me3 !== null ? row.h3k4me3.toFixed(2) : null }) }
+            if (elementFilterVariables.assays.h3k27ac) { cols.push({ header: "H3K27ac", value: (row) => row.h3k27ac !== null ? row.h3k27ac.toFixed(2) : null }) }
+            if (elementFilterVariables.assays.ctcf) { cols.push({ header: "CTCF", value: (row) => row.ctcf !== null ? row.ctcf.toFixed(2) : null }) }
+            if (elementFilterVariables.assays.atac) { cols.push({ header: "ATAC", value: (row) => row.atac !== null ? row.atac.toFixed(2) : null }) }
         }
 
         return cols
 
     }, [elementFilterVariables])
 
-    const { loading: loading_ortho, error: error_ortho, data: orthoData } = useQuery(ORTHOLOG_QUERY, {
+    const { loading: loading_ortho, data: orthoData } = useQuery(ORTHOLOG_QUERY, {
         variables: {
             assembly: "GRCh38",
             accessions: intersectData.map((r) => r[4]),
@@ -308,11 +307,11 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
 
     const mouseAccessions = useMemo (()=> {
         if(elementFilterVariables.cCREAssembly === "mm10") {
-            return orthoData.orthologQuery
+            return orthoData?.orthologQuery
                 .flatMap(entry => entry.ortholog)
                 .map(orthologEntry => orthologEntry.accession);
         }
-    }, [orthoData]);
+    }, [elementFilterVariables.cCREAssembly, orthoData?.orthologQuery]);
 
     const { loading: loading_scores, error: error_scores, refetch: refetchZScores } = useQuery(Z_SCORES_QUERY, {
         variables: {
@@ -692,17 +691,15 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
                         {error_scores.message}
                     </Alert>
                 )}
-                <Stack direction={props.header ? "row" : "column"} spacing={3} mt="10px">
+                <Stack direction={"column"} spacing={3} mt="10px">
                     <Stack direction={"row"} alignItems={"center"} flexWrap={"wrap"}>
-                        {!props.header && (
-                            <Typography variant={"h5"} mr={1} alignSelf="center">
-                                Upload Through
-                            </Typography>
-                        )}
+                        <Typography variant={"h5"} mr={1} alignSelf="center">
+                            Upload Through
+                        </Typography>
                         <Stack
                             direction={"row"}
                             alignItems={"center"}
-                            flexWrap={props.header ? "nowrap" : "wrap"}
+                            flexWrap={"wrap"}
                         >
                             <FormControl
                                 variant="standard"
