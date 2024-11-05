@@ -265,10 +265,60 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
 
     }, [elementFilterVariables])
 
-    const { loading: loading_scores, error: error_scores, refetch } = useQuery(Z_SCORES_QUERY, {
+    const { loading: loading_ortho, error: error_ortho, data: orthoData } = useQuery(ORTHOLOG_QUERY, {
         variables: {
             assembly: elementFilterVariables.cCREAssembly,
             accessions: intersectData.map((r) => r[4]),
+        },
+        skip: !elementFilterVariables.mustHaveOrtholog && elementFilterVariables.cCREAssembly !== "mm10",
+        client: client,
+        fetchPolicy: 'cache-and-network',
+        onCompleted(data) {
+            setOrthoFlag(true);
+            const orthologMapping: { [accession: string]: string | undefined } = {};
+
+            data.orthologQuery.forEach((entry: { accession: string; ortholog: Array<{ accession: string }> }) => {
+                if (entry.ortholog.length > 0) {
+                    orthologMapping[entry.accession] = entry.ortholog[0].accession;
+                }
+            });
+
+            // Update elementRows with ortholog information
+            if (elementFilterVariables.cCREAssembly !== "mm10") {
+
+                const updatedElementRows = elementRows
+                    .map((row) => ({
+                        ...row,
+                        ortholog: orthologMapping[row.accession]
+                    }))
+                    .filter((row) => row.ortholog !== undefined);
+
+                const updatedAllElementRows = allElementRows
+                    .map((row) => ({
+                        ...row,
+                        ortholog: orthologMapping[row.accession]
+                    }))
+                    .filter((row) => row.ortholog !== undefined);
+
+                setElementRows(updatedElementRows);
+                setAllElementRows(updatedAllElementRows);
+            } else {
+                handleMouse(data)
+            }
+        }
+    })
+
+    const getMouseAccessions = (orthoData) => {
+        if (!orthoData || !orthoData.orthologQuery) return [];
+        return orthoData.orthologQuery
+            .flatMap(entry => entry.ortholog)
+            .map(orthologEntry => orthologEntry.accession);
+    };
+
+    const { loading: loading_scores, error: error_scores, refetch: refetchZScores } = useQuery(Z_SCORES_QUERY, {
+        variables: {
+            assembly: elementFilterVariables.cCREAssembly,
+            accessions: elementFilterVariables.cCREAssembly === "mm10" ? getMouseAccessions(orthoData) : intersectData.map((r) => r[4]),
             cellType: elementFilterVariables.selectedBiosample ? elementFilterVariables.selectedBiosample.name : null
         },
         skip: intersectData.length === 0,
@@ -277,14 +327,14 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         onCompleted(d) {
             setBiosampleFlag(true);
             const data = d['cCRESCREENSearch'];
-            
+
             const allDataResult = intersectData.map((e) => ({
                 accession: e[4],
                 linked_genes: [],
                 region: { chr: e[0], start: e[1], end: e[2] },
                 inputRegion: { chr: e[6], start: e[7], end: e[8] }
             })).map(obj => mapScores(obj, data));
-    
+
             if (elementFilterVariables.selectedBiosample) {
                 handleSelectedBiosample(allDataResult, data);
             } else {
@@ -292,7 +342,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
             }
         }
     });
-    
+
     const mapScores = (obj, data) => {
         const matchingObj = data.find((e) => obj.accession === e.info.accession);
         if (!matchingObj) return obj; // Handle cases where no match is found
@@ -306,37 +356,48 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
             class: matchingObj.pct
         };
     };
-    
+
+    const mapScoresCTSpecific = (obj, data) => {
+        const matchingObj = data.find((e) => obj.accession === e.info.accession);
+        if (!matchingObj) return obj; // Handle cases where no match is found
+        return {
+            ...obj,
+            dnase: matchingObj.ctspecific.dnase_zscore,
+            h3k4me3: matchingObj.ctspecific.h3k4me3_zscore,
+            h3k27ac: matchingObj.ctspecific.h3k4me3_zscore,
+            ctcf: matchingObj.ctspecific.ctcf_zscore,
+            atac: matchingObj.ctspecific.atac_zscore
+        };
+    };
+
+    const handleMouse = (data) => {
+        console.log(orthoData)
+        console.log(data)
+    }
+
     const handleSelectedBiosample = (allDataResult, data) => {
-        let result = elementRows.map((obj) => {
-            const matchingObj = data.find((e) => obj.accession === e.info.accession);
-            return {
-                ...obj,
-                dnase: matchingObj.ctspecific.dnase_zscore,
-                h3k4me3: matchingObj.ctspecific.h3k4me3_zscore,
-                h3k27ac: matchingObj.ctspecific.h3k4me3_zscore,
-                ctcf: matchingObj.ctspecific.ctcf_zscore,
-                atac: matchingObj.ctspecific.atac_zscore
-            };
-        });
-    
+        let result = elementRows.map((obj) => mapScoresCTSpecific(obj, data));
+
+        //switch from ortho back to main
         if (!elementFilterVariables.mustHaveOrtholog && orthoFlag) {
             const filteredClasses = allDataResult.filter(row => elementFilterVariables.classes[row.class] !== false);
-            result = filteredClasses.map(obj => mapScores(obj, data));
+            result = filteredClasses.map(obj => mapScoresCTSpecific(obj, data));
+            setAllElementRows(allDataResult);
         }
-    
-        setAllElementRows(allDataResult);
+        if (elementRows.length === 0) {
+            setAllElementRows(allDataResult);
+        }
         setElementRows(result);
     };
-    
+
     const handleDeselectedBiosample = (allDataResult, data) => {
-        let result; 
+        let result;
         if (!elementFilterVariables.mustHaveOrtholog) {
             // Handle the case when going from ortho view back to the main view
             if (elementRows.length > 0) {
                 // refilter classes
                 if (orthoFlag) {
-                    const filteredClasses = allDataResult.filter(row => 
+                    const filteredClasses = allDataResult.filter(row =>
                         elementFilterVariables.classes[row.class] !== false
                     );
                     result = filteredClasses;
@@ -356,52 +417,13 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
             setBiosampleFlag(false);
         }
     };
-    
 
     useEffect(() => {
         // Trigger refetch whenever mustHaveOrtholog changes
         if (!elementFilterVariables.mustHaveOrtholog && intersectData.length > 0) {
-            refetch();
+            refetchZScores();
         }
-    }, [elementFilterVariables.mustHaveOrtholog, refetch]);
-
-    const { loading: loading_ortho, error: error_ortho } = useQuery(ORTHOLOG_QUERY, {
-        variables: {
-            assembly: elementFilterVariables.cCREAssembly,
-            accessions: intersectData.map((r) => r[4]),
-        },
-        skip: !elementFilterVariables.mustHaveOrtholog,
-        client: client,
-        fetchPolicy: 'cache-and-network',
-        onCompleted(data) {
-            setOrthoFlag(true);
-            const orthologMapping: { [accession: string]: string | undefined } = {};
-
-            data.orthologQuery.forEach((entry: { accession: string; ortholog: Array<{ accession: string }> }) => {
-                if (entry.ortholog.length > 0) {
-                    orthologMapping[entry.accession] = entry.ortholog[0].accession;
-                }
-            });
-
-            // Update elementRows with ortholog information
-            const updatedElementRows = elementRows
-                .map((row) => ({
-                    ...row,
-                    ortholog: orthologMapping[row.accession]
-                }))
-                .filter((row) => row.ortholog !== undefined);
-
-            const updatedAllElementRows = allElementRows
-                .map((row) => ({
-                    ...row,
-                    ortholog: orthologMapping[row.accession]
-                }))
-                .filter((row) => row.ortholog !== undefined);
-
-            setElementRows(updatedElementRows);
-            setAllElementRows(updatedAllElementRows);
-        }
-    })
+    }, [elementFilterVariables.mustHaveOrtholog, refetchZScores]);
 
     const handleSearchChange = (event: SelectChangeEvent) => {
         setIntersectData([])
