@@ -1,3 +1,4 @@
+import { SelectChangeEvent } from "@mui/material"
 import { RegistryBiosample } from "../../_biosampleTables/types"
 
 export type LinkedGenes = {
@@ -122,7 +123,12 @@ export type FilterProps = {
     toggleClass: (className: keyof ElementFilterState['classes']) => void;
     drawerOpen: boolean;
     toggleDrawer: () => void;
-    rows: any;
+}
+
+export type UploadProps = {
+    selectedSearch: string;
+    handleSearchChange: (event: SelectChangeEvent) => void;
+    onRegionsConfigured: (regions: GenomicRegion[]) => void;
 }
 
 export type MainTableRow = {

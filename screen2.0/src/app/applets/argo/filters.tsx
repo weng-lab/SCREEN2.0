@@ -18,7 +18,6 @@ const Filters: React.FC<FilterProps> = ({
     toggleClass,
     drawerOpen,
     toggleDrawer,
-    rows,
 }) => {
 
     //Keep track of which tab is expanded in the drawer
@@ -231,7 +230,7 @@ const Filters: React.FC<FilterProps> = ({
                         <AccordionDetails>
                             <FormControlLabel value="cCREs" control={<Checkbox onChange={() => updateElementFilter("usecCREs", !elementFilterVariables.usecCREs)} checked={elementFilterVariables.usecCREs} />} label="cCREs" />
                             <Stack ml={2}>
-                                <RadioGroup row value={elementFilterVariables.cCREAssembly} onChange={(event) => { updateElementFilter("cCREAssembly", event.target.value as "GRCh38" | "mm10"), updateElementFilter("selectedBiosample", null) }}>
+                                <RadioGroup row value={elementFilterVariables.cCREAssembly} onChange={(event) => { updateElementFilter("cCREAssembly", event.target.value as "GRCh38" | "mm10"); updateElementFilter("selectedBiosample", null); }}>
                                     <FormControlLabel value="GRCh38" control={<Radio />} label="GRCH38" disabled={!elementFilterVariables.usecCREs} />
                                     <FormControlLabel value="mm10" control={<Radio />} label="mm10" disabled={!elementFilterVariables.usecCREs} />
                                 </RadioGroup>

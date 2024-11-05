@@ -36,7 +36,7 @@ export function getIntersect(getOutput, inputData, assembly, successF, errF) {
     client: client,
     fetchPolicy: 'cache-and-network',
     onCompleted(data) {
-      successF(data['intersection'], inputData.slice(0, 1000))
+      successF(data['intersection'])
     },
     onError(error) {
         errF(error)
@@ -78,7 +78,7 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean, apple
       reader.onload = (r) => {
         const contents = r.target.result
         const lines = contents.toString()
-        allLines = parseDataInput(lines).slice(0, 1000)
+        allLines = parseDataInput(lines)
       }
       reader.onabort = () => console.log("file reading was aborted")
       reader.onerror = () => console.log("file reading has failed")
@@ -100,7 +100,7 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean, apple
               window.open(`/search?intersect=t&assembly=${props.assembly}`, "_self")
             }
             else {
-              props.appletCallback(data, allLines)
+              props.appletCallback(data)
               setLoading(false)
             }
 

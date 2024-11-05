@@ -15,9 +15,9 @@ import { BED_INTERSECT_QUERY } from "../../_mainsearch/queries"
 import ExpandCircleDownIcon from '@mui/icons-material/ExpandCircleDown';
 import Filters from "./filters"
 import { CancelRounded } from "@mui/icons-material"
+import ArgoUpload from "./argoUpload"
 
 const assayNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
-const linkedGenesMethods = ["Intact-HiC", "CTCF-ChIAPET", "RNAPII-ChIAPET", "CRISPRi-FlowFISH", "eQTLs"]
 
 export default function Argo() {
     //Old state variables
@@ -131,6 +131,12 @@ export default function Argo() {
             ...prevState,
             [key]: value,
         }));
+    };
+
+    // This function will receive the regions from ArgoUpload
+    const handleRegionsConfigured = (regions: GenomicRegion[]) => {
+        setInputRegions(regions);
+        console.log(regions)
     };
 
     //stylized header for main rank table columns
@@ -420,7 +426,7 @@ export default function Argo() {
         if (!elementFilterVariables.mustHaveOrtholog && intersectData.length > 0) {
             refetchZScores();
         }
-    }, [elementFilterVariables.mustHaveOrtholog, refetchZScores]);
+    }, [elementFilterVariables.mustHaveOrtholog, intersectData.length, refetchZScores]);
 
     const handleSearchChange = (event: SelectChangeEvent) => {
         setIntersectData([])
@@ -446,7 +452,6 @@ export default function Argo() {
         setDrawerOpen(true)
         setShownTable(null)
         if (inputData !== undefined) {
-            configureInputedRegions(inputData)
             const initialMainRows = inputData.map(item => ({
                 inputRegion: {
                     chr: item[0],
@@ -464,39 +469,6 @@ export default function Argo() {
             }));
             setMainRanks(initialMainRanks);
         }
-    }
-
-    function handleTextUpload(event) {
-        const uploadedData = event.get("textUploadFile").toString()
-        const inputData = parseDataInput(uploadedData)
-        if (inputData !== undefined) {
-            configureInputedRegions(inputData)
-        }
-        getIntersect(getOutput, inputData, "GRCh38", appletCallBack, console.error)
-    }
-
-    function configureInputedRegions(data) {
-        const regions = data.map(item => ({
-            chr: item[0],         // Index 0 for inputed chromosome
-            start: Number(item[1]), // Index 1 for inputed start, convert to number
-            end: Number(item[2])     // Index 2 for inputed end, convert to number
-        }));
-
-        // Sort the regions
-        const sortedRegions = regions.sort((a, b) => {
-            const chrA = a.chr.replace('chr', '');
-            const chrB = b.chr.replace('chr', '');
-
-            if (chrA !== chrB) {
-                return chrA - chrB;
-            }
-            if (a.start !== b.start) {
-                return a.start - b.start;
-            }
-        });
-
-        setInputRegions(sortedRegions);
-
     }
 
     // Generate element ranks
@@ -648,19 +620,6 @@ export default function Argo() {
         setMainRows(updatedMainRows);
     }, [mainRanks]);
 
-
-    function evaluateMaxTPM(score: ZScores) {
-        // This finds the Max TPM for each method in a given row
-        let scoreCopy = { ...score }
-        linkedGenesMethods.forEach((method) => {
-            let maxTPM = 0
-            let method_genes = scoreCopy.linked_genes.filter((gene) => gene.method == method)
-            method_genes.forEach((e) => maxTPM = e.tpm > maxTPM ? e.tpm : maxTPM)
-            scoreCopy[method] = maxTPM
-        })
-        return scoreCopy
-    }
-
     return (
         <Box display="flex" >
             <Filters
@@ -674,7 +633,6 @@ export default function Argo() {
                 toggleClass={toggleClass}
                 drawerOpen={drawerOpen}
                 toggleDrawer={toggleDrawer}
-                rows={elementRows}
             />
             <Box
                 ml={drawerOpen ? "25vw" : 0}
@@ -691,55 +649,11 @@ export default function Argo() {
                         {error_scores.message}
                     </Alert>
                 )}
-                <Stack direction={"column"} spacing={3} mt="10px">
-                    <Stack direction={"row"} alignItems={"center"} flexWrap={"wrap"}>
-                        <Typography variant={"h5"} mr={1} alignSelf="center">
-                            Upload Through
-                        </Typography>
-                        <Stack
-                            direction={"row"}
-                            alignItems={"center"}
-                            flexWrap={"wrap"}
-                        >
-                            <FormControl
-                                variant="standard"
-                                size="medium"
-                                sx={{ '& .MuiInputBase-root': { fontSize: '1.5rem' } }}
-                            >
-                                <Select
-                                    fullWidth
-                                    id="select-search"
-                                    value={selectedSearch}
-                                    onChange={handleSearchChange}
-                                    SelectDisplayProps={{
-                                        style: { paddingBottom: '0px', paddingTop: '1px' },
-                                    }}
-                                >
-                                    <MenuItem value={"BED File"}>BED File</MenuItem>
-                                    <MenuItem value={"Text Box"}>Text Box</MenuItem>
-                                </Select>
-                            </FormControl>
-                        </Stack>
-                    </Stack>
-                </Stack>
-                <Box mt="20px" width="30vw">
-                    {selectedSearch === "BED File" ? (
-                        <BedUpload
-                            assembly={"GRCh38"}
-                            appletCallback={appletCallBack}
-                        />
-                    ) :
-                        <FormControl fullWidth>
-                            <form action={handleTextUpload}>
-                                <TextField name="textUploadFile" multiline fullWidth rows={5}
-                                    placeholder="Copy and paste your data from Excel here"
-                                ></TextField>
-                                <Button type="submit" size="medium" variant="outlined">Submit</Button>
-                            </form>
-                        </FormControl>
-
-                    }
-                </Box>
+                <ArgoUpload
+                    selectedSearch={selectedSearch}
+                    handleSearchChange={handleSearchChange}
+                    onRegionsConfigured={handleRegionsConfigured}
+                />
                 {intersectData.length > 0 && (
                     <>
                         <Box mt="20px" id="123456">
