@@ -267,7 +267,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
 
     const { loading: loading_ortho, error: error_ortho, data: orthoData } = useQuery(ORTHOLOG_QUERY, {
         variables: {
-            assembly: elementFilterVariables.cCREAssembly,
+            assembly: "GRCh38",
             accessions: intersectData.map((r) => r[4]),
         },
         skip: !elementFilterVariables.mustHaveOrtholog && elementFilterVariables.cCREAssembly !== "mm10",
@@ -320,7 +320,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
             accessions: elementFilterVariables.cCREAssembly === "mm10" ? mouseAccessions : intersectData.map((r) => r[4]),
             cellType: elementFilterVariables.selectedBiosample ? elementFilterVariables.selectedBiosample.name : null
         },
-        skip: intersectData.length === 0,
+        skip: intersectData.length === 0 || (elementFilterVariables.cCREAssembly === "mm10" && mouseAccessions.length === 0),
         client: client,
         fetchPolicy: 'cache-first',
         onCompleted(d) {
