@@ -272,7 +272,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         },
         skip: !elementFilterVariables.mustHaveOrtholog && elementFilterVariables.cCREAssembly !== "mm10",
         client: client,
-        fetchPolicy: 'cache-and-network',
+        fetchPolicy: 'cache-first',
         onCompleted(data) {
             setOrthoFlag(true);
             const orthologMapping: { [accession: string]: string | undefined } = {};
@@ -322,7 +322,7 @@ export default function Argo(props: { header?: false, optionalFunction?: Functio
         },
         skip: intersectData.length === 0,
         client: client,
-        fetchPolicy: 'cache-and-network',
+        fetchPolicy: 'cache-first',
         onCompleted(d) {
             setBiosampleFlag(true);
             const data = d['cCRESCREENSearch'];
