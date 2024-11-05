@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useMemo } from "react"
+import React, { useCallback, useEffect, useMemo } from "react"
 import { useState } from "react"
 import { Stack, Typography, Box, TextField, Button, Alert, CircularProgress, IconButton } from "@mui/material"
 import MenuItem from "@mui/material/MenuItem"
@@ -134,7 +134,7 @@ export default function Argo() {
     };
 
     //stylized header for main rank table columns
-    const MainColHeader = ({ tableName, onClick }) => (
+    const MainColHeader = useCallback(({ tableName, onClick }) => (
         <div style={{ display: 'flex', alignItems: 'center' }}>
             <span style={{ color: shownTable === tableName.toLowerCase() ? '#030f98' : 'inherit', fontWeight: shownTable === tableName.toLowerCase() ? 'bolder' : 'normal' }}>
                 {tableName}
@@ -149,7 +149,7 @@ export default function Argo() {
                 />
             </IconButton>
         </div>
-    );
+    ), [shownTable])
 
     //stylized title for the sequence,element, and gene data tables
     const SubTableTitle = ({ title }) => (
@@ -467,8 +467,8 @@ export default function Argo() {
     }
 
     function handleTextUpload(event) {
-        let uploadedData = event.get("textUploadFile").toString()
-        let inputData = parseDataInput(uploadedData)
+        const uploadedData = event.get("textUploadFile").toString()
+        const inputData = parseDataInput(uploadedData)
         if (inputData !== undefined) {
             configureInputedRegions(inputData)
         }
