@@ -1,16 +1,13 @@
 "use client"
 import React, { useCallback, useEffect, useMemo } from "react"
 import { useState } from "react"
-import { Stack, Typography, Box, TextField, Button, Alert, CircularProgress, IconButton } from "@mui/material"
-import MenuItem from "@mui/material/MenuItem"
-import FormControl from "@mui/material/FormControl"
-import Select, { SelectChangeEvent } from "@mui/material/Select"
-import BedUpload, { getIntersect, parseDataInput } from "../../_mainsearch/bedupload"
+import { Stack, Typography, Box, Alert, CircularProgress, IconButton } from "@mui/material"
+import { SelectChangeEvent } from "@mui/material/Select"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { ORTHOLOG_QUERY, Z_SCORES_QUERY } from "./queries"
 import { useLazyQuery, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
-import { ZScores, GenomicRegion, CCREAssays, CCREClasses, RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, AssayRankEntry } from "./types"
+import { GenomicRegion, CCREAssays, CCREClasses, RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, AssayRankEntry, CCREs } from "./types"
 import { BED_INTERSECT_QUERY } from "../../_mainsearch/queries"
 import ExpandCircleDownIcon from '@mui/icons-material/ExpandCircleDown';
 import Filters from "./filters"
@@ -20,9 +17,7 @@ import ArgoUpload from "./argoUpload"
 const assayNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
 
 export default function Argo() {
-    //Old state variables
-    const [intersectData, setIntersectData] = useState<[]>([]) // The intersection data returned from BedUpload component
-    const [getOutput] = useLazyQuery(BED_INTERSECT_QUERY)
+    const [getIntersectingCcres, {data: intersectArray}] = useLazyQuery(BED_INTERSECT_QUERY)
 
     //UI state variables
     const [selectedSearch, setSelectedSearch] = useState<string>("BED File")
@@ -131,12 +126,6 @@ export default function Argo() {
             ...prevState,
             [key]: value,
         }));
-    };
-
-    // This function will receive the regions from ArgoUpload
-    const handleRegionsConfigured = (regions: GenomicRegion[]) => {
-        setInputRegions(regions);
-        console.log(regions)
     };
 
     //stylized header for main rank table columns
@@ -270,12 +259,42 @@ export default function Argo() {
 
     }, [elementFilterVariables])
 
+     // This function will receive the regions from ArgoUpload and find the intersecting cCREs
+     const handleRegionsConfigured = (regions: GenomicRegion[]) => {
+        setInputRegions(regions);
+        const user_ccres = regions.map(region => [
+            region.chr,
+            region.start.toString(),
+            region.end.toString(),
+        ]);
+        getIntersectingCcres({
+            variables: {
+              user_ccres: user_ccres,
+              assembly: "GRCh38",
+              maxOutputLength: 1000 // Not required technically as server side defaults to 1000, here if it needs to be changed in the future
+            },
+            client: client,
+            fetchPolicy: 'cache-and-network',})
+    };
+
+    const intersectingCcres: CCREs = useMemo(() => {
+        if (intersectArray) {
+            const transformedData: CCREs = intersectArray.intersection.map(ccre => ({
+                chr: ccre[0],
+                start: parseInt(ccre[1]),
+                end: parseInt(ccre[2]),
+                accession: ccre[4]
+            }));
+            return transformedData
+        }
+    }, [intersectArray]);
+
     const { loading: loading_ortho, data: orthoData } = useQuery(ORTHOLOG_QUERY, {
         variables: {
             assembly: "GRCh38",
-            accessions: intersectData.map((r) => r[4]),
+            accessions: intersectingCcres ? intersectingCcres.map((ccre) => ccre.accession) : [],
         },
-        skip: !elementFilterVariables.mustHaveOrtholog && elementFilterVariables.cCREAssembly !== "mm10",
+        skip: (!elementFilterVariables.mustHaveOrtholog && elementFilterVariables.cCREAssembly !== "mm10") || !intersectingCcres,
         client: client,
         fetchPolicy: 'cache-first',
         onCompleted(data) {
@@ -322,18 +341,17 @@ export default function Argo() {
     const { loading: loading_scores, error: error_scores, refetch: refetchZScores } = useQuery(Z_SCORES_QUERY, {
         variables: {
             assembly: elementFilterVariables.cCREAssembly,
-            accessions: elementFilterVariables.cCREAssembly === "mm10" ? mouseAccessions : intersectData.map((r) => r[4]),
+            accessions: elementFilterVariables.cCREAssembly === "mm10" ? mouseAccessions : intersectingCcres ? intersectingCcres.map((ccre) => ccre.accession) : [],
             cellType: elementFilterVariables.selectedBiosample ? elementFilterVariables.selectedBiosample.name : null
         },
-        skip: intersectData.length === 0 || (elementFilterVariables.cCREAssembly === "mm10" && mouseAccessions.length === 0),
+        skip: !intersectingCcres || (elementFilterVariables.cCREAssembly === "mm10" && mouseAccessions.length === 0),
         client: client,
         fetchPolicy: 'cache-first',
         onCompleted(d) {
             setBiosampleFlag(true);
             const data = d['cCRESCREENSearch'];
-
             if(elementFilterVariables.cCREAssembly !== "mm10") {
-                const allDataResult = intersectData.map((e) => ({
+                const allDataResult = intersectArray.intersection.map((e) => ({
                     accession: e[4],
                     linked_genes: [],
                     region: { chr: e[0], start: e[1], end: e[2] },
@@ -423,13 +441,12 @@ export default function Argo() {
 
     useEffect(() => {
         // Trigger refetch whenever mustHaveOrtholog changes
-        if (!elementFilterVariables.mustHaveOrtholog && intersectData.length > 0) {
+        if (!elementFilterVariables.mustHaveOrtholog && intersectingCcres) {
             refetchZScores();
         }
-    }, [elementFilterVariables.mustHaveOrtholog, intersectData.length, refetchZScores]);
+    }, [elementFilterVariables.mustHaveOrtholog, intersectingCcres, refetchZScores]);
 
     const handleSearchChange = (event: SelectChangeEvent) => {
-        setIntersectData([])
         updateElementFilter('selectedBiosample', null)
         setMainRows([])
         setAllMainRows([])
@@ -438,13 +455,14 @@ export default function Argo() {
         setSequenceRows([])
         setElementRows([])
         setGeneRows([])
-        setSelectedSearch(event.target.value)
+        if(event){
+            setSelectedSearch(event.target.value)
+        } 
         setShownTable(null)
     }
 
     function appletCallBack(data, inputData) {
         updateElementFilter('selectedBiosample', null)
-        setIntersectData(data)
         setSequenceRows([])
         setAllElementRows([])
         setElementRows([])
@@ -654,7 +672,7 @@ export default function Argo() {
                     handleSearchChange={handleSearchChange}
                     onRegionsConfigured={handleRegionsConfigured}
                 />
-                {intersectData.length > 0 && (
+                {intersectingCcres && (
                     <>
                         <Box mt="20px" id="123456">
                             <DataTable

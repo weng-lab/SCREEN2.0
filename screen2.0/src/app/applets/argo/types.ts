@@ -42,6 +42,8 @@ export type GenomicRegion = {
 
 export type RankedRegions = (GenomicRegion & {rank: number})[]
 
+export type CCREs = (GenomicRegion & {accession: string})[]
+
 export type CCREClasses = {
     CA: boolean
     "CA-CTCF": boolean

@@ -20,11 +20,10 @@ const ArgoUpload: React.FC<UploadProps> = ({
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState([false, ""]) // status, message
 
+    //coppied from BedUpload
     function parseDataInput(data) {
         const allLines = []
         data.split("\n").forEach((line) => {
-            // The if statement checks if the BED file has a header and does not push those
-            // Also checks for empty lines
             if (!(line.startsWith("#") ||
                 line.startsWith("browser") ||
                 line.startsWith("track") ||
@@ -73,6 +72,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
         })
     }
 
+    //map parsed file / text to Genomic region type and sort them
     function configureInputedRegions(data) {
         const regions = data.map(item => ({
             chr: item[0],         // Index 0 for inputed chromosome
@@ -92,9 +92,11 @@ const ArgoUpload: React.FC<UploadProps> = ({
                 return a.start - b.start;
             }
         });
+        setLoading(false)
         onRegionsConfigured(sortedRegions);
     }
 
+    //coppied from BedUpload
     function truncateFileName(string, maxLength, ellipsis = "...") {
         if (string.length <= maxLength) {
             return string;
