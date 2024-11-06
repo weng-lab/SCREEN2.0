@@ -1,10 +1,10 @@
 "use client"
-import React, { useState, useEffect } from "react"
+import React, { useState, useMemo, useCallback } from "react"
 import Grid from "@mui/material/Grid2"
 import { LoadingMessage } from "../../../common/lib/utility"
-import {  
-  Box,
-  Button,  
+import {
+  Button,
+  CircularProgress,
   IconButton,
   InputLabel,
   MenuItem,
@@ -14,51 +14,19 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material"
-import Config from "../../../config.json"
-import { PlotActivityProfiles } from "./utils"
 import Image from "next/image"
 import InfoIcon from "@mui/icons-material/Info"
 import { RampageToolTipInfo } from "./const"
-import { gql, useQuery } from "@apollo/client"
+import { useQuery } from "@apollo/client"
 import { client } from "./client"
 import ConfigureGBModal from "./configuregbmodal"
+import { GENE_QUERY, TSS_RAMPAGE_QUERY } from "./queries"
+import VerticalBarPlot, { BarData } from "../../_barPlot/BarPlot"
+import { tissueColors } from "../../../common/lib/colors"
+import { GenomicRegion } from "../types"
+import { OpenInNew } from "@mui/icons-material"
+import { capitalizeWords } from "./utils"
 
-const GENE_QUERY = gql`
-query geneQuery($assembly: String!, $name_prefix: [String!], $limit: Int, $version: Int) {
-  gene(assembly: $assembly, name_prefix: $name_prefix, limit: $limit, version: $version) {
-    name
-    id
-    coordinates {
-      start
-      chromosome
-      end
-    }
-  }
-} `
- 
-const TSS_RAMPAGE_QUERY = `
-  query tssRampage($gene: String!) {
-  tssrampageQuery(genename: $gene) {
-    start    
-    organ   
-    strand
-    peakId
-    biosampleName
-    biosampleType
-    biosampleSummary
-    peakType
-    expAccession
-    value
-    start
-    end 
-    chrom    
-    genes {
-      geneName
-       locusType
-    }
-  }
-}
-`
 export type RampagePeak = {
   value: number,
   peakId: string,
@@ -69,88 +37,147 @@ export type RampagePeak = {
   start: string,
   end: string,
   chrom: string,
-  peakType: string,  
+  peakType: string,
   organ: string,
   strand: string,
   tissue: string,
 }
-export default function Rampage(props: { genes: { name: string, linkedBy?: string[] }[]}) {
-  const [currentGene, setCurrentGene] = useState(props.genes[0].name)
-  const [loading, setLoading] = useState<boolean>(true)
-  const [data, setData] = useState<RampagePeak[]>([])
-  const [peak, setPeak] = useState<string>(null)
-  const [peaks, setPeaks] = useState<string[]>([])
-  const [sort, setSort] = useState<"byValue" | "byTissueMax" | "byTissue">("byValue")
+
+//Pulled from generated types
+type RampageData = { __typename?: 'TssRampageResponse', start?: number | null, organ?: string | null, strand?: string | null, peakId?: string | null, biosampleName?: string | null, biosampleType?: string | null, biosampleSummary?: string | null, peakType?: string | null, expAccession?: string | null, value?: number | null, end?: number | null, chrom?: string | null, genes?: Array<{ __typename?: 'TssPeaksGenes', geneName?: string | null, locusType?: string | null } | null> | null }
+
+type PeakInfo = {
+  peakID: string,
+  peakType: string,
+  locusType: string,
+  coordinates: GenomicRegion
+}
+
+type ViewBy = "Value" | "Tissue" | "TissueMax"
+
+export default function Rampage(props: { genes: { name: string, linkedBy?: string[] }[] }) {
+  const [gene, setGene] = useState(props.genes[0].name)
+  const [peaks, setPeaks] = useState<PeakInfo[]>([]) //Peaks of current gene available for selection
+  const [selectedPeak, setSelectedPeak] = useState<PeakInfo>(null) //current selection
+  const [viewBy, setViewBy] = useState<ViewBy>("Value")
   const [configGBopen, setConfigGBOpen] = useState(false);
 
   const handleOpenConfigGB = () => {
-    data_gene?.gene[0] && setConfigGBOpen(true)
+    if (data_gene?.gene[0]) setConfigGBOpen(true)
   }
 
-  // fetch rampage data
-  useEffect(() => {
-    fetch(Config.API.CcreAPI, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        query: TSS_RAMPAGE_QUERY, variables: {
-          gene: currentGene
-        }
-      }),
-    })
-      .then((x) => x.json())
-      .then((x) => {
-        if (x.data && x.data.tssrampageQuery.length > 0) {
-          const peaks = x.data.tssrampageQuery.map(t => t.peakId)
-          const uniquePeaks: string[] = [...new Set(peaks as string[])];
-          const d = x.data.tssrampageQuery.map(t => {
-            return {
-              value: t.value,
-              peakId: t.peakId,
-              biosampleType: t.biosampleType,
-              name: t.biosampleName,
-              locusType: t.genes[0].locusType,
-              expAccession: t.expAccession,
-              start: t.start,
-              end: t.end,
-              chrom: t.chrom,
-              peakType: t.peakType,              
-              organ: t.organ,
-              strand: t.strand,
-              tissue: t.organ
-            }
-          })
-          setPeak(uniquePeaks[0])
-          setPeaks(uniquePeaks)
-          setData(d)
-          setLoading(false)
-        } else if (x.data && x.data.tssrampageQuery.length == 0) {
-          setPeak(null)
-          setPeaks([])
-          setData([])
-          setLoading(false)
-        }
-      })
-  }, [currentGene])
-
+  const { data: rampageData, loading: loadingRampage, error: errorRampage } = useQuery(
+    TSS_RAMPAGE_QUERY, {
+    variables: { gene: gene },
+    skip: !gene,
+    onCompleted(data) {
+      const peakInfo: PeakInfo[] = Array.from(
+        new Map(data.tssrampageQuery.map((x: RampageData) => [x.peakId, { peakID: x.peakId, peakType: x.peakType, locusType: x.genes[0].locusType, coordinates: { chrom: x.chrom, start: x.start, end: x.end } }])).values()
+      ); //extract info of each peak
+      setPeaks(peakInfo) //find unique peaks for gene
+      setSelectedPeak(peakInfo[0])
+    },
+  })
+  
   const {
     data: data_gene
   } = useQuery(GENE_QUERY, {
     variables: {
       assembly: "grch38",
-      name_prefix: [currentGene],
+      name_prefix: [gene],
       version: 40
     },
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
     client,
   })
-  const peakDetails = data && data?.find(d => d.peakId === peak)
 
-  return (loading ? <LoadingMessage /> : <Grid container spacing={2}>
+  const peakIsAvailable = peaks.length !== 0
+  
+  const makeLabel = (data: RampageData) => {
+    return `${data.value.toFixed(2)}, ${data.biosampleSummary}(${data.expAccession}) (${data.strand})`
+  }
+
+  const plotData: BarData<RampageData>[] = useMemo(() => {
+    if (rampageData) {
+      let data = rampageData.tssrampageQuery.map((x: RampageData) => {
+        return {
+          category: x.organ,
+          label: makeLabel(x),
+          value: x.value,
+          color: tissueColors[x.organ] || tissueColors.missing,
+          metadata: x
+        }
+      })
+      switch (viewBy) {
+        case ("Value"): {
+          data.sort((a, b) => b.value - a.value)
+          break
+        }
+        case ("Tissue"): {
+          //find max value for each tissue
+          const maxValuesByTissue: { [key: string]: number } = data.reduce((acc, item) => {
+            acc[item.category] = Math.max(acc[item.category] || -Infinity, item.value);
+            return acc;
+          }, {})
+          data.sort((a, b) => {
+            const maxDiff = maxValuesByTissue[b.category] - maxValuesByTissue[a.category];
+            return maxDiff !== 0 ? maxDiff : b.value - a.value;
+          })
+          break
+        }
+        case ("TissueMax"): {
+          //find max value for each tissue
+          const maxValuesByTissue: { [key: string]: number } = data.reduce((acc, item) => {
+            acc[item.category] = Math.max(acc[item.category] || -Infinity, item.value);
+            return acc;
+          }, {})
+
+          data = data.filter(x => x.value === maxValuesByTissue[x.category])
+          data.sort((a, b) => b.value - a.value);
+        }
+      }      
+
+      return data
+    } else return null
+  }, [rampageData, viewBy])
+
+  const PlotTooltip = (bar: BarData<RampageData>) => {
+    return (
+      <>
+        <Typography variant="body2">Clicking opens this experiment on ENCODE <OpenInNew fontSize="inherit" /></Typography>
+        <br />
+        <Typography variant="body2"><b>Accession:</b> {bar.metadata.expAccession}</Typography>
+        <Typography variant="body2"><b>Sample:</b> {capitalizeWords(bar.metadata.biosampleSummary)}</Typography>
+        <Typography variant="body2"><b>Tissue:</b> {capitalizeWords(bar.metadata.organ)}</Typography>
+        <Typography variant="body2"><b>Strand:</b> {capitalizeWords(bar.metadata.strand)}</Typography>
+        <Typography variant="body2"><b>Value:</b> {bar.value.toFixed(2)}</Typography>
+      </>
+    )
+  }
+
+  const RampagePlot = useCallback(() => {
+    if (loadingRampage) {
+      return <CircularProgress />
+    }
+    if (errorRampage) {
+      return <Typography>Something went wrong</Typography>
+    }
+    if (!peakIsAvailable) {
+      return <Typography>No peaks found for {gene}</Typography>
+    }
+    else return (
+      <VerticalBarPlot
+        data={plotData}
+        topAxisLabel={"Transcipt Expression at " + selectedPeak.peakID + " of " + gene}
+        //todo download
+        onBarClicked={x => window.open("https://www.encodeproject.org/experiments/" + x.metadata.expAccession, "_blank", "noopener,noreferrer")}
+        TooltipContents={(bar) => <PlotTooltip {...bar} />}
+      />
+    )
+  }, [loadingRampage, errorRampage, peakIsAvailable, gene, selectedPeak, plotData])
+
+  return (loadingRampage ? <LoadingMessage /> : <Grid container spacing={2}>
     <Stack width={"100%"} direction="row" mb={1} justifyContent={"space-between"}>
       <Stack direction="row">
         <Typography alignSelf={"flex-end"} variant="h5" display="inline">
@@ -173,7 +200,7 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
         </Button>
         <Button
           variant="contained"
-          href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + `${currentGene}`}
+          href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + `${gene}`}
           color="secondary"
           sx={{ minWidth: 125, minHeight: 50 }}
         >
@@ -185,13 +212,13 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
       <Stack>
         <InputLabel>Gene</InputLabel>
         <Select
-          value={currentGene}
+          value={gene}
           size="small"
-          MenuProps={{sx: {maxHeight: '600px'}}}
+          MenuProps={{ sx: { maxHeight: '600px' } }}
         >
           {props.genes.map((gene) => {
             return (
-              <MenuItem sx={{ display: "block" }} key={gene.name} value={gene.name} onClick={() => setCurrentGene(gene.name)}>
+              <MenuItem sx={{ display: "block" }} key={gene.name} value={gene.name} onClick={() => setGene(gene.name)}>
                 <Typography><i>{gene.name}</i></Typography>
                 {gene?.linkedBy && <Typography variant="body2" color={"text.secondary"}>Linked By: {gene.linkedBy.join(', ')}</Typography>}
               </MenuItem>
@@ -201,91 +228,69 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
       </Stack>
       <Stack>
         <InputLabel>Peak</InputLabel>
-        <Select
+        <Select<string>
           size="small"
-          value={peak}
-          onChange={(event: SelectChangeEvent) => {
-            setPeak(event.target.value)
+          value={selectedPeak?.peakID || ""}
+          onChange={(event) => {
+            const selectedPeakId = event.target.value;
+            setSelectedPeak(peaks.find(peak => peak.peakID === selectedPeakId) || null);
           }}
-          disabled={peaks.length === 0}
+          disabled={!peakIsAvailable}
           displayEmpty
-          renderValue={(value: string) => {
-            if (peaks.length === 0) {
-              return (
-                <Stack>
-                  <Typography>N/A</Typography>
-                  <Typography variant="body2" color={"text.secondary"}>No Peaks Found</Typography>
-                </Stack>
-              )
-            } else {
-              const details = data && data?.find(d => d.peakId === peak)
-              return (
-                <Stack>
-                  <Typography>{value}</Typography>
-                  <Typography variant="body2" color={"text.secondary"}>{`(${details?.peakType})`}</Typography>
-                </Stack>
-              )
-            }
+          renderValue={(value) => {
+            const selectedPeak = peaks.find(peak => peak.peakID === value);
+            return selectedPeak ? (
+              <Stack>
+                <Typography>{selectedPeak.peakID}</Typography>
+                <Typography variant="body2" color={"text.secondary"}>{`(${selectedPeak.peakType})`}</Typography>
+              </Stack>
+            ) : (
+              <Stack>
+                <Typography>N/A</Typography>
+                <Typography variant="body2" color={"text.secondary"}>No Peaks Found</Typography>
+              </Stack>
+            );
           }}
         >
-          {peaks.length > 0 ? peaks.map((peak: string) => {
-            const details = data && data?.find(d => d.peakId === peak)
-            return (
-              <MenuItem sx={{ display: "block" }} key={peak} value={peak}>
-                <Typography>{peak}</Typography>
-                <Typography variant="body2" color={"text.secondary"}>{`(${details?.peakType})`}</Typography>
-              </MenuItem>
-            )
-          })
-            :
+          {peakIsAvailable ? peaks.map((peak: PeakInfo) => (
+            <MenuItem key={peak.peakID} value={peak.peakID}>
+              <Typography>{peak.peakID}</Typography>
+              <Typography variant="body2" color={"text.secondary"}>{`(${peak.peakType})`}</Typography>
+            </MenuItem>
+          )) : (
             <MenuItem>No Peaks Found</MenuItem>
-          }
+          )}
         </Select>
+
       </Stack>
       <Stack>
         <InputLabel id="sort-by-label">
-          Sort By
+          View By
         </InputLabel>
         <Select
           size="medium"
           id="sort-by"
-          value={sort}
+          value={viewBy}
           onChange={(event: SelectChangeEvent) => {
-            setSort(event.target.value as "byValue" | "byTissueMax" | "byTissue")
+            setViewBy(event.target.value as ViewBy)
           }}
         >
-          <MenuItem value="byTissue">Tissue</MenuItem>
-          <MenuItem value="byTissueMax">Tissue Max</MenuItem>
-          <MenuItem value="byValue">Value</MenuItem>
+          <MenuItem value="Value">Value</MenuItem>
+          <MenuItem value="Tissue">Tissue</MenuItem>
+          <MenuItem value="TissueMax">Tissue Max</MenuItem>
         </Select>
       </Stack>
     </Grid>
     <Grid size={12}>
       <Typography>
-        {data_gene?.gene[0] && `Gene ID: ${data_gene.gene[0].id} ${peakDetails ? '(' + peakDetails.locusType + ')' : ''}`}
+        {data_gene?.gene[0] && `Gene ID: ${data_gene.gene[0].id} ${selectedPeak ? '- ' +  selectedPeak.locusType.replace('_', ' ') : ''}`}
       </Typography>
       <Typography>
-        {peak && `${peak}: ${peakDetails?.chrom + ":" + peakDetails?.start.toLocaleString() + "-" + peakDetails?.end.toLocaleString()}`}
+        {selectedPeak && `Peak: ${selectedPeak.peakID} - ${selectedPeak.coordinates.chrom + ":" + selectedPeak.coordinates.start.toLocaleString() + "-" + selectedPeak.coordinates.end.toLocaleString()}`}
       </Typography>
     </Grid>
     <Grid size={12}>
-      {data && data.length == 0 ? (<Typography>No data available</Typography>) :
-        <Box maxWidth={{ xl: '75%', xs: '100%' }}>
-          <PlotActivityProfiles
-            data={data}
-            sort={sort}
-            range={{
-              x: { start: 0, end: 4 },
-              y: { start: 0, end: 0 },
-            }}
-            dimensions={{
-              x: { start: 0, end: 650 },
-              y: { start: 200, end: 0 },
-            }}
-            peakID={peak}
-          />
-        </Box>
-      }
+      <RampagePlot />
     </Grid>
     {/* Configure Trackhub */}
     <ConfigureGBModal
@@ -295,7 +300,7 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
         start: data_gene?.gene[0]?.coordinates.start,
         end: data_gene?.gene[0]?.coordinates.end,
       }}
-      accession={currentGene}
+      accession={gene}
       open={configGBopen}
       setOpen={setConfigGBOpen}
     />

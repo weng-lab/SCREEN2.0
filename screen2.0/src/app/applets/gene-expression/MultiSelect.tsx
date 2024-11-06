@@ -5,10 +5,7 @@ import Autocomplete, { AutocompleteChangeDetails, AutocompleteChangeReason } fro
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import { Box, Divider, FormControlLabel, Paper } from '@mui/material';
-
-function capitalizeWords(input: string): string {
-  return input.replace(/\b\w/g, char => char.toUpperCase());
-}
+import { capitalizeWords } from '../../search/_ccredetails/utils';
 
 const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
 const checkedIcon = <CheckBoxIcon fontSize="small" />;

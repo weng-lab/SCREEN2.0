@@ -341,3 +341,42 @@ export const NEARBY_AND_LINKED_GENES = gql(`
     }
   }
 `)
+
+export const GENE_QUERY = gql(`
+  query geneQuery($assembly: String!, $name_prefix: [String!], $limit: Int, $version: Int) {
+    gene(assembly: $assembly, name_prefix: $name_prefix, limit: $limit, version: $version) {
+      name
+      id
+      coordinates {
+        start
+        chromosome
+        end
+      }
+    }
+  } 
+    `
+  )
+   
+export const TSS_RAMPAGE_QUERY = gql(`
+  query tssRampage($gene: String!) {
+  tssrampageQuery(genename: $gene) {
+    start    
+    organ   
+    strand
+    peakId
+    biosampleName
+    biosampleType
+    biosampleSummary
+    peakType
+    expAccession
+    value
+    start
+    end 
+    chrom    
+    genes {
+      geneName
+        locusType
+    }
+  }
+}`
+)

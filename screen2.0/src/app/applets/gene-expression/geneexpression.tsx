@@ -15,7 +15,7 @@ import { Close, Download, OpenInNew, Search, SyncAlt } from "@mui/icons-material
 import { LoadingButton } from "@mui/lab"
 import DownloadDialog, { FileOption } from "../gwas/_lollipop-plot/DownloadDialog"
 import { capitalizeFirstLetter, downloadObjArrayAsTSV, downloadSVG, downloadSvgAsPng } from "../gwas/helpers"
-import VerticalBarPlot, { BarData } from "./BarPlot"
+import VerticalBarPlot, { BarData } from "../../_barPlot/BarPlot"
 import { tissueColors } from "../../../common/lib/colors"
 import MultiSelect, { MultiSelectOnChange } from "./MultiSelect"
 
@@ -272,15 +272,15 @@ export function GeneExpression(props: {
     return (
       <>
         <Typography variant="body2">Clicking opens this experiment on ENCODE <OpenInNew fontSize="inherit" /></Typography>
-        <br/>
+        <br />
         <Typography variant="body2"><b>Accession:</b> {bar.metadata.accession}</Typography>
         <Typography variant="body2"><b>Sample:</b> {capitalizeFirstLetter(bar.metadata.biosample)}</Typography>
         <Typography variant="body2"><b>Tissue:</b> {capitalizeFirstLetter(bar.metadata.tissue)}</Typography>
         <Typography variant="body2"><b>Biosample Type:</b> {capitalizeFirstLetter(bar.metadata.biosample_type)}</Typography>
         {scale === "linearTPM" ?
-          <Typography variant="body2"><b>TPM:</b> {bar.value}</Typography>
+          <Typography variant="body2"><b>TPM:</b> {bar.value.toFixed(2)}</Typography>
           :
-          <Typography variant="body2"><b>Log<sub>10</sub>(TPM + 1):</b> {bar.value}</Typography>
+          <Typography variant="body2"><b>Log<sub>10</sub>(TPM + 1):</b> {bar.value.toFixed(2)}</Typography>
         }
       </>
     )
