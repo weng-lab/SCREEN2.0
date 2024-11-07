@@ -168,12 +168,10 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
 
   const plotData: BarData<RampageData>[] = useMemo(() => {
     if (dataRampage) {
-      const unique = []
       let data = dataRampage.tssrampageQuery
         .filter(d => sampleMatchesSearch(d)) //filter by search
         .filter(d => selectedTissues.includes(d.organ)) //filter by tissue
         .map((x: RampageData) => {
-          if (!unique.includes(x.organ)) unique.push(x.organ)
           return {
             category: capitalizeWords(x.organ),
             label: makeLabel(x),
@@ -182,7 +180,6 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
             metadata: x
           }
         })
-        console.log(unique)
       switch (viewBy) {
         case ("Value"): {
           data.sort((a, b) => b.value - a.value)
@@ -244,7 +241,7 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
       <VerticalBarPlot
         SVGref={plotRef}
         data={plotData}
-        topAxisLabel={"Transcipt Expression at " + selectedPeak.peakID + " of " + gene + " (RPM)"}
+        topAxisLabel={"Transcipt Expression at " + selectedPeak.peakID + " of " + gene + " - RPM"}
         //todo download
         onBarClicked={x => window.open("https://www.encodeproject.org/experiments/" + x.metadata.expAccession, "_blank", "noopener,noreferrer")}
         TooltipContents={(bar) => <PlotTooltip {...bar} />}

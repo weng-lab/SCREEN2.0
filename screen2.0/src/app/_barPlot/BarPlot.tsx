@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Bar } from '@visx/shape';
 import { scaleBand, scaleLinear } from '@visx/scale';
 import { AxisTop } from '@visx/axis';
@@ -13,57 +13,6 @@ export interface BarData<T> {
   value: number;
   color?: string;
   metadata?: T;
-}
-
-const calculateSpaceForLabel = (data: BarData<unknown>[], width: number, spaceForCategory: number) => {
-  //todo fix this to be precise
-  const measureTextWidth = (text, font = '12px Roboto') => {
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
-    if (context) {
-      context.font = font;
-      return context.measureText(text).width;
-    }
-    return 0;
-  };
-
-  const widths = data.map(d => {
-    const labelWidth = measureTextWidth(d.label); //mostly right but not quite
-    const availableSpace = width - spaceForCategory
-    const proportionOfMax = d.value / Math.max(...data.map((item) => item.value))
-    if (d.label.includes("53.10")){
-      console.log('\n' + "blood sample:")
-      console.log("labelWidth: " + labelWidth)
-      console.log("availableSpace: " + availableSpace)
-      console.log("proportionOfMax: " + proportionOfMax + '\n')
-    }
-    if (d.label.includes("51.76")){
-      console.log('\n' + "heart sample:")
-      console.log("labelWidth: " + labelWidth)
-      console.log("availableSpace: " + availableSpace)
-      console.log("proportionOfMax: " + proportionOfMax + '\n')
-    }
-    const barWidth = availableSpace * proportionOfMax //not correct
-    //the issue is that available space depends on the label width
-    return {
-      ...d,
-      barWidth: barWidth,
-      labelWidth: labelWidth,
-      totalWidth: barWidth + labelWidth + 5
-    }
-  })
-
-  console.log(widths.find(x => x.label.includes("51.76")))
-
-  const largestOverall = widths.reduce((largest, current) => {
-    if (current.totalWidth > largest.totalWidth) {
-      return current
-    } else return largest
-  }, {barWidth: 0, labelWidth: 0, totalWidth: 0})
-
-
-  console.log(largestOverall)
-  return largestOverall.labelWidth
 }
 
 export interface BarPlotProps<T> {
@@ -81,8 +30,10 @@ const VerticalBarPlot = <T,>({
   onBarClicked,
   TooltipContents
 }: BarPlotProps<T>) => {
-  const { parentRef, width: ParentWidth } = useParentSize({ debounceTime: 150 });
+  const [spaceForLabel, setSpaceForLabel] = useState(0)
   const { tooltipOpen, tooltipLeft, tooltipTop, tooltipData, hideTooltip, showTooltip } = useTooltip<BarData<T>>({});
+  const { parentRef, width: ParentWidth } = useParentSize({ debounceTime: 150 });
+  const containerRef = useRef(null)
   const requestRef = useRef<number | null>(null);
   const tooltipDataRef = useRef<{ top: number; left: number; data: BarData<T> } | null>(null);
 
@@ -110,9 +61,8 @@ const VerticalBarPlot = <T,>({
   const spaceForTopAxis = 50
   const spaceOnBottom = 20
   const spaceForCategory = 120
-  // const spaceForLabel = useMemo(() => calculateSpaceForLabel(data, width, spaceForCategory), [data, width]);
-  const spaceForLabel = 280
-  // console.log(spaceForLabel)
+
+  const gapBetweenTextAndBar = 10
 
   const dataHeight = data.length * 20
   const totalHeight = dataHeight + spaceForTopAxis + spaceOnBottom
@@ -133,16 +83,47 @@ const VerticalBarPlot = <T,>({
 
   const fontFamily = "Roboto,Helvetica,Arial,sans-serif"
 
+  //This feels really dumb but I couldn't figure out a better was to have the labels not overflow sometimes - JF 11/7/24
+  useEffect(() => {
+    if (!containerRef?.current){ return }
+
+    const containerWidth = containerRef.current.getBoundingClientRect().width;
+    let overflowDetected = false;
+    let maxOverflow = 0
+
+    data.forEach((d, i) => {
+      const textElement = document.getElementById(`label-${i}`) as unknown as SVGTextElement;
+      if (textElement) {
+        const textWidth = textElement.getBBox().width;
+        const barWidth = xScale(d.value);
+
+        const totalWidth = spaceForCategory + 10 + barWidth + gapBetweenTextAndBar + textWidth
+        
+        // Check if bar + label overflows container
+        if (totalWidth > containerWidth) {
+          overflowDetected = true;
+          maxOverflow = Math.max(maxOverflow, totalWidth - containerWidth)
+        }
+      }
+    });
+
+    // If overflow is detected, increment
+    if (overflowDetected) {
+      setSpaceForLabel(spaceForLabel + maxOverflow);
+    }
+  }, [data, xScale, spaceForLabel]);
+
   return (
     <div ref={parentRef}>
       {data.length === 0 ?
         <p>No Data To Display</p>
         :
-        <svg width={width} height={totalHeight} ref={SVGref}>
+        <svg ref={containerRef} width={width} height={totalHeight}>
+          <svg width={width} height={totalHeight} ref={SVGref}>
           <Group left={spaceForCategory} top={spaceForTopAxis}>
             {/* Top Axis with Label */}
             <AxisTop scale={xScale} top={0} label={topAxisLabel} labelProps={{ dy: -5, fontSize: 16, fontFamily: fontFamily }} numTicks={width < 600 ? 4 : undefined} />
-            {data.map((d) => {
+            {data.map((d, i) => {
               const barHeight = yScale.bandwidth();
               const barWidth = xScale(d.value) ?? 0;
               const barY = yScale(d.label);
@@ -157,7 +138,7 @@ const VerticalBarPlot = <T,>({
                 >
                   {/* Category label to the left of each bar */}
                   <Text
-                    x={-10}  // Positioning slightly to the left of the bar
+                    x={-gapBetweenTextAndBar}  // Positioning slightly to the left of the bar
                     y={(barY ?? 0) + barHeight / 2}
                     dy=".35em"
                     textAnchor="end"
@@ -179,7 +160,8 @@ const VerticalBarPlot = <T,>({
                     />
                     {/* Value label next to the bar */}
                     <Text
-                      x={barX + barWidth + 5}  // Position label slightly after the end of the bar
+                      id={`label-${i}`}
+                      x={barX + barWidth + gapBetweenTextAndBar}  // Position label slightly after the end of the bar
                       y={(barY ?? 0) + barHeight / 2}
                       dy=".35em"  // Vertically align to the middle of the bar
                       fill="black"
@@ -193,6 +175,7 @@ const VerticalBarPlot = <T,>({
               );
             })}
           </Group>
+          </svg>
         </svg>
 
       }
