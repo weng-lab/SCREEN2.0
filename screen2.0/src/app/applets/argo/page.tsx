@@ -239,7 +239,7 @@ export default function Argo() {
         ]
 
         if (elementFilterVariables.usecCREs) {
-            if (elementFilterVariables.mustHaveOrtholog) { cols.push({ header: "Orthologous Accesion", value: (row) => row.ortholog }) }
+            if (elementFilterVariables.mustHaveOrtholog && elementFilterVariables.cCREAssembly !== "mm10") { cols.push({ header: "Orthologous Accesion", value: (row) => row.ortholog }) }
             if (elementFilterVariables.assays.dnase) { cols.push({ header: "DNase", value: (row) => row.dnase !== null ? row.dnase.toFixed(2) : null }) }
             if (elementFilterVariables.assays.h3k4me3) { cols.push({ header: "H3K4me3", value: (row) => row.h3k4me3 !== null ? row.h3k4me3.toFixed(2) : null }) }
             if (elementFilterVariables.assays.h3k27ac) { cols.push({ header: "H3K27ac", value: (row) => row.h3k27ac !== null ? row.h3k27ac.toFixed(2) : null }) }
@@ -318,7 +318,7 @@ export default function Argo() {
             accessions: elementFilterVariables.cCREAssembly === "mm10" ? mouseAccessions : intersectingCcres ? intersectingCcres.map((ccre) => ccre.accession) : [],
             cellType: elementFilterVariables.selectedBiosample ? elementFilterVariables.selectedBiosample.name : null
         },
-        skip: !intersectingCcres || (elementFilterVariables.cCREAssembly === "mm10" && mouseAccessions.length === 0),
+        skip: !intersectingCcres || (elementFilterVariables.cCREAssembly === "mm10" && !mouseAccessions),
         client: client,
         fetchPolicy: 'cache-first',
     });
@@ -354,15 +354,32 @@ export default function Argo() {
     //all data pertaining to the element table
     const allElementData: ElementTableRow[] = useMemo(() => {
         if (!zScoreData) return [];
-
         const data = zScoreData['cCRESCREENSearch'];
+        let mapObj = intersectingCcres;
+
+        if (elementFilterVariables.cCREAssembly === "mm10") {
+            const orthologMapping: { [accession: string]: string | undefined } = {};
+
+            orthoData.orthologQuery.forEach((entry: { accession: string; ortholog: Array<{ accession: string }> }) => {
+                if (entry.ortholog.length > 0) {
+                    orthologMapping[entry.accession] = entry.ortholog[0].accession;
+                }
+            });
+
+            mapObj = intersectingCcres
+                .map((ccre) => ({
+                    ...ccre,
+                    accession: orthologMapping[ccre.accession]
+                }))
+                .filter((ccre) => ccre.accession !== undefined);
+        }
 
         if (elementFilterVariables.selectedBiosample) {
-            return intersectingCcres.map(obj => mapScoresCTSpecific(obj, data));
+            return mapObj.map(obj => mapScoresCTSpecific(obj, data));
         } else {
-            return intersectingCcres.map(obj => mapScores(obj, data));
+            return mapObj.map(obj => mapScores(obj, data));
         }
-    }, [zScoreData, intersectingCcres, elementFilterVariables.selectedBiosample]);
+    }, [zScoreData, intersectingCcres, elementFilterVariables.cCREAssembly, elementFilterVariables.selectedBiosample, orthoData]);
 
     // Filter cCREs based on class and ortholog
     const elementRows: ElementTableRow[] = useMemo(() => {
@@ -371,7 +388,7 @@ export default function Argo() {
         let data = allElementData;
 
         //filter through ortholog
-        if (elementFilterVariables.mustHaveOrtholog && orthoData) {
+        if (elementFilterVariables.mustHaveOrtholog && orthoData && elementFilterVariables.cCREAssembly !== "mm10") {
             const orthologMapping: { [accession: string]: string | undefined } = {};
 
             orthoData.orthologQuery.forEach((entry: { accession: string; ortholog: Array<{ accession: string }> }) => {
@@ -379,15 +396,13 @@ export default function Argo() {
                     orthologMapping[entry.accession] = entry.ortholog[0].accession;
                 }
             });
-            if (elementFilterVariables.cCREAssembly !== "mm10") {
 
-                data = allElementData
-                    .map((row) => ({
-                        ...row,
-                        ortholog: orthologMapping[row.accession]
-                    }))
-                    .filter((row) => row.ortholog !== undefined);
-            }
+            data = allElementData
+                .map((row) => ({
+                    ...row,
+                    ortholog: orthologMapping[row.accession]
+                }))
+                .filter((row) => row.ortholog !== undefined);
         }
 
         //filter through class
