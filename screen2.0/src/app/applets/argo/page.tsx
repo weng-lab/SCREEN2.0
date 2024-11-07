@@ -18,6 +18,7 @@ const assayNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
 
 export default function Argo() {
     const [getIntersectingCcres, { data: intersectArray }] = useLazyQuery(BED_INTERSECT_QUERY)
+    const [inputRegions, setInputRegions] = useState<GenomicRegion[]>([]);
 
     //UI state variables
     const [selectedSearch, setSelectedSearch] = useState<string>("BED File")
@@ -26,13 +27,9 @@ export default function Argo() {
     const [shownTable, setShownTable] = useState<"sequence" | "element" | "gene">(null);
 
     // Table variables
-    const [inputRegions, setInputRegions] = useState<GenomicRegion[]>([]);
     const [sequenceRanks, setSequenceRanks] = useState<RankedRegions>([]);
     const [geneRanks, setGeneRanks] = useState<RankedRegions>([]);
     const [sequenceRows, setSequenceRows] = useState<SequenceTableRow[]>([]) // Data displayed on the sequence table
-    const [allElementRows, setAllElementRows] = useState<ElementTableRow[]>([]) // All element rows recieved from query
-    const [orthoFlag, setOrthoFlag] = useState(false) // remember if otholog has been switched
-    const [biosampleFlag, setBiosampleFlag] = useState(false) // remember if biosamples have been switched
     const [geneRows, setGeneRows] = useState<GeneTableRow[]>([]) // Data displayed on the gene table
 
     // Filter state variables
@@ -256,9 +253,6 @@ export default function Argo() {
 
     const handleSearchChange = (event: SelectChangeEvent) => {
         updateElementFilter('selectedBiosample', null)
-        setAllElementRows([])
-        setSequenceRows([])
-        setGeneRows([])
         if (event) {
             setSelectedSearch(event.target.value)
         }
@@ -331,7 +325,7 @@ export default function Argo() {
 
     const mapScores = (obj, data) => {
         const matchingObj = data.find((e) => obj.accession === e.info.accession);
-        if (!matchingObj) return obj; // Handle cases where no match is found
+        if (!matchingObj) return obj;
         return {
             ...obj,
             dnase: matchingObj.dnase_zscore,
@@ -345,7 +339,7 @@ export default function Argo() {
 
     const mapScoresCTSpecific = (obj, data) => {
         const matchingObj = data.find((e) => obj.accession === e.info.accession);
-        if (!matchingObj) return obj; // Handle cases where no match is found
+        if (!matchingObj) return obj;
         return {
             ...obj,
             dnase: matchingObj.ctspecific.dnase_zscore,
@@ -372,35 +366,45 @@ export default function Argo() {
 
     // Filter cCREs based on class and ortholog
     const elementRows: ElementTableRow[] = useMemo(() => {
-        if (allElementData.length === 0) return [];
-    
+        if (allElementData.length === 0 || !elementFilterVariables.usecCREs) return [];
+
         let data = allElementData;
 
         //filter through ortholog
         if (elementFilterVariables.mustHaveOrtholog && orthoData) {
-            data = data
-            .filter(row => {
-                const matchingOrtholog = orthoData.orthologQuery.find(o => o.accession === row.accession);
-                if (matchingOrtholog) {
-                    row.ortholog = matchingOrtholog.ortholog[0].accession;
+            const orthologMapping: { [accession: string]: string | undefined } = {};
+
+            orthoData.orthologQuery.forEach((entry: { accession: string; ortholog: Array<{ accession: string }> }) => {
+                if (entry.ortholog.length > 0) {
+                    orthologMapping[entry.accession] = entry.ortholog[0].accession;
                 }
             });
+            if (elementFilterVariables.cCREAssembly !== "mm10") {
+
+                data = allElementData
+                    .map((row) => ({
+                        ...row,
+                        ortholog: orthologMapping[row.accession]
+                    }))
+                    .filter((row) => row.ortholog !== undefined);
+            }
         }
 
         //filter through class
         const filteredClasses = data.filter(row => elementFilterVariables.classes[row.class] !== false);
         return filteredClasses;
-    
-    }, [allElementData, elementFilterVariables.classes, elementFilterVariables.mustHaveOrtholog, orthoData]);
+
+    }, [allElementData, elementFilterVariables.cCREAssembly, elementFilterVariables.classes, elementFilterVariables.mustHaveOrtholog, elementFilterVariables.usecCREs, orthoData]);
     
 
     // Generate element ranks
     const elementRanks = useMemo<RankedRegions>(() => {
+        if(!elementRows || !elementFilterVariables.usecCREs) return [];
         const assayRanks: { [key: number]: AssayRankEntry } = {};
 
         //assign a rank to each assay
         assayNames.forEach(assay => {
-            const sortedRows = allElementData
+            const sortedRows = elementRows
                 .sort((a, b) => {
                     if (elementFilterVariables.classes[a.class] && elementFilterVariables.classes[b.class]) {
                         return b[assay] - a[assay];
@@ -462,11 +466,11 @@ export default function Argo() {
         });
         return rankedRegions;
 
-    }, [elementFilterVariables, allElementData]);
+    }, [elementFilterVariables, elementRows]);
 
     //update aggregate rank
     const aggregateRanks = useMemo<RankedRegions>(() => {
-        if ((sequenceRanks.length === 0 && elementRanks.length === 0 && geneRanks.length === 0) || inputRegions.length === 0) return;
+        if ((sequenceRanks.length === 0 && elementRanks.length === 0 && geneRanks.length === 0) || inputRegions.length === 0) return [];
 
         const updatedMainRanks = inputRegions.map(row => {
             // Find matching ranks based on inputRegion coordinates
