@@ -24,16 +24,16 @@ export interface BarPlotProps<T> {
 }
 
 const VerticalBarPlot = <T,>({
-  data = [],
+  data,
   SVGref,
   topAxisLabel,
   onBarClicked,
   TooltipContents
 }: BarPlotProps<T>) => {
   const [spaceForLabel, setSpaceForLabel] = useState(0)
+  const [labelSpaceDecided, setLabelSpaceDecided] = useState(false)
   const { tooltipOpen, tooltipLeft, tooltipTop, tooltipData, hideTooltip, showTooltip } = useTooltip<BarData<T>>({});
   const { parentRef, width: ParentWidth } = useParentSize({ debounceTime: 150 });
-  const containerRef = useRef(null)
   const requestRef = useRef<number | null>(null);
   const tooltipDataRef = useRef<{ top: number; left: number; data: BarData<T> } | null>(null);
 
@@ -57,7 +57,7 @@ const VerticalBarPlot = <T,>({
     }
   }, [showTooltip]);
 
-  const width = useMemo(() => Math.max(500, ParentWidth), [ParentWidth])
+  const width = useMemo(() => Math.max(750, ParentWidth), [ParentWidth])
   const spaceForTopAxis = 50
   const spaceOnBottom = 20
   const spaceForCategory = 120
@@ -85,9 +85,9 @@ const VerticalBarPlot = <T,>({
 
   //This feels really dumb but I couldn't figure out a better was to have the labels not overflow sometimes - JF 11/7/24
   useEffect(() => {
-    if (!containerRef?.current){ return }
+    const containerWidth = document.getElementById('box1')?.clientWidth
+    if (!containerWidth) {return}
 
-    const containerWidth = containerRef.current.getBoundingClientRect().width;
     let overflowDetected = false;
     let maxOverflow = 0
 
@@ -110,6 +110,8 @@ const VerticalBarPlot = <T,>({
     // If overflow is detected, increment
     if (overflowDetected) {
       setSpaceForLabel(spaceForLabel + maxOverflow);
+    } else {
+      setLabelSpaceDecided (true)
     }
   }, [data, xScale, spaceForLabel]);
 
@@ -118,9 +120,8 @@ const VerticalBarPlot = <T,>({
       {data.length === 0 ?
         <p>No Data To Display</p>
         :
-        <svg ref={containerRef} width={width} height={totalHeight}>
-          <svg width={width} height={totalHeight} ref={SVGref}>
-          <Group left={spaceForCategory} top={spaceForTopAxis}>
+        <svg ref={SVGref} width={width} height={totalHeight} visibility={labelSpaceDecided ? 'visible' : 'hidden'} id={'box1'}>
+          <Group left={spaceForCategory} top={spaceForTopAxis} >
             {/* Top Axis with Label */}
             <AxisTop scale={xScale} top={0} label={topAxisLabel} labelProps={{ dy: -5, fontSize: 16, fontFamily: fontFamily }} numTicks={width < 600 ? 4 : undefined} />
             {data.map((d, i) => {
@@ -130,7 +131,7 @@ const VerticalBarPlot = <T,>({
               const barX = 0;
               return (
                 <Group
-                  key={d.label}
+                  key={i}
                   onClick={() => onBarClicked && onBarClicked(d)}
                   style={onBarClicked && { cursor: 'pointer' }}
                   onMouseMove={(event) => handleMouseMove(event, d)}
@@ -175,7 +176,6 @@ const VerticalBarPlot = <T,>({
               );
             })}
           </Group>
-          </svg>
         </svg>
 
       }
