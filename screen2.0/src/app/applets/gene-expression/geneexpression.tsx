@@ -206,10 +206,7 @@ export function GeneExpression(props: {
     if (props.applet) { //only allow switch in applet. Check should never fail but keeping
       setAssembly(newAssembly)
       if (newAssembly === "GRCh38") {
-        // setTissues(humanTissues) //Reset Tissue Filter
         setRNAType("total RNA-seq") //Switch back RNA type if going from mouse to human, as all data there is total
-      } else {
-        // setTissues(mouseTissues) //Reset Tissue Filter
       }
     }
   }

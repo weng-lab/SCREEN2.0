@@ -222,7 +222,7 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
         <Typography variant="body2"><b>Sample:</b> {capitalizeWords(bar.metadata.biosampleSummary.replaceAll("_", " "))}</Typography>
         <Typography variant="body2"><b>Tissue:</b> {capitalizeWords(bar.metadata.organ)}</Typography>
         <Typography variant="body2"><b>Strand:</b> {capitalizeWords(bar.metadata.strand)}</Typography>
-        <Typography variant="body2"><b>Value:</b> {bar.value.toFixed(2)}</Typography>
+        <Typography variant="body2"><b>RPM:</b> {bar.value.toFixed(2)}</Typography>
       </>
     )
   }
