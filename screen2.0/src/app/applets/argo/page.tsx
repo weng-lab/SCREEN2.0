@@ -17,7 +17,8 @@ import ArgoUpload from "./argoUpload"
 const assayNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
 
 export default function Argo() {
-    const [getIntersectingCcres, {data: intersectArray}] = useLazyQuery(BED_INTERSECT_QUERY)
+    const [getIntersectingCcres, { data: intersectArray }] = useLazyQuery(BED_INTERSECT_QUERY)
+    const [inputRegions, setInputRegions] = useState<GenomicRegion[]>([]);
 
     //UI state variables
     const [selectedSearch, setSelectedSearch] = useState<string>("BED File")
@@ -26,18 +27,9 @@ export default function Argo() {
     const [shownTable, setShownTable] = useState<"sequence" | "element" | "gene">(null);
 
     // Table variables
-    const [inputRegions, setInputRegions] = useState<GenomicRegion[]>([]);
-    const [mainRanks, setMainRanks] = useState<RankedRegions>([]);
     const [sequenceRanks, setSequenceRanks] = useState<RankedRegions>([]);
-    // const [elementRanks, setElementRanks] = useState<RankedRegions>([]);
     const [geneRanks, setGeneRanks] = useState<RankedRegions>([]);
-    const [mainRows, setMainRows] = useState<MainTableRow[]>([]) // Data displayed on the main table
-    const [allMainRows, setAllMainRows] = useState<MainTableRow[]>([]) // All main rows recieved from bedupload
     const [sequenceRows, setSequenceRows] = useState<SequenceTableRow[]>([]) // Data displayed on the sequence table
-    const [allElementRows, setAllElementRows] = useState<ElementTableRow[]>([]) // All element rows recieved from query
-    const [elementRows, setElementRows] = useState<ElementTableRow[]>([]) // Data displayed on the element table
-    const [orthoFlag, setOrthoFlag] = useState(false) // remember if otholog has been switched
-    const [biosampleFlag, setBiosampleFlag] = useState(false) // remember if biosamples have been switched
     const [geneRows, setGeneRows] = useState<GeneTableRow[]>([]) // Data displayed on the gene table
 
     // Filter state variables
@@ -241,7 +233,7 @@ export default function Argo() {
     const elementColumns: DataTableColumn<ElementTableRow>[] = useMemo(() => {
 
         const cols: DataTableColumn<ElementTableRow>[] = [
-            { header: "Genomic Region", value: (row) => `${row.region.chr}:${row.region.start}-${row.region.end}`, sort: (a, b) => a.region.start - b.region.start },
+            { header: "Genomic Region", value: (row) => `${row.chr}:${row.start}-${row.end}`, sort: (a, b) => a.start - b.start },
             { header: "Class", value: (row) => row.class === "PLS" ? "Promoter" : row.class === "pELS" ? "Proximal Enhancer" : row.class === "dELS" ? "Distal Enhancer" : row.class },
             { header: "Accession", value: (row) => row.accession },
         ]
@@ -259,8 +251,16 @@ export default function Argo() {
 
     }, [elementFilterVariables])
 
-     // This function will receive the regions from ArgoUpload and find the intersecting cCREs
-     const handleRegionsConfigured = (regions: GenomicRegion[]) => {
+    const handleSearchChange = (event: SelectChangeEvent) => {
+        updateElementFilter('selectedBiosample', null)
+        if (event) {
+            setSelectedSearch(event.target.value)
+        }
+        setShownTable(null)
+    }
+
+    // This function will receive the regions from ArgoUpload and find the intersecting cCREs
+    const handleRegionsConfigured = (regions: GenomicRegion[]) => {
         setInputRegions(regions);
         const user_ccres = regions.map(region => [
             region.chr,
@@ -269,26 +269,30 @@ export default function Argo() {
         ]);
         getIntersectingCcres({
             variables: {
-              user_ccres: user_ccres,
-              assembly: "GRCh38",
-              maxOutputLength: 1000 // Not required technically as server side defaults to 1000, here if it needs to be changed in the future
+                user_ccres: user_ccres,
+                assembly: "GRCh38",
+                maxOutputLength: 1000 // Not required technically as server side defaults to 1000, here if it needs to be changed in the future
             },
             client: client,
-            fetchPolicy: 'cache-and-network',})
+            fetchPolicy: 'cache-and-network',
+        })
     };
 
+    //all ccres intersecting the user inputted regions
     const intersectingCcres: CCREs = useMemo(() => {
         if (intersectArray) {
             const transformedData: CCREs = intersectArray.intersection.map(ccre => ({
                 chr: ccre[0],
                 start: parseInt(ccre[1]),
                 end: parseInt(ccre[2]),
-                accession: ccre[4]
+                accession: ccre[4],
+                inputRegion: { chr: ccre[6], start: ccre[7], end: ccre[8] }
             }));
             return transformedData
         }
     }, [intersectArray]);
 
+    //query to get orthologous cCREs of the intersecting cCREs
     const { loading: loading_ortho, data: orthoData } = useQuery(ORTHOLOG_QUERY, {
         variables: {
             assembly: "GRCh38",
@@ -297,48 +301,18 @@ export default function Argo() {
         skip: (!elementFilterVariables.mustHaveOrtholog && elementFilterVariables.cCREAssembly !== "mm10") || !intersectingCcres,
         client: client,
         fetchPolicy: 'cache-first',
-        onCompleted(data) {
-            setOrthoFlag(true);
-            const orthologMapping: { [accession: string]: string | undefined } = {};
-
-            data.orthologQuery.forEach((entry: { accession: string; ortholog: Array<{ accession: string }> }) => {
-                if (entry.ortholog.length > 0) {
-                    orthologMapping[entry.accession] = entry.ortholog[0].accession;
-                }
-            });
-
-            // Update elementRows with ortholog information
-            if (elementFilterVariables.cCREAssembly !== "mm10") {
-
-                const updatedElementRows = elementRows
-                    .map((row) => ({
-                        ...row,
-                        ortholog: orthologMapping[row.accession]
-                    }))
-                    .filter((row) => row.ortholog !== undefined);
-
-                const updatedAllElementRows = allElementRows
-                    .map((row) => ({
-                        ...row,
-                        ortholog: orthologMapping[row.accession]
-                    }))
-                    .filter((row) => row.ortholog !== undefined);
-
-                setElementRows(updatedElementRows);
-                setAllElementRows(updatedAllElementRows);
-            }
-        }
     })
 
-    const mouseAccessions = useMemo (()=> {
-        if(elementFilterVariables.cCREAssembly === "mm10") {
+    const mouseAccessions = useMemo(() => {
+        if (elementFilterVariables.cCREAssembly === "mm10") {
             return orthoData?.orthologQuery
                 .flatMap(entry => entry.ortholog)
                 .map(orthologEntry => orthologEntry.accession);
         }
     }, [elementFilterVariables.cCREAssembly, orthoData?.orthologQuery]);
 
-    const { loading: loading_scores, error: error_scores, refetch: refetchZScores } = useQuery(Z_SCORES_QUERY, {
+    //Query to get the assay zscores of the intersecting ccres
+    const { loading: loading_scores, error: error_scores, data: zScoreData } = useQuery(Z_SCORES_QUERY, {
         variables: {
             assembly: elementFilterVariables.cCREAssembly,
             accessions: elementFilterVariables.cCREAssembly === "mm10" ? mouseAccessions : intersectingCcres ? intersectingCcres.map((ccre) => ccre.accession) : [],
@@ -347,31 +321,11 @@ export default function Argo() {
         skip: !intersectingCcres || (elementFilterVariables.cCREAssembly === "mm10" && mouseAccessions.length === 0),
         client: client,
         fetchPolicy: 'cache-first',
-        onCompleted(d) {
-            setBiosampleFlag(true);
-            const data = d['cCRESCREENSearch'];
-            if(elementFilterVariables.cCREAssembly !== "mm10") {
-                const allDataResult = intersectArray.intersection.map((e) => ({
-                    accession: e[4],
-                    linked_genes: [],
-                    region: { chr: e[0], start: e[1], end: e[2] },
-                    inputRegion: { chr: e[6], start: e[7], end: e[8] }
-                })).map(obj => mapScores(obj, data));
-    
-                if (elementFilterVariables.selectedBiosample) {
-                    handleSelectedBiosample(allDataResult, data);
-                } else {
-                    handleDeselectedBiosample(allDataResult, data);
-                }
-            } else {
-                console.log(mouseAccessions);
-            }
-        }
     });
 
     const mapScores = (obj, data) => {
         const matchingObj = data.find((e) => obj.accession === e.info.accession);
-        if (!matchingObj) return obj; // Handle cases where no match is found
+        if (!matchingObj) return obj;
         return {
             ...obj,
             dnase: matchingObj.dnase_zscore,
@@ -385,117 +339,72 @@ export default function Argo() {
 
     const mapScoresCTSpecific = (obj, data) => {
         const matchingObj = data.find((e) => obj.accession === e.info.accession);
-        if (!matchingObj) return obj; // Handle cases where no match is found
+        if (!matchingObj) return obj;
         return {
             ...obj,
             dnase: matchingObj.ctspecific.dnase_zscore,
             h3k4me3: matchingObj.ctspecific.h3k4me3_zscore,
             h3k27ac: matchingObj.ctspecific.h3k4me3_zscore,
             ctcf: matchingObj.ctspecific.ctcf_zscore,
-            atac: matchingObj.ctspecific.atac_zscore
+            atac: matchingObj.ctspecific.atac_zscore,
+            class: matchingObj.pct
         };
     };
 
-    const handleSelectedBiosample = (allDataResult, data) => {
-        let result = elementRows.map((obj) => mapScoresCTSpecific(obj, data));
+    //all data pertaining to the element table
+    const allElementData: ElementTableRow[] = useMemo(() => {
+        if (!zScoreData) return [];
 
-        //switch from ortho back to main
-        if (!elementFilterVariables.mustHaveOrtholog && orthoFlag) {
-            const filteredClasses = allDataResult.filter(row => elementFilterVariables.classes[row.class] !== false);
-            result = filteredClasses.map(obj => mapScoresCTSpecific(obj, data));
-            setAllElementRows(allDataResult);
-        }
-        if (elementRows.length === 0) {
-            setAllElementRows(allDataResult);
-        }
-        setElementRows(result);
-    };
+        const data = zScoreData['cCRESCREENSearch'];
 
-    const handleDeselectedBiosample = (allDataResult, data) => {
-        let result;
-        if (!elementFilterVariables.mustHaveOrtholog) {
-            // Handle the case when going from ortho view back to the main view
-            if (elementRows.length > 0) {
-                // refilter classes
-                if (orthoFlag) {
-                    const filteredClasses = allDataResult.filter(row =>
-                        elementFilterVariables.classes[row.class] !== false
-                    );
-                    result = filteredClasses;
-                    setOrthoFlag(false);
-                } else {
-                    result = elementRows.map(obj => mapScores(obj, data));
+        if (elementFilterVariables.selectedBiosample) {
+            return intersectingCcres.map(obj => mapScoresCTSpecific(obj, data));
+        } else {
+            return intersectingCcres.map(obj => mapScores(obj, data));
+        }
+    }, [zScoreData, intersectingCcres, elementFilterVariables.selectedBiosample]);
+
+    // Filter cCREs based on class and ortholog
+    const elementRows: ElementTableRow[] = useMemo(() => {
+        if (allElementData.length === 0 || !elementFilterVariables.usecCREs) return [];
+
+        let data = allElementData;
+
+        //filter through ortholog
+        if (elementFilterVariables.mustHaveOrtholog && orthoData) {
+            const orthologMapping: { [accession: string]: string | undefined } = {};
+
+            orthoData.orthologQuery.forEach((entry: { accession: string; ortholog: Array<{ accession: string }> }) => {
+                if (entry.ortholog.length > 0) {
+                    orthologMapping[entry.accession] = entry.ortholog[0].accession;
                 }
-            } else {
-                // If elementRows is empty, just use allDataResult
-                result = allDataResult;
+            });
+            if (elementFilterVariables.cCREAssembly !== "mm10") {
+
+                data = allElementData
+                    .map((row) => ({
+                        ...row,
+                        ortholog: orthologMapping[row.accession]
+                    }))
+                    .filter((row) => row.ortholog !== undefined);
             }
-            setAllElementRows(allDataResult);
-            setElementRows(result);
-        } else if (biosampleFlag) {
-            result = elementRows.map(obj => mapScores(obj, data));
-            setElementRows(result);
-            setBiosampleFlag(false);
         }
-    };
 
-    useEffect(() => {
-        // Trigger refetch whenever mustHaveOrtholog changes
-        if (!elementFilterVariables.mustHaveOrtholog && intersectingCcres) {
-            refetchZScores();
-        }
-    }, [elementFilterVariables.mustHaveOrtholog, intersectingCcres, refetchZScores]);
+        //filter through class
+        const filteredClasses = data.filter(row => elementFilterVariables.classes[row.class] !== false);
+        return filteredClasses;
 
-    const handleSearchChange = (event: SelectChangeEvent) => {
-        updateElementFilter('selectedBiosample', null)
-        setMainRows([])
-        setAllMainRows([])
-        setMainRanks([])
-        setAllElementRows([])
-        setSequenceRows([])
-        setElementRows([])
-        setGeneRows([])
-        if(event){
-            setSelectedSearch(event.target.value)
-        } 
-        setShownTable(null)
-    }
-
-    function appletCallBack(data, inputData) {
-        updateElementFilter('selectedBiosample', null)
-        setSequenceRows([])
-        setAllElementRows([])
-        setElementRows([])
-        setGeneRows([])
-        setDrawerOpen(true)
-        setShownTable(null)
-        if (inputData !== undefined) {
-            const initialMainRows = inputData.map(item => ({
-                inputRegion: {
-                    chr: item[0],
-                    start: Number(item[1]),
-                    end: Number(item[2])
-                },
-            }));
-            setMainRows(initialMainRows);
-            setAllMainRows(initialMainRows);
-            const initialMainRanks = inputData.map(item => ({
-                chr: item[0],
-                start: Number(item[1]),
-                end: Number(item[2]),
-                rank: 0
-            }));
-            setMainRanks(initialMainRanks);
-        }
-    }
+    }, [allElementData, elementFilterVariables.cCREAssembly, elementFilterVariables.classes, elementFilterVariables.mustHaveOrtholog, elementFilterVariables.usecCREs, orthoData]);
+    
 
     // Generate element ranks
     const elementRanks = useMemo<RankedRegions>(() => {
+        if(!elementRows || !elementFilterVariables.usecCREs) return [];
         const assayRanks: { [key: number]: AssayRankEntry } = {};
 
         //assign a rank to each assay
         assayNames.forEach(assay => {
-            const sortedRows = allElementRows
+            const sortedRows = elementRows
                 .sort((a, b) => {
                     if (elementFilterVariables.classes[a.class] && elementFilterVariables.classes[b.class]) {
                         return b[assay] - a[assay];
@@ -557,21 +466,13 @@ export default function Argo() {
         });
         return rankedRegions;
 
-    }, [elementRows, elementFilterVariables, allElementRows]);
-
-
-    // Remove filtered classes from element table
-    useMemo(() => {
-        const filteredClasses = allElementRows.filter(row => {
-            return elementFilterVariables.classes[row.class] !== false;
-        });
-        setElementRows(filteredClasses);
-    }, [elementFilterVariables.classes]);
+    }, [elementFilterVariables, elementRows]);
 
     //update aggregate rank
-    useMemo(() => {
-        if (sequenceRanks.length === 0 && elementRanks.length === 0 && geneRanks.length === 0) return;
-        const updatedMainRanks = mainRanks.map(row => {
+    const aggregateRanks = useMemo<RankedRegions>(() => {
+        if ((sequenceRanks.length === 0 && elementRanks.length === 0 && geneRanks.length === 0) || inputRegions.length === 0) return [];
+
+        const updatedMainRanks = inputRegions.map(row => {
             // Find matching ranks based on inputRegion coordinates
             const matchingSequence = sequenceRanks.find(seq =>
                 seq.chr == row.chr &&
@@ -592,6 +493,7 @@ export default function Argo() {
             );
 
             // Calculate the aggregate rank, using 0 if no matching rank is found for any
+            //TODO sort the added ranks to one aggregate rank
             const aggregateRank = (matchingSequence?.rank || 0) +
                 (matchingElement?.rank || 0) +
                 (matchingGene?.rank || 0);
@@ -602,41 +504,43 @@ export default function Argo() {
             };
         });
 
-        setMainRanks(updatedMainRanks);
-    }, [sequenceRanks, elementRanks, geneRanks]);
+        return updatedMainRanks;
+    }, [sequenceRanks, elementRanks, geneRanks, inputRegions]);
 
-    //update main table ranks
-    useMemo(() => {
-        if (elementRanks.length === 0) return;
-        const updatedMainRows = allMainRows.map(row => {
+    //find the matching ranks for each input region and update the rows of the main table
+    const mainRows: MainTableRow[] = useMemo(() => {
+        if ((sequenceRanks.length === 0 && elementRanks.length === 0 && geneRanks.length === 0) || inputRegions.length === 0) return [];
+        const updatedMainRows = inputRegions.map(row => {
             // Find the matching rank for this `inputRegion`
             const matchingElement = elementRanks.find(
                 element =>
-                    element.chr == row.inputRegion.chr &&
-                    element.start == row.inputRegion.start &&
-                    element.end == row.inputRegion.end
+                    element.chr == row.chr &&
+                    element.start == row.start &&
+                    element.end == row.end
             );
 
             const elementRank = matchingElement ? matchingElement.rank : 0;
 
-            const matchingMainRank = mainRanks.find(
+            //TODO add other ranks (sequence and Gene)
+
+            const matchingAggregateRank = aggregateRanks.find(
                 mainRank =>
-                    mainRank.chr == row.inputRegion.chr &&
-                    mainRank.start == row.inputRegion.start &&
-                    mainRank.end == row.inputRegion.end
+                    mainRank.chr == row.chr &&
+                    mainRank.start == row.start &&
+                    mainRank.end == row.end
             );
 
-            const updatedAggregateRank = (matchingMainRank ? matchingMainRank.rank : 0);
+            const aggregateRank = (matchingAggregateRank ? matchingAggregateRank.rank : 0);
 
             return {
-                ...row,
+                inputRegion: { chr: row.chr, start: row.start, end: row.end },
                 elementRank,
-                aggregateRank: updatedAggregateRank, // Update the aggregateRank
+                aggregateRank
             };
         }).filter(row => row.aggregateRank !== 0);
 
-        setMainRows(updatedMainRows);
-    }, [mainRanks]);
+        return updatedMainRows;
+    }, [aggregateRanks, elementRanks, geneRanks, inputRegions, sequenceRanks]);
 
     return (
         <Box display="flex" >
@@ -672,18 +576,20 @@ export default function Argo() {
                     handleSearchChange={handleSearchChange}
                     onRegionsConfigured={handleRegionsConfigured}
                 />
-                {intersectingCcres && (
+                {inputRegions.length > 0 && (
                     <>
                         <Box mt="20px" id="123456">
-                            <DataTable
-                                key={Math.random()}
-                                columns={mainColumns}
-                                rows={mainRows}
-                                sortDescending
-                                itemsPerPage={5}
-                                searchable
-                                tableTitle="Ranked Regions"
-                            />
+                            {mainRows.length === 0 ? <CircularProgress /> :
+                                <DataTable
+                                    key={Math.random()}
+                                    columns={mainColumns}
+                                    rows={mainRows}
+                                    sortDescending
+                                    itemsPerPage={5}
+                                    searchable
+                                    tableTitle="Ranked Regions"
+                                />
+                            }
                         </Box>
 
                         {(shownTable === "sequence" && (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs)) && (

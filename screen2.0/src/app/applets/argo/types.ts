@@ -42,7 +42,10 @@ export type GenomicRegion = {
 
 export type RankedRegions = (GenomicRegion & {rank: number})[]
 
-export type CCREs = (GenomicRegion & {accession: string})[]
+export type CCREs = (GenomicRegion & {
+    accession: string
+    inputRegion: GenomicRegion
+})[]
 
 export type CCREClasses = {
     CA: boolean
@@ -150,7 +153,9 @@ export type SequenceTableRow = {
 
 export type ElementTableRow = {
     inputRegion: GenomicRegion
-    region: GenomicRegion
+    chr: number
+    start: number
+    end: number
     accession: string
     ortholog?: string
     class: string
