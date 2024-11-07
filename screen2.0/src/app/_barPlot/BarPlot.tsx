@@ -7,6 +7,8 @@ import { Text } from '@visx/text';
 import { useParentSize } from '@visx/responsive';
 import { defaultStyles as defaultTooltipStyles, useTooltip, TooltipWithBounds, Portal } from '@visx/tooltip';
 
+//Future todo, assign spaceForCategory based on actual size needed.
+
 export interface BarData<T> {
   category: string;
   label: string;
@@ -83,7 +85,7 @@ const VerticalBarPlot = <T,>({
 
   const fontFamily = "Roboto,Helvetica,Arial,sans-serif"
 
-  //This feels really dumb but I couldn't figure out a better was to have the labels not overflow sometimes - JF 11/7/24
+  //This feels really dumb but I couldn't figure out a better way to have the labels not overflow sometimes - JF 11/7/24
   useEffect(() => {
     const containerWidth = document.getElementById('box1')?.clientWidth
     if (!containerWidth) {return}
@@ -107,7 +109,7 @@ const VerticalBarPlot = <T,>({
       }
     });
 
-    // If overflow is detected, increment
+    // If overflow is detected, increase space allotted
     if (overflowDetected) {
       setSpaceForLabel(spaceForLabel + maxOverflow);
     } else {
