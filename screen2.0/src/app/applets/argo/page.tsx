@@ -129,6 +129,9 @@ export default function Argo() {
             <IconButton
                 size="small"
                 onClick={onClick}
+                style={{
+                    transform: shownTable === tableName.toLowerCase() ? 'rotate(180deg)' : 'rotate(0deg)',
+                }}
             >
                 <ExpandCircleDownIcon
                     fontSize="inherit"
@@ -169,14 +172,14 @@ export default function Argo() {
          * correctly populate row values
          */
         if (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs) {
-            cols.push({ header: "Seqence", HeaderRender: () => <MainColHeader tableName="Sequence" onClick={() => setShownTable("sequence")} />, value: (row) => "N/A" })
+            cols.push({ header: "Seqence", HeaderRender: () => <MainColHeader tableName="Sequence" onClick={() => shownTable === "sequence" ? setShownTable(null) : setShownTable("sequence")} />, value: (row) => "N/A" })
         }
-        if (elementFilterVariables.usecCREs) { cols.push({ header: "Element", HeaderRender: () => <MainColHeader tableName="Element" onClick={() => setShownTable("element")} />, value: (row) => row.elementRank }) }
-        if (geneFilterVariables.useGenes) { cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Gene" onClick={() => setShownTable("gene")} />, value: (row) => "N/A" }) }
+        if (elementFilterVariables.usecCREs) { cols.push({ header: "Element", HeaderRender: () => <MainColHeader tableName="Element" onClick={() => shownTable === "element" ? setShownTable(null) : setShownTable("element")} />, value: (row) => row.elementRank }) }
+        if (geneFilterVariables.useGenes) { cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Gene" onClick={() => shownTable === "gene" ? setShownTable(null) : setShownTable("gene")} />, value: (row) => "N/A" }) }
 
         return cols
 
-    }, [MainColHeader, elementFilterVariables.usecCREs, geneFilterVariables.useGenes, sequenceFilterVariables.useConservation, sequenceFilterVariables.useMotifs])
+    }, [MainColHeader, elementFilterVariables.usecCREs, geneFilterVariables.useGenes, sequenceFilterVariables.useConservation, sequenceFilterVariables.useMotifs, shownTable])
 
     //handle column changes for the Sequence rank table
     const sequenceColumns: DataTableColumn<SequenceTableRow>[] = useMemo(() => {
@@ -357,6 +360,7 @@ export default function Argo() {
         const data = zScoreData['cCRESCREENSearch'];
         let mapObj = intersectingCcres;
 
+        //use mouse accesion instead if mm10 selected
         if (elementFilterVariables.cCREAssembly === "mm10") {
             const orthologMapping: { [accession: string]: string | undefined } = {};
 
@@ -374,6 +378,7 @@ export default function Argo() {
                 .filter((ccre) => ccre.accession !== undefined);
         }
 
+        //map assay scores bsed on selected biosample
         if (elementFilterVariables.selectedBiosample) {
             return mapObj.map(obj => mapScoresCTSpecific(obj, data));
         } else {
@@ -405,7 +410,7 @@ export default function Argo() {
                 .filter((row) => row.ortholog !== undefined);
         }
 
-        //filter through class
+        //filter through classes
         const filteredClasses = data.filter(row => elementFilterVariables.classes[row.class] !== false);
         return filteredClasses;
 

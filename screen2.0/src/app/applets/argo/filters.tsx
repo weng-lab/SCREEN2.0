@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Alignment, FilterProps } from './types';
 import { Accordion, AccordionDetails, AccordionSummary, Box, Checkbox, Drawer, FormControl, FormControlLabel, FormGroup, FormLabel, IconButton, MenuItem, Paper, Radio, RadioGroup, Select, Stack, Typography } from '@mui/material';
 import BiosampleTables from '../../_biosampleTables/BiosampleTables';
@@ -80,41 +80,41 @@ const Filters: React.FC<FilterProps> = ({
     };
 
     //change assays and availible assays depending on if there is a biosample selected or not
-    useEffect(() => {
-        if (elementFilterVariables.selectedBiosample) {
+    const handleSelectedBiosample = (biosample) => {
+        updateElementFilter("selectedBiosample", biosample)
             updateElementFilter('availableAssays', {
-                dnase: !!elementFilterVariables.selectedBiosample.dnase,
-                h3k4me3: !!elementFilterVariables.selectedBiosample.h3k4me3,
-                h3k27ac: !!elementFilterVariables.selectedBiosample.h3k27ac,
-                ctcf: !!elementFilterVariables.selectedBiosample.ctcf,
-                atac: !!elementFilterVariables.selectedBiosample.atac_signal,
+                dnase: !!biosample.dnase,
+                h3k4me3: !!biosample.h3k4me3,
+                h3k27ac: !!biosample.h3k27ac,
+                ctcf: !!biosample.ctcf,
+                atac: !!biosample.atac_signal,
             });
             updateElementFilter('assays', {
-                dnase: !!elementFilterVariables.selectedBiosample.dnase,
-                h3k4me3: !!elementFilterVariables.selectedBiosample.h3k4me3,
-                h3k27ac: !!elementFilterVariables.selectedBiosample.h3k27ac,
-                ctcf: !!elementFilterVariables.selectedBiosample.ctcf,
-                atac: !!elementFilterVariables.selectedBiosample.atac_signal,
+                dnase: !!biosample.dnase,
+                h3k4me3: !!biosample.h3k4me3,
+                h3k27ac: !!biosample.h3k27ac,
+                ctcf: !!biosample.ctcf,
+                atac: !!biosample.atac_signal,
             });
-        } if (!elementFilterVariables.selectedBiosample) {
-            updateElementFilter('availableAssays', {
-                dnase: true,
-                h3k4me3: true,
-                h3k27ac: true,
-                ctcf: true,
-                atac: true,
-            });
-            updateElementFilter('assays', {
-                dnase: true,
-                h3k4me3: true,
-                h3k27ac: true,
-                ctcf: true,
-                atac: true,
-            });
-        }
-    }, [elementFilterVariables.selectedBiosample]);
+    }
 
-    
+    const handleDeselectBiosample = () => {
+        updateElementFilter("selectedBiosample", null);
+        updateElementFilter('availableAssays', {
+            dnase: true,
+            h3k4me3: true,
+            h3k27ac: true,
+            ctcf: true,
+            atac: true,
+        });
+        updateElementFilter('assays', {
+            dnase: true,
+            h3k4me3: true,
+            h3k27ac: true,
+            ctcf: true,
+            atac: true,
+        });
+    }
 
     return (
         <div>
@@ -150,8 +150,11 @@ const Filters: React.FC<FilterProps> = ({
                         <IconButton
                             color="primary"
                             onClick={toggleDrawer}
+                            style={{
+                                transform: 'rotate(90deg)',
+                            }}
                         >
-                            <FilterListIcon />
+                            <ExpandMoreIcon />
                         </IconButton>
                     </Stack>
                     <Accordion
@@ -230,7 +233,7 @@ const Filters: React.FC<FilterProps> = ({
                         <AccordionDetails>
                             <FormControlLabel value="cCREs" control={<Checkbox onChange={() => updateElementFilter("usecCREs", !elementFilterVariables.usecCREs)} checked={elementFilterVariables.usecCREs} />} label="cCREs" />
                             <Stack ml={2}>
-                                <RadioGroup row value={elementFilterVariables.cCREAssembly} onChange={(event) => { updateElementFilter("cCREAssembly", event.target.value as "GRCh38" | "mm10"); updateElementFilter("selectedBiosample", null); }}>
+                                <RadioGroup row value={elementFilterVariables.cCREAssembly} onChange={(event) => { updateElementFilter("cCREAssembly", event.target.value as "GRCh38" | "mm10"); handleDeselectBiosample() }}>
                                     <FormControlLabel value="GRCh38" control={<Radio />} label="GRCH38" disabled={!elementFilterVariables.usecCREs} />
                                     <FormControlLabel value="mm10" control={<Radio />} label="mm10" disabled={!elementFilterVariables.usecCREs} />
                                 </RadioGroup>
@@ -263,24 +266,7 @@ const Filters: React.FC<FilterProps> = ({
                                                     elementFilterVariables.selectedBiosample.displayname}
                                             </Typography>
                                             <IconButton
-                                                onClick={(event) => {
-                                                    event.stopPropagation();
-                                                    updateElementFilter("selectedBiosample", null);
-                                                    updateElementFilter('availableAssays', {
-                                                        dnase: true,
-                                                        h3k4me3: true,
-                                                        h3k27ac: true,
-                                                        ctcf: true,
-                                                        atac: true,
-                                                    });
-                                                    updateElementFilter('assays', {
-                                                        dnase: true,
-                                                        h3k4me3: true,
-                                                        h3k27ac: true,
-                                                        ctcf: true,
-                                                        atac: true,
-                                                    });
-                                                }}
+                                                onClick={() => {handleDeselectBiosample()}}
                                                 sx={{ m: 'auto', flexGrow: 0 }}
                                             >
                                                 <CancelRounded />
@@ -295,7 +281,7 @@ const Filters: React.FC<FilterProps> = ({
                                     <AccordionDetails>
                                         <BiosampleTables
                                             selected={elementFilterVariables.selectedBiosample?.name}
-                                            onBiosampleClicked={(biosample) => updateElementFilter("selectedBiosample", biosample)}
+                                            onBiosampleClicked={(biosample) => handleSelectedBiosample(biosample)}
                                             assembly={elementFilterVariables.cCREAssembly}
                                         />
                                     </AccordionDetails>
