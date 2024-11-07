@@ -96,3 +96,11 @@ export function calcDistRegionToRegion(coord1: { start: number, end: number }, c
 export function capitalizeWords(input: string): string {
   return input.replace(/\b\w/g, char => char.toUpperCase());
 }
+
+export function truncateWithEllipsis(str: string, maxLength: number): string {
+  if (str.length <= maxLength) {
+    return str;
+  }
+  
+  return str.slice(0, maxLength - 3) + "...";
+}

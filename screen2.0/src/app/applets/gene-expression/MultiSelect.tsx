@@ -17,6 +17,7 @@ export interface MultiSelectProps {
   options: string[],
   placeholder: string
   limitTags?: number
+  size?: "small" | "medium"
   //todo add width here
 }
 
@@ -24,7 +25,8 @@ const MultiSelect = ({
   onChange,
   options,
   placeholder,
-  limitTags
+  limitTags,
+  size = "small"
 }: MultiSelectProps) => {
   const [value, setValue] = React.useState<string[] | null>(options);
   const scrollRef = React.useRef<number>(0) //needed to preserve the scroll position of the ListBox. Overriding PaperComponent changes the way that the Listbox renders and resets scroll on interaction
@@ -90,7 +92,7 @@ const MultiSelect = ({
     <Autocomplete
       multiple
       limitTags={limitTags}
-      size='small'
+      size={size}
       value={value}
       onChange={handleChange}
       id="checkboxes-tags-demo"

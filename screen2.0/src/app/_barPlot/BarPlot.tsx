@@ -15,6 +15,57 @@ export interface BarData<T> {
   metadata?: T;
 }
 
+const calculateSpaceForLabel = (data: BarData<unknown>[], width: number, spaceForCategory: number) => {
+  //todo fix this to be precise
+  const measureTextWidth = (text, font = '12px Roboto') => {
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    if (context) {
+      context.font = font;
+      return context.measureText(text).width;
+    }
+    return 0;
+  };
+
+  const widths = data.map(d => {
+    const labelWidth = measureTextWidth(d.label); //mostly right but not quite
+    const availableSpace = width - spaceForCategory
+    const proportionOfMax = d.value / Math.max(...data.map((item) => item.value))
+    if (d.label.includes("53.10")){
+      console.log('\n' + "blood sample:")
+      console.log("labelWidth: " + labelWidth)
+      console.log("availableSpace: " + availableSpace)
+      console.log("proportionOfMax: " + proportionOfMax + '\n')
+    }
+    if (d.label.includes("51.76")){
+      console.log('\n' + "heart sample:")
+      console.log("labelWidth: " + labelWidth)
+      console.log("availableSpace: " + availableSpace)
+      console.log("proportionOfMax: " + proportionOfMax + '\n')
+    }
+    const barWidth = availableSpace * proportionOfMax //not correct
+    //the issue is that available space depends on the label width
+    return {
+      ...d,
+      barWidth: barWidth,
+      labelWidth: labelWidth,
+      totalWidth: barWidth + labelWidth + 5
+    }
+  })
+
+  console.log(widths.find(x => x.label.includes("51.76")))
+
+  const largestOverall = widths.reduce((largest, current) => {
+    if (current.totalWidth > largest.totalWidth) {
+      return current
+    } else return largest
+  }, {barWidth: 0, labelWidth: 0, totalWidth: 0})
+
+
+  console.log(largestOverall)
+  return largestOverall.labelWidth
+}
+
 export interface BarPlotProps<T> {
   data: BarData<T>[];
   SVGref?: React.MutableRefObject<SVGSVGElement>
@@ -56,44 +107,41 @@ const VerticalBarPlot = <T,>({
   }, [showTooltip]);
 
   const width = useMemo(() => Math.max(500, ParentWidth), [ParentWidth])
-
-  /**
-   * @todo it'd be nice to somehow extract these from what is passed to the component. This is hardcoded to fit the gene expression data
-   */
   const spaceForTopAxis = 50
   const spaceOnBottom = 20
   const spaceForCategory = 120
+  // const spaceForLabel = useMemo(() => calculateSpaceForLabel(data, width, spaceForCategory), [data, width]);
   const spaceForLabel = 280
+  // console.log(spaceForLabel)
 
-  const height = data.length * 20 + spaceForTopAxis + spaceOnBottom
-
-  // Dimensions
-  const xMax = width - spaceForCategory - spaceForLabel;
-  const yMax = height - spaceForTopAxis - spaceOnBottom;
+  const dataHeight = data.length * 20
+  const totalHeight = dataHeight + spaceForTopAxis + spaceOnBottom
 
   // Scales
   const yScale = useMemo(() =>
     scaleBand<string>({
       domain: data.map((d) => d.label),
-      range: [0, yMax],
+      range: [0, dataHeight],
       padding: 0.2,
-    }), [data, yMax]) 
+    }), [data, dataHeight])
 
   const xScale = useMemo(() =>
     scaleLinear<number>({
       domain: [0, Math.max(...data.map((d) => d.value))],
-      range: [0, Math.max(xMax, 0)],
-    }), [data, xMax])
+      range: [0, Math.max(width - spaceForCategory - spaceForLabel, 0)],
+    }), [data, spaceForLabel, width])
+
+  const fontFamily = "Roboto,Helvetica,Arial,sans-serif"
 
   return (
     <div ref={parentRef}>
       {data.length === 0 ?
         <p>No Data To Display</p>
-      :
-        <svg width={width} height={height} ref={SVGref}>
+        :
+        <svg width={width} height={totalHeight} ref={SVGref}>
           <Group left={spaceForCategory} top={spaceForTopAxis}>
             {/* Top Axis with Label */}
-            <AxisTop scale={xScale} top={0} label={topAxisLabel} labelProps={{dy: -5, fontSize: 16}} numTicks={width < 600 ? 4 : undefined} />
+            <AxisTop scale={xScale} top={0} label={topAxisLabel} labelProps={{ dy: -5, fontSize: 16, fontFamily: fontFamily }} numTicks={width < 600 ? 4 : undefined} />
             {data.map((d) => {
               const barHeight = yScale.bandwidth();
               const barWidth = xScale(d.value) ?? 0;
@@ -112,9 +160,10 @@ const VerticalBarPlot = <T,>({
                     x={-10}  // Positioning slightly to the left of the bar
                     y={(barY ?? 0) + barHeight / 2}
                     dy=".35em"
-                    fontSize={12}
                     textAnchor="end"
                     fill="black"
+                    fontSize={12}
+                    fontFamily={fontFamily}
                   >
                     {d.category}
                   </Text>
@@ -133,8 +182,9 @@ const VerticalBarPlot = <T,>({
                       x={barX + barWidth + 5}  // Position label slightly after the end of the bar
                       y={(barY ?? 0) + barHeight / 2}
                       dy=".35em"  // Vertically align to the middle of the bar
-                      fontSize={12}
                       fill="black"
+                      fontSize={12}
+                      fontFamily={fontFamily}
                     >
                       {d.label}
                     </Text>
@@ -144,7 +194,7 @@ const VerticalBarPlot = <T,>({
             })}
           </Group>
         </svg>
-        
+
       }
       {/* Maybe should provide a default tooltip */}
       {TooltipContents && tooltipOpen && (

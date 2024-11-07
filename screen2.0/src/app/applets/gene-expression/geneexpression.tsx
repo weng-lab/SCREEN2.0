@@ -5,7 +5,6 @@ import { useQuery } from "@apollo/client"
 import { Button, Typography, Stack, MenuItem, FormControl, InputLabel, OutlinedInput, Select, ToggleButton, ToggleButtonGroup, FormLabel, Tooltip, IconButton, Divider } from "@mui/material"
 import Grid from "@mui/material/Grid2"
 import Image from "next/image"
-import { humanTissues, mouseTissues } from "./const"
 import { GENE_EXP_QUERY, GENE_QUERY, GET_ORTHOLOG, GET_ORTHOLOG_DATA, GET_ORTHOLOG_VARS } from "./queries"
 import { ReadonlyURLSearchParams, usePathname, useSearchParams, useRouter } from "next/navigation"
 import ConfigureGBModal from "../../search/_ccredetails/configuregbmodal"
@@ -18,18 +17,11 @@ import { capitalizeFirstLetter, downloadObjArrayAsTSV, downloadSVG, downloadSvgA
 import VerticalBarPlot, { BarData } from "../../_barPlot/BarPlot"
 import { tissueColors } from "../../../common/lib/colors"
 import MultiSelect, { MultiSelectOnChange } from "./MultiSelect"
+import { capitalizeWords, truncateWithEllipsis } from "../../search/_ccredetails/utils"
 
 const biosampleTypes = ["cell line", "primary cell", "tissue", "in vitro differentiated cells" ];
 
 type Assembly = "GRCh38" | "mm10"
-
-const initialTissues = (assembly: Assembly) => {
-  if (assembly === "GRCh38") {
-    return humanTissues
-  } else {
-    return mouseTissues
-  }
-}
 
 //extracted from generated types, needed the nested type to pass as type argument to BarData<T>
 type GeneDataset = { __typename?: 'GeneDataset', biosample: string, tissue?: string | null, cell_compartment?: string | null, biosample_type?: string | null, assay_term_name?: string | null, accession: string, gene_quantification_files?: Array<{ __typename?: 'GeneQuantificationFile', accession: string, biorep?: number | null, quantifications?: Array<{ __typename?: 'GeneQuantification', tpm: number, file_accession: string } | null> | null } | null> | null }
@@ -50,7 +42,8 @@ export function GeneExpression(props: {
   const [gene, setGene] = useState<string>(props.genes ? props?.genes[0]?.name : (urlGene ?? "APOE"))
   const [assembly, setAssembly] = useState<Assembly>(initialAssembly)
   const [biosamples, setBiosamples] = useState<string[]>(biosampleTypes)
-  const [tissues, setTissues] = useState<string[]>(() => initialTissues(initialAssembly))
+  const [availableTissues, setAvailableTissues] = useState<string[]>([])
+  const [selectedTissues, setSelectedTissues] = useState<string[]>([])
   const [viewBy, setViewBy] = useState<"byTissueMaxTPM" | "byExperimentTPM" | "byTissueTPM">("byExperimentTPM")
   const [RNAtype, setRNAType] = useState<"all" | "polyA plus RNA-seq" | "total RNA-seq">("total RNA-seq")
   const [scale, setScale] = useState<"linearTPM" | "logTPM">("linearTPM")
@@ -108,6 +101,12 @@ export function GeneExpression(props: {
     skip: !gene || !dataGeneID || (dataGeneID && dataGeneID.gene.length === 0),
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
+    onCompleted(data) {
+      const uniqueTissues = []
+      data.gene_dataset.forEach(x => {if (!uniqueTissues.includes(x.tissue)) uniqueTissues.push(x.tissue)})
+      setAvailableTissues(uniqueTissues)
+      setSelectedTissues(uniqueTissues)
+    },
   })
 
   const { data: dataOrtholog, loading: loadingOrtholog, error: errorOrtholog } = useQuery<GET_ORTHOLOG_DATA, GET_ORTHOLOG_VARS>(GET_ORTHOLOG, {
@@ -119,7 +118,8 @@ export function GeneExpression(props: {
   })
 
   const makeLabel = (tpm: number, biosample: string, accession: string, biorep?: number): string => {
-    return `${tpm.toFixed(2)}, ${biosample.length > 25 ? biosample.slice(0, 23) + '...' : biosample} (${accession}${biorep ? ', rep. ' + biorep : ''})`
+    const name = capitalizeFirstLetter(truncateWithEllipsis(biosample.replaceAll("_", " "), 25)) 
+    return `${tpm.toFixed(2)}, ${name} (${accession}${biorep ? ', rep. ' + biorep : ''})`
   }
 
   const scaleData = useCallback((value: number) => {
@@ -135,7 +135,7 @@ export function GeneExpression(props: {
       //Filter data points
       const filteredData = dataExperiments.gene_dataset
         .filter(d => biosamples.includes(d.biosample_type)) //biosample type
-        .filter(d => tissues.includes(d.tissue)) //tissue
+        .filter(d => selectedTissues.includes(d.tissue)) //tissue
         .filter(d => RNAtype === "all" || d.assay_term_name === RNAtype) //RNA type
         .filter(d => sampleMatchesSearch(d)) //search
       //holder for plot data as replicates are parsed for each experiment
@@ -144,7 +144,7 @@ export function GeneExpression(props: {
         if (replicates === "all") { //push all replicates
           biosample.gene_quantification_files.forEach((exp) => {      
             parsedReplicates.push({
-              category: biosample.tissue,
+              category: capitalizeWords(biosample.tissue),
               label: makeLabel(scaleData(exp.quantifications[0].tpm), biosample.biosample, biosample.accession, exp.biorep),
               value: scaleData(exp.quantifications[0].tpm), //indexing into 0th position, only one gene so quantifications should always be length 1
               color: tissueColors[biosample.tissue] ?? tissueColors.missing,
@@ -158,7 +158,7 @@ export function GeneExpression(props: {
           })
           const avgTPM = sum / biosample.gene_quantification_files.length
           parsedReplicates.push({
-            category: biosample.tissue,
+            category: capitalizeWords(biosample.tissue),
             label: makeLabel(scaleData(avgTPM), biosample.biosample, biosample.accession), //omit biorep
             value: scaleData(avgTPM),
             color: tissueColors[biosample.tissue] ?? tissueColors.missing,
@@ -200,16 +200,16 @@ export function GeneExpression(props: {
       }
       return parsedReplicates
     } else return []
-  }, [RNAtype, biosamples, dataExperiments, replicates, sampleMatchesSearch, scaleData, tissues, viewBy])
+  }, [RNAtype, biosamples, dataExperiments, replicates, sampleMatchesSearch, scaleData, selectedTissues, viewBy])
 
   const handleSetAssembly = (newAssembly: Assembly) => {
     if (props.applet) { //only allow switch in applet. Check should never fail but keeping
       setAssembly(newAssembly)
       if (newAssembly === "GRCh38") {
-        setTissues(humanTissues) //Reset Tissue Filter
+        // setTissues(humanTissues) //Reset Tissue Filter
         setRNAType("total RNA-seq") //Switch back RNA type if going from mouse to human, as all data there is total
       } else {
-        setTissues(mouseTissues) //Reset Tissue Filter
+        // setTissues(mouseTissues) //Reset Tissue Filter
       }
     }
   }
@@ -287,7 +287,7 @@ export function GeneExpression(props: {
   }, [scale])
 
   const handleSetTissues: MultiSelectOnChange = (_, value) => {
-    setTissues(value)
+    setSelectedTissues(value)
   }
 
   const handleSetBiosamples: MultiSelectOnChange = (_, value) => {
@@ -496,9 +496,9 @@ export function GeneExpression(props: {
           />
         </FormControl>
         <FormControl>
-          <FormLabel>{tissues.length === initialTissues(assembly).length ? "Tissues" : <i>Tissues*</i>}</FormLabel>
+          <FormLabel>{selectedTissues.length === availableTissues.length ? "Tissues" : <i>Tissues*</i>}</FormLabel>
           <MultiSelect
-            options={assembly === "GRCh38" ? humanTissues : mouseTissues}
+            options={availableTissues}
             onChange={handleSetTissues}
             placeholder="Filter Tissues"
             limitTags={2}
