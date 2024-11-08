@@ -146,7 +146,7 @@ const Filters: React.FC<FilterProps> = ({
                     overflow="auto"
                 >
                     <Stack direction={"row"} justifyContent={"space-between"} padding={1}>
-                        <Typography alignContent={"center"}>Filters</Typography>
+                        <Typography sx={{fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif'}} alignContent={"center"}>Filters</Typography>
                         <IconButton
                             color="primary"
                             onClick={toggleDrawer}
@@ -167,6 +167,7 @@ const Filters: React.FC<FilterProps> = ({
                         <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: isExpanded('sequence') ? '#030f98' : 'inherit' }} />} sx={{
                             color: isExpanded('sequence') ? '#030f98' : 'inherit',
                             fontSize: isExpanded('sequence') ? 'large' : 'normal',
+                            fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif'
                         }}>
                             Sequence
                         </AccordionSummary>
@@ -227,11 +228,12 @@ const Filters: React.FC<FilterProps> = ({
                         <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: isExpanded('element') ? '#030f98' : 'inherit' }} />} sx={{
                             color: isExpanded('element') ? '#030f98' : 'inherit',
                             fontSize: isExpanded('element') ? 'large' : 'normal',
+                            fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif'
                         }}>
                             Element
                         </AccordionSummary>
                         <AccordionDetails>
-                            <FormControlLabel value="cCREs" control={<Checkbox onChange={() => updateElementFilter("usecCREs", !elementFilterVariables.usecCREs)} checked={elementFilterVariables.usecCREs} />} label="cCREs" />
+                            <FormControlLabel value="cCREs" control={<Checkbox onChange={() => updateElementFilter("usecCREs", !elementFilterVariables.usecCREs)} checked={elementFilterVariables.usecCREs} />} label="Overlapping cCREs" />
                             <Stack ml={2}>
                                 <RadioGroup row value={elementFilterVariables.cCREAssembly} onChange={(event) => { updateElementFilter("cCREAssembly", event.target.value as "GRCh38" | "mm10"); handleDeselectBiosample() }}>
                                     <FormControlLabel value="GRCh38" control={<Radio />} label="GRCH38" disabled={!elementFilterVariables.usecCREs} />
@@ -463,6 +465,7 @@ const Filters: React.FC<FilterProps> = ({
                         <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: isExpanded('gene') ? '#030f98' : 'inherit' }} />} sx={{
                             color: isExpanded('gene') ? '#030f98' : 'inherit',
                             fontSize: isExpanded('gene') ? 'large' : 'normal',
+                            fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif'
                         }}>
                             Gene
                         </AccordionSummary>
