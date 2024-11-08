@@ -1,5 +1,5 @@
 "use client"
-import React, { useCallback, useEffect, useMemo } from "react"
+import React, { useCallback, useMemo } from "react"
 import { useState } from "react"
 import { Stack, Typography, Box, Alert, CircularProgress, IconButton } from "@mui/material"
 import { SelectChangeEvent } from "@mui/material/Select"
@@ -26,7 +26,7 @@ export default function Argo() {
     const toggleDrawer = () => setDrawerOpen(!drawerOpen);
     const [shownTable, setShownTable] = useState<"sequence" | "element" | "gene">(null);
 
-    // Table variables
+    // These will be deleted once functionality is implemented
     const [sequenceRanks, setSequenceRanks] = useState<RankedRegions>([]);
     const [geneRanks, setGeneRanks] = useState<RankedRegions>([]);
     const [sequenceRows, setSequenceRows] = useState<SequenceTableRow[]>([]) // Data displayed on the sequence table
@@ -415,16 +415,56 @@ export default function Argo() {
         return filteredClasses;
 
     }, [allElementData, elementFilterVariables.cCREAssembly, elementFilterVariables.classes, elementFilterVariables.mustHaveOrtholog, elementFilterVariables.usecCREs, orthoData]);
-    
+
 
     // Generate element ranks
     const elementRanks = useMemo<RankedRegions>(() => {
-        if(!elementRows || !elementFilterVariables.usecCREs) return [];
+        if (!elementRows || !elementFilterVariables.usecCREs) return [];
+
+        //Group by `inputRegion` and calculate average scores
+        const groupedData = elementRows.reduce((acc, row) => {
+            const key = `${row.inputRegion.chr}-${row.inputRegion.start}-${row.inputRegion.end}`;
+
+            if (!acc[key]) {
+                acc[key] = {
+                    ...row, // Start with the first entry's properties to retain the structure
+                    dnase: 0,
+                    atac: 0,
+                    h3k4me3: 0,
+                    h3k27ac: 0,
+                    ctcf: 0,
+                    count: 0
+                };
+            }
+
+            // Sum assay scores for averaging
+            assayNames.forEach(assay => {
+                acc[key][assay] += row[assay] || 0;
+            });
+            acc[key].count += 1;
+
+            return acc;
+        }, {} as { [key: string]: ElementTableRow & { count: number } });
+
+        //Compute averages and create `ElementTableRow` entries
+        const averagedRows: ElementTableRow[] = Object.values(groupedData).map(region => {
+            const averagedAssays: Partial<ElementTableRow> = {};
+            assayNames.forEach(assay => {
+                averagedAssays[assay] = region.count > 0 ? region[assay] / region.count : 0;
+            });
+
+            return {
+                ...region,
+                ...averagedAssays,
+                count: undefined // Remove the helper count property
+            };
+        });
+
         const assayRanks: { [key: number]: AssayRankEntry } = {};
 
         //assign a rank to each assay
         assayNames.forEach(assay => {
-            const sortedRows = elementRows
+            const sortedRows = averagedRows
                 .sort((a, b) => {
                     if (elementFilterVariables.classes[a.class] && elementFilterVariables.classes[b.class]) {
                         return b[assay] - a[assay];
