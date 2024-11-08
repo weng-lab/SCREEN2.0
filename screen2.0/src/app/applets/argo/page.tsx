@@ -19,6 +19,7 @@ const assayNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
 export default function Argo() {
     const [getIntersectingCcres, { data: intersectArray }] = useLazyQuery(BED_INTERSECT_QUERY)
     const [inputRegions, setInputRegions] = useState<GenomicRegion[]>([]);
+    const [loadingMainRows, setLoadingMainRows] = useState(true);
 
     //UI state variables
     const [selectedSearch, setSelectedSearch] = useState<string>("BED File")
@@ -255,6 +256,7 @@ export default function Argo() {
     }, [elementFilterVariables])
 
     const handleSearchChange = (event: SelectChangeEvent) => {
+        setLoadingMainRows(true)
         updateElementFilter('selectedBiosample', null)
         if (event) {
             setSelectedSearch(event.target.value)
@@ -570,6 +572,7 @@ export default function Argo() {
     //find the matching ranks for each input region and update the rows of the main table
     const mainRows: MainTableRow[] = useMemo(() => {
         if ((sequenceRanks.length === 0 && elementRanks.length === 0 && geneRanks.length === 0) || inputRegions.length === 0) return [];
+        setLoadingMainRows(true)
         const updatedMainRows = inputRegions.map(row => {
             // Find the matching rank for this `inputRegion`
             const matchingElement = elementRanks.find(
@@ -598,6 +601,7 @@ export default function Argo() {
                 aggregateRank
             };
         }).filter(row => row.aggregateRank !== 0);
+        setLoadingMainRows(false)
 
         return updatedMainRows;
     }, [aggregateRanks, elementRanks, geneRanks, inputRegions, sequenceRanks]);
@@ -639,7 +643,7 @@ export default function Argo() {
                 {inputRegions.length > 0 && (
                     <>
                         <Box mt="20px" id="123456">
-                            {mainRows.length === 0 ? <CircularProgress /> :
+                            {loadingMainRows ? <CircularProgress /> :
                                 <DataTable
                                     key={Math.random()}
                                     columns={mainColumns}
