@@ -518,6 +518,8 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
       )}
       <DownloadDialog
         open={downloadOpen}
+        fileFormats={['png', 'json', 'svg', 'tsv']}
+        defaultSelected={['png']}
         onClose={() => setDownloadOpen(false)}
         onSubmit={handleDownload}
       />

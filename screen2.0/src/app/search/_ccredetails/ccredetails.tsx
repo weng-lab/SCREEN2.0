@@ -11,7 +11,7 @@ import { FunctionData } from "./functionaldata"
 import { ChromHMM } from "./chromhmm";
 import { ENTExData } from "./entexdata";
 import Rampage from "./rampage"
-import { GeneExpression } from "./geneexpression"
+import { GeneExpression } from "../../applets/gene-expression/geneexpression"
 import { TfSequenceFeatures } from "../_gbview/tfsequencefeatures"
 import ConfigureGBTab from "./configuregbtab"
 import { useQuery } from "@apollo/client"

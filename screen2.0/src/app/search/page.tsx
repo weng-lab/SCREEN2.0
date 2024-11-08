@@ -20,7 +20,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import CloseIcon from '@mui/icons-material/Close';
 import Rampage from "./_ccredetails/rampage";
 
-import { GeneExpression } from "./_ccredetails/geneexpression";
+import { GeneExpression } from "../applets/gene-expression/geneexpression";
 import { LoadingMessage } from "../../common/lib/utility"
 import { Download } from "@mui/icons-material"
 import { ApolloQueryResult, useLazyQuery } from "@apollo/client"
