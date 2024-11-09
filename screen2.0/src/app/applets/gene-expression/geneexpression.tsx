@@ -17,7 +17,7 @@ import { capitalizeFirstLetter, downloadObjArrayAsTSV, downloadSVG, downloadSvgA
 import VerticalBarPlot, { BarData } from "../../_barPlot/BarPlot"
 import { tissueColors } from "../../../common/lib/colors"
 import MultiSelect, { MultiSelectOnChange } from "./MultiSelect"
-import { capitalizeWords, truncateWithEllipsis } from "../../search/_ccredetails/utils"
+import { capitalizeWords } from "../../search/_ccredetails/utils"
 
 const biosampleTypes = ["cell line", "primary cell", "tissue", "in vitro differentiated cells" ];
 
@@ -104,8 +104,8 @@ export function GeneExpression(props: {
     onCompleted(data) {
       const uniqueTissues = []
       data.gene_dataset.forEach(x => {if (!uniqueTissues.includes(x.tissue)) uniqueTissues.push(x.tissue)})
-      setAvailableTissues(uniqueTissues)
-      setSelectedTissues(uniqueTissues)
+      setAvailableTissues(uniqueTissues.sort())
+      setSelectedTissues(uniqueTissues.sort())
     },
   })
 
@@ -118,7 +118,7 @@ export function GeneExpression(props: {
   })
 
   const makeLabel = (tpm: number, biosample: string, accession: string, biorep?: number): string => {
-    const name = capitalizeFirstLetter(truncateWithEllipsis(biosample.replaceAll("_", " "), 25)) 
+    const name = capitalizeFirstLetter(biosample.replaceAll("_", " ")) 
     return `${tpm.toFixed(2)}, ${name} (${accession}${biorep ? ', rep. ' + biorep : ''})`
   }
 
@@ -532,7 +532,7 @@ export function GeneExpression(props: {
           </Grid>
           :
           dataExperiments ?
-            <Grid size={12}>
+            // <Grid size={12}>
               <VerticalBarPlot
                 data={plotData}
                 topAxisLabel={(gene + " Gene Expression in " + assembly + ' - ') + (scale === "linearTPM" ? "Linear TPM" : "Log10(TPM + 1)")}
@@ -540,7 +540,7 @@ export function GeneExpression(props: {
                 onBarClicked={(x) => window.open("https://www.encodeproject.org/experiments/" + x.metadata.accession, "_blank", "noopener,noreferrer")}
                 TooltipContents={(bar) => <PlotTooltip {...bar} />}
               />
-            </Grid>
+            // </Grid>
             :
             <Typography variant="h5">
               Please Select a Gene

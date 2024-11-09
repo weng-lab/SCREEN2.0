@@ -28,7 +28,7 @@ import VerticalBarPlot, { BarData } from "../../_barPlot/BarPlot"
 import { tissueColors } from "../../../common/lib/colors"
 import { GenomicRegion } from "../types"
 import { Close, Download, OpenInNew, Search } from "@mui/icons-material"
-import { capitalizeWords, truncateWithEllipsis } from "./utils"
+import { capitalizeWords } from "./utils"
 import DownloadDialog, { FileOption } from "../../applets/gwas/_lollipop-plot/DownloadDialog"
 import { capitalizeFirstLetter, downloadObjArrayAsTSV, downloadSVG, downloadSvgAsPng } from "../../applets/gwas/helpers"
 import MultiSelect, { MultiSelectOnChange } from "../../applets/gene-expression/MultiSelect"
@@ -123,8 +123,8 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
       setSelectedPeak(peakInfo[0])
       const uniqueTissues = []
       data.tssrampageQuery.forEach(x => {if (!uniqueTissues.includes(x.organ)) uniqueTissues.push(x.organ)})
-      setAvailableTissues(uniqueTissues)
-      setSelectedTissues(uniqueTissues)
+      setAvailableTissues(uniqueTissues.sort())
+      setSelectedTissues(uniqueTissues.sort())
     },
   })
 
@@ -162,7 +162,7 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
   const peakIsAvailable = peaks.length !== 0
 
   const makeLabel = (data: RampageData) => {
-    const biosample = capitalizeFirstLetter(truncateWithEllipsis(data.biosampleSummary.replaceAll("_", " "), 25)) 
+    const biosample = capitalizeFirstLetter(data.biosampleSummary.replaceAll("_", " ")) 
     return `${data.value.toFixed(2)}, ${biosample} (${data.expAccession}) (${data.strand})`
   }
 
@@ -234,6 +234,7 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
     if (errorRampage) {
       return <Typography>Something went wrong</Typography>
     }
+    //Need to change this, is triggering
     if (!peakIsAvailable) {
       return <Typography>No peaks found for {gene}</Typography>
     }
