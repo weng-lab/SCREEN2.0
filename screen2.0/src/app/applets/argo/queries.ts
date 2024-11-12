@@ -90,3 +90,12 @@ export const ORTHOLOG_QUERY = gql(`
 }
    `)
 
+   export const BIG_REQUEST_QUERY = gql(`
+    query BigRequestQuery($requests: [BigRequest!]!) {
+  bigRequests(requests: $requests) {
+    data
+  }
+}
+     `)
+
+

@@ -74,10 +74,11 @@ const ArgoUpload: React.FC<UploadProps> = ({
 
     //map parsed file / text to Genomic region type and sort them
     function configureInputedRegions(data) {
-        const regions = data.map(item => ({
+        const regions = data.map((item, index) => ({
             chr: item[0],         // Index 0 for inputed chromosome
             start: Number(item[1]), // Index 1 for inputed start, convert to number
-            end: Number(item[2])     // Index 2 for inputed end, convert to number
+            end: Number(item[2]) ,    // Index 2 for inputed end, convert to number
+            regionID: index + 1
         }));
 
         // Sort the regions

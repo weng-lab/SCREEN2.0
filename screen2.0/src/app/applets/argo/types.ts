@@ -42,9 +42,12 @@ export type GenomicRegion = {
 
 export type RankedRegions = (GenomicRegion & {rank: number})[]
 
+export type InputRegions = (GenomicRegion & {regionID: number})[]
+
 export type CCREs = (GenomicRegion & {
     accession: string
     inputRegion: GenomicRegion
+    regionID: number
 })[]
 
 export type CCREClasses = {
@@ -93,6 +96,7 @@ export type Alignment =
     mustHaveOrtholog: boolean;
     selectedBiosample: RegistryBiosample | null;
     assays: CCREAssays;
+    rankBy: "avg" | "max";
     availableAssays: CCREAssays;
     classes: CCREClasses;
   }
@@ -137,6 +141,7 @@ export type UploadProps = {
 }
 
 export type MainTableRow = {
+    regionID: number
     inputRegion: GenomicRegion
     aggregateRank?: number
     sequenceRank?: number
@@ -152,6 +157,7 @@ export type SequenceTableRow = {
 }
 
 export type ElementTableRow = {
+    regionID: number
     inputRegion: GenomicRegion
     chr: number
     start: number

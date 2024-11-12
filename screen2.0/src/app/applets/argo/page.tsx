@@ -4,21 +4,23 @@ import { useState } from "react"
 import { Stack, Typography, Box, Alert, CircularProgress, IconButton } from "@mui/material"
 import { SelectChangeEvent } from "@mui/material/Select"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
-import { ORTHOLOG_QUERY, Z_SCORES_QUERY } from "./queries"
+import { ORTHOLOG_QUERY, Z_SCORES_QUERY, BIG_REQUEST_QUERY } from "./queries"
 import { useLazyQuery, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
-import { GenomicRegion, CCREAssays, CCREClasses, RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, AssayRankEntry, CCREs } from "./types"
+import { CCREAssays, CCREClasses, RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, AssayRankEntry, CCREs, InputRegions } from "./types"
 import { BED_INTERSECT_QUERY } from "../../_mainsearch/queries"
 import ExpandCircleDownIcon from '@mui/icons-material/ExpandCircleDown';
 import Filters from "./filters"
 import { CancelRounded } from "@mui/icons-material"
 import ArgoUpload from "./argoUpload"
+import { BigRequest } from "../../../graphql/__generated__/graphql"
 
 const assayNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
 
 export default function Argo() {
+
     const [getIntersectingCcres, { data: intersectArray }] = useLazyQuery(BED_INTERSECT_QUERY)
-    const [inputRegions, setInputRegions] = useState<GenomicRegion[]>([]);
+    const [inputRegions, setInputRegions] = useState<InputRegions>([]);
     const [loadingMainRows, setLoadingMainRows] = useState(true);
 
     //UI state variables
@@ -57,6 +59,7 @@ export default function Argo() {
             h3k4me3: true,
             h3k27ac: true,
         },
+        rankBy: "avg",
         availableAssays: {
             dnase: true,
             atac: true,
@@ -165,7 +168,8 @@ export default function Argo() {
     const mainColumns: DataTableColumn<MainTableRow>[] = useMemo(() => {
 
         const cols: DataTableColumn<MainTableRow>[] = [
-            { header: "Input Region", value: (row) => `${row.inputRegion.chr}:${row.inputRegion.start}-${row.inputRegion.end}`, sort: (a, b) => a.inputRegion.start - b.inputRegion.start },
+            { header: "Region ID", value: (row) => row.regionID },
+            { header: "Input Region", value: (row) => `${row.inputRegion.chr}: ${row.inputRegion.start}-${row.inputRegion.end}`, sort: (a, b) => a.inputRegion.start - b.inputRegion.start },
             { header: "Aggregate", value: (row) => row.aggregateRank }
         ]
         /**
@@ -237,7 +241,7 @@ export default function Argo() {
     const elementColumns: DataTableColumn<ElementTableRow>[] = useMemo(() => {
 
         const cols: DataTableColumn<ElementTableRow>[] = [
-            { header: "Genomic Region", value: (row) => `${row.chr}:${row.start}-${row.end}`, sort: (a, b) => a.start - b.start },
+            { header: "Region ID", value: (row) => row.regionID },
             { header: "Class", value: (row) => row.class === "PLS" ? "Promoter" : row.class === "pELS" ? "Proximal Enhancer" : row.class === "dELS" ? "Distal Enhancer" : row.class },
             { header: "Accession", value: (row) => row.accession },
         ]
@@ -265,7 +269,7 @@ export default function Argo() {
     }
 
     // This function will receive the regions from ArgoUpload and find the intersecting cCREs
-    const handleRegionsConfigured = (regions: GenomicRegion[]) => {
+    const handleRegionsConfigured = (regions: InputRegions) => {
         setInputRegions(regions);
         const user_ccres = regions.map(region => [
             region.chr,
@@ -286,16 +290,55 @@ export default function Argo() {
     //all ccres intersecting the user inputted regions
     const intersectingCcres: CCREs = useMemo(() => {
         if (intersectArray) {
-            const transformedData: CCREs = intersectArray.intersection.map(ccre => ({
-                chr: ccre[0],
-                start: parseInt(ccre[1]),
-                end: parseInt(ccre[2]),
-                accession: ccre[4],
-                inputRegion: { chr: ccre[6], start: ccre[7], end: ccre[8] }
-            }));
-            return transformedData
+            const transformedData: CCREs = intersectArray.intersection.map(ccre => {
+                // Find the matching input region by chr, start, and end
+                const matchingRegion = inputRegions.find(region =>
+                    region.chr === ccre[6] &&
+                    region.start === parseInt(ccre[7]) &&
+                    region.end === parseInt(ccre[8])
+                );
+            
+                return {
+                    chr: ccre[0],
+                    start: parseInt(ccre[1]),
+                    end: parseInt(ccre[2]),
+                    accession: ccre[4],
+                    inputRegion: {
+                        chr: ccre[6],
+                        start: parseInt(ccre[7]),
+                        end: parseInt(ccre[8])
+                    },
+                    regionID: matchingRegion ? matchingRegion.regionID : undefined // Add ID if a match is found
+                };
+            });
+            
+            return transformedData;
         }
-    }, [intersectArray]);
+    }, [inputRegions, intersectArray]);
+
+    //build payload for bigRequest query
+    const bigRequests: BigRequest[] = useMemo(() => {
+        if (inputRegions.length === 0) {return []}
+        const urlMapping: { [key: string]: string } = {
+            "241-mam-phyloP": "https://downloads.wenglab.org/241-mammalian-2020v2.bigWig",
+            "241-mam-phastCons": "https://downloads.wenglab.org/241Mammals-PhastCons.bigWig",
+            "447-mam-phyloP": "https://downloads.wenglab.org/mammals_phyloP-447.bigWig",
+            "100-vert-phyloP": "https://downloads.wenglab.org/hg38.phyloP100way.bw",
+            "100-vert-phastCons": "https://downloads.wenglab.org/hg38.phastCons100way.bw",
+            "243-primate-phastCons": "https://downloads.wenglab.org/primates_PhastCons-243.bigWig",
+            "43-primate-phyloP": "https://downloads.wenglab.org/PhyloP-43.bw",
+            "43-primate-phastCons": "https://downloads.wenglab.org/hg38_43primates_phastCons.bw",
+        };
+
+        const selectedUrl = urlMapping[sequenceFilterVariables.alignment] || "";
+    
+        return inputRegions.map(({ chr, start, end }) => ({
+            chr1: chr,
+            start,
+            end,
+            url: selectedUrl,
+        }));
+    }, [inputRegions, sequenceFilterVariables.alignment]);
 
     //query to get orthologous cCREs of the intersecting cCREs
     const { loading: loading_ortho, data: orthoData } = useQuery(ORTHOLOG_QUERY, {
@@ -326,6 +369,19 @@ export default function Argo() {
         skip: !intersectingCcres || (elementFilterVariables.cCREAssembly === "mm10" && !mouseAccessions),
         client: client,
         fetchPolicy: 'cache-first',
+    });
+
+    //query to get conservation scores based on selected url
+    const { loading: loading_conservation_scores, error: error_conservation_scores, data: conservationScores } = useQuery(BIG_REQUEST_QUERY, {
+        variables: {
+            requests: bigRequests
+        },
+        skip: (!sequenceFilterVariables.useConservation && !sequenceFilterVariables.useMotifs) || bigRequests.length === 0,
+        client: client,
+        fetchPolicy: 'cache-first',
+        onCompleted(d){
+            console.log(d)
+        }
     });
 
     const mapScores = (obj, data) => {
@@ -391,7 +447,6 @@ export default function Argo() {
     // Filter cCREs based on class and ortholog
     const elementRows: ElementTableRow[] = useMemo(() => {
         if (allElementData.length === 0 || !elementFilterVariables.usecCREs) return [];
-
         let data = allElementData;
 
         //filter through ortholog
@@ -423,41 +478,51 @@ export default function Argo() {
     const elementRanks = useMemo<RankedRegions>(() => {
         if (!elementRows || !elementFilterVariables.usecCREs) return [];
 
-        //Group by `inputRegion` and calculate average scores
+        //Group by `inputRegion` and calculate average or max scores
         const groupedData = elementRows.reduce((acc, row) => {
             const key = `${row.inputRegion.chr}-${row.inputRegion.start}-${row.inputRegion.end}`;
 
             if (!acc[key]) {
                 acc[key] = {
                     ...row, // Start with the first entry's properties to retain the structure
-                    dnase: 0,
-                    atac: 0,
-                    h3k4me3: 0,
-                    h3k27ac: 0,
-                    ctcf: 0,
-                    count: 0
+                    dnase: elementFilterVariables.rankBy === "max" ? row.dnase : 0,
+                    atac: elementFilterVariables.rankBy === "max" ? row.atac : 0,
+                    h3k4me3: elementFilterVariables.rankBy === "max" ? row.h3k4me3 : 0,
+                    h3k27ac: elementFilterVariables.rankBy === "max" ? row.h3k27ac : 0,
+                    ctcf: elementFilterVariables.rankBy === "max" ? row.ctcf : 0,
+                    count: 0 // Only increment count if averaging
                 };
             }
 
             // Sum assay scores for averaging
-            assayNames.forEach(assay => {
-                acc[key][assay] += row[assay] || 0;
-            });
-            acc[key].count += 1;
+            if (elementFilterVariables.rankBy === "avg") {
+                assayNames.forEach(assay => {
+                    acc[key][assay] += row[assay] || 0;
+                });
+                acc[key].count += 1;
+            } else if (elementFilterVariables.rankBy === "max") {
+                assayNames.forEach(assay => {
+                    acc[key][assay] = Math.max(acc[key][assay], row[assay] || 0);
+                });
+            }
 
             return acc;
         }, {} as { [key: string]: ElementTableRow & { count: number } });
 
-        //Compute averages and create `ElementTableRow` entries
-        const averagedRows: ElementTableRow[] = Object.values(groupedData).map(region => {
-            const averagedAssays: Partial<ElementTableRow> = {};
+        //Compute averages if necesarry and create `ElementTableRow` entries
+        const processedRows: ElementTableRow[] = Object.values(groupedData).map(region => {
+            const processedAssays: Partial<ElementTableRow> = {};
             assayNames.forEach(assay => {
-                averagedAssays[assay] = region.count > 0 ? region[assay] / region.count : 0;
+                if (elementFilterVariables.rankBy === "avg") {
+                    processedAssays[assay] = region.count > 0 ? region[assay] / region.count : 0;
+                } else {
+                    processedAssays[assay] = region[assay]; // Already max in reduce step if rankBy is "max"
+                }
             });
 
             return {
                 ...region,
-                ...averagedAssays,
+                ...processedAssays,
                 count: undefined // Remove the helper count property
             };
         });
@@ -466,7 +531,7 @@ export default function Argo() {
 
         //assign a rank to each assay
         assayNames.forEach(assay => {
-            const sortedRows = averagedRows
+            const sortedRows = processedRows
                 .sort((a, b) => {
                     if (elementFilterVariables.classes[a.class] && elementFilterVariables.classes[b.class]) {
                         return b[assay] - a[assay];
@@ -596,6 +661,7 @@ export default function Argo() {
             const aggregateRank = (matchingAggregateRank ? matchingAggregateRank.rank : 0);
 
             return {
+                regionID: row.regionID,
                 inputRegion: { chr: row.chr, start: row.start, end: row.end },
                 elementRank,
                 aggregateRank
@@ -629,12 +695,6 @@ export default function Argo() {
                 <Typography variant="h4" mb={3}>
                     <b>A</b>ggregate <b>R</b>ank <b>G</b>enerat<b>o</b>r
                 </Typography>
-
-                {error_scores && (
-                    <Alert variant="filled" severity="error">
-                        {error_scores.message}
-                    </Alert>
-                )}
                 <ArgoUpload
                     selectedSearch={selectedSearch}
                     handleSearchChange={handleSearchChange}
@@ -658,20 +718,32 @@ export default function Argo() {
 
                         {(shownTable === "sequence" && (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs)) && (
                             <Box mt="20px">
-                                <DataTable
-                                    key={Math.random()}
-                                    columns={sequenceColumns}
-                                    rows={sequenceRows}
-                                    sortDescending
-                                    itemsPerPage={5}
-                                    searchable
-                                    tableTitle={<SubTableTitle title="Sequence Details" />}
-                                />
+                                {error_conservation_scores && (
+                                <Alert variant="filled" severity="error">
+                                    {error_conservation_scores.message}
+                                </Alert>
+                                )}
+                                {loading_conservation_scores ? <CircularProgress /> :
+                                    <DataTable
+                                        key={Math.random()}
+                                        columns={sequenceColumns}
+                                        rows={sequenceRows}
+                                        sortDescending
+                                        itemsPerPage={5}
+                                        searchable
+                                        tableTitle={<SubTableTitle title="Sequence Details" />}
+                                    />
+                                }
                             </Box>
                         )}
 
                         {(shownTable === "element" && elementFilterVariables.usecCREs) && (
                             <Box mt="20px">
+                                {error_scores && (
+                                    <Alert variant="filled" severity="error">
+                                        {error_scores.message}
+                                    </Alert>
+                                )}
                                 {loading_scores || loading_ortho ? <CircularProgress /> :
                                     <DataTable
                                         key={Math.random()}
@@ -680,7 +752,8 @@ export default function Argo() {
                                         sortDescending
                                         itemsPerPage={10}
                                         searchable
-                                        tableTitle={<SubTableTitle title="Element Details" />}
+                                        tableTitle={<SubTableTitle title="Element Details (Overlapping cCREs)" />}
+                                        // onRowClick={handlecCREClick}
                                     />
                                 }
                             </Box>
