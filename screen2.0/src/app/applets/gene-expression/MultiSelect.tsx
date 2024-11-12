@@ -5,10 +5,7 @@ import Autocomplete, { AutocompleteChangeDetails, AutocompleteChangeReason } fro
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import { Box, Divider, FormControlLabel, Paper } from '@mui/material';
-
-function capitalizeWords(input: string): string {
-  return input.replace(/\b\w/g, char => char.toUpperCase());
-}
+import { capitalizeWords } from '../../search/_ccredetails/utils';
 
 const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
 const checkedIcon = <CheckBoxIcon fontSize="small" />;
@@ -20,6 +17,7 @@ export interface MultiSelectProps {
   options: string[],
   placeholder: string
   limitTags?: number
+  size?: "small" | "medium"
   //todo add width here
 }
 
@@ -27,7 +25,8 @@ const MultiSelect = ({
   onChange,
   options,
   placeholder,
-  limitTags
+  limitTags,
+  size = "small"
 }: MultiSelectProps) => {
   const [value, setValue] = React.useState<string[] | null>(options);
   const scrollRef = React.useRef<number>(0) //needed to preserve the scroll position of the ListBox. Overriding PaperComponent changes the way that the Listbox renders and resets scroll on interaction
@@ -93,7 +92,7 @@ const MultiSelect = ({
     <Autocomplete
       multiple
       limitTags={limitTags}
-      size='small'
+      size={size}
       value={value}
       onChange={handleChange}
       id="checkboxes-tags-demo"
