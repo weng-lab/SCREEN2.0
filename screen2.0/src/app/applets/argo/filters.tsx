@@ -188,9 +188,9 @@ const Filters: React.FC<FilterProps> = ({
                                         </Select>
                                     </FormControl>
                                 </FormGroup>
-                                <FormControl sx={{ width: "50%" }}>
-                                    <FormLabel>Rank By</FormLabel>
-                                    <Select size="small" value={sequenceFilterVariables.rankBy} disabled={!sequenceFilterVariables.useConservation} onChange={(event) => updateSequenceFilter("rankBy", event.target.value)}>
+                                <FormControl>
+                                    <FormLabel>Rank Conservation Scores By</FormLabel>
+                                    <Select sx={{ width: "50%" }} size="small" value={sequenceFilterVariables.rankBy} disabled={!sequenceFilterVariables.useConservation} onChange={(event) => updateSequenceFilter("rankBy", event.target.value)}>
                                         <MenuItem value={"min"}>Min</MenuItem>
                                         <MenuItem value={"max"}>Max</MenuItem>
                                         <MenuItem value={"avg"}>Average</MenuItem>

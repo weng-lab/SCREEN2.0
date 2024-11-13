@@ -7,13 +7,14 @@ import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { ORTHOLOG_QUERY, Z_SCORES_QUERY, BIG_REQUEST_QUERY } from "./queries"
 import { useLazyQuery, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
-import { CCREAssays, CCREClasses, RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, AssayRankEntry, CCREs, InputRegions } from "./types"
+import { CCREAssays, CCREClasses, RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, AssayRankEntry, CCREs, InputRegions, ConservationScores } from "./types"
 import { BED_INTERSECT_QUERY } from "../../_mainsearch/queries"
 import ExpandCircleDownIcon from '@mui/icons-material/ExpandCircleDown';
 import Filters from "./filters"
 import { CancelRounded } from "@mui/icons-material"
 import ArgoUpload from "./argoUpload"
 import { BigRequest } from "../../../graphql/__generated__/graphql"
+import { match } from "assert"
 
 const assayNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
 
@@ -30,9 +31,7 @@ export default function Argo() {
     const [shownTable, setShownTable] = useState<"sequence" | "element" | "gene">(null);
 
     // These will be deleted once functionality is implemented
-    const [sequenceRanks, setSequenceRanks] = useState<RankedRegions>([]);
     const [geneRanks, setGeneRanks] = useState<RankedRegions>([]);
-    const [sequenceRows, setSequenceRows] = useState<SequenceTableRow[]>([]) // Data displayed on the sequence table
     const [geneRows, setGeneRows] = useState<GeneTableRow[]>([]) // Data displayed on the gene table
 
     // Filter state variables
@@ -177,7 +176,7 @@ export default function Argo() {
          * correctly populate row values
          */
         if (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs) {
-            cols.push({ header: "Seqence", HeaderRender: () => <MainColHeader tableName="Sequence" onClick={() => shownTable === "sequence" ? setShownTable(null) : setShownTable("sequence")} />, value: (row) => "N/A" })
+            cols.push({ header: "Seqence", HeaderRender: () => <MainColHeader tableName="Sequence" onClick={() => shownTable === "sequence" ? setShownTable(null) : setShownTable("sequence")} />, value: (row) => row.sequenceRank })
         }
         if (elementFilterVariables.usecCREs) { cols.push({ header: "Element", HeaderRender: () => <MainColHeader tableName="Element" onClick={() => shownTable === "element" ? setShownTable(null) : setShownTable("element")} />, value: (row) => row.elementRank }) }
         if (geneFilterVariables.useGenes) { cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Gene" onClick={() => shownTable === "gene" ? setShownTable(null) : setShownTable("gene")} />, value: (row) => "N/A" }) }
@@ -190,7 +189,7 @@ export default function Argo() {
     const sequenceColumns: DataTableColumn<SequenceTableRow>[] = useMemo(() => {
 
         const cols: DataTableColumn<SequenceTableRow>[] = [
-            { header: "Input Region", value: (row) => "N/A" },
+            { header: "Region ID", value: (row) => row.regionID },
         ]
         /**
          * @todo
@@ -200,28 +199,28 @@ export default function Argo() {
         if (sequenceFilterVariables.useConservation) {
             switch (sequenceFilterVariables.alignment) {
                 case "241-mam-phyloP":
-                    cols.push({ header: "241-Mammal(phyloP) Score", value: (row) => "N/A" });
+                    cols.push({ header: "241-Mammal(phyloP) Score", value: (row) => row.conservationScore });
                     break;
                 case "447-mam-phyloP":
-                    cols.push({ header: "447-Mammal(phyloP) Score", value: (row) => "N/A" });
+                    cols.push({ header: "447-Mammal(phyloP) Score", value: (row) => row.conservationScore });
                     break;
                 case "241-mam-phastCons":
-                    cols.push({ header: "241-Mammal(phastCons) Score", value: (row) => "N/A" });
+                    cols.push({ header: "241-Mammal(phastCons) Score", value: (row) => row.conservationScore });
                     break;
                 case "43-prim-phyloP":
-                    cols.push({ header: "43-Primate(phyloP) Score", value: (row) => "N/A" });
+                    cols.push({ header: "43-Primate(phyloP) Score", value: (row) => row.conservationScore });
                     break;
                 case "43-prim-phastCons":
-                    cols.push({ header: "43-Primate(phastCons) Score", value: (row) => "N/A" });
+                    cols.push({ header: "43-Primate(phastCons) Score", value: (row) => row.conservationScore });
                     break;
                 case "243-prim-phastCons":
-                    cols.push({ header: "243-Primate(phastCons) Score", value: (row) => "N/A" });
+                    cols.push({ header: "243-Primate(phastCons) Score", value: (row) => row.conservationScore });
                     break;
                 case "100-vert-phyloP":
-                    cols.push({ header: "100-Vertebrate(phyloP) Score", value: (row) => "N/A" });
+                    cols.push({ header: "100-Vertebrate(phyloP) Score", value: (row) => row.conservationScore });
                     break;
                 case "100-vert-phastCons":
-                    cols.push({ header: "100-Vertebrate(phastCons) Score", value: (row) => "N/A" });
+                    cols.push({ header: "100-Vertebrate(phastCons) Score", value: (row) => row.conservationScore });
                     break;
                 default:
                     break;
@@ -369,19 +368,6 @@ export default function Argo() {
         skip: !intersectingCcres || (elementFilterVariables.cCREAssembly === "mm10" && !mouseAccessions),
         client: client,
         fetchPolicy: 'cache-first',
-    });
-
-    //query to get conservation scores based on selected url
-    const { loading: loading_conservation_scores, error: error_conservation_scores, data: conservationScores } = useQuery(BIG_REQUEST_QUERY, {
-        variables: {
-            requests: bigRequests
-        },
-        skip: (!sequenceFilterVariables.useConservation && !sequenceFilterVariables.useMotifs) || bigRequests.length === 0,
-        client: client,
-        fetchPolicy: 'cache-first',
-        onCompleted(d){
-            console.log(d)
-        }
     });
 
     const mapScores = (obj, data) => {
@@ -595,11 +581,93 @@ export default function Argo() {
 
     }, [elementFilterVariables, elementRows]);
 
-    //update aggregate rank
-    const aggregateRanks = useMemo<RankedRegions>(() => {
-        if ((sequenceRanks.length === 0 && elementRanks.length === 0 && geneRanks.length === 0) || inputRegions.length === 0) return [];
+    //query to get conservation scores based on selected url
+    const { loading: loading_conservation_scores, error: error_conservation_scores, data: conservationScores } = useQuery(BIG_REQUEST_QUERY, {
+        variables: {
+            requests: bigRequests
+        },
+        skip: (!sequenceFilterVariables.useConservation && !sequenceFilterVariables.useMotifs) || bigRequests.length === 0,
+        client: client,
+        fetchPolicy: 'cache-first',
+    });
 
-        const updatedMainRanks = inputRegions.map(row => {
+    function calculateConservationScores(scores, rankBy) {
+        if (rankBy === "max") {
+            //rank by max
+            const maxScores: ConservationScores = scores.map((request) => {
+                // Find the maximum value within each bigRequest data array
+                const maxValue = request.data.reduce((max, item) => {
+                    return item.value > max ? item.value : max;
+                }, -Infinity);
+
+                // Get the input region information
+                const chr = request.data[0]?.chr || ''; // Chromosome from the first item
+                const start = request.data[0]?.end || 0; // Start from the end of the first item
+                const end = request.data[request.data.length - 1]?.end || 0; // End from the last item
+
+                return { score: maxValue, inputRegion: { chr, start, end } };
+            });
+            return maxScores
+        } else if (rankBy === "min") {
+            //rank by min
+            const minScores: ConservationScores = scores.map((request) => {
+                // Find the maximum value within each bigRequest data array
+                const minValue = request.data.reduce((min, item) => {
+                    return item.value < min ? item.value : min;
+                }, Infinity);
+
+                // Get the input region information
+                const chr = request.data[0]?.chr || ''; // Chromosome from the first item
+                const start = request.data[0]?.end || 0; // Start from the end of the first item
+                const end = request.data[request.data.length - 1]?.end || 0; // End from the last item
+
+                return { score: minValue, inputRegion: { chr, start, end } };
+            });
+            return minScores
+        } else {
+            //rank by avg
+            const avgScores: ConservationScores = scores.map((request) => {
+                const sum = request.data.reduce((total, item) => total + item.value, 0);
+                const average = request.data.length > 0 ? sum / request.data.length : 0;
+
+                const chr = request.data[0]?.chr || '';
+                const start = request.data[0]?.end || 0;
+                const end = request.data[request.data.length - 1]?.end || 0;
+
+                return { score: average, inputRegion: { chr, start, end } };
+            });
+            return avgScores;
+        }
+    }
+
+    const sequenceRows: SequenceTableRow[] = useMemo(() => {
+        if (!conservationScores || inputRegions.length === 0) {return []}
+        const calculatedConservationScores = calculateConservationScores(conservationScores.bigRequests, sequenceFilterVariables.rankBy)
+        return calculatedConservationScores.map((region) => {
+            // Find the corresponding region in inputRegions
+            const matchingRegion = inputRegions.find(
+                inputRegion => 
+                    inputRegion.chr == region.inputRegion.chr && 
+                    inputRegion.start == region.inputRegion.start && 
+                    inputRegion.end == region.inputRegion.end
+            );
+            return {
+                regionID: matchingRegion?.regionID,
+                inputRegion: { chr: region.inputRegion.chr, start: region.inputRegion.start, end: region.inputRegion.end },
+                conservationScore: region.score
+            };
+        });
+
+    }, [conservationScores, inputRegions, sequenceFilterVariables.rankBy])
+
+    //find the matching ranks for each input region and update the rows of the main table
+    const mainRows: MainTableRow[] = useMemo(() => {
+        if ((sequenceRows.length === 0 && elementRanks.length === 0 && geneRanks.length === 0) || inputRegions.length === 0) return [];
+        setLoadingMainRows(true)
+        const sequenceRanks = generateSequenceRanks(sequenceRows)
+        console.log(sequenceRanks)
+        
+        const totalRanks = inputRegions.map(row => {
             // Find matching ranks based on inputRegion coordinates
             const matchingSequence = sequenceRanks.find(seq =>
                 seq.chr == row.chr &&
@@ -621,23 +689,37 @@ export default function Argo() {
 
             // Calculate the aggregate rank, using 0 if no matching rank is found for any
             //TODO sort the added ranks to one aggregate rank
-            const aggregateRank = (matchingSequence?.rank || 0) +
+            const totalRank = (matchingSequence?.rank || 0) +
                 (matchingElement?.rank || 0) +
                 (matchingGene?.rank || 0);
 
             return {
                 ...row,
-                rank: aggregateRank
+                rank: totalRank
             };
         });
 
-        return updatedMainRanks;
-    }, [sequenceRanks, elementRanks, geneRanks, inputRegions]);
+        // Assign ranks, accounting for ties
+        let currentRank = 1;
+        let prevTotalRank = null;
 
-    //find the matching ranks for each input region and update the rows of the main table
-    const mainRows: MainTableRow[] = useMemo(() => {
-        if ((sequenceRanks.length === 0 && elementRanks.length === 0 && geneRanks.length === 0) || inputRegions.length === 0) return [];
-        setLoadingMainRows(true)
+        const aggregateRanks = totalRanks
+            .sort((a, b) => a.rank - b.rank) // Sort by rank
+            .map((region, index) => {
+                // Update current rank only if rank is different from the previous
+                if (region.rank !== prevTotalRank) {
+                    currentRank = index + 1;
+                    prevTotalRank = region.rank;
+                }
+
+                return {
+                    chr: region.chr,
+                    start: region.start,
+                    end: region.end,
+                    rank: region.rank === 0 ? 0 : currentRank, // Assign 0 for unranked regions
+                };
+            });
+
         const updatedMainRows = inputRegions.map(row => {
             // Find the matching rank for this `inputRegion`
             const matchingElement = elementRanks.find(
@@ -649,7 +731,16 @@ export default function Argo() {
 
             const elementRank = matchingElement ? matchingElement.rank : 0;
 
-            //TODO add other ranks (sequence and Gene)
+            const matchingSequence = sequenceRanks.find(
+                sequence =>
+                    sequence.chr == row.chr &&
+                    sequence.start == row.start &&
+                    sequence.end == row.end
+            );
+
+            const sequenceRank = matchingSequence ? matchingSequence.rank : 0;
+
+            //TODO add other ranks (Gene)
 
             const matchingAggregateRank = aggregateRanks.find(
                 mainRank =>
@@ -663,6 +754,7 @@ export default function Argo() {
             return {
                 regionID: row.regionID,
                 inputRegion: { chr: row.chr, start: row.start, end: row.end },
+                sequenceRank,
                 elementRank,
                 aggregateRank
             };
@@ -670,7 +762,20 @@ export default function Argo() {
         setLoadingMainRows(false)
 
         return updatedMainRows;
-    }, [aggregateRanks, elementRanks, geneRanks, inputRegions, sequenceRanks]);
+    }, [elementRanks, geneRanks, inputRegions, sequenceRows]);
+
+    function generateSequenceRanks(rows) {
+        // Sort rows by conservationScore in descending order
+        const sortedRows = [...rows].sort((a, b) => b.conservationScore - a.conservationScore);
+
+        // Assign ranks starting from 1
+        return sortedRows.map((row, index) => ({
+            chr: row.inputRegion.chr,
+            start: row.inputRegion.start,
+            end: row.inputRegion.end,
+            rank: index + 1
+        })) as RankedRegions;
+    }
 
     return (
         <Box display="flex" >
@@ -729,7 +834,7 @@ export default function Argo() {
                                         columns={sequenceColumns}
                                         rows={sequenceRows}
                                         sortDescending
-                                        itemsPerPage={5}
+                                        itemsPerPage={10}
                                         searchable
                                         tableTitle={<SubTableTitle title="Sequence Details" />}
                                     />

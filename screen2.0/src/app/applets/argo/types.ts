@@ -44,6 +44,11 @@ export type RankedRegions = (GenomicRegion & {rank: number})[]
 
 export type InputRegions = (GenomicRegion & {regionID: number})[]
 
+export type ConservationScores = {
+    inputRegion: GenomicRegion
+    score: number
+}[]
+
 export type CCREs = (GenomicRegion & {
     accession: string
     inputRegion: GenomicRegion
@@ -150,6 +155,7 @@ export type MainTableRow = {
 }
 
 export type SequenceTableRow = {
+    regionID: number
     inputRegion: GenomicRegion
     conservationScore?: number
     numOverlappingMotifs?: number
