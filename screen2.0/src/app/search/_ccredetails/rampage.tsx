@@ -1,64 +1,38 @@
 "use client"
-import React, { useState, useEffect } from "react"
-import Grid from "@mui/material/Grid2"
+import React, { useState, useMemo, useCallback, useRef } from "react"
 import { LoadingMessage } from "../../../common/lib/utility"
-import {  
-  Box,
-  Button,  
+import {
+  Button,
+  CircularProgress,
+  Divider,
+  FormControl,
+  FormLabel,
   IconButton,
   InputLabel,
   MenuItem,
+  OutlinedInput,
   Select,
   SelectChangeEvent,
   Stack,
   Tooltip,
   Typography,
 } from "@mui/material"
-import Config from "../../../config.json"
-import { PlotActivityProfiles } from "./utils"
 import Image from "next/image"
 import InfoIcon from "@mui/icons-material/Info"
 import { RampageToolTipInfo } from "./const"
-import { gql, useQuery } from "@apollo/client"
+import { useQuery } from "@apollo/client"
 import { client } from "./client"
 import ConfigureGBModal from "./configuregbmodal"
+import { GENE_QUERY, TSS_RAMPAGE_QUERY } from "./queries"
+import VerticalBarPlot, { BarData } from "../../_barPlot/BarPlot"
+import { tissueColors } from "../../../common/lib/colors"
+import { GenomicRegion } from "../types"
+import { Close, Download, OpenInNew, Search } from "@mui/icons-material"
+import { capitalizeWords } from "./utils"
+import DownloadDialog, { FileOption } from "../../applets/gwas/_lollipop-plot/DownloadDialog"
+import { capitalizeFirstLetter, downloadObjArrayAsTSV, downloadSVG, downloadSvgAsPng } from "../../applets/gwas/helpers"
+import MultiSelect, { MultiSelectOnChange } from "../../applets/gene-expression/MultiSelect"
 
-const GENE_QUERY = gql`
-query geneQuery($assembly: String!, $name_prefix: [String!], $limit: Int, $version: Int) {
-  gene(assembly: $assembly, name_prefix: $name_prefix, limit: $limit, version: $version) {
-    name
-    id
-    coordinates {
-      start
-      chromosome
-      end
-    }
-  }
-} `
- 
-const TSS_RAMPAGE_QUERY = `
-  query tssRampage($gene: String!) {
-  tssrampageQuery(genename: $gene) {
-    start    
-    organ   
-    strand
-    peakId
-    biosampleName
-    biosampleType
-    biosampleSummary
-    peakType
-    expAccession
-    value
-    start
-    end 
-    chrom    
-    genes {
-      geneName
-       locusType
-    }
-  }
-}
-`
 export type RampagePeak = {
   value: number,
   peakId: string,
@@ -69,235 +43,371 @@ export type RampagePeak = {
   start: string,
   end: string,
   chrom: string,
-  peakType: string,  
+  peakType: string,
   organ: string,
   strand: string,
   tissue: string,
 }
-export default function Rampage(props: { genes: { name: string, linkedBy?: string[] }[]}) {
-  const [currentGene, setCurrentGene] = useState(props.genes[0].name)
-  const [loading, setLoading] = useState<boolean>(true)
-  const [data, setData] = useState<RampagePeak[]>([])
-  const [peak, setPeak] = useState<string>(null)
-  const [peaks, setPeaks] = useState<string[]>([])
-  const [sort, setSort] = useState<"byValue" | "byTissueMax" | "byTissue">("byValue")
-  const [configGBopen, setConfigGBOpen] = useState(false);
 
-  const handleOpenConfigGB = () => {
-    data_gene?.gene[0] && setConfigGBOpen(true)
+//Pulled from generated types
+type RampageData = {
+  __typename?: 'TssRampageResponse',
+  start?: number | null,
+  organ?: string | null,
+  strand?: string | null,
+  peakId?: string | null,
+  biosampleName?: string | null,
+  biosampleType?: string | null,
+  biosampleSummary?: string | null,
+  peakType?: string | null,
+  expAccession?: string | null,
+  value?: number | null,
+  end?: number | null,
+  chrom?: string | null,
+  genes?: Array<{ __typename?: 'TssPeaksGenes', geneName?: string | null, locusType?: string | null } | null> | null
+}
+
+type PeakInfo = {
+  peakID: string,
+  peakType: string,
+  locusType: string,
+  coordinates: GenomicRegion
+}
+
+type ViewBy = "Value" | "Tissue" | "TissueMax"
+
+export default function Rampage(props: { genes: { name: string, linkedBy?: string[] }[] }) {
+  const [gene, setGene] = useState(props.genes[0].name)
+  const [peaks, setPeaks] = useState<PeakInfo[]>([]) //Peaks of current gene available for selection
+  const [selectedPeak, setSelectedPeak] = useState<PeakInfo>(null) //current selection
+  const [viewBy, setViewBy] = useState<ViewBy>("Value")
+  const [configGBopen, setConfigGBOpen] = useState(false);
+  const [downloadOpen, setDownloadOpen] = useState(false)
+  const [search, setSearch] = useState<string>("")
+  const [availableTissues, setAvailableTissues] = useState<string[]>([])
+  const [selectedTissues, setSelectedTissues] = useState<string[]>([])
+
+  const plotRef = useRef<SVGSVGElement>()
+
+  const handleSetSearch = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setSearch(event.target.value)
+  };
+
+  const handleSetTissues: MultiSelectOnChange = (_, value) => {
+    setSelectedTissues(value)
   }
 
-  // fetch rampage data
-  useEffect(() => {
-    fetch(Config.API.CcreAPI, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        query: TSS_RAMPAGE_QUERY, variables: {
-          gene: currentGene
-        }
-      }),
-    })
-      .then((x) => x.json())
-      .then((x) => {
-        if (x.data && x.data.tssrampageQuery.length > 0) {
-          const peaks = x.data.tssrampageQuery.map(t => t.peakId)
-          const uniquePeaks: string[] = [...new Set(peaks as string[])];
-          const d = x.data.tssrampageQuery.map(t => {
-            return {
-              value: t.value,
-              peakId: t.peakId,
-              biosampleType: t.biosampleType,
-              name: t.biosampleName,
-              locusType: t.genes[0].locusType,
-              expAccession: t.expAccession,
-              start: t.start,
-              end: t.end,
-              chrom: t.chrom,
-              peakType: t.peakType,              
-              organ: t.organ,
-              strand: t.strand,
-              tissue: t.organ
-            }
-          })
-          setPeak(uniquePeaks[0])
-          setPeaks(uniquePeaks)
-          setData(d)
-          setLoading(false)
-        } else if (x.data && x.data.tssrampageQuery.length == 0) {
-          setPeak(null)
-          setPeaks([])
-          setData([])
-          setLoading(false)
-        }
-      })
-  }, [currentGene])
+  const handleOpenConfigGB = () => {
+    if (data_gene?.gene[0]) setConfigGBOpen(true)
+  }
+
+  const sampleMatchesSearch = useCallback((x: RampageData): boolean => {
+    if (search) {
+      return x.expAccession.toLowerCase().includes(search.toLowerCase())
+        || x.biosampleName.toLowerCase().includes(search.toLowerCase())
+        || x.biosampleSummary.toLowerCase().includes(search.toLowerCase())
+        || x.biosampleType.toLowerCase().includes(search.toLowerCase())
+        || x.organ.toLowerCase().includes(search.toLowerCase())
+    } else return true
+  }, [search])
+
+  const { data: dataRampage, loading: loadingRampage, error: errorRampage } = useQuery(
+    TSS_RAMPAGE_QUERY, {
+    variables: { gene: gene },
+    skip: !gene,
+    onCompleted(data) {
+      const peakInfo: PeakInfo[] = Array.from(
+        new Map(data.tssrampageQuery.map((x: RampageData) => [x.peakId, { peakID: x.peakId, peakType: x.peakType, locusType: x.genes[0].locusType, coordinates: { chrom: x.chrom, start: x.start, end: x.end } }])).values()
+      ); //extract info of each peak
+      setPeaks(peakInfo) //find unique peaks for gene
+      setSelectedPeak(peakInfo[0])
+      const uniqueTissues = []
+      data.tssrampageQuery.forEach(x => {if (!uniqueTissues.includes(x.organ)) uniqueTissues.push(x.organ)})
+      setAvailableTissues(uniqueTissues.sort())
+      setSelectedTissues(uniqueTissues.sort())
+    },
+  })
 
   const {
     data: data_gene
   } = useQuery(GENE_QUERY, {
     variables: {
       assembly: "grch38",
-      name_prefix: [currentGene],
+      name_prefix: [gene],
       version: 40
     },
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
     client,
   })
-  const peakDetails = data && data?.find(d => d.peakId === peak)
 
-  return (loading ? <LoadingMessage /> : <Grid container spacing={2}>
-    <Stack width={"100%"} direction="row" mb={1} justifyContent={"space-between"}>
-      <Stack direction="row">
+  const handleDownload = useCallback((selectedOptions: FileOption[]) => {
+    if (selectedOptions.includes('svg')) { downloadSVG(plotRef, gene + '_RAMPAGE') }
+    if (selectedOptions.includes('png')) { downloadSvgAsPng(plotRef, gene + '_RAMPAGE') }
+    if (selectedOptions.includes('tsv')) {
+      const toDownload: { accession: string, biosample: string, tissue: string, rpm: string }[] = dataRampage.tssrampageQuery
+        .map(x => {
+          return {
+            accession: x.expAccession,
+            biosample: x.biosampleSummary,
+            tissue: x.organ,
+            rpm: x.value.toFixed(2)
+          }
+        })
+        .sort((a, b) => a.accession.localeCompare(b.accession))
+      downloadObjArrayAsTSV(toDownload, gene + '_RAMPAGE')
+    }
+  }, [dataRampage, gene])
+
+  const peakIsAvailable = peaks.length !== 0
+
+  const makeLabel = (data: RampageData) => {
+    const biosample = capitalizeFirstLetter(data.biosampleSummary.replaceAll("_", " ")) 
+    return `${data.value.toFixed(2)}, ${biosample} (${data.expAccession}) (${data.strand})`
+  }
+
+  const plotData: BarData<RampageData>[] = useMemo(() => {
+    if (dataRampage) {
+      let data = dataRampage.tssrampageQuery
+        .filter(d => sampleMatchesSearch(d)) //filter by search
+        .filter(d => selectedTissues.includes(d.organ)) //filter by tissue
+        .map((x: RampageData) => {
+          return {
+            category: capitalizeWords(x.organ),
+            label: makeLabel(x),
+            value: x.value,
+            color: tissueColors[x.organ] || tissueColors.missing,
+            metadata: x
+          }
+        })
+      switch (viewBy) {
+        case ("Value"): {
+          data.sort((a, b) => b.value - a.value)
+          break
+        }
+        case ("Tissue"): {
+          //find max value for each tissue
+          const maxValuesByTissue: { [key: string]: number } = data.reduce((acc, item) => {
+            acc[item.category] = Math.max(acc[item.category] || -Infinity, item.value);
+            return acc;
+          }, {})
+          data.sort((a, b) => {
+            const maxDiff = maxValuesByTissue[b.category] - maxValuesByTissue[a.category];
+            return maxDiff !== 0 ? maxDiff : b.value - a.value;
+          })
+          break
+        }
+        case ("TissueMax"): {
+          //find max value for each tissue
+          const maxValuesByTissue: { [key: string]: number } = data.reduce((acc, item) => {
+            acc[item.category] = Math.max(acc[item.category] || -Infinity, item.value);
+            return acc;
+          }, {})
+
+          data = data.filter(x => x.value === maxValuesByTissue[x.category])
+          data.sort((a, b) => b.value - a.value);
+        }
+      }
+
+      return data
+    } else return null
+  }, [dataRampage, viewBy, sampleMatchesSearch, selectedTissues])
+
+  const PlotTooltip = (bar: BarData<RampageData>) => {
+    return (
+      <>
+        <Typography variant="body2">Clicking opens this experiment on ENCODE <OpenInNew fontSize="inherit" /></Typography>
+        <br />
+        <Typography variant="body2"><b>Accession:</b> {bar.metadata.expAccession}</Typography>
+        <Typography variant="body2"><b>Sample:</b> {capitalizeWords(bar.metadata.biosampleSummary.replaceAll("_", " "))}</Typography>
+        <Typography variant="body2"><b>Tissue:</b> {capitalizeWords(bar.metadata.organ)}</Typography>
+        <Typography variant="body2"><b>Strand:</b> {capitalizeWords(bar.metadata.strand)}</Typography>
+        <Typography variant="body2"><b>RPM:</b> {bar.value.toFixed(2)}</Typography>
+      </>
+    )
+  }
+
+  const RampagePlot = useCallback(() => {
+    if (loadingRampage) {
+      return <CircularProgress />
+    }
+    if (errorRampage) {
+      return <Typography>Something went wrong</Typography>
+    }
+    //Need to change this, is triggering
+    if (!peakIsAvailable) {
+      return <Typography>No peaks found for {gene}</Typography>
+    }
+    else return (
+      <VerticalBarPlot
+        SVGref={plotRef}
+        data={plotData}
+        topAxisLabel={"Transcipt Expression at " + selectedPeak.peakID + " of " + gene + " - RPM"}
+        //todo download
+        onBarClicked={x => window.open("https://www.encodeproject.org/experiments/" + x.metadata.expAccession, "_blank", "noopener,noreferrer")}
+        TooltipContents={(bar) => <PlotTooltip {...bar} />}
+      />
+    )
+  }, [loadingRampage, errorRampage, peakIsAvailable, gene, selectedPeak, plotData])
+
+  return (loadingRampage ? <LoadingMessage /> :
+    <Stack spacing={2}>
+      <Stack width={"100%"} direction="row" mb={1} justifyContent={"space-between"}>
         <Typography alignSelf={"flex-end"} variant="h5" display="inline">
           TSS Activity Profiles by RAMPAGE
+          <Tooltip title={RampageToolTipInfo}>
+            <IconButton sx={{ alignSelf: "flex-end" }}>
+              <InfoIcon />
+            </IconButton>
+          </Tooltip>
         </Typography>
-        <Tooltip title={RampageToolTipInfo}>
-          <IconButton sx={{ alignSelf: "flex-end" }}>
-            <InfoIcon />
-          </IconButton>
-        </Tooltip>
+        <Stack direction="row" spacing={3}>
+          <Button
+            variant="contained"
+            color="secondary"
+            sx={{ minWidth: 125, minHeight: 50 }}
+            onClick={handleOpenConfigGB}
+          >
+            <Image style={{ objectFit: "contain" }} src="https://genome-euro.ucsc.edu/images/ucscHelixLogo.png" fill alt="ucsc-button" />
+          </Button>
+          <Button
+            variant="contained"
+            href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + `${gene}`}
+            color="secondary"
+            sx={{ minWidth: 125, minHeight: 50 }}
+          >
+            <Image style={{ objectFit: "contain" }} src="https://geneanalytics.genecards.org/media/81632/gc.png" fill alt="gene-card-button" />
+          </Button>
+        </Stack>
       </Stack>
-      <Stack direction="row" spacing={3}>
-        <Button
-          variant="contained"
-          color="secondary"
-          sx={{ minWidth: 125, minHeight: 50 }}
-          onClick={handleOpenConfigGB}
-        >
-          <Image style={{ objectFit: "contain" }} src="https://genome-euro.ucsc.edu/images/ucscHelixLogo.png" fill alt="ucsc-button" />
-        </Button>
-        <Button
-          variant="contained"
-          href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + `${currentGene}`}
-          color="secondary"
-          sx={{ minWidth: 125, minHeight: 50 }}
-        >
-          <Image style={{ objectFit: "contain" }} src="https://geneanalytics.genecards.org/media/81632/gc.png" fill alt="gene-card-button" />
-        </Button>
-      </Stack>
-    </Stack>
-    <Grid display={"flex"} gap={2} size={12}>
-      <Stack>
-        <InputLabel>Gene</InputLabel>
-        <Select
-          value={currentGene}
-          size="small"
-          MenuProps={{sx: {maxHeight: '600px'}}}
-        >
-          {props.genes.map((gene) => {
-            return (
-              <MenuItem sx={{ display: "block" }} key={gene.name} value={gene.name} onClick={() => setCurrentGene(gene.name)}>
-                <Typography><i>{gene.name}</i></Typography>
-                {gene?.linkedBy && <Typography variant="body2" color={"text.secondary"}>Linked By: {gene.linkedBy.join(', ')}</Typography>}
-              </MenuItem>
-            )
-          })}
-        </Select>
-      </Stack>
-      <Stack>
-        <InputLabel>Peak</InputLabel>
-        <Select
-          size="small"
-          value={peak}
-          onChange={(event: SelectChangeEvent) => {
-            setPeak(event.target.value)
-          }}
-          disabled={peaks.length === 0}
-          displayEmpty
-          renderValue={(value: string) => {
-            if (peaks.length === 0) {
+      <Stack direction="row" gap={2} flexWrap={"wrap"}>
+        <FormControl>
+          <FormLabel>Gene</FormLabel>
+          <Select
+            value={gene}
+            size="small"
+            MenuProps={{ sx: { maxHeight: '600px' } }}
+          >
+            {props.genes.map((gene) => {
               return (
+                <MenuItem sx={{ display: "block" }} key={gene.name} value={gene.name} onClick={() => setGene(gene.name)}>
+                  <Typography><i>{gene.name}</i></Typography>
+                  {gene?.linkedBy && <Typography variant="body2" color={"text.secondary"}>Linked By: {gene.linkedBy.join(', ')}</Typography>}
+                </MenuItem>
+              )
+            })}
+          </Select>
+        </FormControl>
+        <FormControl>
+          <FormLabel>Peak</FormLabel>
+          <Select
+            size="small"
+            value={selectedPeak?.peakID || ""}
+            onChange={(event) => {
+              const selectedPeakId = event.target.value;
+              setSelectedPeak(peaks.find(peak => peak.peakID === selectedPeakId) || null);
+            }}
+            disabled={!peakIsAvailable}
+            displayEmpty
+            renderValue={(value) => {
+              const selectedPeak = peaks.find(peak => peak.peakID === value);
+              return selectedPeak ? (
+                <Stack>
+                  <Typography>{selectedPeak.peakID}</Typography>
+                  <Typography variant="body2" color={"text.secondary"}>{`(${selectedPeak.peakType})`}</Typography>
+                </Stack>
+              ) : (
                 <Stack>
                   <Typography>N/A</Typography>
                   <Typography variant="body2" color={"text.secondary"}>No Peaks Found</Typography>
                 </Stack>
-              )
-            } else {
-              const details = data && data?.find(d => d.peakId === peak)
-              return (
-                <Stack>
-                  <Typography>{value}</Typography>
-                  <Typography variant="body2" color={"text.secondary"}>{`(${details?.peakType})`}</Typography>
-                </Stack>
-              )
-            }
-          }}
-        >
-          {peaks.length > 0 ? peaks.map((peak: string) => {
-            const details = data && data?.find(d => d.peakId === peak)
-            return (
-              <MenuItem sx={{ display: "block" }} key={peak} value={peak}>
-                <Typography>{peak}</Typography>
-                <Typography variant="body2" color={"text.secondary"}>{`(${details?.peakType})`}</Typography>
+              );
+            }}
+          >
+            {peakIsAvailable ? peaks.map((peak: PeakInfo) => (
+              <MenuItem key={peak.peakID} value={peak.peakID}>
+                <Typography>{peak.peakID}</Typography>
+                <Typography variant="body2" color={"text.secondary"}>{`(${peak.peakType})`}</Typography>
               </MenuItem>
-            )
-          })
-            :
-            <MenuItem>No Peaks Found</MenuItem>
-          }
-        </Select>
-      </Stack>
-      <Stack>
-        <InputLabel id="sort-by-label">
-          Sort By
-        </InputLabel>
-        <Select
-          size="medium"
-          id="sort-by"
-          value={sort}
-          onChange={(event: SelectChangeEvent) => {
-            setSort(event.target.value as "byValue" | "byTissueMax" | "byTissue")
-          }}
-        >
-          <MenuItem value="byTissue">Tissue</MenuItem>
-          <MenuItem value="byTissueMax">Tissue Max</MenuItem>
-          <MenuItem value="byValue">Value</MenuItem>
-        </Select>
-      </Stack>
-    </Grid>
-    <Grid size={12}>
-      <Typography>
-        {data_gene?.gene[0] && `Gene ID: ${data_gene.gene[0].id} ${peakDetails ? '(' + peakDetails.locusType + ')' : ''}`}
-      </Typography>
-      <Typography>
-        {peak && `${peak}: ${peakDetails?.chrom + ":" + peakDetails?.start.toLocaleString() + "-" + peakDetails?.end.toLocaleString()}`}
-      </Typography>
-    </Grid>
-    <Grid size={12}>
-      {data && data.length == 0 ? (<Typography>No data available</Typography>) :
-        <Box maxWidth={{ xl: '75%', xs: '100%' }}>
-          <PlotActivityProfiles
-            data={data}
-            sort={sort}
-            range={{
-              x: { start: 0, end: 4 },
-              y: { start: 0, end: 0 },
+            )) : (
+              <MenuItem>No Peaks Found</MenuItem>
+            )}
+          </Select>
+        </FormControl>
+        <FormControl>
+          <FormLabel id="sort-by-label">
+            View By
+          </FormLabel>
+          <Select
+            size="medium"
+            id="sort-by"
+            value={viewBy}
+            onChange={(event: SelectChangeEvent) => {
+              setViewBy(event.target.value as ViewBy)
             }}
-            dimensions={{
-              x: { start: 0, end: 650 },
-              y: { start: 200, end: 0 },
-            }}
-            peakID={peak}
+          >
+            <MenuItem value="Value">Value</MenuItem>
+            <MenuItem value="Tissue">Tissue</MenuItem>
+            <MenuItem value="TissueMax">Tissue Max</MenuItem>
+          </Select>
+        </FormControl>
+        <FormControl>
+          <FormLabel>{selectedTissues.length === availableTissues.length ? "Tissues" : <i>Tissues*</i>}</FormLabel>
+          <MultiSelect
+            options={availableTissues}
+            onChange={handleSetTissues}
+            placeholder="Filter Tissues"
+            limitTags={2}
+            size="medium"
           />
-        </Box>
-      }
-    </Grid>
-    {/* Configure Trackhub */}
-    <ConfigureGBModal
-      coordinates={{
-        assembly: "GRCh38",
-        chromosome: data_gene?.gene[0]?.coordinates.chromosome,
-        start: data_gene?.gene[0]?.coordinates.start,
-        end: data_gene?.gene[0]?.coordinates.end,
-      }}
-      accession={currentGene}
-      open={configGBopen}
-      setOpen={setConfigGBOpen}
-    />
-  </Grid>);
+        </FormControl>
+      </Stack>
+      <div>
+        <Typography>
+          {data_gene?.gene[0] && `Gene ID: ${data_gene.gene[0].id} ${selectedPeak ? '- ' + selectedPeak.locusType.replace('_', ' ') : ''}`}
+        </Typography>
+        <Typography>
+          {selectedPeak && `Peak: ${selectedPeak.peakID} - ${selectedPeak.coordinates.chrom + ":" + selectedPeak.coordinates.start.toLocaleString() + "-" + selectedPeak.coordinates.end.toLocaleString()}`}
+        </Typography>
+      </div>
+      <Divider />
+      <Stack direction={"row"} gap={2} flexWrap={"wrap"}>
+        <FormControl sx={{ minWidth: 150 }}>
+          <InputLabel size='small' style={{ zIndex: 0 }}>Search Samples</InputLabel>
+          <OutlinedInput
+            size='small'
+            endAdornment={search ? <IconButton onClick={() => setSearch("")}><Close /></IconButton> : <Search />}
+            label="Search Samples"
+            placeholder="ID, Tissue, Biosample"
+            value={search}
+            onChange={handleSetSearch} />
+        </FormControl>
+        <Tooltip title="Select from SVG (plot), PNG (plot), or TSV (data)">
+          <Button disabled={!gene} variant="outlined" endIcon={<Download />} sx={{ textTransform: 'none', height: 40, flexShrink: 0 }} onClick={() => setDownloadOpen(true)}>
+            Download
+          </Button>
+        </Tooltip>
+      </Stack>
+      <RampagePlot />
+      {/* Configure Trackhub */}
+      <ConfigureGBModal
+        coordinates={{
+          assembly: "GRCh38",
+          chromosome: data_gene?.gene[0]?.coordinates.chromosome,
+          start: data_gene?.gene[0]?.coordinates.start,
+          end: data_gene?.gene[0]?.coordinates.end,
+        }}
+        accession={gene}
+        open={configGBopen}
+        setOpen={setConfigGBOpen}
+      />
+      {/* Download Dialog */}
+      <DownloadDialog
+        open={downloadOpen}
+        fileFormats={['svg', 'png', 'tsv']}
+        defaultSelected={['svg', 'png', 'tsv']}
+        onClose={() => setDownloadOpen(false)}
+        onSubmit={handleDownload}
+      />
+    </Stack>);
 }
