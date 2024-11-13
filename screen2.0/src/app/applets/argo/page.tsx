@@ -14,7 +14,6 @@ import Filters from "./filters"
 import { CancelRounded } from "@mui/icons-material"
 import ArgoUpload from "./argoUpload"
 import { BigRequest } from "../../../graphql/__generated__/graphql"
-import { match } from "assert"
 
 const assayNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
 
@@ -322,11 +321,11 @@ export default function Argo() {
             "241-mam-phyloP": "https://downloads.wenglab.org/241-mammalian-2020v2.bigWig",
             "241-mam-phastCons": "https://downloads.wenglab.org/241Mammals-PhastCons.bigWig",
             "447-mam-phyloP": "https://downloads.wenglab.org/mammals_phyloP-447.bigWig",
-            "100-vert-phyloP": "https://downloads.wenglab.org/hg38.phyloP100way.bw",
+            "100-vert-phyloP": "https://downloads.wenglab.org/hg38.phyloP100way.bw", //errors
             "100-vert-phastCons": "https://downloads.wenglab.org/hg38.phastCons100way.bw",
-            "243-primate-phastCons": "https://downloads.wenglab.org/primates_PhastCons-243.bigWig",
-            "43-primate-phyloP": "https://downloads.wenglab.org/PhyloP-43.bw",
-            "43-primate-phastCons": "https://downloads.wenglab.org/hg38_43primates_phastCons.bw",
+            "243-prim-phastCons": "https://downloads.wenglab.org/primates_PhastCons-243.bigWig",
+            "43-prim-phyloP": "https://downloads.wenglab.org/PhyloP-43.bw",
+            "43-prim-phastCons": "https://downloads.wenglab.org/hg38_43primates_phastCons.bw",
         };
 
         const selectedUrl = urlMapping[sequenceFilterVariables.alignment] || "";
@@ -665,7 +664,6 @@ export default function Argo() {
         if ((sequenceRows.length === 0 && elementRanks.length === 0 && geneRanks.length === 0) || inputRegions.length === 0) return [];
         setLoadingMainRows(true)
         const sequenceRanks = generateSequenceRanks(sequenceRows)
-        console.log(sequenceRanks)
         
         const totalRanks = inputRegions.map(row => {
             // Find matching ranks based on inputRegion coordinates
@@ -777,6 +775,11 @@ export default function Argo() {
         })) as RankedRegions;
     }
 
+    //open ccre details on ccre click
+    const handlecCREClick = (row) => {
+        window.open(`/search?assembly=${elementFilterVariables.cCREAssembly}&chromosome=${row.chr}&start=${row.start}&end=${row.end}&accessions=${row.accession}&page=2`, "_blank", "noopener,noreferrer")
+    }
+
     return (
         <Box display="flex" >
             <Filters
@@ -858,7 +861,7 @@ export default function Argo() {
                                         itemsPerPage={10}
                                         searchable
                                         tableTitle={<SubTableTitle title="Element Details (Overlapping cCREs)" />}
-                                        // onRowClick={handlecCREClick}
+                                        onRowClick={handlecCREClick}
                                     />
                                 }
                             </Box>
