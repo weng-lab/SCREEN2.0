@@ -294,7 +294,7 @@ export default function Argo() {
             "241-mam-phyloP": "https://downloads.wenglab.org/241-mammalian-2020v2.bigWig",
             "241-mam-phastCons": "https://downloads.wenglab.org/241Mammals-PhastCons.bigWig",
             "447-mam-phyloP": "https://downloads.wenglab.org/mammals_phyloP-447.bigWig",
-            "100-vert-phyloP": "https://downloads.wenglab.org/hg38.phyloP100way.bw", //errors
+            "100-vert-phyloP": "https://downloads.wenglab.org/hg38.phyloP100way.bw",
             "100-vert-phastCons": "https://downloads.wenglab.org/hg38.phastCons100way.bw",
             "243-prim-phastCons": "https://downloads.wenglab.org/primates_PhastCons-243.bigWig",
             "43-prim-phyloP": "https://downloads.wenglab.org/PhyloP-43.bw",
@@ -322,53 +322,30 @@ export default function Argo() {
     });
 
     function calculateConservationScores(scores, rankBy) {
-        if (rankBy === "max") {
-            //rank by max
-            const maxScores: ConservationScores = scores.map((request) => {
-                // Find the maximum value within each bigRequest data array
-                const maxValue = request.data.reduce((max, item) => {
-                    return item.value > max ? item.value : max;
-                }, -Infinity);
-
-                // Get the input region information
-                const chr = request.data[0]?.chr || ''; // Chromosome from the first item
-                const start = request.data[0]?.end || 0; // Start from the end of the first item
-                const end = request.data[request.data.length - 1]?.end || 0; // End from the last item
-
-                return { score: maxValue, inputRegion: { chr, start, end } };
-            });
-            return maxScores
-        } else if (rankBy === "min") {
-            //rank by min
-            const minScores: ConservationScores = scores.map((request) => {
-                // Find the maximum value within each bigRequest data array
-                const minValue = request.data.reduce((min, item) => {
-                    return item.value < min ? item.value : min;
-                }, Infinity);
-
-                // Get the input region information
-                const chr = request.data[0]?.chr || ''; // Chromosome from the first item
-                const start = request.data[0]?.end || 0; // Start from the end of the first item
-                const end = request.data[request.data.length - 1]?.end || 0; // End from the last item
-
-                return { score: minValue, inputRegion: { chr, start, end } };
-            });
-            return minScores
-        } else {
-            //rank by avg
-            const avgScores: ConservationScores = scores.map((request) => {
-                const sum = request.data.reduce((total, item) => total + item.value, 0);
-                const average = request.data.length > 0 ? sum / request.data.length : 0;
-
-                const chr = request.data[0]?.chr || '';
-                const start = request.data[0]?.end || 0;
-                const end = request.data[request.data.length - 1]?.end || 0;
-
-                return { score: average, inputRegion: { chr, start, end } };
-            });
-            return avgScores;
-        }
-    }
+        return scores.map((request) => {
+            const data = request.data;
+            
+            // Extract the shared information for chr, start, and end
+            //query's first item is one base pair back so we use the end of the first item for the start
+            //and the end of the last item for the end
+            const chr = data[0]?.chr || '';
+            const start = data[0]?.end || 0;
+            const end = data[data.length - 1]?.end || 0;
+    
+            let score;
+            // calculate the score based on selected rank by
+            if (rankBy === "max") {
+                score = Math.max(...data.map(item => item.value));
+            } else if (rankBy === "min") {
+                score = Math.min(...data.map(item => item.value));
+            } else {
+                const sum = data.reduce((total, item) => total + item.value, 0);
+                score = data.length > 0 ? sum / data.length : 0;
+            }
+    
+            return { score, inputRegion: { chr, start, end } };
+        });
+    }    
 
     const sequenceRows: SequenceTableRow[] = useMemo(() => {
         if (!conservationScores || inputRegions.length === 0) { return [] }
