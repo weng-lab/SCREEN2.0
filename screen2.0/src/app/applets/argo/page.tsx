@@ -198,28 +198,28 @@ export default function Argo() {
         if (sequenceFilterVariables.useConservation) {
             switch (sequenceFilterVariables.alignment) {
                 case "241-mam-phyloP":
-                    cols.push({ header: "241-Mammal(phyloP) Score", value: (row) => row.conservationScore });
+                    cols.push({ header: "241-Mammal(phyloP) Score", value: (row) => row.conservationScore.toFixed(2) });
                     break;
                 case "447-mam-phyloP":
-                    cols.push({ header: "447-Mammal(phyloP) Score", value: (row) => row.conservationScore });
+                    cols.push({ header: "447-Mammal(phyloP) Score", value: (row) => row.conservationScore.toFixed(2) });
                     break;
                 case "241-mam-phastCons":
-                    cols.push({ header: "241-Mammal(phastCons) Score", value: (row) => row.conservationScore });
+                    cols.push({ header: "241-Mammal(phastCons) Score", value: (row) => row.conservationScore.toFixed(2) });
                     break;
                 case "43-prim-phyloP":
-                    cols.push({ header: "43-Primate(phyloP) Score", value: (row) => row.conservationScore });
+                    cols.push({ header: "43-Primate(phyloP) Score", value: (row) => row.conservationScore.toFixed(2) });
                     break;
                 case "43-prim-phastCons":
-                    cols.push({ header: "43-Primate(phastCons) Score", value: (row) => row.conservationScore });
+                    cols.push({ header: "43-Primate(phastCons) Score", value: (row) => row.conservationScore.toFixed(2) });
                     break;
                 case "243-prim-phastCons":
-                    cols.push({ header: "243-Primate(phastCons) Score", value: (row) => row.conservationScore });
+                    cols.push({ header: "243-Primate(phastCons) Score", value: (row) => row.conservationScore.toFixed(2) });
                     break;
                 case "100-vert-phyloP":
-                    cols.push({ header: "100-Vertebrate(phyloP) Score", value: (row) => row.conservationScore });
+                    cols.push({ header: "100-Vertebrate(phyloP) Score", value: (row) => row.conservationScore.toFixed(2) });
                     break;
                 case "100-vert-phastCons":
-                    cols.push({ header: "100-Vertebrate(phastCons) Score", value: (row) => row.conservationScore });
+                    cols.push({ header: "100-Vertebrate(phastCons) Score", value: (row) => row.conservationScore.toFixed(2) });
                     break;
                 default:
                     break;
@@ -285,6 +285,127 @@ export default function Argo() {
         })
     };
 
+    /*------------------------------------------ Sequence Stuff ------------------------------------------*/
+
+    //build payload for bigRequest query
+    const bigRequests: BigRequest[] = useMemo(() => {
+        if (inputRegions.length === 0) { return [] }
+        const urlMapping: { [key: string]: string } = {
+            "241-mam-phyloP": "https://downloads.wenglab.org/241-mammalian-2020v2.bigWig",
+            "241-mam-phastCons": "https://downloads.wenglab.org/241Mammals-PhastCons.bigWig",
+            "447-mam-phyloP": "https://downloads.wenglab.org/mammals_phyloP-447.bigWig",
+            "100-vert-phyloP": "https://downloads.wenglab.org/hg38.phyloP100way.bw", //errors
+            "100-vert-phastCons": "https://downloads.wenglab.org/hg38.phastCons100way.bw",
+            "243-prim-phastCons": "https://downloads.wenglab.org/primates_PhastCons-243.bigWig",
+            "43-prim-phyloP": "https://downloads.wenglab.org/PhyloP-43.bw",
+            "43-prim-phastCons": "https://downloads.wenglab.org/hg38_43primates_phastCons.bw",
+        };
+
+        const selectedUrl = urlMapping[sequenceFilterVariables.alignment] || "";
+
+        return inputRegions.map(({ chr, start, end }) => ({
+            chr1: chr,
+            start,
+            end,
+            url: selectedUrl,
+        }));
+    }, [inputRegions, sequenceFilterVariables.alignment]);
+
+    //query to get conservation scores based on selected url
+    const { loading: loading_conservation_scores, error: error_conservation_scores, data: conservationScores } = useQuery(BIG_REQUEST_QUERY, {
+        variables: {
+            requests: bigRequests
+        },
+        skip: (!sequenceFilterVariables.useConservation && !sequenceFilterVariables.useMotifs) || bigRequests.length === 0,
+        client: client,
+        fetchPolicy: 'cache-first',
+    });
+
+    function calculateConservationScores(scores, rankBy) {
+        if (rankBy === "max") {
+            //rank by max
+            const maxScores: ConservationScores = scores.map((request) => {
+                // Find the maximum value within each bigRequest data array
+                const maxValue = request.data.reduce((max, item) => {
+                    return item.value > max ? item.value : max;
+                }, -Infinity);
+
+                // Get the input region information
+                const chr = request.data[0]?.chr || ''; // Chromosome from the first item
+                const start = request.data[0]?.end || 0; // Start from the end of the first item
+                const end = request.data[request.data.length - 1]?.end || 0; // End from the last item
+
+                return { score: maxValue, inputRegion: { chr, start, end } };
+            });
+            return maxScores
+        } else if (rankBy === "min") {
+            //rank by min
+            const minScores: ConservationScores = scores.map((request) => {
+                // Find the maximum value within each bigRequest data array
+                const minValue = request.data.reduce((min, item) => {
+                    return item.value < min ? item.value : min;
+                }, Infinity);
+
+                // Get the input region information
+                const chr = request.data[0]?.chr || ''; // Chromosome from the first item
+                const start = request.data[0]?.end || 0; // Start from the end of the first item
+                const end = request.data[request.data.length - 1]?.end || 0; // End from the last item
+
+                return { score: minValue, inputRegion: { chr, start, end } };
+            });
+            return minScores
+        } else {
+            //rank by avg
+            const avgScores: ConservationScores = scores.map((request) => {
+                const sum = request.data.reduce((total, item) => total + item.value, 0);
+                const average = request.data.length > 0 ? sum / request.data.length : 0;
+
+                const chr = request.data[0]?.chr || '';
+                const start = request.data[0]?.end || 0;
+                const end = request.data[request.data.length - 1]?.end || 0;
+
+                return { score: average, inputRegion: { chr, start, end } };
+            });
+            return avgScores;
+        }
+    }
+
+    const sequenceRows: SequenceTableRow[] = useMemo(() => {
+        if (!conservationScores || inputRegions.length === 0) { return [] }
+        const calculatedConservationScores = calculateConservationScores(conservationScores.bigRequests, sequenceFilterVariables.rankBy)
+        return calculatedConservationScores.map((region) => {
+            // Find the corresponding region in inputRegions
+            const matchingRegion = inputRegions.find(
+                inputRegion =>
+                    inputRegion.chr == region.inputRegion.chr &&
+                    inputRegion.start == region.inputRegion.start &&
+                    inputRegion.end == region.inputRegion.end
+            );
+            return {
+                regionID: matchingRegion?.regionID,
+                inputRegion: { chr: region.inputRegion.chr, start: region.inputRegion.start, end: region.inputRegion.end },
+                conservationScore: region.score
+            };
+        });
+
+    }, [conservationScores, inputRegions, sequenceFilterVariables.rankBy])
+
+    const sequenceRanks: RankedRegions = useMemo(() => {
+        if (sequenceRows.length === 0) { return [] }
+        // Sort rows by conservationScore in descending order
+        const sortedRows = [...sequenceRows].sort((a, b) => b.conservationScore - a.conservationScore);
+
+        // Assign ranks starting from 1
+        return sortedRows.map((row, index) => ({
+            chr: row.inputRegion.chr,
+            start: row.inputRegion.start,
+            end: row.inputRegion.end,
+            rank: index + 1
+        })) as RankedRegions;
+    }, [sequenceRows])
+
+    /*------------------------------------------ Element Stuff ------------------------------------------*/
+
     //all ccres intersecting the user inputted regions
     const intersectingCcres: CCREs = useMemo(() => {
         if (intersectArray) {
@@ -295,7 +416,7 @@ export default function Argo() {
                     region.start === parseInt(ccre[7]) &&
                     region.end === parseInt(ccre[8])
                 );
-            
+
                 return {
                     chr: ccre[0],
                     start: parseInt(ccre[1]),
@@ -309,34 +430,10 @@ export default function Argo() {
                     regionID: matchingRegion ? matchingRegion.regionID : undefined // Add ID if a match is found
                 };
             });
-            
+
             return transformedData;
         }
     }, [inputRegions, intersectArray]);
-
-    //build payload for bigRequest query
-    const bigRequests: BigRequest[] = useMemo(() => {
-        if (inputRegions.length === 0) {return []}
-        const urlMapping: { [key: string]: string } = {
-            "241-mam-phyloP": "https://downloads.wenglab.org/241-mammalian-2020v2.bigWig",
-            "241-mam-phastCons": "https://downloads.wenglab.org/241Mammals-PhastCons.bigWig",
-            "447-mam-phyloP": "https://downloads.wenglab.org/mammals_phyloP-447.bigWig",
-            "100-vert-phyloP": "https://downloads.wenglab.org/hg38.phyloP100way.bw", //errors
-            "100-vert-phastCons": "https://downloads.wenglab.org/hg38.phastCons100way.bw",
-            "243-prim-phastCons": "https://downloads.wenglab.org/primates_PhastCons-243.bigWig",
-            "43-prim-phyloP": "https://downloads.wenglab.org/PhyloP-43.bw",
-            "43-prim-phastCons": "https://downloads.wenglab.org/hg38_43primates_phastCons.bw",
-        };
-
-        const selectedUrl = urlMapping[sequenceFilterVariables.alignment] || "";
-    
-        return inputRegions.map(({ chr, start, end }) => ({
-            chr1: chr,
-            start,
-            end,
-            url: selectedUrl,
-        }));
-    }, [inputRegions, sequenceFilterVariables.alignment]);
 
     //query to get orthologous cCREs of the intersecting cCREs
     const { loading: loading_ortho, data: orthoData } = useQuery(ORTHOLOG_QUERY, {
@@ -457,7 +554,6 @@ export default function Argo() {
         return filteredClasses;
 
     }, [allElementData, elementFilterVariables.cCREAssembly, elementFilterVariables.classes, elementFilterVariables.mustHaveOrtholog, elementFilterVariables.usecCREs, orthoData]);
-
 
     // Generate element ranks
     const elementRanks = useMemo<RankedRegions>(() => {
@@ -580,91 +676,20 @@ export default function Argo() {
 
     }, [elementFilterVariables, elementRows]);
 
-    //query to get conservation scores based on selected url
-    const { loading: loading_conservation_scores, error: error_conservation_scores, data: conservationScores } = useQuery(BIG_REQUEST_QUERY, {
-        variables: {
-            requests: bigRequests
-        },
-        skip: (!sequenceFilterVariables.useConservation && !sequenceFilterVariables.useMotifs) || bigRequests.length === 0,
-        client: client,
-        fetchPolicy: 'cache-first',
-    });
-
-    function calculateConservationScores(scores, rankBy) {
-        if (rankBy === "max") {
-            //rank by max
-            const maxScores: ConservationScores = scores.map((request) => {
-                // Find the maximum value within each bigRequest data array
-                const maxValue = request.data.reduce((max, item) => {
-                    return item.value > max ? item.value : max;
-                }, -Infinity);
-
-                // Get the input region information
-                const chr = request.data[0]?.chr || ''; // Chromosome from the first item
-                const start = request.data[0]?.end || 0; // Start from the end of the first item
-                const end = request.data[request.data.length - 1]?.end || 0; // End from the last item
-
-                return { score: maxValue, inputRegion: { chr, start, end } };
-            });
-            return maxScores
-        } else if (rankBy === "min") {
-            //rank by min
-            const minScores: ConservationScores = scores.map((request) => {
-                // Find the maximum value within each bigRequest data array
-                const minValue = request.data.reduce((min, item) => {
-                    return item.value < min ? item.value : min;
-                }, Infinity);
-
-                // Get the input region information
-                const chr = request.data[0]?.chr || ''; // Chromosome from the first item
-                const start = request.data[0]?.end || 0; // Start from the end of the first item
-                const end = request.data[request.data.length - 1]?.end || 0; // End from the last item
-
-                return { score: minValue, inputRegion: { chr, start, end } };
-            });
-            return minScores
-        } else {
-            //rank by avg
-            const avgScores: ConservationScores = scores.map((request) => {
-                const sum = request.data.reduce((total, item) => total + item.value, 0);
-                const average = request.data.length > 0 ? sum / request.data.length : 0;
-
-                const chr = request.data[0]?.chr || '';
-                const start = request.data[0]?.end || 0;
-                const end = request.data[request.data.length - 1]?.end || 0;
-
-                return { score: average, inputRegion: { chr, start, end } };
-            });
-            return avgScores;
-        }
+    //open ccre details on ccre click
+    const handlecCREClick = (row) => {
+        window.open(`/search?assembly=${elementFilterVariables.cCREAssembly}&chromosome=${row.chr}&start=${row.start}&end=${row.end}&accessions=${row.accession}&page=2`, "_blank", "noopener,noreferrer")
     }
 
-    const sequenceRows: SequenceTableRow[] = useMemo(() => {
-        if (!conservationScores || inputRegions.length === 0) {return []}
-        const calculatedConservationScores = calculateConservationScores(conservationScores.bigRequests, sequenceFilterVariables.rankBy)
-        return calculatedConservationScores.map((region) => {
-            // Find the corresponding region in inputRegions
-            const matchingRegion = inputRegions.find(
-                inputRegion => 
-                    inputRegion.chr == region.inputRegion.chr && 
-                    inputRegion.start == region.inputRegion.start && 
-                    inputRegion.end == region.inputRegion.end
-            );
-            return {
-                regionID: matchingRegion?.regionID,
-                inputRegion: { chr: region.inputRegion.chr, start: region.inputRegion.start, end: region.inputRegion.end },
-                conservationScore: region.score
-            };
-        });
+    /*------------------------------------------ Gene Stuff ------------------------------------------*/
+    //TODO
 
-    }, [conservationScores, inputRegions, sequenceFilterVariables.rankBy])
+    /*------------------------------------------ Main Table Stuff ------------------------------------------*/
 
     //find the matching ranks for each input region and update the rows of the main table
     const mainRows: MainTableRow[] = useMemo(() => {
-        if ((sequenceRows.length === 0 && elementRanks.length === 0 && geneRanks.length === 0) || inputRegions.length === 0) return [];
+        if ((sequenceRanks.length === 0 && elementRanks.length === 0 && geneRanks.length === 0) || inputRegions.length === 0) return [];
         setLoadingMainRows(true)
-        const sequenceRanks = generateSequenceRanks(sequenceRows)
-        
         const totalRanks = inputRegions.map(row => {
             // Find matching ranks based on inputRegion coordinates
             const matchingSequence = sequenceRanks.find(seq =>
@@ -685,8 +710,7 @@ export default function Argo() {
                 gene.end == row.end
             );
 
-            // Calculate the aggregate rank, using 0 if no matching rank is found for any
-            //TODO sort the added ranks to one aggregate rank
+            // Calculate the total rank, using 0 if no matching rank is found for any
             const totalRank = (matchingSequence?.rank || 0) +
                 (matchingElement?.rank || 0) +
                 (matchingGene?.rank || 0);
@@ -697,7 +721,7 @@ export default function Argo() {
             };
         });
 
-        // Assign ranks, accounting for ties
+        // Assign aggregate ranks, accounting for ties
         let currentRank = 1;
         let prevTotalRank = null;
 
@@ -760,25 +784,7 @@ export default function Argo() {
         setLoadingMainRows(false)
 
         return updatedMainRows;
-    }, [elementRanks, geneRanks, inputRegions, sequenceRows]);
-
-    function generateSequenceRanks(rows) {
-        // Sort rows by conservationScore in descending order
-        const sortedRows = [...rows].sort((a, b) => b.conservationScore - a.conservationScore);
-
-        // Assign ranks starting from 1
-        return sortedRows.map((row, index) => ({
-            chr: row.inputRegion.chr,
-            start: row.inputRegion.start,
-            end: row.inputRegion.end,
-            rank: index + 1
-        })) as RankedRegions;
-    }
-
-    //open ccre details on ccre click
-    const handlecCREClick = (row) => {
-        window.open(`/search?assembly=${elementFilterVariables.cCREAssembly}&chromosome=${row.chr}&start=${row.start}&end=${row.end}&accessions=${row.accession}&page=2`, "_blank", "noopener,noreferrer")
-    }
+    }, [elementRanks, geneRanks, inputRegions, sequenceRanks]);
 
     return (
         <Box display="flex" >
@@ -827,9 +833,9 @@ export default function Argo() {
                         {(shownTable === "sequence" && (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs)) && (
                             <Box mt="20px">
                                 {error_conservation_scores && (
-                                <Alert variant="filled" severity="error">
-                                    {error_conservation_scores.message}
-                                </Alert>
+                                    <Alert variant="filled" severity="error">
+                                        {error_conservation_scores.message}
+                                    </Alert>
                                 )}
                                 {loading_conservation_scores ? <CircularProgress /> :
                                     <DataTable
