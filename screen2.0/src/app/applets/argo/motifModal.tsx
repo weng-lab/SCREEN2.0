@@ -1,11 +1,11 @@
-import { Box, Modal, Pagination, PaginationItem, Typography } from '@mui/material';
+import { IconButton, Modal, Paper, Typography } from '@mui/material';
 import { DataTable, DataTableColumn } from '@weng-lab/psychscreen-ui-components';
 import React, { useMemo, useState } from 'react';
 import { MotifQueryDataOccurrence, MotifQueryDataOccurrenceMotif, TomtomMatchQueryData } from './types';
 import { DNALogo } from 'logots-react';
 import { TOMTOM_MATCH_QUERY } from './queries';
 import { useQuery } from '@apollo/client';
-
+import CloseIcon from '@mui/icons-material/Close';
 
 const PWMCell: React.FC<{
     peaks_accession: string;
@@ -86,8 +86,8 @@ const MotifsModal: React.FC<MotifsModalProps> = ({
     const firstY = height * 0.8;
     const secondY = firstY + height * 2;
 
-    const handleChange = (event: React.ChangeEvent<unknown>, value: number) => {
-        setPage(value);
+    const handleDisplayedRowsChange = (newPage: number) => {
+        setPage(newPage + 1);
     };
 
     const MOTIFS_COLS: DataTableColumn<MotifQueryDataOccurrence>[] = [
@@ -123,9 +123,6 @@ const MotifsModal: React.FC<MotifsModalProps> = ({
         left: "50%",
         transform: "translate(-50%, -50%)",
         width: 1000,
-        bgcolor: "background.paper",
-        border: "2px solid #000",
-        boxShadow: 24,
         p: 4,
     };
 
@@ -265,7 +262,19 @@ const MotifsModal: React.FC<MotifsModalProps> = ({
     return (
         <Modal open={open} onClose={() => setOpen(false)}>
             <>
-                <Box sx={style}>
+                <Paper sx={style}>
+                    <IconButton
+                        aria-label="close"
+                        onClick={() => setOpen(false)}
+                        sx={{
+                            position: "absolute",
+                            top: 8,
+                            right: 8,
+                            color: (theme) => theme.palette.grey[500],
+                        }}
+                    >
+                        <CloseIcon />
+                    </IconButton>
                     <Typography variant="h4">
                         Motifs found in {chromosome}:{peakStart.toLocaleString()}-
                         {peakEnd.toLocaleString()}
@@ -282,35 +291,13 @@ const MotifsModal: React.FC<MotifsModalProps> = ({
                             rows={motifs}
                             sortColumn={1}
                             key={"tfpeaks" + page}
-                            hidePageMenu
+                            onDisplayedRowsChange={handleDisplayedRowsChange}
                             sortDescending
                             itemsPerPage={pageSize}
                             page={page - 1}
                         />
                     )}
-                    <br />
-                    {motifs && (
-                        <Pagination
-                            sx={{ alignItems: "center", marginLeft: "250px" }}
-                            renderItem={(item) => (
-                                <PaginationItem
-                                    sx={{
-                                        "&.Mui-selected": {
-                                            backgroundColor: "#8169BF",
-                                        },
-                                    }}
-                                    {...item}
-                                />
-                            )}
-                            onChange={handleChange}
-                            count={Math.ceil(motifs.length / pageSize)}
-                            page={+page}
-                            color="secondary"
-                            showFirstButton
-                            showLastButton
-                        />
-                    )}
-                </Box>
+                </Paper>
             </>
         </Modal>
     );
