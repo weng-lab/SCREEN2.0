@@ -44,11 +44,6 @@ export type RankedRegions = (GenomicRegion & {rank: number})[]
 
 export type InputRegions = (GenomicRegion & {regionID: number})[]
 
-export type ConservationScores = {
-    inputRegion: GenomicRegion
-    score: number
-}[]
-
 export type CCREs = (GenomicRegion & {
     accession: string
     inputRegion: GenomicRegion
@@ -159,6 +154,7 @@ export type SequenceTableRow = {
     inputRegion: GenomicRegion
     conservationScore?: number
     numOverlappingMotifs?: number
+    occurrences?: MotifQueryDataOccurrence[],
     motifScoreDelta?: number
 }
 
@@ -188,3 +184,34 @@ export type AssayRankEntry = {
     end: number;
     ranks: { [assayName: string]: number };
 };
+
+export type MotifQueryDataOccurrence = {
+    peaks_accession?: string;
+    consensus_regex?: string;
+    q_value?: number;
+    genomic_region?: {
+        chromosome: string;
+        start: number;
+        end: number;
+    };
+    motif?: MotifQueryDataOccurrenceMotif;
+};
+
+export type MotifQueryDataOccurrenceMotif = {
+    id?: string;
+    pwm: number[][];
+    flank_z_score?: number;
+    flank_p_value: number;
+    shuffled_z_score?: number;
+    shuffled_p_value: number;
+};
+
+type TOMTOMMatch = {
+    e_value: number;
+    jaspar_name?: string | null;
+    target_id: string;
+  };
+  
+  export type TomtomMatchQueryData = {
+      target_motifs: TOMTOMMatch[];
+  };

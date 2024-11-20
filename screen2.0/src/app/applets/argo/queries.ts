@@ -90,12 +90,56 @@ export const ORTHOLOG_QUERY = gql(`
 }
    `)
 
-   export const BIG_REQUEST_QUERY = gql(`
+export const BIG_REQUEST_QUERY = gql(`
     query BigRequestQuery($requests: [BigRequest!]!) {
   bigRequests(requests: $requests) {
     data
   }
 }
      `)
+
+export const MOTIF_QUERY = gql(`
+  query occurrences($range: [GenomicRegionInput!], $limit: Int) {
+        meme_occurrences(genomic_region: $range, , limit: $limit) {
+            motif {
+              id
+                pwm
+                peaks_file {
+                    assembly
+                    accession
+                    dataset_accession
+                }
+              
+                tomtom_matches {
+                    jaspar_name
+                    target_id
+                    e_value
+                  
+                }
+                flank_p_value
+                shuffled_p_value
+            }
+            strand
+            peaks_accession
+            consensus_regex
+            q_value
+            genomic_region {
+                chromosome
+                start
+                end
+            }
+        }
+    }
+  `)
+
+  export const TOMTOM_MATCH_QUERY = gql(`
+    query tomtomMatches($peaks_accessions: [String!]!, $ids: [String!]!) {
+        target_motifs(peaks_accessions: $peaks_accessions, motif_id: $ids) {
+            target_id
+            e_value
+            jaspar_name
+        }
+    }
+`);
 
 

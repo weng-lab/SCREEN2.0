@@ -453,12 +453,24 @@ const Filters: React.FC<FilterProps> = ({
                                     </Grid>
                                 </FormGroup>
                             </Stack>
-                            <FormControl sx={{ width: "100%" }}>
-                            <FormLabel>Rank cCREs With Matching Input Region By</FormLabel>
-                            <Select sx={{ width: "30%" }} size="small" value={elementFilterVariables.rankBy} disabled={!elementFilterVariables.usecCREs} onChange={(event) => updateElementFilter("rankBy", event.target.value as "avg" || "max")}>
-                                <MenuItem value={"max"}>Max</MenuItem>
-                                <MenuItem value={"avg"}>Average</MenuItem>
-                            </Select>
+                            <FormControl sx={{ml: 2}}>
+                                <FormLabel>Rank cCREs With Matching Input Region By</FormLabel>
+                                <RadioGroup
+                                    row
+                                    value={elementFilterVariables.rankBy}
+                                    onChange={(event) => updateElementFilter("rankBy", event.target.value as "avg" | "max")}
+                                >
+                                    <FormControlLabel
+                                        value="max"
+                                        control={<Radio disabled={!elementFilterVariables.usecCREs} />}
+                                        label="Max"
+                                    />
+                                    <FormControlLabel
+                                        value="avg"
+                                        control={<Radio disabled={!elementFilterVariables.usecCREs} />}
+                                        label="Average"
+                                    />
+                                </RadioGroup>
                             </FormControl>
                         </AccordionDetails>
                     </Accordion>

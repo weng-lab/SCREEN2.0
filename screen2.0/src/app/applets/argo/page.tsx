@@ -1,26 +1,31 @@
 "use client"
-import React, { useCallback, useMemo } from "react"
+import React, { useCallback, useEffect, useMemo } from "react"
 import { useState } from "react"
 import { Stack, Typography, Box, Alert, CircularProgress, IconButton } from "@mui/material"
 import { SelectChangeEvent } from "@mui/material/Select"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
-import { ORTHOLOG_QUERY, Z_SCORES_QUERY, BIG_REQUEST_QUERY } from "./queries"
-import { useLazyQuery, useQuery } from "@apollo/client"
+import { ORTHOLOG_QUERY, Z_SCORES_QUERY, BIG_REQUEST_QUERY, MOTIF_QUERY } from "./queries"
+import { QueryResult, useLazyQuery, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
-import { CCREAssays, CCREClasses, RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, AssayRankEntry, CCREs, InputRegions, ConservationScores } from "./types"
+import { CCREAssays, CCREClasses, RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, AssayRankEntry, CCREs, InputRegions, GenomicRegion, MotifQueryDataOccurrence } from "./types"
 import { BED_INTERSECT_QUERY } from "../../_mainsearch/queries"
 import ExpandCircleDownIcon from '@mui/icons-material/ExpandCircleDown';
 import Filters from "./filters"
 import { CancelRounded } from "@mui/icons-material"
 import ArgoUpload from "./argoUpload"
-import { BigRequest } from "../../../graphql/__generated__/graphql"
+import { BigRequest, OccurrencesQuery } from "../../../graphql/__generated__/graphql"
+import MotifsModal from "./motifModal"
 
 const assayNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
 
 export default function Argo() {
 
     const [getIntersectingCcres, { data: intersectArray }] = useLazyQuery(BED_INTERSECT_QUERY)
+    const [getMemeOccurrences] = useLazyQuery(MOTIF_QUERY)
+    const [occurrences, setOccurrences] = useState<QueryResult<OccurrencesQuery>[]>([]);
+
     const [inputRegions, setInputRegions] = useState<InputRegions>([]);
+    // const [isOnlySNPs, setIsOnlySNPs] = useState(false)
     const [loadingMainRows, setLoadingMainRows] = useState(true);
     const [loadingElementRanks, setLoadingElementRanks] = useState(true);
     const [loadingSequenceRanks, setLoadingSequenceRanks] = useState(true);
@@ -37,10 +42,10 @@ export default function Argo() {
 
     // Filter state variables
     const [sequenceFilterVariables, setSequenceFilterVariables] = useState<SequenceFilterState>({
-        useConservation: true,
+        useConservation: false,
         alignment: "241-mam-phyloP",
         rankBy: "max",
-        useMotifs: false,
+        useMotifs: true,
         motifCatalog: "factorbook",
         numOverlappingMotifs: true,
         motifScoreDelta: false,
@@ -83,6 +88,14 @@ export default function Argo() {
         useGenes: true,
         idk: "no"
     });
+
+    const [modalData, setModalData] = useState<{
+        open: boolean;
+        chromosome: string;
+        start: number;
+        end: number;
+        occurrences: MotifQueryDataOccurrence[];
+    } | null>(null);
 
     //update specific variable in sequence filters
     const updateSequenceFilter = (key: keyof SequenceFilterState, value: unknown) => {
@@ -179,7 +192,19 @@ export default function Argo() {
         if (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs) {
             cols.push({ header: "Seqence", HeaderRender: () => <MainColHeader tableName="Sequence" onClick={() => shownTable === "sequence" ? setShownTable(null) : setShownTable("sequence")} />, value: (row) => row.sequenceRank })
         }
-        if (elementFilterVariables.usecCREs) { cols.push({ header: "Element", HeaderRender: () => <MainColHeader tableName="Element" onClick={() => shownTable === "element" ? setShownTable(null) : setShownTable("element")} />, value: (row) => row.elementRank }) }
+        if (elementFilterVariables.usecCREs) {
+            cols.push({
+                header: "Element", HeaderRender: () => <MainColHeader tableName="Element" onClick={() => shownTable === "element" ? setShownTable(null) : setShownTable("element")} />, value: (row) => row.elementRank === 0 ? "N/A" : row.elementRank,
+                sort: (a, b) => {
+                    const rankA = a.elementRank
+                    const rankB = b.elementRank
+
+                    if (rankA === 0) return 1;
+                    if (rankB === 0) return -1;
+                    return rankA - rankB;
+                }
+            })
+        }
         if (geneFilterVariables.useGenes) { cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Gene" onClick={() => shownTable === "gene" ? setShownTable(null) : setShownTable("gene")} />, value: (row) => "N/A" }) }
 
         return cols
@@ -228,7 +253,26 @@ export default function Argo() {
             }
         }
         if (sequenceFilterVariables.useMotifs) {
-            if (sequenceFilterVariables.numOverlappingMotifs) { cols.push({ header: "# of Overlapping Motifs", value: (row) => "N/A" }) }
+            if (sequenceFilterVariables.numOverlappingMotifs) {
+                cols.push({
+                    header: "# of Overlapping Motifs", value: (row) => row.numOverlappingMotifs,
+                    render: (row) => (
+                        <button
+                            onClick={() =>
+                                setModalData({
+                                    open: true,
+                                    chromosome: row.inputRegion.chr,
+                                    start: row.inputRegion.start,
+                                    end: row.inputRegion.end,
+                                    occurrences: row.occurrences,
+                                })
+                            }
+                        >
+                            {row.numOverlappingMotifs}
+                        </button>
+                    )
+                })
+            }
             if (sequenceFilterVariables.motifScoreDelta) { cols.push({ header: "Motif Score Delta", value: (row) => "N/A" }) }
             if (sequenceFilterVariables.overlapsTFPeak) { cols.push({ header: "Overlaps TF Peak", value: (row) => "N/A" }) }
         }
@@ -320,7 +364,7 @@ export default function Argo() {
         variables: {
             requests: bigRequests
         },
-        skip: (!sequenceFilterVariables.useConservation && !sequenceFilterVariables.useMotifs) || bigRequests.length === 0,
+        skip: !sequenceFilterVariables.useConservation || bigRequests.length === 0,
         client: client,
         fetchPolicy: 'cache-first',
         onError() {
@@ -328,17 +372,114 @@ export default function Argo() {
         }
     });
 
-    function calculateConservationScores(scores, rankBy) {
+    //function to batch the input regions together to call smaller queries
+    function batchRegions(regions: GenomicRegion[], maxBasePairs: number): GenomicRegion[][] {
+        const result: GenomicRegion[][] = [];
+        let currentBatch: GenomicRegion[] = [];
+        let currentBatchLength = 0;
+
+        for (const region of regions) {
+            let regionStart = region.start;
+
+            // If the region is larger than maxBasePairs, split it into chunks
+            while (regionStart < region.end) {
+                const chunkEnd = Math.min(regionStart + maxBasePairs, region.end);
+                const chunk = { chr: region.chr, start: regionStart, end: chunkEnd };
+                const chunkLength = chunk.end - chunk.start;
+
+                // If adding this chunk exceeds the max base pairs for the current batch
+                if (currentBatchLength + chunkLength > maxBasePairs) {
+                    result.push(currentBatch);
+                    currentBatch = [];
+                    currentBatchLength = 0;
+                }
+
+                // Add the chunk to the current batch
+                currentBatch.push(chunk);
+                currentBatchLength += chunkLength;
+
+                // Move the start pointer forward
+                regionStart = chunkEnd;
+            }
+        }
+
+        // Push any remaining regions in the final batch
+        if (currentBatch.length > 0) {
+            result.push(currentBatch);
+        }
+
+        return result;
+    }
+
+    useEffect(() => {
+        if (inputRegions.length === 0) {
+            return;
+        }
+
+        const fetchAllOccurrences = async () => {
+            try {
+                //batch the input regions
+                const batchedRegions = batchRegions(inputRegions, 200);
+
+                //query all batches in parrallel
+                const fetchPromises = batchedRegions.map((batch) =>
+                    getMemeOccurrences({
+                        variables: {
+                            limit: 30,
+                            range: batch.map((region) => ({
+                                chromosome: region.chr,
+                                start: region.start,
+                                end: region.end,
+                            })),
+                        },
+                        fetchPolicy: "cache-first",
+                    })
+                );
+
+                //wait for queries to resolve
+                const results = await Promise.all(fetchPromises);
+                // Filter results with non-empty meme_occurrences
+                const filteredResults = results.filter(result => result.data.meme_occurrences.length > 0)
+                setOccurrences(filteredResults);
+            } catch (error) {
+                console.error("Error fetching occurrences:", error);
+            }
+        };
+
+        fetchAllOccurrences();
+    }, [inputRegions, getMemeOccurrences]);
+
+    const numOverlappingMotifs: SequenceTableRow[] = useMemo(() => {
+        if (occurrences.length === 0 || inputRegions.length === 0) return [];
+        return inputRegions.map(inputRegion => {
+            const overlappingMotifs = occurrences.flatMap(occurrence =>
+                occurrence.data.meme_occurrences.filter(motif =>
+                    motif.genomic_region.chromosome === inputRegion.chr &&
+                    motif.genomic_region.start < inputRegion.end &&
+                    motif.genomic_region.end > inputRegion.start
+                )
+            );
+
+            return {
+                regionID: inputRegion.regionID,
+                inputRegion: inputRegion,
+                numOverlappingMotifs: overlappingMotifs.length,
+                occurrences: overlappingMotifs as MotifQueryDataOccurrence[]
+            };
+        });
+    }, [occurrences, inputRegions]);
+
+    function calculateConservationScores(scores, rankBy): SequenceTableRow[] {
         return scores.map((request) => {
             const data = request.data;
-            
+
             // Extract the shared information for chr, start, and end
             //query's first item is one base pair back so we use the end of the first item for the start
             //and the end of the last item for the end
             const chr = data[0]?.chr || '';
             const start = data[0]?.end || 0;
             const end = data[data.length - 1]?.end || 0;
-    
+
             let score;
             // calculate the score based on selected rank by
             if (rankBy === "max") {
@@ -349,30 +490,56 @@ export default function Argo() {
                 const sum = data.reduce((total, item) => total + item.value, 0);
                 score = data.length > 0 ? sum / data.length : 0;
             }
-    
-            return { score, inputRegion: { chr, start, end } };
-        });
-    }    
 
-    const sequenceRows: SequenceTableRow[] = useMemo(() => {
-        if (!conservationScores || inputRegions.length === 0) { return [] }
-        const calculatedConservationScores = calculateConservationScores(conservationScores.bigRequests, sequenceFilterVariables.rankBy)
-        return calculatedConservationScores.map((region) => {
-            // Find the corresponding region in inputRegions
+            // Find matching input region with the same chromosome, start, and end
             const matchingRegion = inputRegions.find(
-                inputRegion =>
-                    inputRegion.chr == region.inputRegion.chr &&
-                    inputRegion.start == region.inputRegion.start &&
-                    inputRegion.end == region.inputRegion.end
+                region => region.chr === chr &&
+                    region.start === start &&
+                    region.end === end
             );
+
             return {
                 regionID: matchingRegion?.regionID,
-                inputRegion: { chr: region.inputRegion.chr, start: region.inputRegion.start, end: region.inputRegion.end },
-                conservationScore: region.score
-            };
+                inputRegion: { chr, start, end },
+                conservationScore: score
+            } as SequenceTableRow;
         });
+    }
 
-    }, [conservationScores, inputRegions, sequenceFilterVariables.rankBy])
+    const sequenceRows: SequenceTableRow[] = useMemo(() => {
+        if ((!conservationScores && numOverlappingMotifs.length === 0) || inputRegions.length === 0) {
+            return []
+        }
+
+        let calculatedConservationScores: SequenceTableRow[] = []
+        if (conservationScores) {
+            calculatedConservationScores = calculateConservationScores(
+                conservationScores.bigRequests,
+                sequenceFilterVariables.rankBy
+            )
+        }
+
+        // Merge conservation scores and overlapping motifs
+        const mergedRows = inputRegions.map(region => {
+            const conservationRow = calculatedConservationScores.find(
+                row => row.regionID === region.regionID
+            )
+
+            const overlappingMotifsRow = numOverlappingMotifs.find(
+                row => row.regionID === region.regionID
+            )
+
+            return {
+                regionID: region.regionID,
+                inputRegion: region,
+                conservationScore: conservationRow?.conservationScore,
+                numOverlappingMotifs: overlappingMotifsRow?.numOverlappingMotifs,
+                occurrences: overlappingMotifsRow?.occurrences
+            }
+        })
+
+        return mergedRows
+    }, [conservationScores, inputRegions, sequenceFilterVariables.rankBy, numOverlappingMotifs])
 
     const sequenceRanks: RankedRegions = useMemo(() => {
         if (sequenceRows.length === 0) { return [] }
@@ -889,8 +1056,20 @@ export default function Argo() {
                         )}
                     </>
                 )}
-
             </Box>
+            {modalData && (
+                <MotifsModal
+                    key={`${modalData?.chromosome}-${modalData?.start}-${modalData?.end}`}
+                    open={modalData?.open || false}
+                    setOpen={(isOpen) =>
+                        setModalData((prev) => (prev ? { ...prev, open: isOpen } : null))
+                    }
+                    chromosome={modalData?.chromosome || ""}
+                    start={modalData?.start || 0}
+                    end={modalData?.end || 0}
+                    occurrences={modalData?.occurrences || []}
+                />
+            )}
         </Box>
     )
 }
