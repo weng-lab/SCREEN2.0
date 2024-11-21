@@ -60,7 +60,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
             reader.onload = (r) => {
                 const contents = r.target.result
                 const lines = contents.toString()
-                allLines = parseDataInput(lines).slice(0, 1000)
+                allLines = parseDataInput(lines)
             }
             reader.onabort = () => console.log("file reading was aborted")
             reader.onerror = () => console.log("file reading has failed")

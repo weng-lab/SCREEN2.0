@@ -258,6 +258,15 @@ export default function Argo() {
                     header: "# of Overlapping Motifs", value: (row) => row.numOverlappingMotifs,
                     render: (row) => (
                         <button
+                            style={{
+                                background: "none",
+                                border: "none",
+                                padding: 0,
+                                fontFamily: "arial, sans-serif",
+                                color: "#030f98",
+                                cursor: "pointer",
+                                outline: "none",
+                            }}
                             onClick={() =>
                                 setModalData({
                                     open: true,
@@ -316,6 +325,16 @@ export default function Argo() {
 
     // This function will receive the regions from ArgoUpload and find the intersecting cCREs
     const handleRegionsConfigured = (regions: InputRegions) => {
+        //check for total base pair count cannot exceed 10,000
+        const totalBasePairs = regions.reduce(
+            (sum, region) => sum + (region.end - region.start),
+            0
+        );
+        if (totalBasePairs > 10000) {
+            alert("The total base pairs in the input regions must not exceed 10,000.");
+            return;
+        }
+
         setInputRegions(regions);
         const user_ccres = regions.map(region => [
             region.chr,
@@ -326,7 +345,6 @@ export default function Argo() {
             variables: {
                 user_ccres: user_ccres,
                 assembly: "GRCh38",
-                maxOutputLength: 1000 // Not required technically as server side defaults to 1000, here if it needs to be changed in the future
             },
             client: client,
             fetchPolicy: 'cache-and-network',
@@ -411,8 +429,9 @@ export default function Argo() {
         return result;
     }
 
+    //query the motif occurences fron the input regions
     useEffect(() => {
-        if (inputRegions.length === 0) {
+        if (inputRegions.length === 0 || !sequenceFilterVariables.useMotifs) {
             return;
         }
 
@@ -447,7 +466,7 @@ export default function Argo() {
         };
 
         fetchAllOccurrences();
-    }, [inputRegions, getMemeOccurrences]);
+    }, [inputRegions, getMemeOccurrences, sequenceFilterVariables.useMotifs]);
 
     const numOverlappingMotifs: SequenceTableRow[] = useMemo(() => {
         if (occurrences.length === 0 || inputRegions.length === 0) return [];
@@ -542,21 +561,59 @@ export default function Argo() {
     }, [conservationScores, inputRegions, sequenceFilterVariables.rankBy, numOverlappingMotifs])
 
     const sequenceRanks: RankedRegions = useMemo(() => {
-        if (sequenceRows.length === 0) { return [] }
+        if (sequenceRows.length === 0) {
+            setLoadingSequenceRanks(false);
+            return [];
+        }
+    
         setLoadingSequenceRanks(true);
-        // Sort rows by conservationScore in descending order
-        const sortedRows = [...sequenceRows].sort((a, b) => b.conservationScore - a.conservationScore);
-
-        // Assign ranks starting from 1
-        const rankedRegions: RankedRegions = sortedRows.map((row, index) => ({
+    
+        //Assign ranks based on conservationScore
+        const conservationRankedRows = [...sequenceRows].sort(
+            (a, b) => b.conservationScore - a.conservationScore
+        ).map((row, index) => ({
+            ...row,
+            conservationRank: index + 1, // Assign rank for conservation
+        }));
+    
+        // assign ranks based on numOverlappingMotifs
+        const motifRankedRows = [...sequenceRows].sort(
+            (a, b) => b.numOverlappingMotifs! - a.numOverlappingMotifs!
+        ).map((row, index) => ({
+            ...row,
+            motifRank: index + 1, // Assign rank for motifs
+        }));
+    
+        // merge ranks and calculate total rank
+        const combinedRanks = conservationRankedRows.map((row) => {
+            const motifRank = motifRankedRows.find(
+                (motifRow) =>
+                    motifRow.inputRegion.chr === row.inputRegion.chr &&
+                    motifRow.inputRegion.start === row.inputRegion.start &&
+                    motifRow.inputRegion.end === row.inputRegion.end
+            )?.motifRank;
+    
+            return {
+                ...row,
+                motifRank: motifRank ?? sequenceRows.length, // Default to worst rank if not found
+                totalRank: row.conservationRank + (motifRank ?? sequenceRows.length), // Sum of ranks
+            };
+        });
+    
+        //Sort by total rank and assign final ranks
+        const rankedRegions: RankedRegions = combinedRanks.sort(
+            (a, b) => a.totalRank - b.totalRank
+        ).map((row, index) => ({
             chr: row.inputRegion.chr,
             start: row.inputRegion.start,
             end: row.inputRegion.end,
-            rank: index + 1
+            rank: index + 1,
         }));
+    
         setLoadingSequenceRanks(false);
-        return rankedRegions
-    }, [sequenceRows])
+        return rankedRegions;
+    }, [sequenceRows]);
+    
 
     /*------------------------------------------ Element Stuff ------------------------------------------*/
 
@@ -710,7 +767,7 @@ export default function Argo() {
 
     // Generate element ranks
     const elementRanks = useMemo<RankedRegions>(() => {
-        if (!elementRows || !elementFilterVariables.usecCREs) return [];
+        if (elementRows.length === 0 || !elementFilterVariables.usecCREs) return [];
         setLoadingElementRanks(true);
 
         //Group by `inputRegion` and calculate average or max scores
