@@ -7,7 +7,7 @@ import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { ORTHOLOG_QUERY, Z_SCORES_QUERY, BIG_REQUEST_QUERY, MOTIF_QUERY } from "./queries"
 import { QueryResult, useLazyQuery, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
-import { CCREAssays, CCREClasses, RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, AssayRankEntry, CCREs, InputRegions, GenomicRegion, MotifQueryDataOccurrence } from "./types"
+import { CCREAssays, CCREClasses, RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, AssayRankEntry, CCREs, InputRegions, MotifQueryDataOccurrence } from "./types"
 import { BED_INTERSECT_QUERY } from "../../_mainsearch/queries"
 import ExpandCircleDownIcon from '@mui/icons-material/ExpandCircleDown';
 import Filters from "./filters"
@@ -15,6 +15,7 @@ import { CancelRounded } from "@mui/icons-material"
 import ArgoUpload from "./argoUpload"
 import { BigRequest, OccurrencesQuery } from "../../../graphql/__generated__/graphql"
 import MotifsModal from "./motifModal"
+import { batchRegions, calculateConservationScores } from "./helpers"
 
 const assayNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
 
@@ -25,6 +26,7 @@ export default function Argo() {
     const [occurrences, setOccurrences] = useState<QueryResult<OccurrencesQuery>[]>([]);
 
     const [inputRegions, setInputRegions] = useState<InputRegions>([]);
+    const [error_maxBP, setErrorMaxBP] = useState(null)
     // const [isOnlySNPs, setIsOnlySNPs] = useState(false)
     const [loadingMainRows, setLoadingMainRows] = useState(true);
     const [loadingElementRanks, setLoadingElementRanks] = useState(true);
@@ -320,6 +322,7 @@ export default function Argo() {
         if (event) {
             setSelectedSearch(event.target.value)
         }
+        setErrorMaxBP(null)
         setShownTable(null)
     }
 
@@ -331,10 +334,10 @@ export default function Argo() {
             0
         );
         if (totalBasePairs > 10000) {
-            alert("The total base pairs in the input regions must not exceed 10,000.");
+            setErrorMaxBP("The total base pairs in the input regions must not exceed 10,000.")
             return;
         }
-
+        setErrorMaxBP(null)
         setInputRegions(regions);
         const user_ccres = regions.map(region => [
             region.chr,
@@ -389,45 +392,6 @@ export default function Argo() {
             setLoadingSequenceRanks(false)
         }
     });
-
-    //function to batch the input regions together to call smaller queries
-    function batchRegions(regions: GenomicRegion[], maxBasePairs: number): GenomicRegion[][] {
-        const result: GenomicRegion[][] = [];
-        let currentBatch: GenomicRegion[] = [];
-        let currentBatchLength = 0;
-
-        for (const region of regions) {
-            let regionStart = region.start;
-
-            // If the region is larger than maxBasePairs, split it into chunks
-            while (regionStart < region.end) {
-                const chunkEnd = Math.min(regionStart + maxBasePairs, region.end);
-                const chunk = { chr: region.chr, start: regionStart, end: chunkEnd };
-                const chunkLength = chunk.end - chunk.start;
-
-                // If adding this chunk exceeds the max base pairs for the current batch
-                if (currentBatchLength + chunkLength > maxBasePairs) {
-                    result.push(currentBatch);
-                    currentBatch = [];
-                    currentBatchLength = 0;
-                }
-
-                // Add the chunk to the current batch
-                currentBatch.push(chunk);
-                currentBatchLength += chunkLength;
-
-                // Move the start pointer forward
-                regionStart = chunkEnd;
-            }
-        }
-
-        // Push any remaining regions in the final batch
-        if (currentBatch.length > 0) {
-            result.push(currentBatch);
-        }
-
-        return result;
-    }
 
     //query the motif occurences fron the input regions
     useEffect(() => {
@@ -488,42 +452,7 @@ export default function Argo() {
         });
     }, [occurrences, inputRegions]);
 
-    function calculateConservationScores(scores, rankBy): SequenceTableRow[] {
-        return scores.map((request) => {
-            const data = request.data;
-
-            // Extract the shared information for chr, start, and end
-            //query's first item is one base pair back so we use the end of the first item for the start
-            //and the end of the last item for the end
-            const chr = data[0]?.chr || '';
-            const start = data[0]?.end || 0;
-            const end = data[data.length - 1]?.end || 0;
-
-            let score;
-            // calculate the score based on selected rank by
-            if (rankBy === "max") {
-                score = Math.max(...data.map(item => item.value));
-            } else if (rankBy === "min") {
-                score = Math.min(...data.map(item => item.value));
-            } else {
-                const sum = data.reduce((total, item) => total + item.value, 0);
-                score = data.length > 0 ? sum / data.length : 0;
-            }
-
-            // Find matching input region with the same chromosome, start, and end
-            const matchingRegion = inputRegions.find(
-                region => region.chr === chr &&
-                    region.start === start &&
-                    region.end === end
-            );
-
-            return {
-                regionID: matchingRegion?.regionID,
-                inputRegion: { chr, start, end },
-                conservationScore: score
-            } as SequenceTableRow;
-        });
-    }
+    
 
     const sequenceRows: SequenceTableRow[] = useMemo(() => {
         if ((!conservationScores && numOverlappingMotifs.length === 0) || inputRegions.length === 0) {
@@ -532,10 +461,7 @@ export default function Argo() {
 
         let calculatedConservationScores: SequenceTableRow[] = []
         if (conservationScores) {
-            calculatedConservationScores = calculateConservationScores(
-                conservationScores.bigRequests,
-                sequenceFilterVariables.rankBy
-            )
+            calculatedConservationScores = calculateConservationScores(conservationScores.bigRequests, sequenceFilterVariables.rankBy, inputRegions)
         }
 
         // Merge conservation scores and overlapping motifs
@@ -1039,6 +965,11 @@ export default function Argo() {
                 <Typography variant="h4" mb={3}>
                     <b>A</b>ggregate <b>R</b>ank <b>G</b>enerat<b>o</b>r
                 </Typography>
+                {error_maxBP && (
+                    <Alert variant="filled" severity="error">
+                        {error_maxBP}
+                    </Alert>
+                )}
                 <ArgoUpload
                     selectedSearch={selectedSearch}
                     handleSearchChange={handleSearchChange}
