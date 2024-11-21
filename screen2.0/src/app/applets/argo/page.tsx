@@ -194,7 +194,7 @@ export default function Argo() {
         }
         if (elementFilterVariables.usecCREs) {
             cols.push({
-                header: "Element", HeaderRender: () => <MainColHeader tableName="Element" onClick={() => shownTable === "element" ? setShownTable(null) : setShownTable("element")} />, value: (row) => row.elementRank === 0 ? "N/A" : row.elementRank,
+                header: "Element", HeaderRender: () => <MainColHeader tableName="Elements" onClick={() => shownTable === "element" ? setShownTable(null) : setShownTable("element")} />, value: (row) => row.elementRank === 0 ? "N/A" : row.elementRank,
                 sort: (a, b) => {
                     const rankA = a.elementRank
                     const rankB = b.elementRank
@@ -205,7 +205,7 @@ export default function Argo() {
                 }
             })
         }
-        if (geneFilterVariables.useGenes) { cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Gene" onClick={() => shownTable === "gene" ? setShownTable(null) : setShownTable("gene")} />, value: (row) => "N/A" }) }
+        if (geneFilterVariables.useGenes) { cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Genes" onClick={() => shownTable === "gene" ? setShownTable(null) : setShownTable("gene")} />, value: (row) => "N/A" }) }
 
         return cols
 

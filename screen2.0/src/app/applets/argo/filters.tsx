@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Alignment, FilterProps } from './types';
-import { Accordion, AccordionDetails, AccordionSummary, Box, Checkbox, Drawer, FormControl, FormControlLabel, FormGroup, FormLabel, IconButton, MenuItem, Paper, Radio, RadioGroup, Select, Stack, Typography } from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, Box, Checkbox, Drawer, FormControl, FormControlLabel, FormGroup, IconButton, MenuItem, Paper, Radio, RadioGroup, Select, Stack, Typography } from '@mui/material';
 import BiosampleTables from '../../_biosampleTables/BiosampleTables';
 import Grid from "@mui/material/Grid2"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
@@ -82,20 +82,20 @@ const Filters: React.FC<FilterProps> = ({
     //change assays and availible assays depending on if there is a biosample selected or not
     const handleSelectedBiosample = (biosample) => {
         updateElementFilter("selectedBiosample", biosample)
-            updateElementFilter('availableAssays', {
-                dnase: !!biosample.dnase,
-                h3k4me3: !!biosample.h3k4me3,
-                h3k27ac: !!biosample.h3k27ac,
-                ctcf: !!biosample.ctcf,
-                atac: !!biosample.atac_signal,
-            });
-            updateElementFilter('assays', {
-                dnase: !!biosample.dnase,
-                h3k4me3: !!biosample.h3k4me3,
-                h3k27ac: !!biosample.h3k27ac,
-                ctcf: !!biosample.ctcf,
-                atac: !!biosample.atac_signal,
-            });
+        updateElementFilter('availableAssays', {
+            dnase: !!biosample.dnase,
+            h3k4me3: !!biosample.h3k4me3,
+            h3k27ac: !!biosample.h3k27ac,
+            ctcf: !!biosample.ctcf,
+            atac: !!biosample.atac_signal,
+        });
+        updateElementFilter('assays', {
+            dnase: !!biosample.dnase,
+            h3k4me3: !!biosample.h3k4me3,
+            h3k27ac: !!biosample.h3k27ac,
+            ctcf: !!biosample.ctcf,
+            atac: !!biosample.atac_signal,
+        });
     }
 
     const handleDeselectBiosample = () => {
@@ -146,7 +146,7 @@ const Filters: React.FC<FilterProps> = ({
                     overflow="auto"
                 >
                     <Stack direction={"row"} justifyContent={"space-between"} padding={1}>
-                        <Typography sx={{fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif'}} alignContent={"center"}>Filters</Typography>
+                        <Typography sx={{ fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif' }} alignContent={"center"}>Filters</Typography>
                         <IconButton
                             color="primary"
                             onClick={toggleDrawer}
@@ -188,13 +188,29 @@ const Filters: React.FC<FilterProps> = ({
                                         </Select>
                                     </FormControl>
                                 </FormGroup>
-                                <FormControl>
-                                    <FormLabel>Rank Conservation Scores By</FormLabel>
-                                    <Select sx={{ width: "50%" }} size="small" value={sequenceFilterVariables.rankBy} disabled={!sequenceFilterVariables.useConservation} onChange={(event) => updateSequenceFilter("rankBy", event.target.value)}>
-                                        <MenuItem value={"min"}>Min</MenuItem>
-                                        <MenuItem value={"max"}>Max</MenuItem>
-                                        <MenuItem value={"avg"}>Average</MenuItem>
-                                    </Select>
+                                <FormControl sx={{ mt: 1 }}>
+                                    <Typography>Rank Conservation Scores By</Typography>
+                                    <RadioGroup
+                                        row
+                                        value={sequenceFilterVariables.rankBy}
+                                        onChange={(event) => updateSequenceFilter("rankBy", event.target.value)}
+                                    >
+                                        <FormControlLabel
+                                            value="min"
+                                            control={<Radio disabled={!sequenceFilterVariables.useConservation} />}
+                                            label="Min"
+                                        />
+                                        <FormControlLabel
+                                            value="max"
+                                            control={<Radio disabled={!sequenceFilterVariables.useConservation} />}
+                                            label="Max"
+                                        />
+                                        <FormControlLabel
+                                            value="avg"
+                                            control={<Radio disabled={!sequenceFilterVariables.useConservation} />}
+                                            label="Average"
+                                        />
+                                    </RadioGroup>
                                 </FormControl>
                             </Stack>
                             <FormGroup>
@@ -230,7 +246,7 @@ const Filters: React.FC<FilterProps> = ({
                             fontSize: isExpanded('element') ? 'large' : 'normal',
                             fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif'
                         }}>
-                            Element
+                            Elements
                         </AccordionSummary>
                         <AccordionDetails>
                             <FormControlLabel value="cCREs" control={<Checkbox onChange={() => updateElementFilter("usecCREs", !elementFilterVariables.usecCREs)} checked={elementFilterVariables.usecCREs} />} label="Overlapping cCREs" />
@@ -268,7 +284,7 @@ const Filters: React.FC<FilterProps> = ({
                                                     elementFilterVariables.selectedBiosample.displayname}
                                             </Typography>
                                             <IconButton
-                                                onClick={() => {handleDeselectBiosample()}}
+                                                onClick={() => { handleDeselectBiosample() }}
                                                 sx={{ m: 'auto', flexGrow: 0 }}
                                             >
                                                 <CancelRounded />
@@ -453,8 +469,8 @@ const Filters: React.FC<FilterProps> = ({
                                     </Grid>
                                 </FormGroup>
                             </Stack>
-                            <FormControl sx={{ml: 2}}>
-                                <FormLabel>Rank cCREs With Matching Input Region By</FormLabel>
+                            <FormControl sx={{ ml: 2 }}>
+                                <Typography>Rank cCREs With Matching Input Region By</Typography>
                                 <RadioGroup
                                     row
                                     value={elementFilterVariables.rankBy}
@@ -486,7 +502,7 @@ const Filters: React.FC<FilterProps> = ({
                             fontSize: isExpanded('gene') ? 'large' : 'normal',
                             fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif'
                         }}>
-                            Gene
+                            Genes
                         </AccordionSummary>
                         <AccordionDetails>
                             <Stack>
