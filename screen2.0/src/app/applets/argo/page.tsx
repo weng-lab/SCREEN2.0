@@ -7,7 +7,7 @@ import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { ORTHOLOG_QUERY, Z_SCORES_QUERY, BIG_REQUEST_QUERY, MOTIF_QUERY } from "./queries"
 import { QueryResult, useLazyQuery, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
-import { CCREAssays, CCREClasses, RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, AssayRankEntry, CCREs, InputRegions, MotifQueryDataOccurrence } from "./types"
+import { CCREAssays, CCREClasses, RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, CCREs, InputRegions, MotifQueryDataOccurrence } from "./types"
 import { BED_INTERSECT_QUERY } from "../../_mainsearch/queries"
 import ExpandCircleDownIcon from '@mui/icons-material/ExpandCircleDown';
 import Filters from "./filters"
@@ -15,9 +15,7 @@ import { CancelRounded } from "@mui/icons-material"
 import ArgoUpload from "./argoUpload"
 import { BigRequest, OccurrencesQuery } from "../../../graphql/__generated__/graphql"
 import MotifsModal from "./motifModal"
-import { batchRegions, calculateConservationScores } from "./helpers"
-
-const assayNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
+import { batchRegions, calculateAggregateRanks, calculateConservationScores, generateElementRanks, generateSequenceRanks, getNumOverlappingMotifs, handleSameInputRegion, mapScores, mapScoresCTSpecific } from "./helpers"
 
 export default function Argo() {
 
@@ -314,6 +312,11 @@ export default function Argo() {
 
     }, [elementFilterVariables])
 
+    //open ccre details on ccre click
+    const handlecCREClick = (row) => {
+        window.open(`/search?assembly=${elementFilterVariables.cCREAssembly}&chromosome=${row.chr}&start=${row.start}&end=${row.end}&accessions=${row.accession}&page=2`, "_blank", "noopener,noreferrer")
+    }
+
     const handleSearchChange = (event: SelectChangeEvent) => {
         setLoadingMainRows(true)
         setLoadingSequenceRanks(true)
@@ -432,30 +435,8 @@ export default function Argo() {
         fetchAllOccurrences();
     }, [inputRegions, getMemeOccurrences, sequenceFilterVariables.useMotifs]);
 
-    const numOverlappingMotifs: SequenceTableRow[] = useMemo(() => {
-        if (occurrences.length === 0 || inputRegions.length === 0) return [];
-        return inputRegions.map(inputRegion => {
-            const overlappingMotifs = occurrences.flatMap(occurrence =>
-                occurrence.data.meme_occurrences.filter(motif =>
-                    motif.genomic_region.chromosome === inputRegion.chr &&
-                    motif.genomic_region.start < inputRegion.end &&
-                    motif.genomic_region.end > inputRegion.start
-                )
-            );
-
-            return {
-                regionID: inputRegion.regionID,
-                inputRegion: inputRegion,
-                numOverlappingMotifs: overlappingMotifs.length,
-                occurrences: overlappingMotifs as MotifQueryDataOccurrence[]
-            };
-        });
-    }, [occurrences, inputRegions]);
-
-    
-
     const sequenceRows: SequenceTableRow[] = useMemo(() => {
-        if ((!conservationScores && numOverlappingMotifs.length === 0) || inputRegions.length === 0) {
+        if ((!conservationScores && !occurrences) || inputRegions.length === 0) {
             return []
         }
 
@@ -463,7 +444,10 @@ export default function Argo() {
         if (conservationScores) {
             calculatedConservationScores = calculateConservationScores(conservationScores.bigRequests, sequenceFilterVariables.rankBy, inputRegions)
         }
-
+        let numOverlappingMotifs: SequenceTableRow[] = []
+        if (occurrences) {
+            numOverlappingMotifs = getNumOverlappingMotifs(occurrences, inputRegions)
+        }
         // Merge conservation scores and overlapping motifs
         const mergedRows = inputRegions.map(region => {
             const conservationRow = calculatedConservationScores.find(
@@ -484,7 +468,7 @@ export default function Argo() {
         })
 
         return mergedRows
-    }, [conservationScores, inputRegions, sequenceFilterVariables.rankBy, numOverlappingMotifs])
+    }, [conservationScores, occurrences, inputRegions, sequenceFilterVariables.rankBy])
 
     const sequenceRanks: RankedRegions = useMemo(() => {
         if (sequenceRows.length === 0) {
@@ -494,66 +478,8 @@ export default function Argo() {
     
         setLoadingSequenceRanks(true);
 
-        // Assign ranks based on conservationScore
-        const conservationRankedRows = (() => {
-            const sortedRows = [...sequenceRows].sort((a, b) => b.conservationScore - a.conservationScore);
-            let rank = 1;
-            return sortedRows.map((row, index) => {
-                if (index > 0 && sortedRows[index].conservationScore !== sortedRows[index - 1].conservationScore) {
-                    rank = index + 1;
-                }
-                return {
-                    ...row,
-                    conservationRank: rank,
-                };
-            });
-        })();
+        const rankedRegions = generateSequenceRanks(sequenceRows)
 
-        // Assign ranks based on numOverlappingMotifs
-        const motifRankedRows = (() => {
-            const sortedRows = [...sequenceRows].sort((a, b) => b.numOverlappingMotifs! - a.numOverlappingMotifs!);
-            let rank = 1;
-            return sortedRows.map((row, index) => {
-                if (index > 0 && sortedRows[index].numOverlappingMotifs !== sortedRows[index - 1].numOverlappingMotifs) {
-                    rank = index + 1; 
-                }
-                return {
-                    ...row,
-                    motifRank: rank,
-                };
-            });
-        })();
-
-        // Merge ranks and calculate total rank
-        const combinedRanks = conservationRankedRows.map((row) => {
-            const motifRank = motifRankedRows.find(
-                (motifRow) => motifRow.regionID === row.regionID
-            )?.motifRank;
-
-            return {
-                ...row,
-                totalRank: row.conservationRank + (motifRank ?? sequenceRows.length), // Sum of ranks
-            };
-        });
-
-        // Sort by total rank and assign final ranks 
-        const rankedRegions: RankedRegions = (() => {
-            const sortedByTotalRank = [...combinedRanks].sort((a, b) => a.totalRank - b.totalRank);
-            let rank = 1;
-            return sortedByTotalRank.map((row, index) => {
-                if (index > 0 && sortedByTotalRank[index].totalRank !== sortedByTotalRank[index - 1].totalRank) {
-                    rank = index + 1;
-                }
-                return {
-                    chr: row.inputRegion.chr,
-                    start: row.inputRegion.start,
-                    end: row.inputRegion.end,
-                    rank, 
-                };
-            });
-        })();
-
-    
         setLoadingSequenceRanks(false);
         return rankedRegions;
     }, [sequenceRows]);
@@ -621,34 +547,6 @@ export default function Argo() {
         fetchPolicy: 'cache-first',
     });
 
-    const mapScores = (obj, data) => {
-        const matchingObj = data.find((e) => obj.accession === e.info.accession);
-        if (!matchingObj) return obj;
-        return {
-            ...obj,
-            dnase: matchingObj.dnase_zscore,
-            h3k4me3: matchingObj.promoter_zscore,
-            h3k27ac: matchingObj.enhancer_zscore,
-            ctcf: matchingObj.ctcf_zscore,
-            atac: matchingObj.atac_zscore,
-            class: matchingObj.pct
-        };
-    };
-
-    const mapScoresCTSpecific = (obj, data) => {
-        const matchingObj = data.find((e) => obj.accession === e.info.accession);
-        if (!matchingObj) return obj;
-        return {
-            ...obj,
-            dnase: matchingObj.ctspecific.dnase_zscore,
-            h3k4me3: matchingObj.ctspecific.h3k4me3_zscore,
-            h3k27ac: matchingObj.ctspecific.h3k4me3_zscore,
-            ctcf: matchingObj.ctspecific.ctcf_zscore,
-            atac: matchingObj.ctspecific.atac_zscore,
-            class: matchingObj.pct
-        };
-    };
-
     //all data pertaining to the element table
     const allElementData: ElementTableRow[] = useMemo(() => {
         if (!zScoreData) return [];
@@ -714,128 +612,14 @@ export default function Argo() {
         if (elementRows.length === 0 || !elementFilterVariables.usecCREs) return [];
         setLoadingElementRanks(true);
 
-        //Group by `inputRegion` and calculate average or max scores
-        const groupedData = elementRows.reduce((acc, row) => {
-            const key = `${row.inputRegion.chr}-${row.inputRegion.start}-${row.inputRegion.end}`;
-
-            if (!acc[key]) {
-                acc[key] = {
-                    ...row, // Start with the first entry's properties to retain the structure
-                    dnase: elementFilterVariables.rankBy === "max" ? row.dnase : 0,
-                    atac: elementFilterVariables.rankBy === "max" ? row.atac : 0,
-                    h3k4me3: elementFilterVariables.rankBy === "max" ? row.h3k4me3 : 0,
-                    h3k27ac: elementFilterVariables.rankBy === "max" ? row.h3k27ac : 0,
-                    ctcf: elementFilterVariables.rankBy === "max" ? row.ctcf : 0,
-                    count: 0 // Only increment count if averaging
-                };
-            }
-
-            // Sum assay scores for averaging
-            if (elementFilterVariables.rankBy === "avg") {
-                assayNames.forEach(assay => {
-                    acc[key][assay] += row[assay] || 0;
-                });
-                acc[key].count += 1;
-            } else if (elementFilterVariables.rankBy === "max") {
-                assayNames.forEach(assay => {
-                    acc[key][assay] = Math.max(acc[key][assay], row[assay] || 0);
-                });
-            }
-
-            return acc;
-        }, {} as { [key: string]: ElementTableRow & { count: number } });
-
-        //Compute averages if necesarry and create `ElementTableRow` entries
-        const processedRows: ElementTableRow[] = Object.values(groupedData).map(region => {
-            const processedAssays: Partial<ElementTableRow> = {};
-            assayNames.forEach(assay => {
-                if (elementFilterVariables.rankBy === "avg") {
-                    processedAssays[assay] = region.count > 0 ? region[assay] / region.count : 0;
-                } else {
-                    processedAssays[assay] = region[assay]; // Already max in reduce step if rankBy is "max"
-                }
-            });
-
-            return {
-                ...region,
-                ...processedAssays,
-                count: undefined // Remove the helper count property
-            };
-        });
-
-        const assayRanks: { [key: number]: AssayRankEntry } = {};
-
-        //assign a rank to each assay
-        assayNames.forEach(assay => {
-            const sortedRows = processedRows
-                .sort((a, b) => {
-                    if (elementFilterVariables.classes[a.class] && elementFilterVariables.classes[b.class]) {
-                        return b[assay] - a[assay];
-                    }
-                    return 0;
-                });
-
-            sortedRows.forEach((row, index) => {
-                const isClassEnabled = elementFilterVariables.classes[row.class];
-                const score = row[assay];
-
-                if (!assayRanks[row.inputRegion.start]) {
-                    assayRanks[row.inputRegion.start] = {
-                        chr: row.inputRegion.chr,
-                        start: row.inputRegion.start,
-                        end: row.inputRegion.end,
-                        ranks: {}
-                    };
-                }
-
-                // Assign rank based on score order if the class is enabled, otherwise assign rank 0
-                assayRanks[row.inputRegion.start].ranks[assay] = isClassEnabled && score !== null ? index + 1 : 0;
-            });
-        });
-
-        // add up all assay ranks
-        const totalAssayRanks = Object.values(assayRanks).map((row) => {
-            const totalRank = assayNames.reduce((sum, assay) => {
-                return elementFilterVariables.assays[assay] ? sum + (row.ranks[assay] || 0) : sum;
-            }, 0);
-
-            return {
-                chr: row.chr,
-                start: row.start,
-                end: row.end,
-                totalRank: totalRank,
-            };
-        });
-
-        // Sort by total rank score in ascending order
-        const rankedRegions = [];
-        totalAssayRanks.sort((a, b) => a.totalRank - b.totalRank);
-
-        // Assign ranks, accounting for ties
-        let currentRank = 1;
-        let prevTotalRank = null;
-
-        totalAssayRanks.forEach((region, index) => {
-            if (region.totalRank !== prevTotalRank) {
-                currentRank = index + 1;
-                prevTotalRank = region.totalRank;
-            }
-            rankedRegions.push({
-                chr: region.chr,
-                start: region.start,
-                end: region.end,
-                rank: region.totalRank === 0 ? 0 : currentRank,
-            });
-        });
+        //find ccres with same input region and combine them based on users rank by selected
+        const processedRows = handleSameInputRegion(elementFilterVariables.rankBy, elementRows)
+        const rankedRegions = generateElementRanks(processedRows, elementFilterVariables.classes, elementFilterVariables.assays)
+        
         setLoadingElementRanks(false);
         return rankedRegions;
 
     }, [elementFilterVariables, elementRows]);
-
-    //open ccre details on ccre click
-    const handlecCREClick = (row) => {
-        window.open(`/search?assembly=${elementFilterVariables.cCREAssembly}&chromosome=${row.chr}&start=${row.start}&end=${row.end}&accessions=${row.accession}&page=2`, "_blank", "noopener,noreferrer")
-    }
 
     /*------------------------------------------ Gene Stuff ------------------------------------------*/
     //TODO
@@ -847,57 +631,8 @@ export default function Argo() {
         if (loadingElementRanks || loadingSequenceRanks) return;
         setLoadingMainRows(true)
         if ((sequenceRanks.length === 0 && elementRanks.length === 0 && geneRanks.length === 0) || inputRegions.length === 0) return [];
-        const totalRanks = inputRegions.map(row => {
-            // Find matching ranks based on inputRegion coordinates
-            const matchingSequence = sequenceRanks.find(seq =>
-                seq.chr == row.chr &&
-                seq.start == row.start &&
-                seq.end == row.end
-            );
-
-            const matchingElement = elementRanks.find(ele =>
-                ele.chr == row.chr &&
-                ele.start == row.start &&
-                ele.end == row.end
-            );
-
-            const matchingGene = geneRanks.find(gene =>
-                gene.chr == row.chr &&
-                gene.start == row.start &&
-                gene.end == row.end
-            );
-
-            // Calculate the total rank, using 0 if no matching rank is found for any
-            const totalRank = (matchingSequence?.rank || 0) +
-                (matchingElement?.rank || 0) +
-                (matchingGene?.rank || 0);
-
-            return {
-                ...row,
-                rank: totalRank
-            };
-        });
-
-        // Assign aggregate ranks, accounting for ties
-        let currentRank = 1;
-        let prevTotalRank = null;
-
-        const aggregateRanks = totalRanks
-            .sort((a, b) => a.rank - b.rank) // Sort by rank
-            .map((region, index) => {
-                // Update current rank only if rank is different from the previous
-                if (region.rank !== prevTotalRank) {
-                    currentRank = index + 1;
-                    prevTotalRank = region.rank;
-                }
-
-                return {
-                    chr: region.chr,
-                    start: region.start,
-                    end: region.end,
-                    rank: region.rank === 0 ? 0 : currentRank, // Assign 0 for unranked regions
-                };
-            });
+        
+        const aggregateRanks = calculateAggregateRanks(inputRegions, sequenceRanks, elementRanks, geneRanks)
 
         const updatedMainRows = inputRegions.map(row => {
             // Find the matching rank for this `inputRegion`
