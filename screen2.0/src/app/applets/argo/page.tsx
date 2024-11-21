@@ -1,7 +1,7 @@
 "use client"
 import React, { useCallback, useEffect, useMemo } from "react"
 import { useState } from "react"
-import { Stack, Typography, Box, Alert, CircularProgress, IconButton } from "@mui/material"
+import { Stack, Typography, Box, Alert, CircularProgress, IconButton, Fab } from "@mui/material"
 import { SelectChangeEvent } from "@mui/material/Select"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { ORTHOLOG_QUERY, Z_SCORES_QUERY, BIG_REQUEST_QUERY, MOTIF_QUERY } from "./queries"
@@ -16,16 +16,16 @@ import ArgoUpload from "./argoUpload"
 import { BigRequest, OccurrencesQuery } from "../../../graphql/__generated__/graphql"
 import MotifsModal from "./motifModal"
 import { batchRegions, calculateAggregateRanks, calculateConservationScores, generateElementRanks, generateSequenceRanks, getNumOverlappingMotifs, handleSameInputRegion, mapScores, mapScoresCTSpecific } from "./helpers"
+import ExploreIcon from '@mui/icons-material/Explore';
 
 export default function Argo() {
 
+    const [inputRegions, setInputRegions] = useState<InputRegions>([]);
     const [getIntersectingCcres, { data: intersectArray }] = useLazyQuery(BED_INTERSECT_QUERY)
     const [getMemeOccurrences] = useLazyQuery(MOTIF_QUERY)
     const [occurrences, setOccurrences] = useState<QueryResult<OccurrencesQuery>[]>([]);
 
-    const [inputRegions, setInputRegions] = useState<InputRegions>([]);
     const [error_maxBP, setErrorMaxBP] = useState(null)
-    // const [isOnlySNPs, setIsOnlySNPs] = useState(false)
     const [loadingMainRows, setLoadingMainRows] = useState(true);
     const [loadingElementRanks, setLoadingElementRanks] = useState(true);
     const [loadingSequenceRanks, setLoadingSequenceRanks] = useState(true);
@@ -35,11 +35,17 @@ export default function Argo() {
     const [drawerOpen, setDrawerOpen] = useState(true);
     const toggleDrawer = () => setDrawerOpen(!drawerOpen);
     const [shownTable, setShownTable] = useState<"sequence" | "element" | "gene">(null);
+    const [modalData, setModalData] = useState<{
+        open: boolean;
+        chromosome: string;
+        start: number;
+        end: number;
+        occurrences: MotifQueryDataOccurrence[];
+    } | null>(null);
 
     // These will be deleted once functionality is implemented
     const [geneRanks, setGeneRanks] = useState<RankedRegions>([]);
-    const [geneRows, setGeneRows] = useState<GeneTableRow[]>([]) // Data displayed on the gene table
-
+    const [geneRows, setGeneRows] = useState<GeneTableRow[]>([])
     // Filter state variables
     const [sequenceFilterVariables, setSequenceFilterVariables] = useState<SequenceFilterState>({
         useConservation: false,
@@ -88,14 +94,6 @@ export default function Argo() {
         useGenes: true,
         idk: "no"
     });
-
-    const [modalData, setModalData] = useState<{
-        open: boolean;
-        chromosome: string;
-        start: number;
-        end: number;
-        occurrences: MotifQueryDataOccurrence[];
-    } | null>(null);
 
     //update specific variable in sequence filters
     const updateSequenceFilter = (key: keyof SequenceFilterState, value: unknown) => {
@@ -317,6 +315,7 @@ export default function Argo() {
         window.open(`/search?assembly=${elementFilterVariables.cCREAssembly}&chromosome=${row.chr}&start=${row.start}&end=${row.end}&accessions=${row.accession}&page=2`, "_blank", "noopener,noreferrer")
     }
 
+    //reset variables when switching btwn BED and txt, or when you remove a file
     const handleSearchChange = (event: SelectChangeEvent) => {
         setLoadingMainRows(true)
         setLoadingSequenceRanks(true)
@@ -712,6 +711,18 @@ export default function Argo() {
                 />
                 {inputRegions.length > 0 && (
                     <>
+                        <Fab
+                            size="medium"
+                            color="primary"
+                            sx={{
+                                position: "absolute",
+                                top: "72px",
+                                right: "16px",
+                            }}
+                        >
+                            <ExploreIcon />
+                        </Fab>
+
                         <Box mt="20px" id="123456">
                             {!mainRows || loadingMainRows ? <CircularProgress /> :
                                 <DataTable

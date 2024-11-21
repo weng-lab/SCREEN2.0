@@ -142,7 +142,7 @@ const Filters: React.FC<FilterProps> = ({
                 }}
             >
                 <Box
-                    height="100vh"
+                    height="calc(100vh - 56px)"
                     overflow="auto"
                 >
                     <Stack direction={"row"} justifyContent={"space-between"} padding={1}>
