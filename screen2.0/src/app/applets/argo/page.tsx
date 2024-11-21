@@ -567,48 +567,66 @@ export default function Argo() {
         }
     
         setLoadingSequenceRanks(true);
-    
-        //Assign ranks based on conservationScore
-        const conservationRankedRows = [...sequenceRows].sort(
-            (a, b) => b.conservationScore - a.conservationScore
-        ).map((row, index) => ({
-            ...row,
-            conservationRank: index + 1, // Assign rank for conservation
-        }));
-    
-        // assign ranks based on numOverlappingMotifs
-        const motifRankedRows = [...sequenceRows].sort(
-            (a, b) => b.numOverlappingMotifs! - a.numOverlappingMotifs!
-        ).map((row, index) => ({
-            ...row,
-            motifRank: index + 1, // Assign rank for motifs
-        }));
-    
-        // merge ranks and calculate total rank
+
+        // Assign ranks based on conservationScore
+        const conservationRankedRows = (() => {
+            const sortedRows = [...sequenceRows].sort((a, b) => b.conservationScore - a.conservationScore);
+            let rank = 1;
+            return sortedRows.map((row, index) => {
+                if (index > 0 && sortedRows[index].conservationScore !== sortedRows[index - 1].conservationScore) {
+                    rank = index + 1;
+                }
+                return {
+                    ...row,
+                    conservationRank: rank,
+                };
+            });
+        })();
+
+        // Assign ranks based on numOverlappingMotifs
+        const motifRankedRows = (() => {
+            const sortedRows = [...sequenceRows].sort((a, b) => b.numOverlappingMotifs! - a.numOverlappingMotifs!);
+            let rank = 1;
+            return sortedRows.map((row, index) => {
+                if (index > 0 && sortedRows[index].numOverlappingMotifs !== sortedRows[index - 1].numOverlappingMotifs) {
+                    rank = index + 1; 
+                }
+                return {
+                    ...row,
+                    motifRank: rank,
+                };
+            });
+        })();
+
+        // Merge ranks and calculate total rank
         const combinedRanks = conservationRankedRows.map((row) => {
             const motifRank = motifRankedRows.find(
-                (motifRow) =>
-                    motifRow.inputRegion.chr === row.inputRegion.chr &&
-                    motifRow.inputRegion.start === row.inputRegion.start &&
-                    motifRow.inputRegion.end === row.inputRegion.end
+                (motifRow) => motifRow.regionID === row.regionID
             )?.motifRank;
-    
+
             return {
                 ...row,
-                motifRank: motifRank ?? sequenceRows.length, // Default to worst rank if not found
                 totalRank: row.conservationRank + (motifRank ?? sequenceRows.length), // Sum of ranks
             };
         });
-    
-        //Sort by total rank and assign final ranks
-        const rankedRegions: RankedRegions = combinedRanks.sort(
-            (a, b) => a.totalRank - b.totalRank
-        ).map((row, index) => ({
-            chr: row.inputRegion.chr,
-            start: row.inputRegion.start,
-            end: row.inputRegion.end,
-            rank: index + 1,
-        }));
+
+        // Sort by total rank and assign final ranks 
+        const rankedRegions: RankedRegions = (() => {
+            const sortedByTotalRank = [...combinedRanks].sort((a, b) => a.totalRank - b.totalRank);
+            let rank = 1;
+            return sortedByTotalRank.map((row, index) => {
+                if (index > 0 && sortedByTotalRank[index].totalRank !== sortedByTotalRank[index - 1].totalRank) {
+                    rank = index + 1;
+                }
+                return {
+                    chr: row.inputRegion.chr,
+                    start: row.inputRegion.start,
+                    end: row.inputRegion.end,
+                    rank, 
+                };
+            });
+        })();
+
     
         setLoadingSequenceRanks(false);
         return rankedRegions;
