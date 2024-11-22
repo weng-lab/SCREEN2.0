@@ -88,6 +88,7 @@ export type Alignment =
     numOverlappingMotifs: boolean;
     motifScoreDelta: boolean;
     overlapsTFPeak: boolean;
+    tfPeakStrength: boolean;
   }
 
   export type ElementFilterState = {

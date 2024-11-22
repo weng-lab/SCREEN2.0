@@ -54,7 +54,8 @@ export default function Argo() {
         motifCatalog: "factorbook",
         numOverlappingMotifs: true,
         motifScoreDelta: false,
-        overlapsTFPeak: false
+        overlapsTFPeak: false,
+        tfPeakStrength: false
     });
 
     const [elementFilterVariables, setElementFilterVariables] = useState<ElementFilterState>({
