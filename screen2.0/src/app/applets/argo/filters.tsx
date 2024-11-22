@@ -216,12 +216,21 @@ const Filters: React.FC<FilterProps> = ({
                             <FormGroup>
                                 <FormControlLabel value="TFMotifs" control={<Checkbox onChange={() => updateSequenceFilter("useMotifs", !sequenceFilterVariables.useMotifs)} checked={sequenceFilterVariables.useMotifs} />} label="TF Motifs" />
                                 <Stack ml={2}>
-                                    <RadioGroup value={sequenceFilterVariables.motifCatalog} onChange={(event) => updateSequenceFilter("motifCatalog", event.target.value as "factorbook" | "factorbookTF" | "hocomoco" | "zMotif")}>
+                                    <RadioGroup  row value={sequenceFilterVariables.motifCatalog} onChange={(event) => updateSequenceFilter("motifCatalog", event.target.value as "factorbook" | "hocomoco" | "zMotif")}>
                                         <FormControlLabel value="factorbook" control={<Radio />} label="Factorbook" disabled={!sequenceFilterVariables.useMotifs} />
-                                        <FormControlLabel value="factorbookTF" control={<Radio />} label="Factorbook + TF Motif" disabled={!sequenceFilterVariables.useMotifs} />
                                         <FormControlLabel value="hocomoco" control={<Radio />} label="HOCOMOCO" disabled={!sequenceFilterVariables.useMotifs} />
-                                        <FormControlLabel value="zMotif" control={<Radio />} label="ZMotif" disabled={!sequenceFilterVariables.useMotifs} />
+                                        {/* <FormControlLabel value="zMotif" control={<Radio />} label="ZMotif" disabled={!sequenceFilterVariables.useMotifs} /> */}
                                     </RadioGroup>
+                                    <FormControlLabel
+                                        label="Must Overlap TF Peak"
+                                        control={
+                                            <Checkbox
+                                                onChange={() => updateSequenceFilter("overlapsTFPeak", !sequenceFilterVariables.overlapsTFPeak)}
+                                                disabled={!sequenceFilterVariables.useMotifs || sequenceFilterVariables.motifCatalog !== "factorbook"}
+                                                checked={sequenceFilterVariables.overlapsTFPeak}
+                                            />
+                                        }
+                                    />
                                 </Stack>
                             </FormGroup>
                             <FormGroup>
@@ -229,7 +238,6 @@ const Filters: React.FC<FilterProps> = ({
                                     <Typography lineHeight={"40px"}>Rank By</Typography>
                                     <FormControlLabel value="numMotifs" control={<Checkbox onChange={() => updateSequenceFilter("numOverlappingMotifs", !sequenceFilterVariables.numOverlappingMotifs)} checked={sequenceFilterVariables.numOverlappingMotifs} />} label="Number of Overlaping Motifs" disabled={!sequenceFilterVariables.useMotifs} />
                                     <FormControlLabel value="motifScoreDelta" control={<Checkbox onChange={() => updateSequenceFilter("motifScoreDelta", !sequenceFilterVariables.motifScoreDelta)} checked={sequenceFilterVariables.motifScoreDelta} />} label="Motif Score Delta" disabled={!sequenceFilterVariables.useMotifs} />
-                                    <FormControlLabel value="overlapsTFPeak" control={<Checkbox onChange={() => updateSequenceFilter("overlapsTFPeak", !sequenceFilterVariables.overlapsTFPeak)} checked={sequenceFilterVariables.overlapsTFPeak} />} label="Overlaps TF Peak " disabled={!sequenceFilterVariables.useMotifs} />
                                 </Stack>
                             </FormGroup>
                         </AccordionDetails>

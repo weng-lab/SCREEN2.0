@@ -1,7 +1,7 @@
 "use client"
 import React, { useCallback, useEffect, useMemo } from "react"
 import { useState } from "react"
-import { Stack, Typography, Box, Alert, CircularProgress, IconButton, Fab } from "@mui/material"
+import { Stack, Typography, Box, Alert, CircularProgress, IconButton } from "@mui/material"
 import { SelectChangeEvent } from "@mui/material/Select"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { ORTHOLOG_QUERY, Z_SCORES_QUERY, BIG_REQUEST_QUERY, MOTIF_QUERY } from "./queries"
@@ -16,7 +16,6 @@ import ArgoUpload from "./argoUpload"
 import { BigRequest, OccurrencesQuery } from "../../../graphql/__generated__/graphql"
 import MotifsModal from "./motifModal"
 import { batchRegions, calculateAggregateRanks, calculateConservationScores, generateElementRanks, generateSequenceRanks, getNumOverlappingMotifs, handleSameInputRegion, mapScores, mapScoresCTSpecific } from "./helpers"
-import ExploreIcon from '@mui/icons-material/Explore';
 
 export default function Argo() {
 
@@ -700,7 +699,7 @@ export default function Argo() {
                     <b>A</b>ggregate <b>R</b>ank <b>G</b>enerat<b>o</b>r
                 </Typography>
                 {error_maxBP && (
-                    <Alert variant="filled" severity="error">
+                    <Alert variant="outlined" severity="error">
                         {error_maxBP}
                     </Alert>
                 )}
@@ -711,18 +710,6 @@ export default function Argo() {
                 />
                 {inputRegions.length > 0 && (
                     <>
-                        <Fab
-                            size="medium"
-                            color="primary"
-                            sx={{
-                                position: "absolute",
-                                top: "72px",
-                                right: "16px",
-                            }}
-                        >
-                            <ExploreIcon />
-                        </Fab>
-
                         <Box mt="20px" id="123456">
                             {!mainRows || loadingMainRows ? <CircularProgress /> :
                                 <DataTable

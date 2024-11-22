@@ -84,7 +84,7 @@ export type Alignment =
     alignment: Alignment;
     rankBy: string;
     useMotifs: boolean;
-    motifCatalog: "factorbook" | "factorbookTF" | "hocomoco" | "zMotif";
+    motifCatalog: "factorbook" | "hocomoco" | "zMotif";
     numOverlappingMotifs: boolean;
     motifScoreDelta: boolean;
     overlapsTFPeak: boolean;
