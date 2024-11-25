@@ -300,6 +300,10 @@ export function GeneExpression(props: {
 
   const handleSetBiosamples: MultiSelectOnChange<BiosampleType> = (_, value) => {
     setBiosamples(value)
+    //when changing biosample types, need to manually modify the selected tissues to uncheck those which no longer
+    setSelectedTissues(
+      availableTissues.filter(x => x.types.some(y => value.includes(y)))
+    )
   }
 
   const handleSetGene = (newGene: string) => {
@@ -498,6 +502,7 @@ export function GeneExpression(props: {
           <FormLabel>{biosamples.length === allBiosampleTypes.length ? "Biosample Types" : <i>Biosample Types*</i>}</FormLabel>
           <MultiSelect
             options={allBiosampleTypes}
+            value={biosamples}
             onChange={handleSetBiosamples}
             placeholder="Filter Biosamples"
             limitTags={2}
@@ -505,9 +510,9 @@ export function GeneExpression(props: {
         </FormControl>
         <FormControl>
           <FormLabel>{selectedTissues.length === availableTissues.length ? "Tissues" : <i>Tissues*</i>}</FormLabel>
-          {/* disabling options works, but they're still checked... need to at least show them as unchecked. */}
           <MultiSelect
             options={availableTissues}
+            value={selectedTissues}
             getOptionDisabled={option => !option.types.some(x => biosamples.includes(x))}
             onChange={handleSetTissues}
             placeholder="Filter Tissues"

@@ -13,6 +13,10 @@ const checkedIcon = <CheckBoxIcon fontSize="small" />;
 export type MultiSelectOnChange<T> = (event: React.SyntheticEvent, value: T[], reason: AutocompleteChangeReason, details?: AutocompleteChangeDetails<T | T[]>) => void
 
 export interface MultiSelectProps<T extends (string | {label: string; [key:string]: unknown})> {
+  /**
+   * Callback fired whenever component state changes.
+   * Currently does NOT switch component to being controlled.
+   */
   onChange?: MultiSelectOnChange<T>,
   /**
    * options must be 
@@ -25,6 +29,10 @@ export interface MultiSelectProps<T extends (string | {label: string; [key:strin
    * ```
    */
   options: T[],
+  /**
+   * Override internal state of component
+   */
+  value?: T[],
   getOptionDisabled?: (option: T) => boolean
   placeholder: string
   limitTags?: number
@@ -37,31 +45,39 @@ const MultiSelect = <T extends (string | {label: string; [key:string]: unknown})
   options,
   getOptionDisabled,
   placeholder,
+  value,
   limitTags,
   size = "small"
 }: MultiSelectProps<T>) => {
-  const [value, setValue] = React.useState<T[] | null>(options);
+  const [internalValue, setInternalValue] = React.useState<T[] | null>(options);
   const scrollRef = React.useRef<number>(0) //needed to preserve the scroll position of the ListBox. Overriding PaperComponent changes the way that the Listbox renders and resets scroll on interaction
 
   //reset value when options changes
   React.useEffect(() => {
-    setValue(options)
+    setInternalValue(options)
   }, [options])
 
+  //sync internal value when external value changes
+  React.useEffect(() => {
+    if (value !== undefined) setInternalValue(value)
+  }, [value])
+
   const handleChange: MultiSelectOnChange<T> = React.useCallback((event, value, reason, details?) => {
-    setValue(value)
-    if (onChange) onChange(event, value, reason, details)
+    setInternalValue(value)
+    if (onChange){
+       onChange(event, value, reason, details)
+    } 
   }, [onChange])
 
   const handleToggleSelectAll = React.useCallback((event: React.MouseEvent<HTMLDivElement, MouseEvent>, checked: boolean) => {
-    const checkedOptions = options.filter(x => value.includes(x))
-    const uncheckedOptions = options.filter(x => !value.includes(x))
+    const checkedOptions = options.filter(x => internalValue.includes(x))
+    const uncheckedOptions = options.filter(x => !internalValue.includes(x))
     if (checked) {
       handleChange(event, options, "selectOption", { option: uncheckedOptions })
     } else {
       handleChange(event, [], "removeOption", { option: checkedOptions })
     }
-  }, [handleChange, options, value])
+  }, [handleChange, options, internalValue])
 
   // A warning forced usage of React.forwardRef here, even though the ref is not used. Not sure why
   const ListboxComponent = React.forwardRef(function ListboxComponent(
@@ -115,7 +131,7 @@ const MultiSelect = <T extends (string | {label: string; [key:string]: unknown})
       multiple
       limitTags={limitTags}
       size={size}
-      value={value}
+      value={internalValue}
       onChange={handleChange}
       id="checkboxes-tags-demo"
       options={options}
@@ -132,7 +148,7 @@ const MultiSelect = <T extends (string | {label: string; [key:string]: unknown})
         <Paper {...paperProps}>
           <Box
             onMouseDown={(e) => e.preventDefault()} //prevents closing popper
-            onClick={(event) => handleToggleSelectAll(event, value.length === options.length ? false : true)}
+            onClick={(event) => handleToggleSelectAll(event, internalValue.length === options.length ? false : true)}
             pl={1.5}
             py={0.5}
           >
@@ -143,7 +159,7 @@ const MultiSelect = <T extends (string | {label: string; [key:string]: unknown})
                 <Checkbox
                   size="small"
                   id="select-all-checkbox"
-                  checked={value.length === options.length}
+                  checked={internalValue.length === options.length}
                 />
               }
             />
@@ -164,7 +180,7 @@ const MultiSelect = <T extends (string | {label: string; [key:string]: unknown})
               icon={icon}
               checkedIcon={checkedIcon}
               style={{ marginRight: 8 }}
-              checked={selected && (!getOptionDisabled || !getOptionDisabled(option))}
+              checked={selected}
             />
             {capitalizeWords(isLabeledObject(option) ? option.label : option)}
           </li>
