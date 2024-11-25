@@ -19,9 +19,12 @@ import { tissueColors } from "../../../common/lib/colors"
 import MultiSelect, { MultiSelectOnChange } from "./MultiSelect"
 import { capitalizeWords } from "../../search/_ccredetails/utils"
 
-const biosampleTypes = ["cell line", "primary cell", "tissue", "in vitro differentiated cells" ];
+type BiosampleType = "cell line" | "primary cell" | "tissue" | "in vitro differentiated cells"
+const allBiosampleTypes: BiosampleType[] = ["cell line", "primary cell", "tissue", "in vitro differentiated cells"]
 
 type Assembly = "GRCh38" | "mm10"
+
+type MultiSelectTissue = {label: string, types: BiosampleType[]}
 
 //extracted from generated types, needed the nested type to pass as type argument to BarData<T>
 type GeneDataset = { __typename?: 'GeneDataset', biosample: string, tissue?: string | null, cell_compartment?: string | null, biosample_type?: string | null, assay_term_name?: string | null, accession: string, gene_quantification_files?: Array<{ __typename?: 'GeneQuantificationFile', accession: string, biorep?: number | null, quantifications?: Array<{ __typename?: 'GeneQuantification', tpm: number, file_accession: string } | null> | null } | null> | null }
@@ -37,13 +40,12 @@ export function GeneExpression(props: {
   const urlGene = searchParams.get("gene")
   const router = useRouter()
   const pathname = usePathname()
-
   //If genes passed as prop, use those. This is case in cCRE Details. Else use url gene if passed, default to APOE
   const [gene, setGene] = useState<string>(props.genes ? props?.genes[0]?.name : (urlGene ?? "APOE"))
   const [assembly, setAssembly] = useState<Assembly>(initialAssembly)
-  const [biosamples, setBiosamples] = useState<string[]>(biosampleTypes)
-  const [availableTissues, setAvailableTissues] = useState<string[]>([])
-  const [selectedTissues, setSelectedTissues] = useState<string[]>([])
+  const [biosamples, setBiosamples] = useState<BiosampleType[]>(allBiosampleTypes)
+  const [availableTissues, setAvailableTissues] = useState<MultiSelectTissue[]>([])
+  const [selectedTissues, setSelectedTissues] = useState<MultiSelectTissue[]>([])
   const [viewBy, setViewBy] = useState<"byTissueMaxTPM" | "byExperimentTPM" | "byTissueTPM">("byExperimentTPM")
   const [RNAtype, setRNAType] = useState<"all" | "polyA plus RNA-seq" | "total RNA-seq">("total RNA-seq")
   const [scale, setScale] = useState<"linearTPM" | "logTPM">("linearTPM")
@@ -102,10 +104,19 @@ export function GeneExpression(props: {
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
     onCompleted(data) {
-      const uniqueTissues = []
-      data.gene_dataset.forEach(x => {if (!uniqueTissues.includes(x.tissue)) uniqueTissues.push(x.tissue)})
-      setAvailableTissues(uniqueTissues.sort())
-      setSelectedTissues(uniqueTissues.sort())
+      const tissues: MultiSelectTissue[] = []
+      data.gene_dataset.forEach(x => {
+        const existingEntry = tissues.find(y => y.label === x.tissue)
+        if (!existingEntry) { // if tissue not cataloged, add to set
+          tissues.push({label: x.tissue, types: [x.biosample_type as BiosampleType]})
+        } else if (!existingEntry.types.includes(x.biosample_type as BiosampleType)){ //if tissue cataloged, but an exisitng biosample type doesn't, add biosample type
+          existingEntry.types.push(x.biosample_type as BiosampleType)
+        }
+      })
+      
+      const sortedTissues = tissues.sort((a, b) => a.label.localeCompare(b.label))
+      setAvailableTissues(sortedTissues)
+      setSelectedTissues(sortedTissues)
     },
   })
 
@@ -134,8 +145,8 @@ export function GeneExpression(props: {
     if (dataExperiments && dataExperiments.gene_dataset.length > 0) {
       //Filter data points
       const filteredData = dataExperiments.gene_dataset
-        .filter(d => biosamples.includes(d.biosample_type)) //biosample type
-        .filter(d => selectedTissues.includes(d.tissue)) //tissue
+        .filter(d => biosamples.includes(d.biosample_type as BiosampleType)) //biosample type
+        .filter(d => selectedTissues.some(x => x.label === d.tissue)) //tissue
         .filter(d => RNAtype === "all" || d.assay_term_name === RNAtype) //RNA type
         .filter(d => sampleMatchesSearch(d)) //search
       //holder for plot data as replicates are parsed for each experiment
@@ -283,11 +294,11 @@ export function GeneExpression(props: {
     )
   }, [scale])
 
-  const handleSetTissues: MultiSelectOnChange = (_, value) => {
+  const handleSetTissues: MultiSelectOnChange<MultiSelectTissue> = (_, value) => {
     setSelectedTissues(value)
   }
 
-  const handleSetBiosamples: MultiSelectOnChange = (_, value) => {
+  const handleSetBiosamples: MultiSelectOnChange<BiosampleType> = (_, value) => {
     setBiosamples(value)
   }
 
@@ -345,7 +356,7 @@ export function GeneExpression(props: {
                 fullWidth: true,
                 size: "medium",
                 sx: { minWidth: '200px' },
-                defaultValue: {
+                defaultValue: gene && {
                   name: gene, //only gene needed to set default
                   id: "",
                   coordinates: {
@@ -484,9 +495,9 @@ export function GeneExpression(props: {
           </ToggleButtonGroup>
         </FormControl>
         <FormControl>
-          <FormLabel>{biosamples.length === biosampleTypes.length ? "Biosample Types" : <i>Biosample Types*</i>}</FormLabel>
+          <FormLabel>{biosamples.length === allBiosampleTypes.length ? "Biosample Types" : <i>Biosample Types*</i>}</FormLabel>
           <MultiSelect
-            options={biosampleTypes}
+            options={allBiosampleTypes}
             onChange={handleSetBiosamples}
             placeholder="Filter Biosamples"
             limitTags={2}
@@ -494,8 +505,10 @@ export function GeneExpression(props: {
         </FormControl>
         <FormControl>
           <FormLabel>{selectedTissues.length === availableTissues.length ? "Tissues" : <i>Tissues*</i>}</FormLabel>
+          {/* disabling options works, but they're still checked... need to at least show them as unchecked. */}
           <MultiSelect
             options={availableTissues}
+            getOptionDisabled={option => !option.types.some(x => biosamples.includes(x))}
             onChange={handleSetTissues}
             placeholder="Filter Tissues"
             limitTags={2}

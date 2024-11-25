@@ -10,25 +10,37 @@ import { capitalizeWords } from '../../search/_ccredetails/utils';
 const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
 const checkedIcon = <CheckBoxIcon fontSize="small" />;
 
-export type MultiSelectOnChange = (event: React.SyntheticEvent, value: string[], reason: AutocompleteChangeReason, details?: AutocompleteChangeDetails<string | string[]>) => void
+export type MultiSelectOnChange<T> = (event: React.SyntheticEvent, value: T[], reason: AutocompleteChangeReason, details?: AutocompleteChangeDetails<T | T[]>) => void
 
-export interface MultiSelectProps {
-  onChange?: MultiSelectOnChange,
-  options: string[],
+export interface MultiSelectProps<T extends (string | {label: string; [key:string]: unknown})> {
+  onChange?: MultiSelectOnChange<T>,
+  /**
+   * options must be 
+   * ```
+   * string[]
+   * ``` 
+   * or 
+   * ```
+   * {label: string, ...anything}[]
+   * ```
+   */
+  options: T[],
+  getOptionDisabled?: (option: T) => boolean
   placeholder: string
   limitTags?: number
   size?: "small" | "medium"
   //todo add width here
 }
 
-const MultiSelect = ({
+const MultiSelect = <T extends (string | {label: string; [key:string]: unknown})>({
   onChange,
   options,
+  getOptionDisabled,
   placeholder,
   limitTags,
   size = "small"
-}: MultiSelectProps) => {
-  const [value, setValue] = React.useState<string[] | null>(options);
+}: MultiSelectProps<T>) => {
+  const [value, setValue] = React.useState<T[] | null>(options);
   const scrollRef = React.useRef<number>(0) //needed to preserve the scroll position of the ListBox. Overriding PaperComponent changes the way that the Listbox renders and resets scroll on interaction
 
   //reset value when options changes
@@ -36,7 +48,7 @@ const MultiSelect = ({
     setValue(options)
   }, [options])
 
-  const handleChange: MultiSelectOnChange = React.useCallback((event, value, reason, details?) => {
+  const handleChange: MultiSelectOnChange<T> = React.useCallback((event, value, reason, details?) => {
     setValue(value)
     if (onChange) onChange(event, value, reason, details)
   }, [onChange])
@@ -51,7 +63,7 @@ const MultiSelect = ({
     }
   }, [handleChange, options, value])
 
-  // A warning forced usage of React.forwardRef here, even though the ref is not used
+  // A warning forced usage of React.forwardRef here, even though the ref is not used. Not sure why
   const ListboxComponent = React.forwardRef(function ListboxComponent(
     listboxProps: React.HTMLAttributes<HTMLElement>,
     ref: React.ForwardedRef<HTMLUListElement>
@@ -88,6 +100,16 @@ const MultiSelect = ({
     )
   })
 
+  //type guard to en
+  function isLabeledObject(value: unknown): value is { label: string; [key: string]: unknown } {
+    return (
+      value !== null &&
+      typeof value === 'object' &&
+      'label' in value &&
+      typeof value.label === 'string'
+    );
+  }
+
   return (
     <Autocomplete
       multiple
@@ -97,6 +119,7 @@ const MultiSelect = ({
       onChange={handleChange}
       id="checkboxes-tags-demo"
       options={options}
+      getOptionDisabled={getOptionDisabled}
       disableCloseOnSelect
       disablePortal
       slotProps={{ popper: { sx: { zIndex: 1 } } }} //used to make options appear under header
@@ -131,8 +154,8 @@ const MultiSelect = ({
       )}
       //Parent element of options contained within above {paperProps.children}
       ListboxComponent={ListboxComponent}
-      //Each option
-      renderOption={(props, option: string, { selected }) => {
+      //Each option. Type of option was incorrectly inferred to be T | T[] (maybe due to overriding MultiSelectOnChange? idk)
+      renderOption={(props, option: T, { selected }) => {
         const { key, ...optionProps } = props;
         return (
           <li key={key} {...optionProps}>
@@ -141,9 +164,9 @@ const MultiSelect = ({
               icon={icon}
               checkedIcon={checkedIcon}
               style={{ marginRight: 8 }}
-              checked={selected}
+              checked={selected && (!getOptionDisabled || !getOptionDisabled(option))}
             />
-            {capitalizeWords(option)}
+            {capitalizeWords(isLabeledObject(option) ? option.label : option)}
           </li>
         );
       }}
