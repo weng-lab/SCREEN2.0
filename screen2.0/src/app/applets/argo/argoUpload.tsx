@@ -1,10 +1,11 @@
 import React, { useCallback, useState } from "react"
-import { Button, Typography, Stack, Container, IconButton, FormControl, Select, MenuItem, Box, TextField, Alert } from "@mui/material"
+import { Button, Typography, Stack, IconButton, FormControl, Select, MenuItem, Box, TextField, Alert, Link, Container } from "@mui/material"
 import { useDropzone } from "react-dropzone"
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { Cancel, Search } from "@mui/icons-material"
 import { LoadingButton } from "@mui/lab"
-import { UploadProps } from "./types";
+import { InputRegions, UploadProps } from "./types";
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 
 const ArgoUpload: React.FC<UploadProps> = ({
     selectedSearch,
@@ -19,6 +20,25 @@ const ArgoUpload: React.FC<UploadProps> = ({
     const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState([false, ""]) // status, message
+
+    //Allow the user to insert a tab in the text box
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'Tab') {
+            event.preventDefault();
+            const target = event.target as HTMLTextAreaElement;
+            const start = target.selectionStart;
+            const end = target.selectionEnd;
+
+            // Insert tab character at the cursor position
+            target.value =
+                target.value.substring(0, start) +
+                '\t' +
+                target.value.substring(end);
+
+            // Move the cursor after the inserted tab character
+            target.selectionStart = target.selectionEnd = start + 1;
+        }
+    };
 
     //coppied from BedUpload
     function parseDataInput(data) {
@@ -41,7 +61,6 @@ const ArgoUpload: React.FC<UploadProps> = ({
         configureInputedRegions(inputData)
     }
 
-    //TODO Warn based on file size, support multiple files
     const submitUploadedFile = () => {
         setLoading(true)
         setError([false, ""])
@@ -74,17 +93,20 @@ const ArgoUpload: React.FC<UploadProps> = ({
 
     //map parsed file / text to Genomic region type and sort them
     function configureInputedRegions(data) {
-        const regions = data.map((item, index) => ({
+        const regions: InputRegions = data.map((item, index) => ({
             chr: item[0],         // Index 0 for inputed chromosome
             start: Number(item[1]), // Index 1 for inputed start, convert to number
-            end: Number(item[2]) ,    // Index 2 for inputed end, convert to number
-            regionID: index + 1
+            end: Number(item[2]),    // Index 2 for inputed end, convert to number
+            ref: item[3],   // Index 3 for reference allele
+            alt: item[4],  //Index 3 for alternate allele
+            strand: item[5],  //Index 5 for strand pos/neg
+            regionID: item.length === 7 ? item[6] : index + 1,  //Index 6 for region ID, if they do not provide one, supply one
         }));
 
         // Sort the regions
         const sortedRegions = regions.sort((a, b) => {
-            const chrA = a.chr.replace('chr', '');
-            const chrB = b.chr.replace('chr', '');
+            const chrA = Number(a.chr.replace('chr', ''));
+            const chrB = Number(b.chr.replace('chr', ''));
 
             if (chrA !== chrB) {
                 return chrA - chrB;
@@ -110,6 +132,46 @@ const ArgoUpload: React.FC<UploadProps> = ({
         <>
             <Stack direction={"column"} spacing={3} mt="10px">
                 {error[0] && <Alert variant="filled" severity="error">{error[1]}</Alert>}
+                <Stack
+                    direction={"column"}
+                    spacing={2}
+                    sx={{
+                        padding: "16px",
+                        border: "1px solid",
+                        borderColor: "grey.300",
+                        borderRadius: "8px",
+                        backgroundColor: "grey.100",
+                    }}
+                >
+                    <Typography variant="body1" fontSize="1.1rem">
+                        <strong>Required Fields:</strong> <br />
+                        <strong>Chromosome</strong>, <strong>Start</strong>, <strong>End</strong>,{" "}
+                        <strong>Reference Allele</strong>, <strong>Alternate Allele</strong>, {" "}
+                        <strong>Strand</strong>, and{" "}
+                        <strong>Region ID</strong>
+                    </Typography>
+                    <Typography variant="body1" fontSize="1rem">
+                        If using the text box, separate fields with a tab. Below is an example file to help you
+                        format your data correctly.
+                    </Typography>
+                    <Link
+                        href="/path/to/example-file.bed"
+                        download
+                        underline="hover"
+                        sx={{
+                            fontWeight: "bold",
+                            color: "primary.main",
+                            fontSize: "1rem",
+                            display: "inline-block",
+                            marginTop: "8px",
+                        }}
+                    >
+                        <IconButton color="primary">
+                            <FileDownloadIcon />
+                        </IconButton>
+                        Download Example File
+                    </Link>
+                </Stack>
                 <Stack direction={"row"} alignItems={"center"} flexWrap={"wrap"}>
                     <Typography variant={"h5"} mr={1} alignSelf="center">
                         Upload Through
@@ -128,7 +190,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
                                 fullWidth
                                 id="select-search"
                                 value={selectedSearch}
-                                onChange={handleSearchChange}
+                                onChange={(event) => { setFiles([]); handleSearchChange(event); }}
                                 SelectDisplayProps={{
                                     style: { paddingBottom: '0px', paddingTop: '1px' },
                                 }}
@@ -179,6 +241,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
                                 fullWidth
                                 rows={5}
                                 placeholder="Copy and paste your data from Excel here"
+                                onKeyDown={handleKeyDown}
                             />
                             <Button type="submit" size="medium" variant="outlined">
                                 Submit
@@ -192,7 +255,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
                         <Typography mb={1} variant="h5">Uploaded:</Typography>
                         <Stack direction="row" alignItems="center">
                             <Typography>{`${truncateFileName(files[0].name, 40)}\u00A0-\u00A0${(files[0].size / 1000000).toFixed(1)}\u00A0mb`}</Typography>
-                            <IconButton color="primary" onClick={() => { setFiles([]); handleSearchChange(null); onRegionsConfigured([]); }}>
+                            <IconButton color="primary" onClick={() => { setFiles([]); handleSearchChange(null); }}>
                                 <Cancel />
                             </IconButton>
                         </Stack>
@@ -214,7 +277,6 @@ const ArgoUpload: React.FC<UploadProps> = ({
 
             </Box>
         </>
-
     )
 }
 

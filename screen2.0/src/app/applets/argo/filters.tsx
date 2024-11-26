@@ -216,7 +216,18 @@ const Filters: React.FC<FilterProps> = ({
                             <FormGroup>
                                 <FormControlLabel value="TFMotifs" control={<Checkbox onChange={() => updateSequenceFilter("useMotifs", !sequenceFilterVariables.useMotifs)} checked={sequenceFilterVariables.useMotifs} />} label="TF Motifs" />
                                 <Stack ml={2}>
-                                    <RadioGroup  row value={sequenceFilterVariables.motifCatalog} onChange={(event) => updateSequenceFilter("motifCatalog", event.target.value as "factorbook" | "hocomoco" | "zMotif")}>
+                                    <RadioGroup
+                                        row
+                                        value={sequenceFilterVariables.motifCatalog}
+                                        onChange={(event) => {
+                                            const selectedValue = event.target.value as "factorbook" | "hocomoco" | "zMotif";
+                                            if (selectedValue === "factorbook") {
+                                                updateSequenceFilter("tfPeakStrength", false);
+                                                updateSequenceFilter("overlapsTFPeak", false);
+                                            }
+                                            updateSequenceFilter("motifCatalog", selectedValue);
+                                        }}
+                                    >
                                         <FormControlLabel value="factorbook" control={<Radio />} label="Factorbook" disabled={!sequenceFilterVariables.useMotifs} />
                                         <FormControlLabel value="hocomoco" control={<Radio />} label="HOCOMOCO" disabled={!sequenceFilterVariables.useMotifs} />
                                         {/* <FormControlLabel value="zMotif" control={<Radio />} label="ZMotif" disabled={!sequenceFilterVariables.useMotifs} /> */}
@@ -227,7 +238,7 @@ const Filters: React.FC<FilterProps> = ({
                                             <Checkbox
                                                 onChange={() => updateSequenceFilter("overlapsTFPeak", !sequenceFilterVariables.overlapsTFPeak)}
                                                 disabled={!sequenceFilterVariables.useMotifs || sequenceFilterVariables.motifCatalog !== "factorbook"}
-                                                checked={sequenceFilterVariables.overlapsTFPeak}
+                                                checked={sequenceFilterVariables.overlapsTFPeak && sequenceFilterVariables.motifCatalog === "factorbook"}
                                             />
                                         }
                                     />
@@ -238,7 +249,7 @@ const Filters: React.FC<FilterProps> = ({
                                     <Typography lineHeight={"40px"}>Include in Ranking</Typography>
                                     <FormControlLabel value="numMotifs" control={<Checkbox onChange={() => updateSequenceFilter("numOverlappingMotifs", !sequenceFilterVariables.numOverlappingMotifs)} checked={sequenceFilterVariables.numOverlappingMotifs} />} label="Number of Overlaping Motifs" disabled={!sequenceFilterVariables.useMotifs} />
                                     <FormControlLabel value="motifScoreDelta" control={<Checkbox onChange={() => updateSequenceFilter("motifScoreDelta", !sequenceFilterVariables.motifScoreDelta)} checked={sequenceFilterVariables.motifScoreDelta} />} label="Motif Score Delta" disabled={!sequenceFilterVariables.useMotifs} />
-                                    <FormControlLabel value="tfPeakStrength" control={<Checkbox onChange={() => updateSequenceFilter("tfPeakStrength", !sequenceFilterVariables.tfPeakStrength)} checked={sequenceFilterVariables.tfPeakStrength} />} label="TF Peak Strength" disabled={!sequenceFilterVariables.useMotifs || !sequenceFilterVariables.overlapsTFPeak || sequenceFilterVariables.motifCatalog !== "factorbook" } />
+                                    <FormControlLabel value="tfPeakStrength" control={<Checkbox onChange={() => updateSequenceFilter("tfPeakStrength", !sequenceFilterVariables.tfPeakStrength)} checked={sequenceFilterVariables.tfPeakStrength && sequenceFilterVariables.motifCatalog === "factorbook"} />} label="TF Peak Strength" disabled={!sequenceFilterVariables.useMotifs || !sequenceFilterVariables.overlapsTFPeak || sequenceFilterVariables.motifCatalog !== "factorbook" } />
                                 </Stack>
                             </FormGroup>
                         </AccordionDetails>

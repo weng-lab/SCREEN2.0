@@ -42,7 +42,12 @@ export type GenomicRegion = {
 
 export type RankedRegions = (GenomicRegion & {rank: number})[]
 
-export type InputRegions = (GenomicRegion & {regionID: number})[]
+export type InputRegions = (GenomicRegion & {
+    regionID: number
+    ref: string
+    alt: string
+    strand: string
+})[]
 
 export type CCREs = (GenomicRegion & {
     accession: string
