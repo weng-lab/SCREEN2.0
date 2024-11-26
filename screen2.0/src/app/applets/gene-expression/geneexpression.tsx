@@ -300,14 +300,35 @@ export function GeneExpression(props: {
 
   const handleSetBiosamples: MultiSelectOnChange<BiosampleType> = (_, value) => {
     setBiosamples(value)
-    //when changing biosample types, need to manually modify the selected tissues to uncheck those which no longer
-    setSelectedTissues(
-      availableTissues.filter(x => x.types.some(y => value.includes(y)))
-    )
   }
+
+  const resetBiosamples = () => {
+    setBiosamples(allBiosampleTypes)
+  }
+
+  const resetTissues = () => [
+    setSelectedTissues(availableTissues)
+  ]
 
   const handleSetGene = (newGene: string) => {
     setGene(newGene)
+  }
+
+  const ResetButton = ({ onClick }: { onClick: React.MouseEventHandler<HTMLButtonElement> }) => {
+    return (
+      <Button
+        variant="text"
+        size="small"
+        onClick={onClick}
+        endIcon={<Close />}
+        sx={{ 
+          p: 0,
+          '& .MuiButton-icon': {ml: 0.5}
+        }}
+      >
+        <i>Reset</i>
+      </Button>
+    )
   }
 
   return (
@@ -499,17 +520,35 @@ export function GeneExpression(props: {
           </ToggleButtonGroup>
         </FormControl>
         <FormControl>
-          <FormLabel>{biosamples.length === allBiosampleTypes.length ? "Biosample Types" : <i>Biosample Types*</i>}</FormLabel>
+          <FormLabel>
+            {biosamples.length === allBiosampleTypes.length ? "Biosample Types" :
+            <Stack direction="row" justifyContent={"space-between"}>
+              <i>Biosample Types*</i>
+              <ResetButton onClick={resetBiosamples} />
+            </Stack>
+            }
+          </FormLabel>
           <MultiSelect
             options={allBiosampleTypes}
             value={biosamples}
+            getOptionDisabled={option => !selectedTissues.some(x => x.types.includes(option))}
             onChange={handleSetBiosamples}
             placeholder="Filter Biosamples"
             limitTags={2}
           />
         </FormControl>
         <FormControl>
-          <FormLabel>{selectedTissues.length === availableTissues.length ? "Tissues" : <i>Tissues*</i>}</FormLabel>
+          <FormLabel>
+            {selectedTissues.length === availableTissues.length ? "Tissue/Organ of Origin" :
+              <Stack direction="row" justifyContent={"space-between"}>
+                <i>Tissue/Organ of Origin*</i>
+                <Button variant="text" size="small" onClick={resetTissues} endIcon={<Close />} sx={{ p: 0 }}>
+                  <i>Reset</i>
+                </Button>
+                <ResetButton onClick={resetTissues} />
+              </Stack>
+            }
+          </FormLabel>
           <MultiSelect
             options={availableTissues}
             value={selectedTissues}

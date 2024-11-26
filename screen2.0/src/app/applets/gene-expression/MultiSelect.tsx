@@ -4,7 +4,7 @@ import TextField from '@mui/material/TextField';
 import Autocomplete, { AutocompleteChangeDetails, AutocompleteChangeReason } from '@mui/material/Autocomplete';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
-import { Box, Divider, FormControlLabel, Paper } from '@mui/material';
+import { Box, Chip, Divider, FormControlLabel, Paper } from '@mui/material';
 import { capitalizeWords } from '../../search/_ccredetails/utils';
 
 const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
@@ -116,7 +116,7 @@ const MultiSelect = <T extends (string | {label: string; [key:string]: unknown})
     )
   })
 
-  //type guard to en
+  //type guard
   function isLabeledObject(value: unknown): value is { label: string; [key: string]: unknown } {
     return (
       value !== null &&
@@ -127,10 +127,11 @@ const MultiSelect = <T extends (string | {label: string; [key:string]: unknown})
   }
 
   return (
-    <Autocomplete
+    <Autocomplete<T, true> //Type of option was being incorrectly inferred to be T | T[] (maybe due to overriding MultiSelectOnChange? idk)
       multiple
       limitTags={limitTags}
       size={size}
+      open
       value={internalValue}
       onChange={handleChange}
       id="checkboxes-tags-demo"
@@ -170,22 +171,39 @@ const MultiSelect = <T extends (string | {label: string; [key:string]: unknown})
       )}
       //Parent element of options contained within above {paperProps.children}
       ListboxComponent={ListboxComponent}
-      //Each option. Type of option was incorrectly inferred to be T | T[] (maybe due to overriding MultiSelectOnChange? idk)
-      renderOption={(props, option: T, { selected }) => {
+      //Each option
+      renderOption={(props, option, { selected }) => {
         const { key, ...optionProps } = props;
         return (
           <li key={key} {...optionProps}>
             <Checkbox
-              id={'checkbox-' + option}
+              id={'checkbox-' + (isLabeledObject(option) ? option.label : option)}
               icon={icon}
+              size='small'
               checkedIcon={checkedIcon}
               style={{ marginRight: 8 }}
               checked={selected}
+              indeterminate={selected && (getOptionDisabled && getOptionDisabled(option))}
             />
             {capitalizeWords(isLabeledObject(option) ? option.label : option)}
           </li>
         );
       }}
+      //each tag
+      renderTags={(tagValue, getTagProps) =>
+        tagValue
+        .filter(option => !getOptionDisabled || !getOptionDisabled(option))
+        .map((option, index) => {
+          const { key, ...tagProps } = getTagProps({ index });
+          return (
+            <Chip
+              key={key}
+              label={isLabeledObject(option) ? option.label : option}
+              {...tagProps}
+            />
+          );
+        })
+      }
     />
   );
 }
