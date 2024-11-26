@@ -29,6 +29,23 @@ type MultiSelectTissue = {label: string, types: BiosampleType[]}
 //extracted from generated types, needed the nested type to pass as type argument to BarData<T>
 type GeneDataset = { __typename?: 'GeneDataset', biosample: string, tissue?: string | null, cell_compartment?: string | null, biosample_type?: string | null, assay_term_name?: string | null, accession: string, gene_quantification_files?: Array<{ __typename?: 'GeneQuantificationFile', accession: string, biorep?: number | null, quantifications?: Array<{ __typename?: 'GeneQuantification', tpm: number, file_accession: string } | null> | null } | null> | null }
 
+export const ResetButton = ({ onClick }: { onClick: React.MouseEventHandler<HTMLButtonElement> }) => {
+  return (
+    <Button
+      variant="text"
+      size="small"
+      onClick={onClick}
+      endIcon={<Close />}
+      sx={{ 
+        p: 0,
+        '& .MuiButton-icon': {ml: 0.5}
+      }}
+    >
+      <i>Reset</i>
+    </Button>
+  )
+}
+
 export function GeneExpression(props: {
   assembly: Assembly
   genes?: { name: string, linkedBy?: string[] }[]
@@ -314,23 +331,6 @@ export function GeneExpression(props: {
     setGene(newGene)
   }
 
-  const ResetButton = ({ onClick }: { onClick: React.MouseEventHandler<HTMLButtonElement> }) => {
-    return (
-      <Button
-        variant="text"
-        size="small"
-        onClick={onClick}
-        endIcon={<Close />}
-        sx={{ 
-          p: 0,
-          '& .MuiButton-icon': {ml: 0.5}
-        }}
-      >
-        <i>Reset</i>
-      </Button>
-    )
-  }
-
   return (
     <Stack spacing={2}>
       <Stack direction="row" justifyContent={"space-between"}>
@@ -542,9 +542,6 @@ export function GeneExpression(props: {
             {selectedTissues.length === availableTissues.length ? "Tissue/Organ of Origin" :
               <Stack direction="row" justifyContent={"space-between"}>
                 <i>Tissue/Organ of Origin*</i>
-                <Button variant="text" size="small" onClick={resetTissues} endIcon={<Close />} sx={{ p: 0 }}>
-                  <i>Reset</i>
-                </Button>
                 <ResetButton onClick={resetTissues} />
               </Stack>
             }

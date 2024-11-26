@@ -32,6 +32,7 @@ import { capitalizeWords } from "./utils"
 import DownloadDialog, { FileOption } from "../../applets/gwas/_lollipop-plot/DownloadDialog"
 import { capitalizeFirstLetter, downloadObjArrayAsTSV, downloadSVG, downloadSvgAsPng } from "../../applets/gwas/helpers"
 import MultiSelect, { MultiSelectOnChange } from "../../applets/gene-expression/MultiSelect"
+import { ResetButton } from "../../applets/gene-expression/geneexpression"
 
 export type RampagePeak = {
   value: number,
@@ -93,7 +94,7 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
     setSearch(event.target.value)
   };
 
-  const handleSetTissues: MultiSelectOnChange = (_, value) => {
+  const handleSetTissues: MultiSelectOnChange<string> = (_, value) => {
     setSelectedTissues(value)
   }
 
@@ -250,6 +251,10 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
     )
   }, [loadingRampage, errorRampage, peakIsAvailable, gene, selectedPeak, plotData])
 
+  const resetTissues = () => {
+    setSelectedTissues(availableTissues)
+  }
+
   return (loadingRampage ? <LoadingMessage /> :
     <Stack spacing={2}>
       <Stack width={"100%"} direction="row" mb={1} justifyContent={"space-between"}>
@@ -352,9 +357,17 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
           </Select>
         </FormControl>
         <FormControl>
-          <FormLabel>{selectedTissues.length === availableTissues.length ? "Tissues" : <i>Tissues*</i>}</FormLabel>
+          <FormLabel>
+            {selectedTissues.length === availableTissues.length ? "Tissue/Organ of Origin" :
+              <Stack direction="row" justifyContent={"space-between"}>
+                <i>Tissue/Organ of Origin*</i>
+                <ResetButton onClick={resetTissues} />
+              </Stack>
+            }
+          </FormLabel>
           <MultiSelect
             options={availableTissues}
+            value={selectedTissues}
             onChange={handleSetTissues}
             placeholder="Filter Tissues"
             limitTags={2}

@@ -131,7 +131,6 @@ const MultiSelect = <T extends (string | {label: string; [key:string]: unknown})
       multiple
       limitTags={limitTags}
       size={size}
-      open
       value={internalValue}
       onChange={handleChange}
       id="checkboxes-tags-demo"
