@@ -2,7 +2,7 @@ import React, { useCallback, useState } from "react"
 import { Button, Typography, Stack, IconButton, FormControl, Select, MenuItem, Box, TextField, Alert, Link, Container } from "@mui/material"
 import { useDropzone } from "react-dropzone"
 import UploadFileIcon from '@mui/icons-material/UploadFile';
-import { Cancel, Search } from "@mui/icons-material"
+import { Cancel } from "@mui/icons-material"
 import { LoadingButton } from "@mui/lab"
 import { InputRegions, UploadProps } from "./types";
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
@@ -20,9 +20,20 @@ const ArgoUpload: React.FC<UploadProps> = ({
     const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState([false, ""]) // status, message
+    const [filesSubmitted, setFilesSubmitted] = useState(false)
+    const [textValue, setTextValue] = useState(""); // State to control the TextField value
+
+    const handleReset = () => {
+        setTextValue(""); // Clear the text box
+        setFiles([]); 
+        handleSearchChange(null); 
+        setError([false, ""]); 
+        setFilesSubmitted(false)
+    };
 
     //Allow the user to insert a tab in the text box
     const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        setFilesSubmitted(false)
         if (event.key === 'Tab') {
             event.preventDefault();
             const target = event.target as HTMLTextAreaElement;
@@ -56,6 +67,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
     }
 
     function submitTextUpload(event) {
+        setError([false, ""])
         const uploadedData = event.get("textUploadFile").toString()
         const inputData = parseDataInput(uploadedData)
         configureInputedRegions(inputData)
@@ -102,6 +114,28 @@ const ArgoUpload: React.FC<UploadProps> = ({
             strand: item[5],  //Index 5 for strand pos/neg
             regionID: item.length === 7 ? item[6] : index + 1,  //Index 6 for region ID, if they do not provide one, supply one
         }));
+        console.log(Number(regions[0].chr.replace('chr', '')))
+        const chrError = regions.some(region => Number(region.chr.replace('chr', '')) === 0 || isNaN(Number(region.chr.replace('chr', ''))));
+        if (chrError) {
+            setError([true, "Provide chromosome numbers"])
+            setLoading(false);
+            return;
+        }
+        const startEndError = regions.some(region => isNaN(region.start) || isNaN(region.end));
+        if (startEndError) {
+            setError([true, "Start and End must be Numbers"])
+            setLoading(false);
+            return;
+        }
+        const totalBasePairs = regions.reduce(
+            (sum, region) => sum + (region.end - region.start),
+            0
+        );
+        if (totalBasePairs > 10000) {
+            setError([true, "The total base pairs in the input regions must not exceed 10,000."])
+            setLoading(false);
+            return;
+        }
 
         // Sort the regions
         const sortedRegions = regions.sort((a, b) => {
@@ -116,6 +150,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
             }
         });
         setLoading(false)
+        setFilesSubmitted(true)
         onRegionsConfigured(sortedRegions);
     }
 
@@ -131,7 +166,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
     return (
         <>
             <Stack direction={"column"} spacing={3} mt="10px">
-                {error[0] && <Alert variant="filled" severity="error">{error[1]}</Alert>}
+                {error[0] && <Alert variant="outlined" severity="error">{error[1]}</Alert>}
                 <Stack
                     direction={"column"}
                     spacing={2}
@@ -190,7 +225,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
                                 fullWidth
                                 id="select-search"
                                 value={selectedSearch}
-                                onChange={(event) => { setFiles([]); handleSearchChange(event); }}
+                                onChange={(event) => { setFiles([]); handleSearchChange(event); setError([false, ""]); setFilesSubmitted(false) }}
                                 SelectDisplayProps={{
                                     style: { paddingBottom: '0px', paddingTop: '1px' },
                                 }}
@@ -242,12 +277,38 @@ const ArgoUpload: React.FC<UploadProps> = ({
                                 rows={5}
                                 placeholder="Copy and paste your data from Excel here"
                                 onKeyDown={handleKeyDown}
+                                value={textValue}
+                                onChange={(e) => setTextValue(e.target.value)}
                             />
-                            <Button type="submit" size="medium" variant="outlined">
-                                Submit
-                            </Button>
+                            <Stack
+                                direction="row"
+                                alignItems="center"
+                                justifyContent="space-between"
+                                sx={{ mt: 1 }}
+                            >
+                                <Button
+                                    type="submit"
+                                    size="medium"
+                                    variant="outlined"
+                                    disabled={filesSubmitted}
+                                    sx={{ textTransform: "none" }}
+                                >
+                                    Submit
+                                </Button>
+                                <Button
+                                    color="error"
+                                    type="button"
+                                    size="medium"
+                                    variant="outlined"
+                                    onClick={handleReset}
+                                    sx={{ textTransform: "none" }}
+                                >
+                                    Reset
+                                </Button>
+                            </Stack>
                         </form>
                     </FormControl>
+
                 )}
                 {/* When a file is uploaded */}
                 {files.length > 0 &&
@@ -255,7 +316,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
                         <Typography mb={1} variant="h5">Uploaded:</Typography>
                         <Stack direction="row" alignItems="center">
                             <Typography>{`${truncateFileName(files[0].name, 40)}\u00A0-\u00A0${(files[0].size / 1000000).toFixed(1)}\u00A0mb`}</Typography>
-                            <IconButton color="primary" onClick={() => { setFiles([]); handleSearchChange(null); }}>
+                            <IconButton color="primary" onClick={() => { setFiles([]); handleSearchChange(null); setError([false, ""]); setFilesSubmitted(false); }}>
                                 <Cancel />
                             </IconButton>
                         </Stack>
@@ -266,7 +327,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
                             onClick={submitUploadedFile}
                             variant="outlined"
                             color="primary"
-                            endIcon={<Search />}
+                            disabled={filesSubmitted}
                         >
                             <span>
                                 Submit

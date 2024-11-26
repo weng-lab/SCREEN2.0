@@ -23,8 +23,6 @@ export default function Argo() {
     const [getIntersectingCcres, { data: intersectArray }] = useLazyQuery(BED_INTERSECT_QUERY)
     const [getMemeOccurrences] = useLazyQuery(MOTIF_QUERY)
     const [occurrences, setOccurrences] = useState<QueryResult<OccurrencesQuery>[]>([]);
-
-    const [error_maxBP, setErrorMaxBP] = useState(null)
     const [loadingMainRows, setLoadingMainRows] = useState(true);
     const [loadingElementRanks, setLoadingElementRanks] = useState(true);
     const [loadingSequenceRanks, setLoadingSequenceRanks] = useState(true);
@@ -324,23 +322,12 @@ export default function Argo() {
         if (event) {
             setSelectedSearch(event.target.value)
         }
-        setErrorMaxBP(null)
         setShownTable(null)
         handleRegionsConfigured([])
     }
 
     // This function will receive the regions from ArgoUpload and find the intersecting cCREs
     const handleRegionsConfigured = (regions: InputRegions) => {
-        //check for total base pair count cannot exceed 10,000
-        const totalBasePairs = regions.reduce(
-            (sum, region) => sum + (region.end - region.start),
-            0
-        );
-        if (totalBasePairs > 10000) {
-            setErrorMaxBP("The total base pairs in the input regions must not exceed 10,000.")
-            return;
-        }
-        setErrorMaxBP(null)
         setInputRegions(regions);
         console.log(regions)
         const user_ccres = regions.map(region => [
@@ -701,11 +688,6 @@ export default function Argo() {
                 <Typography variant="h4" mb={3}>
                     <b>A</b>ggregate <b>R</b>ank <b>G</b>enerat<b>o</b>r
                 </Typography>
-                {error_maxBP && (
-                    <Alert variant="outlined" severity="error">
-                        {error_maxBP}
-                    </Alert>
-                )}
                 <ArgoUpload
                     selectedSearch={selectedSearch}
                     handleSearchChange={handleSearchChange}
