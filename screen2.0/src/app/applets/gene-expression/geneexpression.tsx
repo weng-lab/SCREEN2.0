@@ -331,6 +331,10 @@ export function GeneExpression(props: {
     setGene(newGene)
   }
 
+  const optionIsDisabled = useCallback((option: MultiSelectTissue) => {
+    return !option.types.some(x => biosamples.includes(x))
+  }, [biosamples])
+
   return (
     <Stack spacing={2}>
       <Stack direction="row" justifyContent={"space-between"}>
@@ -547,9 +551,20 @@ export function GeneExpression(props: {
             }
           </FormLabel>
           <MultiSelect
-            options={availableTissues}
+            options={availableTissues.sort((a, b) => {
+              const AisDisabled = optionIsDisabled(a);
+              const BisDisabled = optionIsDisabled(b);
+
+              // Primary sorting: by disabled status
+              if (AisDisabled !== BisDisabled) {
+                return AisDisabled ? 1 : -1; // Disabled items come last
+              }
+              
+              // Secondary sorting: alphabetically by label
+              return a.label.localeCompare(b.label);
+            })}
             value={selectedTissues}
-            getOptionDisabled={option => !option.types.some(x => biosamples.includes(x))}
+            getOptionDisabled={optionIsDisabled}
             onChange={handleSetTissues}
             placeholder="Filter Tissues"
             limitTags={2}
