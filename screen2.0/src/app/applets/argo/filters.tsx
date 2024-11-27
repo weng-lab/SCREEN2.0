@@ -249,7 +249,7 @@ const Filters: React.FC<FilterProps> = ({
                                     <Typography lineHeight={"40px"}>Include in Ranking</Typography>
                                     <FormControlLabel value="numMotifs" control={<Checkbox onChange={() => updateSequenceFilter("numOverlappingMotifs", !sequenceFilterVariables.numOverlappingMotifs)} checked={sequenceFilterVariables.numOverlappingMotifs} />} label="Number of Overlaping Motifs" disabled={!sequenceFilterVariables.useMotifs} />
                                     <FormControlLabel value="motifScoreDelta" control={<Checkbox onChange={() => updateSequenceFilter("motifScoreDelta", !sequenceFilterVariables.motifScoreDelta)} checked={sequenceFilterVariables.motifScoreDelta} />} label="Motif Score Delta" disabled={!sequenceFilterVariables.useMotifs} />
-                                    <FormControlLabel value="tfPeakStrength" control={<Checkbox onChange={() => updateSequenceFilter("tfPeakStrength", !sequenceFilterVariables.tfPeakStrength)} checked={sequenceFilterVariables.tfPeakStrength && sequenceFilterVariables.motifCatalog === "factorbook"} />} label="TF Peak Strength" disabled={!sequenceFilterVariables.useMotifs || !sequenceFilterVariables.overlapsTFPeak || sequenceFilterVariables.motifCatalog !== "factorbook" } />
+                                    <FormControlLabel value="tfPeakStrength" control={<Checkbox onChange={() => updateSequenceFilter("tfPeakStrength", !sequenceFilterVariables.tfPeakStrength)} checked={sequenceFilterVariables.tfPeakStrength && sequenceFilterVariables.motifCatalog === "factorbook"} />} label="TF Peak Strength" disabled={!sequenceFilterVariables.useMotifs || !sequenceFilterVariables.overlapsTFPeak || sequenceFilterVariables.motifCatalog !== "factorbook"} />
                                 </Stack>
                             </FormGroup>
                         </AccordionDetails>
@@ -525,8 +525,53 @@ const Filters: React.FC<FilterProps> = ({
                             Genes
                         </AccordionSummary>
                         <AccordionDetails>
-                            <Stack>
-                                <Typography lineHeight={"40px"}>Linked Genes</Typography>
+                            <FormControlLabel value="genes" control={<Checkbox onChange={() => updateGeneFilter("useGenes", !geneFilterVariables.useGenes)} checked={geneFilterVariables.useGenes} />} label="Linked Genes" />
+                            <Stack ml={2}>
+                                <Typography>Method of Linkage</Typography>
+                                <Stack ml={2}>
+                                    <FormControl sx={{ mt: 1 }}>
+                                        <RadioGroup
+                                            row
+                                            value={geneFilterVariables.methodOfLinkage}
+                                            onChange={(event) => updateGeneFilter("methodOfLinkage", event.target.value)}
+                                        >
+                                            <FormControlLabel
+                                                value="distance"
+                                                control={<Radio disabled={!geneFilterVariables.useGenes} />}
+                                                label="Distance"
+                                            />
+                                            <FormControlLabel
+                                                value="3DChromatin"
+                                                control={<Radio disabled={!geneFilterVariables.useGenes} />}
+                                                label="3D Chromatin Links"
+                                            />
+                                            <FormControlLabel
+                                                value="eQTLs"
+                                                control={<Radio disabled={!geneFilterVariables.useGenes} />}
+                                                label="eQTLs"
+                                            />
+                                            <FormControlLabel
+                                                value="compPredictions"
+                                                control={<Radio disabled={!geneFilterVariables.useGenes} />}
+                                                label="Computational Predictions"
+                                            />
+                                        </RadioGroup>
+                                    </FormControl>
+                                </Stack>
+                                <FormControlLabel
+                                    value="protein"
+                                    control={<Checkbox
+                                        onChange={() => updateGeneFilter("proteinOnly", !geneFilterVariables.proteinOnly)}
+                                        checked={geneFilterVariables.proteinOnly} 
+                                        disabled={!geneFilterVariables.useGenes}/>}
+                                    label="Only Protein Coding Genes" />
+                                <FormControlLabel
+                                    value="mustHaveOrtholog"
+                                    control={<Checkbox
+                                        onChange={() => updateGeneFilter("mustHaveOrtholog", !geneFilterVariables.mustHaveOrtholog)}
+                                        checked={geneFilterVariables.mustHaveOrtholog}
+                                        disabled={!geneFilterVariables.useGenes} />}
+                                    label="Only Orthologous Genes" />
                             </Stack>
                         </AccordionDetails>
                     </Accordion>

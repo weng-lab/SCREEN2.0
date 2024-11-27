@@ -31,7 +31,7 @@ export default function Argo() {
     const [selectedSearch, setSelectedSearch] = useState<string>("BED File")
     const [drawerOpen, setDrawerOpen] = useState(true);
     const toggleDrawer = () => setDrawerOpen(!drawerOpen);
-    const [shownTable, setShownTable] = useState<"sequence" | "element" | "gene">(null);
+    const [shownTable, setShownTable] = useState<"sequence" | "elements" | "genes">(null);
     const [modalData, setModalData] = useState<{
         open: boolean;
         chromosome: string;
@@ -43,6 +43,7 @@ export default function Argo() {
     // These will be deleted once functionality is implemented
     const [geneRanks, setGeneRanks] = useState<RankedRegions>([]);
     const [geneRows, setGeneRows] = useState<GeneTableRow[]>([])
+
     // Filter state variables
     const [sequenceFilterVariables, setSequenceFilterVariables] = useState<SequenceFilterState>({
         useConservation: false,
@@ -90,7 +91,10 @@ export default function Argo() {
 
     const [geneFilterVariables, setGeneFilterVariables] = useState<GeneFilterState>({
         useGenes: true,
-        idk: "no"
+        methodOfLinkage: "distance",
+        proteinOnly: false,
+        mustHaveOrtholog: false,
+
     });
 
     //update specific variable in sequence filters
@@ -190,7 +194,7 @@ export default function Argo() {
         }
         if (elementFilterVariables.usecCREs) {
             cols.push({
-                header: "Element", HeaderRender: () => <MainColHeader tableName="Elements" onClick={() => shownTable === "element" ? setShownTable(null) : setShownTable("element")} />, value: (row) => row.elementRank === 0 ? "N/A" : row.elementRank,
+                header: "Element", HeaderRender: () => <MainColHeader tableName="Elements" onClick={() => shownTable === "elements" ? setShownTable(null) : setShownTable("elements")} />, value: (row) => row.elementRank === 0 ? "N/A" : row.elementRank,
                 sort: (a, b) => {
                     const rankA = a.elementRank
                     const rankB = b.elementRank
@@ -201,7 +205,7 @@ export default function Argo() {
                 }
             })
         }
-        if (geneFilterVariables.useGenes) { cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Genes" onClick={() => shownTable === "gene" ? setShownTable(null) : setShownTable("gene")} />, value: (row) => "N/A" }) }
+        if (geneFilterVariables.useGenes) { cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Genes" onClick={() => shownTable === "genes" ? setShownTable(null) : setShownTable("genes")} />, value: (row) => "N/A" }) }
 
         return cols
 
@@ -307,6 +311,21 @@ export default function Argo() {
         return cols
 
     }, [elementFilterVariables])
+
+    //handle column changes for the Gene rank table
+    const geneColumns: DataTableColumn<GeneTableRow>[] = useMemo(() => {
+
+        const cols: DataTableColumn<GeneTableRow>[] = [
+            { header: "Region ID", value: (row) => row.regionID },
+        ]
+
+        if (geneFilterVariables.useGenes) {
+            cols.push({ header: "PlaceHolder", value: (row) => null })
+        }
+
+        return cols
+
+    }, [geneFilterVariables])
 
     //open ccre details on ccre click
     const handlecCREClick = (row) => {
@@ -730,7 +749,7 @@ export default function Argo() {
                             </Box>
                         )}
 
-                        {(shownTable === "element" && elementFilterVariables.usecCREs) && (
+                        {(shownTable === "elements" && elementFilterVariables.usecCREs) && (
                             <Box mt="20px">
                                 {error_scores && (
                                     <Alert variant="filled" severity="error">
@@ -752,24 +771,11 @@ export default function Argo() {
                             </Box>
                         )}
 
-                        {shownTable === "gene" && (
+                        {shownTable === "genes" && (
                             <Box mt="20px">
                                 <DataTable
                                     key={Math.random()}
-                                    columns={[
-                                        {
-                                            header: "Accession",
-                                            value: (row) => "N/A"
-                                        },
-                                        {
-                                            header: "User ID",
-                                            value: (row) => "N/A"
-                                        },
-                                        {
-                                            header: "Aggregate Rank",
-                                            value: (row) => "N/A"
-                                        },
-                                    ]}
+                                    columns={geneColumns}
                                     rows={geneRows}
                                     sortDescending
                                     itemsPerPage={10}

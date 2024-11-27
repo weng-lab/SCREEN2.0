@@ -109,7 +109,10 @@ export type Alignment =
 
   export type GeneFilterState = {
     useGenes: boolean;
-    idk: string;
+    methodOfLinkage: string; // wait for more specific instructions
+    proteinOnly: boolean;
+    mustHaveOrtholog: boolean;
+
   }
 
 type UpdateSequenceFilter = <K extends keyof SequenceFilterState>(
@@ -181,6 +184,7 @@ export type ElementTableRow = {
 }
 
 export type GeneTableRow = {
+    regionID: number
     inputRegion: GenomicRegion
 }
 
