@@ -6,6 +6,8 @@ import { Cancel } from "@mui/icons-material"
 import { LoadingButton } from "@mui/lab"
 import { InputRegions, UploadProps } from "./types";
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import { useLazyQuery } from "@apollo/client";
+import { ALLELE_QUERY } from "./queries";
 
 const ArgoUpload: React.FC<UploadProps> = ({
     selectedSearch,
@@ -22,6 +24,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
     const [error, setError] = useState([false, ""]) // status, message
     const [filesSubmitted, setFilesSubmitted] = useState(false)
     const [textValue, setTextValue] = useState(""); // State to control the TextField value
+    const [getAllele] = useLazyQuery(ALLELE_QUERY)
 
     const handleReset = () => {
         setTextValue(""); // Clear the text box
@@ -103,9 +106,42 @@ const ArgoUpload: React.FC<UploadProps> = ({
         })
     }
 
+    const compareRegionsToReferences = async (regions: InputRegions, regionRefs: string[]): Promise<boolean> => {
+        const results = await Promise.all(
+            regions.map((region) =>
+                getAllele({
+                    variables: {
+                        requests: {
+                            url: "https://downloads.wenglab.org/hg38.2bit",
+                            regions: [{
+                                chr1: region.chr,
+                                start: region.start,
+                                end: region.end,
+                            }],
+                        },
+                    },
+                    fetchPolicy: "cache-first",
+                }).then((response) => ({
+                    region,
+                    responseData: response.data?.bigRequestsMultipleRegions.flatMap((item) => item.data ?? []),
+                }))
+            )
+        );
+    
+        // Iterate through results and compare each response to its reference
+        for (let index = 0; index < results.length; index++) {
+            const { region, responseData } = results[index];
+            const ref = regionRefs[index]; 
+            if (!responseData?.includes(ref)) {
+                console.error(`Mismatch for region ${region.chr}:${region.start}-${region.end}`);
+                return true;
+            }
+        }
+        return false;
+    };
+    
     //map parsed file / text to Genomic region type and sort them
-    function configureInputedRegions(data) {
-        console.log(data)
+    async function configureInputedRegions(data) {
         const regions: InputRegions = data.map((item, index) => ({
             chr: item[0],         // Index 0 for inputed chromosome
             start: Number(item[1]), // Index 1 for inputed start, convert to number
@@ -115,7 +151,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
             strand: item[5],  //Index 5 for strand pos/neg
             regionID: item.length === 7 ? item[6] : index + 1,  //Index 6 for region ID, if they do not provide one, supply one
         }));
-        console.log(Number(regions[0].chr.replace('chr', '')))
+
         const chrError = regions.some(region => Number(region.chr.replace('chr', '')) === 0 || isNaN(Number(region.chr.replace('chr', ''))));
         if (chrError) {
             setError([true, "Provide chromosome numbers"])
@@ -125,6 +161,13 @@ const ArgoUpload: React.FC<UploadProps> = ({
         const startEndError = regions.some(region => isNaN(region.start) || isNaN(region.end));
         if (startEndError) {
             setError([true, "Start and End must be Numbers"])
+            setLoading(false);
+            return;
+        }
+        const regionRefs = regions.map((region) => region.ref);
+        const refError = await compareRegionsToReferences(regions, regionRefs);
+        if (refError) {
+            setError([true, "Reference allele does not match input region allele"])
             setLoading(false);
             return;
         }
@@ -314,8 +357,8 @@ const ArgoUpload: React.FC<UploadProps> = ({
                         <strong>Required Fields:</strong> <br />
                         <strong>Chromosome</strong>, <strong>Start</strong>, <strong>End</strong>,{" "}
                         <strong>Reference Allele</strong>, <strong>Alternate Allele</strong>, {" "}
-                        <strong>Strand</strong>, and{" "}
-                        <strong>Region ID</strong>
+                        <strong>Strand</strong>, and optional{" "}
+                        <strong>Region ID </strong> <br />
                     </Typography>
                     <Typography variant="body1" fontSize="1rem">
                         If using the text box, separate fields with a tab. Below is an example file to help you
