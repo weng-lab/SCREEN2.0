@@ -7,10 +7,10 @@ import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { ORTHOLOG_QUERY, Z_SCORES_QUERY, BIG_REQUEST_QUERY, MOTIF_QUERY } from "./queries"
 import { QueryResult, useLazyQuery, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
-import { CCREAssays, CCREClasses, RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, CCREs, InputRegions, MotifQueryDataOccurrence } from "./types"
+import { RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, CCREs, InputRegions, MotifQueryDataOccurrence } from "./types"
 import { BED_INTERSECT_QUERY } from "../../_mainsearch/queries"
 import ExpandCircleDownIcon from '@mui/icons-material/ExpandCircleDown';
-import Filters from "./filters"
+import Filters from "./filters/filters"
 import { CancelRounded } from "@mui/icons-material"
 import ArgoUpload from "./argoUpload"
 import { BigRequest, OccurrencesQuery } from "../../../graphql/__generated__/graphql"
@@ -113,21 +113,7 @@ export default function Argo() {
         }));
     };
 
-    //update a specific assay
-    const toggleAssay = (assayName: keyof CCREAssays) => {
-        updateElementFilter('assays', {
-            ...elementFilterVariables.assays,
-            [assayName]: !elementFilterVariables.assays[assayName]
-        });
-    };
-
-    //update a specific class
-    const toggleClass = (className: keyof CCREClasses) => {
-        updateElementFilter('classes', {
-            ...elementFilterVariables.classes,
-            [className]: !elementFilterVariables.classes[className]
-        });
-    };
+    
 
     //update specific variable in gene filters
     const updateGeneFilter = (key: keyof GeneFilterState, value: unknown) => {
@@ -616,7 +602,10 @@ export default function Argo() {
 
     // Generate element ranks
     const elementRanks = useMemo<RankedRegions>(() => {
-        if (elementRows.length === 0 || !elementFilterVariables.usecCREs) return [];
+        if (elementRows.length === 0 || !elementFilterVariables.usecCREs) {
+            setLoadingElementRanks(false);
+            return [];
+        }
         setLoadingElementRanks(true);
 
         //find ccres with same input region and combine them based on users rank by selected
@@ -693,8 +682,6 @@ export default function Argo() {
                 updateSequenceFilter={updateSequenceFilter}
                 updateElementFilter={updateElementFilter}
                 updateGeneFilter={updateGeneFilter}
-                toggleAssay={toggleAssay}
-                toggleClass={toggleClass}
                 drawerOpen={drawerOpen}
                 toggleDrawer={toggleDrawer}
             />

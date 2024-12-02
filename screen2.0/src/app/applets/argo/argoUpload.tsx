@@ -25,9 +25,9 @@ const ArgoUpload: React.FC<UploadProps> = ({
 
     const handleReset = () => {
         setTextValue(""); // Clear the text box
-        setFiles([]); 
-        handleSearchChange(null); 
-        setError([false, ""]); 
+        setFiles([]);
+        handleSearchChange(null);
+        setError([false, ""]);
         setFilesSubmitted(false)
     };
 
@@ -105,6 +105,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
 
     //map parsed file / text to Genomic region type and sort them
     function configureInputedRegions(data) {
+        console.log(data)
         const regions: InputRegions = data.map((item, index) => ({
             chr: item[0],         // Index 0 for inputed chromosome
             start: Number(item[1]), // Index 1 for inputed start, convert to number
@@ -165,8 +166,139 @@ const ArgoUpload: React.FC<UploadProps> = ({
 
     return (
         <>
-            <Stack direction={"column"} spacing={3} mt="10px">
-                {error[0] && <Alert variant="outlined" severity="error">{error[1]}</Alert>}
+            {error[0] && <Alert variant="outlined" severity="error">{error[1]}</Alert>}
+            <Stack direction={"row"} spacing={3} mt="10px">
+                <Stack>
+                    <Stack direction={"row"} alignItems={"center"} flexWrap={"wrap"}>
+                        <Typography variant={"h5"} mr={1} alignSelf="center">
+                            Upload Through
+                        </Typography>
+                        <Stack
+                            direction={"row"}
+                            alignItems={"center"}
+                            flexWrap={"wrap"}
+                        >
+                            <FormControl
+                                variant="standard"
+                                size="medium"
+                                sx={{ '& .MuiInputBase-root': { fontSize: '1.5rem' } }}
+                            >
+                                <Select
+                                    fullWidth
+                                    id="select-search"
+                                    value={selectedSearch}
+                                    onChange={(event) => { setFiles([]); handleSearchChange(event); setError([false, ""]); setFilesSubmitted(false) }}
+                                    SelectDisplayProps={{
+                                        style: { paddingBottom: '0px', paddingTop: '1px' },
+                                    }}
+                                >
+                                    <MenuItem value={"BED File"}>BED File</MenuItem>
+                                    <MenuItem value={"Text Box"}>Text Box</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Stack>
+                    </Stack>
+                    <Box mt="20px" width="30vw">
+                        {selectedSearch === "BED File" ? (
+                            files.length === 0 && (
+                                <Container
+                                    sx={{
+                                        border: isDragActive ? "2px dashed blue" : "2px dashed grey",
+                                        borderRadius: "10px",
+                                        minWidth: "250px",
+                                        pl: "0 !important",
+                                        pr: "0 !important",
+                                        color: isDragActive ? "text.secondary" : "text.primary"
+                                    }}
+                                >
+                                    <div {...getRootProps()} style={{ padding: "1rem" }}>
+                                        <input {...getInputProps()} type="file" accept=".bed" />
+                                        <Stack spacing={1} direction="column" alignItems="center">
+                                            <UploadFileIcon />
+                                            <Typography>
+                                                Drag and drop a .bed file
+                                            </Typography>
+                                            <Typography>
+                                                or
+                                            </Typography>
+                                            <Button variant="outlined" disabled={isDragActive} sx={{ textTransform: "none" }}>
+                                                Click to select a file
+                                            </Button>
+                                        </Stack>
+                                    </div>
+                                </Container>
+                            )
+                        ) : (
+                            <FormControl fullWidth>
+                                <form action={submitTextUpload}>
+                                    <TextField
+                                        name="textUploadFile"
+                                        multiline
+                                        fullWidth
+                                        rows={5}
+                                        placeholder="Copy and paste your data from Excel here"
+                                        onKeyDown={handleKeyDown}
+                                        value={textValue}
+                                        onChange={(e) => setTextValue(e.target.value)}
+                                    />
+                                    <Stack
+                                        direction="row"
+                                        alignItems="center"
+                                        justifyContent="space-between"
+                                        sx={{ mt: 1 }}
+                                    >
+                                        <Button
+                                            type="submit"
+                                            size="medium"
+                                            variant="outlined"
+                                            disabled={filesSubmitted}
+                                            sx={{ textTransform: "none" }}
+                                        >
+                                            Submit
+                                        </Button>
+                                        <Button
+                                            color="error"
+                                            type="button"
+                                            size="medium"
+                                            variant="outlined"
+                                            onClick={handleReset}
+                                            sx={{ textTransform: "none" }}
+                                        >
+                                            Reset
+                                        </Button>
+                                    </Stack>
+                                </form>
+                            </FormControl>
+
+                        )}
+                        {/* When a file is uploaded */}
+                        {files.length > 0 &&
+                            <>
+                                <Typography mb={1} variant="h5">Uploaded:</Typography>
+                                <Stack direction="row" alignItems="center">
+                                    <Typography>{`${truncateFileName(files[0].name, 40)}\u00A0-\u00A0${(files[0].size / 1000000).toFixed(1)}\u00A0mb`}</Typography>
+                                    <IconButton color="primary" onClick={() => { setFiles([]); handleSearchChange(null); setError([false, ""]); setFilesSubmitted(false); }}>
+                                        <Cancel />
+                                    </IconButton>
+                                </Stack>
+                                <LoadingButton
+                                    loading={loading}
+                                    loadingPosition="end"
+                                    sx={{ textTransform: 'none', maxWidth: "18rem" }}
+                                    onClick={submitUploadedFile}
+                                    variant="outlined"
+                                    color="primary"
+                                    disabled={filesSubmitted}
+                                >
+                                    <span>
+                                        Submit
+                                    </span>
+                                </LoadingButton>
+                            </>
+                        }
+
+                    </Box>
+                </Stack>
                 <Stack
                     direction={"column"}
                     spacing={2}
@@ -207,136 +339,8 @@ const ArgoUpload: React.FC<UploadProps> = ({
                         Download Example File
                     </Link>
                 </Stack>
-                <Stack direction={"row"} alignItems={"center"} flexWrap={"wrap"}>
-                    <Typography variant={"h5"} mr={1} alignSelf="center">
-                        Upload Through
-                    </Typography>
-                    <Stack
-                        direction={"row"}
-                        alignItems={"center"}
-                        flexWrap={"wrap"}
-                    >
-                        <FormControl
-                            variant="standard"
-                            size="medium"
-                            sx={{ '& .MuiInputBase-root': { fontSize: '1.5rem' } }}
-                        >
-                            <Select
-                                fullWidth
-                                id="select-search"
-                                value={selectedSearch}
-                                onChange={(event) => { setFiles([]); handleSearchChange(event); setError([false, ""]); setFilesSubmitted(false) }}
-                                SelectDisplayProps={{
-                                    style: { paddingBottom: '0px', paddingTop: '1px' },
-                                }}
-                            >
-                                <MenuItem value={"BED File"}>BED File</MenuItem>
-                                <MenuItem value={"Text Box"}>Text Box</MenuItem>
-                            </Select>
-                        </FormControl>
-                    </Stack>
-                </Stack>
+
             </Stack>
-            <Box mt="20px" width="30vw">
-                {selectedSearch === "BED File" ? (
-                    files.length === 0 && (
-                        <Container
-                            sx={{
-                                border: isDragActive ? "2px dashed blue" : "2px dashed grey",
-                                borderRadius: "10px",
-                                minWidth: "250px",
-                                pl: "0 !important",
-                                pr: "0 !important",
-                                color: isDragActive ? "text.secondary" : "text.primary"
-                            }}
-                        >
-                            <div {...getRootProps()} style={{ padding: "1rem" }}>
-                                <input {...getInputProps()} type="file" accept=".bed" />
-                                <Stack spacing={1} direction="column" alignItems="center">
-                                    <UploadFileIcon />
-                                    <Typography>
-                                        Drag and drop a .bed file
-                                    </Typography>
-                                    <Typography>
-                                        or
-                                    </Typography>
-                                    <Button variant="outlined" disabled={isDragActive} sx={{ textTransform: "none" }}>
-                                        Click to select a file
-                                    </Button>
-                                </Stack>
-                            </div>
-                        </Container>
-                    )
-                ) : (
-                    <FormControl fullWidth>
-                        <form action={submitTextUpload}>
-                            <TextField
-                                name="textUploadFile"
-                                multiline
-                                fullWidth
-                                rows={5}
-                                placeholder="Copy and paste your data from Excel here"
-                                onKeyDown={handleKeyDown}
-                                value={textValue}
-                                onChange={(e) => setTextValue(e.target.value)}
-                            />
-                            <Stack
-                                direction="row"
-                                alignItems="center"
-                                justifyContent="space-between"
-                                sx={{ mt: 1 }}
-                            >
-                                <Button
-                                    type="submit"
-                                    size="medium"
-                                    variant="outlined"
-                                    disabled={filesSubmitted}
-                                    sx={{ textTransform: "none" }}
-                                >
-                                    Submit
-                                </Button>
-                                <Button
-                                    color="error"
-                                    type="button"
-                                    size="medium"
-                                    variant="outlined"
-                                    onClick={handleReset}
-                                    sx={{ textTransform: "none" }}
-                                >
-                                    Reset
-                                </Button>
-                            </Stack>
-                        </form>
-                    </FormControl>
-
-                )}
-                {/* When a file is uploaded */}
-                {files.length > 0 &&
-                    <>
-                        <Typography mb={1} variant="h5">Uploaded:</Typography>
-                        <Stack direction="row" alignItems="center">
-                            <Typography>{`${truncateFileName(files[0].name, 40)}\u00A0-\u00A0${(files[0].size / 1000000).toFixed(1)}\u00A0mb`}</Typography>
-                            <IconButton color="primary" onClick={() => { setFiles([]); handleSearchChange(null); setError([false, ""]); setFilesSubmitted(false); }}>
-                                <Cancel />
-                            </IconButton>
-                        </Stack>
-                        <LoadingButton
-                            loading={loading}
-                            loadingPosition="end"
-                            sx={{ textTransform: 'none', maxWidth: "18rem" }}
-                            onClick={submitUploadedFile}
-                            variant="outlined"
-                            color="primary"
-                            disabled={filesSubmitted}
-                        >
-                            <span>
-                                Submit
-                            </span>
-                        </LoadingButton>
-                    </>
-                }
-
-            </Box>
         </>
     )
 }

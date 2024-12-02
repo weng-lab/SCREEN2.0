@@ -137,10 +137,29 @@ export type FilterProps = {
     updateSequenceFilter: UpdateSequenceFilter;
     updateElementFilter: UpdateElementFilter;
     updateGeneFilter: UpdateGeneFilter;
-    toggleAssay: (assayName: keyof ElementFilterState['assays']) => void;
-    toggleClass: (className: keyof ElementFilterState['classes']) => void;
     drawerOpen: boolean;
     toggleDrawer: () => void;
+}
+
+export type SequenceAccordianProps = {
+    sequenceFilterVariables: SequenceFilterState;
+    updateSequenceFilter: UpdateSequenceFilter;
+    isExpanded: (panel: string) => boolean;
+    handleAccordionChange: (panel: string) => () => void;
+}
+
+export type ElementAccordianProps = {
+    elementFilterVariables: ElementFilterState;
+    updateElementFilter: UpdateElementFilter;
+    isExpanded: (panel: string) => boolean;
+    handleAccordionChange: (panel: string) => () => void;
+}
+
+export type GeneAccordianProps = {
+    geneFilterVariables: GeneFilterState;
+    updateGeneFilter: UpdateGeneFilter;
+    isExpanded: (panel: string) => boolean;
+    handleAccordionChange: (panel: string) => () => void;
 }
 
 export type UploadProps = {

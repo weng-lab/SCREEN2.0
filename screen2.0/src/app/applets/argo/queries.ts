@@ -132,7 +132,7 @@ export const MOTIF_QUERY = gql(`
     }
   `)
 
-  export const TOMTOM_MATCH_QUERY = gql(`
+export const TOMTOM_MATCH_QUERY = gql(`
     query tomtomMatches($peaks_accessions: [String!]!, $ids: [String!]!) {
         target_motifs(peaks_accessions: $peaks_accessions, motif_id: $ids) {
             target_id
@@ -141,5 +141,17 @@ export const MOTIF_QUERY = gql(`
         }
     }
 `);
+
+export const ALLELE_QUERY = gql(`
+  query bigRequestsMultipleRegionsSequence($requests: MultipleRegionBigRequest!) {
+  bigRequestsMultipleRegions(requests: $requests) {
+    data
+    error {
+      errortype
+      message
+    }
+  }  
+}
+  `)
 
 
