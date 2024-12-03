@@ -31,9 +31,9 @@ export const Ortholog = ({ accession, assembly }: OrthologTabProps) => {
     client,
   })
 
-  let ortholog: orthologRow[] = []
-  if (data) {
-    for (let ccre of data.orthologQuery[0].ortholog) {
+  const ortholog: orthologRow[] = []
+  if (data && data.orthologQuery.length > 0) {
+    for (const ccre of data.orthologQuery[0].ortholog) {
       ortholog.push({
         accession: ccre.accession,
         chrom: ccre.chromosome,
