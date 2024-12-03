@@ -334,7 +334,6 @@ export default function Argo() {
     // This function will receive the regions from ArgoUpload and find the intersecting cCREs
     const handleRegionsConfigured = (regions: InputRegions) => {
         setInputRegions(regions);
-        console.log(regions)
         const user_ccres = regions.map(region => [
             region.chr,
             region.start.toString(),

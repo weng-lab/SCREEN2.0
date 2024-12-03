@@ -152,7 +152,6 @@ const ArgoUpload: React.FC<UploadProps> = ({
             strand: item[5],  //Index 5 for strand pos/neg
             regionID: item.length === 7 ? item[6] : index + 1,  //Index 6 for region ID, if they do not provide one, supply one
         }));
-        console.log(data)
 
         const chrError = regions.some(region => Number(region.chr.replace('chr', '')) === 0 || isNaN(Number(region.chr.replace('chr', ''))));
         if (chrError) {
