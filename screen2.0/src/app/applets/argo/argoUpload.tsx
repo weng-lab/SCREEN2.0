@@ -8,6 +8,7 @@ import { InputRegions, UploadProps } from "./types";
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { useLazyQuery } from "@apollo/client";
 import { ALLELE_QUERY } from "./queries";
+import FileUploadIcon from '@mui/icons-material/FileUpload';
 
 const ArgoUpload: React.FC<UploadProps> = ({
     selectedSearch,
@@ -149,7 +150,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
     async function validateRegions(regions: InputRegions): Promise<string | null> {
         // Validate fields are seperated by tabs
         const tabError = regions.some(region =>
-            Object.values(region).some(value => 
+            Object.values(region).some(value =>
                 typeof value === "string" && value.includes(" ")
             )
         );
@@ -423,10 +424,10 @@ const ArgoUpload: React.FC<UploadProps> = ({
                     >
                         <TableBody>
                             <TableRow>
-                                <TableCell sx={{backgroundColor: cellErr === "chr" ? "error.light" : "transparent"}}>Chromosome</TableCell>
-                                <TableCell sx={{backgroundColor: cellErr === "numbers" ? "error.light" : "transparent"}}>Start</TableCell>
-                                <TableCell sx={{backgroundColor: cellErr === "numbers" ? "error.light" : "transparent"}}>End</TableCell>
-                                <TableCell sx={{backgroundColor: cellErr === "ref" ? "error.light" : "transparent"}}>Reference Allele</TableCell>
+                                <TableCell sx={{ backgroundColor: cellErr === "chr" ? "error.light" : "transparent" }}>Chromosome</TableCell>
+                                <TableCell sx={{ backgroundColor: cellErr === "numbers" ? "error.light" : "transparent" }}>Start</TableCell>
+                                <TableCell sx={{ backgroundColor: cellErr === "numbers" ? "error.light" : "transparent" }}>End</TableCell>
+                                <TableCell sx={{ backgroundColor: cellErr === "ref" ? "error.light" : "transparent" }}>Reference Allele</TableCell>
                                 <TableCell>Alternate Allele</TableCell>
                                 <TableCell>Strand</TableCell>
                                 <TableCell>Region ID (optional)</TableCell>
@@ -437,23 +438,40 @@ const ArgoUpload: React.FC<UploadProps> = ({
                         If using the text box, separate fields with a tab. Below is an example file to help you
                         format your data correctly.
                     </Typography>
-                    <Link
-                        href="/path/to/example-file.bed"
-                        download
-                        underline="hover"
-                        sx={{
-                            fontWeight: "bold",
-                            color: "primary.main",
-                            fontSize: "1rem",
-                            display: "inline-block",
-                            marginTop: "8px",
-                        }}
-                    >
-                        <IconButton color="primary">
-                            <FileDownloadIcon />
-                        </IconButton>
-                        Download Example File
-                    </Link>
+                    <Stack direction={"row"} justifyContent={"space-between"}>
+                        <Link
+                            href="/path/to/example-file.bed"
+                            download
+                            underline="hover"
+                            sx={{
+                                fontWeight: "bold",
+                                color: "primary.main",
+                                fontSize: "1rem",
+                                display: "inline-block",
+                                marginTop: "8px",
+                            }}
+                        >
+                            <IconButton color="primary">
+                                <FileDownloadIcon />
+                            </IconButton>
+                            Download Example File
+                        </Link>
+                        <Link
+                            underline="hover"
+                            sx={{
+                                fontWeight: "bold",
+                                color: "primary.main",
+                                fontSize: "1rem",
+                                display: "inline-block",
+                                marginTop: "8px",
+                            }}
+                        >
+                            <IconButton color="primary">
+                                <FileUploadIcon />
+                            </IconButton>
+                            Use Example File
+                        </Link>
+                    </Stack>
                 </Stack>
             </Stack>
         </>
