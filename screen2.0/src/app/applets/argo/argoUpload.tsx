@@ -25,8 +25,10 @@ const ArgoUpload: React.FC<UploadProps> = ({
     const [filesSubmitted, setFilesSubmitted] = useState(false)
     const [textValue, setTextValue] = useState(""); // State to control the TextField value
     const [getAllele] = useLazyQuery(ALLELE_QUERY)
+    const [cellErr, setCellErr] = useState("")
 
     const handleReset = () => {
+        setCellErr("")
         setTextValue(""); // Clear the text box
         setFiles([]);
         handleSearchChange(null);
@@ -72,6 +74,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
     function submitTextUpload(event) {
         setLoading(true)
         setError([false, ""])
+        setCellErr("")
         const uploadedData = event.get("textUploadFile").toString()
         const inputData = parseDataInput(uploadedData)
         configureInputedRegions(inputData)
@@ -80,6 +83,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
     const submitUploadedFile = () => {
         setLoading(true)
         setError([false, ""])
+        setCellErr("")
         let allLines = []
         let filenames: string = ''
         files.forEach((f) => {
@@ -141,43 +145,80 @@ const ArgoUpload: React.FC<UploadProps> = ({
         return false;
     };
 
-    //map parsed file / text to Genomic region type and sort them
-    async function configureInputedRegions(data) {
-        const regions: InputRegions = data.map((item, index) => ({
-            chr: item[0],         // Index 0 for inputed chromosome
-            start: Number(item[1]), // Index 1 for inputed start, convert to number
-            end: Number(item[2]),    // Index 2 for inputed end, convert to number
-            ref: item[3],   // Index 3 for reference allele
-            alt: item[4],  //Index 3 for alternate allele
-            strand: item[5],  //Index 5 for strand pos/neg
-            regionID: item.length === 7 ? item[6] : index + 1,  //Index 6 for region ID, if they do not provide one, supply one
-        }));
-
-        const chrError = regions.some(region => Number(region.chr.replace('chr', '')) === 0 || isNaN(Number(region.chr.replace('chr', ''))));
-        if (chrError) {
-            setError([true, "Provide chromosome numbers"])
-            setLoading(false);
-            return;
+    //check for errors in input file / text
+    async function validateRegions(regions: InputRegions): Promise<string | null> {
+        // Validate fields are seperated by tabs
+        const tabError = regions.some(region =>
+            Object.values(region).some(value => 
+                typeof value === "string" && value.includes(" ")
+            )
+        );
+        if (tabError) {
+            return "Fields must be seperated by tabs";
         }
+        // Validate chromosomes have numbers
+        const chrError = regions.some(region =>
+            Number(region.chr.replace('chr', '')) === 0 || isNaN(Number(region.chr.replace('chr', '')))
+        );
+        if (chrError) {
+            setCellErr("chr")
+            return "Provide chromosome numbers";
+        }
+
+        // Validate start and end are numbers
         const startEndError = regions.some(region => isNaN(region.start) || isNaN(region.end));
         if (startEndError) {
-            setError([true, "Start and End must be Numbers"])
-            setLoading(false);
-            return;
+            setCellErr("numbers")
+            return "Start and End must be numbers";
         }
-        const regionRefs = regions.map((region) => region.ref);
-        const refError = await compareRegionsToReferences(regions, regionRefs);
-        if (refError) {
-            setError([true, "Reference allele does not match input region allele"])
-            setLoading(false);
-            return;
+
+        // Validate end position greater than or equal to start
+        const greaterThanError = regions.some(region => region.end < region.start);
+        if (greaterThanError) {
+            setCellErr("numbers")
+            return "End position must be greater than or equal to start position";
         }
+
+        // Validate total base pairs is less than 10,000
         const totalBasePairs = regions.reduce(
             (sum, region) => sum + (region.end - region.start),
             0
         );
         if (totalBasePairs > 10000) {
-            setError([true, "The total base pairs in the input regions must not exceed 10,000."])
+            return "The total base pairs in the input regions must not exceed 10,000.";
+        }
+
+        // Validate reference alleles
+        const regionRefs = regions.map((region) => region.ref);
+        const refError = await compareRegionsToReferences(regions, regionRefs);
+        if (refError) {
+            setCellErr("ref")
+            return "Reference allele does not match input region allele";
+        }
+
+
+        // If no errors, return null
+        return null;
+    }
+
+    //map parsed file / text to Genomic region type and sort them
+    async function configureInputedRegions(data) {
+        const regions: InputRegions = data.map((item, index) => ({
+            chr: item[0],
+            start: Number(item[1]),
+            end: Number(item[2]),
+            ref: item[3],
+            alt: item[4],
+            strand: item[5],
+            regionID: item.length === 7 ? item[6] : index + 1,
+        }));
+
+        setLoading(true);
+
+        // Validate regions
+        const errorMessage = await validateRegions(regions);
+        if (errorMessage) {
+            setError([true, errorMessage]);
             setLoading(false);
             return;
         }
@@ -190,14 +231,14 @@ const ArgoUpload: React.FC<UploadProps> = ({
             if (chrA !== chrB) {
                 return chrA - chrB;
             }
-            if (a.start !== b.start) {
-                return a.start - b.start;
-            }
+            return a.start - b.start;
         });
-        setLoading(false)
-        setFilesSubmitted(true)
+
+        setLoading(false);
+        setFilesSubmitted(true);
         onRegionsConfigured(sortedRegions);
     }
+
 
     //coppied from BedUpload
     function truncateFileName(string, maxLength, ellipsis = "...") {
@@ -382,10 +423,10 @@ const ArgoUpload: React.FC<UploadProps> = ({
                     >
                         <TableBody>
                             <TableRow>
-                                <TableCell>Chromosome</TableCell>
-                                <TableCell>Start</TableCell>
-                                <TableCell>End</TableCell>
-                                <TableCell>Reference Allele</TableCell>
+                                <TableCell sx={{backgroundColor: cellErr === "chr" ? "error.light" : "transparent"}}>Chromosome</TableCell>
+                                <TableCell sx={{backgroundColor: cellErr === "numbers" ? "error.light" : "transparent"}}>Start</TableCell>
+                                <TableCell sx={{backgroundColor: cellErr === "numbers" ? "error.light" : "transparent"}}>End</TableCell>
+                                <TableCell sx={{backgroundColor: cellErr === "ref" ? "error.light" : "transparent"}}>Reference Allele</TableCell>
                                 <TableCell>Alternate Allele</TableCell>
                                 <TableCell>Strand</TableCell>
                                 <TableCell>Region ID (optional)</TableCell>
