@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react"
-import { Button, Typography, Stack, IconButton, FormControl, Select, MenuItem, Box, TextField, Alert, Link, Container } from "@mui/material"
+import { Button, Typography, Stack, IconButton, FormControl, Select, MenuItem, Box, TextField, Alert, Link, Container, Table, TableBody, TableCell, TableRow } from "@mui/material"
 import { useDropzone } from "react-dropzone"
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { Cancel } from "@mui/icons-material"
@@ -70,6 +70,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
     }
 
     function submitTextUpload(event) {
+        setLoading(true)
         setError([false, ""])
         const uploadedData = event.get("textUploadFile").toString()
         const inputData = parseDataInput(uploadedData)
@@ -127,11 +128,11 @@ const ArgoUpload: React.FC<UploadProps> = ({
                 }))
             )
         );
-    
+
         // Iterate through results and compare each response to its reference
         for (let index = 0; index < results.length; index++) {
             const { region, responseData } = results[index];
-            const ref = regionRefs[index]; 
+            const ref = regionRefs[index];
             if (!responseData?.includes(ref)) {
                 console.error(`Mismatch for region ${region.chr}:${region.start}-${region.end}`);
                 return true;
@@ -139,7 +140,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
         }
         return false;
     };
-    
+
     //map parsed file / text to Genomic region type and sort them
     async function configureInputedRegions(data) {
         const regions: InputRegions = data.map((item, index) => ({
@@ -151,6 +152,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
             strand: item[5],  //Index 5 for strand pos/neg
             regionID: item.length === 7 ? item[6] : index + 1,  //Index 6 for region ID, if they do not provide one, supply one
         }));
+        console.log(data)
 
         const chrError = regions.some(region => Number(region.chr.replace('chr', '')) === 0 || isNaN(Number(region.chr.replace('chr', ''))));
         if (chrError) {
@@ -210,7 +212,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
     return (
         <>
             {error[0] && <Alert variant="outlined" severity="error">{error[1]}</Alert>}
-            <Stack direction={"row"} spacing={3} mt="10px">
+            <Stack direction={"row"} spacing={3} mt="10px" alignItems="stretch">
                 <Stack>
                     <Stack direction={"row"} alignItems={"center"} flexWrap={"wrap"}>
                         <Typography variant={"h5"} mr={1} alignSelf="center">
@@ -241,7 +243,16 @@ const ArgoUpload: React.FC<UploadProps> = ({
                             </FormControl>
                         </Stack>
                     </Stack>
-                    <Box mt="20px" width="30vw">
+                    <Box
+                        mt="20px"
+                        width="30vw"
+                        sx={{
+                            ...(files.length === 0 && {
+                                flexGrow: 1,
+                                display: "flex",
+                            }),
+                        }}
+                    >
                         {selectedSearch === "BED File" ? (
                             files.length === 0 && (
                                 <Container
@@ -251,7 +262,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
                                         minWidth: "250px",
                                         pl: "0 !important",
                                         pr: "0 !important",
-                                        color: isDragActive ? "text.secondary" : "text.primary"
+                                        color: isDragActive ? "text.secondary" : "text.primary",
                                     }}
                                 >
                                     <div {...getRootProps()} style={{ padding: "1rem" }}>
@@ -290,7 +301,9 @@ const ArgoUpload: React.FC<UploadProps> = ({
                                         justifyContent="space-between"
                                         sx={{ mt: 1 }}
                                     >
-                                        <Button
+                                        <LoadingButton
+                                            loading={loading}
+                                            loadingPosition="end"
                                             type="submit"
                                             size="medium"
                                             variant="outlined"
@@ -298,7 +311,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
                                             sx={{ textTransform: "none" }}
                                         >
                                             Submit
-                                        </Button>
+                                        </LoadingButton>
                                         <Button
                                             color="error"
                                             type="button"
@@ -312,7 +325,6 @@ const ArgoUpload: React.FC<UploadProps> = ({
                                     </Stack>
                                 </form>
                             </FormControl>
-
                         )}
                         {/* When a file is uploaded */}
                         {files.length > 0 &&
@@ -339,7 +351,6 @@ const ArgoUpload: React.FC<UploadProps> = ({
                                 </LoadingButton>
                             </>
                         }
-
                     </Box>
                 </Stack>
                 <Stack
@@ -353,13 +364,35 @@ const ArgoUpload: React.FC<UploadProps> = ({
                         backgroundColor: "grey.100",
                     }}
                 >
-                    <Typography variant="body1" fontSize="1.1rem">
-                        <strong>Required Fields:</strong> <br />
-                        <strong>Chromosome</strong>, <strong>Start</strong>, <strong>End</strong>,{" "}
-                        <strong>Reference Allele</strong>, <strong>Alternate Allele</strong>, {" "}
-                        <strong>Strand</strong>, and optional{" "}
-                        <strong>Region ID </strong> <br />
+                    <Typography variant="body1" fontSize="1.1rem" fontWeight="bold">
+                        Required Fields:
                     </Typography>
+                    <Table
+                        sx={{
+                            border: "1px solid",
+                            borderColor: "black",
+                            width: "100%",
+                            "& td, & th": {
+                                padding: "8px",
+                                fontSize: "1rem",
+                                textAlign: "center",
+                                border: "1px solid",
+                                borderColor: "black",
+                            },
+                        }}
+                    >
+                        <TableBody>
+                            <TableRow>
+                                <TableCell>Chromosome</TableCell>
+                                <TableCell>Start</TableCell>
+                                <TableCell>End</TableCell>
+                                <TableCell>Reference Allele</TableCell>
+                                <TableCell>Alternate Allele</TableCell>
+                                <TableCell>Strand</TableCell>
+                                <TableCell>Region ID (optional)</TableCell>
+                            </TableRow>
+                        </TableBody>
+                    </Table>
                     <Typography variant="body1" fontSize="1rem">
                         If using the text box, separate fields with a tab. Below is an example file to help you
                         format your data correctly.
@@ -382,7 +415,6 @@ const ArgoUpload: React.FC<UploadProps> = ({
                         Download Example File
                     </Link>
                 </Stack>
-
             </Stack>
         </>
     )
