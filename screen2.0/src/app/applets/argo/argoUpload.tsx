@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react"
-import { Button, Typography, Stack, IconButton, FormControl, Select, MenuItem, Box, TextField, Alert, Link, Container, Table, TableBody, TableCell, TableRow } from "@mui/material"
+import { Button, Typography, Stack, IconButton, FormControl, Select, MenuItem, Box, TextField, Alert, Container, Table, TableBody, TableCell, TableRow } from "@mui/material"
 import { useDropzone } from "react-dropzone"
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { Cancel } from "@mui/icons-material"
@@ -250,6 +250,24 @@ const ArgoUpload: React.FC<UploadProps> = ({
         return string.substring(0, maxLength - ellipsis.length) + ellipsis;
     }
 
+    //set files to the example file provided
+    const handleUseExample = async () => {
+        const url = "/placeholder.bed";
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const blob = await response.blob();
+            const file = new File([blob], "placeholder.bed", { type: blob.type });
+
+            setFiles((prevFiles) => [...prevFiles, file]);
+        } catch (error) {
+            console.error("Failed to fetch and set the file:", error);
+        }
+    };
+
     return (
         <>
             {error[0] && <Alert variant="outlined" severity="error">{error[1]}</Alert>}
@@ -439,38 +457,46 @@ const ArgoUpload: React.FC<UploadProps> = ({
                         format your data correctly.
                     </Typography>
                     <Stack direction={"row"} justifyContent={"space-between"}>
-                        <Link
-                            href="/path/to/example-file.bed"
-                            download
-                            underline="hover"
+                        <Button
+                            variant="text"
                             sx={{
                                 fontWeight: "bold",
                                 color: "primary.main",
                                 fontSize: "1rem",
-                                display: "inline-block",
+                                display: "inline-flex",
+                                alignItems: "center",
                                 marginTop: "8px",
                             }}
-                        >
-                            <IconButton color="primary">
+                            startIcon={
                                 <FileDownloadIcon />
-                            </IconButton>
+                            }
+                            onClick={() => {
+                                const url = "/placeholder.bed"; // Replace when example file is done
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.download = "example.bed"; // Set the filename for the downloaded file
+                                link.click();
+                            }}
+                        >
                             Download Example File
-                        </Link>
-                        <Link
-                            underline="hover"
+                        </Button>
+                        <Button
+                            variant="text"
                             sx={{
                                 fontWeight: "bold",
                                 color: "primary.main",
                                 fontSize: "1rem",
-                                display: "inline-block",
+                                display: "inline-flex",
+                                alignItems: "center",
                                 marginTop: "8px",
                             }}
-                        >
-                            <IconButton color="primary">
+                            startIcon={
                                 <FileUploadIcon />
-                            </IconButton>
+                            }
+                            onClick={handleUseExample}
+                        >
                             Use Example File
-                        </Link>
+                        </Button>
                     </Stack>
                 </Stack>
             </Stack>
