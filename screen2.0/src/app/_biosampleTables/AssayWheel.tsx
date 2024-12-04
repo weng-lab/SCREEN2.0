@@ -8,6 +8,11 @@ export type AssayWheelProps<T extends boolean> = {
   row: BiosampleData<T>
 }
 
+/**
+ * 
+ * @prop row 
+ * @returns the assay wheel for the row
+ */
 export const AssayWheel = <T extends boolean>({ row }: AssayWheelProps<T>) => {
   const [hoveredAssay, setHoveredAssay] = useState<assay>(null)
 

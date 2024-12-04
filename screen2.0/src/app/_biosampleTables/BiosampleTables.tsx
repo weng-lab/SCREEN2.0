@@ -1,14 +1,15 @@
 import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, CircularProgress, FormControlLabel, Accordion, FormGroup, Checkbox, IconButton, Menu, MenuItem, InputAdornment, FormControl, FormLabel, Paper, Stack } from "@mui/material"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { useCallback,  useMemo, useState } from "react"
-import { assay, CheckboxState, FiltersKey, Props, RegistryBiosample, RegistryBiosamplePlusRNA } from "./types"
+import { CheckboxState, FiltersKey, Props, RegistryBiosample, RegistryBiosamplePlusRNA } from "./types"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
-import { Check,  Close,  FilterList, Launch } from "@mui/icons-material"
+import { Check,  Close,  FilterList } from "@mui/icons-material"
 import SearchIcon from '@mui/icons-material/Search';
 import { useQuery } from "@apollo/client"
-import { assayColors, assayHoverInfo, DownloadBiosamplecCREsButton, filterBiosamples } from "./helpers"
+import { filterBiosamples } from "./helpers"
 import { BIOSAMPLE_QUERY, RNA_SEQ_QUERY } from "./queries"
 import { AssayWheel } from "./AssayWheel"
+import { DownloadButton } from "./DownloadButton"
 
 const checkboxLabels: { [key in FiltersKey]: string } = {
   CellLine: "Cell Line",
@@ -161,32 +162,32 @@ export const BiosampleTables = <T extends boolean = false>({
         {
           header: "cCREs",
           value: (row) => +!!(row.dnase || row.ctcf || row.h3k27ac || row.h3k4me3),
-          FunctionalRender: (row) => DownloadBiosamplecCREsButton(row, "celltypeccres"),
+          render: (row) => <DownloadButton row={row} downloadType="celltypeccres"/>
         },
         {
           header: "DNase Signal",
           value: (row) => +!!row.dnase,
-          FunctionalRender: (row) => DownloadBiosamplecCREsButton(row, "dnase"),
+          render: (row) => <DownloadButton row={row} downloadType="dnase"/>
         },
         {
           header: "ATAC Signal",
           value: (row) => +!!row.atac,
-          FunctionalRender: (row) => DownloadBiosamplecCREsButton(row, "atac"),
+          render: (row) => <DownloadButton row={row} downloadType="atac"/>
         },
         {
           header: "CTCF Signal",
           value: (row) => +!!row.ctcf,
-          FunctionalRender: (row) => DownloadBiosamplecCREsButton(row, "ctcf"),
+          render: (row) => <DownloadButton row={row} downloadType="ctcf"/>
         },
         {
           header: "H3K27ac Signal",
           value: (row) => +!!row.h3k27ac,
-          FunctionalRender: (row) => DownloadBiosamplecCREsButton(row, "h3k27ac"),
+          render: (row) => <DownloadButton row={row} downloadType="h3k27ac"/>
         },
         {
           header: "H3K4me3 Signal",
           value: (row) => +!!row.h3k4me3,
-          FunctionalRender: (row) => DownloadBiosamplecCREsButton(row, "h3k4me3"),
+          render: (row) => <DownloadButton row={row} downloadType="h3k4me3"/>
         }
       ]
     }
