@@ -15,10 +15,9 @@ const ArgoUpload: React.FC<UploadProps> = ({
     handleSearchChange,
     onRegionsConfigured
 }) => {
-    const [files, setFiles] = useState<File[]>([])
+    const [files, setFiles] = useState<File>(null)
     const onDrop = useCallback(acceptedFiles => {
-        // Currently only accepting 1 file
-        setFiles([acceptedFiles[0]])
+        setFiles(acceptedFiles[0])
     }, [])
     const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
     const [loading, setLoading] = useState(false)
@@ -31,7 +30,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
     const handleReset = () => {
         setCellErr("")
         setTextValue(""); // Clear the text box
-        setFiles([]);
+        setFiles(null);
         handleSearchChange(null);
         setError([false, ""]);
         setFilesSubmitted(false)
@@ -72,51 +71,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
         return allLines
     }
 
-    function submitTextUpload(event) {
-        setLoading(true)
-        setError([false, ""])
-        setCellErr("")
-        const uploadedData = event.get("textUploadFile").toString()
-        const inputData = parseDataInput(uploadedData)
-        configureInputedRegions(inputData)
-    }
-
-    const submitUploadedFile = (newFile: File[]) => {
-        setLoading(true)
-        setError([false, ""])
-        setCellErr("")
-        let allLines = []
-        let filenames: string = ''
-        let file = files;
-        if (newFile !== null) {
-            file = newFile;
-        }
-        file.forEach((f) => {
-            filenames += (' ' + f.name)
-            if (f.type !== "bed" && f.name.split('.').pop() !== "bed") {
-                console.error("File type is not bed");
-                setLoading(false)
-                setFiles([])
-                setError([true, "File type is not bed"])
-                return
-            }
-            const reader = new FileReader()
-            reader.onload = (r) => {
-                const contents = r.target.result
-                const lines = contents.toString()
-                allLines = parseDataInput(lines)
-            }
-            reader.onabort = () => console.log("file reading was aborted")
-            reader.onerror = () => console.log("file reading has failed")
-            reader.onloadend = () => {
-                sessionStorage.setItem("filenames", filenames)
-                configureInputedRegions(allLines)
-            }
-            reader.readAsText(f)
-        })
-    }
-
-    const compareRegionsToReferences = async (regions: InputRegions, regionRefs: string[]): Promise<string> => {
+    const compareRegionsToReferences = useCallback(async (regions: InputRegions, regionRefs: string[]): Promise<string> => {
         const results = await Promise.all(
             regions.map((region) =>
                 getAllele({
@@ -148,10 +103,10 @@ const ArgoUpload: React.FC<UploadProps> = ({
             }
         }
         return "";
-    };
+    }, [getAllele])
 
     //check for errors in input file / text
-    async function validateRegions(regions: InputRegions): Promise<string | null> {
+    const validateRegions = useCallback(async (regions: InputRegions): Promise<string | null> => {
         // Validate fields are separated by tabs
         const tabErrorIndex = regions.find(region =>
             Object.values(region).some(value =>
@@ -213,10 +168,10 @@ const ArgoUpload: React.FC<UploadProps> = ({
 
         // If no errors, return null
         return null;
-    }
+    }, [compareRegionsToReferences])
 
     //map parsed file / text to Genomic region type and sort them
-    async function configureInputedRegions(data) {
+    const configureInputedRegions = useCallback(async (data) => {
         const regions: InputRegions = data.map((item, index) => ({
             chr: item[0],
             start: Number(item[1]),
@@ -251,8 +206,46 @@ const ArgoUpload: React.FC<UploadProps> = ({
         setLoading(false);
         setFilesSubmitted(true);
         onRegionsConfigured(sortedRegions);
+    }, [onRegionsConfigured, validateRegions])
+
+
+    function submitTextUpload(event) {
+        setLoading(true)
+        setError([false, ""])
+        setCellErr("")
+        const uploadedData = event.get("textUploadFile").toString()
+        const inputData = parseDataInput(uploadedData)
+        configureInputedRegions(inputData)
     }
 
+    const submitUploadedFile = useCallback((file: File) => {
+        setLoading(true)
+        setError([false, ""])
+        setCellErr("")
+        let allLines = []
+        let filenames: string = ''
+        filenames += (' ' + file.name)
+        if (file.type !== "bed" && file.name.split('.').pop() !== "bed") {
+            console.error("File type is not bed");
+            setLoading(false)
+            setFiles(null)
+            setError([true, "File type is not bed"])
+            return
+        }
+        const reader = new FileReader()
+        reader.onload = (r) => {
+            const contents = r.target.result
+            const lines = contents.toString()
+            allLines = parseDataInput(lines)
+        }
+        reader.onabort = () => console.log("file reading was aborted")
+        reader.onerror = () => console.log("file reading has failed")
+        reader.onloadend = () => {
+            sessionStorage.setItem("filenames", filenames)
+            configureInputedRegions(allLines)
+        }
+        reader.readAsText(file)
+    }, [configureInputedRegions])
 
     //coppied from BedUpload
     function truncateFileName(string, maxLength, ellipsis = "...") {
@@ -276,8 +269,8 @@ const ArgoUpload: React.FC<UploadProps> = ({
             const blob = await response.blob();
             const file = new File([blob], "ArgoExample.bed", { type: blob.type });
 
-            setFiles([file]);
-            submitUploadedFile([file])
+            setFiles(file);
+            submitUploadedFile(file)
         } catch (error) {
             console.error("Failed to fetch and set the file:", error);
         }
@@ -306,7 +299,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
                                     fullWidth
                                     id="select-search"
                                     value={selectedSearch}
-                                    onChange={(event) => { setFiles([]); handleSearchChange(event); setError([false, ""]); setFilesSubmitted(false) }}
+                                    onChange={(event) => { setFiles(null); handleSearchChange(event); setError([false, ""]); setFilesSubmitted(false) }}
                                     SelectDisplayProps={{
                                         style: { paddingBottom: '0px', paddingTop: '1px' },
                                     }}
@@ -321,14 +314,14 @@ const ArgoUpload: React.FC<UploadProps> = ({
                         mt="20px"
                         width="30vw"
                         sx={{
-                            ...(files.length === 0 && {
+                            ...(files === null && {
                                 flexGrow: 1,
                                 display: "flex",
                             }),
                         }}
                     >
                         {selectedSearch === "BED File" ? (
-                            files.length === 0 && (
+                            files === null && (
                                 <Container
                                     sx={{
                                         border: isDragActive ? "2px dashed blue" : "2px dashed grey",
@@ -401,12 +394,12 @@ const ArgoUpload: React.FC<UploadProps> = ({
                             </FormControl>
                         )}
                         {/* When a file is uploaded */}
-                        {files.length > 0 &&
+                        {files !== null &&
                             <>
                                 <Typography mb={1} variant="h5">Uploaded:</Typography>
                                 <Stack direction="row" alignItems="center">
-                                    <Typography>{`${truncateFileName(files[0].name, 40)}\u00A0-\u00A0${(files[0].size / 1000000).toFixed(1)}\u00A0mb`}</Typography>
-                                    <IconButton color="primary" onClick={() => { setFiles([]); handleSearchChange(null); setError([false, ""]); setFilesSubmitted(false); }}>
+                                    <Typography>{`${truncateFileName(files.name, 40)}\u00A0-\u00A0${(files.size / 1000000).toFixed(1)}\u00A0mb`}</Typography>
+                                    <IconButton color="primary" onClick={() => { setFiles(null); handleSearchChange(null); setError([false, ""]); setFilesSubmitted(false); }}>
                                         <Cancel />
                                     </IconButton>
                                 </Stack>
@@ -414,7 +407,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
                                     loading={loading}
                                     loadingPosition="end"
                                     sx={{ textTransform: 'none', maxWidth: "18rem" }}
-                                    onClick={() => { submitUploadedFile(null) }}
+                                    onClick={() => { submitUploadedFile(files) }}
                                     variant="outlined"
                                     color="primary"
                                     disabled={filesSubmitted}
