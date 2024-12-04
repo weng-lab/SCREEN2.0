@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react"
-import { Button, Typography, Stack, IconButton, FormControl, Select, MenuItem, Box, TextField, Alert, Container, Table, TableBody, TableCell, TableRow } from "@mui/material"
+import { Button, Typography, Stack, IconButton, FormControl, Select, MenuItem, Box, TextField, Alert, Container, Table, TableBody, TableCell, TableRow, SelectChangeEvent } from "@mui/material"
 import { useDropzone } from "react-dropzone"
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { Cancel } from "@mui/icons-material"
@@ -81,13 +81,17 @@ const ArgoUpload: React.FC<UploadProps> = ({
         configureInputedRegions(inputData)
     }
 
-    const submitUploadedFile = () => {
+    const submitUploadedFile = (newFile: File[]) => {
         setLoading(true)
         setError([false, ""])
         setCellErr("")
         let allLines = []
         let filenames: string = ''
-        files.forEach((f) => {
+        let file = files;
+        if (newFile !== null) {
+            file = newFile;
+        }
+        file.forEach((f) => {
             filenames += (' ' + f.name)
             if (f.type !== "bed" && f.name.split('.').pop() !== "bed") {
                 console.error("File type is not bed");
@@ -252,8 +256,9 @@ const ArgoUpload: React.FC<UploadProps> = ({
 
     //set files to the example file provided
     const handleUseExample = async () => {
+        handleSearchChange({ target: { value: "BED File" } } as SelectChangeEvent);
+        handleReset()
         const url = "/placeholder.bed";
-
         try {
             const response = await fetch(url);
             if (!response.ok) {
@@ -262,7 +267,8 @@ const ArgoUpload: React.FC<UploadProps> = ({
             const blob = await response.blob();
             const file = new File([blob], "placeholder.bed", { type: blob.type });
 
-            setFiles((prevFiles) => [...prevFiles, file]);
+            setFiles([file]);
+            submitUploadedFile([file])
         } catch (error) {
             console.error("Failed to fetch and set the file:", error);
         }
@@ -399,7 +405,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
                                     loading={loading}
                                     loadingPosition="end"
                                     sx={{ textTransform: 'none', maxWidth: "18rem" }}
-                                    onClick={submitUploadedFile}
+                                    onClick={() => {submitUploadedFile(null)}}
                                     variant="outlined"
                                     color="primary"
                                     disabled={filesSubmitted}
