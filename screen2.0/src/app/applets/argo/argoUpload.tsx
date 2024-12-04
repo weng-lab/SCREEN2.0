@@ -116,7 +116,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
         })
     }
 
-    const compareRegionsToReferences = async (regions: InputRegions, regionRefs: string[]): Promise<boolean> => {
+    const compareRegionsToReferences = async (regions: InputRegions, regionRefs: string[]): Promise<string> => {
         const results = await Promise.all(
             regions.map((region) =>
                 getAllele({
@@ -143,45 +143,54 @@ const ArgoUpload: React.FC<UploadProps> = ({
             const { region, responseData } = results[index];
             const ref = regionRefs[index];
             if (!responseData?.includes(ref)) {
-                console.error(`Mismatch for region ${region.chr}:${region.start}-${region.end}`);
-                return true;
+                return (`Reference allele does not match at at regionID: ${region.regionID}
+                (${Object.values(region).slice(0, -1).join(' ')})`);
             }
         }
-        return false;
+        return "";
     };
 
     //check for errors in input file / text
     async function validateRegions(regions: InputRegions): Promise<string | null> {
-        // Validate fields are seperated by tabs
-        const tabError = regions.some(region =>
+        // Validate fields are separated by tabs
+        const tabErrorIndex = regions.find(region =>
             Object.values(region).some(value =>
                 typeof value === "string" && value.includes(" ")
             )
         );
-        if (tabError) {
-            return "Fields must be seperated by tabs";
+        if (tabErrorIndex) {
+            return `Fields must be separated by tabs in region at regionID: ${tabErrorIndex.regionID}
+            (${Object.values(tabErrorIndex).slice(0, -1).join(' ')})`;
         }
+
         // Validate chromosomes have numbers
-        const chrError = regions.some(region =>
+        const chrErrorIndex = regions.find(region =>
             Number(region.chr.replace('chr', '')) === 0 || isNaN(Number(region.chr.replace('chr', '')))
         );
-        if (chrError) {
-            setCellErr("chr")
-            return "Provide chromosome numbers";
+        if (chrErrorIndex) {
+            setCellErr("chr");
+            return `Provide valid chromosome numbers at regionID: ${chrErrorIndex.regionID}
+            (${Object.values(chrErrorIndex).slice(0, -1).join(' ')})`;
         }
 
         // Validate start and end are numbers
-        const startEndError = regions.some(region => isNaN(region.start) || isNaN(region.end));
-        if (startEndError) {
-            setCellErr("numbers")
-            return "Start and End must be numbers";
+        const startEndErrorIndex = regions.find(region =>
+            isNaN(region.start) || isNaN(region.end)
+        );
+        if (startEndErrorIndex) {
+            setCellErr("numbers");
+            return `Start and End must be numbers at regionID: ${startEndErrorIndex.regionID}
+            (${Object.values(startEndErrorIndex).slice(0, -1).join(' ')})`;
         }
 
         // Validate end position greater than or equal to start
-        const greaterThanError = regions.some(region => region.end < region.start);
-        if (greaterThanError) {
-            setCellErr("numbers")
-            return "End position must be greater than or equal to start position";
+        const greaterThanErrorIndex = regions.find(region =>
+            region.end < region.start
+        );
+        if (greaterThanErrorIndex) {
+            setCellErr("numbers");
+            return `End position must be greater than or equal to start position at regionID: ${greaterThanErrorIndex.regionID}
+            (${Object.values(greaterThanErrorIndex).slice(0, -1).join(' ')})`;
         }
 
         // Validate total base pairs is less than 10,000
@@ -196,9 +205,9 @@ const ArgoUpload: React.FC<UploadProps> = ({
         // Validate reference alleles
         const regionRefs = regions.map((region) => region.ref);
         const refError = await compareRegionsToReferences(regions, regionRefs);
-        if (refError) {
+        if (refError !== "") {
             setCellErr("ref")
-            return "Reference allele does not match input region allele";
+            return refError;
         }
 
 
@@ -405,7 +414,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
                                     loading={loading}
                                     loadingPosition="end"
                                     sx={{ textTransform: 'none', maxWidth: "18rem" }}
-                                    onClick={() => {submitUploadedFile(null)}}
+                                    onClick={() => { submitUploadedFile(null) }}
                                     variant="outlined"
                                     color="primary"
                                     disabled={filesSubmitted}
