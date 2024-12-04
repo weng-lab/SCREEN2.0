@@ -267,14 +267,14 @@ const ArgoUpload: React.FC<UploadProps> = ({
     const handleUseExample = async () => {
         handleSearchChange({ target: { value: "BED File" } } as SelectChangeEvent);
         handleReset()
-        const url = "/placeholder.bed";
+        const url = "/ArgoExample.bed";
         try {
             const response = await fetch(url);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const blob = await response.blob();
-            const file = new File([blob], "placeholder.bed", { type: blob.type });
+            const file = new File([blob], "ArgoExample.bed", { type: blob.type });
 
             setFiles([file]);
             submitUploadedFile([file])
@@ -486,10 +486,10 @@ const ArgoUpload: React.FC<UploadProps> = ({
                                 <FileDownloadIcon />
                             }
                             onClick={() => {
-                                const url = "/placeholder.bed"; // Replace when example file is done
+                                const url = "/ArgoExample.bed";
                                 const link = document.createElement('a');
                                 link.href = url;
-                                link.download = "example.bed"; // Set the filename for the downloaded file
+                                link.download = "ArgoExample.bed";
                                 link.click();
                             }}
                         >
