@@ -1,10 +1,6 @@
 /**
  * Helpers for Biosample Tables Componet
  */
-
-import { useState, useEffect } from "react"
-import { Close, Download } from "@mui/icons-material"
-import { CircularProgressProps, Box, CircularProgress, Typography, IconButton } from "@mui/material"
 import { RegistryBiosample, RegistryBiosamplePlusRNA, CheckboxState, assay } from "./types"
 
 export const assayColors: {[key in assay]: string} = {
@@ -91,20 +87,4 @@ export function assayHoverInfo(assays: { dnase: boolean; h3k27ac: boolean; h3k4m
     return `Available:\n${dnase ? "DNase\n" : ""}${h3k27ac ? "H3K27ac\n" : ""}${h3k4me3 ? "H3K4me3\n" : ""}${ctcf ? "CTCF\n" : ""}${
       atac ? "ATAC\n" : ""
     }`
-}
-
-//Imported from old SCREEN
-function downloadBlob(blob, filename) {
-  const url = URL.createObjectURL(blob)
-  const downloadLink = document.createElement("a")
-  downloadLink.href = url
-  downloadLink.download = filename
-  document.body.appendChild(downloadLink)
-  downloadLink.click()
-  document.body.removeChild(downloadLink)
-}
-
-//Imported from old SCREEN
-function downloadTSV(text, filename) {
-  downloadBlob(new Blob([text], { type: "text/plain" }), filename)
 }

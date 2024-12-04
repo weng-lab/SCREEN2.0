@@ -9,6 +9,15 @@ export type DownloadButtonProps<T extends boolean> = {
   downloadType: "dnase" | "h3k4me3" | "h3k27ac" | "ctcf" | "atac" | "celltypeccres"
 }
 
+/**
+ * 
+ * @prop row
+ * @prop downloadType
+ * ```jsx
+ * "dnase" | "h3k4me3" | "h3k27ac" | "ctcf" | "atac" | "celltypeccres"
+ * ```
+ * @returns 
+ */
 export const DownloadButton = <T extends boolean>({ row, downloadType }: DownloadButtonProps<T>) => {
   const [progress, setProgress] = useState<number>(null) //for progress wheel
   const [hover, setHover] = useState<boolean>(false) //for tracking if user is hovering over progress wheel
