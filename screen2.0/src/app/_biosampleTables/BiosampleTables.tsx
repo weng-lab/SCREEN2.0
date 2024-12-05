@@ -189,7 +189,7 @@ export const BiosampleTables = <T extends boolean = false>({
     return (
       Object.entries(filteredBiosamples).sort().map(([ontology, biosamples], i) => {
         //Make sure that the accordions won't be empty
-        if ((!searchString || biosamples.some(sample => sampleMatchesSearch(sample))) && biosamples.length > 0) {
+        if (biosamples.length > 0) {
           const toHighlight = selected ? typeof selected === 'string' ? [selected] : selected : []
           const highlighted = toHighlight.map(x => biosamples.find(y => y.name === x) || biosamples.find(y => y.displayname === x))
           return (
@@ -223,9 +223,7 @@ export const BiosampleTables = <T extends boolean = false>({
       })
     )
 
-  },
-    [showRNAseq, showDownloads, loadingBiosamples, loading_rnaseq, errorBiosamples, error_rnaseq, filteredBiosamples, searchString, selected, onBiosampleClicked]
-  )
+  }, [showRNAseq, showDownloads, loadingBiosamples, loading_rnaseq, errorBiosamples, error_rnaseq, filteredBiosamples, selected, onBiosampleClicked])
 
   const FilterCheckbox: React.FC<{ control: FiltersKey }> = ({ control }) => {
     const handleChange = (_, checked: boolean) => {

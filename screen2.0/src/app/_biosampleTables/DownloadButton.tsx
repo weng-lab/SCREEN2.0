@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { CircularProgressProps, Box, CircularProgress, Typography, IconButton } from "@mui/material";
+import { CircularProgressProps, Box, CircularProgress, Typography, IconButton, Tooltip } from "@mui/material";
 import { Close, Download } from "@mui/icons-material";
 import { downloadTSV } from "../downloads/utils";
 import { BiosampleData } from "./types";
+import { fetchFileSize } from "../downloads/annotations";
 
 export type DownloadButtonProps<T extends boolean> = {
   row: BiosampleData<T>
@@ -22,6 +23,43 @@ export const DownloadButton = <T extends boolean>({ row, downloadType }: Downloa
   const [progress, setProgress] = useState<number>(null) //for progress wheel
   const [hover, setHover] = useState<boolean>(false) //for tracking if user is hovering over progress wheel
   const [controller, setController] = useState(null); //used to hold an AbortController created in handleDL, which allows aborting download
+  const [fileSize, setFileSize] = useState<number>(null)
+
+  let url: string
+  let fileName: string
+  switch (downloadType) {
+    case "dnase":
+      url = `https://downloads.wenglab.org/Registry-V4/SCREEN/Signal-Files/${row.dnase}-${row.dnase_signal}.txt`
+      fileName = `${row.dnase}-${row.dnase_signal}.txt`
+      break
+    case "h3k4me3":
+      url = `https://downloads.wenglab.org/Registry-V4/SCREEN/Signal-Files/${row.h3k4me3}-${row.h3k4me3_signal}.txt`
+      fileName = `${row.h3k4me3}-${row.h3k4me3_signal}.txt`
+      break
+    case "h3k27ac":
+      url = `https://downloads.wenglab.org/Registry-V4/SCREEN/Signal-Files/${row.h3k27ac}-${row.h3k27ac_signal}.txt`
+      fileName = `${row.h3k27ac}-${row.h3k27ac_signal}.txt`
+      break
+    case "ctcf":
+      url = `https://downloads.wenglab.org/Registry-V4/SCREEN/Signal-Files/${row.ctcf}-${row.ctcf_signal}.txt`
+      fileName = `${row.ctcf}-${row.ctcf_signal}.txt`
+      break
+    case "atac":
+      url = `https://downloads.wenglab.org/Registry-V4/SCREEN/Signal-Files/${row.atac}-${row.atac_signal}.txt`
+      fileName = `${row.atac}-${row.atac_signal}.txt`
+      break
+    case "celltypeccres": {
+      const signalIDs = [
+        row.dnase_signal,
+        row.h3k4me3_signal,
+        row.h3k27ac_signal,
+        row.ctcf_signal
+      ].filter(id => id !== null && id !== undefined);
+      url = `https://downloads.wenglab.org/Registry-V4/${signalIDs.join('_')}.bed`
+      fileName = `${signalIDs.join('_')}.bed`
+      break
+    }
+  }
 
   useEffect(() => {
     return () => {
@@ -69,42 +107,15 @@ export const DownloadButton = <T extends boolean>({ row, downloadType }: Downloa
     );
   }
 
-  if (row[downloadType] || (downloadType === "celltypeccres" && (row.dnase || row.ctcf || row.h3k27ac || row.h3k4me3))) {
-    let url: string
-    let fileName: string
-    switch (downloadType) {
-      case "dnase":
-        url = `https://downloads.wenglab.org/Registry-V4/SCREEN/Signal-Files/${row.dnase}-${row.dnase_signal}.txt`
-        fileName = `${row.dnase}-${row.dnase_signal}.txt`
-        break
-      case "h3k4me3":
-        url = `https://downloads.wenglab.org/Registry-V4/SCREEN/Signal-Files/${row.h3k4me3}-${row.h3k4me3_signal}.txt`
-        fileName = `${row.h3k4me3}-${row.h3k4me3_signal}.txt`
-        break
-      case "h3k27ac":
-        url = `https://downloads.wenglab.org/Registry-V4/SCREEN/Signal-Files/${row.h3k27ac}-${row.h3k27ac_signal}.txt`
-        fileName = `${row.h3k27ac}-${row.h3k27ac_signal}.txt`
-        break
-      case "ctcf":
-        url = `https://downloads.wenglab.org/Registry-V4/SCREEN/Signal-Files/${row.ctcf}-${row.ctcf_signal}.txt`
-        fileName = `${row.ctcf}-${row.ctcf_signal}.txt`
-        break
-      case "atac":
-        url = `https://downloads.wenglab.org/Registry-V4/SCREEN/Signal-Files/${row.atac}-${row.atac_signal}.txt`
-        fileName = `${row.atac}-${row.atac_signal}.txt`
-        break
-      case "celltypeccres": {
-        const signalIDs = [
-          row.dnase_signal,
-          row.h3k4me3_signal,
-          row.h3k27ac_signal,
-          row.ctcf_signal
-        ].filter(id => id !== null && id !== undefined);
-        url = `https://downloads.wenglab.org/Registry-V4/${signalIDs.join('_')}.bed`
-        fileName = `${signalIDs.join('_')}.bed`
-        break
-      }
+  const handleSetHover = (isHovered: boolean) => {
+    setHover(isHovered)
+    if (isHovered && !fileSize){
+      fetchFileSize(url, setFileSize)
     }
+  }
+
+  if (row[downloadType] || (downloadType === "celltypeccres" && (row.dnase || row.ctcf || row.h3k27ac || row.h3k4me3))) {
+    
 
     const handleDL = async () => {
       // Cleanup previous controller if any
@@ -179,23 +190,25 @@ export const DownloadButton = <T extends boolean>({ row, downloadType }: Downloa
     };
 
     return (
-      progress ?
-        <Box
-          onMouseEnter={() => setHover(true)}
-          onMouseLeave={() => setHover(false)}
-        >
-          {hover ?
+      <Box
+        onMouseEnter={() => handleSetHover(true)}
+        onMouseLeave={() => handleSetHover(false)}
+      >
+        {progress ?
+          hover ?
             <IconButton onClick={handleAbort}>
               <Close />
             </IconButton>
             :
             <CircularProgressWithLabel value={progress} />
-          }
-        </Box>
-        :
-        <IconButton onClick={handleDL}>
-          <Download />
-        </IconButton>
+          :
+          <Tooltip title={fileSize ? fileSize && (fileSize / 1000000).toFixed(1) + ' MB' : "Loading file size"}>
+            <IconButton onClick={handleDL}>
+              <Download />
+            </IconButton>
+          </Tooltip>
+        }
+      </Box>
     )
   } else return null
 }
