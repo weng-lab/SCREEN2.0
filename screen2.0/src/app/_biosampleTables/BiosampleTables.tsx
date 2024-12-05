@@ -1,7 +1,7 @@
 import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, CircularProgress, FormControlLabel, Accordion, FormGroup, Checkbox, IconButton, Menu, MenuItem, InputAdornment, FormControl, FormLabel, Paper, Stack } from "@mui/material"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { useCallback,  useMemo, useState } from "react"
-import { CheckboxState, FiltersKey, Props, RegistryBiosample, RegistryBiosamplePlusRNA } from "./types"
+import { BiosampleData, CheckboxState, FiltersKey, Props, RegistryBiosample, RegistryBiosamplePlusRNA } from "./types"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
 import { Check,  Close,  FilterList } from "@mui/icons-material"
 import SearchIcon from '@mui/icons-material/Search';
@@ -68,11 +68,11 @@ export const BiosampleTables = <T extends boolean = false>({
   )
 
   //Not using generic BiosampleData<T> type since this function is always called on return data without RNAseq t/f data
-  const sampleMatchesSearch = useCallback((x: RegistryBiosample) => {
+  const sampleMatchesSearch = useCallback((x: RegistryBiosample | RegistryBiosamplePlusRNA) => {
     if (searchString) {
-      return x.name.toLowerCase().includes(searchString.toLowerCase())
-        || x.displayname.toLowerCase().includes(searchString.toLowerCase())
-        || x.ontology.toLowerCase().includes(searchString.toLowerCase())
+      return (
+        Object.values(x).some(val => val?.toLowerCase().includes(searchString.toLowerCase()))
+      )
     } else return true
   }, [searchString])
 
@@ -113,8 +113,7 @@ export const BiosampleTables = <T extends boolean = false>({
 
 
   const biosampleTables = useMemo(() => {
-    //This really should not be typed as RegistryBiosamplePlusRNA
-    let cols: DataTableColumn<RegistryBiosamplePlusRNA>[] = [
+    let cols: DataTableColumn<BiosampleData<T>>[] = [
       {
         header: "Biosample",
         value: (row) => row.displayname,
@@ -133,8 +132,8 @@ export const BiosampleTables = <T extends boolean = false>({
 
     if (showRNAseq) cols.push({
       header: "RNA-Seq",
-      value: (row) => +row.rnaseq,
-      render: (row) => {
+      value: (row: RegistryBiosamplePlusRNA) => +row.rnaseq,
+      render: (row: RegistryBiosamplePlusRNA) => {
         if (row.rnaseq) {
           return (
             <Check />
@@ -189,7 +188,8 @@ export const BiosampleTables = <T extends boolean = false>({
 
     return (
       Object.entries(filteredBiosamples).sort().map(([ontology, biosamples], i) => {
-        if ((searchString ? biosamples.find(obj => obj.displayname.toLowerCase().includes(searchString.toLowerCase())) : true) && biosamples.length > 0) {
+        //Make sure that the accordions won't be empty
+        if ((!searchString || biosamples.some(sample => sampleMatchesSearch(sample))) && biosamples.length > 0) {
           const toHighlight = selected ? typeof selected === 'string' ? [selected] : selected : []
           const highlighted = toHighlight.map(x => biosamples.find(y => y.name === x) || biosamples.find(y => y.displayname === x))
           return (
