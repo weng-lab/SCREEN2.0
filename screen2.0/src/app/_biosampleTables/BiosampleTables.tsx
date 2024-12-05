@@ -6,23 +6,10 @@ import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
 import { Check,  Close,  FilterList } from "@mui/icons-material"
 import SearchIcon from '@mui/icons-material/Search';
 import { useQuery } from "@apollo/client"
-import { filterBiosamples } from "./helpers"
+import { checkboxLabels, filterBiosamples } from "./helpers"
 import { BIOSAMPLE_QUERY, RNA_SEQ_QUERY } from "./queries"
 import { AssayWheel } from "./AssayWheel"
 import { DownloadButton } from "./DownloadButton"
-
-const checkboxLabels: { [key in FiltersKey]: string } = {
-  CellLine: "Cell Line",
-  PrimaryCell: "Primary Cell",
-  Tissue: "Tissue",
-  Organoid: "Organoid",
-  InVitro: "In Vitro Differentiated Cell",
-  Core: "Core Collection",
-  Partial: "Partial Data Collection",
-  Ancillary: "Ancillary Collection",
-  Embryo: "Embryo",
-  Adult: "Adult"
-}
 
 export const BiosampleTables = <T extends boolean = false>({
   assembly,

@@ -1,7 +1,7 @@
 /**
  * Helpers for Biosample Tables Componet
  */
-import { RegistryBiosample, RegistryBiosamplePlusRNA, CheckboxState, assay } from "./types"
+import { RegistryBiosample, RegistryBiosamplePlusRNA, CheckboxState, assay, FiltersKey } from "./types"
 
 export const assayColors: {[key in assay]: string} = {
   DNase: "#06DA93",
@@ -87,4 +87,17 @@ export function assayHoverInfo(assays: { dnase: boolean; h3k27ac: boolean; h3k4m
     return `Available:\n${dnase ? "DNase\n" : ""}${h3k27ac ? "H3K27ac\n" : ""}${h3k4me3 ? "H3K4me3\n" : ""}${ctcf ? "CTCF\n" : ""}${
       atac ? "ATAC\n" : ""
     }`
+}
+
+export const checkboxLabels: { [key in FiltersKey]: string } = {
+  CellLine: "Cell Line",
+  PrimaryCell: "Primary Cell",
+  Tissue: "Tissue",
+  Organoid: "Organoid",
+  InVitro: "In Vitro Differentiated Cell",
+  Core: "Core Collection",
+  Partial: "Partial Data Collection",
+  Ancillary: "Ancillary Collection",
+  Embryo: "Embryo",
+  Adult: "Adult"
 }
