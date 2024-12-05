@@ -25,6 +25,7 @@ import { LoadingMessage } from "../../common/lib/utility"
 import { Download } from "@mui/icons-material"
 import { ApolloQueryResult, useLazyQuery } from "@apollo/client"
 import { LINKED_GENES } from "./_ccredetails/queries"
+import { UpdatedGBView } from "./_gbview/updatedgbview"
 
 /**
  * @todo:
@@ -471,7 +472,9 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               {mainQueryParams.gene.name && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" &&
                 <StyledHorizontalTab value={3} label={<p><i>{mainQueryParams.gene.name}</i> RAMPAGE</p>} />
               }
-
+              {!mainQueryParams.searchConfig.bed_intersect &&
+                <StyledHorizontalTab value={4} label="Updated Genome Browser View" />
+              }
               {/* Map opencCREs to tabs */}
               {opencCREs.length > 0 && opencCREs.map((cCRE, i) => {
                 return (
@@ -616,7 +619,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               }
             </Box>
           )}
-          {page === 1 && (
+          {page === 1 && 0>1 && (
             <GenomeBrowserView
               handlecCREClickInTrack={handlecCREClick}
               accessions={opencCREs.map(a => {
@@ -641,6 +644,11 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           }
           {mainQueryParams.gene.name && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" && page === 3 && (
             <Rampage genes={[{ name: mainQueryParams.gene.name }]} />
+          )}
+          {page === 4 && (
+            <>
+            <UpdatedGBView/>
+            </>
           )}
           {page >= numberOfDefaultTabs && opencCREs.length > 0 && (
             opencCREs[page - numberOfDefaultTabs] ?
