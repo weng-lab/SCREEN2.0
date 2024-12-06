@@ -46,10 +46,10 @@ export default function Argo() {
 
     // Filter state variables
     const [sequenceFilterVariables, setSequenceFilterVariables] = useState<SequenceFilterState>({
-        useConservation: false,
+        useConservation: true,
         alignment: "241-mam-phyloP",
         rankBy: "max",
-        useMotifs: true,
+        useMotifs: false,
         motifCatalog: "factorbook",
         numOverlappingMotifs: true,
         motifScoreDelta: false,
@@ -169,14 +169,14 @@ export default function Argo() {
         const cols: DataTableColumn<MainTableRow>[] = [
             { header: "Region ID", value: (row) => row.regionID },
             { header: "Input Region", value: (row) => `${row.inputRegion.chr}: ${row.inputRegion.start}-${row.inputRegion.end}`, sort: (a, b) => a.inputRegion.start - b.inputRegion.start },
-            { header: "Aggregate", value: (row) => row.aggregateRank }
+            { header: "Aggregate", value: (row) => row.aggregateRank, render: (row) => loadingMainRows ? <CircularProgress size={10}/> : row.aggregateRank }
         ]
         /**
          * @todo
          * correctly populate row values
          */
         if (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs) {
-            cols.push({ header: "Seqence", HeaderRender: () => <MainColHeader tableName="Sequence" onClick={() => shownTable === "sequence" ? setShownTable(null) : setShownTable("sequence")} />, value: (row) => row.sequenceRank })
+            cols.push({ header: "Seqence", HeaderRender: () => <MainColHeader tableName="Sequence" onClick={() => shownTable === "sequence" ? setShownTable(null) : setShownTable("sequence")} />, value: (row) => row.sequenceRank, render: (row) => loadingSequenceRanks ? <CircularProgress size={10}/> : row.sequenceRank })
         }
         if (elementFilterVariables.usecCREs) {
             cols.push({
@@ -188,14 +188,15 @@ export default function Argo() {
                     if (rankA === 0) return 1;
                     if (rankB === 0) return -1;
                     return rankA - rankB;
-                }
+                },
+                render: (row) => loadingElementRanks ? <CircularProgress size={10}/> : row.elementRank
             })
         }
         if (geneFilterVariables.useGenes) { cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Genes" onClick={() => shownTable === "genes" ? setShownTable(null) : setShownTable("genes")} />, value: (row) => "N/A" }) }
 
         return cols
 
-    }, [MainColHeader, elementFilterVariables.usecCREs, geneFilterVariables.useGenes, sequenceFilterVariables.useConservation, sequenceFilterVariables.useMotifs, shownTable])
+    }, [MainColHeader, elementFilterVariables.usecCREs, geneFilterVariables.useGenes, loadingElementRanks, loadingMainRows, loadingSequenceRanks, sequenceFilterVariables.useConservation, sequenceFilterVariables.useMotifs, shownTable])
 
     //handle column changes for the Sequence rank table
     const sequenceColumns: DataTableColumn<SequenceTableRow>[] = useMemo(() => {
@@ -464,15 +465,16 @@ export default function Argo() {
 
     const sequenceRanks: RankedRegions = useMemo(() => {
         if (sequenceRows.length === 0) {
-            setLoadingSequenceRanks(false);
+            // setLoadingSequenceRanks(false);
             return [];
         }
+        console.log(sequenceRows)
     
         setLoadingSequenceRanks(true);
 
         const rankedRegions = generateSequenceRanks(sequenceRows)
 
-        setLoadingSequenceRanks(false);
+        // setLoadingSequenceRanks(false);
         return rankedRegions;
     }, [sequenceRows]);
     
@@ -574,6 +576,8 @@ export default function Argo() {
     // Filter cCREs based on class and ortholog
     const elementRows: ElementTableRow[] = useMemo(() => {
         if (allElementData.length === 0 || !elementFilterVariables.usecCREs) return [];
+        setLoadingElementRanks(true);
+
         let data = allElementData;
         //filter through ortholog
         if (elementFilterVariables.mustHaveOrtholog && orthoData && elementFilterVariables.cCREAssembly !== "mm10") {
@@ -602,7 +606,7 @@ export default function Argo() {
     // Generate element ranks
     const elementRanks = useMemo<RankedRegions>(() => {
         if (elementRows.length === 0 || !elementFilterVariables.usecCREs) {
-            setLoadingElementRanks(false);
+            // setLoadingElementRanks(false);
             return [];
         }
         setLoadingElementRanks(true);
@@ -611,7 +615,7 @@ export default function Argo() {
         const processedRows = handleSameInputRegion(elementFilterVariables.rankBy, elementRows)
         const rankedRegions = generateElementRanks(processedRows, elementFilterVariables.classes, elementFilterVariables.assays)
         
-        setLoadingElementRanks(false);
+        // setLoadingElementRanks(false);
         return rankedRegions;
 
     }, [elementFilterVariables, elementRows]);
@@ -623,21 +627,22 @@ export default function Argo() {
 
     //find the matching ranks for each input region and update the rows of the main table
     const mainRows: MainTableRow[] = useMemo(() => {
-        if (loadingElementRanks || loadingSequenceRanks) return;
-        setLoadingMainRows(true)
+        // if (loadingElementRanks || loadingSequenceRanks) return;
         if ((sequenceRanks.length === 0 && elementRanks.length === 0 && geneRanks.length === 0) || inputRegions.length === 0) return [];
+        setLoadingMainRows(true)
+        // console.log(sequenceRanks)
         
         const aggregateRanks = calculateAggregateRanks(inputRegions, sequenceRanks, elementRanks, geneRanks)
-
+        
         const updatedMainRows = inputRegions.map(row => {
             // Find the matching rank for this `inputRegion`
             const matchingElement = elementRanks.find(
                 element =>
                     element.chr == row.chr &&
-                    element.start == row.start &&
-                    element.end == row.end
+                element.start == row.start &&
+                element.end == row.end
             );
-
+            
             const elementRank = matchingElement ? matchingElement.rank : 0;
 
             const matchingSequence = sequenceRanks.find(
@@ -668,9 +673,17 @@ export default function Argo() {
                 aggregateRank
             };
         }).filter(row => row.aggregateRank !== 0);
+
+        if (elementRanks.length > 0) {
+            setLoadingElementRanks(false)
+        }
+        if (sequenceRanks.length > 0) {
+            setLoadingSequenceRanks(false)
+        }
+
         setLoadingMainRows(false)
         return updatedMainRows;
-    }, [elementRanks, geneRanks, inputRegions, loadingElementRanks, loadingSequenceRanks, sequenceRanks]);
+    }, [elementRanks, geneRanks, inputRegions, sequenceRanks]);
 
     return (
         <Box display="flex" >
@@ -701,7 +714,7 @@ export default function Argo() {
                 {inputRegions.length > 0 && (
                     <>
                         <Box mt="20px" id="123456">
-                            {!mainRows || loadingMainRows ? <CircularProgress /> :
+                            {!mainRows  ? <CircularProgress /> :
                                 <DataTable
                                     key={Math.random()}
                                     columns={mainColumns}
