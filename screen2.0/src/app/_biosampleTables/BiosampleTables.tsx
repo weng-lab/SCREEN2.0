@@ -1,7 +1,7 @@
-import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, CircularProgress, FormControlLabel, Accordion, FormGroup, Checkbox, IconButton, Menu, InputAdornment, FormControl, FormLabel, Paper, Stack } from "@mui/material"
+import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, CircularProgress,  Accordion, IconButton, Menu, InputAdornment, Paper, Stack } from "@mui/material"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
-import { Dispatch, SetStateAction, useCallback,  useMemo, useState } from "react"
-import { BiosampleData, Checkboxes, CollectionCheckboxes, LifeStageCheckboxes, Props, RegistryBiosample, RegistryBiosamplePlusRNA, SampleTypeCheckboxes } from "./types"
+import { useCallback,  useMemo, useState } from "react"
+import { BiosampleData, CollectionCheckboxes, LifeStageCheckboxes, Props, RegistryBiosample, RegistryBiosamplePlusRNA, SampleTypeCheckboxes } from "./types"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
 import { Check,  Close,  FilterList } from "@mui/icons-material"
 import SearchIcon from '@mui/icons-material/Search';
@@ -10,6 +10,7 @@ import { filterBiosamples } from "./helpers"
 import { BIOSAMPLE_QUERY, RNA_SEQ_QUERY } from "./queries"
 import { AssayWheel } from "./AssayWheel"
 import { DownloadButton } from "./DownloadButton"
+import { FilterCheckboxGroup } from "./FilterCheckboxGroup"
 
 export const BiosampleTables = <T extends boolean = false>({
   assembly,
@@ -21,7 +22,6 @@ export const BiosampleTables = <T extends boolean = false>({
   showDownloads,
   slotProps
 }: Props<T>) => {
-  //Checkbox state for filters
   const [sampleTypeFilter, setSampleTypeFilter] = useState<SampleTypeCheckboxes>({
     "Cell Line": true,
     "Primary Cell": true,
@@ -29,39 +29,23 @@ export const BiosampleTables = <T extends boolean = false>({
     "Organoid": true,
     "In Vitro Differentiated Cells": true,
   })
-
   const [collectionFilter, setCollectionFilter] = useState<CollectionCheckboxes>({
     "Core Collection": true,
     "Partial Collection": true,
     "Ancillary Collection": true,
   })
-
   const [lifeStageFilter, setLifeStageFilter] = useState<LifeStageCheckboxes>({
     "Embryo": true,
     "Adult": true
   })
-
-  const handleSetSampleTypeFilter = (newState: SampleTypeCheckboxes) => {
-    setSampleTypeFilter(newState)
-  }
-
-  const handleSetCollectionFilter = (newState: CollectionCheckboxes) => {
-    setCollectionFilter(newState)
-  }
-
-  const handleSetLifeStageFilter = (newState: LifeStageCheckboxes) => {
-    setLifeStageFilter(newState)
-  }
-
-  //For searching biosample tables
   const [searchString, setSearchString] = useState<string>("")
-
-  //Anchor for dropdown menu
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)  //Anchor for dropdown menu
+  
+  const handleSetSampleTypeFilter = (newState: SampleTypeCheckboxes) => { setSampleTypeFilter(newState) }
+  const handleSetCollectionFilter = (newState: CollectionCheckboxes) => { setCollectionFilter(newState) }
+  const handleSetLifeStageFilter = (newState: LifeStageCheckboxes) => { setLifeStageFilter(newState) }
+  const handleOpen = (event: React.MouseEvent<HTMLButtonElement>) => { setAnchorEl(event.currentTarget) }
   const handleClose = () => { setAnchorEl(null) }
-
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => { setAnchorEl(event.currentTarget) }
 
 
   const { data: biosampleData, loading: loadingBiosamples, error: errorBiosamples } = useQuery(
@@ -213,7 +197,7 @@ export const BiosampleTables = <T extends boolean = false>({
           const toHighlight = selected ? typeof selected === 'string' ? [selected] : selected : []
           const highlighted = toHighlight.map(x => biosamples.find(y => y.name === x) || biosamples.find(y => y.displayname === x))
           return (
-            <Accordion key={i}>
+            <Accordion key={i} slotProps={{transition: {unmountOnExit: true}}}>
               <AccordionSummary
                 expandIcon={<KeyboardArrowRightIcon />}
                 sx={{
@@ -223,7 +207,7 @@ export const BiosampleTables = <T extends boolean = false>({
                   },
                 }}
               >
-                <Typography>{ontology.charAt(0).toUpperCase() + ontology.slice(1)}</Typography>
+                <Typography>{ontology.charAt(0).toUpperCase() + ontology.slice(1) + ` (${biosamples.length})`}</Typography>
               </AccordionSummary>
               <AccordionDetails>
                 <DataTable
@@ -245,66 +229,17 @@ export const BiosampleTables = <T extends boolean = false>({
 
   }, [showRNAseq, showDownloads, loadingBiosamples, loading_rnaseq, errorBiosamples, error_rnaseq, filteredBiosamples, selected, onBiosampleClicked])
 
-  type FilterCheckboxGroupProps<T extends Checkboxes> = {
-    groupLabel: string
-    controlsState: T,
-    setState: Dispatch<SetStateAction<T>>
-  }
-
-  const FilterCheckboxGroup = <T extends Checkboxes>({groupLabel, controlsState, setState}: FilterCheckboxGroupProps<T>) => {
-    const allTrue = Object.values(controlsState).every(val => val === true)
-    const allFalse = Object.values(controlsState).every(val => val === false)
-    const isIndeterminate = !allTrue && !allFalse
-
-    return (
-      <FormControl component="fieldset" variant="standard">
-        <FormLabel component="legend">{groupLabel}</FormLabel>
-        <FormGroup>
-          <FormControlLabel
-            label={"Select All"}
-            control={
-              <Checkbox
-                checked={allTrue}
-                indeterminate={isIndeterminate}
-                //sets all values to true/false
-                onChange={e => setState(Object.fromEntries(
-                  Object.keys(controlsState).map(key => [key, e.target.checked])
-                ) as T)} //why do i need to do as T?
-              />
-            }
-          />
-          {Object.entries(controlsState).map(([key, checked]) => {
-            return (
-              <FormControlLabel
-                label={key}
-                sx={{ml: 1}}
-                control={
-                  <Checkbox
-                    checked={checked}
-                    onChange={e => setState({ ...controlsState, [key]: e.target.checked })}
-                  />
-                }
-              />
-            )
-          })}
-        </FormGroup>
-      </FormControl>
-    )
-  }
-
-
   return (
     <Stack component={Paper} height={500} {...slotProps?.paperStack}>
       <Stack direction={"row"} justifyContent={"space-between"} m={2} {...slotProps?.headerStack}>
         <TextField
           value={searchString}
           size="small"
-          label="Search Biosamples"
+          label="Name, Tissue, Exp ID"
           onChange={(event) => setSearchString(event.target.value)}
-          InputProps={{
-            endAdornment: searchString ? <IconButton onClick={() => setSearchString("")}><Close/></IconButton> : <InputAdornment position="end"><SearchIcon /></InputAdornment>,
-          }} />
-        <IconButton onClick={handleClick}>
+          slotProps={{ input: { endAdornment: searchString ? <IconButton onClick={() => setSearchString("")}><Close /></IconButton> : <InputAdornment position="end"><SearchIcon /></InputAdornment> } }}
+          />
+        <IconButton onClick={handleOpen}>
           <FilterList />
         </IconButton>
       </Stack>

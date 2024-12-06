@@ -51,10 +51,6 @@ export interface Props<T extends boolean = false> {
      */
     paperStack?: PaperProps & StackProps,
     /**
-     * Vertical Stack for header elements (search and filters icon) and tables
-     */
-    columnStack?: StackProps,
-    /**
      * Horizontal Stack for search bar and filters icon
      */
     headerStack?: StackProps,
