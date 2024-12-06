@@ -1,7 +1,7 @@
 /**
  * Helpers for Biosample Tables Componet
  */
-import { RegistryBiosample, RegistryBiosamplePlusRNA, CheckboxState, assay, FiltersKey } from "./types"
+import { RegistryBiosample, RegistryBiosamplePlusRNA, assay, SampleTypeCheckboxes, CollectionCheckboxes, LifeStageCheckboxes } from "./types"
 
 export const assayColors: {[key in assay]: string} = {
   DNase: "#06DA93",
@@ -19,28 +19,30 @@ export const assayColors: {[key in assay]: string} = {
  */
 export const filterBiosamples = (
   biosamples: { [key: string]: (RegistryBiosample | RegistryBiosamplePlusRNA)[] },
-  checkboxes: CheckboxState
+  sampleTypeFilter: SampleTypeCheckboxes,
+  collectionFilter: CollectionCheckboxes,
+  lifeStageFiler: LifeStageCheckboxes
 ) => {
   const filteredBiosamples: { [key: string]: (RegistryBiosample | RegistryBiosamplePlusRNA)[] } = {}
 
   for (const ontology in biosamples) {
     filteredBiosamples[ontology] = biosamples[ontology].filter((biosample) => {
-      let passesType: boolean = false
-      if (checkboxes.Tissue && biosample.sampleType === "tissue") {
+      let passesType = false
+      if (sampleTypeFilter["Tissue"] && biosample.sampleType === "tissue") {
         passesType = true
-      } else if (checkboxes.PrimaryCell && biosample.sampleType === "primary cell") {
+      } else if (sampleTypeFilter["Primary Cell"] && biosample.sampleType === "primary cell") {
         passesType = true
-      } else if (checkboxes.CellLine && biosample.sampleType === "cell line") {
+      } else if (sampleTypeFilter["Cell Line"] && biosample.sampleType === "cell line") {
         passesType = true
-      } else if (checkboxes.InVitro && biosample.sampleType === "in vitro differentiated cells") {
+      } else if (sampleTypeFilter["In Vitro Differentiated Cells"] && biosample.sampleType === "in vitro differentiated cells") {
         passesType = true
-      } else if (checkboxes.Organoid && biosample.sampleType === "organoid") {
+      } else if (sampleTypeFilter["Organoid"] && biosample.sampleType === "organoid") {
         passesType = true
       }
       let passesLifestage = false
-      if (checkboxes.Embryo && biosample.lifeStage === "embryonic") {
+      if (lifeStageFiler["Embryo"] && biosample.lifeStage === "embryonic") {
         passesLifestage = true
-      } else if (checkboxes.Adult && biosample.lifeStage === "adult") {
+      } else if (lifeStageFiler["Adult"] && biosample.lifeStage === "adult") {
         passesLifestage = true
       }
       //Assign to Ancillary as baseline
@@ -55,9 +57,9 @@ export const filterBiosamples = (
       }
       let passesCollection = false
       if (
-        (checkboxes.Core && collection == "Core") 
-        || (checkboxes.Partial && collection == "Partial") 
-        || (checkboxes.Ancillary && collection == "Ancillary")
+        (collectionFilter["Core Collection"] && collection == "Core") 
+        || (collectionFilter["Partial Collection"] && collection == "Partial") 
+        || (collectionFilter["Ancillary Collection"] && collection == "Ancillary")
       ) {
         passesCollection = true
       }
@@ -87,17 +89,4 @@ export function assayHoverInfo(assays: { dnase: boolean; h3k27ac: boolean; h3k4m
     return `Available:\n${dnase ? "DNase\n" : ""}${h3k27ac ? "H3K27ac\n" : ""}${h3k4me3 ? "H3K4me3\n" : ""}${ctcf ? "CTCF\n" : ""}${
       atac ? "ATAC\n" : ""
     }`
-}
-
-export const checkboxLabels: { [key in FiltersKey]: string } = {
-  CellLine: "Cell Line",
-  PrimaryCell: "Primary Cell",
-  Tissue: "Tissue",
-  Organoid: "Organoid",
-  InVitro: "In Vitro Differentiated Cell",
-  Core: "Core Collection",
-  Partial: "Partial Data Collection",
-  Ancillary: "Ancillary Collection",
-  Embryo: "Embryo",
-  Adult: "Adult"
 }

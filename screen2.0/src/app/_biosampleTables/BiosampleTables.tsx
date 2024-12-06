@@ -1,12 +1,12 @@
-import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, CircularProgress, FormControlLabel, Accordion, FormGroup, Checkbox, IconButton, Menu, MenuItem, InputAdornment, FormControl, FormLabel, Paper, Stack } from "@mui/material"
+import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, CircularProgress, FormControlLabel, Accordion, FormGroup, Checkbox, IconButton, Menu, InputAdornment, FormControl, FormLabel, Paper, Stack } from "@mui/material"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
-import { useCallback,  useMemo, useState } from "react"
-import { BiosampleData, CheckboxState, FiltersKey, Props, RegistryBiosample, RegistryBiosamplePlusRNA } from "./types"
+import { Dispatch, SetStateAction, useCallback,  useMemo, useState } from "react"
+import { BiosampleData, Checkboxes, CollectionCheckboxes, LifeStageCheckboxes, Props, RegistryBiosample, RegistryBiosamplePlusRNA, SampleTypeCheckboxes } from "./types"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
 import { Check,  Close,  FilterList } from "@mui/icons-material"
 import SearchIcon from '@mui/icons-material/Search';
 import { useQuery } from "@apollo/client"
-import { checkboxLabels, filterBiosamples } from "./helpers"
+import { filterBiosamples } from "./helpers"
 import { BIOSAMPLE_QUERY, RNA_SEQ_QUERY } from "./queries"
 import { AssayWheel } from "./AssayWheel"
 import { DownloadButton } from "./DownloadButton"
@@ -22,18 +22,36 @@ export const BiosampleTables = <T extends boolean = false>({
   slotProps
 }: Props<T>) => {
   //Checkbox state for filters
-  const [checkboxes, setCheckboxes] = useState<CheckboxState>({
-    CellLine: true,
-    PrimaryCell: true,
-    Tissue: true,
-    Organoid: true,
-    InVitro: true,
-    Core: true,
-    Partial: true,
-    Ancillary: true,
-    Embryo: true,
-    Adult: true
+  const [sampleTypeFilter, setSampleTypeFilter] = useState<SampleTypeCheckboxes>({
+    "Cell Line": true,
+    "Primary Cell": true,
+    "Tissue": true,
+    "Organoid": true,
+    "In Vitro Differentiated Cells": true,
   })
+
+  const [collectionFilter, setCollectionFilter] = useState<CollectionCheckboxes>({
+    "Core Collection": true,
+    "Partial Collection": true,
+    "Ancillary Collection": true,
+  })
+
+  const [lifeStageFilter, setLifeStageFilter] = useState<LifeStageCheckboxes>({
+    "Embryo": true,
+    "Adult": true
+  })
+
+  const handleSetSampleTypeFilter = (newState: SampleTypeCheckboxes) => {
+    setSampleTypeFilter(newState)
+  }
+
+  const handleSetCollectionFilter = (newState: CollectionCheckboxes) => {
+    setCollectionFilter(newState)
+  }
+
+  const handleSetLifeStageFilter = (newState: LifeStageCheckboxes) => {
+    setLifeStageFilter(newState)
+  }
 
   //For searching biosample tables
   const [searchString, setSearchString] = useState<string>("")
@@ -105,11 +123,13 @@ export const BiosampleTables = <T extends boolean = false>({
       })
       const filteredBiosamples = filterBiosamples(
         groupedBiosamples,
-        checkboxes,
+        sampleTypeFilter,
+        collectionFilter,
+        lifeStageFilter
       )
       return filteredBiosamples
     } else return {}
-  }, [biosampleData, checkboxes, data_rnaseq, showRNAseq, sampleMatchesSearch, searchString, preFilterBiosamples])
+  }, [biosampleData, data_rnaseq, showRNAseq, preFilterBiosamples, sampleTypeFilter, collectionFilter, lifeStageFilter, searchString, sampleMatchesSearch])
 
 
   const biosampleTables = useMemo(() => {
@@ -225,22 +245,50 @@ export const BiosampleTables = <T extends boolean = false>({
 
   }, [showRNAseq, showDownloads, loadingBiosamples, loading_rnaseq, errorBiosamples, error_rnaseq, filteredBiosamples, selected, onBiosampleClicked])
 
-  const FilterCheckbox: React.FC<{ control: FiltersKey }> = ({ control }) => {
-    const handleChange = (_, checked: boolean) => {
-      const x = { ...checkboxes }
-      x[control] = checked
-      setCheckboxes(x)
-    }
+  type FilterCheckboxGroupProps<T extends Checkboxes> = {
+    groupLabel: string
+    controlsState: T,
+    setState: Dispatch<SetStateAction<T>>
+  }
+
+  const FilterCheckboxGroup = <T extends Checkboxes>({groupLabel, controlsState, setState}: FilterCheckboxGroupProps<T>) => {
+    const allTrue = Object.values(controlsState).every(val => val === true)
+    const allFalse = Object.values(controlsState).every(val => val === false)
+    const isIndeterminate = !allTrue && !allFalse
 
     return (
-      <MenuItem dense>
-        <FormControlLabel
-          checked={checkboxes[control]}
-          onChange={handleChange}
-          control={<Checkbox />}
-          label={checkboxLabels[control]}
-        />
-      </MenuItem>
+      <FormControl component="fieldset" variant="standard">
+        <FormLabel component="legend">{groupLabel}</FormLabel>
+        <FormGroup>
+          <FormControlLabel
+            label={"Select All"}
+            control={
+              <Checkbox
+                checked={allTrue}
+                indeterminate={isIndeterminate}
+                //sets all values to true/false
+                onChange={e => setState(Object.fromEntries(
+                  Object.keys(controlsState).map(key => [key, e.target.checked])
+                ) as T)} //why do i need to do as T?
+              />
+            }
+          />
+          {Object.entries(controlsState).map(([key, checked]) => {
+            return (
+              <FormControlLabel
+                label={key}
+                sx={{ml: 1}}
+                control={
+                  <Checkbox
+                    checked={checked}
+                    onChange={e => setState({ ...controlsState, [key]: e.target.checked })}
+                  />
+                }
+              />
+            )
+          })}
+        </FormGroup>
+      </FormControl>
     )
   }
 
@@ -274,31 +322,9 @@ export const BiosampleTables = <T extends boolean = false>({
         {...slotProps?.menu}
       >
         <Stack padding={2} {...slotProps?.menuStack}>
-          <FormControl component="fieldset" variant="standard">
-            <FormGroup>
-              <FormLabel component="legend">Biosample Types</FormLabel>
-              <FilterCheckbox control="CellLine" />
-              <FilterCheckbox control="PrimaryCell" />
-              <FilterCheckbox control="Tissue" />
-              <FilterCheckbox control="Organoid" />
-              <FilterCheckbox control="InVitro" />
-            </FormGroup>
-          </FormControl>
-          <FormControl component="fieldset" variant="standard">
-            <FormGroup>
-              <FormLabel component="legend">Collection</FormLabel>
-              <FilterCheckbox control="Core" />
-              <FilterCheckbox control="Partial" />
-              <FilterCheckbox control="Ancillary" />
-            </FormGroup>
-          </FormControl>
-          <FormControl component="fieldset" variant="standard">
-            <FormGroup>
-              <FormLabel component="legend">Lifestage</FormLabel>
-              <FilterCheckbox control="Embryo" />
-              <FilterCheckbox control="Adult" />
-            </FormGroup>
-          </FormControl>
+          <FilterCheckboxGroup groupLabel="Biosample Types" controlsState={sampleTypeFilter} setState={handleSetSampleTypeFilter} />
+          <FilterCheckboxGroup groupLabel="Collection" controlsState={collectionFilter} setState={handleSetCollectionFilter} />
+          <FilterCheckboxGroup groupLabel="Life Stage" controlsState={lifeStageFilter} setState={handleSetLifeStageFilter} />
         </Stack>
       </Menu>
     </Stack>
