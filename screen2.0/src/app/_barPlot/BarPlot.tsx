@@ -198,7 +198,7 @@ const VerticalBarPlot = <T,>({
           <CircularProgress sx={{mt: 10}}/>
         </div>
       }
-      {/* Maybe should provide a default tooltip */}
+      {/* Maybe should provide a default tooltip  */}
       {TooltipContents && tooltipOpen && (
         <Portal>
           <TooltipWithBounds
