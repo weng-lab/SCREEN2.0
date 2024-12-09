@@ -5,8 +5,9 @@ import { AxisTop } from '@visx/axis';
 import { Group } from '@visx/group';
 import { Text } from '@visx/text';
 import { useParentSize } from '@visx/responsive';
-import { defaultStyles as defaultTooltipStyles, useTooltip, TooltipWithBounds, Portal } from '@visx/tooltip';
+import { defaultStyles as defaultTooltipStyles, useTooltip, TooltipWithBounds } from '@visx/tooltip';
 import { CircularProgress } from '@mui/material';
+import { localPoint } from '@visx/event';
 
 const fontFamily = "Roboto,Helvetica,Arial,sans-serif"
 
@@ -39,10 +40,11 @@ const VerticalBarPlot = <T,>({
   const requestRef = useRef<number | null>(null);
   const tooltipDataRef = useRef<{ top: number; left: number; data: BarData<T> } | null>(null);
 
-  const handleMouseMove = useCallback((event: React.MouseEvent, barData: BarData<T>) => {
+  const handleMouseMove = useCallback((event: React.MouseEvent<SVGGElement, MouseEvent>, barData: BarData<T>) => {
+    const coords = localPoint(event);
     tooltipDataRef.current = {
-      top: event.pageY,
-      left: event.pageX,
+      top: coords.y,
+      left: coords.x,
       data: barData,
     };
     if (!requestRef.current) {
@@ -200,15 +202,13 @@ const VerticalBarPlot = <T,>({
       }
       {/* Maybe should provide a default tooltip */}
       {TooltipContents && tooltipOpen && (
-        <Portal>
-          <TooltipWithBounds
-            top={tooltipTop}
-            left={tooltipLeft}
-            style={{ ...defaultTooltipStyles, backgroundColor: '#283238', color: 'white', zIndex: 1000 }}
-          >
-            <TooltipContents {...tooltipData} />
-          </TooltipWithBounds>
-        </Portal>
+        <TooltipWithBounds
+          top={tooltipTop}
+          left={tooltipLeft}
+          style={{ ...defaultTooltipStyles, backgroundColor: '#283238', color: 'white', zIndex: 1000 }}
+        >
+          <TooltipContents {...tooltipData} />
+        </TooltipWithBounds>
       )}
     </div>
   );
