@@ -49,7 +49,7 @@
     "@mui/material": "^6.1.5",
     "@mui/material-nextjs": "^6.1.5",
     "@parcel/watcher": "^2.4.1",
-    "@types/node": "20",
+    "@types/node": "22",
     "@types/react": "^18.3.1",
     "@types/react-dom": "18.3.1",
     "@visx/event": "^3.12.0",
