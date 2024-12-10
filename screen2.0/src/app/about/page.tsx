@@ -93,7 +93,7 @@ export default function About() {
               xs: 12,
               lg: 7
             }}>
-            <Image src={encodeEncyclopedia} alt={"Encode Encyclopedia"} />
+            <Image src={encodeEncyclopedia} alt={"Encode Encyclopedia"} style={{width: '100%', height: 'auto'}} />
           </Grid>
         </Grid>
         {/* Reistry of cCREs */}
@@ -129,7 +129,7 @@ export default function About() {
             <Typography variant="body1" paragraph>
               Many uses of cCREs are based on the regulatory role associated with their biochemical signatures. Analogous to GENCODE&apos;s catalog of genes, which are defined irrespective of their varying expression levels and alternative transcripts across different cell types, we provide a general, cell type-agnostic classification of cCREs. This classification is based on each element&apos;s dominant biochemical signals across all available biosamples and its proximity to the nearest GENCODE transcription start site (TSS) (<b>Figure X</b>).
             </Typography>
-            <Image src={classifications} alt="Classification of cCREs" />
+            <Image src={classifications} alt="Classification of cCREs"  style={{width: '100%', height: 'auto'}}  />
             <Stack direction={"column"} spacing={1} mt={1} mb={1}>
               <Typography paddingLeft={"1rem"} borderLeft={`0.25rem solid ${PLS}`} variant="body1">
                 <u>Promoter-like signatures (promoter)</u> must meet the following two criteria: 1) fall within 200 bp (center to center) of an annotated GENCODE TSS or experimentally derived TSS and 2) have high chromatin accessibility and H3K4me3 signals.
@@ -167,9 +167,9 @@ export default function About() {
               Core Collection
             </Typography>
             <Typography variant="body1" paragraph>
-              Thanks to the extensive coordination efforts by the ENCODE4 Biosample Working Group, 171 biosamples have DNase, H3K4me3, H3K27ac, and CTCF data. We refer to these samples as the biosample-specific <i>Core Collection</i> of cCREs. These samples cover a variety of tissues and organs and primarily comprise primary tissues and cells (<b>Figure X</b>). We suggest that users prioritize these samples for their analysis as they contain all the relevant marks for the most complete annotation of cCREs.
+              Thanks to the extensive coordination efforts by the ENCODE4 Biosample Working Group, 171 biosamples have DNase, H3K4me3, H3K27ac, and CTCF data. We refer to these samples as the biosample-specific <i>Core Collection</i> of cCREs. These samples cover a variety of tissues and organs and primarily comprise primary tissues and cells. We suggest that users prioritize these samples for their analysis as they contain all the relevant marks for the most complete annotation of cCREs.
               </Typography>
-            <Image src={biosamples} style={{maxWidth: "600px", margin: "auto"}} alt="Biosample types visual diagram" />
+            <Image src={biosamples} style={{display: 'block', maxWidth: "600px", height: "auto", margin: "auto"}} alt="Biosample types visual diagram" />
             <Typography variant="h6">
               Partial Data Collection
               </Typography>

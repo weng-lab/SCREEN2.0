@@ -67,7 +67,9 @@ export const DownloadRange: React.FC = () => {
       // setLinkedGenes({ distancePC: true, distanceAll: true, ctcfChiaPet: true, rnapiiChiaPet: true })
     }
     handleSetSelectedBiosample(null);
-    (value === "GRCh38" || value === "mm10") && setAssembly(value)
+    if (value === "GRCh38" || value === "mm10") {
+      setAssembly(value)
+    }
   }
 
   const handleSetSelectedBiosample = (biosample: RegistryBiosample) => {

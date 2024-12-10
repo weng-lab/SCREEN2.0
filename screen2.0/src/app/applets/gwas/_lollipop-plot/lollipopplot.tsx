@@ -500,7 +500,7 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
         </div>
       }
       {tooltipOpen && (
-        <Portal>
+        // <Portal>
           <TooltipWithBounds
             top={tooltipTop}
             left={tooltipLeft}
@@ -514,7 +514,7 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
             <Typography variant='body2'>Fold Change: {tooltipData.fc.toFixed(2)}</Typography>
             <Typography variant='body2'>Log<sub>2</sub>(Fold Change): {tooltipData.log2fc.toFixed(2)}</Typography>
           </TooltipWithBounds>
-        </Portal>
+        // </Portal>
       )}
       <DownloadDialog
         open={downloadOpen}
