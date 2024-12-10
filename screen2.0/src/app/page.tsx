@@ -9,8 +9,6 @@ import humanTransparentIcon from "../../public/Transparent_HumanIcon.png"
 import mouseTransparentIcon from "../../public/Transparent_MouseIcon.png"
 import { Download } from "@mui/icons-material"
 import Config from "../config.json"
-import Test from "./_aTest/aTest"
-
 
 export default function Home() {
   return (
@@ -81,7 +79,6 @@ export default function Home() {
           }}>
           <Image src={homeImage} alt={"SCREEN home image"} style={{width: '100%', maxWidth: '685px', height: 'auto'}} />
         </Grid>
-        <Test width={500} height={500} />
       </Grid>
     </main>
   );
