@@ -307,24 +307,6 @@ export function outputT_or_F(input: boolean): "t" | "f" {
 }
 
 /**
- * @param experiments Array of objects containing biosample experiments for a given biosample type
- * @returns an object with keys dnase, atac, h3k4me3, h3k27ac, ctcf with each marked true or false
- */
-function availableAssays(
-  experiments: {
-    assay: string
-    biosample_summary: string
-    biosample_type: string
-    tissue: string
-    celltypename: string
-  }[]
-) {
-  const assays = { dnase: false, atac: false, h3k4me3: false, h3k27ac: false, ctcf: false }
-  experiments.forEach((exp) => (assays[exp.assay.toLowerCase()] = true))
-  return assays
-}
-
-/**
  *
  * @param newSearchParams object of type MainQueryParams
  * @param newFilterCriteria object of type FilterCriteria
