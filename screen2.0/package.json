@@ -52,8 +52,6 @@
     "@types/node": "^22",
     "@types/react": "^18",
     "@types/react-dom": "18",
-    "@visx/event": "^3.12.0",
-    "@visx/responsive": "^3.12.0",
     "@visx/visx": "^3.12.0",
     "@weng-lab/psychscreen-ui-components": "^2.0.8",
     "@weng-lab/ts-ztable": "^4.0.1",

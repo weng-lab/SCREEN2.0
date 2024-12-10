@@ -2961,7 +2961,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@visx/event@npm:3.12.0, @visx/event@npm:^3.3.0":
+"@visx/event@npm:3.12.0":
   version: 3.12.0
   resolution: "@visx/event@npm:3.12.0"
   dependencies:
@@ -3168,7 +3168,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@visx/responsive@npm:3.12.0, @visx/responsive@npm:^3.10.2":
+"@visx/responsive@npm:3.12.0":
   version: 3.12.0
   resolution: "@visx/responsive@npm:3.12.0"
   dependencies:
@@ -3303,7 +3303,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@visx/visx@npm:^3.11.0":
+"@visx/visx@npm:^3.12.0":
   version: 3.12.0
   resolution: "@visx/visx@npm:3.12.0"
   dependencies:
@@ -9988,9 +9988,7 @@ __metadata:
     "@types/node": "npm:^22"
     "@types/react": "npm:^18"
     "@types/react-dom": "npm:18"
-    "@visx/event": "npm:^3.3.0"
-    "@visx/responsive": "npm:^3.10.2"
-    "@visx/visx": "npm:^3.11.0"
+    "@visx/visx": "npm:^3.12.0"
     "@weng-lab/psychscreen-ui-components": "npm:^2.0.8"
     "@weng-lab/ts-ztable": "npm:^4.0.1"
     bpnet-ui: "npm:^0.3.8"
