@@ -199,7 +199,7 @@ const VerticalBarPlot = <T,>({
         </div>
       }
       {/* Maybe should provide a default tooltip */}
-      {/* {TooltipContents && tooltipOpen && (
+      {TooltipContents && tooltipOpen && (
         <Portal>
           <TooltipWithBounds
             top={tooltipTop}
@@ -209,7 +209,7 @@ const VerticalBarPlot = <T,>({
             <TooltipContents {...tooltipData} />
           </TooltipWithBounds>
         </Portal>
-      )} */}
+      )}
     </div>
   );
 };
