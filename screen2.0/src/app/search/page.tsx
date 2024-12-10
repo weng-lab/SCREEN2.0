@@ -3,7 +3,7 @@
 import { BIOSAMPLE_Data, biosampleQuery } from "../../common/lib/queries"
 import { FilterCriteria, MainQueryData, MainQueryParams, RegistryBiosample } from "./types"
 import { constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, downloadBED, fetchcCREData } from "./searchhelpers"
-import React, { useEffect, useMemo, useRef, useState, useTransition } from "react"
+import React, { useEffect, useMemo, useRef, useState } from "react"
 import { styled } from '@mui/material/styles';
 import { Divider, IconButton, Tab, Tabs, Typography, Box, Button, CircularProgressProps, CircularProgress, Stack } from "@mui/material"
 import { MainResultsTable } from "./mainresultstable"

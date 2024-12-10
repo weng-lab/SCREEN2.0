@@ -31,7 +31,7 @@ export async function fetchcCREData (
 ): Promise<MainQueryData> {
   
   //cCRESearchQuery
-  let mainQueryData: MainQueryData = await MainQuery(
+  const mainQueryData: MainQueryData = await MainQuery(
     assembly,
     chromosome,
     start,
@@ -565,7 +565,7 @@ const convertToBED = (
   conservation: { primate: boolean, mammal: boolean, vertebrate: boolean },
 ): string => {
   //Create header comment for the file
-  let header = [
+  const header = [
     "# chr\tstart\tend\tacccession\tclassification",
     `${assays.dnase ? '\tDNase_z-score' : ''}`,
     `${assays.atac ? '\tATAC_z-score' : ''}`,
@@ -579,7 +579,7 @@ const convertToBED = (
     '\tnearest_gene_distance',
     '\n'
   ].join('')
-  let bedContent: string[] = [header];
+  const bedContent: string[] = [header];
 
   mainQueryData.data.cCRESCREENSearch.forEach((item) => {
     const chromosome = item.chrom;
