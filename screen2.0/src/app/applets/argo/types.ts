@@ -167,6 +167,10 @@ export type UploadProps = {
     onRegionsConfigured: (regions: GenomicRegion[]) => void;
 }
 
+export type SubTableTitleProps = {
+    title: string;
+};
+
 export type MainTableRow = {
     regionID: number
     inputRegion: GenomicRegion
@@ -243,3 +247,21 @@ type TOMTOMMatch = {
   export type TomtomMatchQueryData = {
       target_motifs: TOMTOMMatch[];
   };
+
+  export type SequenceTableProps = {
+    sequenceFilterVariables: SequenceFilterState;
+    SubTableTitle: React.FC<SubTableTitleProps>;
+    sequenceRows: SequenceTableRow[];
+  }
+
+  export type ElementTableProps = {
+    elementFilterVariables: ElementFilterState;
+    SubTableTitle: React.FC<SubTableTitleProps>;
+    elementRows: ElementTableRow[];
+  }
+
+  export type GeneTableProps = {
+    geneFilterVariables: GeneFilterState;
+    SubTableTitle: React.FC<SubTableTitleProps>;
+    geneRows: GeneTableRow[];
+  }

@@ -280,8 +280,8 @@ const ArgoUpload: React.FC<UploadProps> = ({
             {error[0] && <Alert variant="outlined" severity="error">{error[1]}</Alert>}
             <Stack direction={"row"} spacing={3} mt="10px" alignItems="stretch">
                 <Stack>
-                    <Stack direction={"row"} alignItems={"center"} flexWrap={"wrap"} justifyContent={"space-between"}>
-                        <Typography variant={"h5"} mr={1} alignSelf="center">
+                    <Stack direction={"column"} alignItems={"flex-start"} flexWrap={"wrap"} justifyContent={"space-between"}>
+                        <Typography variant={"h5"} mr={1}>
                             Upload Through
                         </Typography>
                         <Stack
