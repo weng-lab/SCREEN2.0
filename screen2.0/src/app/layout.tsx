@@ -20,7 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={inter.className} id="page-container">
         <ApolloWrapper> {/* Wrapper for Apollo Requests, exposes client to child components */}
           <AppRouterCacheProvider> {/* Wrapper for MUIxNextjs integration, see https://mui.com/material-ui/integrations/nextjs/ */}
-            <CssBaseline /> See https://mui.com/material-ui/react-css-baseline/
+             <CssBaseline /> {/* See https://mui.com/material-ui/react-css-baseline/ */}
             <ThemeProvider theme={theme}> {/* Exposes theme to children */}
               <div id="content-wrapper">
                 <ResponsiveAppBar />

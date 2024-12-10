@@ -76,18 +76,17 @@ function ResponsiveAppBar() {
 
   const menuItem = (page, isSubPage = false) =>
     <MenuItem key={page.pageName} onClick={handleCloseNavMenu_Hamburger} >
-      <Typography
-        pl={isSubPage ? 2 : 0}
-        color={isSubPage && "rgba(0, 0, 0, 0.6)"}
-        component='a'
+      <MuiLink
+        component={Link}
         href={page.link}
-        textAlign="center"
-        textTransform="none">
+        pl={isSubPage ? 2 : 0}
+        underline="hover"
+        color={isSubPage ? "rgba(0, 0, 0, 0.8)" : "black"}
+      >
         {page.pageName}
-      </Typography>
+      </MuiLink>
     </MenuItem>
   
-
   function handleMenuPagesMapFunc(page) {
     if (page.subPages) {
       return ([menuItem(page), page.subPages.map(x => menuItem(x, true))])
