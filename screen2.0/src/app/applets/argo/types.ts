@@ -1,4 +1,3 @@
-import { SelectChangeEvent } from "@mui/material"
 import { RegistryBiosample } from "../../_biosampleTables/types"
 
 export type LinkedGenes = {
@@ -164,7 +163,7 @@ export type GeneAccordianProps = {
 
 export type UploadProps = {
     selectedSearch: string;
-    handleSearchChange: (event: SelectChangeEvent) => void;
+    handleSearchChange: (search: string) => void;
     onRegionsConfigured: (regions: GenomicRegion[]) => void;
 }
 
