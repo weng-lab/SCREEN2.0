@@ -319,6 +319,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
                         }}
                     >
                         {selectedSearch === "TSV File" ? (
+
                             files === null && (
                                 <Container
                                     sx={{
