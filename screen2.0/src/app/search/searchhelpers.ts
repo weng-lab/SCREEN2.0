@@ -1,7 +1,6 @@
 
-import { MainQueryParams, MainResultTableRows, MainResultTableRow, FilterCriteria, BiosampleTableFilters, MainQueryData, SCREENSearchResult, RegistryBiosample, BiosampleData } from "./types"
+import { MainQueryParams, MainResultTableRows, MainResultTableRow, FilterCriteria, MainQueryData, SCREENSearchResult } from "./types"
 import { MainQuery } from "../../common/lib/queries"
-import { startTransition } from "react"
 import { LinkedGeneInfo } from "./_ccredetails/ccredetails"
 
 /**
@@ -647,7 +646,7 @@ export const downloadBED = async (
 
   setBedLoadingPercent(0)
 
-  let ranges: { start: number, end: number }[] = []
+  const ranges: { start: number, end: number }[] = []
   const maxRange = 10000000
   //Divide range into sub ranges no bigger than maxRange
   for (let i = start; i <= end; i += maxRange) {
@@ -655,38 +654,37 @@ export const downloadBED = async (
     ranges.push({ start: i, end: rangeEnd })
   }
   //For each range, send query and populate dataArray
-  let dataArray: MainQueryData[] = []
+  const dataArray: MainQueryData[] = []
 
-  startTransition(async () => {
-    for (let i = 0; i < ranges.length; i++) {
-      const range = ranges[i];
-      try {
-        const data = await fetchcCREData(
-          assembly,
-          chromosome,
-          range.start,
-          range.end,
-          biosampleName ?? undefined,
-          1000000,
-          null,
-          bedIntersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined,
-          true
-        )
-        dataArray.push(data)
-        setBedLoadingPercent(dataArray.length / ranges.length * 100)
-        //Wait one second before sending the next query to reduce load on service
-        await new Promise(resolve => setTimeout(resolve, 1000))
-      } catch (error) {
-        window.alert(
-          "There was an error fetching cCRE data, please try again soon. If this error persists, please report it via our 'Contact Us' form on the About page and include this info:\n\n" +
-          `Downloading:\n${assembly}\n${chromosome}\n${start}\n${end}\n${biosampleName ?? undefined}\n` +
-          error
-        );
-        setBedLoadingPercent(null)
-        return;
-      }
+  for (let i = 0; i < ranges.length; i++) {
+    const range = ranges[i];
+    try {
+      const data = await fetchcCREData(
+        assembly,
+        chromosome,
+        range.start,
+        range.end,
+        biosampleName ?? undefined,
+        1000000,
+        null,
+        bedIntersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined,
+        true
+      )
+      dataArray.push(data)
+      setBedLoadingPercent(dataArray.length / ranges.length * 100)
+      //Wait one second before sending the next query to reduce load on service
+      await new Promise(resolve => setTimeout(resolve, 1000))
+    } catch (error) {
+      window.alert(
+        "There was an error fetching cCRE data, please try again soon. If this error persists, please report it via our 'Contact Us' form on the About page and include this info:\n\n" +
+        `Downloading:\n${assembly}\n${chromosome}\n${start}\n${end}\n${biosampleName ?? undefined}\n` +
+        error
+      );
+      setBedLoadingPercent(null)
+      return;
     }
-  })
+  }
+
 
   //Check every second to see if the queries have resolved
   while (dataArray.length < ranges.length) {

@@ -33,9 +33,6 @@
 			}
 		],
 		"strict": false,
-		"types": [
-			"react/experimental"
-		]
 	},
 	"include": [
 		"src/**/*",
