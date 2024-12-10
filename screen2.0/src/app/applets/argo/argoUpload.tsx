@@ -280,7 +280,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
             {error[0] && <Alert variant="outlined" severity="error">{error[1]}</Alert>}
             <Stack direction={"row"} spacing={3} mt="10px" alignItems="stretch">
                 <Stack>
-                    <Stack direction={"column"} alignItems={"flex-start"} flexWrap={"wrap"} justifyContent={"space-between"}>
+                    <Stack direction={"row"} alignItems={"flex-start"} flexWrap={"wrap"} justifyContent={"space-between"}>
                         <Typography variant={"h5"} mr={1}>
                             Upload Through
                         </Typography>
@@ -394,8 +394,8 @@ const ArgoUpload: React.FC<UploadProps> = ({
                         {/* When a file is uploaded */}
                         {files !== null &&
                             <>
+                                <Stack direction="row" alignItems="center" spacing={2}>
                                 <Typography mb={1} variant="h5">Uploaded:</Typography>
-                                <Stack direction="row" alignItems="center">
                                     <Typography>{`${truncateFileName(files.name, 40)}\u00A0-\u00A0${(files.size / 1000000).toFixed(1)}\u00A0mb`}</Typography>
                                     <IconButton color="primary" onClick={() => handleReset(null)}>
                                         <Cancel />
