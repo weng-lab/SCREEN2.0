@@ -2,7 +2,6 @@
 import React, { useCallback, useEffect, useMemo } from "react"
 import { useState } from "react"
 import { Stack, Typography, Box, Alert, CircularProgress, IconButton } from "@mui/material"
-import { SelectChangeEvent } from "@mui/material/Select"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { ORTHOLOG_QUERY, Z_SCORES_QUERY, BIG_REQUEST_QUERY, MOTIF_QUERY } from "./queries"
 import { QueryResult, useLazyQuery, useQuery } from "@apollo/client"
@@ -28,7 +27,7 @@ export default function Argo() {
     const [loadingSequenceRanks, setLoadingSequenceRanks] = useState(true);
 
     //UI state variables
-    const [selectedSearch, setSelectedSearch] = useState<string>("BED File")
+    const [selectedSearch, setSelectedSearch] = useState<string>("TSV File")
     const [drawerOpen, setDrawerOpen] = useState(true);
     const toggleDrawer = () => setDrawerOpen(!drawerOpen);
     const [shownTable, setShownTable] = useState<"sequence" | "elements" | "genes">(null);
@@ -163,41 +162,6 @@ export default function Argo() {
         </Stack>
     );
 
-    //handle column changes for the main rank table
-    const mainColumns: DataTableColumn<MainTableRow>[] = useMemo(() => {
-
-        const cols: DataTableColumn<MainTableRow>[] = [
-            { header: "Region ID", value: (row) => row.regionID },
-            { header: "Input Region", value: (row) => `${row.inputRegion.chr}: ${row.inputRegion.start}-${row.inputRegion.end}`, sort: (a, b) => a.inputRegion.start - b.inputRegion.start },
-            { header: "Aggregate", value: (row) => row.aggregateRank, render: (row) => loadingMainRows ? <CircularProgress size={10}/> : row.aggregateRank }
-        ]
-        /**
-         * @todo
-         * correctly populate row values
-         */
-        if (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs) {
-            cols.push({ header: "Seqence", HeaderRender: () => <MainColHeader tableName="Sequence" onClick={() => shownTable === "sequence" ? setShownTable(null) : setShownTable("sequence")} />, value: (row) => row.sequenceRank, render: (row) => loadingSequenceRanks ? <CircularProgress size={10}/> : row.sequenceRank })
-        }
-        if (elementFilterVariables.usecCREs) {
-            cols.push({
-                header: "Element", HeaderRender: () => <MainColHeader tableName="Elements" onClick={() => shownTable === "elements" ? setShownTable(null) : setShownTable("elements")} />, value: (row) => row.elementRank === 0 ? "N/A" : row.elementRank,
-                sort: (a, b) => {
-                    const rankA = a.elementRank
-                    const rankB = b.elementRank
-
-                    if (rankA === 0) return 1;
-                    if (rankB === 0) return -1;
-                    return rankA - rankB;
-                },
-                render: (row) => loadingElementRanks ? <CircularProgress size={10}/> : row.elementRank
-            })
-        }
-        if (geneFilterVariables.useGenes) { cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Genes" onClick={() => shownTable === "genes" ? setShownTable(null) : setShownTable("genes")} />, value: (row) => "N/A" }) }
-
-        return cols
-
-    }, [MainColHeader, elementFilterVariables.usecCREs, geneFilterVariables.useGenes, loadingElementRanks, loadingMainRows, loadingSequenceRanks, sequenceFilterVariables.useConservation, sequenceFilterVariables.useMotifs, shownTable])
-
     //handle column changes for the Sequence rank table
     const sequenceColumns: DataTableColumn<SequenceTableRow>[] = useMemo(() => {
 
@@ -320,13 +284,13 @@ export default function Argo() {
     }
 
     //reset variables when switching btwn BED and txt, or when you remove a file
-    const handleSearchChange = (event: SelectChangeEvent) => {
+    const handleSearchChange = (search: string) => {
         setLoadingMainRows(true)
         setLoadingSequenceRanks(true)
         setLoadingElementRanks(true)
         updateElementFilter('selectedBiosample', null)
-        if (event) {
-            setSelectedSearch(event.target.value)
+        if (search) {
+            setSelectedSearch(search)
         }
         setShownTable(null)
         handleRegionsConfigured([])
@@ -465,10 +429,8 @@ export default function Argo() {
 
     const sequenceRanks: RankedRegions = useMemo(() => {
         if (sequenceRows.length === 0) {
-            // setLoadingSequenceRanks(false);
             return [];
         }
-        console.log(sequenceRows)
     
         setLoadingSequenceRanks(true);
 
@@ -606,7 +568,6 @@ export default function Argo() {
     // Generate element ranks
     const elementRanks = useMemo<RankedRegions>(() => {
         if (elementRows.length === 0 || !elementFilterVariables.usecCREs) {
-            // setLoadingElementRanks(false);
             return [];
         }
         setLoadingElementRanks(true);
@@ -614,8 +575,7 @@ export default function Argo() {
         //find ccres with same input region and combine them based on users rank by selected
         const processedRows = handleSameInputRegion(elementFilterVariables.rankBy, elementRows)
         const rankedRegions = generateElementRanks(processedRows, elementFilterVariables.classes, elementFilterVariables.assays)
-        
-        // setLoadingElementRanks(false);
+
         return rankedRegions;
 
     }, [elementFilterVariables, elementRows]);
@@ -627,10 +587,8 @@ export default function Argo() {
 
     //find the matching ranks for each input region and update the rows of the main table
     const mainRows: MainTableRow[] = useMemo(() => {
-        // if (loadingElementRanks || loadingSequenceRanks) return;
         if ((sequenceRanks.length === 0 && elementRanks.length === 0 && geneRanks.length === 0) || inputRegions.length === 0) return [];
         setLoadingMainRows(true)
-        // console.log(sequenceRanks)
         
         const aggregateRanks = calculateAggregateRanks(inputRegions, sequenceRanks, elementRanks, geneRanks)
         
@@ -673,17 +631,59 @@ export default function Argo() {
                 aggregateRank
             };
         }).filter(row => row.aggregateRank !== 0);
+        console.log(elementRanks)
 
         if (elementRanks.length > 0) {
             setLoadingElementRanks(false)
         }
-        if (sequenceRanks.length > 0) {
+        if (sequenceRanks.length > 0 && !loading_conservation_scores) {
             setLoadingSequenceRanks(false)
         }
+        if (elementRanks.length > 0 && sequenceRanks.length > 0 && !loading_conservation_scores) {
+            setLoadingMainRows(false)
+        }
 
-        setLoadingMainRows(false)
         return updatedMainRows;
-    }, [elementRanks, geneRanks, inputRegions, sequenceRanks]);
+    }, [elementRanks, geneRanks, inputRegions, loading_conservation_scores, sequenceRanks]);
+
+    //handle column changes for the main rank table
+    const mainColumns: DataTableColumn<MainTableRow>[] = useMemo(() => {
+
+        const cols: DataTableColumn<MainTableRow>[] = [
+            { header: "Region ID", value: (row) => row.regionID },
+            { header: "Input Region", value: (row) => `${row.inputRegion.chr}: ${row.inputRegion.start}-${row.inputRegion.end}`, sort: (a, b) => a.inputRegion.start - b.inputRegion.start },
+            { header: "Aggregate", value: (row) => row.aggregateRank, render: (row) => loadingMainRows ? <CircularProgress size={10}/> : row.aggregateRank }
+        ]
+        /**
+         * @todo
+         * correctly populate row values
+         */
+        if (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs) {
+            cols.push({ header: "Seqence", 
+                HeaderRender: () => <MainColHeader tableName="Sequence" onClick={() => shownTable === "sequence" ? setShownTable(null) : setShownTable("sequence")} />, 
+                value: (row) => row.sequenceRank, 
+                render: (row) => loadingSequenceRanks ? <CircularProgress size={10}/> : row.sequenceRank })
+        }
+        if (elementFilterVariables.usecCREs) {
+            cols.push({
+                header: "Element", HeaderRender: () => <MainColHeader tableName="Elements" onClick={() => shownTable === "elements" ? setShownTable(null) : setShownTable("elements")} />, value: (row) => row.elementRank === 0 ? "N/A" : row.elementRank,
+                sort: (a, b) => {
+                    const rankA = a.elementRank
+                    const rankB = b.elementRank
+
+                    if (rankA === 0) return 1;
+                    if (rankB === 0) return -1;
+                    return rankA - rankB;
+                },
+                render: (row) => loadingElementRanks || loading_scores || loading_ortho ? <CircularProgress size={10}/> : row.elementRank
+            })
+        }
+        if (geneFilterVariables.useGenes) { cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Genes" onClick={() => shownTable === "genes" ? setShownTable(null) : setShownTable("genes")} />, value: (row) => "N/A" }) }
+
+        return cols
+
+    }, [MainColHeader, elementFilterVariables.usecCREs, geneFilterVariables.useGenes, loadingElementRanks, loadingMainRows, loadingSequenceRanks, loading_ortho, loading_scores, sequenceFilterVariables.useConservation, sequenceFilterVariables.useMotifs, shownTable])
+
 
     return (
         <Box display="flex" >
@@ -698,7 +698,7 @@ export default function Argo() {
                 toggleDrawer={toggleDrawer}
             />
             <Box
-                ml={drawerOpen ? "25vw" : 0}
+                ml={drawerOpen ? {xs: '300px', sm: '300px', md: '300px', lg: '25vw' } : 0}
                 padding={3}
                 flexGrow={1}
                 height={"100%"}

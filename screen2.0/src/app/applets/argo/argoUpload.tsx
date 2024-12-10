@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react"
-import { Button, Typography, Stack, IconButton, FormControl, Select, MenuItem, Box, TextField, Alert, Container, Table, TableBody, TableCell, TableRow, SelectChangeEvent } from "@mui/material"
+import { Button, Typography, Stack, IconButton, FormControl, Box, TextField, Alert, Container, Table, TableBody, TableCell, TableRow, RadioGroup, FormControlLabel, Radio } from "@mui/material"
 import { useDropzone } from "react-dropzone"
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { Cancel } from "@mui/icons-material"
@@ -27,11 +27,11 @@ const ArgoUpload: React.FC<UploadProps> = ({
     const [getAllele] = useLazyQuery(ALLELE_QUERY)
     const [cellErr, setCellErr] = useState("")
 
-    const handleReset = () => {
+    const handleReset = (searchChange: string) => {
         setCellErr("")
         setTextValue(""); // Clear the text box
         setFiles(null);
-        handleSearchChange(null);
+        handleSearchChange(searchChange);
         setError([false, ""]);
         setFilesSubmitted(false)
     };
@@ -225,11 +225,11 @@ const ArgoUpload: React.FC<UploadProps> = ({
         let allLines = []
         let filenames: string = ''
         filenames += (' ' + file.name)
-        if (file.type !== "bed" && file.name.split('.').pop() !== "bed") {
-            console.error("File type is not bed");
+        if (file.type !== "tsv" && file.name.split('.').pop() !== "tsv") {
+            console.error("File type is not tsv");
             setLoading(false)
             setFiles(null)
-            setError([true, "File type is not bed"])
+            setError([true, "File type is not tsv"])
             return
         }
         const reader = new FileReader()
@@ -258,16 +258,15 @@ const ArgoUpload: React.FC<UploadProps> = ({
 
     //set files to the example file provided
     const handleUseExample = async () => {
-        handleSearchChange({ target: { value: "BED File" } } as SelectChangeEvent);
-        handleReset()
-        const url = "/ArgoExample.bed";
+        handleReset("TSV File")
+        const url = "/ArgoExample.tsv";
         try {
             const response = await fetch(url);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const blob = await response.blob();
-            const file = new File([blob], "ArgoExample.bed", { type: blob.type });
+            const file = new File([blob], "ArgoExample.tsv", { type: blob.type });
 
             setFiles(file);
             submitUploadedFile(file)
@@ -281,32 +280,31 @@ const ArgoUpload: React.FC<UploadProps> = ({
             {error[0] && <Alert variant="outlined" severity="error">{error[1]}</Alert>}
             <Stack direction={"row"} spacing={3} mt="10px" alignItems="stretch">
                 <Stack>
-                    <Stack direction={"row"} alignItems={"center"} flexWrap={"wrap"}>
+                    <Stack direction={"row"} alignItems={"center"} flexWrap={"wrap"} justifyContent={"space-between"}>
                         <Typography variant={"h5"} mr={1} alignSelf="center">
                             Upload Through
                         </Typography>
                         <Stack
-                            direction={"row"}
                             alignItems={"center"}
-                            flexWrap={"wrap"}
+                            spacing={2}
                         >
-                            <FormControl
-                                variant="standard"
-                                size="medium"
-                                sx={{ '& .MuiInputBase-root': { fontSize: '1.5rem' } }}
-                            >
-                                <Select
-                                    fullWidth
-                                    id="select-search"
+                            <FormControl>
+                                <RadioGroup
+                                    row
                                     value={selectedSearch}
-                                    onChange={(event) => { setFiles(null); handleSearchChange(event); setError([false, ""]); setFilesSubmitted(false) }}
-                                    SelectDisplayProps={{
-                                        style: { paddingBottom: '0px', paddingTop: '1px' },
-                                    }}
+                                    onChange={(event) => handleReset(event.target.value)}
                                 >
-                                    <MenuItem value={"BED File"}>BED File</MenuItem>
-                                    <MenuItem value={"Text Box"}>Text Box</MenuItem>
-                                </Select>
+                                    <FormControlLabel
+                                        value="TSV File"
+                                        control={<Radio />}
+                                        label="TSV File"
+                                    />
+                                    <FormControlLabel
+                                        value="Text Box"
+                                        control={<Radio />}
+                                        label="Text Box"
+                                    />
+                                </RadioGroup>
                             </FormControl>
                         </Stack>
                     </Stack>
@@ -320,7 +318,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
                             }),
                         }}
                     >
-                        {selectedSearch === "BED File" ? (
+                        {selectedSearch === "TSV File" ? (
                             files === null && (
                                 <Container
                                     sx={{
@@ -333,11 +331,11 @@ const ArgoUpload: React.FC<UploadProps> = ({
                                     }}
                                 >
                                     <div {...getRootProps()} style={{ padding: "1rem" }}>
-                                        <input {...getInputProps()} type="file" accept=".bed" />
+                                        <input {...getInputProps()} type="file" accept=".tsv" />
                                         <Stack spacing={1} direction="column" alignItems="center">
                                             <UploadFileIcon />
                                             <Typography>
-                                                Drag and drop a .bed file
+                                                Drag and drop a .tsv file
                                             </Typography>
                                             <Typography>
                                                 or
@@ -384,7 +382,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
                                             type="button"
                                             size="medium"
                                             variant="outlined"
-                                            onClick={handleReset}
+                                            onClick={() => handleReset(null)}
                                             sx={{ textTransform: "none" }}
                                         >
                                             Reset
@@ -399,7 +397,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
                                 <Typography mb={1} variant="h5">Uploaded:</Typography>
                                 <Stack direction="row" alignItems="center">
                                     <Typography>{`${truncateFileName(files.name, 40)}\u00A0-\u00A0${(files.size / 1000000).toFixed(1)}\u00A0mb`}</Typography>
-                                    <IconButton color="primary" onClick={() => { setFiles(null); handleSearchChange(null); setError([false, ""]); setFilesSubmitted(false); }}>
+                                    <IconButton color="primary" onClick={() => handleReset(null)}>
                                         <Cancel />
                                     </IconButton>
                                 </Stack>
@@ -420,93 +418,95 @@ const ArgoUpload: React.FC<UploadProps> = ({
                         }
                     </Box>
                 </Stack>
-                <Stack
-                    direction={"column"}
-                    spacing={2}
-                    sx={{
-                        padding: "16px",
-                        border: "1px solid",
-                        borderColor: "grey.300",
-                        borderRadius: "8px",
-                        backgroundColor: "grey.100",
-                    }}
-                >
-                    <Typography variant="body1" fontSize="1.1rem" fontWeight="bold">
-                        Required Fields:
-                    </Typography>
-                    <Table
+                {!filesSubmitted &&
+                    <Stack
+                        direction={"column"}
+                        spacing={2}
                         sx={{
+                            padding: "16px",
                             border: "1px solid",
-                            borderColor: "black",
-                            width: "100%",
-                            "& td, & th": {
-                                padding: "8px",
-                                fontSize: "1rem",
-                                textAlign: "center",
-                                border: "1px solid",
-                                borderColor: "black",
-                            },
+                            borderColor: "grey.300",
+                            borderRadius: "8px",
+                            backgroundColor: "grey.100",
                         }}
                     >
-                        <TableBody>
-                            <TableRow>
-                                <TableCell sx={{ backgroundColor: cellErr === "chr" ? "error.light" : "transparent" }}>Chromosome</TableCell>
-                                <TableCell sx={{ backgroundColor: cellErr === "numbers" ? "error.light" : "transparent" }}>Start</TableCell>
-                                <TableCell sx={{ backgroundColor: cellErr === "numbers" ? "error.light" : "transparent" }}>End</TableCell>
-                                <TableCell sx={{ backgroundColor: cellErr === "ref" ? "error.light" : "transparent" }}>Reference Allele</TableCell>
-                                <TableCell>Alternate Allele</TableCell>
-                                <TableCell>Strand</TableCell>
-                                <TableCell>Region ID (optional)</TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                    <Typography variant="body1" fontSize="1rem">
-                        If using the text box, separate fields with a tab. Below is an example file to help you
-                        format your data correctly.
-                    </Typography>
-                    <Stack direction={"row"} justifyContent={"space-between"}>
-                        <Button
-                            variant="text"
+                        <Typography variant="body1" fontSize="1.1rem" fontWeight="bold">
+                            Required Fields:
+                        </Typography>
+                        <Table
                             sx={{
-                                fontWeight: "bold",
-                                color: "primary.main",
-                                fontSize: "1rem",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                marginTop: "8px",
-                            }}
-                            startIcon={
-                                <FileDownloadIcon />
-                            }
-                            onClick={() => {
-                                const url = "/ArgoExample.bed";
-                                const link = document.createElement('a');
-                                link.href = url;
-                                link.download = "ArgoExample.bed";
-                                link.click();
+                                border: "1px solid",
+                                borderColor: "black",
+                                width: "100%",
+                                "& td, & th": {
+                                    padding: "8px",
+                                    fontSize: "1rem",
+                                    textAlign: "center",
+                                    border: "1px solid",
+                                    borderColor: "black",
+                                },
                             }}
                         >
-                            Download Example File
-                        </Button>
-                        <Button
-                            variant="text"
-                            sx={{
-                                fontWeight: "bold",
-                                color: "primary.main",
-                                fontSize: "1rem",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                marginTop: "8px",
-                            }}
-                            startIcon={
-                                <FileUploadIcon />
-                            }
-                            onClick={handleUseExample}
-                        >
-                            Use Example File
-                        </Button>
+                            <TableBody>
+                                <TableRow>
+                                    <TableCell sx={{ backgroundColor: cellErr === "chr" ? "error.light" : "transparent" }}>Chromosome</TableCell>
+                                    <TableCell sx={{ backgroundColor: cellErr === "numbers" ? "error.light" : "transparent" }}>Start</TableCell>
+                                    <TableCell sx={{ backgroundColor: cellErr === "numbers" ? "error.light" : "transparent" }}>End</TableCell>
+                                    <TableCell sx={{ backgroundColor: cellErr === "ref" ? "error.light" : "transparent" }}>Reference Allele</TableCell>
+                                    <TableCell>Alternate Allele</TableCell>
+                                    <TableCell>Strand</TableCell>
+                                    <TableCell>Region ID (optional)</TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
+                        <Typography variant="body1" fontSize="1rem">
+                            If using the text box, separate fields with a tab. Below is an example file to help you
+                            format your data correctly.
+                        </Typography>
+                        <Stack direction={"row"} justifyContent={"space-between"}>
+                            <Button
+                                variant="text"
+                                sx={{
+                                    fontWeight: "bold",
+                                    color: "primary.main",
+                                    fontSize: "1rem",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    marginTop: "8px",
+                                }}
+                                startIcon={
+                                    <FileDownloadIcon />
+                                }
+                                onClick={() => {
+                                    const url = "/ArgoExample.tsv";
+                                    const link = document.createElement('a');
+                                    link.href = url;
+                                    link.download = "ArgoExample.tsv";
+                                    link.click();
+                                }}
+                            >
+                                Download Example File
+                            </Button>
+                            <Button
+                                variant="text"
+                                sx={{
+                                    fontWeight: "bold",
+                                    color: "primary.main",
+                                    fontSize: "1rem",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    marginTop: "8px",
+                                }}
+                                startIcon={
+                                    <FileUploadIcon />
+                                }
+                                onClick={handleUseExample}
+                            >
+                                Use Example File
+                            </Button>
+                        </Stack>
                     </Stack>
-                </Stack>
+                }
             </Stack>
         </>
     )
