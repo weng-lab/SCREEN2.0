@@ -4,7 +4,8 @@ import { scaleLinear } from '@visx/scale';
 import { AxisBottom, AxisLeft } from '@visx/axis';
 import { Circle, LinePath } from '@visx/shape';
 import { localPoint } from '@visx/event';
-import { Tooltip } from '@visx/tooltip';
+import { TooltipWithBounds as VisxTooltipWithBounds } from '@visx/tooltip';
+import { TooltipWithBoundsProps } from '@visx/tooltip/lib/tooltips/TooltipWithBounds';
 import { Text } from '@visx/text';
 import { useDrag } from '@visx/drag';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -84,6 +85,7 @@ export const Chart = <T extends {}>({ width: parentWidth, height: parentHeight, 
  * @todo remove this when possible
  */
     const Zoom = VisxZoom as unknown as React.FC<ZoomProps<React.ReactElement>>;
+    const TooltipWithBounds = VisxTooltipWithBounds as unknown as React.FC<TooltipWithBoundsProps>;
 
     //rescale x and y scales when zooming
     //converts to pixel values before applying transformations
@@ -561,7 +563,7 @@ export const Chart = <T extends {}>({ width: parentWidth, height: parentHeight, 
                             {/* tooltip */}
                             {
                                 tooltipOpen && tooltipData && isHoveredPointWithinBounds && (
-                                    <Tooltip left={xScaleTransformed(tooltipData.x) + 50} top={yScaleTransformed(tooltipData.y) + 50}>
+                                    <TooltipWithBounds left={xScaleTransformed(tooltipData.x) + 50} top={yScaleTransformed(tooltipData.y) + 50}>
                                         <div>
                                             {tooltipBody ? tooltipBody(tooltipData) : (
                                                 <div>
@@ -578,7 +580,7 @@ export const Chart = <T extends {}>({ width: parentWidth, height: parentHeight, 
                                                 </div>
                                             )}
                                         </div>
-                                    </Tooltip>
+                                    </TooltipWithBounds>
                                 )
                             }
                         </>
