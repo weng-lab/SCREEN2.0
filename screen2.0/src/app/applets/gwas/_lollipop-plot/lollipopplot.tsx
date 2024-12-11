@@ -5,7 +5,9 @@ import { Group } from '@visx/group';
 import { scaleBand, scaleLinear, scaleLog } from '@visx/scale';
 import { AxisBottom } from '@visx/axis'
 import { Text } from '@visx/text'
-import { defaultStyles as defaultTooltipStyles, useTooltip, TooltipWithBounds, Portal } from '@visx/tooltip';
+import { defaultStyles as defaultTooltipStyles, useTooltip, TooltipWithBounds } from '@visx/tooltip';
+import { Portal as VisxPortal } from '@visx/tooltip';
+import { PortalProps } from '@visx/tooltip/lib/Portal';
 import { Button, Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, IconButton, InputLabel, OutlinedInput, Radio, RadioGroup, Stack, Tooltip, Typography } from '@mui/material';
 import { ArrowDownward, ArrowUpward, Close, Download, KeyboardDoubleArrowUp, Search } from '@mui/icons-material';
 import { localPoint } from '@visx/event';
@@ -63,6 +65,8 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
   const [groupTissues, setGroupTissues] = useState<boolean>(true)
   const [search, setSearch] = useState<string>("")
   const [downloadOpen, setDownloadOpen] = useState(false)
+
+  const Portal: React.ComponentType<PortalProps> = VisxPortal
 
   const { tooltipOpen, tooltipLeft, tooltipTop, tooltipData, hideTooltip, showTooltip } = useTooltip<TransformedEnrichmentData>();
   const hiddenSVGRef = useRef(null)
@@ -500,7 +504,7 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
         </div>
       }
       {tooltipOpen && (
-        // <Portal>
+        <Portal>
           <TooltipWithBounds
             top={tooltipTop}
             left={tooltipLeft}
@@ -514,7 +518,7 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
             <Typography variant='body2'>Fold Change: {tooltipData.fc.toFixed(2)}</Typography>
             <Typography variant='body2'>Log<sub>2</sub>(Fold Change): {tooltipData.log2fc.toFixed(2)}</Typography>
           </TooltipWithBounds>
-        // </Portal>
+        </Portal>
       )}
       <DownloadDialog
         open={downloadOpen}
