@@ -5,8 +5,9 @@ import { Group } from '@visx/group';
 import { scaleBand, scaleLinear, scaleLog } from '@visx/scale';
 import { AxisBottom } from '@visx/axis'
 import { Text } from '@visx/text'
-import { defaultStyles as defaultTooltipStyles, useTooltip, TooltipWithBounds } from '@visx/tooltip';
+import { defaultStyles as defaultTooltipStyles, useTooltip, TooltipWithBounds as VisxTooltipWithBounds } from '@visx/tooltip';
 import { Portal as VisxPortal } from '@visx/tooltip';
+import { TooltipWithBoundsProps } from '@visx/tooltip/lib/tooltips/TooltipWithBounds';
 import { PortalProps } from '@visx/tooltip/lib/Portal';
 import { Button, Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, IconButton, InputLabel, OutlinedInput, Radio, RadioGroup, Stack, Tooltip, Typography } from '@mui/material';
 import { ArrowDownward, ArrowUpward, Close, Download, KeyboardDoubleArrowUp, Search } from '@mui/icons-material';
@@ -71,6 +72,7 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
    * @todo remove this when possible
    */
   const Portal = VisxPortal as unknown as React.FC<PortalProps>;
+  const TooltipWithBounds = VisxTooltipWithBounds as unknown as React.FC<TooltipWithBoundsProps>;
 
   const { tooltipOpen, tooltipLeft, tooltipTop, tooltipData, hideTooltip, showTooltip } = useTooltip<TransformedEnrichmentData>();
   const hiddenSVGRef = useRef(null)

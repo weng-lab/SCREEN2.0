@@ -5,8 +5,9 @@ import { AxisTop } from '@visx/axis';
 import { Group } from '@visx/group';
 import { Text } from '@visx/text';
 import { useParentSize } from '@visx/responsive';
-import { defaultStyles as defaultTooltipStyles, useTooltip, TooltipWithBounds, Portal as VisxPortal } from '@visx/tooltip';
+import { defaultStyles as defaultTooltipStyles, useTooltip, TooltipWithBounds as VisxTooltipWithBounds, Portal as VisxPortal } from '@visx/tooltip';
 import { PortalProps } from '@visx/tooltip/lib/Portal';
+import { TooltipWithBoundsProps } from '@visx/tooltip/lib/tooltips/TooltipWithBounds';
 import { CircularProgress } from '@mui/material';
 
 const fontFamily = "Roboto,Helvetica,Arial,sans-serif"
@@ -45,6 +46,7 @@ const VerticalBarPlot = <T,>({
    * @todo remove this when possible
    */
   const Portal = VisxPortal as unknown as React.FC<PortalProps>;
+  const TooltipWithBounds = VisxTooltipWithBounds as unknown as React.FC<TooltipWithBoundsProps>;
 
   const handleMouseMove = useCallback((event: React.MouseEvent, barData: BarData<T>) => {
     tooltipDataRef.current = {
