@@ -105,7 +105,8 @@ export const ENTExData = (props: { accession, coordinates }) => {
                         itemsPerPage={10}
                     />
                 </Grid>}
-            {entexActiveAnno && !entexActiveAnnoLoading && entexActiveAnno.entexActiveAnnotationsQuery.length > 0 &&
+            {entexActiveAnnoLoading && <CircularProgress />}
+            {entexActiveAnno && !entexActiveAnnoLoading &&
                 <Grid
                     size={{
                         xs: 12,
@@ -123,7 +124,7 @@ export const ENTExData = (props: { accession, coordinates }) => {
                                 value: (row) => row.assay_score.split("|").map(s => s.split(":")[0]).join(", ")
                             }
                         ]}
-                        rows={entexActiveAnno.entexActiveAnnotationsQuery || []}
+                        rows={entexActiveAnno?.entexActiveAnnotationsQuery || []}
                         sortColumn={0}
                         searchable
                         sortDescending
