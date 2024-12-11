@@ -155,7 +155,7 @@ export default function Argo() {
         </Stack>
     );
 
-    //reset variables when switching btwn BED and txt, or when you remove a file
+    //reset variables when switching btwn TSV and txt, or when you remove a file
     const handleSearchChange = (search: string) => {
         setLoadingMainRows(true)
         setLoadingSequenceRanks(true)
@@ -506,7 +506,7 @@ export default function Argo() {
                     if (rankB === 0) return -1;
                     return rankA - rankB;
                 },
-                render: (row) => loadingElementRanks || loading_scores || loading_ortho ? <CircularProgress size={10} /> : row.elementRank
+                render: (row) => loadingElementRanks || loading_scores || loading_ortho ? <CircularProgress size={10} /> : row.elementRank === 0 ? "N/A" : row.elementRank
             })
         }
         if (geneFilterVariables.useGenes) { cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Genes" onClick={() => shownTable === "genes" ? setShownTable(null) : setShownTable("genes")} />, value: (row) => "N/A" }) }
