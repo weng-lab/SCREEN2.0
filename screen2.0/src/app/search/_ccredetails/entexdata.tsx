@@ -4,7 +4,7 @@ import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import Grid from "@mui/material/Grid2"
 import { client } from "./client"
 import { Typography, CircularProgress } from "@mui/material"
-import { createLink } from "../../../common/lib/utility"
+import { CreateLink } from "../../../common/lib/utility"
 import { gql } from "../../../graphql/__generated__/gql"
 
 const ENTEx_QUERY = gql(`
@@ -34,7 +34,6 @@ query entexActiveAnnotationsQuery( $coordinates: GenomicRangeInput! ) {
 }`)
 
 export const ENTExData = (props: { accession, coordinates }) =>{
-    console.log(props.coordinates)
     const { data, loading } = useQuery(ENTEx_QUERY, {
         variables: { accession: props.accession },
         fetchPolicy: "cache-and-network",
@@ -95,7 +94,7 @@ export const ENTExData = (props: { accession, coordinates }) =>{
                         header: "Experiment Accession",
                         HeaderRender: () => <b>Experiment Accession</b>,
                         value: (row) => row.experiment_accession,
-                        render: (row) => createLink("https://www.encodeproject.org/experiments/", row.experiment_accession, row.experiment_accession, true)
+                        render: (row) => <CreateLink linkPrefix="https://www.encodeproject.org/experiments/" linkArg={row.experiment_accession} label={row.experiment_accession} underline="hover" />
                     },
                     {
                         header: "p beta binom",

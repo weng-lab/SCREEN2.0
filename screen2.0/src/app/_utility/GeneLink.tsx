@@ -57,7 +57,7 @@ const GeneLink = ({ geneName, assembly, typographyProps }: GeneLinkProps) => {
           gene: geneName
         }
       }) : null
-  }, [coordinates])
+  }, [assembly, coordinates, geneName])
 
   const StyledTypography = styled((props: TypographyProps) =>
     <Typography variant='body2' display={"inline"} textAlign={"center"} color="white" {...props} />

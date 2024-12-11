@@ -39,32 +39,22 @@ export async function fetchServer<T>(url: string, jq: BodyInit) {
 }
 
 /**
- * Creates a hyperlink to the url + id with the id as the button
- * @param url
- * @param id string to be pasted at the end of the url
- * @returns link anchor to url + id
+ * 
+ * @param props 
+ * @returns 
  */
-export const createLink = (url: string, id: string, label?: string, showExternalIcon?: boolean, variant?: OverridableStringUnion<Variant | 'inherit', TypographyPropsVariantOverrides>, textColor?: string) => {
-  const link = url + id
-  return (
-    <Stack alignItems={"center"} direction="row" gap={0.5}>
-      <Link variant={variant} href={link} rel="noopener noreferrer" target="_blank" color={textColor}>
-        {label ? <button>{label}</button> : <button>{id}</button>}
-      </Link>
-      {showExternalIcon && <Launch fontSize="inherit" />}
-    </Stack>
-  )
-}
-
-export const CreateLink: React.FC<{ linkPrefix: string, linkArg?: string, label: string, showExternalIcon?: boolean, variant?: OverridableStringUnion<Variant | 'inherit', TypographyPropsVariantOverrides>, textColor?: string, underline?: "none" | "always" | "hover" }> = (props) => {
+export const CreateLink: React.FC<{ 
+  linkPrefix: string,
+   linkArg?: string, 
+   label: string, 
+   showExternalIcon?: boolean,
+    variant?: OverridableStringUnion<Variant | 'inherit', TypographyPropsVariantOverrides>, textColor?: string, underline?: "none" | "always" | "hover" }> = (props) => {
   const link = props.linkPrefix + (props.linkArg ?? "")
   return (
-    <>
-      <Link variant={props.variant} href={link} rel="noopener noreferrer" target="_blank" color={props.textColor} underline={props.underline}>
-        {props.label}
-        {props.showExternalIcon && <Launch sx={{ml: 0.5}} color="inherit" fontSize="inherit" />}
-      </Link>
-    </>
+    <Link display={"flex"} alignItems={"center"} variant={props.variant} href={link} rel="noopener noreferrer" target="_blank" color={props.textColor} underline={props.underline}>
+      {props.label}
+      {props.showExternalIcon && <Launch sx={{ ml: 0.5 }} color="inherit" fontSize="inherit" />}
+    </Link>
   )
 }
 
