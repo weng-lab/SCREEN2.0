@@ -77,7 +77,7 @@ export default function Home() {
             xs: 12,
             lg: 6
           }}>
-          <Image src={homeImage} alt={"SCREEN home image"} style={{width: '100%', maxWidth: '685px', height: 'auto'}} />
+          <Image priority src={homeImage} alt={"SCREEN home image"} style={{width: '100%', maxWidth: '685px', height: 'auto'}} />
         </Grid>
       </Grid>
     </main>

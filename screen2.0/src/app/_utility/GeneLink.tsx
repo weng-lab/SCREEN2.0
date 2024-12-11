@@ -24,7 +24,7 @@ const GET_GENE_COORDS = gql(`
   }
 `)
 
-const GeneLink = ({ geneName, assembly, typographyProps }: GeneLinkProps): React.JSX.Element => {
+const GeneLink = ({ geneName, assembly, typographyProps }: GeneLinkProps) => {
   const [open, setOpen] = useState<boolean>(false)
 
   const handleClose = () => {

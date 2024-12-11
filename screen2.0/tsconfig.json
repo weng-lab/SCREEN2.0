@@ -19,10 +19,6 @@
     "incremental": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
-    // "typeRoots": [
-    // 	"./types",
-    // 	"./node_modules/@types"
-    // ],
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": false,
     "plugins": [

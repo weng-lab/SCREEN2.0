@@ -66,7 +66,10 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
   const [search, setSearch] = useState<string>("")
   const [downloadOpen, setDownloadOpen] = useState(false)
 
-  //Super hacky but works?
+  /**
+   * Hacky workaround for complex type compatability issues. Hopefully this will fix itself when ugrading to React 19 - Jonathan 12/11/24
+   * @todo remove this when possible
+   */
   const Portal = VisxPortal as unknown as React.FC<PortalProps>;
 
   const { tooltipOpen, tooltipLeft, tooltipTop, tooltipData, hideTooltip, showTooltip } = useTooltip<TransformedEnrichmentData>();
