@@ -1,10 +1,10 @@
-import { Divider, Stack, styled, Tooltip, TooltipProps, Typography, tooltipClasses, CircularProgress, IconOwnProps, TypographyProps, Grid2 } from '@mui/material'
+import { Divider, Stack, styled, Tooltip, Typography, CircularProgress, IconOwnProps, TypographyProps } from '@mui/material'
 import { gql } from '../../graphql/__generated__';
 import { useLazyQuery } from '@apollo/client';
 import { useMemo, Fragment, useState } from 'react';
 import NextLink from 'next/link';
 import { UrlObject } from 'url';
-import { ArrowOutward, Tab } from '@mui/icons-material';
+import { ArrowOutward } from '@mui/icons-material';
 
 export interface GeneLinkProps {
   geneName: string,

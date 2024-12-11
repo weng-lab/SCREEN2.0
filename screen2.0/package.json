@@ -54,16 +54,13 @@
     "@weng-lab/ts-ztable": "^4.0.1",
     "bpnet-ui": "^0.3.8",
     "graphql": "^16.9.0",
-    "jubilant-carnival": "^0.6.0",
     "logots-react": "^0.2.0",
     "next": "14.2.13",
-    "only": "^0.0.2",
     "queryz": "^0.0.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-dropzone": "^14.2.3",
     "semantic-ui-react": "^2.1.5",
-    "server": "^1.0.41",
     "umap-js": "1.4.0",
     "umms-gb": "^3.10.0",
     "uuid": "^10.0.0"
@@ -104,5 +101,5 @@
     "not ie <= 11",
     "not op_mini all"
   ],
-  "packageManager": "yarn@4.5.1"
+  "packageManager": "yarn@4.5.3"
 }
