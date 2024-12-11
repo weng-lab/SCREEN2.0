@@ -66,7 +66,7 @@ export const EnrichmentLollipopPlot = (props: EnrichmentLollipopPlot) => {
   const [search, setSearch] = useState<string>("")
   const [downloadOpen, setDownloadOpen] = useState(false)
 
-  const Portal: React.ComponentType<PortalProps> = VisxPortal
+  const Portal = VisxPortal as unknown as React.FC<PortalProps>;
 
   const { tooltipOpen, tooltipLeft, tooltipTop, tooltipData, hideTooltip, showTooltip } = useTooltip<TransformedEnrichmentData>();
   const hiddenSVGRef = useRef(null)
