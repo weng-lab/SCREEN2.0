@@ -5,9 +5,10 @@ import { AxisTop } from '@visx/axis';
 import { Group } from '@visx/group';
 import { Text } from '@visx/text';
 import { useParentSize } from '@visx/responsive';
-import { defaultStyles as defaultTooltipStyles, useTooltip, TooltipWithBounds } from '@visx/tooltip';
+import { defaultStyles as defaultTooltipStyles, useTooltip, TooltipWithBounds as VisxTooltipWithBounds, Portal as VisxPortal } from '@visx/tooltip';
+import { PortalProps } from '@visx/tooltip/lib/Portal';
+import { TooltipWithBoundsProps } from '@visx/tooltip/lib/tooltips/TooltipWithBounds';
 import { CircularProgress } from '@mui/material';
-import { localPoint } from '@visx/event';
 
 const fontFamily = "Roboto,Helvetica,Arial,sans-serif"
 
@@ -40,11 +41,17 @@ const VerticalBarPlot = <T,>({
   const requestRef = useRef<number | null>(null);
   const tooltipDataRef = useRef<{ top: number; left: number; data: BarData<T> } | null>(null);
 
-  const handleMouseMove = useCallback((event: React.MouseEvent<SVGGElement, MouseEvent>, barData: BarData<T>) => {
-    const coords = localPoint(event);
+  /**
+   * Hacky workaround for complex type compatability issues. Hopefully this will fix itself when ugrading to React 19 - Jonathan 12/11/24
+   * @todo remove this when possible
+   */
+  const Portal = VisxPortal as unknown as React.FC<PortalProps>;
+  const TooltipWithBounds = VisxTooltipWithBounds as unknown as React.FC<TooltipWithBoundsProps>;
+
+  const handleMouseMove = useCallback((event: React.MouseEvent, barData: BarData<T>) => {
     tooltipDataRef.current = {
-      top: coords.y,
-      left: coords.x,
+      top: event.pageY,
+      left: event.pageX,
       data: barData,
     };
     if (!requestRef.current) {
@@ -202,13 +209,15 @@ const VerticalBarPlot = <T,>({
       }
       {/* Maybe should provide a default tooltip */}
       {TooltipContents && tooltipOpen && (
-        <TooltipWithBounds
-          top={tooltipTop}
-          left={tooltipLeft}
-          style={{ ...defaultTooltipStyles, backgroundColor: '#283238', color: 'white', zIndex: 1000 }}
-        >
-          <TooltipContents {...tooltipData} />
-        </TooltipWithBounds>
+        <Portal>
+          <TooltipWithBounds
+            top={tooltipTop}
+            left={tooltipLeft}
+            style={{ ...defaultTooltipStyles, backgroundColor: '#283238', color: 'white', zIndex: 1000 }}
+          >
+            <TooltipContents {...tooltipData} />
+          </TooltipWithBounds>
+        </Portal>
       )}
     </div>
   );

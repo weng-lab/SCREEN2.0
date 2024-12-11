@@ -1,13 +1,13 @@
-/* eslint-disable @next/next/no-img-element */
 "use client"
 
 import React, { useState } from "react"
-import { AppBar, Box, Toolbar, IconButton, Typography, Menu, Container, Button, MenuItem, Paper } from "@mui/material"
+import { AppBar, Box, Toolbar, IconButton, Typography, Menu, Container, MenuItem, Paper, Link as MuiLink } from "@mui/material"
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown"
 import MenuIcon from "@mui/icons-material/Menu"
 import { MainSearch } from "./_mainsearch/mainsearch"
 import Image from "next/image"
 import SCREENLOGO from "../../public/screenLogo.png"
+import Link from "next/link"
 /*  
   Links for the AppBar. If adding another page with subpages, you need to add another 
   useState() hook for positioning, and add extra if case in open/close handlers 
@@ -76,18 +76,17 @@ function ResponsiveAppBar() {
 
   const menuItem = (page, isSubPage = false) =>
     <MenuItem key={page.pageName} onClick={handleCloseNavMenu_Hamburger} >
-      <Typography
-        pl={isSubPage ? 2 : 0}
-        color={isSubPage && "rgba(0, 0, 0, 0.6)"}
-        component='a'
+      <MuiLink
+        component={Link}
         href={page.link}
-        textAlign="center"
-        textTransform="none">
+        pl={isSubPage ? 2 : 0}
+        underline="hover"
+        color={isSubPage ? "rgba(0, 0, 0, 0.8)" : "black"}
+      >
         {page.pageName}
-      </Typography>
+      </MuiLink>
     </MenuItem>
   
-
   function handleMenuPagesMapFunc(page) {
     if (page.subPages) {
       return ([menuItem(page), page.subPages.map(x => menuItem(x, true))])
@@ -101,33 +100,28 @@ function ResponsiveAppBar() {
     <>
       <AppBar position="fixed">
         <Container maxWidth={false}>
-          <Toolbar disableGutters sx={{ justifyContent: "space-between" }}>
+          <Toolbar disableGutters sx={{ justifyContent: "space-between", alignItems: "center" }}>
             {/* Logo, and desktop navigation */}
             <Box display='flex' flexGrow={1}>
-              <a href={"/"}>
-              <Image src={SCREENLOGO} alt="SCREEN Icon" height={40} width={90} style={{marginRight: '20px'}} />                
-              </a>
+              <Link href={"/"} style={{display: 'flex', }}>
+                  <Image src={SCREENLOGO} alt="SCREEN Icon" height={45} style={{ marginRight: '25px' }}/>                
+              </Link>
               {/* Main navigation items for desktop, hide on small screen size */}
-              <Box sx={{ display: { xs: "none", lg: "flex" }, alignItems: 'center' }}>
+              <Box sx={{ display: { xs: "none", lg: "flex" }, alignItems: 'center', gap: 2 }}>
                 {pageLinks.map((page) => (
                   <Box key={page.pageName}>
-                    <Button
-                      sx={{
-                        color: "white",
-                        display: "flex",
-                        textTransform: "none",
-                        "& .MuiButton-endIcon": { ml: 0 },
-                      }}
-                      endIcon={page.subPages && <ArrowDropDownIcon />}
+                    <MuiLink
                       onMouseEnter={page.subPages ? (event) => handleOpenNavMenu_Dropdown(event, page.dropdownID) : undefined}
+                      display={"flex"}
+                      fontFamily={(theme) => theme.typography.fontFamily}
+                      underline="hover"
+                      color="primary.contrastText"
+                      component={Link}
+                      href={page.link}
                     >
-                      {/* Wrap in next/link to enable dyanic link changing from basePath in next.config.js */}
-                      <a href={page.link}>
-                        <Typography variant="body1">
-                          {page.pageName}
-                        </Typography>
-                      </a>
-                    </Button>
+                      {page.pageName}
+                      {page.subPages && <ArrowDropDownIcon />}
+                    </MuiLink>
                     {/* Create popup menu if page has subpages */}
                     {page.subPages && (
                       <Menu
@@ -155,10 +149,14 @@ function ResponsiveAppBar() {
                           {page.subPages &&
                             page.subPages.map((subPage) => (
                               <MenuItem key={subPage.pageName} onClick={() => handleCloseNavMenu_Dropdown(page.dropdownID)}>
-                                {/* Wrap in next/link to enable dyanic link changing from basePath in next.config.js */}
-                                <a href={subPage.link}>
-                                  <Typography textAlign="center">{subPage.pageName}</Typography>
-                                </a>
+                                <MuiLink
+                                  underline="hover"
+                                  color="black"
+                                  component={Link}
+                                  href={subPage.link}
+                                >
+                                  {subPage.pageName}
+                                </MuiLink>
                               </MenuItem>
                             ))}
                         </Paper>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, SetStateAction, useTransition } from "react"
+import React, { useState, useEffect, SetStateAction } from "react"
 import Box from "@mui/material/Box"
 import TextField from "@mui/material/TextField"
 import Autocomplete from "@mui/material/Autocomplete"
@@ -15,14 +15,17 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
   const [valueRegion, setValueRegion] = useState(null)
   const [inputValue, setInputValue] = useState("")
   const [options, setOptions] = useState<RegistryBiosample[]>([])
-  const [isPending, startTransition] = useTransition();
 
-  //fetch biosample info, populate selected biosample if specified
+  /**
+   * @todo move this fetch to client side. Invoking server action to fetch data has no clear benefit
+   */
   useEffect(() => {
-    startTransition(async () => {
-      const biosamples = await (await biosampleQuery()).data[props.assembly.toLowerCase() === "grch38" ? "human" : "mouse"].biosamples
+    const fetchBiosamples = async () => {
+      const biosamples = (await biosampleQuery()).data[props.assembly.toLowerCase() === "grch38" ? "human" : "mouse"].biosamples
       setOptions(biosamples)
-    })
+    }
+
+    fetchBiosamples()
   }, [props.assembly])
 
   const handleSubmit = () => {
