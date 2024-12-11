@@ -31,20 +31,26 @@ const ArgoUpload: React.FC<UploadProps> = ({
     const [cellErr, setCellErr] = useState("");
     const [expanded, setExpanded] = useState(true);
 
+    //expand the accordion
     const handleExpand = () => {
         setExpanded(!expanded)
     }
 
+    //check to see if the value in the text box has changed
+    useEffect(() => {
+        setTextChanged(true)
+    }, [textValue])
+
     const handleReset = (searchChange: string) => {
-        setCellErr("");
+        setCellErr(""); //clear the errored cells
         setTextValue(""); // Clear the text box
-        setFiles(null);
-        handleSearchChange(searchChange);
-        setError([false, ""]);
-        setFilesSubmitted(false);
-        setExpanded(true);
-        setTextChanged(true);
-        setSubmittedText("");
+        setFiles(null); //clear uploaded files
+        handleSearchChange(searchChange); //change search to selected search
+        setError([false, ""]); // clear the error message
+        setFilesSubmitted(false); //clear submitted files
+        setExpanded(true); //expand the accordion
+        setTextChanged(true); //text has changed
+        setSubmittedText(""); //no submitted text
     };
 
     //Allow the user to insert a tab in the text box
@@ -65,10 +71,6 @@ const ArgoUpload: React.FC<UploadProps> = ({
             target.selectionStart = target.selectionEnd = start + 1;
         }
     };
-
-    useEffect (() => {
-        setTextChanged(true)
-    }, [textValue])
 
     //coppied from BedUpload
     function parseDataInput(data) {
@@ -319,10 +321,12 @@ const ArgoUpload: React.FC<UploadProps> = ({
                                 <Typography mb={1} variant="h5">Submitted:</Typography>
                                 <Typography>
                                     {selectedSearch === "Text Box"
-                                        ? `${submittedText.split("\n")[0]}...`
+                                        ? submittedText.includes("\n")
+                                            ? `${submittedText.split("\n")[0]}...`
+                                            : submittedText
                                         : `${truncateFileName(files.name, 40)}\u00A0-\u00A0${(files.size / 1000000).toFixed(1)}\u00A0mb`}
                                 </Typography>
-                                <IconButton color="primary" onClick={(event) => {handleReset(null); event.stopPropagation();}}>
+                                <IconButton color="primary" onClick={(event) => { handleReset(null); event.stopPropagation(); }}>
                                     <Cancel />
                                 </IconButton>
                             </Stack>
@@ -333,7 +337,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
                     }
                 </AccordionSummary>
                 <AccordionDetails>
-                    <Stack direction={"row"} spacing={3} mt="10px" alignItems="stretch">
+                    <Stack direction={"row"} spacing={3} mt="10px" alignItems="stretch" justifyContent={"space-between"}>
                         <Stack>
                             <Stack direction={"row"} alignItems={"flex-start"} flexWrap={"wrap"} justifyContent={"space-between"}>
                                 <Typography variant={"h5"} mr={1}>
