@@ -8,26 +8,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "prettier": "prettier --write src",
     "export": "next export",
     "gen-types": "graphql-codegen",
     "gen-types -w": "graphql-codegen -w"
-  },
-  "configureWebpack": {
-    "resolve": {
-      "extensions": [
-        "*",
-        ".mjs",
-        ".js",
-        ".jsx",
-        ".json",
-        ".gql",
-        ".graphql",
-        ".jpeg",
-        ".jpg",
-        ".png"
-      ]
-    }
   },
   "dependencies": {
     "@apollo/client": "^3.11.8",
@@ -71,9 +54,7 @@
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.14",
     "typescript": "5.6.2",
-    "typescript-eslint": "^8.18.0",
-    "webpack": "^5.94.0",
-    "webpack-cli": "^5.1.4"
+    "typescript-eslint": "^8.18.0"
   },
   "packageManager": "yarn@4.5.3"
 }
