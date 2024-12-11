@@ -8,34 +8,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "prettier": "prettier --write src",
     "export": "next export",
     "gen-types": "graphql-codegen",
     "gen-types -w": "graphql-codegen -w"
-  },
-  "lint-staged": {
-    "linters": {
-      "src": [
-        "prettier --write",
-        "git add"
-      ]
-    }
-  },
-  "configureWebpack": {
-    "resolve": {
-      "extensions": [
-        "*",
-        ".mjs",
-        ".js",
-        ".jsx",
-        ".json",
-        ".gql",
-        ".graphql",
-        ".jpeg",
-        ".jpg",
-        ".png"
-      ]
-    }
   },
   "dependencies": {
     "@apollo/client": "^3.11.8",
@@ -49,30 +24,18 @@
     "@mui/material": "^6.1.5",
     "@mui/material-nextjs": "^6.1.5",
     "@parcel/watcher": "^2.4.1",
-    "@types/node": "^22.6.1",
-    "@types/react": "^18.3.8",
-    "@types/react-dom": "18.3.0",
-    "@visx/event": "^3.3.0",
-    "@visx/responsive": "^3.10.2",
-    "@visx/visx": "^3.11.0",
+    "@visx/visx": "^3.12.0",
     "@weng-lab/psychscreen-ui-components": "^2.0.8",
     "@weng-lab/ts-ztable": "^4.0.1",
-    "autoprefixer": "10.4.20",
     "bpnet-ui": "^0.3.8",
     "graphql": "^16.9.0",
-    "jubilant-carnival": "^0.6.0",
     "logots-react": "^0.2.0",
     "next": "14.2.13",
-    "normalize.css": "^8.0.1",
-    "only": "^0.0.2",
-    "postcss": "8.4.47",
     "queryz": "^0.0.3",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "react-dropzone": "^14.2.3",
     "semantic-ui-react": "^2.1.5",
-    "server": "^1.0.41",
-    "tailwindcss": "3.4.13",
     "umap-js": "1.4.0",
     "umms-gb": "^3.10.0",
     "uuid": "^10.0.0"
@@ -82,33 +45,16 @@
     "@graphql-codegen/cli": "^5.0.2",
     "@graphql-codegen/client-preset": "^4.3.3",
     "@graphql-typed-document-node/core": "^3.2.0",
+    "@types/node": "^22",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.1",
     "eslint": "9.13.0",
     "eslint-config-next": "15.0.1",
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.14",
-    "file-loader": "^6.2.0",
-    "lint-staged": "^15.2.10",
-    "prettier": "^3.3.3",
     "typescript": "5.6.2",
-    "typescript-eslint": "^8.11.0",
-    "webpack": "^5.94.0",
-    "webpack-cli": "^5.1.4"
+    "typescript-eslint": "^8.18.0"
   },
-  "prettier": {
-    "trailingComma": "es5",
-    "printWidth": 140,
-    "tabWidth": 2,
-    "arrowParens": "always",
-    "bracketSpacing": true,
-    "singleQuote": false,
-    "semi": false
-  },
-  "browserslist": [
-    ">0.2%",
-    "not dead",
-    "not ie <= 11",
-    "not op_mini all"
-  ],
-  "packageManager": "yarn@4.5.1"
+  "packageManager": "yarn@4.5.3"
 }

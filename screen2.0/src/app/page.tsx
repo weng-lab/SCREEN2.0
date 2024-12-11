@@ -10,7 +10,6 @@ import mouseTransparentIcon from "../../public/Transparent_MouseIcon.png"
 import { Download } from "@mui/icons-material"
 import Config from "../config.json"
 
-
 export default function Home() {
   return (
     <main>
@@ -78,7 +77,7 @@ export default function Home() {
             xs: 12,
             lg: 6
           }}>
-          <Image priority src={homeImage} alt={"SCREEN home image"} />
+          <Image priority src={homeImage} alt={"SCREEN home image"} style={{width: '100%', maxWidth: '685px', height: 'auto'}} />
         </Grid>
       </Grid>
     </main>

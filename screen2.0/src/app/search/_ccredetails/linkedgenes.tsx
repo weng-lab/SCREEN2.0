@@ -2,8 +2,8 @@
 import React from "react"
 import Grid from "@mui/material/Grid2"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
-import { createLink, toScientificNotationElement } from "../../../common/lib/utility"
-import { Box, Link, Paper, Typography } from "@mui/material"
+import { CreateLink, toScientificNotationElement } from "../../../common/lib/utility"
+import { Box, Paper, Typography } from "@mui/material"
 import { LinkedGeneInfo } from "./ccredetails"
 import GeneLink from "../../_utility/GeneLink"
 
@@ -53,7 +53,7 @@ export const LinkedGenes: React.FC<props> = (props) => {
               {
                 header: "Experiment ID",
                 value: (row: LinkedGeneInfo) => row.experiment_accession,
-                render: (row: LinkedGeneInfo) => createLink("https://www.encodeproject.org/experiments/", row.experiment_accession, row.experiment_accession, true)
+                render: (row: LinkedGeneInfo) => <CreateLink linkPrefix="https://www.encodeproject.org/experiments/" linkArg={row.experiment_accession} label={row.experiment_accession} showExternalIcon underline="hover" />
               },
               {
                 header: "Biosample",
@@ -101,7 +101,7 @@ export const LinkedGenes: React.FC<props> = (props) => {
               {
                 header: "Experiment ID",
                 value: (row: LinkedGeneInfo) => row.experiment_accession,
-                render: (row: LinkedGeneInfo) => createLink("https://www.encodeproject.org/experiments/", row.experiment_accession, row.experiment_accession, true)
+                render: (row: LinkedGeneInfo) => <CreateLink linkPrefix="https://www.encodeproject.org/experiments/" linkArg={row.experiment_accession} label={row.experiment_accession} showExternalIcon underline="hover" />
               },
               {
                 header: "Biosample",
@@ -146,7 +146,7 @@ export const LinkedGenes: React.FC<props> = (props) => {
               {
                 header: "Experiment ID",
                 value: (row: LinkedGeneInfo) => row.experiment_accession,
-                render: (row: LinkedGeneInfo) => createLink("https://www.encodeproject.org/experiments/", row.experiment_accession, row.experiment_accession, true)
+                render: (row: LinkedGeneInfo) => <CreateLink linkPrefix="https://www.encodeproject.org/experiments/" linkArg={row.experiment_accession} label={row.experiment_accession} showExternalIcon underline="hover" />
               },
               {
                 header: "Biosample",
