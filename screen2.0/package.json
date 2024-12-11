@@ -13,14 +13,6 @@
     "gen-types": "graphql-codegen",
     "gen-types -w": "graphql-codegen -w"
   },
-  "lint-staged": {
-    "linters": {
-      "src": [
-        "prettier --write",
-        "git add"
-      ]
-    }
-  },
   "configureWebpack": {
     "resolve": {
       "extensions": [
@@ -78,28 +70,10 @@
     "eslint-plugin-react": "^7.37.2",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.14",
-    "file-loader": "^6.2.0",
-    "lint-staged": "^15.2.10",
-    "prettier": "^3.3.3",
     "typescript": "5.6.2",
     "typescript-eslint": "^8.18.0",
     "webpack": "^5.94.0",
     "webpack-cli": "^5.1.4"
   },
-  "prettier": {
-    "trailingComma": "es5",
-    "printWidth": 140,
-    "tabWidth": 2,
-    "arrowParens": "always",
-    "bracketSpacing": true,
-    "singleQuote": false,
-    "semi": false
-  },
-  "browserslist": [
-    ">0.2%",
-    "not dead",
-    "not ie <= 11",
-    "not op_mini all"
-  ],
   "packageManager": "yarn@4.5.3"
 }
