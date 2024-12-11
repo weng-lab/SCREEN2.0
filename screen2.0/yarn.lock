@@ -2063,12 +2063,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/eslint-plugin-next@npm:15.0.1":
-  version: 15.0.1
-  resolution: "@next/eslint-plugin-next@npm:15.0.1"
+"@next/eslint-plugin-next@npm:15.1.0":
+  version: 15.1.0
+  resolution: "@next/eslint-plugin-next@npm:15.1.0"
   dependencies:
     fast-glob: "npm:3.3.1"
-  checksum: 10/1216df35426e8e723f1d1633f724234c334f89bb6dec3b8a38faa16168c4bcf7a7b991d2937c0a6b4b5f90d77dd3e71f9e8b96c2c17366d6a152dc0be42c2384
+  checksum: 10/70f9a32f2bf9daa063445a6afde15a9c4ea77ff2e44eac04804f378ca5aa7be8a9a9d7382a2d637c5cdc3549ca4054c2639141b2a0c71fde9032b689fb1eea4e
   languageName: node
   linkType: hard
 
@@ -5036,11 +5036,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-config-next@npm:15.0.1":
-  version: 15.0.1
-  resolution: "eslint-config-next@npm:15.0.1"
+"eslint-config-next@npm:15.1.0":
+  version: 15.1.0
+  resolution: "eslint-config-next@npm:15.1.0"
   dependencies:
-    "@next/eslint-plugin-next": "npm:15.0.1"
+    "@next/eslint-plugin-next": "npm:15.1.0"
     "@rushstack/eslint-patch": "npm:^1.10.3"
     "@typescript-eslint/eslint-plugin": "npm:^5.4.2 || ^6.0.0 || ^7.0.0 || ^8.0.0"
     "@typescript-eslint/parser": "npm:^5.4.2 || ^6.0.0 || ^7.0.0 || ^8.0.0"
@@ -5048,7 +5048,7 @@ __metadata:
     eslint-import-resolver-typescript: "npm:^3.5.2"
     eslint-plugin-import: "npm:^2.31.0"
     eslint-plugin-jsx-a11y: "npm:^6.10.0"
-    eslint-plugin-react: "npm:^7.35.0"
+    eslint-plugin-react: "npm:^7.37.0"
     eslint-plugin-react-hooks: "npm:^5.0.0"
   peerDependencies:
     eslint: ^7.23.0 || ^8.0.0 || ^9.0.0
@@ -5056,7 +5056,7 @@ __metadata:
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: 10/5905f588adeb7d5d007d9fcd033d7919a6b19d5b9f6f841fa5a06e9d6a1cf50ba38330b5923f1c3134a018d19621e21f0d10ab9baa4f318360ff017d71d1c820
+  checksum: 10/44051878b4bfefe75339cacacc446b31d017a12835ca1ca01d86686f9bb792b2cd1c024960afe107c37225ea90ce8fbfccf26919321d79c5456dd202563941f2
   languageName: node
   linkType: hard
 
@@ -5180,7 +5180,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-react@npm:^7.35.0, eslint-plugin-react@npm:^7.37.2":
+"eslint-plugin-react@npm:^7.37.0, eslint-plugin-react@npm:^7.37.2":
   version: 7.37.2
   resolution: "eslint-plugin-react@npm:7.37.2"
   dependencies:
@@ -8171,7 +8171,7 @@ __metadata:
     "@weng-lab/ts-ztable": "npm:^4.0.1"
     bpnet-ui: "npm:^0.3.8"
     eslint: "npm:9.13.0"
-    eslint-config-next: "npm:15.0.1"
+    eslint-config-next: "npm:15.1.0"
     eslint-plugin-react: "npm:^7.37.2"
     eslint-plugin-react-hooks: "npm:^5.0.0"
     eslint-plugin-react-refresh: "npm:^0.4.14"
