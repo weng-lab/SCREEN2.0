@@ -62,48 +62,39 @@ export const ENTExData = (props: { accession, coordinates }) => {
                         columns={[
                             {
                                 header: "Tissue",
-                                HeaderRender: () => <b>Tissue</b>,
                                 value: (row) => row.tissue.split("_").map(s => s[0].toUpperCase() + s.slice(1)).join(" "),
                             },
                             {
                                 header: "Assay",
-                                HeaderRender: () => <b>Assay</b>,
                                 value: (row) => row.assay.replaceAll("_", " "),
                             },
                             {
                                 header: "Donor",
-                                HeaderRender: () => <b>Donor</b>,
                                 value: (row) => row.donor,
                             },
                             {
                                 header: "Hap 1 Count",
-                                HeaderRender: () => <b>Hap 1 Count</b>,
                                 value: (row) => row.hap1_count
                             },
                             {
                                 header: "Hap 2 Count",
-                                HeaderRender: () => <b>Hap 2 Count</b>,
                                 value: (row) => row.hap2_count
                             },
                             {
                                 header: "Hap 1 Allele Ratio",
-                                HeaderRender: () => <b>Hap 1 Allele Ratio</b>,
                                 value: (row) => row.hap1_allele_ratio.toFixed(2),
                             },
                             {
                                 header: "Experiment Accession",
-                                HeaderRender: () => <b>Experiment Accession</b>,
                                 value: (row) => row.experiment_accession,
                                 render: (row) => <CreateLink linkPrefix="https://www.encodeproject.org/experiments/" linkArg={row.experiment_accession} label={row.experiment_accession} underline="hover" />
                             },
                             {
                                 header: "p beta binom",
-                                HeaderRender: () => <b><i>p</i> Beta Binom</b>,
                                 value: (row) => row.p_betabinom.toFixed(2),
                             },
                             {
                                 header: "Imbalance Significance",
-                                HeaderRender: () => <b>Imbalance Significance</b>,
                                 value: (row) => row.imbalance_significance,
                             }
                         ]}
@@ -125,12 +116,10 @@ export const ENTExData = (props: { accession, coordinates }) => {
                         columns={[
                             {
                                 header: "Tissue",
-                                HeaderRender: () => <b>Tissue</b>,
                                 value: (row) => row.tissue.split("_").map(s => s[0].toUpperCase() + s.slice(1)).join(" "),
                             },
                             {
                                 header: "Supporting Assays",
-                                HeaderRender: () => <b>Supporting Assays</b>,
                                 value: (row) => row.assay_score.split("|").map(s => s.split(":")[0]).join(", ")
                             }
                         ]}
