@@ -76,7 +76,8 @@ const GeneLink = ({ geneName, assembly, typographyProps }: GeneLinkProps) => {
     flexGrow: 1,
     minWidth: '130px',
     display: 'flex',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    textDecoration: 'none'
   }
 
   return (

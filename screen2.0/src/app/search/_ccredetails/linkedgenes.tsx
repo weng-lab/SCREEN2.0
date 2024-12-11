@@ -3,7 +3,7 @@ import React from "react"
 import Grid from "@mui/material/Grid2"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import { CreateLink, toScientificNotationElement } from "../../../common/lib/utility"
-import { Box, Link, Paper, Typography } from "@mui/material"
+import { Box, Paper, Typography } from "@mui/material"
 import { LinkedGeneInfo } from "./ccredetails"
 import GeneLink from "../../_utility/GeneLink"
 

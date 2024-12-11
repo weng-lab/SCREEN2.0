@@ -3,7 +3,7 @@ import React from "react"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
 import Grid from "@mui/material/Grid2"
 import { client } from "./client"
-import { Typography, CircularProgress } from "@mui/material"
+import { CircularProgress } from "@mui/material"
 import { CreateLink } from "../../../common/lib/utility"
 import { gql } from "../../../graphql/__generated__/gql"
 

@@ -1,42 +1,10 @@
 import React from "react"
-import { Link, Alert, AlertTitle, CircularProgress, Typography, TypographyPropsVariantOverrides, Stack, TypographyOwnProps } from "@mui/material"
+import { Link, Alert, AlertTitle, CircularProgress, Typography, TypographyPropsVariantOverrides, TypographyOwnProps } from "@mui/material"
 import Grid from "@mui/material/Grid2"
 import { Snackbar, Box } from "@mui/material"
 import { OverridableStringUnion } from '@mui/types';
 import { Variant } from "@mui/material/styles/createTypography";
-import { Launch, NumbersOutlined } from "@mui/icons-material";
-
-/**
- * Uses fetch to make a query call (server side)
- * @param {string} url
- * @param {string} jq json of variables to use when fetching
- * @returns data
- */
-export async function fetchServer<T>(url: string, jq: BodyInit) {
-  return await fetch(url, {
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    method: "POST",
-    body: jq,
-  })
-    .then((response) => {
-      if (!response.ok) {
-        // throw new Error(response.statusText)
-        return <ErrorMessage error={Error(response.statusText)} />
-      }
-      return response.json()
-    })
-    .then((data) => {
-      return data
-    })
-    .catch((error: Error) => {
-      // logging
-      // throw error
-      return <ErrorMessage error={error} />
-    })
-}
+import { Launch } from "@mui/icons-material";
 
 /**
  * 
