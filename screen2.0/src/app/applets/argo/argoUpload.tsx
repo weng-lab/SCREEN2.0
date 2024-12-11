@@ -354,7 +354,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
                                         name="textUploadFile"
                                         multiline
                                         fullWidth
-                                        rows={5}
+                                        rows={6}
                                         placeholder="Copy and paste your data from Excel here"
                                         onKeyDown={handleKeyDown}
                                         value={textValue}
@@ -394,8 +394,8 @@ const ArgoUpload: React.FC<UploadProps> = ({
                         {/* When a file is uploaded */}
                         {files !== null &&
                             <>
-                                <Stack direction="row" alignItems="center" spacing={2}>
                                 <Typography mb={1} variant="h5">Uploaded:</Typography>
+                                <Stack direction="row" alignItems="center" spacing={2}>
                                     <Typography>{`${truncateFileName(files.name, 40)}\u00A0-\u00A0${(files.size / 1000000).toFixed(1)}\u00A0mb`}</Typography>
                                     <IconButton color="primary" onClick={() => handleReset(null)}>
                                         <Cancel />

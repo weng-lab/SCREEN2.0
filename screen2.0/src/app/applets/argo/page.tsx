@@ -13,7 +13,7 @@ import Filters from "./filters/filters"
 import { CancelRounded } from "@mui/icons-material"
 import ArgoUpload from "./argoUpload"
 import { BigRequest, OccurrencesQuery } from "../../../graphql/__generated__/graphql"
-import { batchRegions, calculateAggregateRanks, calculateConservationScores, generateElementRanks, generateSequenceRanks, getNumOverlappingMotifs, handleSameInputRegion, mapScores, mapScoresCTSpecific } from "./helpers"
+import { batchRegions, calculateAggregateRanks, calculateConservationScores, generateElementRanks, generateSequenceRanks, getNumOverlappingMotifs, handleSameInputRegion, mapScores, mapScoresCTSpecific, matchRanks } from "./helpers"
 import SequenceTable from "./tables/sequenceTable"
 import ElementTable from "./tables/elementTable"
 import GeneTable from "./tables/geneTable"
@@ -462,47 +462,8 @@ export default function Argo() {
         setLoadingMainRows(true)
 
         const aggregateRanks = calculateAggregateRanks(inputRegions, sequenceRanks, elementRanks, geneRanks)
-
-        const updatedMainRows = inputRegions.map(row => {
-            // Find the matching rank for this `inputRegion`
-            const matchingElement = elementRanks.find(
-                element =>
-                    element.chr == row.chr &&
-                    element.start == row.start &&
-                    element.end == row.end
-            );
-
-            const elementRank = matchingElement ? matchingElement.rank : 0;
-
-            const matchingSequence = sequenceRanks.find(
-                sequence =>
-                    sequence.chr == row.chr &&
-                    sequence.start == row.start &&
-                    sequence.end == row.end
-            );
-
-            const sequenceRank = matchingSequence ? matchingSequence.rank : 0;
-
-            //TODO add other ranks (Gene)
-
-            const matchingAggregateRank = aggregateRanks.find(
-                mainRank =>
-                    mainRank.chr == row.chr &&
-                    mainRank.start == row.start &&
-                    mainRank.end == row.end
-            );
-
-            const aggregateRank = (matchingAggregateRank ? matchingAggregateRank.rank : 0);
-
-            return {
-                regionID: row.regionID,
-                inputRegion: { chr: row.chr, start: row.start, end: row.end },
-                sequenceRank,
-                elementRank,
-                aggregateRank
-            };
-        }).filter(row => row.aggregateRank !== 0);
-        console.log(elementRanks)
+        //TODO add gene ranks below
+        const updatedMainRows = matchRanks(inputRegions, sequenceRanks, elementRanks, aggregateRanks)
 
         if (elementRanks.length > 0) {
             setLoadingElementRanks(false)

@@ -1,9 +1,11 @@
-import { AssayRankEntry, ElementTableRow, GenomicRegion, MotifQueryDataOccurrence, RankedRegions, SequenceTableRow } from "./types";
+import { OperationVariables, QueryResult } from "@apollo/client";
+import { AssayRankEntry, CCREAssays, CCREClasses, ElementTableRow, GenomicRegion, InputRegions, MainTableRow, MotifQueryDataOccurrence, RankedRegions, SequenceTableRow } from "./types";
+import { OccurrencesQuery } from "../../../graphql/__generated__/graphql";
 
 const assayNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
 
 // switch between min, max, avg for conservation scores, calculate each respectivley
-export const  calculateConservationScores = (scores, rankBy, inputRegions): SequenceTableRow[] => {
+export const  calculateConservationScores = (scores, rankBy: string, inputRegions: InputRegions): SequenceTableRow[] => {
     return scores.map((request) => {
         const data = request.data;
 
@@ -80,7 +82,7 @@ export const batchRegions = (regions: GenomicRegion[], maxBasePairs: number): Ge
 }
 
 // find the number of overlapping motifs for each input region
-export const getNumOverlappingMotifs = (occurrences, inputRegions): SequenceTableRow[] => {
+export const getNumOverlappingMotifs = (occurrences: QueryResult<OccurrencesQuery, OperationVariables>[], inputRegions: InputRegions): SequenceTableRow[] => {
     if (occurrences.length === 0 || inputRegions.length === 0) return [];
     return inputRegions.map(inputRegion => {
         const overlappingMotifs = occurrences.flatMap(occurrence =>
@@ -193,7 +195,7 @@ export const mapScoresCTSpecific = (obj, data) => {
 };
 
 //find ccres with same input region and combine them based on users rank by selected
-export const handleSameInputRegion = (rankBy, elementRows: ElementTableRow[]) => {
+export const handleSameInputRegion = (rankBy: string, elementRows: ElementTableRow[]) => {
     //Group by `inputRegion` and calculate average or max scores
     const groupedData = elementRows.reduce((acc, row) => {
         const key = `${row.inputRegion.chr}-${row.inputRegion.start}-${row.inputRegion.end}`;
@@ -246,7 +248,7 @@ export const handleSameInputRegion = (rankBy, elementRows: ElementTableRow[]) =>
     return processedRows;
 };
 
-export const generateElementRanks = (rows: ElementTableRow[], classes, assays): RankedRegions => {
+export const generateElementRanks = (rows: ElementTableRow[], classes: CCREClasses, assays: CCREAssays): RankedRegions => {
     const assayRanks: { [key: number]: AssayRankEntry } = {};
 
         //assign a rank to each assay
@@ -315,7 +317,7 @@ export const generateElementRanks = (rows: ElementTableRow[], classes, assays): 
 };
 
 // calculate the aggregate rank for each input region
-export const calculateAggregateRanks = (inputRegions, sequenceRanks, elementRanks, geneRanks): RankedRegions => {
+export const calculateAggregateRanks = (inputRegions: InputRegions, sequenceRanks: RankedRegions, elementRanks: RankedRegions, geneRanks: RankedRegions): RankedRegions => {
     const totalRanks = inputRegions.map(row => {
         // Find matching ranks based on inputRegion coordinates
         const matchingSequence = sequenceRanks.find(seq =>
@@ -370,3 +372,47 @@ export const calculateAggregateRanks = (inputRegions, sequenceRanks, elementRank
 
         return (aggregateRanks as RankedRegions)
 };
+
+export const matchRanks = (inputRegions: InputRegions, sequenceRanks: RankedRegions, elementRanks: RankedRegions, aggregateRanks: RankedRegions): MainTableRow[] => {
+    const updatedMainRows = inputRegions.map(row => {
+        // Find the matching rank for this `inputRegion`
+        const matchingElement = elementRanks.find(
+            element =>
+                element.chr == row.chr &&
+                element.start == row.start &&
+                element.end == row.end
+        );
+
+        const elementRank = matchingElement ? matchingElement.rank : 0;
+
+        const matchingSequence = sequenceRanks.find(
+            sequence =>
+                sequence.chr == row.chr &&
+                sequence.start == row.start &&
+                sequence.end == row.end
+        );
+
+        const sequenceRank = matchingSequence ? matchingSequence.rank : 0;
+
+        //TODO add other ranks (Gene)
+
+        const matchingAggregateRank = aggregateRanks.find(
+            mainRank =>
+                mainRank.chr == row.chr &&
+                mainRank.start == row.start &&
+                mainRank.end == row.end
+        );
+
+        const aggregateRank = (matchingAggregateRank ? matchingAggregateRank.rank : 0);
+
+        return {
+            regionID: row.regionID,
+            inputRegion: { chr: row.chr, start: row.start, end: row.end },
+            sequenceRank,
+            elementRank,
+            aggregateRank
+        };
+    }).filter(row => row.aggregateRank !== 0);
+
+    return updatedMainRows;
+}
