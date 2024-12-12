@@ -91,10 +91,19 @@ export default function Argo() {
 
     const [geneFilterVariables, setGeneFilterVariables] = useState<GeneFilterState>({
         useGenes: true,
-        methodOfLinkage: "distance",
-        proteinOnly: false,
+        methodOfLinkage: {
+            distance: true,
+            eQTLs: true,
+            CRISPRi_FlowFISH: true,
+            Intact_HiC: true,
+            ChIAPET: true
+        },
+        ChIAPET_Assays: {
+            CTCF_ChIAPET: true,
+            RNAPII_ChIAPET: true
+        },
+        mustBeProteinCoding: false,
         mustHaveOrtholog: false,
-
     });
 
     //update specific variable in sequence filters

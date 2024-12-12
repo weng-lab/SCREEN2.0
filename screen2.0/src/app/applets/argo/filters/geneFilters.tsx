@@ -1,6 +1,6 @@
-import React from "react";
-import { GeneAccordianProps } from "../types";
-import { Accordion, AccordionDetails, AccordionSummary, Checkbox, FormControl, FormControlLabel, Radio, RadioGroup, Stack, Typography } from "@mui/material";
+import React, { useMemo } from "react";
+import { GeneAccordianProps, GeneLinkingMethod } from "../types";
+import { Accordion, AccordionDetails, AccordionSummary, Box, Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, Stack, Typography } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 
 const GeneFilters: React.FC<GeneAccordianProps> = ({
@@ -9,9 +9,30 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
     isExpanded,
     handleAccordionChange
 }) => {
+    //This has poor readability, consider changing
+    const handleMethodChange = (e: React.ChangeEvent<HTMLInputElement>, method: GeneLinkingMethod) => {
+        updateGeneFilter("methodOfLinkage", {
+            ...geneFilterVariables.methodOfLinkage,
+            [`${method}`]: e.target.checked,
+        });
+    };
+
+    const handleChangeAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const checked = e.target.checked
+        updateGeneFilter("methodOfLinkage", {
+            distance: checked,
+            eQTLs: checked,
+            Intact_HiC: checked,
+            ChIAPET: checked,
+            CRISPRi_FlowFISH: checked
+        });
+    }
+
+    const allChecked = useMemo(() => Object.values(geneFilterVariables.methodOfLinkage).every(val => val === true), [geneFilterVariables.methodOfLinkage])
+    const noneChecked = useMemo(() => Object.values(geneFilterVariables.methodOfLinkage).every(val => val === false), [geneFilterVariables.methodOfLinkage])
+
     return (
         <Accordion
-            defaultExpanded
             square
             disableGutters
             expanded={isExpanded('gene')}
@@ -27,51 +48,66 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
             <AccordionDetails>
                 <FormControlLabel value="genes" control={<Checkbox onChange={() => updateGeneFilter("useGenes", !geneFilterVariables.useGenes)} checked={geneFilterVariables.useGenes} />} label="Linked Genes" />
                 <Stack ml={2}>
-                    <Typography>Method of Linkage</Typography>
-                    <Stack ml={2}>
-                        <FormControl sx={{ mt: 1 }}>
-                            <RadioGroup
-                                row
-                                value={geneFilterVariables.methodOfLinkage}
-                                onChange={(event) => updateGeneFilter("methodOfLinkage", event.target.value)}
-                            >
+                    <FormControl disabled={!geneFilterVariables.useGenes} sx={{ mt: 1 }}>
+                        <FormLabel component="legend">Method of Linkage</FormLabel>
+                        <FormGroup>
+                            <FormControlLabel
+                                label="Select All"
+                                control={<Checkbox indeterminate={!allChecked && !noneChecked} />}
+                                checked={allChecked}
+                                onChange={handleChangeAll}
+                            />
+                            <Box sx={{ display: 'flex', flexDirection: 'column', ml: 2 }}>
                                 <FormControlLabel
-                                    value="distance"
-                                    control={<Radio disabled={!geneFilterVariables.useGenes} />}
                                     label="Distance"
+                                    control={<Checkbox />}
+                                    checked={geneFilterVariables.methodOfLinkage.distance}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMethodChange(e, "distance")}
                                 />
                                 <FormControlLabel
-                                    value="3DChromatin"
-                                    control={<Radio disabled={!geneFilterVariables.useGenes} />}
-                                    label="3D Chromatin Links"
+                                    label="Intact Hi-C Loops"
+                                    control={<Checkbox />}
+                                    checked={geneFilterVariables.methodOfLinkage.Intact_HiC}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMethodChange(e, "Intact_HiC")}
                                 />
                                 <FormControlLabel
-                                    value="eQTLs"
-                                    control={<Radio disabled={!geneFilterVariables.useGenes} />}
+                                    label="ChIA-PET Interactions"
+                                    control={<Checkbox />}
+                                    checked={geneFilterVariables.methodOfLinkage.ChIAPET}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMethodChange(e, "ChIAPET")}
+                                />
+                                <FormControlLabel
+                                    label="CRISPRi-FlowFISH"
+                                    control={<Checkbox />}
+                                    checked={geneFilterVariables.methodOfLinkage.CRISPRi_FlowFISH}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMethodChange(e, "CRISPRi_FlowFISH")}
+                                />
+                                <FormControlLabel
                                     label="eQTLs"
+                                    control={<Checkbox />}
+                                    checked={geneFilterVariables.methodOfLinkage.eQTLs}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMethodChange(e, "eQTLs")}
                                 />
-                                <FormControlLabel
-                                    value="compPredictions"
-                                    control={<Radio disabled={!geneFilterVariables.useGenes} />}
-                                    label="Computational Predictions"
-                                />
-                            </RadioGroup>
-                        </FormControl>
-                    </Stack>
-                    <FormControlLabel
-                        value="protein"
-                        control={<Checkbox
-                            onChange={() => updateGeneFilter("proteinOnly", !geneFilterVariables.proteinOnly)}
-                            checked={geneFilterVariables.proteinOnly}
-                            disabled={!geneFilterVariables.useGenes} />}
-                        label="Only Protein Coding Genes" />
-                    <FormControlLabel
-                        value="mustHaveOrtholog"
-                        control={<Checkbox
-                            onChange={() => updateGeneFilter("mustHaveOrtholog", !geneFilterVariables.mustHaveOrtholog)}
-                            checked={geneFilterVariables.mustHaveOrtholog}
-                            disabled={!geneFilterVariables.useGenes} />}
-                        label="Only Orthologous Genes" />
+                            </Box>
+                        </FormGroup>
+                    </FormControl>
+                    <FormControl disabled={!geneFilterVariables.useGenes}>
+                        <FormLabel component="legend">Gene Filters</FormLabel>
+                        <FormGroup>
+                            <FormControlLabel
+                                label="Must be Protein Coding"
+                                control={<Checkbox />}
+                                checked={geneFilterVariables.mustBeProteinCoding}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateGeneFilter("mustBeProteinCoding", e.target.checked)}
+                            />
+                            <FormControlLabel
+                                label="Must have Mouse Ortholog"
+                                control={<Checkbox />}
+                                checked={geneFilterVariables.mustHaveOrtholog}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateGeneFilter("mustHaveOrtholog", e.target.checked)}
+                            />
+                        </FormGroup>
+                    </FormControl>
                 </Stack>
             </AccordionDetails>
         </Accordion>
