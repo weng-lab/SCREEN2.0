@@ -51,10 +51,6 @@ export interface Props<T extends boolean = false> {
      */
     paperStack?: PaperProps & StackProps,
     /**
-     * Vertical Stack for header elements (search and filters icon) and tables
-     */
-    columnStack?: StackProps,
-    /**
      * Horizontal Stack for search bar and filters icon
      */
     headerStack?: StackProps,
@@ -95,8 +91,20 @@ export type RegistryBiosample = {
   atac_signal: string | null;
 };
 
-export type FiltersKey = "CellLine" | "PrimaryCell" | "Tissue" | "Organoid" | "InVitro" | "Core" | "Partial" | "Ancillary" | "Embryo" | "Adult"
+export type SampleType = "Cell Line" | "Primary Cell" | "Tissue" | "Organoid" | "In Vitro Differentiated Cells"
 
-export type CheckboxState = { [key in FiltersKey]: boolean }
+export type Collection = "Core Collection" | "Partial Collection" | "Ancillary Collection"
+
+export type LifeStage = "Embryo" | "Adult"
+
+export type CheckboxType = SampleType | Collection | LifeStage
+
+export type SampleTypeCheckboxes = { [key in SampleType]: boolean }
+
+export type CollectionCheckboxes = { [key in Collection]: boolean }
+
+export type LifeStageCheckboxes = { [key in LifeStage]: boolean }
+
+export type Checkboxes = SampleTypeCheckboxes | CollectionCheckboxes | LifeStageCheckboxes
 
 export type assay = "DNase" | "H3K27ac" | "H3K4me3" | "CTCF" | "ATAC"
