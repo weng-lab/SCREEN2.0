@@ -234,8 +234,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         page,
         opencCREs.map(x => x.ID).join(',')
       )
-      // console.log("old params: " +  JSON.stringify(searchParams))
-      // console.log("pushing new url:" + newURL)
       router.push(newURL)
     }
   }, [searchParams, mainQueryParams, filterCriteria, page, opencCREs, router, basePathname, opencCREsInitialized, loadingFetch])
@@ -272,7 +270,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
    * @todo replace this with client side fetch
    */
   useEffect(() => {
-    // console.log("main fetch effect called")
     setLoadingFetch(true)
 
     let start = mainQueryParams.coordinates.start

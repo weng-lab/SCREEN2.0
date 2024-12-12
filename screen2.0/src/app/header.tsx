@@ -172,7 +172,6 @@ function ResponsiveAppBar() {
                           vertical: "bottom",
                           horizontal: "left",
                         }}
-                        // keepMounted
                         open={page.dropdownID === 0 ? Boolean(anchorDropdown0) : Boolean(anchorDropdown1)}
                         onClose={() => handleCloseDropdown(page.dropdownID)}
                         //These are to prevent focus ring from showing up in some browsers, but doesn't work completely
