@@ -3,7 +3,6 @@
 import React, { useCallback, useState } from "react"
 import { Button, Typography, Stack, Container, IconButton } from "@mui/material"
 import { useDropzone } from "react-dropzone"
-import { useRouter } from 'next/navigation'
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { Cancel, Search } from "@mui/icons-material"
 import { LoadingButton } from "@mui/lab"
@@ -12,7 +11,6 @@ import { useLazyQuery } from "@apollo/client"
 import { BED_INTERSECT_QUERY } from "./queries"
 
 const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => {
-  const router = useRouter()
 
   const [files, setFiles] = useState<File[]>([])
   const [loading, setLoading] = useState(false)
@@ -84,7 +82,7 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
             } else {
               sessionStorage.setItem("warning", "false")
             }
-            router.push(`/search?intersect=t&assembly=${props.assembly}`)
+            window.open(`/search?intersect=t&assembly=${props.assembly}`, '_self')
 
           },
           //Error

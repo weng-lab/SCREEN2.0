@@ -9,14 +9,12 @@ import { IconButton, Stack } from "@mui/material"
 import { Search } from "@mui/icons-material"
 import { useQuery } from "@apollo/client"
 import { client } from "../search/_ccredetails/client"
-import { useRouter } from "next/navigation"
 
 export const CcreAutoComplete: React.FC<{ assembly: string, header?: boolean }> = (props) => {
   const [value, setValue] = useState(null)
   const [inputValue, setInputValue] = useState("")
   const [options, setOptions] = useState([])
   const [ccreAccessions, setCcreAccessions] = useState([])
-  const router = useRouter();
 
   const {loading: loadingOptions} = useQuery(CCRE_AUTOCOMPLETE_QUERY, 
     {
@@ -73,7 +71,7 @@ export const CcreAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               event.defaultPrevented = true
-              router.push(handleSubmit())
+              window.open(handleSubmit(), '_self')
             }
           }}
           value={value}
@@ -133,7 +131,7 @@ export const CcreAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
             )
           }}
       />
-      <IconButton aria-label="Search" type="submit" onClick={() => router.push(handleSubmit())} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
+      <IconButton aria-label="Search" type="submit" onClick={() => window.open(handleSubmit(), '_self')} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
         <Search />
       </IconButton>
     </Stack>

@@ -16,7 +16,6 @@ import { useState, SetStateAction, useEffect, useMemo } from "react"
 import { Search } from "@mui/icons-material"
 import Grid from "@mui/material/Grid2"
 import { parseGenomicRegion } from "./parsegenomicregion"
-import { useRouter } from "next/navigation"
 
 //https://mui.com/material-ui/react-text-field/#integration-with-3rd-party-input-libraries
 //For formatting the start/end as it's being entered.
@@ -53,7 +52,6 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
   const [error, setError] = useState(false)
   const [sepErrStart, setSepErrStart] = useState(false)
   const [sepErrEnd, setSepErrEnd] = useState(false)
-  const router = useRouter();
 
   const handleChange = (event: { target: { value: SetStateAction<string> } }) => {
     setValue(event.target.value)
@@ -267,7 +265,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
                 }}
                 onKeyDown={(event) => {
                   if (event.key === "Enter") {
-                    router.push(url);
+                    window.open(url, '_self')
                   }
                   if (event.key === "Tab" && !start) {
                     setStart("53380176")
@@ -304,7 +302,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
                 }}
                 onKeyDown={(event) => {
                   if (event.key === "Enter") {
-                    router.push(url);
+                    window.open(url, '_self')
                   }
                   if (event.key === "Tab" && !end) {
                     setEnd("53416446")
@@ -349,7 +347,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
               onKeyDown={(event) => {
                 if (event.key === "Enter") {
                   if (!error) {
-                    router.push(url);
+                    window.open(url, '_self')
                   }
                 }
                 if (event.key === "Tab" && !value) {
@@ -381,7 +379,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
             sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}
             onClick={() => {
               if ((inputType !== "Separated" && !error) || (inputType === "Separated" && !sepErrStart && !sepErrEnd)) {
-                router.push(url);
+                window.open(url, '_self')
               }
             }}
           >

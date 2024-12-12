@@ -9,14 +9,12 @@ import { Search } from "@mui/icons-material"
 import { parseGenomicRegion } from "./parsegenomicregion"
 import { biosampleQuery } from "../../common/lib/queries"
 import { RegistryBiosample } from "../search/types"
-import { useRouter } from "next/navigation"
 
 export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean }> = (props) => {
   const [valueCellType, setValueCellType] = useState<RegistryBiosample>(null)
   const [valueRegion, setValueRegion] = useState("")
   const [inputValue, setInputValue] = useState("")
   const [options, setOptions] = useState<RegistryBiosample[]>([])
-  const router = useRouter();
 
   /**
    * @todo move this fetch to client side. Invoking server action to fetch data has no clear benefit
@@ -66,7 +64,7 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
         onKeyDown={(event) => {
           if (event.key === "Enter" && valueCellType) {
             event.defaultPrevented = true
-            router.push(handleSubmit())
+            window.open(handleSubmit(), '_self')
           }
         }}
         value={valueCellType}
@@ -143,7 +141,7 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
         }}
         onKeyDown={(event) => {
           if (event.key === "Enter" && valueCellType) {
-            router.push(handleSubmit())
+            window.open(handleSubmit(), '_self')
           }
           if (event.key === "Tab" && !valueRegion) {
             const defaultGenomicRegion = `chr12:${(53380176).toLocaleString()}-${(53416446).toLocaleString()}`
@@ -162,7 +160,7 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
         }}
         size={props.header ? "small" : "medium"}
       />
-      <IconButton aria-label="Search" type="submit" onClick={() => router.push(handleSubmit())} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
+      <IconButton aria-label="Search" type="submit" onClick={() => window.open(handleSubmit(), '_self')} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
         <Search />
       </IconButton>
     </Stack>
