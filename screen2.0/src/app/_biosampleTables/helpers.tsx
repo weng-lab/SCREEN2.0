@@ -1,7 +1,7 @@
 /**
  * Helpers for Biosample Tables Componet
  */
-import { RegistryBiosample, RegistryBiosamplePlusRNA, assay, SampleTypeCheckboxes, CollectionCheckboxes, LifeStageCheckboxes } from "./types"
+import { assay, SampleTypeCheckboxes, CollectionCheckboxes, LifeStageCheckboxes, BiosampleData } from "./types"
 
 export const assayColors: {[key in assay]: string} = {
   DNase: "#06DA93",
@@ -11,19 +11,31 @@ export const assayColors: {[key in assay]: string} = {
   ATAC: "#02c7b9"
 }
 
+// Type guard to safely check rnaseq
+function hasRNASeq<HasRNASeq extends boolean>(
+  biosample: BiosampleData<HasRNASeq>, 
+  mustHaveRnaSeq: boolean
+): boolean {
+  if (mustHaveRnaSeq) {
+    return 'rnaseq' in biosample && biosample.rnaseq === true;
+  }
+  return true;
+}
+
 /**
  * 
  * @param biosamples 
  * @param checkboxes 
  * @returns biosamples filtered by state of checkboxes
  */
-export const filterBiosamples = (
-  biosamples: { [key: string]: (RegistryBiosample | RegistryBiosamplePlusRNA)[] },
+export const filterBiosamples = <HasRNASeq extends boolean>(
+  biosamples: { [key: string]: BiosampleData<HasRNASeq>[] },
   sampleTypeFilter: SampleTypeCheckboxes,
   collectionFilter: CollectionCheckboxes,
-  lifeStageFiler: LifeStageCheckboxes
+  lifeStageFiler: LifeStageCheckboxes,
+  mustHaveRnaSeq: boolean
 ) => {
-  const filteredBiosamples: { [key: string]: (RegistryBiosample | RegistryBiosamplePlusRNA)[] } = {}
+  const filteredBiosamples: { [key: string]: BiosampleData<HasRNASeq>[] } = {}
 
   for (const ontology in biosamples) {
     filteredBiosamples[ontology] = biosamples[ontology].filter((biosample) => {
@@ -63,7 +75,9 @@ export const filterBiosamples = (
       ) {
         passesCollection = true
       }
-      return (passesType && passesLifestage && passesCollection)
+
+      const passesRNAseq = hasRNASeq(biosample, mustHaveRnaSeq);
+      return (passesType && passesLifestage && passesCollection && passesRNAseq)
     })
   }
   return filteredBiosamples

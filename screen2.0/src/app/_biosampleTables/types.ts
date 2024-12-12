@@ -3,12 +3,34 @@ import { MenuProps, PaperProps, StackProps } from "@mui/material"
 /**
  * Type for biosamples in this component
  */
-export type BiosampleData<T extends boolean> = T extends true ? RegistryBiosamplePlusRNA : RegistryBiosample
+export type BiosampleData<HasRNASeq extends boolean> = HasRNASeq extends true ? RegistryBiosamplePlusRNA : RegistryBiosample
+
+export interface RegistryBiosamplePlusRNA extends RegistryBiosample {
+  rnaseq: boolean
+}
+
+export type RegistryBiosample = {
+  name: string;
+  ontology: string;
+  lifeStage: string;
+  sampleType: string;
+  displayname: string;
+  dnase: string | null;
+  h3k4me3: string | null;
+  h3k27ac: string | null;
+  ctcf: string | null;
+  atac: string | null;
+  dnase_signal: string | null;
+  h3k4me3_signal: string | null;
+  h3k27ac_signal: string | null;
+  ctcf_signal: string | null;
+  atac_signal: string | null;
+};
 
 /**
  * Props for biosample tables
  */
-export interface Props<T extends boolean = false> {
+export interface Props<HasRNASeq extends boolean = false> {
   /**
    * Assembly used in fetching samples
    */
@@ -22,12 +44,12 @@ export interface Props<T extends boolean = false> {
    * @param selected 
    * Fired on click of biosample
    */
-  onBiosampleClicked?: (selected: BiosampleData<T>) => void,
+  onBiosampleClicked?: (selected: BiosampleData<HasRNASeq>) => void,
   /**
    * @param sample 
    * If specified, samples will be passed through this function before populating tables
    */
-  preFilterBiosamples?: (sample: BiosampleData<T>) => boolean,
+  preFilterBiosamples?: (sample: BiosampleData<HasRNASeq>) => boolean,
   /**
    * If specified, component will only fetch biosamples which include data for any of specified assays.
    * More complex filtering can be done with preFilterBiosamples
@@ -37,7 +59,7 @@ export interface Props<T extends boolean = false> {
   /**
    * If true, table will display column with check marks for biosamples with RNA seq data.
    */
-  showRNAseq?: T,
+  showRNAseq?: HasRNASeq,
   /**
    * If true, table will display columns for assay signal files for each biosample
    */
@@ -69,27 +91,7 @@ export interface Props<T extends boolean = false> {
   }
 }
 
-export interface RegistryBiosamplePlusRNA extends RegistryBiosample {
-  rnaseq: boolean | undefined
-}
 
-export type RegistryBiosample = {
-  name: string;
-  ontology: string;
-  lifeStage: string;
-  sampleType: string;
-  displayname: string;
-  dnase: string | null;
-  h3k4me3: string | null;
-  h3k27ac: string | null;
-  ctcf: string | null;
-  atac: string | null;
-  dnase_signal: string | null;
-  h3k4me3_signal: string | null;
-  h3k27ac_signal: string | null;
-  ctcf_signal: string | null;
-  atac_signal: string | null;
-};
 
 export type SampleType = "Cell Line" | "Primary Cell" | "Tissue" | "Organoid" | "In Vitro Differentiated Cells"
 
