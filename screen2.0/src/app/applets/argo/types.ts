@@ -1,4 +1,3 @@
-import { SelectChangeEvent } from "@mui/material"
 import { RegistryBiosample } from "../../_biosampleTables/types"
 
 export type LinkedGenes = {
@@ -164,9 +163,13 @@ export type GeneAccordianProps = {
 
 export type UploadProps = {
     selectedSearch: string;
-    handleSearchChange: (event: SelectChangeEvent) => void;
+    handleSearchChange: (search: string) => void;
     onRegionsConfigured: (regions: GenomicRegion[]) => void;
 }
+
+export type SubTableTitleProps = {
+    title: string;
+};
 
 export type MainTableRow = {
     regionID: number
@@ -244,3 +247,21 @@ type TOMTOMMatch = {
   export type TomtomMatchQueryData = {
       target_motifs: TOMTOMMatch[];
   };
+
+  export type SequenceTableProps = {
+    sequenceFilterVariables: SequenceFilterState;
+    SubTableTitle: React.FC<SubTableTitleProps>;
+    sequenceRows: SequenceTableRow[];
+  }
+
+  export type ElementTableProps = {
+    elementFilterVariables: ElementFilterState;
+    SubTableTitle: React.FC<SubTableTitleProps>;
+    elementRows: ElementTableRow[];
+  }
+
+  export type GeneTableProps = {
+    geneFilterVariables: GeneFilterState;
+    SubTableTitle: React.FC<SubTableTitleProps>;
+    geneRows: GeneTableRow[];
+  }
