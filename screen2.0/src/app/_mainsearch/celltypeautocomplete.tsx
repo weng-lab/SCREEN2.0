@@ -84,7 +84,12 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
           <TextField
             {...params}
             label="Enter a celltype"
-            InputLabelProps={{ shrink: true, style: props.header ? { color: "white" } : { color: "black" } }}
+            slotProps={{
+              inputLabel: {
+                shrink: true,
+                style: props.header ? { color: "white" } : { color: "black" },
+              },
+            }}
             placeholder={props.assembly === "mm10" ? "strain B6NCrl cortical plate tissue male adult (8 weeks)" : "e.g. LNCAP"}
             fullWidth          
             sx={{
@@ -123,7 +128,13 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
       {/* Ideally this and the other genomic region should share the same code */}
       <TextField
         variant="outlined"
-        InputLabelProps={{ shrink: true, style: props.header ? { color: "white" } : { color: "black" } }}
+        slotProps={{
+          inputLabel: {
+            shrink: true,
+            style: props.header ? { color: "white" } : { color: "black" },
+          },
+          input: props.header ? { style: { color: "white" } } : {},
+        }}
         label="Enter a genomic region"
         placeholder={`chr12:${(53380176).toLocaleString()}-${(53416446).toLocaleString()}`}
         value={valueRegion}
@@ -139,7 +150,6 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
             setValueRegion(defaultGenomicRegion)
           }
         }}
-        InputProps={props.header ? { style: { color: "white" } } : {}}
         sx={{
           //Border at rest
           fieldset: props.header ? { borderColor: "white" } : { borderColor: "black" },

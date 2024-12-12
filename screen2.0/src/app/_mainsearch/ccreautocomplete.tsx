@@ -133,7 +133,7 @@ export const CcreAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
             )
           }}
       />
-      <IconButton aria-label="Search" type="submit" href={handleSubmit()} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
+      <IconButton aria-label="Search" type="submit" onClick={() => router.push(handleSubmit())} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
         <Search />
       </IconButton>
     </Stack>
