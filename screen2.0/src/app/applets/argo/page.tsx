@@ -2,20 +2,21 @@
 import React, { useCallback, useEffect, useMemo } from "react"
 import { useState } from "react"
 import { Stack, Typography, Box, Alert, CircularProgress, IconButton } from "@mui/material"
-import { SelectChangeEvent } from "@mui/material/Select"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { ORTHOLOG_QUERY, Z_SCORES_QUERY, BIG_REQUEST_QUERY, MOTIF_QUERY } from "./queries"
 import { QueryResult, useLazyQuery, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
-import { RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, CCREs, InputRegions, MotifQueryDataOccurrence } from "./types"
+import { RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, CCREs, InputRegions, SubTableTitleProps } from "./types"
 import { BED_INTERSECT_QUERY } from "../../_mainsearch/queries"
 import ExpandCircleDownIcon from '@mui/icons-material/ExpandCircleDown';
 import Filters from "./filters/filters"
 import { CancelRounded } from "@mui/icons-material"
 import ArgoUpload from "./argoUpload"
 import { BigRequest, OccurrencesQuery } from "../../../graphql/__generated__/graphql"
-import MotifsModal from "./motifModal"
-import { batchRegions, calculateAggregateRanks, calculateConservationScores, generateElementRanks, generateSequenceRanks, getNumOverlappingMotifs, handleSameInputRegion, mapScores, mapScoresCTSpecific } from "./helpers"
+import { batchRegions, calculateAggregateRanks, calculateConservationScores, generateElementRanks, generateSequenceRanks, getNumOverlappingMotifs, handleSameInputRegion, mapScores, mapScoresCTSpecific, matchRanks } from "./helpers"
+import SequenceTable from "./tables/sequenceTable"
+import ElementTable from "./tables/elementTable"
+import GeneTable from "./tables/geneTable"
 
 export default function Argo() {
 
@@ -28,17 +29,10 @@ export default function Argo() {
     const [loadingSequenceRanks, setLoadingSequenceRanks] = useState(true);
 
     //UI state variables
-    const [selectedSearch, setSelectedSearch] = useState<string>("BED File")
+    const [selectedSearch, setSelectedSearch] = useState<string>("TSV File")
     const [drawerOpen, setDrawerOpen] = useState(true);
     const toggleDrawer = () => setDrawerOpen(!drawerOpen);
     const [shownTable, setShownTable] = useState<"sequence" | "elements" | "genes">(null);
-    const [modalData, setModalData] = useState<{
-        open: boolean;
-        chromosome: string;
-        start: number;
-        end: number;
-        occurrences: MotifQueryDataOccurrence[];
-    } | null>(null);
 
     // These will be deleted once functionality is implemented
     const [geneRanks, setGeneRanks] = useState<RankedRegions>([]);
@@ -46,10 +40,10 @@ export default function Argo() {
 
     // Filter state variables
     const [sequenceFilterVariables, setSequenceFilterVariables] = useState<SequenceFilterState>({
-        useConservation: false,
+        useConservation: true,
         alignment: "241-mam-phyloP",
         rankBy: "max",
-        useMotifs: true,
+        useMotifs: false,
         motifCatalog: "factorbook",
         numOverlappingMotifs: true,
         motifScoreDelta: false,
@@ -122,8 +116,6 @@ export default function Argo() {
         }));
     };
 
-    
-
     //update specific variable in gene filters
     const updateGeneFilter = (key: keyof GeneFilterState, value: unknown) => {
         setGeneFilterVariables((prevState) => ({
@@ -154,7 +146,7 @@ export default function Argo() {
     ), [shownTable])
 
     //stylized title for the sequence,element, and gene data tables
-    const SubTableTitle = ({ title }) => (
+    const SubTableTitle: React.FC<SubTableTitleProps> = ({ title }) => (
         <Stack direction={"row"} alignItems={"center"} spacing={1}>
             <IconButton onClick={() => setShownTable(null)} color={"primary"}>
                 <CancelRounded />
@@ -172,169 +164,14 @@ export default function Argo() {
         </Stack>
     );
 
-    //handle column changes for the main rank table
-    const mainColumns: DataTableColumn<MainTableRow>[] = useMemo(() => {
-
-        const cols: DataTableColumn<MainTableRow>[] = [
-            { header: "Region ID", value: (row) => row.regionID },
-            { header: "Input Region", value: (row) => `${row.inputRegion.chr}: ${row.inputRegion.start}-${row.inputRegion.end}`, sort: (a, b) => a.inputRegion.start - b.inputRegion.start },
-            { header: "Aggregate", value: (row) => row.aggregateRank }
-        ]
-        /**
-         * @todo
-         * correctly populate row values
-         */
-        if (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs) {
-            cols.push({ header: "Seqence", HeaderRender: () => <MainColHeader tableName="Sequence" onClick={() => shownTable === "sequence" ? setShownTable(null) : setShownTable("sequence")} />, value: (row) => row.sequenceRank })
-        }
-        if (elementFilterVariables.usecCREs) {
-            cols.push({
-                header: "Element", HeaderRender: () => <MainColHeader tableName="Elements" onClick={() => shownTable === "elements" ? setShownTable(null) : setShownTable("elements")} />, value: (row) => row.elementRank === 0 ? "N/A" : row.elementRank,
-                sort: (a, b) => {
-                    const rankA = a.elementRank
-                    const rankB = b.elementRank
-
-                    if (rankA === 0) return 1;
-                    if (rankB === 0) return -1;
-                    return rankA - rankB;
-                }
-            })
-        }
-        if (geneFilterVariables.useGenes) { cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Genes" onClick={() => shownTable === "genes" ? setShownTable(null) : setShownTable("genes")} />, value: (row) => "N/A" }) }
-
-        return cols
-
-    }, [MainColHeader, elementFilterVariables.usecCREs, geneFilterVariables.useGenes, sequenceFilterVariables.useConservation, sequenceFilterVariables.useMotifs, shownTable])
-
-    //handle column changes for the Sequence rank table
-    const sequenceColumns: DataTableColumn<SequenceTableRow>[] = useMemo(() => {
-
-        const cols: DataTableColumn<SequenceTableRow>[] = [
-            { header: "Region ID", value: (row) => row.regionID },
-        ]
-        /**
-         * @todo
-         * correctly populate row values
-         */
-
-        if (sequenceFilterVariables.useConservation) {
-            switch (sequenceFilterVariables.alignment) {
-                case "241-mam-phyloP":
-                    cols.push({ header: "241-Mammal(phyloP) Score", value: (row) => row.conservationScore.toFixed(2) });
-                    break;
-                case "447-mam-phyloP":
-                    cols.push({ header: "447-Mammal(phyloP) Score", value: (row) => row.conservationScore.toFixed(2) });
-                    break;
-                case "241-mam-phastCons":
-                    cols.push({ header: "241-Mammal(phastCons) Score", value: (row) => row.conservationScore.toFixed(2) });
-                    break;
-                case "43-prim-phyloP":
-                    cols.push({ header: "43-Primate(phyloP) Score", value: (row) => row.conservationScore.toFixed(2) });
-                    break;
-                case "43-prim-phastCons":
-                    cols.push({ header: "43-Primate(phastCons) Score", value: (row) => row.conservationScore.toFixed(2) });
-                    break;
-                case "243-prim-phastCons":
-                    cols.push({ header: "243-Primate(phastCons) Score", value: (row) => row.conservationScore.toFixed(2) });
-                    break;
-                case "100-vert-phyloP":
-                    cols.push({ header: "100-Vertebrate(phyloP) Score", value: (row) => row.conservationScore.toFixed(2) });
-                    break;
-                case "100-vert-phastCons":
-                    cols.push({ header: "100-Vertebrate(phastCons) Score", value: (row) => row.conservationScore.toFixed(2) });
-                    break;
-                default:
-                    break;
-            }
-        }
-        if (sequenceFilterVariables.useMotifs) {
-            if (sequenceFilterVariables.numOverlappingMotifs) {
-                cols.push({
-                    header: "# of Overlapping Motifs", value: (row) => row.numOverlappingMotifs,
-                    render: (row) => (
-                        <button
-                            style={{
-                                background: "none",
-                                border: "none",
-                                padding: 0,
-                                fontFamily: "arial, sans-serif",
-                                color: "#030f98",
-                                cursor: "pointer",
-                                outline: "none",
-                            }}
-                            onClick={() =>
-                                setModalData({
-                                    open: true,
-                                    chromosome: row.inputRegion.chr,
-                                    start: row.inputRegion.start,
-                                    end: row.inputRegion.end,
-                                    occurrences: row.occurrences,
-                                })
-                            }
-                        >
-                            {row.numOverlappingMotifs}
-                        </button>
-                    )
-                })
-            }
-            if (sequenceFilterVariables.motifScoreDelta) { cols.push({ header: "Motif Score Delta", value: (row) => "N/A" }) }
-            if (sequenceFilterVariables.overlapsTFPeak) { cols.push({ header: "Overlaps TF Peak", value: (row) => "N/A" }) }
-        }
-
-        return cols
-
-    }, [sequenceFilterVariables])
-
-    //handle column changes for the Element rank table
-    const elementColumns: DataTableColumn<ElementTableRow>[] = useMemo(() => {
-
-        const cols: DataTableColumn<ElementTableRow>[] = [
-            { header: "Region ID", value: (row) => row.regionID },
-            { header: "Class", value: (row) => row.class === "PLS" ? "Promoter" : row.class === "pELS" ? "Proximal Enhancer" : row.class === "dELS" ? "Distal Enhancer" : row.class },
-            { header: "Accession", value: (row) => row.accession },
-        ]
-
-        if (elementFilterVariables.usecCREs) {
-            if (elementFilterVariables.mustHaveOrtholog && elementFilterVariables.cCREAssembly !== "mm10") { cols.push({ header: "Orthologous Accesion", value: (row) => row.ortholog }) }
-            if (elementFilterVariables.assays.dnase) { cols.push({ header: "DNase", value: (row) => row.dnase !== null ? row.dnase.toFixed(2) : null }) }
-            if (elementFilterVariables.assays.h3k4me3) { cols.push({ header: "H3K4me3", value: (row) => row.h3k4me3 !== null ? row.h3k4me3.toFixed(2) : null }) }
-            if (elementFilterVariables.assays.h3k27ac) { cols.push({ header: "H3K27ac", value: (row) => row.h3k27ac !== null ? row.h3k27ac.toFixed(2) : null }) }
-            if (elementFilterVariables.assays.ctcf) { cols.push({ header: "CTCF", value: (row) => row.ctcf !== null ? row.ctcf.toFixed(2) : null }) }
-            if (elementFilterVariables.assays.atac) { cols.push({ header: "ATAC", value: (row) => row.atac !== null ? row.atac.toFixed(2) : null }) }
-        }
-
-        return cols
-
-    }, [elementFilterVariables])
-
-    //handle column changes for the Gene rank table
-    const geneColumns: DataTableColumn<GeneTableRow>[] = useMemo(() => {
-
-        const cols: DataTableColumn<GeneTableRow>[] = [
-            { header: "Region ID", value: (row) => row.regionID },
-        ]
-
-        if (geneFilterVariables.useGenes) {
-            cols.push({ header: "PlaceHolder", value: (row) => null })
-        }
-
-        return cols
-
-    }, [geneFilterVariables])
-
-    //open ccre details on ccre click
-    const handlecCREClick = (row) => {
-        window.open(`/search?assembly=${elementFilterVariables.cCREAssembly}&chromosome=${row.chr}&start=${row.start}&end=${row.end}&accessions=${row.accession}&page=2`, "_blank", "noopener,noreferrer")
-    }
-
-    //reset variables when switching btwn BED and txt, or when you remove a file
-    const handleSearchChange = (event: SelectChangeEvent) => {
+    //reset variables when switching btwn TSV and txt, or when you remove a file
+    const handleSearchChange = (search: string) => {
         setLoadingMainRows(true)
         setLoadingSequenceRanks(true)
         setLoadingElementRanks(true)
         updateElementFilter('selectedBiosample', null)
-        if (event) {
-            setSelectedSearch(event.target.value)
+        if (search) {
+            setSelectedSearch(search)
         }
         setShownTable(null)
         handleRegionsConfigured([])
@@ -473,18 +310,16 @@ export default function Argo() {
 
     const sequenceRanks: RankedRegions = useMemo(() => {
         if (sequenceRows.length === 0) {
-            setLoadingSequenceRanks(false);
             return [];
         }
-    
+
         setLoadingSequenceRanks(true);
 
         const rankedRegions = generateSequenceRanks(sequenceRows)
-
-        setLoadingSequenceRanks(false);
+        
         return rankedRegions;
     }, [sequenceRows]);
-    
+
 
     /*------------------------------------------ Element Stuff ------------------------------------------*/
 
@@ -583,6 +418,8 @@ export default function Argo() {
     // Filter cCREs based on class and ortholog
     const elementRows: ElementTableRow[] = useMemo(() => {
         if (allElementData.length === 0 || !elementFilterVariables.usecCREs) return [];
+        setLoadingElementRanks(true);
+
         let data = allElementData;
         //filter through ortholog
         if (elementFilterVariables.mustHaveOrtholog && orthoData && elementFilterVariables.cCREAssembly !== "mm10") {
@@ -611,7 +448,6 @@ export default function Argo() {
     // Generate element ranks
     const elementRanks = useMemo<RankedRegions>(() => {
         if (elementRows.length === 0 || !elementFilterVariables.usecCREs) {
-            setLoadingElementRanks(false);
             return [];
         }
         setLoadingElementRanks(true);
@@ -619,8 +455,7 @@ export default function Argo() {
         //find ccres with same input region and combine them based on users rank by selected
         const processedRows = handleSameInputRegion(elementFilterVariables.rankBy, elementRows)
         const rankedRegions = generateElementRanks(processedRows, elementFilterVariables.classes, elementFilterVariables.assays)
-        
-        setLoadingElementRanks(false);
+
         return rankedRegions;
 
     }, [elementFilterVariables, elementRows]);
@@ -632,54 +467,62 @@ export default function Argo() {
 
     //find the matching ranks for each input region and update the rows of the main table
     const mainRows: MainTableRow[] = useMemo(() => {
-        if (loadingElementRanks || loadingSequenceRanks) return;
-        setLoadingMainRows(true)
         if ((sequenceRanks.length === 0 && elementRanks.length === 0 && geneRanks.length === 0) || inputRegions.length === 0) return [];
-        
+        setLoadingMainRows(true)
+
         const aggregateRanks = calculateAggregateRanks(inputRegions, sequenceRanks, elementRanks, geneRanks)
+        //TODO add gene ranks below
+        const updatedMainRows = matchRanks(inputRegions, sequenceRanks, elementRanks, aggregateRanks)
 
-        const updatedMainRows = inputRegions.map(row => {
-            // Find the matching rank for this `inputRegion`
-            const matchingElement = elementRanks.find(
-                element =>
-                    element.chr == row.chr &&
-                    element.start == row.start &&
-                    element.end == row.end
-            );
+        if (elementRanks.length > 0) {
+            setLoadingElementRanks(false)
+        }
+        if (sequenceRanks.length > 0 && !loading_conservation_scores) {
+            setLoadingSequenceRanks(false)
+        }
+        if (elementRanks.length > 0 && sequenceRanks.length > 0 && !loading_conservation_scores) {
+            setLoadingMainRows(false)
+        }
 
-            const elementRank = matchingElement ? matchingElement.rank : 0;
-
-            const matchingSequence = sequenceRanks.find(
-                sequence =>
-                    sequence.chr == row.chr &&
-                    sequence.start == row.start &&
-                    sequence.end == row.end
-            );
-
-            const sequenceRank = matchingSequence ? matchingSequence.rank : 0;
-
-            //TODO add other ranks (Gene)
-
-            const matchingAggregateRank = aggregateRanks.find(
-                mainRank =>
-                    mainRank.chr == row.chr &&
-                    mainRank.start == row.start &&
-                    mainRank.end == row.end
-            );
-
-            const aggregateRank = (matchingAggregateRank ? matchingAggregateRank.rank : 0);
-
-            return {
-                regionID: row.regionID,
-                inputRegion: { chr: row.chr, start: row.start, end: row.end },
-                sequenceRank,
-                elementRank,
-                aggregateRank
-            };
-        }).filter(row => row.aggregateRank !== 0);
-        setLoadingMainRows(false)
         return updatedMainRows;
-    }, [elementRanks, geneRanks, inputRegions, loadingElementRanks, loadingSequenceRanks, sequenceRanks]);
+    }, [elementRanks, geneRanks, inputRegions, loading_conservation_scores, sequenceRanks]);
+
+    //handle column changes for the main rank table
+    const mainColumns: DataTableColumn<MainTableRow>[] = useMemo(() => {
+
+        const cols: DataTableColumn<MainTableRow>[] = [
+            { header: "Region ID", value: (row) => row.regionID },
+            { header: "Input Region", value: (row) => `${row.inputRegion.chr}: ${row.inputRegion.start}-${row.inputRegion.end}`, sort: (a, b) => a.inputRegion.start - b.inputRegion.start },
+            { header: "Aggregate", value: (row) => row.aggregateRank, render: (row) => loadingMainRows ? <CircularProgress size={10} /> : row.aggregateRank }
+        ]
+
+        if (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs) {
+            cols.push({
+                header: "Seqence",
+                HeaderRender: () => <MainColHeader tableName="Sequence" onClick={() => shownTable === "sequence" ? setShownTable(null) : setShownTable("sequence")} />,
+                value: (row) => row.sequenceRank,
+                render: (row) => loadingSequenceRanks ? <CircularProgress size={10} /> : row.sequenceRank
+            })
+        }
+        if (elementFilterVariables.usecCREs) {
+            cols.push({
+                header: "Element", HeaderRender: () => <MainColHeader tableName="Elements" onClick={() => shownTable === "elements" ? setShownTable(null) : setShownTable("elements")} />, value: (row) => row.elementRank === 0 ? "N/A" : row.elementRank,
+                sort: (a, b) => {
+                    const rankA = a.elementRank
+                    const rankB = b.elementRank
+
+                    if (rankA === 0) return 1;
+                    if (rankB === 0) return -1;
+                    return rankA - rankB;
+                },
+                render: (row) => loadingElementRanks || loading_scores || loading_ortho ? <CircularProgress size={10} /> : row.elementRank === 0 ? "N/A" : row.elementRank
+            })
+        }
+        if (geneFilterVariables.useGenes) { cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Genes" onClick={() => shownTable === "genes" ? setShownTable(null) : setShownTable("genes")} />, value: (row) => "N/A" }) }
+
+        return cols
+
+    }, [MainColHeader, elementFilterVariables.usecCREs, geneFilterVariables.useGenes, loadingElementRanks, loadingMainRows, loadingSequenceRanks, loading_ortho, loading_scores, sequenceFilterVariables.useConservation, sequenceFilterVariables.useMotifs, shownTable])
 
     return (
         <Box display="flex" >
@@ -694,7 +537,7 @@ export default function Argo() {
                 toggleDrawer={toggleDrawer}
             />
             <Box
-                ml={drawerOpen ? "25vw" : 0}
+                ml={drawerOpen ? { xs: '300px', sm: '300px', md: '300px', lg: '25vw' } : 0}
                 padding={3}
                 flexGrow={1}
                 height={"100%"}
@@ -710,7 +553,7 @@ export default function Argo() {
                 {inputRegions.length > 0 && (
                     <>
                         <Box mt="20px" id="123456">
-                            {!mainRows || loadingMainRows ? <CircularProgress /> :
+                            {!mainRows ? <CircularProgress /> :
                                 <DataTable
                                     key={Math.random()}
                                     columns={mainColumns}
@@ -731,14 +574,10 @@ export default function Argo() {
                                     </Alert>
                                 )}
                                 {loading_conservation_scores ? <CircularProgress /> :
-                                    <DataTable
-                                        key={Math.random()}
-                                        columns={sequenceColumns}
-                                        rows={sequenceRows}
-                                        sortDescending
-                                        itemsPerPage={10}
-                                        searchable
-                                        tableTitle={<SubTableTitle title="Sequence Details" />}
+                                    <SequenceTable
+                                        sequenceFilterVariables={sequenceFilterVariables}
+                                        SubTableTitle={SubTableTitle}
+                                        sequenceRows={sequenceRows}
                                     />
                                 }
                             </Box>
@@ -752,15 +591,10 @@ export default function Argo() {
                                     </Alert>
                                 )}
                                 {loading_scores || loading_ortho ? <CircularProgress /> :
-                                    <DataTable
-                                        key={Math.random()}
-                                        columns={elementColumns}
-                                        rows={elementRows}
-                                        sortDescending
-                                        itemsPerPage={10}
-                                        searchable
-                                        tableTitle={<SubTableTitle title="Element Details (Overlapping cCREs)" />}
-                                        onRowClick={handlecCREClick}
+                                    <ElementTable
+                                        elementFilterVariables={elementFilterVariables}
+                                        SubTableTitle={SubTableTitle}
+                                        elementRows={elementRows}
                                     />
                                 }
                             </Box>
@@ -768,33 +602,16 @@ export default function Argo() {
 
                         {shownTable === "genes" && (
                             <Box mt="20px">
-                                <DataTable
-                                    key={Math.random()}
-                                    columns={geneColumns}
-                                    rows={geneRows}
-                                    sortDescending
-                                    itemsPerPage={10}
-                                    searchable
-                                    tableTitle={<SubTableTitle title="Gene Details" />}
+                                <GeneTable
+                                    geneFilterVariables={geneFilterVariables}
+                                    SubTableTitle={SubTableTitle}
+                                    geneRows={geneRows}
                                 />
                             </Box>
                         )}
                     </>
                 )}
             </Box>
-            {modalData && (
-                <MotifsModal
-                    key={`${modalData?.chromosome}-${modalData?.start}-${modalData?.end}`}
-                    open={modalData?.open || false}
-                    setOpen={(isOpen) =>
-                        setModalData((prev) => (prev ? { ...prev, open: isOpen } : null))
-                    }
-                    chromosome={modalData?.chromosome || ""}
-                    start={modalData?.start || 0}
-                    end={modalData?.end || 0}
-                    occurrences={modalData?.occurrences || []}
-                />
-            )}
         </Box>
     )
 }

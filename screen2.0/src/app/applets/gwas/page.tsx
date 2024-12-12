@@ -2,7 +2,7 @@
 import { Accordion, AccordionDetails, AccordionSummary, IconButton, Paper, Stack, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material"
 import React, { useState, useMemo } from "react"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
-import { CreateLink, createLink, LoadingMessage } from "../../../common/lib/utility"
+import { CreateLink, LoadingMessage } from "../../../common/lib/utility"
 import Grid from "@mui/material/Grid2"
 import { CircularProgress } from "@mui/material"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
@@ -238,12 +238,12 @@ export default function GWAS() {
       {
         header: "cCRE",
         value: (row: TableRow) => row.accession,
-        render: (row: TableRow) => createLink(`/search?assembly=GRCh38&chromosome=${row.coordinates.chromosome}&start=${row.coordinates.start}&end=${row.coordinates.end}&accessions=${row.accession}&page=2`, "", row.accession, false)
+        render: (row: TableRow) => <CreateLink linkPrefix={`/search?assembly=GRCh38&chromosome=${row.coordinates.chromosome}&start=${row.coordinates.start}&end=${row.coordinates.end}&accessions=${row.accession}&page=2`} label={row.accession} underline="hover" />
       },
       {
         header: "SNP",
         value: (row: TableRow) => "http://ensembl.org/Homo_sapiens/Variation/Explore?vdb=variation;v=" + row.snpid,
-        render: (row: TableRow) => createLink("http://ensembl.org/Homo_sapiens/Variation/Explore?vdb=variation;v=", row.snpid, row.snpid, true)
+        render: (row: TableRow) => <CreateLink linkPrefix="http://ensembl.org/Homo_sapiens/Variation/Explore?vdb=variation;v=" linkArg={row.snpid} label={row.snpid} showExternalIcon underline="hover"/>
       },
       {
         header: "LD Block SNP ID",
@@ -326,7 +326,7 @@ export default function GWAS() {
                     }
                   },
                   { header: "Author", value: (row) => row.author.replaceAll("_", " ") },
-                  { header: "Pubmed", value: (row) => row.pubmedid, render: (row: any) => createLink("https://pubmed.ncbi.nlm.nih.gov/", row.pubmedid) },
+                  { header: "Pubmed", value: (row) => row.pubmedid, render: (row) => <CreateLink linkPrefix={"https://pubmed.ncbi.nlm.nih.gov/"} linkArg={row.pubmedid} label={row.pubmedid} underline="hover" showExternalIcon /> },
                 ]}
                 onRowClick={(row: any) => {
                   handleSetStudy(row)

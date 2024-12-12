@@ -6,6 +6,7 @@ const theme = createTheme({
     mode: 'light',
     primary: {
       main: "#000F9F",
+      contrastText: "#FFFFFF"
     },
     //This is used to color buttons white, may not be best way to do so
     secondary: {

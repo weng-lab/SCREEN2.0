@@ -63,6 +63,7 @@ const Filters: React.FC<FilterProps> = ({
                         width: '25vw',
                         top: theme => `${theme.mixins.toolbar.minHeight}px`,
                         zIndex: theme => theme.zIndex.appBar - 1,
+                        minWidth: 300
                     }
                 }}
             >

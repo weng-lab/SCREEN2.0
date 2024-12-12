@@ -1,10 +1,10 @@
-import { Divider, Stack, styled, Tooltip, TooltipProps, Typography, tooltipClasses, CircularProgress, IconOwnProps, TypographyProps, Grid2 } from '@mui/material'
+import { Divider, Stack, styled, Tooltip, Typography, CircularProgress, IconOwnProps, TypographyProps } from '@mui/material'
 import { gql } from '../../graphql/__generated__';
 import { useLazyQuery } from '@apollo/client';
 import { useMemo, Fragment, useState } from 'react';
 import NextLink from 'next/link';
 import { UrlObject } from 'url';
-import { ArrowOutward, Tab } from '@mui/icons-material';
+import { ArrowOutward } from '@mui/icons-material';
 
 export interface GeneLinkProps {
   geneName: string,
@@ -24,7 +24,7 @@ const GET_GENE_COORDS = gql(`
   }
 `)
 
-const GeneLink = ({ geneName, assembly, typographyProps }: GeneLinkProps): React.JSX.Element => {
+const GeneLink = ({ geneName, assembly, typographyProps }: GeneLinkProps) => {
   const [open, setOpen] = useState<boolean>(false)
 
   const handleClose = () => {
@@ -57,7 +57,7 @@ const GeneLink = ({ geneName, assembly, typographyProps }: GeneLinkProps): React
           gene: geneName
         }
       }) : null
-  }, [coordinates])
+  }, [assembly, coordinates, geneName])
 
   const StyledTypography = styled((props: TypographyProps) =>
     <Typography variant='body2' display={"inline"} textAlign={"center"} color="white" {...props} />
@@ -76,7 +76,8 @@ const GeneLink = ({ geneName, assembly, typographyProps }: GeneLinkProps): React
     flexGrow: 1,
     minWidth: '130px',
     display: 'flex',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    textDecoration: 'none'
   }
 
   return (
