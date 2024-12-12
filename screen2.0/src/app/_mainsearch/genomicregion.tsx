@@ -16,6 +16,7 @@ import { useState, SetStateAction, useEffect, useMemo } from "react"
 import { Search } from "@mui/icons-material"
 import Grid from "@mui/material/Grid2"
 import { parseGenomicRegion } from "./parsegenomicregion"
+import { useRouter } from "next/navigation"
 
 //https://mui.com/material-ui/react-text-field/#integration-with-3rd-party-input-libraries
 //For formatting the start/end as it's being entered.
@@ -29,6 +30,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
   const [error, setError] = useState(false)
   const [sepErrStart, setSepErrStart] = useState(false)
   const [sepErrEnd, setSepErrEnd] = useState(false)
+  const router = useRouter();
 
   const handleChange = (event: { target: { value: SetStateAction<string> } }) => {
     setValue(event.target.value)
@@ -259,7 +261,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
               </Typography>
               <TextField
                 variant="outlined"
-                slotProps={{inputLabel: { shrink: true }}}
+                slotProps={{ inputLabel: { shrink: true } }}
                 label="Start"
                 placeholder="53380176"
                 value={start}
@@ -269,7 +271,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
                 }}
                 onKeyDown={(event) => {
                   if (event.key === "Enter") {
-                    window.open(url, "_self")
+                    router.push(url);
                   }
                   if (event.key === "Tab" && !start) {
                     setStart("53380176")
@@ -278,17 +280,17 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
                 sx={
                   props.header
                     ? {
-                        mr: "0.5rem",
-                        ml: "0.5rem",
-                        fieldset: sepErrStart ? { borderColor: "red" } : { borderColor: "white" },
-                        maxWidth: "7rem",
-                      }
+                      mr: "0.5rem",
+                      ml: "0.5rem",
+                      fieldset: sepErrStart ? { borderColor: "red" } : { borderColor: "white" },
+                      maxWidth: "7rem",
+                    }
                     : {
-                        mr: "0.5rem",
-                        ml: "0.5rem",
-                        fieldset: sepErrStart ? { borderColor: "red" } : { borderColor: "black" },
-                        maxWidth: "7rem",
-                      }
+                      mr: "0.5rem",
+                      ml: "0.5rem",
+                      fieldset: sepErrStart ? { borderColor: "red" } : { borderColor: "black" },
+                      maxWidth: "7rem",
+                    }
                 }
                 size={props.header ? "small" : "medium"}
                 error={sepErrStart}
@@ -296,7 +298,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
               <Typography sx={{ justifySelf: "center" }}>–</Typography>
               <TextField
                 variant="outlined"
-                slotProps={{inputLabel: {shrink: true}}}
+                slotProps={{ inputLabel: { shrink: true } }}
                 label="End"
                 placeholder="53416446"
                 value={end}
@@ -306,7 +308,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
                 }}
                 onKeyDown={(event) => {
                   if (event.key === "Enter") {
-                    window.open(url, "_self")
+                    router.push(url);
                   }
                   if (event.key === "Tab" && !end) {
                     setEnd("53416446")
@@ -315,17 +317,17 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
                 sx={
                   props.header
                     ? {
-                        mr: "1rem",
-                        ml: "0.5rem",
-                        fieldset: sepErrEnd ? { borderColor: "red" } : { borderColor: "white" },
-                        maxWidth: "7rem",
-                      }
+                      mr: "1rem",
+                      ml: "0.5rem",
+                      fieldset: sepErrEnd ? { borderColor: "red" } : { borderColor: "white" },
+                      maxWidth: "7rem",
+                    }
                     : {
-                        mr: { xs: "0rem", sm: "1rem" },
-                        ml: "0.5rem",
-                        fieldset: sepErrEnd ? { borderColor: "red" } : { borderColor: "black" },
-                        maxWidth: "7rem",
-                      }
+                      mr: { xs: "0rem", sm: "1rem" },
+                      ml: "0.5rem",
+                      fieldset: sepErrEnd ? { borderColor: "red" } : { borderColor: "black" },
+                      maxWidth: "7rem",
+                    }
                 }
                 size={props.header ? "small" : "medium"}
                 error={sepErrEnd}
@@ -351,7 +353,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
               onKeyDown={(event) => {
                 if (event.key === "Enter") {
                   if (!error) {
-                    window.open(url, "_self")
+                    router.push(url);
                   }
                 }
                 if (event.key === "Tab" && !value) {
@@ -383,7 +385,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
             sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}
             onClick={() => {
               if ((inputType !== "Separated" && !error) || (inputType === "Separated" && !sepErrStart && !sepErrEnd)) {
-                window.open(url, "_self")
+                router.push(url);
               }
             }}
           >

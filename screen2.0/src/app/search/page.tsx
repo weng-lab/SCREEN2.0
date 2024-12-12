@@ -236,7 +236,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       )
       // console.log("old params: " +  JSON.stringify(searchParams))
       // console.log("pushing new url:" + newURL)
-      router.push(newURL)
+      router.replace(newURL)
     }
   }, [searchParams, mainQueryParams, filterCriteria, page, opencCREs, router, basePathname, opencCREsInitialized, loadingFetch])
 

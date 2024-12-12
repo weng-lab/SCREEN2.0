@@ -11,6 +11,7 @@ import BedUpload from "./bedupload"
 import GenomicRegion from "./genomicregion"
 import { GeneAutocomplete } from "../search/_geneAutocomplete/GeneAutocomplete"
 import { GeneInfo } from "../search/_geneAutocomplete/types"
+import { useRouter } from "next/navigation"
 
 export type MainSearchProps = InputBaseProps & {
   //false for human, true for mouse
@@ -21,22 +22,25 @@ export type MainSearchProps = InputBaseProps & {
 export const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) => {
   const [assembly, setAssembly] = useState<"GRCh38" | "mm10">("GRCh38")
   const [selectedSearch, setSelectedSearch] = useState<string>("Genomic Region")
+  const router = useRouter();
 
   const handleSearchChange = (event: SelectChangeEvent) => {
     setSelectedSearch(event.target.value)
   }
 
   const handleAssemblyChange = (event: SelectChangeEvent) => {
-    ((event.target.value === "GRCh38") || (event.target.value === "mm10")) && setAssembly(event.target.value)
-  }
+    if (event.target.value === "GRCh38" || event.target.value === "mm10") {
+      setAssembly(event.target.value);
+    }
+  };
 
   const handleGeneSearch = (gene: GeneInfo) => {
     if (gene) {
-      let chrom = gene.coordinates.chromosome
-      let start = gene.coordinates.start
-      let end = gene.coordinates.end
-      let name = gene.name
-      window.open(`/search?assembly=${assembly}&chromosome=${chrom}&start=${start}&end=${end}&gene=${name}&tssDistance=0`, "_self")
+      const chrom = gene.coordinates.chromosome
+      const start = gene.coordinates.start
+      const end = gene.coordinates.end
+      const name = gene.name
+      router.push(`/search?assembly=${assembly}&chromosome=${chrom}&start=${start}&end=${end}&gene=${name}&tssDistance=0`)
     }
   }
 

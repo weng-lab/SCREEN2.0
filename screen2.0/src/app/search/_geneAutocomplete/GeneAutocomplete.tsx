@@ -29,7 +29,7 @@ export const GeneAutocomplete = (
     renderOption,
     colorTheme
   } = props;
-  const [value, setValue] = useState<GeneInfo>(props.slotProps?.autocompleteProps?.defaultValue)
+  const [value, setValue] = useState<GeneInfo>(props.slotProps?.autocompleteProps?.defaultValue || null)
   const [inputValue, setInputValue] = useState<string>("")
   const [options, setOptions] = useState<GeneInfo[]>([])
   const [descriptions, setDescriptions] = useState<{ name: string; desc: string }[]>([])

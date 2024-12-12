@@ -12,7 +12,7 @@ import { RegistryBiosample } from "../search/types"
 
 export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean }> = (props) => {
   const [valueCellType, setValueCellType] = useState<RegistryBiosample>(null)
-  const [valueRegion, setValueRegion] = useState(null)
+  const [valueRegion, setValueRegion] = useState("")
   const [inputValue, setInputValue] = useState("")
   const [options, setOptions] = useState<RegistryBiosample[]>([])
 
