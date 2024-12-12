@@ -234,7 +234,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         page,
         opencCREs.map(x => x.ID).join(',')
       )
-      router.push(newURL)
+      router.replace(newURL)
     }
   }, [searchParams, mainQueryParams, filterCriteria, page, opencCREs, router, basePathname, opencCREsInitialized, loadingFetch])
 

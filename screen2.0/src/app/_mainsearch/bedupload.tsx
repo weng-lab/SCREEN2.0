@@ -3,7 +3,6 @@
 import React, { useCallback, useState } from "react"
 import { Button, Typography, Stack, Container, IconButton } from "@mui/material"
 import { useDropzone } from "react-dropzone"
-import { useRouter } from 'next/navigation'
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { Cancel, Search } from "@mui/icons-material"
 import { LoadingButton } from "@mui/lab"
@@ -12,7 +11,6 @@ import { useLazyQuery } from "@apollo/client"
 import { BED_INTERSECT_QUERY } from "./queries"
 
 const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => {
-  const router = useRouter()
 
   const [files, setFiles] = useState<File[]>([])
   const [loading, setLoading] = useState(false)
@@ -49,7 +47,7 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
   //TODO Warn based on file size, support multiple files
   const submitFiles = () => {
     setLoading(true)
-    let allLines = []
+    const allLines = []
     let filenames: string = ''
     let accessions: string[] = []
     files.forEach((f) => {
@@ -72,7 +70,7 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
       }
       reader.onabort = () => console.log("file reading was aborted")
       reader.onerror = () => console.log("file reading has failed")
-      reader.onloadend = (e) => {
+      reader.onloadend = () => {
         getIntersect(
           allLines,
           (data) => {
@@ -84,7 +82,7 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
             } else {
               sessionStorage.setItem("warning", "false")
             }
-            window.open(`/search?intersect=t&assembly=${props.assembly}`, "_self")
+            window.open(`/search?intersect=t&assembly=${props.assembly}`, '_self')
 
           },
           //Error
