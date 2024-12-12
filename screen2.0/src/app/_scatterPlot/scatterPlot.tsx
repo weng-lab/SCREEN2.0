@@ -4,14 +4,15 @@ import { scaleLinear } from '@visx/scale';
 import { AxisBottom, AxisLeft } from '@visx/axis';
 import { Circle, LinePath } from '@visx/shape';
 import { localPoint } from '@visx/event';
-import { Tooltip } from '@visx/tooltip';
+import { Tooltip as VisxTooltip } from '@visx/tooltip';
+import { TooltipProps } from '@visx/tooltip/lib/tooltips/Tooltip';
 import { Text } from '@visx/text';
 import { useDrag } from '@visx/drag';
 import CircularProgress from '@mui/material/CircularProgress';
 import { curveBasis } from '@visx/curve';
-import { Zoom } from '@visx/zoom';
+import { Zoom as VisxZoom } from '@visx/zoom'
+import { ZoomProps } from '@visx/zoom/lib/Zoom'
 import { createPortal } from 'react-dom';
-import zIndex from '@mui/material/styles/zIndex';
 
 /*
     All information given to a point on the plot, including its coordinates(x and y), its radius, color, and opacity, and its metadata information
@@ -78,6 +79,13 @@ export const Chart = <T extends {}>({ width: parentWidth, height: parentHeight, 
     const boundedHeight = boundedWidth;
     const hoveredPoint = tooltipData ? umapData.find(point => point.x === tooltipData.x && point.y === tooltipData.y) : null;
     const canvasRef = useRef(null);
+
+    /**
+ * Hacky workaround for complex type compatability issues. Hopefully this will fix itself when ugrading to React 19 - Jonathan 12/11/24
+ * @todo remove this when possible
+ */
+    const Zoom = VisxZoom as unknown as React.FC<ZoomProps<React.ReactElement>>;
+    const Tooltip = VisxTooltip as unknown as React.FC<TooltipProps>;
 
     //rescale x and y scales when zooming
     //converts to pixel values before applying transformations
