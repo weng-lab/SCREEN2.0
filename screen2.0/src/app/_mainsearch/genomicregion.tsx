@@ -21,6 +21,29 @@ import { useRouter } from "next/navigation"
 //https://mui.com/material-ui/react-text-field/#integration-with-3rd-party-input-libraries
 //For formatting the start/end as it's being entered.
 
+//TODO: Better catch errors in input so that invalid values are not passed to api
+function generateURL(
+  value: string,
+  inputType: string,
+  assembly: "mm10" | "GRCh38",
+  chromosome: string,
+  start: string,
+  end: string,
+  error: boolean
+): string {
+  if (inputType === "Separated") {
+    return `/search?assembly=${assembly}&chromosome=${"chr" + chromosome}&start=${start.replace(new RegExp(",", "g"), "") ?? "53380176"}&end=${end.replace(new RegExp(",", "g"), "") ?? "53416446"}`
+  } else {
+    if (!value) {
+      return `/search?assembly=${assembly}&chromosome=chr12&start=53380176&end=53416446`
+    }
+    if (!error) {
+      const region = parseGenomicRegion(value)
+      return `/search?assembly=${assembly}&chromosome=${region.chromosome}&start=${region.start}&end=${region.end}`
+    }
+  }
+}
+
 const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean }) => {
   const [value, setValue] = useState("")
   const [chromosome, setChromosome] = useState("12")
@@ -164,42 +187,15 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chromosome, end, props.assembly, start, value])
 
-  //TODO: Better catch errors in input so that invalid values are not passed to api
-  function generateURL(
-    value: string,
-    inputType: string,
-    assembly: "mm10" | "GRCh38",
-    chromosome: string,
-    start: string,
-    end: string
-  ): string {
-    if (inputType === "Separated") {
-      return `/search?assembly=${assembly}&chromosome=${"chr" + chromosome}&start=${start.replace(new RegExp(",", "g"), "") ?? "53380176"}&end=${end.replace(new RegExp(",", "g"), "") ?? "53416446"}`
-    } else {
-      if (!value) {
-        return `/search?assembly=${assembly}&chromosome=chr12&start=53380176&end=53416446`
-      }
-      try {
-        const region = parseGenomicRegion(value)
-        // setError(false)
-        return `/search?assembly=${assembly}&chromosome=${region.chromosome}&start=${region.start}&end=${region.end}`
-      } catch (error) {
-        //If function can't parse input
-        // setError(true)
-      }
-    }
-  }
-
   const url = useMemo(() => {
-    return generateURL(value, inputType, props.assembly, chromosome, start, end)
-  }, [value, inputType, props.assembly, chromosome, start, end])
+    return generateURL(value, inputType, props.assembly, chromosome, start, end, error)
+  }, [value, inputType, props.assembly, chromosome, start, end, error])
 
   return (
     <Grid container spacing={2}>
       {!props.header && (
         <Grid pt={0} size={12}>
           <FormControl>
-            {/* <FormLabel id="demo-row-radio-buttons-group-label">Input Format</FormLabel> */}
             <RadioGroup
               row
               aria-labelledby="input-format"
