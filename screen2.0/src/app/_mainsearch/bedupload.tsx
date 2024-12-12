@@ -49,7 +49,7 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
   //TODO Warn based on file size, support multiple files
   const submitFiles = () => {
     setLoading(true)
-    let allLines = []
+    const allLines = []
     let filenames: string = ''
     let accessions: string[] = []
     files.forEach((f) => {
@@ -72,7 +72,7 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
       }
       reader.onabort = () => console.log("file reading was aborted")
       reader.onerror = () => console.log("file reading has failed")
-      reader.onloadend = (e) => {
+      reader.onloadend = () => {
         getIntersect(
           allLines,
           (data) => {
@@ -84,7 +84,7 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
             } else {
               sessionStorage.setItem("warning", "false")
             }
-            window.open(`/search?intersect=t&assembly=${props.assembly}`, "_self")
+            router.push(`/search?intersect=t&assembly=${props.assembly}`)
 
           },
           //Error
