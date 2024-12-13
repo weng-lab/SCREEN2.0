@@ -27,16 +27,18 @@ export const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) =>
   }
 
   const handleAssemblyChange = (event: SelectChangeEvent) => {
-    ((event.target.value === "GRCh38") || (event.target.value === "mm10")) && setAssembly(event.target.value)
-  }
+    if (event.target.value === "GRCh38" || event.target.value === "mm10") {
+      setAssembly(event.target.value);
+    }
+  };
 
   const handleGeneSearch = (gene: GeneInfo) => {
     if (gene) {
-      let chrom = gene.coordinates.chromosome
-      let start = gene.coordinates.start
-      let end = gene.coordinates.end
-      let name = gene.name
-      window.open(`/search?assembly=${assembly}&chromosome=${chrom}&start=${start}&end=${end}&gene=${name}&tssDistance=0`, "_self")
+      const chrom = gene.coordinates.chromosome
+      const start = gene.coordinates.start
+      const end = gene.coordinates.end
+      const name = gene.name
+      window.open(`/search?assembly=${assembly}&chromosome=${chrom}&start=${start}&end=${end}&gene=${name}&tssDistance=0`, '_self')
     }
   }
 

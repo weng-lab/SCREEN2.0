@@ -29,7 +29,7 @@ const ConfigureGenomeBrowser = (props: {
    */
   handleClose?: () => void
 }) => {
-  const [currentURLs, setCurrentURLs] = useState<{urlUCSC: string, urlTrackhub: string, biosamples: RegistryBiosamplePlusRNA[]}>(null)
+  const [currentURLs, setCurrentURLs] = useState<{ urlUCSC: string, urlTrackhub: string, biosamples: RegistryBiosamplePlusRNA[] }>(null)
   const [openCopyConfirm, setOpenCopyConfirm] = useState(false);
   const [selectedBiosamples, setSelectedBiosamples] = useState<RegistryBiosamplePlusRNA[]>([])
 
@@ -58,11 +58,11 @@ const ConfigureGenomeBrowser = (props: {
     const start = +(props.coordinates.start) - 7500
     const end = +(props.coordinates.end) + 7500
 
-    const ucscbrowserurl =  `https://genome.ucsc.edu/cgi-bin/hgTracks?db=${props.coordinates.assembly === "GRCh38" ? "hg38" : "mm10"}&position=${props.coordinates.chromosome}:${start}-${end}&hubClear=${trackhuburl}&highlight=${props.coordinates.assembly}.${props.coordinates.chromosome}%3A${props.coordinates.start}-${props.coordinates.end}`
+    const ucscbrowserurl = `https://genome.ucsc.edu/cgi-bin/hgTracks?db=${props.coordinates.assembly === "GRCh38" ? "hg38" : "mm10"}&position=${props.coordinates.chromosome}:${start}-${end}&hubClear=${trackhuburl}&highlight=${props.coordinates.assembly}.${props.coordinates.chromosome}%3A${props.coordinates.start}-${props.coordinates.end}`
 
-    setCurrentURLs({urlUCSC: ucscbrowserurl, urlTrackhub: trackhuburl, biosamples: selectedBiosamples})
+    setCurrentURLs({ urlUCSC: ucscbrowserurl, urlTrackhub: trackhuburl, biosamples: selectedBiosamples })
 
-    return {urlUCSC: ucscbrowserurl, urlTrackhub: trackhuburl, biosamples: selectedBiosamples}
+    return { urlUCSC: ucscbrowserurl, urlTrackhub: trackhuburl, biosamples: selectedBiosamples }
   }
 
   const parsedBiosamples = selectedBiosamples.map(s => {
@@ -94,11 +94,11 @@ const ConfigureGenomeBrowser = (props: {
 
   const getURL = async (x: "ucsc" | "trackhub"): Promise<string> => {
     //If current urls are outdated, create new ones
-    if (!currentURLs || (JSON.stringify(currentURLs.biosamples) !== JSON.stringify(selectedBiosamples))){
+    if (!currentURLs || (JSON.stringify(currentURLs.biosamples) !== JSON.stringify(selectedBiosamples))) {
       return x === "ucsc" ? (await createTrackHub(parsedBiosamples)).urlUCSC : (await createTrackHub(parsedBiosamples)).urlTrackhub
     } else {
       return x === "ucsc" ? currentURLs.urlUCSC : currentURLs.urlTrackhub
-    }  
+    }
   }
 
   const handleCopyToClipboard = async () => {
@@ -109,13 +109,19 @@ const ConfigureGenomeBrowser = (props: {
     }, 0)
   }
 
+  const handleClickBiosample = (biosample: RegistryBiosamplePlusRNA) => {
+    if (!selectedBiosamples.includes(biosample)) {
+      setSelectedBiosamples([...selectedBiosamples, biosample])
+    }
+  }
+
   return (
     <>
       <Stack direction={"row"} justifyContent={"space-between"}>
         <DialogTitle>Configure UCSC Genome Browser Track Hub</DialogTitle>
-        {props.handleClose && <IconButton size="large" onClick={props.handleClose} sx={{mr: 1}}><CloseOutlined fontSize="inherit"/></IconButton>}
+        {props.handleClose && <IconButton size="large" onClick={props.handleClose} sx={{ mr: 1 }}><CloseOutlined fontSize="inherit" /></IconButton>}
       </Stack>
-      <DialogContent sx={{pt: 0}}>
+      <DialogContent sx={{ pt: 0 }}>
         <DialogContentText mb={2}>
           {`${props.accession} - ${props.coordinates.chromosome}:${props.coordinates.start.toLocaleString("en-US")}-${props.coordinates.end.toLocaleString("en-US")}`}
         </DialogContentText>
@@ -125,13 +131,13 @@ const ConfigureGenomeBrowser = (props: {
         <DialogContentText mb={2}>
           Note: For best UCSC performance, choose {"<"}10 cell types. Track hubs will be deleted after 24 hours.
         </DialogContentText>
-        <Stack direction={{xs: "column", lg: "row"}} spacing={2}>
+        <Stack direction={{ xs: "column", lg: "row" }} spacing={2}>
           <BiosampleTables
             assembly={props.coordinates.assembly}
             showRNAseq
             selected={selectedBiosamples.map(x => x.name)}
-            onBiosampleClicked={(selected) => setSelectedBiosamples([...selectedBiosamples, selected])}
-            slotProps={{paperStack: {minWidth: {xs: '300px', lg: '500px'}}}}
+            onBiosampleClicked={handleClickBiosample}
+            slotProps={{ paperStack: { minWidth: { xs: '300px', lg: '500px' } } }}
           />
           <div>
             <Typography minWidth={"300px"} visibility={selectedBiosamples.length > 0 ? "visible" : "hidden"} mt={2}>Selected Biosamples:</Typography>
@@ -152,19 +158,19 @@ const ConfigureGenomeBrowser = (props: {
         <Tooltip placement="top" arrow title="Copy link to Trackhub">
           <span>
             <IconButton disabled={selectedBiosamples.length === 0} onClick={handleCopyToClipboard}>
-            <ContentCopyIcon />
-          </IconButton>
+              <ContentCopyIcon />
+            </IconButton>
           </span>
         </Tooltip>
-        <Tooltip placement="top" arrow title="Download Trackhub (.txt)" sx={{mr: 1}}>
+        <Tooltip placement="top" arrow title="Download Trackhub (.txt)" sx={{ mr: 1 }}>
           <span>
             <IconButton disabled={selectedBiosamples.length === 0} onClick={async () => handleDownload(await getURL("trackhub"))}>
-            <DownloadIcon />
-          </IconButton>
+              <DownloadIcon />
+            </IconButton>
           </span>
         </Tooltip>
         <Button
-          sx={{textTransform: "none"}}
+          sx={{ textTransform: "none" }}
           endIcon={<SendIcon />}
           variant="contained"
           disabled={selectedBiosamples.length === 0}
@@ -174,7 +180,7 @@ const ConfigureGenomeBrowser = (props: {
         </Button>
       </DialogActions>
       <Snackbar
-        sx={{ "& .MuiSnackbarContent-message": {margin: "auto"}}}
+        sx={{ "& .MuiSnackbarContent-message": { margin: "auto" } }}
         open={openCopyConfirm}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         autoHideDuration={2000}

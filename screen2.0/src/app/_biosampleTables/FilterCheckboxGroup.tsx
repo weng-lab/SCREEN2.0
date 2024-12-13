@@ -37,6 +37,7 @@ export const FilterCheckboxGroup = <T extends Checkboxes>({groupLabel, controlsS
           return (
             <FormControlLabel
               label={key}
+              key={key}
               sx={{ml: 1}}
               control={
                 <Checkbox

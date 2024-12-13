@@ -10,7 +10,7 @@ import { LoadingMessage } from "../../../common/lib/utility"
 import { calcDistRegionToPosition, calcDistRegionToRegion } from "./utils"
 import { calcDistToTSS } from "./utils"
 import GeneLink from "../../_utility/GeneLink"
-import { NearbyGenomicFeaturesQuery, NearbyGenomicFeaturesNoSnPsQuery } from "../../../graphql/__generated__/graphql"
+import { NearbyGenomicFeaturesQuery } from "../../../graphql/__generated__/graphql"
 
 type SNP = {
   assembly: "mm10" | "GRCh38";
@@ -82,7 +82,7 @@ export const NearByGenomicFeatures: React.FC<{
   const data = (assembly === "GRCh38") ? dataHuman : dataMouse
   const loading = (assembly === "GRCh38") ? loadingHuman : loadingMouse
 
-  let genes =
+  const genes =
     data &&
     data.gene &&
     data.gene.map((g) => {
@@ -95,7 +95,7 @@ export const NearByGenomicFeatures: React.FC<{
         distance: calcDistToTSS({...coordinates, chrom: coordinates.chromosome}, g.transcripts, g.strand as "+" | "-")
       }
     })
-  let ccres =
+  const ccres =
     data &&
     data.cCREQuery &&
     data.cCREQuery.map((c) => {

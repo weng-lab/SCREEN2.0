@@ -1,12 +1,10 @@
-import React, { useState, useCallback } from "react"
+import React, { useState } from "react"
 import Box from "@mui/material/Box"
 import TextField from "@mui/material/TextField"
 import Autocomplete from "@mui/material/Autocomplete"
 import Grid from "@mui/material/Grid2"
 import Typography from "@mui/material/Typography"
-import { debounce } from "@mui/material/utils"
 import { CCRE_AUTOCOMPLETE_QUERY } from "./queries"
-import Config from "../../config.json"
 import { IconButton, Stack } from "@mui/material"
 import { Search } from "@mui/icons-material"
 import { useQuery } from "@apollo/client"
@@ -18,7 +16,7 @@ export const CcreAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
   const [options, setOptions] = useState([])
   const [ccreAccessions, setCcreAccessions] = useState([])
 
-  const {loading: loadingOptions, data: dataOptions, error: errorOptions} = useQuery(CCRE_AUTOCOMPLETE_QUERY, 
+  const {loading: loadingOptions} = useQuery(CCRE_AUTOCOMPLETE_QUERY, 
     {
       variables: {
         assembly: props.assembly,
@@ -51,9 +49,9 @@ export const CcreAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
 
   const handleSubmit = () => {
     if (value) {
-      let chrom = (ccreAccessions.find((g: { ccreaccession: string }) => g.ccreaccession === value))?.chrom
-      let start = (ccreAccessions.find((g: { ccreaccession: string }) => g.ccreaccession === value))?.start
-      let end = (ccreAccessions.find((g: { ccreaccession: string }) => g.ccreaccession === value))?.end
+      const chrom = (ccreAccessions.find((g: { ccreaccession: string }) => g.ccreaccession === value))?.chrom
+      const start = (ccreAccessions.find((g: { ccreaccession: string }) => g.ccreaccession === value))?.start
+      const end = (ccreAccessions.find((g: { ccreaccession: string }) => g.ccreaccession === value))?.end
       return (`/search?assembly=${props.assembly}&chromosome=${chrom}&start=${start}&end=${end}&accessions=${value}&page=2`)
     }
   }
@@ -73,7 +71,7 @@ export const CcreAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               event.defaultPrevented = true
-              window.open(handleSubmit(), "_self")
+              window.open(handleSubmit(), '_self')
             }
           }}
           value={value}
@@ -89,7 +87,12 @@ export const CcreAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
             <TextField
               {...params}
               label="Enter a cCRE accession"
-              InputLabelProps={{ shrink: true, style: props.header ? {color: "white"} : { color: "black" } }}
+              slotProps={{
+                inputLabel: {
+                  shrink: true,
+                  style: props.header ? { color: "white" } : { color: "black" },
+                },
+              }}
               placeholder={props.assembly === "mm10" ? "e.g EM10E0000207" : "e.g. EH38E0001314"}
               fullWidth
               sx={{
@@ -128,7 +131,7 @@ export const CcreAutoComplete: React.FC<{ assembly: string, header?: boolean }> 
             )
           }}
       />
-      <IconButton aria-label="Search" type="submit" href={handleSubmit()} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
+      <IconButton aria-label="Search" type="submit" onClick={() => window.open(handleSubmit(), '_self')} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
         <Search />
       </IconButton>
     </Stack>
