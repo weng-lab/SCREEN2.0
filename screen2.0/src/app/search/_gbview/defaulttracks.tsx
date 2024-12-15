@@ -1,4 +1,4 @@
-import {  useQuery } from "@apollo/client"
+import { useQuery } from "@apollo/client"
 import { associateBy } from "queryz"
 import { BigWigData, BigBedData } from "bigwig-reader"
 import React, { RefObject, useEffect, useMemo, useState } from "react"
@@ -23,8 +23,8 @@ type DefaultTracksProps = {
   cCREHighlights?: Set<string>
   svgRef?: RefObject<SVGSVGElement>
   assembly: string
-  oncCREClicked?: (clickedcCRE: {name: string, coordinates: {chromosome: string, start: number, end: number}}) => void
-  oncCREMousedOver?: (coordinates?: GenomicRange) => void  
+  oncCREClicked?: (clickedcCRE: { name: string, coordinates: { chromosome: string, start: number, end: number } }) => void
+  oncCREMousedOver?: (coordinates?: GenomicRange) => void
   oncCREMousedOut?: () => void
   onSettingsClick?: () => void
 }
@@ -62,57 +62,57 @@ export const TitledTrack: React.FC<{
   cCRECoordinateMap,
   biosample,
 }) => {
-  
-  useEffect(() => onHeightChanged && onHeightChanged(height + 40), [height, onHeightChanged])
 
-  return (
-    <g transform={transform}>
-      <EmptyTrack height={40} width={1400} transform="translate(0,8)" id="" text={title} />
-      {url.endsWith(".bigBed") || url.endsWith(".bigbed") ? (
-        <DenseBigBed
-          width={1400}
-          height={height}
-          domain={domain}
-          id={url}
-          transform="translate(0,40)"
-          data={data as BigBedData[]}
-          svgRef={svgRef}
-          tooltipContent={(rect) => <CCRETooltip {...rect} assembly={assembly.toLowerCase()} biosample={biosample} />}
-          onMouseOver={(x) => oncCREMousedOver && x.name && oncCREMousedOver(cCRECoordinateMap.get(x.name))}
-          onMouseOut={oncCREMousedOut}
-          onClick={(x) =>  oncCREClicked && x.name && oncCREClicked({name:x.name, coordinates: cCRECoordinateMap.get(x.name) })}
-        
-        />
-      ) : (
-        <FullBigWig
-          transform="translate(0,40)"
-          width={1400}
-          height={height}
-          domain={domain}
-          id={url}
-          color={color}
-          data={data as BigWigData[]}
-          noTransparency
-        />
-      )}
-    </g>
-  )
-}
+    useEffect(() => onHeightChanged && onHeightChanged(height + 40), [height, onHeightChanged])
+
+    return (
+      <g transform={transform}>
+        <EmptyTrack height={40} width={1400} transform="translate(0,8)" id="" text={title} />
+        {url.endsWith(".bigBed") || url.endsWith(".bigbed") ? (
+          <DenseBigBed
+            width={1400}
+            height={height}
+            domain={domain}
+            id={url}
+            transform="translate(0,40)"
+            data={data as BigBedData[]}
+            svgRef={svgRef}
+            tooltipContent={(rect) => <CCRETooltip {...rect} assembly={assembly.toLowerCase()} biosample={biosample} />}
+            onMouseOver={(x) => oncCREMousedOver && x.name && oncCREMousedOver(cCRECoordinateMap.get(x.name))}
+            onMouseOut={oncCREMousedOut}
+            onClick={(x) => oncCREClicked && x.name && oncCREClicked({ name: x.name, coordinates: cCRECoordinateMap.get(x.name) })}
+
+          />
+        ) : (
+          <FullBigWig
+            transform="translate(0,40)"
+            width={1400}
+            height={height}
+            domain={domain}
+            id={url}
+            color={color}
+            data={data as BigWigData[]}
+            noTransparency
+          />
+        )}
+      </g>
+    )
+  }
 
 const DefaultTracks: React.FC<DefaultTracksProps> = (props) => {
   const [cTracks, setTracks] = useState<[string, string][]>(
     props.assembly.toLowerCase() === "mm10"
       ? [
-          ["All cCREs colored by group", "https://downloads.wenglab.org/mm10-cCREs.DCC.bigBed"],
-          ["Aggregated DNase-seq signal, all Registry biosamples", "gs://gcp.wenglab.org/dnase.mm10.sum.bigWig"],
-        ]
+        ["All cCREs colored by group", "https://downloads.wenglab.org/mm10-cCREs.DCC.bigBed"],
+        ["Aggregated DNase-seq signal, all Registry biosamples", "gs://gcp.wenglab.org/dnase.mm10.sum.bigWig"],
+      ]
       : [
-          ["All cCREs colored by group", "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed"],
-          ["Aggregated DNase-seq signal, all Registry biosamples", "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw"],
-          ["Aggregated H3K4me3 ChIP-seq signal, all Registry biosamples", "https://downloads.wenglab.org/H3K4me3_All_ENCODE_MAR20_2024_merged.bw"],
-          ["Aggregated H3K27ac ChIP-seq signal, all Registry biosamples", "https://downloads.wenglab.org/H3K27ac_All_ENCODE_MAR20_2024_merged.bw"],
-          ["Aggregated CTCF ChIP-seq signal, all Registry biosamples", "https://downloads.wenglab.org/CTCF_All_ENCODE_MAR20_2024_merged.bw"],
-        ]
+        ["All cCREs colored by group", "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed"],
+        ["Aggregated DNase-seq signal, all Registry biosamples", "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw"],
+        ["Aggregated H3K4me3 ChIP-seq signal, all Registry biosamples", "https://downloads.wenglab.org/H3K4me3_All_ENCODE_MAR20_2024_merged.bw"],
+        ["Aggregated H3K27ac ChIP-seq signal, all Registry biosamples", "https://downloads.wenglab.org/H3K27ac_All_ENCODE_MAR20_2024_merged.bw"],
+        ["Aggregated CTCF ChIP-seq signal, all Registry biosamples", "https://downloads.wenglab.org/CTCF_All_ENCODE_MAR20_2024_merged.bw"],
+      ]
   )
   const height = useMemo(() => cTracks.length * 80, [cTracks])
   const bigRequests = useMemo(
@@ -134,17 +134,14 @@ const DefaultTracks: React.FC<DefaultTracksProps> = (props) => {
     () =>
       associateBy(
         (data && data.bigRequests && data.bigRequests[0].data) || [],
-        (x: { name: string}) => x.name,
+        (x: { name: string }) => x.name,
         (x: any) => ({ chromosome: x.chr, start: x.start, end: x.end })
       ),
     [data]
   )
 
   useEffect(() => {
-    
     props.onHeightChanged && props.onHeightChanged(height)
-    
-    
   }, [props.onHeightChanged, height, props])
 
   const [settingsMousedOver, setSettingsMousedOver] = useState(false)

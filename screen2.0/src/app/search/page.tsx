@@ -25,7 +25,7 @@ import { LoadingMessage } from "../../common/lib/utility"
 import { Download } from "@mui/icons-material"
 import { ApolloQueryResult, useLazyQuery } from "@apollo/client"
 import { LINKED_GENES } from "./_ccredetails/queries"
-import { UpdatedGBView } from "./_gbview/updatedgbview"
+import { Browser } from "./_newgbview/browser"
 
 /**
  * @todo:
@@ -159,7 +159,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const [opencCREs, setOpencCREs] = useState<{
     ID: string,
     region: { start: number, end: number, chrom: string }
-  }[]>(searchParams.accessions ? searchParams.accessions.split(',').map(x => {return {ID: x, region: null}}) : [])
+  }[]>(searchParams.accessions ? searchParams.accessions.split(',').map(x => { return { ID: x, region: null } }) : [])
   const [biosampleData, setBiosampleData] = useState<ApolloQueryResult<BIOSAMPLE_Data>>(null)
   const [mainQueryData, setMainQueryData] = useState<MainQueryData>(null)
   //potential performance improvement if I make an initializer function vs passing param here.
@@ -374,7 +374,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     setLoadingTable(true)
     if (mainQueryData) {
       //remove trailing space in gene name return data. Hopefully can replace eventually, JF 7/14/24
-      const rows = generateFilteredRows(mainQueryData, dataLinkedGenes ? dataLinkedGenes.linkedGenes.map((x) => {return {...x, gene: x.gene.split(' ')[0]}}) : null, filterCriteria, false, mainQueryParams.gene.nearTSS ? TSSranges : undefined)
+      const rows = generateFilteredRows(mainQueryData, dataLinkedGenes ? dataLinkedGenes.linkedGenes.map((x) => { return { ...x, gene: x.gene.split(' ')[0] } }) : null, filterCriteria, false, mainQueryParams.gene.nearTSS ? TSSranges : undefined)
       setLoadingTable(false)
       return (rows)
     } else {
@@ -457,7 +457,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               aria-label="navigation tabs"
               value={page}
               onChange={handlePageChange}
-              
+
             >
               {/* Hidden empty icon to keep tab height consistent */}
               <StyledHorizontalTab iconPosition="end" icon={<Box sx={{ display: 'none' }} />} value={0} label="Table View" />
@@ -532,7 +532,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               setTSSranges={setTSSranges}
               genomeBrowserView={page === 1}
               useLinkedGenes={useLinkedGenes}
-              
+
             />
             :
             <Tabs
@@ -599,7 +599,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                   assembly={mainQueryParams.coordinates.assembly}
                   onRowClick={handlecCREClick}
                   useLinkedGenes={useLinkedGenes}
-                  />
+                />
                   <Stack direction="row" alignItems={"center"} sx={{ mt: 1 }}>
                     <Button
                       disabled={typeof bedLoadingPercent === "number"}
@@ -619,7 +619,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               }
             </Box>
           )}
-          {page === 1 && 0>1 && (
+          {page === 1 && 0 > 1 && (
             <GenomeBrowserView
               handlecCREClickInTrack={handlecCREClick}
               accessions={opencCREs.map(a => {
@@ -647,7 +647,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           )}
           {page === 4 && (
             <>
-            <UpdatedGBView/>
+              <Browser coordinates={mainQueryParams.coordinates} gene={mainQueryParams.gene.name} biosample={mainQueryParams.biosample} />
             </>
           )}
           {page >= numberOfDefaultTabs && opencCREs.length > 0 && (
