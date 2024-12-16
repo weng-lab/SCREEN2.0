@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useCallback, useState } from "react"
-import { Button, Typography, Stack, Container, IconButton, Alert } from "@mui/material"
+import { Button, Typography, Stack, Container, IconButton } from "@mui/material"
 import { useDropzone } from "react-dropzone"
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { Cancel, Search } from "@mui/icons-material"
@@ -10,44 +10,10 @@ import { client } from "../search/_ccredetails/client"
 import { useLazyQuery } from "@apollo/client"
 import { BED_INTERSECT_QUERY } from "./queries"
 
-export function parseDataInput(data) {
-  let allLines = []
-  data.split("\n").forEach((line) => {
-    // The if statement checks if the BED file has a header and does not push those
-    // Also checks for empty lines
-    if (!(line.startsWith("#") || 
-          line.startsWith("browser") || 
-          line.startsWith("track") ||
-          line.length === 0
-        )) {
-      allLines.push(line.split("\t"))
-    }
-  })
-  return allLines
-}
+const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => {
 
-export function getIntersect(getOutput, inputData, assembly, successF, errF) {
-  getOutput({
-    variables: {
-      user_ccres: inputData,
-      assembly: assembly,
-      maxOutputLength: 1000 // Not required technically as server side defaults to 1000, here if it needs to be changed in the future
-    },
-    client: client,
-    fetchPolicy: 'cache-and-network',
-    onCompleted(data) {
-      successF(data['intersection'])
-    },
-    onError(error) {
-        errF(error)
-    },
-  })
-}
-
-const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean, appletCallback?: Function}) => {
   const [files, setFiles] = useState<File[]>([])
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState([false, ""]) // status, message
   const [getOutput] = useLazyQuery(BED_INTERSECT_QUERY)
 
   const onDrop = useCallback(acceptedFiles => {
@@ -56,39 +22,59 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean, apple
     setFiles([acceptedFiles[0]])
   }, [])
 
+ 
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
+
+  const getIntersect = (allLines, successF, errF) => {
+    getOutput({
+      variables: {
+        user_ccres: allLines,
+        assembly: props.assembly,
+        maxOutputLength: 1000 // Not required technically as server side defaults to 1000, here if it needs to be changed in the future
+      },
+      client: client,
+      fetchPolicy: 'cache-and-network',
+      onCompleted(data) {
+        successF(data)
+      },
+      onError(error) {
+          errF(error)
+      },
+    })
+  }
 
   //TODO Warn based on file size, support multiple files
   const submitFiles = () => {
     setLoading(true)
-    setError([false, ""])
-    let allLines = []
+    const allLines = []
     let filenames: string = ''
     let accessions: string[] = []
     files.forEach((f) => {
       filenames += (' ' + f.name)
-      if (f.type !== "bed" && f.name.split('.').pop() !== "bed") {
-        console.error("File type is not bed");
-        setLoading(false)
-        setFiles([])
-        setError([true, "File type is not bed"])
-        return
-      }
       const reader = new FileReader()
       reader.onload = (r) => {
         const contents = r.target.result
-        const lines = contents.toString()
-        allLines = parseDataInput(lines)
+        const lines = contents.toString().split("\n")
+        lines.forEach((line) => {
+          // The if statement checks if the BED file has a header and does not push those
+          // Also checks for empty lines
+          if (!(line.startsWith("#") || 
+                line.startsWith("browser") || 
+                line.startsWith("track") ||
+                line.length === 0
+              )) {
+            allLines.push(line.split("\t"))
+          }
+        })
       }
       reader.onabort = () => console.log("file reading was aborted")
       reader.onerror = () => console.log("file reading has failed")
-      reader.onloadend = (e) => {
+      reader.onloadend = () => {
         getIntersect(
-          getOutput,
           allLines,
-          props.assembly,
           (data) => {
-            accessions = data.map((elem) => elem[4])
+            accessions = data['intersection'].map((elem) => elem[4])
             sessionStorage.setItem("filenames", filenames)
             sessionStorage.setItem("bed intersect", accessions.join(' '))
             if (accessions.length === 1000){
@@ -96,19 +82,12 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean, apple
             } else {
               sessionStorage.setItem("warning", "false")
             }
-            if (props.appletCallback === undefined) {
-              window.open(`/search?intersect=t&assembly=${props.assembly}`, "_self")
-            }
-            else {
-              props.appletCallback(data)
-              setLoading(false)
-            }
+            window.open(`/search?intersect=t&assembly=${props.assembly}`, '_self')
 
           },
           //Error
           (msg) => {
-            console.error(msg)
-            setError([true, msg])
+            console.log("Error", msg)
             setLoading(false)
           }
         )
@@ -129,7 +108,6 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean, apple
   //Disallowing other file extensions with accept=".bed" isn't working as expected
   return (
     <Stack direction={props.header ? "row" : "column"}>
-      {error[0] && <Alert variant="filled" severity="error">{error[1]}</Alert>}
       {/* Upload button, only shows when no files uploaded */}
       {props.header ?
         files.length === 0 &&
@@ -174,7 +152,7 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean, apple
           {!props.header && <Typography mb={1} variant="h5">Uploaded:</Typography>}
           <Stack direction="row" alignItems="center">
             <Typography>{`${props.header ? truncateFileName(files[0].name, 20) : truncateFileName(files[0].name, 40)}\u00A0-\u00A0${(files[0].size / 1000000).toFixed(1)}\u00A0mb`}</Typography>
-            <IconButton color={props.header ? "secondary" : "primary"} onClick={() => {setFiles([]); props.appletCallback([]); }}>
+            <IconButton color={props.header ? "secondary" : "primary"} onClick={() => setFiles([])}>
               <Cancel />
             </IconButton>
           </Stack>
@@ -188,7 +166,7 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean, apple
             endIcon={<Search />}
           >
             <span>
-              Submit
+              Find Intersecting cCREs
             </span>
           </LoadingButton>
         </>

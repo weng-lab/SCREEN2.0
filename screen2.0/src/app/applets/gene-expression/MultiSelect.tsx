@@ -194,7 +194,6 @@ const MultiSelect = <T extends (string | {label: string; [key:string]: unknown})
         .map((option, index) => {
           const { key, ...tagProps } = getTagProps({ index });
           const chipHidden = getOptionDisabled && getOptionDisabled(option)
-          if (chipHidden) console.log(option)
           return (
             <Chip
               sx={chipHidden && {opacity: 0.5}}
