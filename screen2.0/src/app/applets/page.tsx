@@ -1,10 +1,11 @@
 "use client"
 
-import { Box, Button, Divider, Stack, Typography } from "@mui/material";
+import { Box, Button, Divider, IconButton, Stack, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid2"
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useRouter } from "next/navigation";
 import React from "react";
+import Carousel from "./carousel";
 
 export default function Applets() {
   const router = useRouter();
@@ -13,7 +14,7 @@ export default function Applets() {
     {
       id: 1,
       title: "Gene Expression",
-      description: "Description for Gene Expression",
+      description: "View gene expression by RNA-seq in ENCODE biosamples",
       imageUrl: "https://via.placeholder.com/150",
       link: "../applets/gene-expression",
       buttonText: "Explore Genes"
@@ -38,10 +39,17 @@ export default function Applets() {
 
   return (
     <main>
+      <Carousel />
       <Divider variant="middle" sx={{ mx: 40, mb: 2 }}>
         <Stack justifyContent={"center"} alignItems={"center"} sx={{ mx: 5 }}>
           <Typography variant="h4">Applets</Typography>
-          <ExpandMoreIcon />
+          <IconButton
+            onClick={() => {
+              window.scrollTo({ top: window.innerHeight * 0.6, behavior: 'smooth' });
+            }}
+          >
+            <ExpandMoreIcon />
+          </IconButton>
         </Stack>
       </Divider>
       {applets.map((applet, index) => (
