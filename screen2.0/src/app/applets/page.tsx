@@ -30,7 +30,7 @@ export default function Applets() {
     {
       id: 3,
       title: "ARGO",
-      description: "ARGO (Aggregate Rank Generator), allows users to input a set of candidate variants and obtain a prioritized list based on overlapping annotations",
+      description: "Rank genomic regions based on overlapping annotations",
       imageUrl: "https://via.placeholder.com/150",
       link: "",
       buttonText: "Under Construction"

@@ -4,18 +4,32 @@ import { Navigation, Pagination, Autoplay, EffectFade } from "swiper/modules";
 import { Box, Button, Stack, Typography } from "@mui/material";
 import "swiper/swiper-bundle.css";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import { useRouter } from "next/navigation";
 
 const theme = createTheme({
     components: {
-        MuiButton: {
-            styleOverrides: {
-                root: {
-                    textTransform: "none",
-                },
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            textTransform: "none",
+            backgroundColor: "#030f98",
+            color: "white",
+            borderRadius: "8px",
+            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
+            fontSize: "16px",
+            fontWeight: "500",
+            padding: "8px 20px",
+            width: "fit-content",
+            position: "relative",
+            "&:hover": {
+              backgroundColor: "#021170",
             },
+          },
         },
+      },
     },
-});
+  });
 
 // Slide Data
 const slides = [
@@ -24,22 +38,27 @@ const slides = [
         image: "/GeneExpressionSS.png",
         text: "Gene Expression",
         description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco",
+        link: "../applets/gene-expression",
     },
     {
         id: 2,
         image: "/GWASSS.png",
         text: "GWAS",
         description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco",
+        link: "../applets/gwas",
     },
     {
         id: 3,
-        image: "https://via.placeholder.com/800x400",
+        image: "/ARGOSS.png",
         text: "ARGO",
-        description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco",
+        description: "ARGO (Aggregate Rank Generator), allows users to input a set of candidate variants and obtain a prioritized list based on overlapping annotations",
+        link: ""
     },
 ];
 
 const ExpandableCarousel = () => {
+    const router = useRouter();
+
     return (
         <ThemeProvider theme={theme}>
             <Swiper
@@ -77,14 +96,14 @@ const ExpandableCarousel = () => {
                                     padding: 3,
                                 }}
                             >
-                                <Stack>
+                                <Stack justifyContent={"center"} alignItems={"center"} spacing={3} paddingX={3}>
                                     <Typography variant="h5" textAlign="center" gutterBottom>
                                         {slide.text}
                                     </Typography>
                                     <Typography variant="body1" textAlign="center" gutterBottom>
                                         {slide.description}
                                     </Typography>
-                                    <Button>Learn More</Button>
+                                    <Button onClick={() => router.push(slide.link)} disabled={slide.text === "ARGO"}>Learn More<ArrowForwardIcon sx={{ marginLeft: "8px" }}/></Button>
                                 </Stack>
                             </Box>
                             <Box
