@@ -15,7 +15,7 @@ export default function Applets() {
       id: 1,
       title: "Gene Expression",
       description: "View gene expression by RNA-seq in ENCODE biosamples",
-      imageUrl: "https://via.placeholder.com/150",
+      imageUrl: "/geneExpression.png",
       link: "../applets/gene-expression",
       buttonText: "Explore Genes"
     },
@@ -23,7 +23,7 @@ export default function Applets() {
       id: 2,
       title: "GWAS",
       description: "Visualize data retrieved from an assortment of Genome-Wide Association (GWAS) studies",
-      imageUrl: "https://via.placeholder.com/150",
+      imageUrl: "/GWAS.png",
       link: "../applets/gwas",
       buttonText: "Explore Studies"
     },
@@ -31,7 +31,7 @@ export default function Applets() {
       id: 3,
       title: "ARGO",
       description: "Rank genomic regions based on overlapping annotations",
-      imageUrl: "https://via.placeholder.com/150",
+      imageUrl: "/argo.png",
       link: "",
       buttonText: "Under Construction"
     },
