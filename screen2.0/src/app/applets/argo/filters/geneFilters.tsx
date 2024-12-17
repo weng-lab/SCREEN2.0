@@ -49,6 +49,25 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
             <AccordionDetails>
                 <FormControlLabel value="genes" control={<Checkbox onChange={() => updateGeneFilter("useGenes", !geneFilterVariables.useGenes)} checked={geneFilterVariables.useGenes} />} label="Linked Genes" />
                 <Stack ml={2}>
+                <FormControl disabled={!geneFilterVariables.useGenes}>
+                        <FormLabel component="legend" sx={{ mt: 1 }}>Rank Expression Specificity By</FormLabel>
+                        <RadioGroup
+                            row
+                            value={geneFilterVariables.rankBy}
+                            onChange={(event) => updateGeneFilter("rankBy", event.target.value as "max" | "min")}
+                        >
+                            <FormControlLabel
+                                value="max"
+                                control={<Radio />}
+                                label="Max"
+                            />
+                            <FormControlLabel
+                                value="avg"
+                                control={<Radio />}
+                                label="Average"
+                            />
+                        </RadioGroup>
+                    </FormControl>
                     <FormControl disabled={!geneFilterVariables.useGenes} sx={{ mt: 1 }}>
                         <FormLabel component="legend">Method of Linkage</FormLabel>
                         <FormGroup>
@@ -97,7 +116,7 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
                         </FormGroup>
                     </FormControl>
                     <FormControl disabled={!geneFilterVariables.useGenes}>
-                        <FormLabel component="legend" sx={{ mt: 2 }}>Gene Filters</FormLabel>
+                        <FormLabel component="legend" sx={{ mt: 1 }}>Gene Filters</FormLabel>
                         <FormGroup>
                             <FormControlLabel
                                 label="Must be Protein Coding"
@@ -112,25 +131,6 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateGeneFilter("mustHaveOrtholog", e.target.checked)}
                             />
                         </FormGroup>
-                    </FormControl>
-                    <FormControl disabled={!geneFilterVariables.useGenes}>
-                        <FormLabel component="legend" sx={{ mt: 2 }}>Rank Expression Specificity By</FormLabel>
-                        <RadioGroup
-                            row
-                            value={geneFilterVariables.rankBy}
-                            onChange={(event) => updateGeneFilter("rankBy", event.target.value as "max" | "min")}
-                        >
-                            <FormControlLabel
-                                value="max"
-                                control={<Radio />}
-                                label="Max"
-                            />
-                            <FormControlLabel
-                                value="avg"
-                                control={<Radio />}
-                                label="Average"
-                            />
-                        </RadioGroup>
                     </FormControl>
                 </Stack>
             </AccordionDetails>
