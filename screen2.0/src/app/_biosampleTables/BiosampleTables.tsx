@@ -1,9 +1,9 @@
-import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, CircularProgress,  Accordion, IconButton, Menu, InputAdornment, Paper, Stack, Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel } from "@mui/material"
+import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, CircularProgress,  Accordion, IconButton, Menu, InputAdornment, Paper, Stack, Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, Box, Button } from "@mui/material"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { useCallback,  useMemo, useState } from "react"
-import { BiosampleData, CollectionCheckboxes, LifeStageCheckboxes, Props, RegistryBiosample, RegistryBiosamplePlusRNA, SampleTypeCheckboxes } from "./types"
+import { BiosampleData, CollectionCheckboxes, LifeStageCheckboxes, BiosampleTablesProps, RegistryBiosample, RegistryBiosamplePlusRNA, SampleTypeCheckboxes } from "./types"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
-import { Check,  Close,  FilterList } from "@mui/icons-material"
+import { Check,  Close,  FilterList, RestartAlt } from "@mui/icons-material"
 import SearchIcon from '@mui/icons-material/Search';
 import { useQuery } from "@apollo/client"
 import { filterBiosamples } from "./helpers"
@@ -16,12 +16,12 @@ export const BiosampleTables = <T extends boolean = false>({
   assembly,
   selected,
   onBiosampleClicked,
-  preFilterBiosamples,
+  preFilterBiosamples = () => true,
   fetchBiosamplesWith = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"],
   showRNAseq,
   showDownloads,
   slotProps
-}: Props<T>) => {
+}: BiosampleTablesProps<T>) => {
   const [sampleTypeFilter, setSampleTypeFilter] = useState<SampleTypeCheckboxes>({
     "Cell Line": true,
     "Primary Cell": true,
@@ -75,7 +75,8 @@ export const BiosampleTables = <T extends boolean = false>({
   const sampleMatchesSearch = useCallback((x: RegistryBiosample | RegistryBiosamplePlusRNA) => {
     if (searchString) {
       return (
-        Object.values(x).some(val => val?.toLowerCase().includes(searchString.toLowerCase()))
+        //typeof check needed since rnaseq is a boolean
+        Object.values(x).some(val => typeof val === "string" && val?.toLowerCase().includes(searchString.toLowerCase()))
       )
     } else return true
   }, [searchString])
@@ -87,26 +88,27 @@ export const BiosampleTables = <T extends boolean = false>({
     if ((biosampleData && (data_rnaseq || !showRNAseq))) {
       const groupedBiosamples: { [key: string]: BiosampleData<T>[] } = {}
       biosampleData.ccREBiosampleQuery.biosamples
-        .filter(preFilterBiosamples || (() => true))
+        //Add rna seq data if displaying
+        .map((biosample) => {
+          if (showRNAseq) {
+            return {
+              ...biosample, 
+              rnaseq: data_rnaseq.rnaSeqQuery.map((sample) => sample.biosample).some(sampleName => biosample.name === sampleName)}
+          } else return biosample
+        })
+        //prefilter using user-defined function. Default is () => true
+        .filter(preFilterBiosamples)
+        //filter by search
+        .filter(sampleMatchesSearch)
+        //iterate through and put into tissue categories
         .forEach((biosample) => {
-          if (!searchString || (searchString && sampleMatchesSearch(biosample as RegistryBiosample))) { //check to see that sample matches search
-            //If tissue hasn't been cataloged yet, define an entry for it
-            if (!groupedBiosamples[biosample.ontology]) {
-              groupedBiosamples[biosample.ontology] = [];
-            }
-            if (showRNAseq) {
-              //Add biosample to corresponding entry
-              groupedBiosamples[biosample.ontology].push(
-                {
-                  ...biosample,
-                  rnaseq: Boolean(data_rnaseq.rnaSeqQuery.map((sample) => sample.biosample).find(sampleName => biosample.name === sampleName)),
-                } as BiosampleData<T>
-              )
-            } else {
-              groupedBiosamples[biosample.ontology].push(biosample as BiosampleData<T>)
-            }
+          //If tissue hasn't been cataloged yet, define an entry for it
+          if (!groupedBiosamples[biosample.ontology]) {
+            groupedBiosamples[biosample.ontology] = [];
           }
-      })
+          groupedBiosamples[biosample.ontology].push(biosample as BiosampleData<T>)
+        })
+      //filter biosamples
       const filteredBiosamples = filterBiosamples<T>(
         groupedBiosamples,
         sampleTypeFilter,
@@ -116,7 +118,7 @@ export const BiosampleTables = <T extends boolean = false>({
       )
       return filteredBiosamples
     } else return {}
-  }, [biosampleData, data_rnaseq, showRNAseq, preFilterBiosamples, sampleTypeFilter, collectionFilter, lifeStageFilter, mustHaveRnaSeq, searchString, sampleMatchesSearch])
+  }, [biosampleData, data_rnaseq, showRNAseq, preFilterBiosamples, sampleTypeFilter, collectionFilter, lifeStageFilter, mustHaveRnaSeq, sampleMatchesSearch])
 
 
   const biosampleTables = useMemo(() => {
@@ -194,13 +196,13 @@ export const BiosampleTables = <T extends boolean = false>({
     }
 
     return (
-      Object.entries(filteredBiosamples).sort().map(([ontology, biosamples], i) => {
+      Object.entries(filteredBiosamples).sort().map(([ontology, biosamples]) => {
         //Make sure that the accordions won't be empty
         if (biosamples.length > 0) {
           const toHighlight = selected ? typeof selected === 'string' ? [selected] : selected : []
           const highlighted = toHighlight.map(x => biosamples.find(y => y.name === x) || biosamples.find(y => y.displayname === x))
           return (
-            <Accordion key={i} slotProps={{transition: {unmountOnExit: true}}}>
+            <Accordion key={ontology} slotProps={{transition: {unmountOnExit: true}}}>
               <AccordionSummary
                 expandIcon={<KeyboardArrowRightIcon />}
                 sx={{
@@ -232,6 +234,20 @@ export const BiosampleTables = <T extends boolean = false>({
 
   }, [showRNAseq, showDownloads, loadingBiosamples, loading_rnaseq, errorBiosamples, error_rnaseq, filteredBiosamples, selected, onBiosampleClicked])
 
+  const filtersActive: boolean = useMemo(() => {
+    return mustHaveRnaSeq
+    || Object.values(sampleTypeFilter).some(val => val !== true)
+    || Object.values(collectionFilter).some(val => val !== true)
+    || Object.values(lifeStageFilter).some(val => val !== true)
+  }, [collectionFilter, lifeStageFilter, mustHaveRnaSeq, sampleTypeFilter])
+
+  const handleResetFilters = useCallback(() => {
+    handleSetMustHaveRnaSeq(false)
+    handleSetLifeStageFilter(Object.fromEntries(Object.entries(lifeStageFilter).map(([key]) => [key, true])) as LifeStageCheckboxes)
+    handleSetSampleTypeFilter(Object.fromEntries(Object.entries(sampleTypeFilter).map(([key]) => [key, true])) as SampleTypeCheckboxes)
+    handleSetCollectionFilter(Object.fromEntries(Object.entries(collectionFilter).map(([key]) => [key, true])) as CollectionCheckboxes)
+  }, [collectionFilter, lifeStageFilter, sampleTypeFilter])
+
   return (
     <Stack component={Paper} height={500} {...slotProps?.paperStack}>
       <Stack direction={"row"} justifyContent={"space-between"} m={2} {...slotProps?.headerStack}>
@@ -241,10 +257,21 @@ export const BiosampleTables = <T extends boolean = false>({
           label="Name, Tissue, Exp ID"
           onChange={(event) => setSearchString(event.target.value)}
           slotProps={{ input: { endAdornment: searchString ? <IconButton onClick={() => setSearchString("")}><Close /></IconButton> : <InputAdornment position="end"><SearchIcon /></InputAdornment> } }}
-          />
-        <IconButton onClick={handleOpen}>
-          <FilterList />
-        </IconButton>
+        />
+        <Box display={"flex"}>
+          {filtersActive &&
+            <IconButton onClick={handleResetFilters}>
+              <Tooltip title="Reset Filters">
+                <RestartAlt />
+              </Tooltip>
+            </IconButton>
+          }
+          <IconButton onClick={handleOpen}>
+            <Tooltip title="Filter Biosamples">
+              <FilterList />
+            </Tooltip>
+          </IconButton>
+        </Box>
       </Stack>
       <Stack overflow={"auto"} {...slotProps?.tableStack}>
         {biosampleTables}
@@ -259,7 +286,7 @@ export const BiosampleTables = <T extends boolean = false>({
         }}
         {...slotProps?.menu}
       >
-        <Stack padding={2} {...slotProps?.menuStack}>
+        <Stack px={2} pt={1} gap={1} {...slotProps?.menuStack}>
           {showRNAseq &&
             <FormControl component="fieldset" variant="standard">
               <FormLabel component="legend">RNA-Seq</FormLabel>
@@ -279,6 +306,11 @@ export const BiosampleTables = <T extends boolean = false>({
           <FilterCheckboxGroup groupLabel="Biosample Types" controlsState={sampleTypeFilter} setState={handleSetSampleTypeFilter} />
           <FilterCheckboxGroup groupLabel="Collection" controlsState={collectionFilter} setState={handleSetCollectionFilter} />
           <FilterCheckboxGroup groupLabel="Life Stage" controlsState={lifeStageFilter} setState={handleSetLifeStageFilter} />
+          {filtersActive &&
+            <Button variant="contained" onClick={handleResetFilters}>
+              <i>Reset Filters</i>
+            </Button>
+          }
         </Stack>
       </Menu>
     </Stack>

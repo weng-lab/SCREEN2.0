@@ -30,40 +30,53 @@ export type RegistryBiosample = {
 /**
  * Props for biosample tables
  */
-export interface Props<HasRNASeq extends boolean = false> {
+export interface BiosampleTablesProps<
+  HasRNASeq extends boolean = false,
+  AllowTissueSelection extends boolean = false
+> {
+  /**
+   * Adds UI element for selecting all samples from a tissue category
+   */
+  allowTissueSelection?: AllowTissueSelection
   /**
    * Assembly used in fetching samples
    */
   assembly: "GRCh38" | "mm10"
   /**
-   * Highlights samples in the tables. Can pass name or displayname of sample
-   */
-  selected?: string | string[],
-  /**
-   * 
-   * @param selected 
-   * Fired on click of biosample
-   */
-  onBiosampleClicked?: (selected: BiosampleData<HasRNASeq>) => void,
-  /**
-   * @param sample 
-   * If specified, samples will be passed through this function before populating tables
-   */
-  preFilterBiosamples?: (sample: BiosampleData<HasRNASeq>) => boolean,
-  /**
    * If specified, component will only fetch biosamples which include data for any of specified assays.
    * More complex filtering can be done with preFilterBiosamples
    * @default ["dnase","h3k4me3","h3k27ac","ctcf","atac"]
    */
-  fetchBiosamplesWith?: ("dnase" | "h3k4me3"| "h3k27ac" | "ctcf" | "atac")[]
+  fetchBiosamplesWith?: ("dnase" | "h3k4me3" | "h3k27ac" | "ctcf" | "atac")[]
   /**
-   * If true, table will display column with check marks for biosamples with RNA seq data.
+   * 
+   * @param selected 
+   * Fired on click of biosample
+  */
+  onBiosampleClicked?: (selected: BiosampleData<HasRNASeq>) => void,
+  /**
+   * Fired when a tissue is selected (only if allowTissueSelection is true)
    */
-  showRNAseq?: HasRNASeq,
+  onTissueSelected?: AllowTissueSelection extends true
+  ? (selected: { tissue: string; samples: BiosampleData<HasRNASeq>[] }) => void
+  : never;
+  /**
+   * @param sample 
+   * If specified, samples will be passed through this function before populating tables
+  */
+  preFilterBiosamples?: (sample: BiosampleData<HasRNASeq>) => boolean,
+  /**
+   * Highlights samples in the tables. Can pass name or displayname of sample
+   */
+  selected?: string | string[],
   /**
    * If true, table will display columns for assay signal files for each biosample
    */
   showDownloads?: boolean, //I feel like this is maybe more appropriate to be something that is user-defined. Allow them to add extra columns?
+  /**
+   * If true, table will display column with check marks for biosamples with RNA seq data.
+   */
+  showRNAseq?: HasRNASeq,
   /**
    * Props spread into each slot inside, helpful for changing things such as width and height
    */
@@ -90,8 +103,6 @@ export interface Props<HasRNASeq extends boolean = false> {
     menuStack?: StackProps
   }
 }
-
-
 
 export type SampleType = "Cell Line" | "Primary Cell" | "Tissue" | "Organoid" | "In Vitro Differentiated Cells"
 
