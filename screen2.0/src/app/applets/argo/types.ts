@@ -39,7 +39,7 @@ export type GenomicRegion = {
     end: number
 }
 
-export type RankedRegions = (GenomicRegion & {rank: number})[]
+export type RankedRegions = (GenomicRegion & { rank: number })[]
 
 export type InputRegions = (GenomicRegion & {
     regionID: number
@@ -73,9 +73,9 @@ export type CCREAssays = {
     h3k27ac: boolean
 }
 
-export type Alignment = 
-    "241-mam-phyloP" | 
-    "447-mam-phyloP" | 
+export type Alignment =
+    "241-mam-phyloP" |
+    "447-mam-phyloP" |
     "241-mam-phastCons" |
     "43-prim-phyloP" |
     "43-prim-phastCons" |
@@ -88,35 +88,36 @@ export type GeneLinkingMethod = "distance" | "eQTLs" | "Intact_HiC" | "ChIAPET" 
 export type ChIAPET_Assay = "CTCF_ChIAPET" | "RNAPII_ChIAPET"
 
 export type SequenceFilterState = {
-useConservation: boolean;
-alignment: Alignment;
-rankBy: string;
-useMotifs: boolean;
-motifCatalog: "factorbook" | "hocomoco" | "zMotif";
-numOverlappingMotifs: boolean;
-motifScoreDelta: boolean;
-overlapsTFPeak: boolean;
-tfPeakStrength: boolean;
+    useConservation: boolean;
+    alignment: Alignment;
+    rankBy: string;
+    useMotifs: boolean;
+    motifCatalog: "factorbook" | "hocomoco" | "zMotif";
+    numOverlappingMotifs: boolean;
+    motifScoreDelta: boolean;
+    overlapsTFPeak: boolean;
+    tfPeakStrength: boolean;
 }
 
 export type ElementFilterState = {
-usecCREs: boolean;
-cCREAssembly: "GRCh38" | "mm10";
-mustHaveOrtholog: boolean;
-selectedBiosample: RegistryBiosample | null;
-assays: CCREAssays;
-rankBy: "avg" | "max";
-availableAssays: CCREAssays;
-classes: CCREClasses;
+    usecCREs: boolean;
+    cCREAssembly: "GRCh38" | "mm10";
+    mustHaveOrtholog: boolean;
+    selectedBiosample: RegistryBiosample | null;
+    assays: CCREAssays;
+    rankBy: "avg" | "max";
+    availableAssays: CCREAssays;
+    classes: CCREClasses;
 }
 
 export type GeneFilterState = {
-useGenes: boolean;
-methodOfLinkage: {[key in GeneLinkingMethod]: boolean}
-//used to opt in/out of specific ChIA-PET Assays
-ChIAPET_Assays: {[key in ChIAPET_Assay]: boolean}
-mustBeProteinCoding: boolean;
-mustHaveOrtholog: boolean;
+    useGenes: boolean;
+    methodOfLinkage: { [key in GeneLinkingMethod]: boolean }
+    //used to opt in/out of specific ChIA-PET Assays
+    ChIAPET_Assays: { [key in ChIAPET_Assay]: boolean }
+    mustBeProteinCoding: boolean;
+    mustHaveOrtholog: boolean;
+    rankBy: "max" | "min";
 }
 
 type UpdateSequenceFilter = <K extends keyof SequenceFilterState>(
@@ -215,6 +216,8 @@ export type ElementTableRow = {
 export type GeneTableRow = {
     regionID: number
     inputRegion: GenomicRegion
+    maxExpression: number
+    expressionSpecificity: number
 }
 
 export type AssayRankEntry = {
@@ -249,26 +252,26 @@ type TOMTOMMatch = {
     e_value: number;
     jaspar_name?: string | null;
     target_id: string;
-  };
-  
-  export type TomtomMatchQueryData = {
-      target_motifs: TOMTOMMatch[];
-  };
+};
 
-  export type SequenceTableProps = {
+export type TomtomMatchQueryData = {
+    target_motifs: TOMTOMMatch[];
+};
+
+export type SequenceTableProps = {
     sequenceFilterVariables: SequenceFilterState;
     SubTableTitle: React.FC<SubTableTitleProps>;
     sequenceRows: SequenceTableRow[];
-  }
+}
 
-  export type ElementTableProps = {
+export type ElementTableProps = {
     elementFilterVariables: ElementFilterState;
     SubTableTitle: React.FC<SubTableTitleProps>;
     elementRows: ElementTableRow[];
-  }
+}
 
-  export type GeneTableProps = {
+export type GeneTableProps = {
     geneFilterVariables: GeneFilterState;
     SubTableTitle: React.FC<SubTableTitleProps>;
     geneRows: GeneTableRow[];
-  }
+}

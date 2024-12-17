@@ -98,6 +98,7 @@ export default function Argo() {
         },
         mustBeProteinCoding: false,
         mustHaveOrtholog: false,
+        rankBy: "max",
     });
 
     //update specific variable in sequence filters

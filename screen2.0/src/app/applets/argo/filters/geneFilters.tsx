@@ -1,7 +1,8 @@
 import React, { useMemo } from "react";
 import { GeneAccordianProps, GeneLinkingMethod } from "../types";
-import { Accordion, AccordionDetails, AccordionSummary, Box, Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, Stack, Typography } from "@mui/material";
+import { Accordion, AccordionDetails, AccordionSummary, Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, Radio, RadioGroup, Stack } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
+import Grid from "@mui/material/Grid2"
 
 const GeneFilters: React.FC<GeneAccordianProps> = ({
     geneFilterVariables,
@@ -57,42 +58,46 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
                                 checked={allChecked}
                                 onChange={handleChangeAll}
                             />
-                            <Box sx={{ display: 'flex', flexDirection: 'column', ml: 2 }}>
-                                <FormControlLabel
-                                    label="Distance"
-                                    control={<Checkbox />}
-                                    checked={geneFilterVariables.methodOfLinkage.distance}
-                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMethodChange(e, "distance")}
-                                />
-                                <FormControlLabel
-                                    label="Intact Hi-C Loops"
-                                    control={<Checkbox />}
-                                    checked={geneFilterVariables.methodOfLinkage.Intact_HiC}
-                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMethodChange(e, "Intact_HiC")}
-                                />
-                                <FormControlLabel
-                                    label="ChIA-PET Interactions"
-                                    control={<Checkbox />}
-                                    checked={geneFilterVariables.methodOfLinkage.ChIAPET}
-                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMethodChange(e, "ChIAPET")}
-                                />
-                                <FormControlLabel
-                                    label="CRISPRi-FlowFISH"
-                                    control={<Checkbox />}
-                                    checked={geneFilterVariables.methodOfLinkage.CRISPRi_FlowFISH}
-                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMethodChange(e, "CRISPRi_FlowFISH")}
-                                />
-                                <FormControlLabel
-                                    label="eQTLs"
-                                    control={<Checkbox />}
-                                    checked={geneFilterVariables.methodOfLinkage.eQTLs}
-                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMethodChange(e, "eQTLs")}
-                                />
-                            </Box>
+                            <Grid container spacing={0} ml={2}>
+                                <Grid size={6}>
+                                    <FormControlLabel
+                                        label="Distance"
+                                        control={<Checkbox />}
+                                        checked={geneFilterVariables.methodOfLinkage.distance}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMethodChange(e, "distance")}
+                                    />
+                                    <FormControlLabel
+                                        label="Intact Hi-C Loops"
+                                        control={<Checkbox />}
+                                        checked={geneFilterVariables.methodOfLinkage.Intact_HiC}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMethodChange(e, "Intact_HiC")}
+                                    />
+                                    <FormControlLabel
+                                        label="ChIA-PET Interactions"
+                                        control={<Checkbox />}
+                                        checked={geneFilterVariables.methodOfLinkage.ChIAPET}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMethodChange(e, "ChIAPET")}
+                                    />
+                                </Grid>
+                                <Grid size={6}>
+                                    <FormControlLabel
+                                        label="CRISPRi-FlowFISH"
+                                        control={<Checkbox />}
+                                        checked={geneFilterVariables.methodOfLinkage.CRISPRi_FlowFISH}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMethodChange(e, "CRISPRi_FlowFISH")}
+                                    />
+                                    <FormControlLabel
+                                        label="eQTLs"
+                                        control={<Checkbox />}
+                                        checked={geneFilterVariables.methodOfLinkage.eQTLs}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMethodChange(e, "eQTLs")}
+                                    />
+                                </Grid>
+                            </Grid>
                         </FormGroup>
                     </FormControl>
                     <FormControl disabled={!geneFilterVariables.useGenes}>
-                        <FormLabel component="legend">Gene Filters</FormLabel>
+                        <FormLabel component="legend" sx={{ mt: 2 }}>Gene Filters</FormLabel>
                         <FormGroup>
                             <FormControlLabel
                                 label="Must be Protein Coding"
@@ -107,6 +112,25 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateGeneFilter("mustHaveOrtholog", e.target.checked)}
                             />
                         </FormGroup>
+                    </FormControl>
+                    <FormControl disabled={!geneFilterVariables.useGenes}>
+                        <FormLabel component="legend" sx={{ mt: 2 }}>Rank Expression Specificity By</FormLabel>
+                        <RadioGroup
+                            row
+                            value={geneFilterVariables.rankBy}
+                            onChange={(event) => updateGeneFilter("rankBy", event.target.value as "max" | "min")}
+                        >
+                            <FormControlLabel
+                                value="max"
+                                control={<Radio />}
+                                label="Max"
+                            />
+                            <FormControlLabel
+                                value="avg"
+                                control={<Radio />}
+                                label="Average"
+                            />
+                        </RadioGroup>
                     </FormControl>
                 </Stack>
             </AccordionDetails>
