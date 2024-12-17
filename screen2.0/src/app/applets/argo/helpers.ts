@@ -375,7 +375,7 @@ export const calculateAggregateRanks = (inputRegions: InputRegions, sequenceRank
 
 export const matchRanks = (inputRegions: InputRegions, sequenceRanks: RankedRegions, elementRanks: RankedRegions, aggregateRanks: RankedRegions): MainTableRow[] => {
     const updatedMainRows = inputRegions.map(row => {
-        // Find the matching rank for this `inputRegion`
+        // Find the matching ranks for this `inputRegion`
         const matchingElement = elementRanks.find(
             element =>
                 element.chr == row.chr &&
