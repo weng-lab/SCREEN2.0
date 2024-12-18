@@ -3,7 +3,7 @@
 import { Box, IconButton, Stack, Tooltip, Typography } from "@mui/material"
 import { MainSearch } from "./_mainsearch/mainsearch"
 import Grid from "@mui/material/Grid2"
-import homeImage from "../../public/homeImage.png"
+import HomeImage from "../../public/SCREEN-Landing.png"
 import Image from "next/image"
 import humanTransparentIcon from "../../public/Transparent_HumanIcon.png"
 import mouseTransparentIcon from "../../public/Transparent_MouseIcon.png"
@@ -13,7 +13,7 @@ import Config from "../config.json"
 export default function Home() {
   return (
     <main>
-      <Grid container spacing={6} sx={{ mr: "auto", ml: "auto", mt: "3rem", maxWidth: '95%' }}>
+      <Grid container spacing={3} sx={{ mr: "auto", ml: "auto", mt: "3rem", maxWidth: '95%' }}>
         <Grid size={12}>
           <Typography variant="h3">SCREEN</Typography>
           <Typography variant="h5">Search Candidate cis-Regulatory Elements by ENCODE</Typography>
@@ -77,7 +77,7 @@ export default function Home() {
             xs: 12,
             lg: 6
           }}>
-          <Image priority src={homeImage} alt={"SCREEN home image"} style={{width: '100%', maxWidth: '685px', height: 'auto'}} />
+          <Image priority src={HomeImage} alt={"SCREEN home image"} style={{width: '100%', maxWidth: '800px', height: 'auto'}} />
         </Grid>
       </Grid>
     </main>
