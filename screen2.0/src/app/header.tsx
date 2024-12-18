@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
-import { AppBar, Box, Toolbar, IconButton, Menu, Container, MenuItem, Link as MuiLink } from "@mui/material"
+import { AppBar, Box, Toolbar, IconButton, Menu, Container, MenuItem, Link as MuiLink, ListItemText } from "@mui/material"
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown"
 import MenuIcon from "@mui/icons-material/Menu"
 import { MainSearch } from "./_mainsearch/mainsearch"
@@ -83,17 +83,20 @@ function ResponsiveAppBar() {
   }
 
   const menuItem = (page, isSubPage = false) =>
-    <MenuItem key={page.pageName} onClick={handleCloseHamburger} >
-      <MuiLink
-        component={Link}
-        href={page.link}
-        pl={isSubPage ? 2 : 0}
-        underline="hover"
-        color={isSubPage ? "rgba(0, 0, 0, 0.8)" : "black"}
-      >
-        {page.pageName}
-      </MuiLink>
-    </MenuItem>
+    <MuiLink
+      key={page.pageName}
+      component={Link}
+      href={page.link}
+      underline="hover"
+      color={isSubPage ? "rgba(0, 0, 0, 0.7)" : "black"}
+      onClick={handleCloseHamburger}
+    >
+      <MenuItem>
+        <Box pl={isSubPage ? 2 : 0}>
+          {page.pageName}
+        </Box>
+      </MenuItem>
+    </MuiLink>
   
   function handleMenuPagesMapFunc(page) {
     if (page.subPages) {
@@ -179,19 +182,19 @@ function ResponsiveAppBar() {
                         slotProps={{ paper: { onMouseLeave: () => handleCloseDropdown(page.dropdownID), sx: {pointerEvents: 'auto'}}}}
                         sx={{pointerEvents: 'none', zIndex: 2000}} //z index of AppBar is 1100 for whatever reason
                       >
-                        {/* This box is here to provide better onMouseLeave behavior, still not ideal */}
                         {page.subPages &&
                           page.subPages.map((subPage) => (
-                            <MenuItem key={subPage.pageName} onClick={() => handleCloseDropdown(page.dropdownID)}>
-                              <MuiLink
-                                underline="hover"
-                                color="black"
-                                component={Link}
-                                href={subPage.link}
-                              >
+                            <MuiLink
+                              key={subPage.pageName}
+                              underline="hover"
+                              color="black"
+                              component={Link}
+                              href={subPage.link}
+                            >
+                              <MenuItem>
                                 {subPage.pageName}
-                              </MuiLink>
-                            </MenuItem>
+                              </MenuItem>
+                            </MuiLink>
                           ))}
                       </Menu>
                     )}
