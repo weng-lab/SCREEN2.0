@@ -177,8 +177,6 @@ function ResponsiveAppBar() {
                         }}
                         open={page.dropdownID === 0 ? Boolean(anchorDropdown0) : Boolean(anchorDropdown1)}
                         onClose={() => handleCloseDropdown(page.dropdownID)}
-                        //These are to prevent focus ring from showing up in some browsers, but doesn't work completely
-                        MenuListProps={{ autoFocusItem: false, autoFocus: false }}
                         slotProps={{ paper: { onMouseLeave: () => handleCloseDropdown(page.dropdownID), sx: {pointerEvents: 'auto'}}}}
                         sx={{pointerEvents: 'none', zIndex: 2000}} //z index of AppBar is 1100 for whatever reason
                       >
