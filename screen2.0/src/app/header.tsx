@@ -86,7 +86,7 @@ function ResponsiveAppBar() {
         {page.pageName}
       </Typography>
     </MenuItem>
-  
+
 
   function handleMenuPagesMapFunc(page) {
     if (page.subPages) {
@@ -105,7 +105,7 @@ function ResponsiveAppBar() {
             {/* Logo, and desktop navigation */}
             <Box display='flex' flexGrow={1}>
               <a href={"/"}>
-              <Image src={SCREENLOGO} alt="SCREEN Icon" height={40} width={90} style={{marginRight: '20px'}} />                
+                <Image src={SCREENLOGO} alt="SCREEN Icon" height={40} width={90} style={{ marginRight: '20px' }} />
               </a>
               {/* Main navigation items for desktop, hide on small screen size */}
               <Box sx={{ display: { xs: "none", lg: "flex" }, alignItems: 'center' }}>

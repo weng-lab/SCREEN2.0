@@ -19,9 +19,9 @@ type GenomeBrowserViewProps = {
   biosample?: string
   biosampledisplayname?: string
   gene?: string
-  accessions?: {accession: string, chromosome: string, start: number, end: number}[]
+  accessions?: { accession: string, chromosome: string, start: number, end: number }[]
   assembly: string
-  handlecCREClickInTrack?: (newcCRE: {accession: string, chromosome: string, start: number, end: number}) => void
+  handlecCREClickInTrack?: (newcCRE: { accession: string, chromosome: string, start: number, end: number }) => void
 }
 
 const BIOSAMPLE_QUERY = gql`
@@ -102,15 +102,15 @@ export function expandCoordinates(coordinates, l = 20000) {
 }
 
 export const GenomeBrowserView: React.FC<GenomeBrowserViewProps> = (props) => {
-  
+
   const svgRef = useRef<SVGSVGElement>(null)
   const expandedCoordinates = useMemo(() => expandCoordinates(props.coordinates), [props.coordinates])
   const [coordinates, setCoordinates] = useState<GenomicRange>(expandedCoordinates)
   const [highlight, setHighlight] = useState(null)
-  
+
   const [cTracks, setTracks] = useState<[string, string, string][] | null>(null)
   const snpResponse = useQuery<SNPQueryResponse>(GENE_QUERY, {
-    variables: { ...coordinates, assembly: props.assembly, version: props.assembly.toLowerCase()==="grch38" ? 40 : 25  },
+    variables: { ...coordinates, assembly: props.assembly, version: props.assembly.toLowerCase() === "grch38" ? 40 : 25 },
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
     client,
@@ -154,7 +154,7 @@ export const GenomeBrowserView: React.FC<GenomeBrowserViewProps> = (props) => {
           ? mouseBiosamples.find((m) => m.name === props.biosample)
           : humanBiosamples.find((m) => m.name === props.biosample)
       const r = [result.dnase_signal, result.h3k4me3_signal, result.h3k27ac_signal, result.ctcf_signal].filter((x) => !!x)
-      
+
       //copy v4 bed files to google bucket
       const bigBedUrl = `https://downloads.wenglab.org/Registry-V4/${r.join("_")}.bigBed`
       let tracks: [string, string, string][] = [[`cCREs colored by activity in ${props.biosampledisplayname}`, bigBedUrl, ""]]
@@ -185,7 +185,7 @@ export const GenomeBrowserView: React.FC<GenomeBrowserViewProps> = (props) => {
       setTracks(tracks)
     }
   }, [bdata, props.biosample, props.assembly, props.biosampledisplayname])
-  
+
   return (<>
     <Grid container spacing={3} sx={{ mt: "1rem", mb: "1rem" }}>
       <Grid
@@ -194,19 +194,19 @@ export const GenomeBrowserView: React.FC<GenomeBrowserViewProps> = (props) => {
           lg: 12
         }}>
         <br />
-        <CytobandView innerWidth={1000} height={15} chromosome={coordinates.chromosome!} assembly={props.assembly!=="mm10" ?"hg38" : "mm10"} position={coordinates} />
+        <CytobandView innerWidth={1000} height={15} chromosome={coordinates.chromosome!} assembly={props.assembly !== "mm10" ? "hg38" : "mm10"} position={coordinates} />
         <br />
         <div style={{ textAlign: "center" }}>
           <Controls onDomainChanged={onDomainChanged} domain={coordinates || props.coordinates} />
         </div>
         <br />
         <br />
-        <GenomeBrowser          
+        <GenomeBrowser
           svgRef={svgRef}
           domain={coordinates}
           innerWidth={1400}
           width="100%"
-          noMargin          
+          noMargin
           onDomainChanged={(x) => {
             if (Math.ceil(x.end) - Math.floor(x.start) > 10) {
               setCoordinates({
@@ -216,16 +216,16 @@ export const GenomeBrowserView: React.FC<GenomeBrowserViewProps> = (props) => {
               })
             }
           }}
-        >           
-          
+        >
+
           <RulerTrack domain={coordinates} height={30} width={1400} />
           {highlight && (
             <rect fill="#8ec7d1" fillOpacity={0.5} height={900} x={l(highlight.start)} width={l(highlight.end) - l(highlight.start)} />
           )}
           <>
-           {props.accessions && props.accessions.map((a)=>(
-            <rect key={a.accession} fill="#FAA4A4" fillOpacity={0.5} height={900} x={l(a.start)} width={l(a.end) - l(a.start)} />
-          ))}
+            {props.accessions && props.accessions.map((a) => (
+              <rect key={a.accession} fill="#FAA4A4" fillOpacity={0.5} height={900} x={l(a.start)} width={l(a.end) - l(a.start)} />
+            ))}
           </>
           <EGeneTracks
             genes={groupedTranscripts || []}
@@ -235,10 +235,10 @@ export const GenomeBrowserView: React.FC<GenomeBrowserViewProps> = (props) => {
           <DefaultTracks
             assembly={props.assembly}
             domain={coordinates}
-            oncCREClicked={(x)=>{              
-            props.handlecCREClickInTrack && props.handlecCREClickInTrack({ accession: x.name, chromosome: x.coordinates.chromosome,start: x.coordinates.start,end: x.coordinates.end })
+            oncCREClicked={(x) => {
+              props.handlecCREClickInTrack && props.handlecCREClickInTrack({ accession: x.name, chromosome: x.coordinates.chromosome, start: x.coordinates.start, end: x.coordinates.end })
             }}
-            oncCREMousedOver={(x) => x && setHighlight(x)}              
+            oncCREMousedOver={(x) => x && setHighlight(x)}
             oncCREMousedOut={() => setHighlight(null)}
           />
           {props.biosample && props.assembly != "mm10" && cTracks && (
@@ -247,11 +247,11 @@ export const GenomeBrowserView: React.FC<GenomeBrowserViewProps> = (props) => {
               biosample={props.biosample}
               domain={coordinates}
               tracks={cTracks}
-              oncCREMousedOver={(x) => x && setHighlight(x)}              
+              oncCREMousedOver={(x) => x && setHighlight(x)}
               oncCREMousedOut={() => setHighlight(null)}
-              oncCREClicked={(x)=>{              
-                props.handlecCREClickInTrack && props.handlecCREClickInTrack({ accession: x.name, chromosome: x.coordinates.chromosome,start: x.coordinates.start,end: x.coordinates.end })
-                }}
+              oncCREClicked={(x) => {
+                props.handlecCREClickInTrack && props.handlecCREClickInTrack({ accession: x.name, chromosome: x.coordinates.chromosome, start: x.coordinates.start, end: x.coordinates.end })
+              }}
             />
           )}
         </GenomeBrowser>
