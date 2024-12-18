@@ -1,12 +1,11 @@
 "use client"
 
 import React, { useState } from "react"
-import { AppBar, Box, Toolbar, IconButton, Menu, Container, MenuItem, Link as MuiLink, ListItemText } from "@mui/material"
+import { AppBar, Box, Toolbar, IconButton, Menu, Container, MenuItem, Link as MuiLink, Stack } from "@mui/material"
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown"
 import MenuIcon from "@mui/icons-material/Menu"
 import { MainSearch } from "./_mainsearch/mainsearch"
 import Image from "next/image"
-import SCREENLOGO from "../../public/screenLogo.png"
 import Link from "next/link"
 
 type PageInfo = {
@@ -138,10 +137,16 @@ function ResponsiveAppBar() {
         <Container maxWidth={false}>
           <Toolbar disableGutters sx={{ justifyContent: "space-between", alignItems: "center" }}>
             {/* Logo, and desktop navigation */}
-            <Box display='flex' flexGrow={1}>
-              <Link href={"/"} style={{display: 'flex', }}>
-                  <Image src={SCREENLOGO} alt="SCREEN Icon" height={45} style={{ marginRight: '25px' }}/>                
-              </Link>
+            <Stack direction="row" gap={3} flexGrow={1} >
+              <Box component={Link} href={'/'} height={45} width={87} position={"relative"}>
+                <Image
+                  priority
+                  src={"SCREEN_logo_dark_small.png"}
+                  alt="SCREEN Icon"
+                  fill
+                  style={{ objectFit: "contain", objectPosition: 'left center' }}
+                />
+              </Box>
               {/* Main navigation items for desktop, hide on small screen size */}
               <Box sx={{ display: { xs: "none", lg: "flex" }, alignItems: 'stretch', gap: 2 }} id="NavItems">
                 {pageLinks.map((page) => (
@@ -199,7 +204,7 @@ function ResponsiveAppBar() {
                   </Box>
                 ))}
               </Box>
-            </Box>
+            </Stack>
             <Box sx={{ display: { xs: "none", md: "flex" } }}>
               <MainSearch header />
             </Box>
