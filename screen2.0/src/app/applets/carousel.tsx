@@ -37,14 +37,14 @@ const slides = [
         id: 1,
         image: "/GeneExpressionSS.png",
         text: "Gene Expression",
-        description: "Explore and visualize gene expression patterns across hundreds of cell and tissue types from ENCODE biosamples",
+        description: "Dive into comprehensive gene expression data across 324 human and 78 mouse datasets. Explore how genes are expressed in hundreds of cell and tissue types, providing valuable insights into their regulatory and functional roles. This tool enables researchers to identify context-specific expression patterns for their genes of interest.",
         link: "../applets/gene-expression",
     },
     {
         id: 2,
         image: "/GWASSS.png",
         text: "GWAS",
-        description: "Investigate the overlap between cCREs and genome-wide association study (GWAS) results to prioritize causal variants and identify potential regulatory mechanisms",
+        description: "Analyze over 1 million variants associated with human phenotypes and diseases through the lens of cCRE overlap. This app helps prioritize causal variants by linking genetic associations to potential regulatory elements. Gain a deeper understanding of the regulatory landscape underlying complex traits and diseases.",
         link: "../applets/gwas",
     },
     // {
