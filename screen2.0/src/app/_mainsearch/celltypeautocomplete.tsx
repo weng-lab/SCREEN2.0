@@ -1,4 +1,4 @@
-import React, { useState, useEffect, SetStateAction, useTransition } from "react"
+import React, { useState, useEffect, SetStateAction } from "react"
 import Box from "@mui/material/Box"
 import TextField from "@mui/material/TextField"
 import Autocomplete from "@mui/material/Autocomplete"
@@ -12,17 +12,20 @@ import { RegistryBiosample } from "../search/types"
 
 export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean }> = (props) => {
   const [valueCellType, setValueCellType] = useState<RegistryBiosample>(null)
-  const [valueRegion, setValueRegion] = useState(null)
+  const [valueRegion, setValueRegion] = useState("")
   const [inputValue, setInputValue] = useState("")
   const [options, setOptions] = useState<RegistryBiosample[]>([])
-  const [isPending, startTransition] = useTransition();
 
-  //fetch biosample info, populate selected biosample if specified
+  /**
+   * @todo move this fetch to client side. Invoking server action to fetch data has no clear benefit
+   */
   useEffect(() => {
-    startTransition(async () => {
-      const biosamples = await (await biosampleQuery()).data[props.assembly.toLowerCase() === "grch38" ? "human" : "mouse"].biosamples
+    const fetchBiosamples = async () => {
+      const biosamples = (await biosampleQuery()).data[props.assembly.toLowerCase() === "grch38" ? "human" : "mouse"].biosamples
       setOptions(biosamples)
-    })
+    }
+
+    fetchBiosamples()
   }, [props.assembly])
 
   const handleSubmit = () => {
@@ -61,7 +64,7 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
         onKeyDown={(event) => {
           if (event.key === "Enter" && valueCellType) {
             event.defaultPrevented = true
-            window.open(handleSubmit(), "_self")
+            window.open(handleSubmit(), '_self')
           }
         }}
         value={valueCellType}
@@ -79,7 +82,12 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
           <TextField
             {...params}
             label="Enter a celltype"
-            InputLabelProps={{ shrink: true, style: props.header ? { color: "white" } : { color: "black" } }}
+            slotProps={{
+              inputLabel: {
+                shrink: true,
+                style: props.header ? { color: "white" } : { color: "black" },
+              },
+            }}
             placeholder={props.assembly === "mm10" ? "strain B6NCrl cortical plate tissue male adult (8 weeks)" : "e.g. LNCAP"}
             fullWidth          
             sx={{
@@ -118,7 +126,13 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
       {/* Ideally this and the other genomic region should share the same code */}
       <TextField
         variant="outlined"
-        InputLabelProps={{ shrink: true, style: props.header ? { color: "white" } : { color: "black" } }}
+        slotProps={{
+          inputLabel: {
+            shrink: true,
+            style: props.header ? { color: "white" } : { color: "black" },
+          },
+          input: props.header ? { style: { color: "white" } } : {},
+        }}
         label="Enter a genomic region"
         placeholder={`chr12:${(53380176).toLocaleString()}-${(53416446).toLocaleString()}`}
         value={valueRegion}
@@ -127,14 +141,13 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
         }}
         onKeyDown={(event) => {
           if (event.key === "Enter" && valueCellType) {
-            window.open(handleSubmit(), "_self")
+            window.open(handleSubmit(), '_self')
           }
           if (event.key === "Tab" && !valueRegion) {
             const defaultGenomicRegion = `chr12:${(53380176).toLocaleString()}-${(53416446).toLocaleString()}`
             setValueRegion(defaultGenomicRegion)
           }
         }}
-        InputProps={props.header ? { style: { color: "white" } } : {}}
         sx={{
           //Border at rest
           fieldset: props.header ? { borderColor: "white" } : { borderColor: "black" },
@@ -147,7 +160,7 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
         }}
         size={props.header ? "small" : "medium"}
       />
-      <IconButton aria-label="Search" type="submit" onClick={() => window.open(handleSubmit(), "_self")} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
+      <IconButton aria-label="Search" type="submit" onClick={() => window.open(handleSubmit(), '_self')} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
         <Search />
       </IconButton>
     </Stack>

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react"
+import React, { useState, useMemo } from "react"
 import Box from "@mui/material/Box"
 import TextField from "@mui/material/TextField"
 import Autocomplete from "@mui/material/Autocomplete"
@@ -53,9 +53,9 @@ export const SnpAutoComplete: React.FC<{ assembly: string, header?: boolean }> =
 
   const handleSubmit = () => {
     if (value) {
-      let chromosome = snpids.find((g) => g.id === value)?.chrom
-      let start = snpids.find((g) => g.id === value)?.start
-      let end = snpids.find((g) => g.id === value)?.end
+      const chromosome = snpids.find((g) => g.id === value)?.chrom
+      const start = snpids.find((g) => g.id === value)?.start
+      const end = snpids.find((g) => g.id === value)?.end
       return (
         `/search?assembly=${props.assembly}&chromosome=${chromosome}&start=${Math.max(0, start)}&end=${end}&snpid=${value}&snpDistance=0`
       )
@@ -77,7 +77,7 @@ export const SnpAutoComplete: React.FC<{ assembly: string, header?: boolean }> =
         onKeyDown={(event) => {
           if (event.key === "Enter" && value) {
             event.defaultPrevented = true
-            window.open(handleSubmit(), "_self")
+            window.open(handleSubmit(), '_self')
           }
         }}
         value={value}
@@ -96,7 +96,12 @@ export const SnpAutoComplete: React.FC<{ assembly: string, header?: boolean }> =
           <TextField
             {...params}
             label="Enter a snp rsId"
-            InputLabelProps={{ shrink: true, style: props.header ? {color: "white"} : { color: "black" } }}
+            slotProps={{
+              inputLabel: {
+                shrink: true,
+                style: props.header ? { color: "white" } : { color: "black" },
+              },
+            }}
             placeholder="e.g. rs11669173"
             fullWidth
             sx={{
@@ -134,7 +139,7 @@ export const SnpAutoComplete: React.FC<{ assembly: string, header?: boolean }> =
           )
         }}
       />
-      <IconButton aria-label="Search" type="submit" href={handleSubmit()} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
+      <IconButton aria-label="Search" type="submit" onClick={() => window.open(handleSubmit(), '_self')} sx={{ color: `${props.header ? "white" : "black"}`, maxHeight: "100%" }}>
         <Search />
       </IconButton>
     </Stack>

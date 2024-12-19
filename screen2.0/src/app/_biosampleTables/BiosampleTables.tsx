@@ -1,26 +1,16 @@
-import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, CircularProgress, FormControlLabel, Accordion, FormGroup, Checkbox, IconButton, Menu, MenuItem, InputAdornment, FormControl, FormLabel, Paper, Stack } from "@mui/material"
+import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, CircularProgress,  Accordion, IconButton, Menu, InputAdornment, Paper, Stack, Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel } from "@mui/material"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { useCallback,  useMemo, useState } from "react"
-import { assay, CheckboxState, FiltersKey, Props, RegistryBiosample, RegistryBiosamplePlusRNA } from "./types"
+import { BiosampleData, CollectionCheckboxes, LifeStageCheckboxes, Props, RegistryBiosample, RegistryBiosamplePlusRNA, SampleTypeCheckboxes } from "./types"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
-import { Check,  Close,  FilterList, Launch } from "@mui/icons-material"
+import { Check,  Close,  FilterList } from "@mui/icons-material"
 import SearchIcon from '@mui/icons-material/Search';
 import { useQuery } from "@apollo/client"
-import { assayColors, assayHoverInfo, DownloadBiosamplecCREsButton, filterBiosamples } from "./helpers"
+import { filterBiosamples } from "./helpers"
 import { BIOSAMPLE_QUERY, RNA_SEQ_QUERY } from "./queries"
-
-const checkboxLabels: { [key in FiltersKey]: string } = {
-  CellLine: "Cell Line",
-  PrimaryCell: "Primary Cell",
-  Tissue: "Tissue",
-  Organoid: "Organoid",
-  InVitro: "In Vitro Differentiated Cell",
-  Core: "Core Collection",
-  Partial: "Partial Data Collection",
-  Ancillary: "Ancillary Collection",
-  Embryo: "Embryo",
-  Adult: "Adult"
-}
+import { AssayWheel } from "./AssayWheel"
+import { DownloadButton } from "./DownloadButton"
+import { FilterCheckboxGroup } from "./FilterCheckboxGroup"
 
 export const BiosampleTables = <T extends boolean = false>({
   assembly,
@@ -32,29 +22,32 @@ export const BiosampleTables = <T extends boolean = false>({
   showDownloads,
   slotProps
 }: Props<T>) => {
-  //Checkbox state for filters
-  const [checkboxes, setCheckboxes] = useState<CheckboxState>({
-    CellLine: true,
-    PrimaryCell: true,
-    Tissue: true,
-    Organoid: true,
-    InVitro: true,
-    Core: true,
-    Partial: true,
-    Ancillary: true,
-    Embryo: true,
-    Adult: true
+  const [sampleTypeFilter, setSampleTypeFilter] = useState<SampleTypeCheckboxes>({
+    "Cell Line": true,
+    "Primary Cell": true,
+    "Tissue": true,
+    "Organoid": true,
+    "In Vitro Differentiated Cells": true,
   })
-
-  //For searching biosample tables
+  const [collectionFilter, setCollectionFilter] = useState<CollectionCheckboxes>({
+    "Core Collection": true,
+    "Partial Collection": true,
+    "Ancillary Collection": true,
+  })
+  const [lifeStageFilter, setLifeStageFilter] = useState<LifeStageCheckboxes>({
+    "Embryo": true,
+    "Adult": true
+  })
+  const [mustHaveRnaSeq, setMustHaveRnaSeq] = useState<boolean>(false)
   const [searchString, setSearchString] = useState<string>("")
-
-  //Anchor for dropdown menu
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)  //Anchor for dropdown menu
+  
+  const handleSetSampleTypeFilter = (newState: SampleTypeCheckboxes) => { setSampleTypeFilter(newState) }
+  const handleSetCollectionFilter = (newState: CollectionCheckboxes) => { setCollectionFilter(newState) }
+  const handleSetLifeStageFilter = (newState: LifeStageCheckboxes) => { setLifeStageFilter(newState) }
+  const handleSetMustHaveRnaSeq = (newState: boolean) => { setMustHaveRnaSeq(newState)}
+  const handleOpen = (event: React.MouseEvent<HTMLButtonElement>) => { setAnchorEl(event.currentTarget) }
   const handleClose = () => { setAnchorEl(null) }
-
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => { setAnchorEl(event.currentTarget) }
 
 
   const { data: biosampleData, loading: loadingBiosamples, error: errorBiosamples } = useQuery(
@@ -79,24 +72,24 @@ export const BiosampleTables = <T extends boolean = false>({
   )
 
   //Not using generic BiosampleData<T> type since this function is always called on return data without RNAseq t/f data
-  const sampleMatchesSearch = useCallback((x: RegistryBiosample) => {
+  const sampleMatchesSearch = useCallback((x: RegistryBiosample | RegistryBiosamplePlusRNA) => {
     if (searchString) {
-      return x.name.toLowerCase().includes(searchString.toLowerCase())
-        || x.displayname.toLowerCase().includes(searchString.toLowerCase())
-        || x.ontology.toLowerCase().includes(searchString.toLowerCase())
+      return (
+        Object.values(x).some(val => val?.toLowerCase().includes(searchString.toLowerCase()))
+      )
     } else return true
   }, [searchString])
 
   /**
    * Sorted and Filtered Biosamples
    */
-  const filteredBiosamples: { [key: string]: (RegistryBiosample | RegistryBiosamplePlusRNA)[] } = useMemo(() => {
+  const filteredBiosamples: { [key: string]: BiosampleData<T>[] } = useMemo(() => {
     if ((biosampleData && (data_rnaseq || !showRNAseq))) {
-      const groupedBiosamples: { [key: string]: (RegistryBiosample | RegistryBiosamplePlusRNA)[] } = {}
+      const groupedBiosamples: { [key: string]: BiosampleData<T>[] } = {}
       biosampleData.ccREBiosampleQuery.biosamples
         .filter(preFilterBiosamples || (() => true))
-        .forEach((biosample: RegistryBiosample) => {
-          if (!searchString || (searchString && sampleMatchesSearch(biosample))) { //check to see that sample matches search
+        .forEach((biosample) => {
+          if (!searchString || (searchString && sampleMatchesSearch(biosample as RegistryBiosample))) { //check to see that sample matches search
             //If tissue hasn't been cataloged yet, define an entry for it
             if (!groupedBiosamples[biosample.ontology]) {
               groupedBiosamples[biosample.ontology] = [];
@@ -107,24 +100,27 @@ export const BiosampleTables = <T extends boolean = false>({
                 {
                   ...biosample,
                   rnaseq: Boolean(data_rnaseq.rnaSeqQuery.map((sample) => sample.biosample).find(sampleName => biosample.name === sampleName)),
-                } as RegistryBiosamplePlusRNA
+                } as BiosampleData<T>
               )
             } else {
-              groupedBiosamples[biosample.ontology].push(biosample as RegistryBiosample)
+              groupedBiosamples[biosample.ontology].push(biosample as BiosampleData<T>)
             }
           }
       })
-      const filteredBiosamples = filterBiosamples(
+      const filteredBiosamples = filterBiosamples<T>(
         groupedBiosamples,
-        checkboxes,
+        sampleTypeFilter,
+        collectionFilter,
+        lifeStageFilter,
+        mustHaveRnaSeq
       )
       return filteredBiosamples
     } else return {}
-  }, [biosampleData, checkboxes, data_rnaseq, showRNAseq, sampleMatchesSearch, searchString, preFilterBiosamples])
+  }, [biosampleData, data_rnaseq, showRNAseq, preFilterBiosamples, sampleTypeFilter, collectionFilter, lifeStageFilter, mustHaveRnaSeq, searchString, sampleMatchesSearch])
 
 
   const biosampleTables = useMemo(() => {
-    let cols: DataTableColumn<RegistryBiosamplePlusRNA>[] = [
+    let cols: DataTableColumn<BiosampleData<T>>[] = [
       {
         header: "Biosample",
         value: (row) => row.displayname,
@@ -137,123 +133,14 @@ export const BiosampleTables = <T extends boolean = false>({
       {
         header: "Assays",
         value: (row) => +!!row.dnase + +!!row.atac + +!!row.ctcf + +!!row.h3k27ac + +!!row.h3k4me3,
-        FunctionalRender: (row: RegistryBiosamplePlusRNA) => {
-          const [hoveredAssay, setHoveredAssay] = useState<assay>(null)
-
-          //Constants used for sizing svg elements
-          const svgHeight = 50
-          const svgWidth = 50
-          const radius = 10
-          const radiusHovered = 12.5 //If assay is hovered, bump up the radius to create the "poking out" effect
-          const fifth = (2 * Math.PI * radius) / 5
-          const fifthHovered = (2 * Math.PI * radiusHovered) / 5
-
-          const assays: { id: assay, expID: string, color: string, dashArray: string, radius: number }[] = useMemo(() => {
-            return [
-              {
-                id: "DNase",
-                expID: row.dnase, //Used to provide link to ENCODE for that experiment
-                color: row.dnase ? assayColors.DNase : "transparent", //Only color slice if the biosample has data in that assay
-                dashArray: hoveredAssay === "DNase" ? `${fifthHovered} ${fifthHovered * 4}` : `${fifth} ${fifth * 4}`, //Use dasharray to create a single slice of 1/5th of the circle. 
-                radius: hoveredAssay === "DNase" ? radiusHovered : radius 
-              },
-              {
-                id: "H3K27ac",
-                expID: row.h3k27ac,
-                color: row.h3k27ac ? assayColors.H3K27ac : "transparent",
-                dashArray: hoveredAssay === "H3K27ac" ? `0 ${fifthHovered} ${fifthHovered} ${fifthHovered * 3}` : `0 ${fifth} ${fifth} ${fifth * 3}`,
-                radius: hoveredAssay === "H3K27ac" ? radiusHovered : radius
-              },
-              {
-                id: "H3K4me3",
-                expID: row.h3k4me3,
-                color: row.h3k4me3 ? assayColors.H3K4me3 : "transparent",
-                dashArray: hoveredAssay === "H3K4me3" ? `0 ${fifthHovered * 2} ${fifthHovered} ${fifthHovered * 2}` : `0 ${fifth * 2} ${fifth} ${fifth * 2}`,
-                radius: hoveredAssay === "H3K4me3" ? radiusHovered : radius
-              },
-              {
-                id: "CTCF",
-                expID: row.ctcf,
-                color: row.ctcf ? assayColors.CTCF : "transparent",
-                dashArray: hoveredAssay === "CTCF" ? `0 ${fifthHovered * 3} ${fifthHovered} ${fifthHovered * 1}` : `0 ${fifth * 3} ${fifth} ${fifth * 1}`,
-                radius: hoveredAssay === "CTCF" ? radiusHovered : radius
-              },
-              {
-                id: "ATAC",
-                expID: row.atac,
-                color: row.atac ? assayColors.ATAC : "transparent",
-                dashArray: hoveredAssay === "ATAC" ? `0 ${fifthHovered * 4} ${fifthHovered}` : `0 ${fifth * 4} ${fifth}`,
-                radius: hoveredAssay === "ATAC" ? radiusHovered : radius
-              },
-            ];
-          }, [row.dnase, row.h3k27ac, row.h3k4me3, row.ctcf, row.atac, hoveredAssay, fifthHovered, fifth])
-
-          return (
-            <Tooltip
-              title={
-                <Stack spacing={1}>
-                  <Typography variant="body2">
-                    {assayHoverInfo({
-                      dnase: !!row.dnase,
-                      atac: !!row.atac,
-                      ctcf: !!row.ctcf,
-                      h3k27ac: !!row.h3k27ac,
-                      h3k4me3: !!row.h3k4me3
-                    })}
-                  </Typography>
-                  {hoveredAssay && <>
-                    <Typography variant="body2">Click to view {hoveredAssay} experiment:</Typography>
-                    <Stack direction="row" alignItems={"baseline"}>
-                      <Typography variant="body2">{row[hoveredAssay.toLowerCase()]}</Typography>
-                      <Launch fontSize="inherit" sx={{ ml: 0.5 }} />
-                    </Stack>
-                  </>}
-                </Stack>
-              }
-              arrow
-              placement="right"
-            >
-              <svg height={svgHeight} width={svgWidth} viewBox={`0 0 ${svgWidth} ${svgHeight}`}  >
-                {/* Provides outline */}
-                <circle r={2 * radius + 0.125} cx={svgWidth / 2} cy={svgHeight / 2} fill="#EEEEEE" stroke="black" strokeWidth={0.25} />
-                {assays.map((assay) => (
-                  assay.expID &&
-                  <a
-                    key={assay.id}
-                    href={`https://www.encodeproject.org/experiments/${assay.expID}/`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ pointerEvents: 'none' }} // Prevents anchor from interfering with mouse events
-                  >
-                    <circle
-                      cursor={"pointer"}
-                      pointerEvents={"auto"}
-                      r={assay.radius}
-                      cx={svgWidth / 2}
-                      cy={svgHeight / 2}
-                      fill="transparent"
-                      stroke={assay.color}
-                      strokeWidth={hoveredAssay === assay.id ? 2 * radiusHovered : 2 * radius}
-                      strokeDasharray={assay.dashArray}
-                      onMouseEnter={() => setHoveredAssay(assay.id)}
-                      onMouseLeave={() => setHoveredAssay(null)}
-                      onClick={(event) => event.stopPropagation()}
-                    />
-                  </a>
-                ))}
-                {/* Provides dead zone in middle to prevent ATAC wheel from capturing mouse events in center due to it being topmost element */}
-                <circle r={radius} cx={svgWidth / 2} cy={svgHeight / 2} fill="white" stroke="black" strokeWidth={0.25} />
-              </svg>
-            </Tooltip>
-          )
-        },
+        render: (row) => <AssayWheel row={row} />,
       }
     ]
 
     if (showRNAseq) cols.push({
       header: "RNA-Seq",
-      value: (row) => +row.rnaseq,
-      render: (row) => {
+      value: (row: RegistryBiosamplePlusRNA) => +row.rnaseq,
+      render: (row: RegistryBiosamplePlusRNA) => {
         if (row.rnaseq) {
           return (
             <Check />
@@ -268,32 +155,32 @@ export const BiosampleTables = <T extends boolean = false>({
         {
           header: "cCREs",
           value: (row) => +!!(row.dnase || row.ctcf || row.h3k27ac || row.h3k4me3),
-          FunctionalRender: (row) => DownloadBiosamplecCREsButton(row, "celltypeccres"),
+          render: (row) => <DownloadButton row={row} downloadType="celltypeccres"/>
         },
         {
           header: "DNase Signal",
           value: (row) => +!!row.dnase,
-          FunctionalRender: (row) => DownloadBiosamplecCREsButton(row, "dnase"),
+          render: (row) => <DownloadButton row={row} downloadType="dnase"/>
         },
         {
           header: "ATAC Signal",
           value: (row) => +!!row.atac,
-          FunctionalRender: (row) => DownloadBiosamplecCREsButton(row, "atac"),
+          render: (row) => <DownloadButton row={row} downloadType="atac"/>
         },
         {
           header: "CTCF Signal",
           value: (row) => +!!row.ctcf,
-          FunctionalRender: (row) => DownloadBiosamplecCREsButton(row, "ctcf"),
+          render: (row) => <DownloadButton row={row} downloadType="ctcf"/>
         },
         {
           header: "H3K27ac Signal",
           value: (row) => +!!row.h3k27ac,
-          FunctionalRender: (row) => DownloadBiosamplecCREsButton(row, "h3k27ac"),
+          render: (row) => <DownloadButton row={row} downloadType="h3k27ac"/>
         },
         {
           header: "H3K4me3 Signal",
           value: (row) => +!!row.h3k4me3,
-          FunctionalRender: (row) => DownloadBiosamplecCREsButton(row, "h3k4me3"),
+          render: (row) => <DownloadButton row={row} downloadType="h3k4me3"/>
         }
       ]
     }
@@ -308,11 +195,12 @@ export const BiosampleTables = <T extends boolean = false>({
 
     return (
       Object.entries(filteredBiosamples).sort().map(([ontology, biosamples], i) => {
-        if ((searchString ? biosamples.find(obj => obj.displayname.toLowerCase().includes(searchString.toLowerCase())) : true) && biosamples.length > 0) {
+        //Make sure that the accordions won't be empty
+        if (biosamples.length > 0) {
           const toHighlight = selected ? typeof selected === 'string' ? [selected] : selected : []
           const highlighted = toHighlight.map(x => biosamples.find(y => y.name === x) || biosamples.find(y => y.displayname === x))
           return (
-            <Accordion key={i}>
+            <Accordion key={i} slotProps={{transition: {unmountOnExit: true}}}>
               <AccordionSummary
                 expandIcon={<KeyboardArrowRightIcon />}
                 sx={{
@@ -322,7 +210,7 @@ export const BiosampleTables = <T extends boolean = false>({
                   },
                 }}
               >
-                <Typography>{ontology.charAt(0).toUpperCase() + ontology.slice(1)}</Typography>
+                <Typography>{ontology.charAt(0).toUpperCase() + ontology.slice(1) + ` (${biosamples.length})`}</Typography>
               </AccordionSummary>
               <AccordionDetails>
                 <DataTable
@@ -342,29 +230,7 @@ export const BiosampleTables = <T extends boolean = false>({
       })
     )
 
-  },
-    [showRNAseq, showDownloads, loadingBiosamples, loading_rnaseq, errorBiosamples, error_rnaseq, filteredBiosamples, searchString, selected, onBiosampleClicked]
-  )
-
-  const FilterCheckbox: React.FC<{ control: FiltersKey }> = ({ control }) => {
-    const handleChange = (_, checked: boolean) => {
-      const x = { ...checkboxes }
-      x[control] = checked
-      setCheckboxes(x)
-    }
-
-    return (
-      <MenuItem dense>
-        <FormControlLabel
-          checked={checkboxes[control]}
-          onChange={handleChange}
-          control={<Checkbox />}
-          label={checkboxLabels[control]}
-        />
-      </MenuItem>
-    )
-  }
-
+  }, [showRNAseq, showDownloads, loadingBiosamples, loading_rnaseq, errorBiosamples, error_rnaseq, filteredBiosamples, selected, onBiosampleClicked])
 
   return (
     <Stack component={Paper} height={500} {...slotProps?.paperStack}>
@@ -372,12 +238,11 @@ export const BiosampleTables = <T extends boolean = false>({
         <TextField
           value={searchString}
           size="small"
-          label="Search Biosamples"
+          label="Name, Tissue, Exp ID"
           onChange={(event) => setSearchString(event.target.value)}
-          InputProps={{
-            endAdornment: searchString ? <IconButton onClick={() => setSearchString("")}><Close/></IconButton> : <InputAdornment position="end"><SearchIcon /></InputAdornment>,
-          }} />
-        <IconButton onClick={handleClick}>
+          slotProps={{ input: { endAdornment: searchString ? <IconButton onClick={() => setSearchString("")}><Close /></IconButton> : <InputAdornment position="end"><SearchIcon /></InputAdornment> } }}
+          />
+        <IconButton onClick={handleOpen}>
           <FilterList />
         </IconButton>
       </Stack>
@@ -395,31 +260,25 @@ export const BiosampleTables = <T extends boolean = false>({
         {...slotProps?.menu}
       >
         <Stack padding={2} {...slotProps?.menuStack}>
-          <FormControl component="fieldset" variant="standard">
-            <FormGroup>
-              <FormLabel component="legend">Biosample Types</FormLabel>
-              <FilterCheckbox control="CellLine" />
-              <FilterCheckbox control="PrimaryCell" />
-              <FilterCheckbox control="Tissue" />
-              <FilterCheckbox control="Organoid" />
-              <FilterCheckbox control="InVitro" />
-            </FormGroup>
-          </FormControl>
-          <FormControl component="fieldset" variant="standard">
-            <FormGroup>
-              <FormLabel component="legend">Collection</FormLabel>
-              <FilterCheckbox control="Core" />
-              <FilterCheckbox control="Partial" />
-              <FilterCheckbox control="Ancillary" />
-            </FormGroup>
-          </FormControl>
-          <FormControl component="fieldset" variant="standard">
-            <FormGroup>
-              <FormLabel component="legend">Lifestage</FormLabel>
-              <FilterCheckbox control="Embryo" />
-              <FilterCheckbox control="Adult" />
-            </FormGroup>
-          </FormControl>
+          {showRNAseq &&
+            <FormControl component="fieldset" variant="standard">
+              <FormLabel component="legend">RNA-Seq</FormLabel>
+              <FormGroup> 
+                <FormControlLabel
+                  label={"Must Have RNA-Seq"}
+                  control={
+                    <Checkbox
+                      checked={mustHaveRnaSeq}
+                      onChange={e => handleSetMustHaveRnaSeq(e.target.checked)}
+                    />
+                  }
+                />
+              </FormGroup>
+            </FormControl>
+          }
+          <FilterCheckboxGroup groupLabel="Biosample Types" controlsState={sampleTypeFilter} setState={handleSetSampleTypeFilter} />
+          <FilterCheckboxGroup groupLabel="Collection" controlsState={collectionFilter} setState={handleSetCollectionFilter} />
+          <FilterCheckboxGroup groupLabel="Life Stage" controlsState={lifeStageFilter} setState={handleSetLifeStageFilter} />
         </Stack>
       </Menu>
     </Stack>

@@ -5,7 +5,9 @@ import { AxisTop } from '@visx/axis';
 import { Group } from '@visx/group';
 import { Text } from '@visx/text';
 import { useParentSize } from '@visx/responsive';
-import { defaultStyles as defaultTooltipStyles, useTooltip, TooltipWithBounds, Portal } from '@visx/tooltip';
+import { defaultStyles as defaultTooltipStyles, useTooltip, TooltipWithBounds as VisxTooltipWithBounds, Portal as VisxPortal } from '@visx/tooltip';
+import { PortalProps } from '@visx/tooltip/lib/Portal';
+import { TooltipWithBoundsProps } from '@visx/tooltip/lib/tooltips/TooltipWithBounds';
 import { CircularProgress } from '@mui/material';
 
 const fontFamily = "Roboto,Helvetica,Arial,sans-serif"
@@ -38,6 +40,13 @@ const VerticalBarPlot = <T,>({
   const { tooltipOpen, tooltipLeft, tooltipTop, tooltipData, hideTooltip, showTooltip } = useTooltip<BarData<T>>({});
   const requestRef = useRef<number | null>(null);
   const tooltipDataRef = useRef<{ top: number; left: number; data: BarData<T> } | null>(null);
+
+  /**
+   * Hacky workaround for complex type compatability issues. Hopefully this will fix itself when ugrading to React 19 - Jonathan 12/11/24
+   * @todo remove this when possible
+   */
+  const Portal = VisxPortal as unknown as React.FC<PortalProps>;
+  const TooltipWithBounds = VisxTooltipWithBounds as unknown as React.FC<TooltipWithBoundsProps>;
 
   const handleMouseMove = useCallback((event: React.MouseEvent, barData: BarData<T>) => {
     tooltipDataRef.current = {

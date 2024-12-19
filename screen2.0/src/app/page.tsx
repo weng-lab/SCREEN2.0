@@ -3,27 +3,21 @@
 import { Box, IconButton, Stack, Tooltip, Typography } from "@mui/material"
 import { MainSearch } from "./_mainsearch/mainsearch"
 import Grid from "@mui/material/Grid2"
-import homeImage from "../../public/homeImage.png"
 import Image from "next/image"
 import humanTransparentIcon from "../../public/Transparent_HumanIcon.png"
 import mouseTransparentIcon from "../../public/Transparent_MouseIcon.png"
 import { Download } from "@mui/icons-material"
 import Config from "../config.json"
 
-
 export default function Home() {
   return (
     <main>
-      <Grid container spacing={6} sx={{ mr: "auto", ml: "auto", mt: "3rem", maxWidth: '95%' }}>
-        <Grid size={12}>
-          <Typography variant="h3">SCREEN</Typography>
-          <Typography variant="h5">Search Candidate cis-Regulatory Elements by ENCODE</Typography>
-        </Grid>
-        <Grid
-          size={{
-            xs: 12,
-            lg: 6
-          }}>
+      <Grid container spacing={3} sx={{ mr: "auto", ml: "auto", mt: 5, maxWidth: '95%' }}>
+        <Grid size={{ xs: 12, lg: 6 }}>
+          <Box position={"relative"} height={{ xs: 150, md: 150 }}>
+            <Image priority src={"SCREEN_logo_light_large.png"} alt={"SCREEN home image"} fill style={{objectFit: "contain", objectPosition: "left center"}} />
+          </Box>
+          <Typography variant="h5" mb={3} mt={2}>Search Candidate cis-Regulatory Elements by ENCODE</Typography>
           <MainSearch />
           <Typography variant="h5" mt={4}>
             What is SCREEN?
@@ -73,12 +67,8 @@ export default function Home() {
             <Typography p={1} border={"1px solid LightGray"} align="right">382</Typography>
           </Grid>
         </Grid>
-        <Grid
-          size={{
-            xs: 12,
-            lg: 6
-          }}>
-          <Image priority src={homeImage} alt={"SCREEN home image"} />
+        <Grid size={{ xs: 12, lg: 6 }} position={"relative"} minHeight={400}>
+          <Image priority src={"SCREEN-Landing.png"} alt={"SCREEN home image"} fill style={{objectFit: "contain", objectPosition: "left"}} />
         </Grid>
       </Grid>
     </main>

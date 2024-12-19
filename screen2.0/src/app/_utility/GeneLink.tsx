@@ -1,10 +1,10 @@
-import { Divider, Stack, styled, Tooltip, TooltipProps, Typography, tooltipClasses, CircularProgress, IconOwnProps, TypographyProps, Grid2 } from '@mui/material'
+import { Divider, Stack, styled, Tooltip, Typography, CircularProgress, IconOwnProps, TypographyProps, LinkProps, Link } from '@mui/material'
 import { gql } from '../../graphql/__generated__';
 import { useLazyQuery } from '@apollo/client';
-import { useMemo, Fragment, useState } from 'react';
+import { useMemo, useState } from 'react';
 import NextLink from 'next/link';
 import { UrlObject } from 'url';
-import { ArrowOutward, Tab } from '@mui/icons-material';
+import { ArrowOutward, OpenInNew } from '@mui/icons-material';
 
 export interface GeneLinkProps {
   geneName: string,
@@ -24,7 +24,7 @@ const GET_GENE_COORDS = gql(`
   }
 `)
 
-const GeneLink = ({ geneName, assembly, typographyProps }: GeneLinkProps): React.JSX.Element => {
+const GeneLink = ({ geneName, assembly, typographyProps }: GeneLinkProps) => {
   const [open, setOpen] = useState<boolean>(false)
 
   const handleClose = () => {
@@ -57,27 +57,17 @@ const GeneLink = ({ geneName, assembly, typographyProps }: GeneLinkProps): React
           gene: geneName
         }
       }) : null
-  }, [coordinates])
-
-  const StyledTypography = styled((props: TypographyProps) =>
-    <Typography variant='body2' display={"inline"} textAlign={"center"} color="white" {...props} />
-  )(() => ({
-    '&:hover': {
-      textDecoration: "underline"
-    }
-  }));
+  }, [assembly, coordinates, geneName])
 
   const iconProps: IconOwnProps = {
-    fontSize: 'small',
-    sx: { display: "inline-flex", verticalAlign: "middle", p: 0 }
+    fontSize: 'inherit',
+    sx: { display: "inline-flex", verticalAlign: "middle", ml: 0.5 }
   }
 
-  const linkStyles = {
-    flexGrow: 1,
-    minWidth: '130px',
-    display: 'flex',
-    justifyContent: 'center'
+  const StyledLink = (props: LinkProps<typeof NextLink>) => {
+    return <Link color='primary.contrastText' variant='body2' underline='hover' component={NextLink} target='_blank' {...props}/>
   }
+
 
   return (
     <Tooltip
@@ -85,31 +75,26 @@ const GeneLink = ({ geneName, assembly, typographyProps }: GeneLinkProps): React
       onOpen={handleOpen}
       onClose={handleClose}
       title={
-        <Fragment>
-          <Stack
-            direction={"row"}
-            gap={1}
-            justifyContent={"space-between"}
-            divider={<Divider orientation='vertical' flexItem sx={{ backgroundColor: 'white' }} />}
-          >
-            <NextLink href={geneExpressionLink} target='_blank' style={linkStyles}>
-              <StyledTypography>
-                View <i>{geneName}</i> Gene Expression
-                <ArrowOutward {...iconProps} />
-              </StyledTypography>
-            </NextLink>
-            {searchLink ?
-              <NextLink href={searchLink} target='_blank' style={linkStyles}>
-                <StyledTypography>
-                  Search <i>{geneName}</i> on SCREEN
-                  <ArrowOutward {...iconProps} />
-                </StyledTypography>
-              </NextLink>
-              :
-              <CircularProgress size={"2rem"} />
-            }
-          </Stack>
-        </Fragment>
+        <Stack
+          direction={"row"}
+          gap={1}
+          justifyContent={"space-between"}
+          divider={<Divider orientation='vertical' flexItem sx={{ backgroundColor: 'white' }} />}
+        >
+          <StyledLink href={geneExpressionLink}>
+            View <i>{geneName}</i> Gene Expression
+            <OpenInNew {...iconProps} />
+          </StyledLink>
+
+          {searchLink ?
+            <StyledLink href={searchLink}>
+              Search <i>{geneName}</i> on SCREEN
+              <OpenInNew {...iconProps} />
+            </StyledLink>
+            :
+            <CircularProgress size={"2rem"} />
+          }
+        </Stack>
       }
     >
       <Typography variant='inherit' color='primary' {...typographyProps}><i>{geneName}</i></Typography>

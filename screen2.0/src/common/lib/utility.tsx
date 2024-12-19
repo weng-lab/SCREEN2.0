@@ -1,70 +1,28 @@
 import React from "react"
-import { Link, Alert, AlertTitle, CircularProgress, Typography, TypographyPropsVariantOverrides, Stack, TypographyOwnProps } from "@mui/material"
+import { Link, Alert, AlertTitle, CircularProgress, Typography, TypographyPropsVariantOverrides, TypographyOwnProps } from "@mui/material"
 import Grid from "@mui/material/Grid2"
 import { Snackbar, Box } from "@mui/material"
 import { OverridableStringUnion } from '@mui/types';
 import { Variant } from "@mui/material/styles/createTypography";
-import { Launch, NumbersOutlined } from "@mui/icons-material";
+import { Launch } from "@mui/icons-material";
 
 /**
- * Uses fetch to make a query call (server side)
- * @param {string} url
- * @param {string} jq json of variables to use when fetching
- * @returns data
+ * 
+ * @param props 
+ * @returns 
  */
-export async function fetchServer<T>(url: string, jq: BodyInit) {
-  return await fetch(url, {
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    method: "POST",
-    body: jq,
-  })
-    .then((response) => {
-      if (!response.ok) {
-        // throw new Error(response.statusText)
-        return <ErrorMessage error={Error(response.statusText)} />
-      }
-      return response.json()
-    })
-    .then((data) => {
-      return data
-    })
-    .catch((error: Error) => {
-      // logging
-      // throw error
-      return <ErrorMessage error={error} />
-    })
-}
-
-/**
- * Creates a hyperlink to the url + id with the id as the button
- * @param url
- * @param id string to be pasted at the end of the url
- * @returns link anchor to url + id
- */
-export const createLink = (url: string, id: string, label?: string, showExternalIcon?: boolean, variant?: OverridableStringUnion<Variant | 'inherit', TypographyPropsVariantOverrides>, textColor?: string) => {
-  const link = url + id
-  return (
-    <Stack alignItems={"center"} direction="row" gap={0.5}>
-      <Link variant={variant} href={link} rel="noopener noreferrer" target="_blank" color={textColor}>
-        {label ? <button>{label}</button> : <button>{id}</button>}
-      </Link>
-      {showExternalIcon && <Launch fontSize="inherit" />}
-    </Stack>
-  )
-}
-
-export const CreateLink: React.FC<{ linkPrefix: string, linkArg?: string, label: string, showExternalIcon?: boolean, variant?: OverridableStringUnion<Variant | 'inherit', TypographyPropsVariantOverrides>, textColor?: string, underline?: "none" | "always" | "hover" }> = (props) => {
+export const CreateLink: React.FC<{ 
+  linkPrefix: string,
+   linkArg?: string, 
+   label: string, 
+   showExternalIcon?: boolean,
+    variant?: OverridableStringUnion<Variant | 'inherit', TypographyPropsVariantOverrides>, textColor?: string, underline?: "none" | "always" | "hover" }> = (props) => {
   const link = props.linkPrefix + (props.linkArg ?? "")
   return (
-    <>
-      <Link variant={props.variant} href={link} rel="noopener noreferrer" target="_blank" color={props.textColor} underline={props.underline}>
-        {props.label}
-        {props.showExternalIcon && <Launch sx={{ml: 0.5}} color="inherit" fontSize="inherit" />}
-      </Link>
-    </>
+    <Link variant={props.variant} href={link} rel="noopener noreferrer" target="_blank" color={props.textColor} underline={props.underline}>
+      {props.label}
+      {props.showExternalIcon && <Launch sx={{ display: "inline-flex", verticalAlign: "middle", ml: 0.5 }} color="inherit" fontSize="inherit" />}
+    </Link>
   )
 }
 

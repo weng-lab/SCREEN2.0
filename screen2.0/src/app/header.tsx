@@ -1,22 +1,29 @@
-/* eslint-disable @next/next/no-img-element */
 "use client"
 
 import React, { useState } from "react"
-import { AppBar, Box, Toolbar, IconButton, Typography, Menu, Container, Button, MenuItem, Paper } from "@mui/material"
+import { AppBar, Box, Toolbar, IconButton, Menu, Container, MenuItem, Link as MuiLink, Stack } from "@mui/material"
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown"
 import MenuIcon from "@mui/icons-material/Menu"
 import { MainSearch } from "./_mainsearch/mainsearch"
 import Image from "next/image"
-import SCREENLOGO from "../../public/screenLogo.png"
+import Link from "next/link"
+
+type PageInfo = {
+  pageName: string,
+  link: string,
+  dropdownID?: number,
+  subPages?: { pageName: string, link: string }[]
+}
+
 /*  
   Links for the AppBar. If adding another page with subpages, you need to add another 
   useState() hook for positioning, and add extra if case in open/close handlers 
 */
-const pageLinks = [
+const pageLinks: PageInfo[] = [
   {
     pageName: "About",
     link: "/about",
-    dropdownID: "0",
+    dropdownID: 0,
     subPages: [
       { pageName: "Overview", link: "/about" },
       { pageName: "API Documentation", link: "/about#api-documentation" },
@@ -30,7 +37,7 @@ const pageLinks = [
   {
     pageName: "Applets",
     link: "/applets",
-    dropdownID: "1",
+    dropdownID: 1,
     subPages: [
       { pageName: "Gene Expression", link: "/applets/gene-expression " },
       { pageName: "GWAS", link: "/applets/gwas" },
@@ -40,54 +47,56 @@ const pageLinks = [
 
 function ResponsiveAppBar() {
   // Hamburger Menu, deals with setting its position
-  const [anchorElNav_Hamburger, setAnchorElNav_Hamburger] = useState<null | HTMLElement>(null)
+  const [anchorHamburger, setAnchorHamburger] = useState<null | HTMLElement>(null)
 
   // Hover dropdowns, deals with setting its position
-  const [anchorElNav_Dropdown0, setAnchorElNav_Dropdown0] = useState<null | HTMLElement>(null)
-  const [anchorElNav_Dropdown1, setAnchorElNav_Dropdown1] = useState<null | HTMLElement>(null)
+  const [anchorDropdown0, setAnchorDropdown0] = useState<null | HTMLElement>(null)
+  const [anchorDropdown1, setAnchorDropdown1] = useState<null | HTMLElement>(null)
 
   // Open Hamburger
-  const handleOpenNavMenu_Hamburger = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorElNav_Hamburger(event.currentTarget)
+  const handleOpenHamburger = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorHamburger(event.currentTarget)
   }
 
   // Open Dropdown
-  const handleOpenNavMenu_Dropdown = (event: React.MouseEvent<HTMLElement>, dropdownID: string) => {
-    if (dropdownID == "0") {
-      setAnchorElNav_Dropdown0(event.currentTarget)
-    } else if (dropdownID == "1") {
-      setAnchorElNav_Dropdown1(event.currentTarget)
+  const handleOpenDropdown = (event: React.MouseEvent<HTMLElement>, dropdownID: number) => {
+    if (dropdownID === 0) {
+      setAnchorDropdown0(event.currentTarget)
+    } else if (dropdownID === 1) {
+      setAnchorDropdown1(event.currentTarget)
     }
   }
 
   // Close Hamburger
-  const handleCloseNavMenu_Hamburger = () => {
-    setAnchorElNav_Hamburger(null)
+  const handleCloseHamburger = () => {
+    setAnchorHamburger(null)
   }
 
   // Close Dropdown
-  const handleCloseNavMenu_Dropdown = (dropdownID: string) => {
-    if (dropdownID == "0") {
-      setAnchorElNav_Dropdown0(null)
-    } else if (dropdownID == "1") {
-      setAnchorElNav_Dropdown1(null)
+  const handleCloseDropdown = (dropdownID: number) => {
+    if (dropdownID === 0) {
+      setAnchorDropdown0(null)
+    } else if (dropdownID === 1) {
+      setAnchorDropdown1(null)
     }
   }
 
   const menuItem = (page, isSubPage = false) =>
-    <MenuItem key={page.pageName} onClick={handleCloseNavMenu_Hamburger} >
-      <Typography
-        pl={isSubPage ? 2 : 0}
-        color={isSubPage && "rgba(0, 0, 0, 0.6)"}
-        component='a'
-        href={page.link}
-        textAlign="center"
-        textTransform="none">
-        {page.pageName}
-      </Typography>
-    </MenuItem>
-
-
+    <MuiLink
+      key={page.pageName}
+      component={Link}
+      href={page.link}
+      underline="hover"
+      color={isSubPage ? "rgba(0, 0, 0, 0.7)" : "black"}
+      onClick={handleCloseHamburger}
+    >
+      <MenuItem>
+        <Box pl={isSubPage ? 2 : 0}>
+          {page.pageName}
+        </Box>
+      </MenuItem>
+    </MuiLink>
+  
   function handleMenuPagesMapFunc(page) {
     if (page.subPages) {
       return ([menuItem(page), page.subPages.map(x => menuItem(x, true))])
@@ -97,77 +106,105 @@ function ResponsiveAppBar() {
     }
   }
 
+  const handleMouseMoveLink = (event: React.MouseEvent<HTMLElement>, page: PageInfo) => {
+    if (page?.subPages && 'dropdownID' in page) {
+      handleOpenDropdown(event, page.dropdownID)
+    }
+  }
+
+  const handleMouseLeaveLink = (event: React.MouseEvent<HTMLElement>, page: PageInfo) => {
+    if (page?.subPages && 'dropdownID' in page) {
+      switch(page.dropdownID){
+        case 0: {
+          if (anchorDropdown0) {
+            handleCloseDropdown(0)
+          }
+          break;
+        }
+        case 1: {
+          if (anchorDropdown1) {
+            handleCloseDropdown(1)
+          }
+          break;
+        }
+      }
+    }
+  }
+
   return (
     <>
       <AppBar position="fixed">
         <Container maxWidth={false}>
-          <Toolbar disableGutters sx={{ justifyContent: "space-between" }}>
+          <Toolbar disableGutters sx={{ justifyContent: "space-between", alignItems: "center" }}>
             {/* Logo, and desktop navigation */}
-            <Box display='flex' flexGrow={1}>
-              <a href={"/"}>
-                <Image src={SCREENLOGO} alt="SCREEN Icon" height={40} width={90} style={{ marginRight: '20px' }} />
-              </a>
+            <Stack direction="row" gap={3} flexGrow={1} >
+              <Box component={Link} href={'/'} height={45} width={87} position={"relative"}>
+                <Image
+                  priority
+                  src={"SCREEN_logo_dark_small.png"}
+                  alt="SCREEN Icon"
+                  fill
+                  style={{ objectFit: "contain", objectPosition: 'left center' }}
+                />
+              </Box>
               {/* Main navigation items for desktop, hide on small screen size */}
-              <Box sx={{ display: { xs: "none", lg: "flex" }, alignItems: 'center' }}>
+              <Box sx={{ display: { xs: "none", lg: "flex" }, alignItems: 'stretch', gap: 2 }} id="NavItems">
                 {pageLinks.map((page) => (
-                  <Box key={page.pageName}>
-                    <Button
-                      sx={{
-                        color: "white",
-                        display: "flex",
-                        textTransform: "none",
-                        "& .MuiButton-endIcon": { ml: 0 },
-                      }}
-                      endIcon={page.subPages && <ArrowDropDownIcon />}
-                      onMouseEnter={page.subPages ? (event) => handleOpenNavMenu_Dropdown(event, page.dropdownID) : undefined}
+                  <Box
+                    key={page.pageName}
+                    display={"flex"}
+                    alignItems={"center"}
+                    onMouseMove={(event) => handleMouseMoveLink(event, page)}
+                    onMouseLeave={(event) => handleMouseLeaveLink(event, page)}
+                    id="LinkBox"
+                  >
+                    <MuiLink
+                      id="Link"
+                      display={"flex"}
+                      fontFamily={(theme) => theme.typography.fontFamily}
+                      underline="hover"
+                      color="primary.contrastText"
+                      component={Link}
+                      href={page.link}
                     >
-                      {/* Wrap in next/link to enable dyanic link changing from basePath in next.config.js */}
-                      <a href={page.link}>
-                        <Typography variant="body1">
-                          {page.pageName}
-                        </Typography>
-                      </a>
-                    </Button>
+                      {page.pageName}
+                      {page.subPages && <ArrowDropDownIcon />}
+                    </MuiLink>
                     {/* Create popup menu if page has subpages */}
                     {page.subPages && (
                       <Menu
                         id={`${page.pageName}-dropdown-appbar`}
                         // This logic would need to change when adding another dropdown
-                        anchorEl={page.dropdownID == "0" ? anchorElNav_Dropdown0 : anchorElNav_Dropdown1}
+                        anchorEl={page.dropdownID === 0 ? anchorDropdown0 : anchorDropdown1}
                         anchorOrigin={{
-                          vertical: "top",
+                          vertical: "bottom",
                           horizontal: "left",
                         }}
-                        keepMounted
-                        transformOrigin={{
-                          vertical: "top",
-                          horizontal: "left",
-                        }}
-                        open={page.dropdownID == "0" ? Boolean(anchorElNav_Dropdown0) : Boolean(anchorElNav_Dropdown1)}
-                        onClose={() => handleCloseNavMenu_Dropdown(page.dropdownID)}
-                        //These are to prevent focus ring from showing up in some browsers, but doesn't work completely
-                        MenuListProps={{ autoFocusItem: false, autoFocus: false }}
-                        slotProps={{ paper: { onMouseLeave: () => handleCloseNavMenu_Dropdown(page.dropdownID), elevation: 0, sx: { backgroundColor: "transparent" } } }}
+                        open={page.dropdownID === 0 ? Boolean(anchorDropdown0) : Boolean(anchorDropdown1)}
+                        onClose={() => handleCloseDropdown(page.dropdownID)}
+                        slotProps={{ paper: { onMouseLeave: () => handleCloseDropdown(page.dropdownID), sx: {pointerEvents: 'auto'}}}}
+                        sx={{pointerEvents: 'none', zIndex: 2000}} //z index of AppBar is 1100 for whatever reason
                       >
-                        {/* This box is here to provide better onMouseLeave behavior, still not ideal */}
-                        <Box width="auto" height="25px"></Box>
-                        <Paper elevation={4} sx={{ margin: 0.75 }}>
-                          {page.subPages &&
-                            page.subPages.map((subPage) => (
-                              <MenuItem key={subPage.pageName} onClick={() => handleCloseNavMenu_Dropdown(page.dropdownID)}>
-                                {/* Wrap in next/link to enable dyanic link changing from basePath in next.config.js */}
-                                <a href={subPage.link}>
-                                  <Typography textAlign="center">{subPage.pageName}</Typography>
-                                </a>
+                        {page.subPages &&
+                          page.subPages.map((subPage) => (
+                            <MuiLink
+                              key={subPage.pageName}
+                              underline="hover"
+                              color="black"
+                              component={Link}
+                              href={subPage.link}
+                            >
+                              <MenuItem>
+                                {subPage.pageName}
                               </MenuItem>
-                            ))}
-                        </Paper>
+                            </MuiLink>
+                          ))}
                       </Menu>
                     )}
                   </Box>
                 ))}
               </Box>
-            </Box>
+            </Stack>
             <Box sx={{ display: { xs: "none", md: "flex" } }}>
               <MainSearch header />
             </Box>
@@ -177,14 +214,14 @@ function ResponsiveAppBar() {
                 aria-label="account of current user"
                 aria-controls="menu-appbar"
                 aria-haspopup="true"
-                onClick={handleOpenNavMenu_Hamburger}
+                onClick={handleOpenHamburger}
                 color="inherit"
               >
                 <MenuIcon />
               </IconButton>
               <Menu
                 id="menu-appbar"
-                anchorEl={anchorElNav_Hamburger}
+                anchorEl={anchorHamburger}
                 anchorOrigin={{
                   vertical: "bottom",
                   horizontal: "left",
@@ -194,8 +231,8 @@ function ResponsiveAppBar() {
                   vertical: "top",
                   horizontal: "left",
                 }}
-                open={Boolean(anchorElNav_Hamburger)}
-                onClose={handleCloseNavMenu_Hamburger}
+                open={Boolean(anchorHamburger)}
+                onClose={handleCloseHamburger}
                 sx={{
                   display: { xs: "block", lg: "none" },
                 }}
