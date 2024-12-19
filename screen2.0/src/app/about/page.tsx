@@ -53,10 +53,9 @@ export default function About() {
   }
 
   const sendEmail = () => {
-    console.log(form.current);
-
     return new Promise((resolve, reject) => {
-      emailjs.sendForm('service_m0zf8wa', 'template_15g5s3y', form.current, 'VU9U1vX9cAro8XtUK')
+      //These IDs come from the emailjs website (using screenumass gmail account)
+      emailjs.sendForm('service_k7xidgk', 'template_15g5s3y', form.current, 'VU9U1vX9cAro8XtUK')
         .then((result) => {
           // console.log(result.text);
           resolve(result);

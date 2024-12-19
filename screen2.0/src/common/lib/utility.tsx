@@ -19,9 +19,9 @@ export const CreateLink: React.FC<{
     variant?: OverridableStringUnion<Variant | 'inherit', TypographyPropsVariantOverrides>, textColor?: string, underline?: "none" | "always" | "hover" }> = (props) => {
   const link = props.linkPrefix + (props.linkArg ?? "")
   return (
-    <Link display={"flex"} alignItems={"center"} variant={props.variant} href={link} rel="noopener noreferrer" target="_blank" color={props.textColor} underline={props.underline}>
+    <Link variant={props.variant} href={link} rel="noopener noreferrer" target="_blank" color={props.textColor} underline={props.underline}>
       {props.label}
-      {props.showExternalIcon && <Launch sx={{ ml: 0.5 }} color="inherit" fontSize="inherit" />}
+      {props.showExternalIcon && <Launch sx={{ display: "inline-flex", verticalAlign: "middle", ml: 0.5 }} color="inherit" fontSize="inherit" />}
     </Link>
   )
 }
