@@ -24,7 +24,8 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
             distance: checked,
             eQTLs: checked,
             Intact_HiC: checked,
-            ChIAPET: checked,
+            CTCF_ChIAPET: checked,
+            RNAPII_ChIAPET: checked,
             CRISPRi_FlowFISH: checked
         });
     }
@@ -92,13 +93,19 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMethodChange(e, "Intact_HiC")}
                                     />
                                     <FormControlLabel
-                                        label="ChIA-PET Interactions"
+                                        label="CTCF ChIA-PET Interactions"
                                         control={<Checkbox />}
-                                        checked={geneFilterVariables.methodOfLinkage.ChIAPET}
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMethodChange(e, "ChIAPET")}
+                                        checked={geneFilterVariables.methodOfLinkage.CTCF_ChIAPET}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMethodChange(e, "CTCF_ChIAPET")}
                                     />
                                 </Grid>
                                 <Grid size={6}>
+                                <FormControlLabel
+                                        label="RNAPII ChIA-PET Interactions"
+                                        control={<Checkbox />}
+                                        checked={geneFilterVariables.methodOfLinkage.RNAPII_ChIAPET}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleMethodChange(e, "RNAPII_ChIAPET")}
+                                    />
                                     <FormControlLabel
                                         label="CRISPRi-FlowFISH"
                                         control={<Checkbox />}

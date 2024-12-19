@@ -83,9 +83,7 @@ export type Alignment =
     "100-vert-phyloP" |
     "100-vert-phastCons"
 
-//Currently disregarding that ChIAPET has both RNAPII and CTCF Assays which may need to be differentiated between
-export type GeneLinkingMethod = "distance" | "eQTLs" | "Intact_HiC" | "ChIAPET" | "CRISPRi_FlowFISH"
-export type ChIAPET_Assay = "CTCF_ChIAPET" | "RNAPII_ChIAPET"
+export type GeneLinkingMethod = "distance" | "eQTLs" | "Intact_HiC" | "CRISPRi_FlowFISH" | "CTCF_ChIAPET" | "RNAPII_ChIAPET"
 
 export type SequenceFilterState = {
     useConservation: boolean;
@@ -113,8 +111,6 @@ export type ElementFilterState = {
 export type GeneFilterState = {
     useGenes: boolean;
     methodOfLinkage: { [key in GeneLinkingMethod]: boolean }
-    //used to opt in/out of specific ChIA-PET Assays
-    ChIAPET_Assays: { [key in ChIAPET_Assay]: boolean }
     mustBeProteinCoding: boolean;
     mustHaveOrtholog: boolean;
     rankBy: "max" | "min";

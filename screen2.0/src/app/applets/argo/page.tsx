@@ -88,9 +88,6 @@ export default function Argo() {
             eQTLs: true,
             CRISPRi_FlowFISH: true,
             Intact_HiC: true,
-            ChIAPET: true
-        },
-        ChIAPET_Assays: {
             CTCF_ChIAPET: true,
             RNAPII_ChIAPET: true
         },
@@ -484,11 +481,13 @@ export default function Argo() {
         if (!intersectingCcres || !closestAndLinkedGenes) {
             return [];
         }
+        console.log(closestAndLinkedGenes.linkedGenesQuery)
         //switch between protein coding and all
         let geneData = closestAndLinkedGenes.closestGenetocCRE.filter((gene) => gene.gene.type === "ALL")
         if (geneFilterVariables.mustBeProteinCoding) {
             geneData = closestAndLinkedGenes.closestGenetocCRE.filter((gene) => gene.gene.type === "PC")
         } 
+
         //Switch between regular and ortho ccres
         let accessions = intersectingCcres;
         if (geneFilterVariables.mustHaveOrtholog && orthoData) {
@@ -507,6 +506,7 @@ export default function Argo() {
                 }))
                 .filter((ccre) => ccre.ortholog !== undefined);
         }
+
         //Query to get the gene specificty for each gene id from the previous query
         if (closestAndLinkedGenes.closestGenetocCRE.length > 0) {
             getGeneSpecificity({
@@ -561,7 +561,6 @@ export default function Argo() {
         if (elementRanks.length > 0) {
             setLoadingElementRanks(false)
         }
-        console.log(elementRanks)
         if (geneRanks.length > 0 && !loading_gene_specificity) {
             setLoadingGeneRanks(false)
         }
