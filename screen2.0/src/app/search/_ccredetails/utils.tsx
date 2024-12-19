@@ -27,7 +27,7 @@ export const GROUP_COLOR_MAP: Map<string, string> = new Map([
   ["dELS","Distal Enhancer:#FFCD00"],
   ["PLS","Promoter:#ff0000"],    
   ["noclass","noclass:#8c8c8c"],
-  ["InActive","In Active:#8c8c8c"]  
+  ["InActive","Inactive:#8c8c8c"]  
 ])
 
 type Coordinates = {

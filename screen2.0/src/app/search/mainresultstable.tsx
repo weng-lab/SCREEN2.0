@@ -23,7 +23,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
   const [getLinkedGenes, { loading: loadingLinkedGenes, data: dataLinkedGenes, error: errorLinkedGenes }] = props.useLinkedGenes
 
   const columns = useMemo(() => {
-    let cols: DataTableColumn<MainResultTableRow>[] = [
+    const cols: DataTableColumn<MainResultTableRow>[] = [
       {
         header: "Accession",
         value: (row: { accession: string }) => row.accession,
@@ -99,7 +99,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
           {' -'} {row.nearestGenes[0].distance.toLocaleString()}&nbsp;bp
         </Box>)
     })
-    props.assembly === "GRCh38" && cols.push({
+    if (props.assembly === "GRCh38") cols.push({
       header: "Linked Genes",
       HeaderRender: () => <strong><p>Linked&nbsp;Genes</p></strong>,
       value: (row) => [...new Set(row.linkedGenes?.map(x => x.gene))].length,
@@ -148,13 +148,13 @@ export function MainResultsTable(props: MainResultsTableProps) {
               {props.genes.map((gene, i) =>
                 props.type === "eQTLs" ?
                   //eQTL Linked Gene
-                  <Box key={i}>
+                  <Box key={i} position={"relative"}>
+                    <GeneLink assembly={props.assembly} geneName={gene.geneName} typographyProps={{display: 'inline'}} /> 
                     <Typography display="inline" variant="inherit" mr={0.5}>
-                      <GeneLink assembly={props.assembly} geneName={gene.geneName} typographyProps={{display: 'inline'}} /> 
                       {' '}({getNumtissues(gene.samples)} tissue{getNumtissues(gene.samples) > 1 && 's'}, {gene.samples.length} variant{gene.samples.length > 1 && 's'})
                     </Typography>
                     <Tooltip
-                      sx={{ display: "inline" }}
+                      placement="right"
                       title={
                         <div>
                           <Typography variant="body2">
@@ -177,18 +177,18 @@ export function MainResultsTable(props: MainResultsTableProps) {
                         </div>
                       }
                     >
-                      <InfoOutlined fontSize="small" />
+                      <InfoOutlined fontSize="small" sx={{position: "absolute", bottom: 0}} />
                     </Tooltip>
                   </Box>
                   :
                   //All other
-                  <Box key={i}>
+                  <Box key={i} position={"relative"}>
+                    <GeneLink assembly={props.assembly} geneName={gene.geneName} typographyProps={{ display: 'inline' }} />
                     <Typography display="inline" variant="inherit" mr={0.5}>
-                      <GeneLink assembly={props.assembly} geneName={gene.geneName} typographyProps={{display: 'inline'}} />
                       {' '}({gene.samples.length} biosample{gene.samples.length > 1 && 's'})
                     </Typography>
                     <Tooltip
-                      sx={{ display: 'inline' }}
+                      placement="right"
                       title={
                         <div>
                           <Typography variant="body2"><i>{gene.geneName}</i></Typography>
@@ -212,7 +212,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
                         </div>
                       }
                     >
-                      <InfoOutlined fontSize="small" />
+                      <InfoOutlined fontSize="small" sx={{position: "absolute", bottom: 0}} />
                     </Tooltip>
                   </Box>
               )}
@@ -222,7 +222,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
 
         return (
           //If linked genes data hasn't been fetched, fetch
-          (<Box onClick={(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => { event.stopPropagation(); !row.linkedGenes && getLinkedGenes() }} key={row.accession}>
+          (<Box onClick={(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => { event.stopPropagation(); if (!row.linkedGenes) getLinkedGenes() }} key={row.accession}>
             <Accordion>
               <AccordionSummary
                 expandIcon={<ExpandMoreIcon />}
@@ -328,7 +328,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
         );
       }
     })
-    props.assembly === "GRCh38" && cols.push({
+    if (props.assembly === "GRCh38") cols.push({
       header: "Conservation",
       value: (row: { conservationData: ConservationData }) => `Primates:\u00A0${row.conservationData.primates?.toFixed(2) ?? "unavailable"} Mammals:\u00A0${row.conservationData.mammals?.toFixed(2) ?? "unavailable"} Vertebrates:\u00A0${row.conservationData.vertebrates?.toFixed(2) ?? "unavailable"}`,
       HeaderRender: () => <strong><p>Conservation</p></strong>

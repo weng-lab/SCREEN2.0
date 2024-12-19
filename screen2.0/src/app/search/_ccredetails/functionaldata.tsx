@@ -218,7 +218,7 @@ export const FunctionData = ({ coordinates , assembly, accession }) => {
             },
             {
               header: "FDR",
-              value: (row) => row.fdr.toFixed(2),
+              value: (row) => !row.fdr ? "N.A." : row.fdr.toFixed(2),
             }
           ]}
           rows={capra_data.capraFccSoloQuery || []}
@@ -274,7 +274,7 @@ export const FunctionData = ({ coordinates , assembly, accession }) => {
             },
             {
               header: "FDR",
-              value: (row) => row.fdr.toFixed(2),
+              value: (row) => !row.fdr ? "N.A." : row.fdr.toFixed(2),
             }
           ]}
           rows={capra_double_data && 
