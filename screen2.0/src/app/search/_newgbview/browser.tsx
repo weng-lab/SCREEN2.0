@@ -150,12 +150,10 @@ export const Browser = ({ cCREClick, state, dispatch, coordinates, gene, biosamp
                 </h2>
             </Grid>
             <Grid size={{ xs: 12, lg: 12 }}>
-                <Controls inputButtonComponent={<IconButton
-                    type="button"
-                    sx={{ color: "black", maxHeight: "100%" }}
-                >
+                <Controls inputButtonComponent={<IconButton type="button" sx={{ color: "black", maxHeight: "100%" }}>
                     <Search />
-                </IconButton>} inputComponent={SearchInput(state.domain.chromosome + ":" + state.domain.start + "-" + state.domain.end)} buttonComponent={<Button variant="outlined" />} domain={state.domain} dispatch={dispatch} withInput style={{ paddingBottom: "4px" }} />
+                </IconButton>
+                } inputComponent={SearchInput(state.domain.chromosome + ":" + state.domain.start + "-" + state.domain.end)} buttonComponent={<Button variant="outlined" sx={{ minWidth: "0px" }} />} domain={state.domain} dispatch={dispatch} withInput style={{ paddingBottom: "4px" }} />
                 <GenomeBrowser width={"100%"} browserState={state} browserDispatch={dispatch} />
             </Grid>
         </Grid >

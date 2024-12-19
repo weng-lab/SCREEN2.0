@@ -77,7 +77,7 @@ export const TitledTrack: React.FC<{
             transform="translate(0,40)"
             data={data as BigBedData[]}
             svgRef={svgRef}
-            tooltipContent={(rect) => <CCRETooltip {...rect} assembly={assembly.toLowerCase()} biosample={biosample} />}
+            // tooltipContent={(rect) => <CCRETooltip {...rect} assembly={assembly.toLowerCase()} biosample={biosample} />}
             onMouseOver={(x) => oncCREMousedOver && x.name && oncCREMousedOver(cCRECoordinateMap.get(x.name))}
             onMouseOut={oncCREMousedOut}
             onClick={(x) => oncCREClicked && x.name && oncCREClicked({ name: x.name, coordinates: cCRECoordinateMap.get(x.name) })}

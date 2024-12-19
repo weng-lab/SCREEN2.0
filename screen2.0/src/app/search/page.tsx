@@ -28,6 +28,7 @@ import { LINKED_GENES } from "./_ccredetails/queries"
 import { Browser } from "./_newgbview/browser"
 import { BrowserActionType, useBrowserState } from "@weng-lab/genomebrowser"
 import { getDefaultTracks } from "./_newgbview/genTracks"
+import { GROUP_COLOR_MAP } from "./_ccredetails/utils"
 
 /**
  * @todo:
@@ -361,6 +362,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           true
         )
         const newOpencCREs = [...opencCRE_data.map((cCRE) => {
+          let color = GROUP_COLOR_MAP.get(cCRE.class).split(":")[1] || "#8c8c8c"
+          browserDispatch({ type: BrowserActionType.ADD_HIGHLIGHT, highlight: { domain: { chromosome: cCRE.chromosome, start: cCRE.start, end: cCRE.end }, color, id: cCRE.accession } })
           return (
             {
               ID: cCRE.accession,
