@@ -145,49 +145,46 @@ export const Browser = ({ cCREClick, state, dispatch, coordinates, gene, biosamp
                 <svg id="cytobands" width={"700px"} height={20}>
                     <GQLCytobands assembly={coordinates.assembly === "GRCh38" ? "hg38" : "mm10"} chromosome={coordinates.chromosome} currentDomain={state.domain} />
                 </svg>
+                <h2>
+                    {coordinates.assembly} at {state.domain.chromosome}:{state.domain.start}-{state.domain.end}
+                </h2>
             </Grid>
             <Grid size={{ xs: 12, lg: 12 }}>
-                <Controls inputComponent={SearchInput(state.domain.chromosome + ":" + state.domain.start + "-" + state.domain.end)} buttonComponent={<Button variant="outlined" />} domain={state.domain} dispatch={dispatch} withInput style={{ paddingBottom: "4px" }} />
+                <Controls inputButtonComponent={<IconButton
+                    type="button"
+                    sx={{ color: "black", maxHeight: "100%" }}
+                >
+                    <Search />
+                </IconButton>} inputComponent={SearchInput(state.domain.chromosome + ":" + state.domain.start + "-" + state.domain.end)} buttonComponent={<Button variant="outlined" />} domain={state.domain} dispatch={dispatch} withInput style={{ paddingBottom: "4px" }} />
                 <GenomeBrowser width={"100%"} browserState={state} browserDispatch={dispatch} />
             </Grid>
         </Grid >
     )
 }
 
-function SearchInput(value: string) {
+function SearchInput(placeholder: string) {
     return (
-        <>
-            <TextField
-                variant="outlined"
-                id="region-input"
-                label="Enter a genomic region"
-                placeholder={`chr12:${(53380176).toLocaleString()}-${(53416446).toLocaleString()}`}
-                value={value}
-                slotProps={{
-                    inputLabel: {
-                        shrink: true,
-                        htmlFor: "region-input",
-                        style: { color: "white" },
-                    },
-                    input: { style: { color: "white" } }
-                }}
-                sx={{
-                    mr: "1rem",
-                    minWidth: "16rem",
-                    fieldset: { borderColor: "black" },
-                    height: "30px"
-                }}
-                size="small"
-            />
-            <IconButton
-                aria-label="Search"
-                type="submit"
-                sx={{ color: "white", maxHeight: "100%" }}
-            >
-                <Search />
-            </IconButton>
-        </>
-
+        <TextField
+            variant="outlined"
+            id="region-input"
+            label="Enter a genomic region"
+            placeholder={placeholder}
+            slotProps={{
+                inputLabel: {
+                    shrink: true,
+                    htmlFor: "region-input",
+                    style: { color: "black" },
+                },
+                input: { style: { color: "#000F9F" } }
+            }}
+            sx={{
+                mr: "1rem",
+                minWidth: "16rem",
+                fieldset: { borderColor: "#000F9F" },
+                height: "30px"
+            }}
+            size="small"
+        />
     )
 }
 
