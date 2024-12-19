@@ -16,7 +16,7 @@ const GeneTable: React.FC<GeneTableProps> = ({
 
         if (geneFilterVariables.useGenes) {
             cols.push({ header: "Max Expression", value: (row) => row.maxExpression })
-            cols.push({ header: "Expression Specificity", value: (row) => row.expressionSpecificity })
+            cols.push({ header: "Expression Specificity", value: (row) => row.expressionSpecificity ? row.expressionSpecificity : "N/A" })
         }
 
         return cols

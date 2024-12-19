@@ -1,11 +1,11 @@
 import { OperationVariables, QueryResult } from "@apollo/client";
-import { AssayRankEntry, CCREAssays, CCREClasses, ElementTableRow, GenomicRegion, InputRegions, MainTableRow, MotifQueryDataOccurrence, RankedRegions, SequenceTableRow } from "./types";
+import { AssayRankEntry, CCREAssays, CCREClasses, ElementTableRow, GeneTableRow, GenomicRegion, InputRegions, MainTableRow, MotifQueryDataOccurrence, RankedRegions, SequenceTableRow } from "./types";
 import { OccurrencesQuery } from "../../../graphql/__generated__/graphql";
 
 const assayNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
 
 // switch between min, max, avg for conservation scores, calculate each respectivley
-export const  calculateConservationScores = (scores, rankBy: string, inputRegions: InputRegions): SequenceTableRow[] => {
+export const calculateConservationScores = (scores, rankBy: string, inputRegions: InputRegions): SequenceTableRow[] => {
     return scores.map((request) => {
         const data = request.data;
 
@@ -124,7 +124,7 @@ export const generateSequenceRanks = (sequenceRows: SequenceTableRow[]): RankedR
         let rank = 1;
         return sortedRows.map((row, index) => {
             if (index > 0 && sortedRows[index].numOverlappingMotifs !== sortedRows[index - 1].numOverlappingMotifs) {
-                rank = index + 1; 
+                rank = index + 1;
             }
             return {
                 ...row,
@@ -157,7 +157,7 @@ export const generateSequenceRanks = (sequenceRows: SequenceTableRow[]): RankedR
                 chr: row.inputRegion.chr,
                 start: row.inputRegion.start,
                 end: row.inputRegion.end,
-                rank, 
+                rank,
             };
         });
     })();
@@ -251,70 +251,134 @@ export const handleSameInputRegion = (rankBy: string, elementRows: ElementTableR
 export const generateElementRanks = (rows: ElementTableRow[], classes: CCREClasses, assays: CCREAssays): RankedRegions => {
     const assayRanks: { [key: number]: AssayRankEntry } = {};
 
-        //assign a rank to each assay
-        assayNames.forEach(assay => {
-            const sortedRows = rows
-                .sort((a, b) => {
-                    if (classes[a.class] && classes[b.class]) {
-                        return b[assay] - a[assay];
-                    }
-                    return 0;
-                });
-
-            sortedRows.forEach((row, index) => {
-                const isClassEnabled = classes[row.class];
-                const score = row[assay];
-
-                if (!assayRanks[row.inputRegion.start]) {
-                    assayRanks[row.inputRegion.start] = {
-                        chr: row.inputRegion.chr,
-                        start: row.inputRegion.start,
-                        end: row.inputRegion.end,
-                        ranks: {}
-                    };
+    //assign a rank to each assay
+    assayNames.forEach(assay => {
+        const sortedRows = rows
+            .sort((a, b) => {
+                if (classes[a.class] && classes[b.class]) {
+                    return b[assay] - a[assay];
                 }
-
-                // Assign rank based on score order if the class is enabled, otherwise assign rank 0
-                assayRanks[row.inputRegion.start].ranks[assay] = isClassEnabled && score !== null ? index + 1 : 0;
+                return 0;
             });
+
+        sortedRows.forEach((row, index) => {
+            const isClassEnabled = classes[row.class];
+            const score = row[assay];
+
+            if (!assayRanks[row.inputRegion.start]) {
+                assayRanks[row.inputRegion.start] = {
+                    chr: row.inputRegion.chr,
+                    start: row.inputRegion.start,
+                    end: row.inputRegion.end,
+                    ranks: {}
+                };
+            }
+
+            // Assign rank based on score order if the class is enabled, otherwise assign rank 0
+            assayRanks[row.inputRegion.start].ranks[assay] = isClassEnabled && score !== null ? index + 1 : 0;
         });
+    });
 
-        // add up all assay ranks
-        const totalAssayRanks = Object.values(assayRanks).map((row) => {
-            const totalRank = assayNames.reduce((sum, assay) => {
-                return assays[assay] ? sum + (row.ranks[assay] || 0) : sum;
-            }, 0);
+    // add up all assay ranks
+    const totalAssayRanks = Object.values(assayRanks).map((row) => {
+        const totalRank = assayNames.reduce((sum, assay) => {
+            return assays[assay] ? sum + (row.ranks[assay] || 0) : sum;
+        }, 0);
 
+        return {
+            chr: row.chr,
+            start: row.start,
+            end: row.end,
+            totalRank: totalRank,
+        };
+    });
+
+    // Sort by total rank score in ascending order
+    const rankedRegions: RankedRegions = [];
+    totalAssayRanks.sort((a, b) => a.totalRank - b.totalRank);
+
+    // Assign ranks, accounting for ties
+    let currentRank = 1;
+    let prevTotalRank = null;
+
+    totalAssayRanks.forEach((region, index) => {
+        if (region.totalRank !== prevTotalRank) {
+            currentRank = index + 1;
+            prevTotalRank = region.totalRank;
+        }
+        rankedRegions.push({
+            chr: region.chr,
+            start: region.start,
+            end: region.end,
+            rank: region.totalRank === 0 ? 0 : currentRank,
+        });
+    });
+    return rankedRegions
+};
+
+export const generateGeneRanks = (geneRows: GeneTableRow[]): RankedRegions => {
+    // Assign ranks based on expression specificity
+    const expressionSpecificityRankedRows = (() => {
+        const sortedRows = [...geneRows].sort((a, b) => b.expressionSpecificity - a.expressionSpecificity);
+        let rank = 1;
+        return sortedRows.map((row, index) => {
+            if (index > 0 && sortedRows[index].expressionSpecificity !== sortedRows[index - 1].expressionSpecificity) {
+                rank = index + 1;
+            }
             return {
-                chr: row.chr,
-                start: row.start,
-                end: row.end,
-                totalRank: totalRank,
+                ...row,
+                speceficityRank: rank,
             };
         });
+    })();
 
-        // Sort by total rank score in ascending order
-        const rankedRegions: RankedRegions = [];
-        totalAssayRanks.sort((a, b) => a.totalRank - b.totalRank);
-
-        // Assign ranks, accounting for ties
-        let currentRank = 1;
-        let prevTotalRank = null;
-
-        totalAssayRanks.forEach((region, index) => {
-            if (region.totalRank !== prevTotalRank) {
-                currentRank = index + 1;
-                prevTotalRank = region.totalRank;
+    // Assign ranks based on maxExpression
+    const maxExpressionRankedRows = (() => {
+        const sortedRows = [...geneRows].sort((a, b) => b.maxExpression! - a.maxExpression!);
+        let rank = 1;
+        return sortedRows.map((row, index) => {
+            if (index > 0 && sortedRows[index].maxExpression !== sortedRows[index - 1].maxExpression) {
+                rank = index + 1;
             }
-            rankedRegions.push({
-                chr: region.chr,
-                start: region.start,
-                end: region.end,
-                rank: region.totalRank === 0 ? 0 : currentRank,
-            });
+            return {
+                ...row,
+                maxExpRank: rank,
+            };
         });
-        return rankedRegions
-};
+    })();
+
+    // Merge ranks and calculate total rank
+    const combinedRanks = expressionSpecificityRankedRows.map((row) => {
+        const rankedGenes = maxExpressionRankedRows.find(
+            (motifRow) => motifRow.regionID === row.regionID
+        )?.maxExpRank;
+
+        return {
+            ...row,
+            totalRank: row.speceficityRank + (rankedGenes ?? geneRows.length), // Sum of ranks
+        };
+    });
+
+    // Sort by total rank and assign final ranks 
+    const rankedRegions: RankedRegions = (() => {
+        const sortedByTotalRank = [...combinedRanks].sort((a, b) => a.totalRank - b.totalRank);
+        let rank = 1;
+        return sortedByTotalRank.map((row, index) => {
+            if (index > 0 && sortedByTotalRank[index].totalRank !== sortedByTotalRank[index - 1].totalRank) {
+                rank = index + 1;
+            }
+            return {
+                chr: row.inputRegion.chr,
+                start: row.inputRegion.start,
+                end: row.inputRegion.end,
+                rank,
+            };
+        });
+    })();
+
+    return rankedRegions
+}
+
 
 // calculate the aggregate rank for each input region
 export const calculateAggregateRanks = (inputRegions: InputRegions, sequenceRanks: RankedRegions, elementRanks: RankedRegions, geneRanks: RankedRegions): RankedRegions => {
@@ -370,10 +434,10 @@ export const calculateAggregateRanks = (inputRegions: InputRegions, sequenceRank
             };
         });
 
-        return (aggregateRanks as RankedRegions)
+    return (aggregateRanks as RankedRegions)
 };
 
-export const matchRanks = (inputRegions: InputRegions, sequenceRanks: RankedRegions, elementRanks: RankedRegions, aggregateRanks: RankedRegions): MainTableRow[] => {
+export const matchRanks = (inputRegions: InputRegions, sequenceRanks: RankedRegions, elementRanks: RankedRegions, geneRanks: RankedRegions, aggregateRanks: RankedRegions): MainTableRow[] => {
     const updatedMainRows = inputRegions.map(row => {
         // Find the matching ranks for this `inputRegion`
         const matchingElement = elementRanks.find(
@@ -394,7 +458,14 @@ export const matchRanks = (inputRegions: InputRegions, sequenceRanks: RankedRegi
 
         const sequenceRank = matchingSequence ? matchingSequence.rank : 0;
 
-        //TODO add other ranks (Gene)
+        const matchingGene = geneRanks.find(
+            gene =>
+                gene.chr == row.chr &&
+                gene.start == row.start &&
+                gene.end == row.end
+        );
+
+        const geneRank = matchingGene ? matchingGene.rank : 0;
 
         const matchingAggregateRank = aggregateRanks.find(
             mainRank =>
@@ -410,6 +481,7 @@ export const matchRanks = (inputRegions: InputRegions, sequenceRanks: RankedRegi
             inputRegion: { chr: row.chr, start: row.start, end: row.end },
             sequenceRank,
             elementRank,
+            geneRank,
             aggregateRank
         };
     }).filter(row => row.aggregateRank !== 0);

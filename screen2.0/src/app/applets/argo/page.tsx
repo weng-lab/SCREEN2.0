@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useMemo } from "react"
 import { useState } from "react"
 import { Stack, Typography, Box, Alert, CircularProgress, IconButton } from "@mui/material"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
-import { ORTHOLOG_QUERY, Z_SCORES_QUERY, BIG_REQUEST_QUERY, MOTIF_QUERY } from "./queries"
+import { ORTHOLOG_QUERY, Z_SCORES_QUERY, BIG_REQUEST_QUERY, MOTIF_QUERY, CLOSEST_LINKED_QUERY, SPECIFICITY_QUERY } from "./queries"
 import { QueryResult, useLazyQuery, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
 import { RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, CCREs, InputRegions, SubTableTitleProps } from "./types"
@@ -13,7 +13,7 @@ import Filters from "./filters/filters"
 import { CancelRounded } from "@mui/icons-material"
 import ArgoUpload from "./argoUpload"
 import { BigRequest, OccurrencesQuery } from "../../../graphql/__generated__/graphql"
-import { batchRegions, calculateAggregateRanks, calculateConservationScores, generateElementRanks, generateSequenceRanks, getNumOverlappingMotifs, handleSameInputRegion, mapScores, mapScoresCTSpecific, matchRanks } from "./helpers"
+import { batchRegions, calculateAggregateRanks, calculateConservationScores, generateElementRanks, generateGeneRanks, generateSequenceRanks, getNumOverlappingMotifs, handleSameInputRegion, mapScores, mapScoresCTSpecific, matchRanks } from "./helpers"
 import SequenceTable from "./tables/sequenceTable"
 import ElementTable from "./tables/elementTable"
 import GeneTable from "./tables/geneTable"
@@ -23,6 +23,7 @@ export default function Argo() {
     const [inputRegions, setInputRegions] = useState<InputRegions>([]);
     const [getIntersectingCcres, { data: intersectArray }] = useLazyQuery(BED_INTERSECT_QUERY)
     const [getMemeOccurrences] = useLazyQuery(MOTIF_QUERY)
+    const [getGeneSpecificity, { data: geneSpecificity, loading: loading_gene_specificity }] = useLazyQuery(SPECIFICITY_QUERY)
     const [occurrences, setOccurrences] = useState<QueryResult<OccurrencesQuery>[]>([]);
     const [loadingMainRows, setLoadingMainRows] = useState(true);
     const [loadingElementRanks, setLoadingElementRanks] = useState(true);
@@ -33,10 +34,6 @@ export default function Argo() {
     const [drawerOpen, setDrawerOpen] = useState(true);
     const toggleDrawer = () => setDrawerOpen(!drawerOpen);
     const [shownTable, setShownTable] = useState<"sequence" | "elements" | "genes">(null);
-
-    // These will be deleted once functionality is implemented
-    const [geneRanks, setGeneRanks] = useState<RankedRegions>([]);
-    const [geneRows, setGeneRows] = useState<GeneTableRow[]>([])
 
     // Filter state variables
     const [sequenceFilterVariables, setSequenceFilterVariables] = useState<SequenceFilterState>({
@@ -317,7 +314,7 @@ export default function Argo() {
         setLoadingSequenceRanks(true);
 
         const rankedRegions = generateSequenceRanks(sequenceRows)
-        
+
         return rankedRegions;
     }, [sequenceRows]);
 
@@ -462,7 +459,82 @@ export default function Argo() {
     }, [elementFilterVariables, elementRows]);
 
     /*------------------------------------------ Gene Stuff ------------------------------------------*/
-    //TODO
+    //Query to get the closest gene to eah ccre
+    const { loading: loading_closest, data: closestAndLinkedGenes } = useQuery(CLOSEST_LINKED_QUERY, {
+        variables: {
+            accessions: intersectingCcres ? intersectingCcres.map((ccre) => ccre.accession) : [],
+        },
+        skip: !intersectingCcres || !geneFilterVariables.useGenes,
+        client: client,
+        fetchPolicy: 'cache-first',
+    });
+
+    const geneRows = useMemo<GeneTableRow[]>(() => {
+        if (!intersectingCcres || !closestAndLinkedGenes) {
+            return [];
+        }
+        const anyGene = closestAndLinkedGenes.closestGenetocCRE.filter((gene) => gene.gene.type === "ALL")
+        const pcGene = closestAndLinkedGenes.closestGenetocCRE.filter((gene) => gene.gene.type === "PC")
+        //Query to get the gene specificty for each gene id from the previous query
+        if (closestAndLinkedGenes.closestGenetocCRE.length > 0) {
+            getGeneSpecificity({
+                variables: {
+                    geneids: anyGene.map((gene) => gene.gene.geneid)
+                },
+                client: client,
+                fetchPolicy: 'cache-and-network',
+            })
+        }
+        if (geneSpecificity) {
+            const matchingCcres = anyGene.flatMap((gene) => {
+                // Find the matching gene in geneSpecificity
+                const matchingGene = geneSpecificity.geneSpecificity.find((specificityGene) =>
+                    specificityGene.name == gene.gene.name
+                );
+
+                // If a match is found, return the combined result; otherwise, return an empty array
+                return matchingGene
+                    ? [{
+                        ccre: gene.ccre,
+                        geneId: gene.gene.geneid,
+                        chromosome: gene.chromosome,
+                        start: gene.start,
+                        end: gene.stop,
+                        expressionSpecificity: matchingGene.score,
+                    }]
+                    : [];
+            });
+
+            const specificityRows = intersectingCcres.flatMap((ccre) => {
+                // Find matching genes in geneSpecificity
+                const matchingGenes = matchingCcres.filter((gene) =>
+                    ccre.accession == gene.ccre
+                );
+
+                // Map to GeneTableRow format or just return ccre.inputRegion
+                return matchingGenes.map((gene) => ({
+                    regionID: ccre.regionID,
+                    inputRegion: ccre.inputRegion,
+                    expressionSpecificity: gene.expressionSpecificity,
+                }));
+            });
+
+            return specificityRows
+        } else {
+            return []
+        }
+
+    }, [closestAndLinkedGenes, geneSpecificity, getGeneSpecificity, intersectingCcres]);
+
+    const geneRanks = useMemo<RankedRegions>(() => {
+        if (geneRows.length === 0 || !geneFilterVariables.useGenes) {
+            return [];
+        }
+
+        const rankedRegions = generateGeneRanks(geneRows)
+        return rankedRegions
+
+    }, [geneFilterVariables.useGenes, geneRows]);
 
     /*------------------------------------------ Main Table Stuff ------------------------------------------*/
 
@@ -473,7 +545,7 @@ export default function Argo() {
 
         const aggregateRanks = calculateAggregateRanks(inputRegions, sequenceRanks, elementRanks, geneRanks)
         //TODO add gene ranks below
-        const updatedMainRows = matchRanks(inputRegions, sequenceRanks, elementRanks, aggregateRanks)
+        const updatedMainRows = matchRanks(inputRegions, sequenceRanks, elementRanks, geneRanks, aggregateRanks)
 
         if (elementRanks.length > 0) {
             setLoadingElementRanks(false)
@@ -519,7 +591,7 @@ export default function Argo() {
                 render: (row) => loadingElementRanks || loading_scores || loading_ortho ? <CircularProgress size={10} /> : row.elementRank === 0 ? "N/A" : row.elementRank
             })
         }
-        if (geneFilterVariables.useGenes) { cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Genes" onClick={() => shownTable === "genes" ? setShownTable(null) : setShownTable("genes")} />, value: (row) => "N/A" }) }
+        if (geneFilterVariables.useGenes) { cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Genes" onClick={() => shownTable === "genes" ? setShownTable(null) : setShownTable("genes")} />, value: (row) => row.geneRank }) }
 
         return cols
 

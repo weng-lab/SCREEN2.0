@@ -216,8 +216,8 @@ export type ElementTableRow = {
 export type GeneTableRow = {
     regionID: number
     inputRegion: GenomicRegion
-    maxExpression: number
-    expressionSpecificity: number
+    maxExpression?: number
+    expressionSpecificity?: number
 }
 
 export type AssayRankEntry = {

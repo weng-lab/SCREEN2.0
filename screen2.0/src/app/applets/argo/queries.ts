@@ -77,6 +77,58 @@ query geneExpression($assembly: String!, $biosample_value: [String], $gene_id: [
 }
  `)
 
+export const SPECIFICITY_QUERY = gql(`
+  query geneSpecificity($geneids: [String]){
+  geneSpecificity(geneid: $geneids) {
+    score
+    stop
+    start
+    chromosome
+    name
+  }
+}
+  `)
+
+export const CLOSEST_LINKED_QUERY = gql(`
+  query closestAndLinked($accessions: [String]!){
+  closestGenetocCRE(ccre: $accessions) {
+    ccre
+    strand
+    chromosome
+    start
+    stop
+    transcriptid
+    gene {
+      name
+      type
+      geneid
+      chromosome
+      stop
+      start
+    }
+  }
+  linkedGenesQuery(assembly: "grch38", accession: $accessions) {
+      accession  
+      p_val
+      gene
+      geneid
+      genetype
+      method
+      grnaid
+      effectsize
+      assay
+      celltype
+      experiment_accession
+      tissue
+      variantid
+      source
+      slope
+      score
+      displayname
+    }
+}
+  `)
+
 export const ORTHOLOG_QUERY = gql(`
   query orthoQuery($accessions: [String], $assembly: String){
   orthologQuery(accession: $accessions, assembly: $assembly) {
