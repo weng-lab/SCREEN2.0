@@ -402,3 +402,31 @@ template {
 }
 
 /* Footer component has embebed styled to set it's height and position */
+
+
+/* GenomeBrowser styling */
+.shift-button {
+  padding: 4px;
+  font-size: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  background-color: white;
+}
+
+.shift-button:hover {
+  background-color: lightgray;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+}
+
+.zoom-button {
+  padding: 2px;
+  font-size: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  background-color: white;
+}
+
+.zoom-button:hover {
+  background-color: gray;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+}

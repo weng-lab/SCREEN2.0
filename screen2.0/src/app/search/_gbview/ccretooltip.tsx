@@ -8,6 +8,7 @@ interface CCRETooltipProps {
   assembly: string
   name: string
   biosample?: {
+    displayname?: string
     dnase?: string
     h3k4me3?: string
     h3k27ac?: string
@@ -81,7 +82,8 @@ const CCRETooltip: React.FC<CCRETooltipProps> = ({ assembly, name, biosample }) 
         width: "max-content",
         minWidth: "300px",
         alignItems: "baseline",
-        height: "100%",
+        minHeight: "205px",
+        height: "auto",
         transition: "all 0.2s ease-in-out"
       }}>
         {loading || !data?.cCREQuery?.[0] ? (
@@ -102,7 +104,7 @@ const CCRETooltip: React.FC<CCRETooltipProps> = ({ assembly, name, biosample }) 
             <div>{GROUP_COLOR_MAP.get(data.cCREQuery[0].group)?.split(":")[0]}</div>
             Click for details about this cCRE
             <br />
-            <strong>{biosample ? "Z-scores in " + biosample.name : "Max Z-scores across all biosamples:"}</strong>
+            <strong>{biosample ? "Z-scores in " + biosample.displayname : "Max Z-scores across all biosamples:"}</strong>
             {(biosample ? marks(biosample) : MARKS).map((x, i) => {
               return (
                 <div key={i} style={{ display: "flex", flexDirection: "row", justifyContent: "left", width: "100%" }}>

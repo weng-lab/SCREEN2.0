@@ -261,7 +261,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         page,
         opencCREs.map(x => x.ID).join(',')
       )
-      // console.log("old params: " +  JSON.stringify(searchParams))
+      // console.log("old params: " +  JSON.stringify(searchParams))biosample
       // console.log("pushing new url:" + newURL)
       router.push(newURL)
     }

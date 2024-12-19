@@ -33,11 +33,12 @@ const BIOSAMPLE_QUERY = gql`
         h3k4me3: experimentAccession(assay: "H3K4me3")
         h3k27ac: experimentAccession(assay: "H3K27ac")
         ctcf: experimentAccession(assay: "CTCF")        
+        atac: experimentAccession(assay: "ATAC")
         dnase_signal: fileAccession(assay: "DNase")
         h3k4me3_signal: fileAccession(assay: "H3K4me3")
         h3k27ac_signal: fileAccession(assay: "H3K27ac")
         ctcf_signal: fileAccession(assay: "CTCF")
-        
+        atac_signal: fileAccession(assay: "ATAC")
       }
     }
     mouse: ccREBiosampleQuery(assembly: "mm10") {
@@ -46,12 +47,13 @@ const BIOSAMPLE_QUERY = gql`
         dnase: experimentAccession(assay: "DNase")
         h3k4me3: experimentAccession(assay: "H3K4me3")
         h3k27ac: experimentAccession(assay: "H3K27ac")
-        ctcf: experimentAccession(assay: "CTCF")        
+        ctcf: experimentAccession(assay: "CTCF")
+        atac: experimentAccession(assay: "ATAC")
         dnase_signal: fileAccession(assay: "DNase")
         h3k4me3_signal: fileAccession(assay: "H3K4me3")
         h3k27ac_signal: fileAccession(assay: "H3K27ac")
         ctcf_signal: fileAccession(assay: "CTCF")
-        
+        atac_signal: fileAccession(assay: "ATAC")
       }
     }
   }
@@ -157,6 +159,7 @@ export const GenomeBrowserView: React.FC<GenomeBrowserViewProps> = (props) => {
 
       //copy v4 bed files to google bucket
       const bigBedUrl = `https://downloads.wenglab.org/Registry-V4/${r.join("_")}.bigBed`
+      console.log("bigBedUrl", bigBedUrl)
       let tracks: [string, string, string][] = [[`cCREs colored by activity in ${props.biosampledisplayname}`, bigBedUrl, ""]]
       if (result.dnase_signal)
         tracks.push([
