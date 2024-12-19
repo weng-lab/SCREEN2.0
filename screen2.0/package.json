@@ -58,7 +58,7 @@
     "@visx/visx": "^3.11.0",
     "@weng-lab/psychscreen-ui-components": "^2.0.8",
     "@weng-lab/ts-ztable": "^4.0.1",
-    "@weng-lab/genomebrowser": "^0.0.12",
+    "@weng-lab/genomebrowser": "^0.0.13",
     "autoprefixer": "10.4.20",
     "bpnet-ui": "^0.3.8",
     "graphql": "^16.9.0",
