@@ -40,7 +40,7 @@ export default function Applets() {
   return (
     <main>
       <Carousel />
-      <Divider variant="middle" sx={{ mx: 40, mb: 2 }}>
+      <Divider variant="middle" sx={{ mx: 40, mb: 2, mt: 2 }}>
         <Stack justifyContent={"center"} alignItems={"center"} sx={{ mx: 5 }}>
           <Typography variant="h4">Applets</Typography>
           <IconButton
