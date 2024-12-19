@@ -1,10 +1,12 @@
 import Grid from "@mui/material/Grid2";
-import { BrowserActionType, GenomeBrowser, BrowserAction, TrackType, BrowserState, Controls, TrackProps } from '@weng-lab/genomebrowser';
+import { BrowserActionType, GenomeBrowser, BrowserAction, TrackType, BrowserState, Controls, TrackProps, GQLCytobands } from '@weng-lab/genomebrowser';
 import { Dispatch, useEffect, useRef, useState } from 'react';
 import { RegistryBiosample } from '../types';
 import { genBiosampleTracks } from './genTracks';
 import CCRETooltip from "../_gbview/ccretooltip";
-import { gql, useQuery } from "@apollo/client";
+import { gql, useLazyQuery, useQuery } from "@apollo/client";
+import { Button, IconButton, TextField } from "@mui/material";
+import { Search, Style } from "@mui/icons-material";
 
 const BIOSAMPLE_QUERY = gql`
   query biosamples_2 {
@@ -107,24 +109,18 @@ export const Browser = ({ cCREClick, state, dispatch, coordinates, gene, biosamp
         }
     }, [])
 
-    const { loading: bloading, data: bdata } = useQuery(BIOSAMPLE_QUERY, {
+    const [loadBiosample, { loading: bloading, data: bdata }] = useLazyQuery(BIOSAMPLE_QUERY, {
         fetchPolicy: "cache-and-network",
         nextFetchPolicy: "cache-first",
     })
 
-    const [biosampleTracks, setBiosampleTracks] = useState<string[]>([])
+    const [biosampleIDs, setBiosampleIDs] = useState<string[]>([])
     useEffect(() => {
-        console.log("biosample", biosample)
-        console.log("biosampleTracks", biosampleTracks)
-        biosampleTracks.forEach(id => {
-            console.log("deleting track", id)
+        biosampleIDs.forEach(id => {
             dispatch({ type: BrowserActionType.DELETE_TRACK, id: id })
-        })
-        console.log("tracks", state.tracks)
-        setBiosampleTracks([])
-    }, [biosample])
-
-    useEffect(() => {
+        }) // when biosample changes, delete old biosample tracks
+        setBiosampleIDs([])
+        loadBiosample()
         if (bdata && biosample) {
             const tracks = genBiosampleTracks(biosample, coordinates, bdata)
             const ids = []
@@ -139,17 +135,59 @@ export const Browser = ({ cCREClick, state, dispatch, coordinates, gene, biosamp
                 }
                 ids.push(track.id)
             })
-            setBiosampleTracks(ids)
+            setBiosampleIDs(ids)
         }
     }, [bdata, biosample, coordinates.assembly])
 
     return (
-        <Grid container spacing={3} sx={{ mt: "1rem", mb: "1rem" }} ref={containerRef}>
+        <Grid container spacing={3} sx={{ mt: "1rem", mb: "1rem" }} ref={containerRef} justifyContent="center" alignItems="center">
+            <Grid size={{ xs: 12, lg: 12 }} style={{ display: "flex", justifyContent: "center", alignItems: "center" }}>
+                <svg id="cytobands" width={"700px"} height={20}>
+                    <GQLCytobands assembly={coordinates.assembly === "GRCh38" ? "hg38" : "mm10"} chromosome={coordinates.chromosome} currentDomain={state.domain} />
+                </svg>
+            </Grid>
             <Grid size={{ xs: 12, lg: 12 }}>
-                <Controls domain={state.domain} dispatch={dispatch} withInput style={{ paddingBottom: "4px" }} />
+                <Controls inputComponent={SearchInput(state.domain.chromosome + ":" + state.domain.start + "-" + state.domain.end)} buttonComponent={<Button variant="outlined" />} domain={state.domain} dispatch={dispatch} withInput style={{ paddingBottom: "4px" }} />
                 <GenomeBrowser width={"100%"} browserState={state} browserDispatch={dispatch} />
             </Grid>
-        </Grid>
+        </Grid >
+    )
+}
+
+function SearchInput(value: string) {
+    return (
+        <>
+            <TextField
+                variant="outlined"
+                id="region-input"
+                label="Enter a genomic region"
+                placeholder={`chr12:${(53380176).toLocaleString()}-${(53416446).toLocaleString()}`}
+                value={value}
+                slotProps={{
+                    inputLabel: {
+                        shrink: true,
+                        htmlFor: "region-input",
+                        style: { color: "white" },
+                    },
+                    input: { style: { color: "white" } }
+                }}
+                sx={{
+                    mr: "1rem",
+                    minWidth: "16rem",
+                    fieldset: { borderColor: "black" },
+                    height: "30px"
+                }}
+                size="small"
+            />
+            <IconButton
+                aria-label="Search"
+                type="submit"
+                sx={{ color: "white", maxHeight: "100%" }}
+            >
+                <Search />
+            </IconButton>
+        </>
+
     )
 }
 
