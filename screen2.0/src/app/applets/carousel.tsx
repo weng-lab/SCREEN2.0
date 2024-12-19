@@ -37,23 +37,23 @@ const slides = [
         id: 1,
         image: "/GeneExpressionSS.png",
         text: "Gene Expression",
-        description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco",
+        description: "Explore and visualize gene expression patterns across hundreds of cell and tissue types from ENCODE biosamples",
         link: "../applets/gene-expression",
     },
     {
         id: 2,
         image: "/GWASSS.png",
         text: "GWAS",
-        description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco",
+        description: "Investigate the overlap between cCREs and genome-wide association study (GWAS) results to prioritize causal variants and identify potential regulatory mechanisms",
         link: "../applets/gwas",
     },
-    {
-        id: 3,
-        image: "/ARGOSS.png",
-        text: "ARGO",
-        description: "ARGO (Aggregate Rank Generator), allows users to input a set of candidate variants and obtain a prioritized list based on overlapping annotations",
-        link: ""
-    },
+    // {
+    //     id: 3,
+    //     image: "/ARGOSS.png",
+    //     text: "ARGO",
+    //     description: "ARGO (Aggregate Rank Generator), allows users to input a set of candidate variants and obtain a prioritized list based on overlapping annotations",
+    //     link: ""
+    // },
 ];
 
 const ExpandableCarousel = () => {

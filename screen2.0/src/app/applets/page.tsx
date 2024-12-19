@@ -14,27 +14,27 @@ export default function Applets() {
     {
       id: 1,
       title: "Gene Expression",
-      description: "View gene expression by RNA-seq in ENCODE biosamples",
-      imageUrl: "/geneExpression.png",
+      description: "Explore gene expression patterns across hundreds of cell and tissue types",
+      imageUrl: "/GeneExpressionPlaceHolder.png",
       link: "../applets/gene-expression",
       buttonText: "Explore Genes"
     },
     {
       id: 2,
       title: "GWAS",
-      description: "Visualize data retrieved from an assortment of Genome-Wide Association (GWAS) studies",
-      imageUrl: "/GWAS.png",
+      description: "Investigate the overlap between cCREs and GWAS results to prioritize causal variants and identify potential regulatory mechanisms.",
+      imageUrl: "/GWASPlaceHolder.png",
       link: "../applets/gwas",
       buttonText: "Explore Studies"
     },
-    {
-      id: 3,
-      title: "ARGO",
-      description: "Rank genomic regions based on overlapping annotations",
-      imageUrl: "/argo.png",
-      link: "",
-      buttonText: "Under Construction"
-    },
+    // {
+    //   id: 3,
+    //   title: "ARGO",
+    //   description: "Rank genomic regions based on overlapping annotations",
+    //   imageUrl: "/argo.png",
+    //   link: "",
+    //   buttonText: "Under Construction"
+    // },
   ];
 
   return (
