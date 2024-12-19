@@ -316,8 +316,8 @@ export const generateElementRanks = (rows: ElementTableRow[], classes: CCREClass
     return rankedRegions
 };
 
-export const getSpecificityScores = (geneData: ClosestGenetocCRE, accessions: CCREs, geneSpecificity: GeneSpecificityQuery): GeneTableRow[] => {
-    const matchingCcres = geneData.flatMap((gene) => {
+export const getSpecificityScores = (closestGenes: ClosestGenetocCRE, accessions: CCREs, geneSpecificity: GeneSpecificityQuery): GeneTableRow[] => {
+    const matchingCcres = closestGenes.flatMap((gene) => {
         // Find the matching gene in geneSpecificity
         const matchingGene = geneSpecificity.geneSpecificity.find((specificityGene) =>
             specificityGene.name == gene.gene.name
@@ -351,6 +351,44 @@ export const getSpecificityScores = (geneData: ClosestGenetocCRE, accessions: CC
     });
 
     return specificityRows
+}
+
+export const parseLinkedGenes = (data) => {
+    const uniqueAccessions: {
+        accession: string;
+        genes: { name: string; geneId: string; linkedBy: string[] }[]
+    }[] = [];
+
+    for (const gene of data) {
+        const geneNameToPush = gene.gene;
+        const geneIdToPush = gene.geneid
+        const methodToPush = gene.assay ?? gene.method;
+        const geneAccession = gene.accession;
+
+        const existingGeneEntry = uniqueAccessions.find((uniqueGene) => uniqueGene.accession === geneAccession);
+
+        if (existingGeneEntry) {
+            const existingGene = existingGeneEntry.genes.find((gene) => gene.name === geneNameToPush && gene.geneId === geneIdToPush);
+
+            if (existingGene) {
+                // Add the method if it's not already in the linkedBy array
+                if (!existingGene.linkedBy.includes(methodToPush)) {
+                    existingGene.linkedBy.push(methodToPush);
+                }
+            } else {
+                // Add a new gene entry if the gene name and geneId don't exist
+                existingGeneEntry.genes.push({ name: geneNameToPush, geneId: geneIdToPush, linkedBy: [methodToPush] });
+            }
+        } else {
+            // Create a new entry for the accession if it doesn't exist
+            uniqueAccessions.push({
+                accession: geneAccession,
+                genes: [{ name: geneNameToPush, geneId: geneIdToPush, linkedBy: [methodToPush] }],
+            });
+        }
+    }
+
+    return uniqueAccessions
 }
 
 export const generateGeneRanks = (geneRows: GeneTableRow[]): RankedRegions => {

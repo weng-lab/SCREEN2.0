@@ -13,7 +13,7 @@ import Filters from "./filters/filters"
 import { CancelRounded } from "@mui/icons-material"
 import ArgoUpload from "./argoUpload"
 import { BigRequest, OccurrencesQuery } from "../../../graphql/__generated__/graphql"
-import { batchRegions, calculateAggregateRanks, calculateConservationScores, generateElementRanks, generateGeneRanks, generateSequenceRanks, getNumOverlappingMotifs, getSpecificityScores, handleSameInputRegion, mapScores, mapScoresCTSpecific, matchRanks } from "./helpers"
+import { batchRegions, calculateAggregateRanks, calculateConservationScores, generateElementRanks, generateGeneRanks, generateSequenceRanks, getNumOverlappingMotifs, getSpecificityScores, handleSameInputRegion, mapScores, mapScoresCTSpecific, matchRanks, parseLinkedGenes } from "./helpers"
 import SequenceTable from "./tables/sequenceTable"
 import ElementTable from "./tables/elementTable"
 import GeneTable from "./tables/geneTable"
@@ -416,7 +416,7 @@ export default function Argo() {
 
     // Filter cCREs based on class and ortholog
     const elementRows: ElementTableRow[] = useMemo(() => {
-        if (allElementData.length === 0)  {
+        if (allElementData.length === 0) {
             return [];
         }
         let data = allElementData;
@@ -481,12 +481,15 @@ export default function Argo() {
         if (!intersectingCcres || !closestAndLinkedGenes) {
             return [];
         }
-        console.log(closestAndLinkedGenes.linkedGenesQuery)
+        const uniqueAccessions = parseLinkedGenes(closestAndLinkedGenes.linkedGenesQuery);
+
+        console.log(uniqueAccessions)
+
         //switch between protein coding and all
-        let geneData = closestAndLinkedGenes.closestGenetocCRE.filter((gene) => gene.gene.type === "ALL")
+        let closestGenes = closestAndLinkedGenes.closestGenetocCRE.filter((gene) => gene.gene.type === "ALL")
         if (geneFilterVariables.mustBeProteinCoding) {
-            geneData = closestAndLinkedGenes.closestGenetocCRE.filter((gene) => gene.gene.type === "PC")
-        } 
+            closestGenes = closestAndLinkedGenes.closestGenetocCRE.filter((gene) => gene.gene.type === "PC")
+        }
 
         //Switch between regular and ortho ccres
         let accessions = intersectingCcres;
@@ -511,14 +514,14 @@ export default function Argo() {
         if (closestAndLinkedGenes.closestGenetocCRE.length > 0) {
             getGeneSpecificity({
                 variables: {
-                    geneids: geneData.map((gene) => gene.gene.geneid)
+                    geneids: closestGenes.map((gene) => gene.gene.geneid)
                 },
                 client: client,
                 fetchPolicy: 'cache-and-network',
             })
         }
         if (geneSpecificity) {
-            const specificityRows = getSpecificityScores(geneData, accessions, geneSpecificity)
+            const specificityRows = getSpecificityScores(closestGenes, accessions, geneSpecificity)
 
             return specificityRows
         } else {

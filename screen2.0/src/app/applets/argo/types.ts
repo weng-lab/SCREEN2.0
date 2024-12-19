@@ -1,15 +1,8 @@
 import { RegistryBiosample } from "../../_biosampleTables/types"
 
-export type LinkedGenes = {
-    gene_id: string
-    method: string
-    tpm: number
-}
-
 export type ZScores = {
     accession: string
     user_id: string
-    linked_genes: LinkedGenes[]
     dnase: number
     dnase_rank: number
     h3k4me3: number
@@ -175,6 +168,12 @@ export type SubTableTitleProps = {
     title: string;
 };
 
+export type LinkedGenes = {
+    gene: string
+    geneid: string
+    linkedBy: GeneLinkingMethod[]
+}[];
+
 export type MainTableRow = {
     regionID: number
     inputRegion: GenomicRegion
@@ -214,6 +213,7 @@ export type GeneTableRow = {
     inputRegion: GenomicRegion
     maxExpression?: number
     expressionSpecificity?: number
+    linkedGenes?: LinkedGenes
 }
 
 export type AssayRankEntry = {
