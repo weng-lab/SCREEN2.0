@@ -8183,6 +8183,7 @@ __metadata:
     react-dom: "npm:^18.3.1"
     react-dropzone: "npm:^14.2.3"
     semantic-ui-react: "npm:^2.1.5"
+    swiper: "npm:^11.1.15"
     typescript: "npm:5.6.2"
     typescript-eslint: "npm:^8.18.0"
     umap-js: "npm:1.4.0"
@@ -8664,6 +8665,13 @@ __metadata:
   dependencies:
     tslib: "npm:^2.0.3"
   checksum: 10/6e21c9e1b3cd5735eb2af679a99ec3efc78a14e3d4d5e3fd594e254b91cfd37185b3d1c6e41b22f53a2cdf5d1b963ce30c0fe8b78337e3fd43d0137084670a5f
+  languageName: node
+  linkType: hard
+
+"swiper@npm:^11.1.15":
+  version: 11.1.15
+  resolution: "swiper@npm:11.1.15"
+  checksum: 10/044b7fd031392192a896b4dd8ba92231aaa6b9b5fad5ad9e471f48fe463d563eef2501855e6bde41b4f3968d33361e01ad49ff2bdaa1f6d9c5ae8325171a3f3c
   languageName: node
   linkType: hard
 
