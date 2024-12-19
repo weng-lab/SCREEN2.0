@@ -1,6 +1,6 @@
 import { OperationVariables, QueryResult } from "@apollo/client";
-import { AssayRankEntry, CCREAssays, CCREClasses, ElementTableRow, GeneTableRow, GenomicRegion, InputRegions, MainTableRow, MotifQueryDataOccurrence, RankedRegions, SequenceTableRow } from "./types";
-import { OccurrencesQuery } from "../../../graphql/__generated__/graphql";
+import { AssayRankEntry, CCREAssays, CCREClasses, CCREs, ClosestGenetocCRE, ElementTableRow, GeneTableRow, GenomicRegion, InputRegions, MainTableRow, MotifQueryDataOccurrence, RankedRegions, SequenceTableRow } from "./types";
+import { GeneSpecificityQuery, OccurrencesQuery } from "../../../graphql/__generated__/graphql";
 
 const assayNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
 
@@ -315,6 +315,43 @@ export const generateElementRanks = (rows: ElementTableRow[], classes: CCREClass
     });
     return rankedRegions
 };
+
+export const getSpecificityScores = (geneData: ClosestGenetocCRE, accessions: CCREs, geneSpecificity: GeneSpecificityQuery): GeneTableRow[] => {
+    const matchingCcres = geneData.flatMap((gene) => {
+        // Find the matching gene in geneSpecificity
+        const matchingGene = geneSpecificity.geneSpecificity.find((specificityGene) =>
+            specificityGene.name == gene.gene.name
+        );
+
+        // If a match is found, return the combined result; otherwise, return an empty array
+        return matchingGene
+            ? [{
+                ccre: gene.ccre,
+                geneId: gene.gene.geneid,
+                chromosome: gene.chromosome,
+                start: gene.start,
+                end: gene.stop,
+                expressionSpecificity: matchingGene.score,
+            }]
+            : [];
+    });
+
+    const specificityRows = accessions.flatMap((ccre) => {
+        // Find matching genes in geneSpecificity
+        const matchingGenes = matchingCcres.filter((gene) =>
+            ccre.accession == gene.ccre
+        );
+
+        // Map to GeneTableRow format or just return ccre.inputRegion
+        return matchingGenes.map((gene) => ({
+            regionID: ccre.regionID,
+            inputRegion: ccre.inputRegion,
+            expressionSpecificity: gene.expressionSpecificity,
+        }));
+    });
+
+    return specificityRows
+}
 
 export const generateGeneRanks = (geneRows: GeneTableRow[]): RankedRegions => {
     // Assign ranks based on expression specificity

@@ -275,3 +275,22 @@ export type GeneTableProps = {
     SubTableTitle: React.FC<SubTableTitleProps>;
     geneRows: GeneTableRow[];
 }
+
+export type ClosestGenetocCRE = {
+    __typename?: "ClosestGene";
+    ccre?: string | null;
+    strand?: string | null;
+    chromosome?: string | null;
+    start?: number | null;
+    stop?: number | null;
+    transcriptid?: string | null;
+    gene?: {
+        __typename?: "CcreNearestGene";
+        name?: string | null;
+        type?: string | null;
+        geneid?: string | null;
+        chromosome?: string | null;
+        stop?: number | null;
+        start?: number | null;
+    } | null;
+}[]
