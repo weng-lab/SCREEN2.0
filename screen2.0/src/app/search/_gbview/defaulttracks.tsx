@@ -14,6 +14,7 @@ export const COLOR_MAP: Map<string, string> = new Map([
   ["Aggregated H3K4me3 ChIP-seq signal, all Registry biosamples", "#ff0000"],
   ["Aggregated H3K27ac ChIP-seq signal, all Registry biosamples", "#ffcd00"],
   ["Aggregated CTCF ChIP-seq signal, all Registry biosamples", "#00b0d0"],
+  ["Aggregated ATAC ChIP-seq signal, all Registry biosamples", "#02c7b9"],
 ])
 
 type DefaultTracksProps = {
@@ -104,7 +105,11 @@ const DefaultTracks: React.FC<DefaultTracksProps> = (props) => {
     props.assembly.toLowerCase() === "mm10"
       ? [
           ["All cCREs colored by group", "https://downloads.wenglab.org/mm10-cCREs.DCC.bigBed"],
-          ["Aggregated DNase-seq signal, all Registry biosamples", "gs://gcp.wenglab.org/dnase.mm10.sum.bigWig"],
+          ["Aggregated DNase-seq signal, all Registry biosamples", "https://downloads.wenglab.org/DNase_MM10_ENCODE_DEC2024_merged_nanrm.bigWig"],
+          ["Aggregated H3K4me3 ChIP-seq signal, all Registry biosamples", "https://downloads.wenglab.org/H3K4me3_MM10_ENCODE_DEC2024_merged_nanrm.bigWig"],
+          ["Aggregated H3K27ac ChIP-seq signal, all Registry biosamples", "https://downloads.wenglab.org/H3K27ac_MM10_ENCODE_DEC2024_merged_nanrm.bigWig"],
+          ["Aggregated CTCF ChIP-seq signal, all Registry biosamples", "https://downloads.wenglab.org/CTCF_MM10_ENCODE_DEC2024_merged_nanrm.bigWig"],
+          ["Aggregated ATAC ChIP-seq signal, all Registry biosamples", "https://downloads.wenglab.org/ATAC_MM10_ENCODE_DEC2024_merged_nanrm.bigWig"],
         ]
       : [
           ["All cCREs colored by group", "https://downloads.wenglab.org/GRCh38-cCREs.DCC.bigBed"],
@@ -112,6 +117,7 @@ const DefaultTracks: React.FC<DefaultTracksProps> = (props) => {
           ["Aggregated H3K4me3 ChIP-seq signal, all Registry biosamples", "https://downloads.wenglab.org/H3K4me3_All_ENCODE_MAR20_2024_merged.bw"],
           ["Aggregated H3K27ac ChIP-seq signal, all Registry biosamples", "https://downloads.wenglab.org/H3K27ac_All_ENCODE_MAR20_2024_merged.bw"],
           ["Aggregated CTCF ChIP-seq signal, all Registry biosamples", "https://downloads.wenglab.org/CTCF_All_ENCODE_MAR20_2024_merged.bw"],
+          ["Aggregated ATAC ChIP-seq signal, all Registry biosamples", "https://downloads.wenglab.org/ATAC_All_ENCODE_MAR20_2024_merged.bw"],
         ]
   )
   const height = useMemo(() => cTracks.length * 80, [cTracks])
