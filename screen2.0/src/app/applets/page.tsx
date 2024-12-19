@@ -3,12 +3,11 @@
 import { Box, Button, Divider, IconButton, Stack, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid2"
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { useRouter } from "next/navigation";
 import React from "react";
 import Carousel from "./carousel";
+import Link from "next/link";
 
 export default function Applets() {
-  const router = useRouter();
 
   const applets = [
     {
@@ -67,7 +66,9 @@ export default function Applets() {
                     <Typography variant="body1" gutterBottom>
                       {applet.description}
                     </Typography>
-                    <Button variant="contained" color="primary" onClick={() => router.push(applet.link)} disabled={applet.buttonText === "Under Construction"}>
+                    <Button
+                      LinkComponent={Link}
+                      variant="contained" color="primary" href={applet.link} disabled={applet.buttonText === "Under Construction"}>
                       {applet.buttonText}
                     </Button>
                   </Grid>
@@ -95,7 +96,9 @@ export default function Applets() {
                     <Typography variant="body1" gutterBottom>
                       {applet.description}
                     </Typography>
-                    <Button variant="contained" color="primary" onClick={() => router.push(applet.link)}>
+                      <Button
+                        LinkComponent={Link}
+                        variant="contained" color="primary" href={applet.link}>
                       {applet.buttonText}
                     </Button>
                   </Grid>

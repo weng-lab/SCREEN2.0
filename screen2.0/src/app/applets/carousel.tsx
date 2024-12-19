@@ -5,7 +5,7 @@ import { Box, Button, Stack, Typography } from "@mui/material";
 import "swiper/swiper-bundle.css";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const theme = createTheme({
     components: {
@@ -57,7 +57,6 @@ const slides = [
 ];
 
 const ExpandableCarousel = () => {
-    const router = useRouter();
 
     return (
         <ThemeProvider theme={theme}>
@@ -103,7 +102,11 @@ const ExpandableCarousel = () => {
                                     <Typography variant="body1" textAlign="center" gutterBottom>
                                         {slide.description}
                                     </Typography>
-                                    <Button onClick={() => router.push(slide.link)} disabled={slide.text === "ARGO"}>Learn More<ArrowForwardIcon sx={{ marginLeft: "8px" }}/></Button>
+                                    <Button
+                                        LinkComponent={Link}
+                                        href={slide.link}
+                                        disabled={slide.text === "ARGO"}>Learn More<ArrowForwardIcon sx={{ marginLeft: "8px" }} />
+                                    </Button>
                                 </Stack>
                             </Box>
                             <Box
