@@ -25,6 +25,7 @@ import { LoadingMessage } from "../../common/lib/utility"
 import { Download } from "@mui/icons-material"
 import { ApolloQueryResult, useLazyQuery } from "@apollo/client"
 import { LINKED_GENES } from "./_ccredetails/queries"
+import { gql } from "../../graphql/__generated__/gql"
 
 /**
  * @todo:
@@ -141,16 +142,58 @@ export type LinkedGenesVariables = {
   celltypes?: string[]
 }
 
+/**
+ * @todo move this to a better location
+ */
+const GET_GENE_COORDS = gql(`
+  query getGeneLocation1($name: String!, $assembly: String!, $version: Int!) {
+    gene(name: [$name], assembly: $assembly, version: $version) {
+      coordinates {
+        chromosome
+        start
+        end
+      }
+    }
+  }
+`)
+
+const GET_SNP_COORDS = gql(`
+  query snpAutocompleteQuery($snpid: String!, $assembly: String!) {
+      snpAutocompleteQuery(snpid: $snpid, assembly: $assembly) {
+          id
+          coordinates {
+              chromosome
+              start
+              end
+          }
+      }
+  }  
+`)
+
+const GET_ACCESSION_COORDS = gql(`
+  query getAcccessionCoords($accession: [String!], $assembly: String!) {
+    cCREQuery(accession: $accession, assembly: $assembly) {
+        accession
+      coordinates {
+        start
+        end
+        chromosome
+      }
+    }
+  }
+`)
+
 export default function Search({ searchParams }: { searchParams: { [key: string]: string | undefined } }) {
   const router = useRouter()
   const basePathname = usePathname()
+
   const [open, setOpen] = useState(true);
   const [page, setPage] = useState<number>(searchParams.page ? +searchParams.page : 0)
   const [detailsPage, setDetailsPage] = useState(0)
   const [opencCREs, setOpencCREs] = useState<{
     ID: string,
     region: { start: number, end: number, chrom: string }
-  }[]>(searchParams.accessions ? searchParams.accessions.split(',').map(x => {return {ID: x, region: null}}) : [])
+  }[]>(searchParams.accessions ? searchParams.accessions.split(',').map(x => { return { ID: x, region: null } }) : [])
   const [biosampleData, setBiosampleData] = useState<ApolloQueryResult<BIOSAMPLE_Data>>(null)
   const [mainQueryData, setMainQueryData] = useState<MainQueryData>(null)
   //potential performance improvement if I make an initializer function vs passing param here.
@@ -162,6 +205,238 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const [TSSs, setTSSs] = useState<number[]>(null)
   const [TSSranges, setTSSranges] = useState<{ start: number, end: number }[]>(null)
   const [bedLoadingPercent, setBedLoadingPercent] = useState<number>(null)
+
+  const [getGeneCoords] = useLazyQuery(GET_GENE_COORDS)
+  const [getSNPCoords] = useLazyQuery(GET_SNP_COORDS)
+  const [getAccessionCoords] = useLazyQuery(GET_ACCESSION_COORDS)
+  const haveCoordinates = Boolean(mainQueryParams.coordinates.assembly && mainQueryParams.coordinates.chromosome && mainQueryParams.coordinates.start && mainQueryParams.coordinates.end)
+
+  /**
+   * Backwards compatibility for ENCODE
+   * This is for sure going to be buggy, need to test many edge cases
+   */
+  useEffect(() => {
+    //If coordinates are not present, fill them in
+    if (!mainQueryParams.coordinates.assembly || !mainQueryParams.coordinates.chromosome || !mainQueryParams.coordinates.start || !mainQueryParams.coordinates.end) {
+      try {
+        //if q in searchParams, the request is coming from ENCODE
+        if (searchParams.q) {
+          //Request from ENCODE should always have assembly
+          const assembly = searchParams.assembly as "GRCh38" | "mm10"
+          //Spaces transformed into '+'
+          let searchType: "gene" | "snp" | "accession" | "region" = "gene"
+          //No human or mouse genes have "chr" followed by a number, so safe to check this way
+          if (/chr\d+/.test(searchParams.q)) searchType = "region"
+          //check for "rs" followed by number. Genes RS1 and Rs1 exist, but lowercase r is differentiator
+          if (/rs\d+/.test(searchParams.q)) searchType = "snp"
+          if (/^(EH38E|EM10E)\d+$/.test(searchParams.q)) searchType = "accession"
+
+          switch (searchType) {
+            case ("region"): {
+              setMainQueryParams(MQP => {
+                return {
+                  ...MQP,
+                  coordinates: {
+                    assembly,
+                    chromosome: searchParams.q.split(":")[0],
+                    start: +searchParams.q.split(":")[1].split("-")[0],
+                    end: +searchParams.q.split(":")[1].split("-")[1]
+                  }
+                }
+              })
+              break;
+            }
+            case ("snp"): {
+              getSNPCoords({
+                variables: {
+                  snpid: searchParams.q,
+                  assembly
+                }
+              }).then(d => {
+                const coords = d.data.snpAutocompleteQuery[0].coordinates
+                setMainQueryParams(MQP => {
+                  return {
+                    ...MQP,
+                    coordinates: {
+                      assembly,
+                      chromosome: coords.chromosome,
+                      start: coords.start,
+                      end: coords.end
+                    },
+                    snp: {
+                      rsID: searchParams.q,
+                      distance: 0
+                    }
+                  }
+                })
+              })
+              break;
+            }
+            case ("accession"): {
+              getAccessionCoords({
+                variables: {
+                  accession: searchParams.q,
+                  assembly
+                }
+              }).then(d => {
+                const coords = d.data.cCREQuery[0].coordinates
+                setMainQueryParams(MQP => {
+                  return {
+                    ...MQP,
+                    coordinates: {
+                      assembly,
+                      chromosome: coords.chromosome,
+                      start: coords.start,
+                      end: coords.end
+                    }
+                  }
+                })
+                setOpencCREs([{
+                  ID: searchParams.q,
+                  region: { start: coords.start, end: coords.end, chrom: coords.chromosome }
+                }])
+                setPage(2)
+              })
+              break;
+            }
+            case ("gene"): {
+              const gene = assembly === "GRCh38"
+                //fix capitalization
+                ? searchParams.q.toUpperCase()
+                : searchParams.q.charAt(0).toUpperCase() + searchParams.q.slice(1).toLowerCase()
+              getGeneCoords({
+                variables: {
+                  name: gene,
+                  assembly: assembly,
+                  version: assembly === "GRCh38" ? 40 : 25
+                }
+              }).then(d => {
+                const coords = d.data.gene[0].coordinates
+                setMainQueryParams(MQP => {
+                  return {
+                    ...MQP,
+                    coordinates: {
+                      assembly,
+                      chromosome: coords.chromosome,
+                      start: coords.start,
+                      end: coords.end
+                    },
+                    gene: {
+                      name: gene,
+                      distance: 0,
+                      nearTSS: false
+                    }
+                  }
+                })
+              })
+              break;
+            }
+          }
+
+        }
+        //else parse from gene/accession/snpid
+        else {
+          let searchType: "gene" | "snp" | "accession"
+          if (searchParams.gene) searchType = "gene"
+          if (searchParams.snpid) searchType = "snp"
+          if (searchParams.accessions) searchType = "accession"
+
+          switch (searchType) {
+            case ("gene"): {
+              const gene = searchParams.gene
+              //if second character in gene is uppercase, assume it's human
+              const assembly = gene.charAt(1) === gene.charAt(1).toUpperCase() ? "GRCh38" : "mm10"
+              getGeneCoords({
+                variables: {
+                  name: gene,
+                  assembly: assembly,
+                  version: assembly === "GRCh38" ? 40 : 25
+                }
+              }).then(d => {
+                const coords = d.data.gene[0].coordinates
+                setMainQueryParams(MQP => {
+                  return {
+                    ...MQP,
+                    coordinates: {
+                      assembly,
+                      chromosome: coords.chromosome,
+                      start: coords.start,
+                      end: coords.end
+                    },
+                    gene: {
+                      name: gene,
+                      distance: 0,
+                      nearTSS: false
+                    }
+                  }
+                })
+              })
+              break;
+            }
+            case ("snp"): {
+              const snp = searchParams.snpid
+              //Assuming all SNPs are human for now
+              const assembly = "GRCh38"
+              getSNPCoords({
+                variables: {
+                  snpid: snp,
+                  assembly
+                }
+              }).then(d => {
+                const coords = d.data.snpAutocompleteQuery[0].coordinates
+                setMainQueryParams(MQP => {
+                  return {
+                    ...MQP,
+                    coordinates: {
+                      assembly,
+                      chromosome: coords.chromosome,
+                      start: coords.start,
+                      end: coords.end
+                    },
+                    snp: {
+                      rsID: snp,
+                      distance: 0
+                    }
+                  }
+                })
+              })
+              break;
+            }
+            case ("accession"): {
+              //This does not handle having multiple comma-separated cCREs. Will fail if more than one passed
+              const accession = searchParams.accessions
+              const assembly = accession.charAt(1) === "H" ? "GRCh38" : "mm10"
+              getAccessionCoords({
+                variables: {
+                  accession,
+                  assembly
+                }
+              }).then(d => {
+                const coords = d.data.cCREQuery[0].coordinates
+                setMainQueryParams(MQP => {
+                  return {
+                    ...MQP,
+                    coordinates: {
+                      assembly,
+                      chromosome: coords.chromosome,
+                      start: coords.start,
+                      end: coords.end
+                    }
+                  }
+                })
+                setPage(2)
+              })
+              break;
+            }
+          }
+        }
+      } catch (error) {
+        window.alert("Something went wrong parsing the url parameters:\n" + JSON.stringify(searchParams) + error)
+      }
+
+    }
+    //DEFINE SOME FALLBACK IF PARSING FAILS
+  }, [getAccessionCoords, getGeneCoords, getSNPCoords, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.end, mainQueryParams.coordinates.start, router, searchParams.accessions, searchParams.assembly, searchParams.gene, searchParams.q, searchParams.snpid])
 
 
   //Used to set just biosample in filters.
@@ -176,7 +451,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     intersectFilenames.current = sessionStorage.getItem("filenames")
   }, [])
 
-  const numberOfDefaultTabs = mainQueryParams.gene.name ? (mainQueryParams.coordinates.assembly.toLowerCase() === "mm10" ? 3 : 4) : 2
+  const numberOfDefaultTabs = mainQueryParams.gene.name ? (mainQueryParams.coordinates.assembly?.toLowerCase() === "mm10" ? 3 : 4) : 2
 
   const handleDrawerOpen = () => { setOpen(true) }
   const handleDrawerClose = () => { setOpen(false) }
@@ -286,30 +561,32 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       end = TSSs && TSSranges ? Math.max(...TSSs) + mainQueryParams.gene.distance : null
     }
 
-    const getcCREs = async () => {
-        const mainQueryData = await fetchcCREData(
-          mainQueryParams.coordinates.assembly,
-          mainQueryParams.coordinates.chromosome,
-          start,
-          end,
-          mainQueryParams.biosample?.name ? mainQueryParams.biosample.name : undefined,
-          null,
-          1,
-          mainQueryParams.searchConfig.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined
-        )
-        setMainQueryData(mainQueryData)
-        setLoadingFetch(false)
-      }
+    //I could fetch the coordinates here, if I change constructMainQueryParamsFromURL to return null for coordinates instead of default
 
-    if (mainQueryParams.searchConfig.bed_intersect || (start !== null) && (end !== null)) {
+    const getcCREs = async () => {
+      const mainQueryData = await fetchcCREData(
+        mainQueryParams.coordinates.assembly,
+        mainQueryParams.coordinates.chromosome,
+        start,
+        end,
+        mainQueryParams.biosample?.name ? mainQueryParams.biosample.name : undefined,
+        null,
+        1,
+        mainQueryParams.searchConfig.bed_intersect ? sessionStorage.getItem("bed intersect")?.split(' ') : undefined
+      )
+      setMainQueryData(mainQueryData)
+      setLoadingFetch(false)
+    }
+
+    if (mainQueryParams.searchConfig.bed_intersect || (start !== null) && (end !== null) && mainQueryParams.coordinates.assembly && mainQueryParams.coordinates.chromosome) {
       getcCREs()
-    } 
+    }
   }, [mainQueryParams.searchConfig.bed_intersect, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.start, mainQueryParams.coordinates.end, mainQueryParams.biosample?.name, mainQueryParams.snp.rsID, mainQueryParams.snp.distance, TSSs, TSSranges, mainQueryParams.gene.distance, mainQueryParams.gene.nearTSS])
 
   //Fetch Linked Genes
   const useLinkedGenes = useLazyQuery<LinkedGenes, LinkedGenesVariables>(LINKED_GENES, {
     variables: {
-      assembly: mainQueryParams.coordinates.assembly.toLowerCase(),
+      assembly: mainQueryParams.coordinates.assembly?.toLowerCase(),
       accessions: mainQueryData?.data.cCRESCREENSearch.map((res) => res.info.accession)
     },
     fetchPolicy: "cache-and-network",
@@ -320,7 +597,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   //If linked Genes Filter is set, fetch right away
   if (filterCriteria.linkedGeneName && mainQueryData && (!dataLinkedGenes && !loadingLinkedGenes)) {
     getLinkedGenes()
-  } 
+  }
 
   // Initialize open cCREs on initial load
   /**
@@ -330,58 +607,58 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     const cCREsToFetch = searchParams.accessions?.split(',')
 
     const getOpencCREs = async () => {
-        //Generate unfiltered rows of info for each open cCRE for ease of accessing data
-        const cCREQueryData = await fetchcCREData(
-          mainQueryParams.coordinates.assembly,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          1000000,
-          null,
-          cCREsToFetch
+      //Generate unfiltered rows of info for each open cCRE for ease of accessing data
+      const cCREQueryData = await fetchcCREData(
+        mainQueryParams.coordinates.assembly,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        1000000,
+        null,
+        cCREsToFetch
+      )
+      const opencCRE_data = generateFilteredRows(
+        cCREQueryData,
+        [],
+        filterCriteria,
+        true
+      )
+      const newOpencCREs = [...opencCRE_data.map((cCRE) => {
+        return (
+          {
+            ID: cCRE.accession,
+            region: {
+              start: cCRE.start,
+              end: cCRE.end,
+              chrom: cCRE.chromosome,
+            },
+          }
         )
-        const opencCRE_data = generateFilteredRows(
-          cCREQueryData,
-          [],
-          filterCriteria,
-          true
-        )
-        const newOpencCREs = [...opencCRE_data.map((cCRE) => {
-          return (
-            {
-              ID: cCRE.accession,
-              region: {
-                start: cCRE.start,
-                end: cCRE.end,
-                chrom: cCRE.chromosome,
-              },
-            }
-          )
-        })]
-        //sort to match url order
-        setOpencCREs(newOpencCREs.sort((a, b) => {
-          const indexA = cCREsToFetch.indexOf(a.ID);
-          const indexB = cCREsToFetch.indexOf(b.ID);
-          return indexA - indexB;
-        })
-        )
-        setOpencCREsInitialized(true)
-      }
+      })]
+      //sort to match url order
+      setOpencCREs(newOpencCREs.sort((a, b) => {
+        const indexA = cCREsToFetch.indexOf(a.ID);
+        const indexB = cCREsToFetch.indexOf(b.ID);
+        return indexA - indexB;
+      })
+      )
+      setOpencCREsInitialized(true)
+    }
 
-    if (cCREsToFetch?.length > 0 && !opencCREsInitialized) {
+    if (cCREsToFetch?.length > 0 && !opencCREsInitialized && haveCoordinates) {
       getOpencCREs()
     } else if ((!cCREsToFetch || cCREsToFetch?.length === 0) && !opencCREsInitialized) {
       setOpencCREsInitialized(true)
     }
-  }, [opencCREsInitialized, filterCriteria, mainQueryParams.coordinates.assembly, searchParams.accessions])
+  }, [opencCREsInitialized, filterCriteria, mainQueryParams.coordinates.assembly, searchParams.accessions, haveCoordinates])
 
   //Generate and filter rows
   const filteredTableRows = useMemo(() => {
     setLoadingTable(true)
     if (mainQueryData) {
       //remove trailing space in gene name return data. Hopefully can replace eventually, JF 7/14/24
-      const rows = generateFilteredRows(mainQueryData, dataLinkedGenes ? dataLinkedGenes.linkedGenes.map((x) => {return {...x, gene: x.gene.split(' ')[0]}}) : null, filterCriteria, false, mainQueryParams.gene.nearTSS ? TSSranges : undefined)
+      const rows = generateFilteredRows(mainQueryData, dataLinkedGenes ? dataLinkedGenes.linkedGenes.map((x) => { return { ...x, gene: x.gene.split(' ')[0] } }) : null, filterCriteria, false, mainQueryParams.gene.nearTSS ? TSSranges : undefined)
       setLoadingTable(false)
       return (rows)
     } else {
@@ -464,7 +741,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               aria-label="navigation tabs"
               value={page}
               onChange={handlePageChange}
-              
+
             >
               {/* Hidden empty icon to keep tab height consistent */}
               <StyledHorizontalTab iconPosition="end" icon={<Box sx={{ display: 'none' }} />} value={0} label="Table View" />
@@ -476,7 +753,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                   label={<p><i>{mainQueryParams.gene.name}</i> Gene Expression</p>}
                 />
               }
-              {mainQueryParams.gene.name && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" &&
+              {mainQueryParams.gene.name && mainQueryParams.coordinates.assembly?.toLowerCase() !== "mm10" &&
                 <StyledHorizontalTab value={3} label={<p><i>{mainQueryParams.gene.name}</i> RAMPAGE</p>} />
               }
 
@@ -537,7 +814,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               setTSSranges={setTSSranges}
               genomeBrowserView={page === 1}
               useLinkedGenes={useLinkedGenes}
-              
+
             />
             :
             <Tabs
@@ -571,7 +848,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           <DrawerHeader id="DrawerHeader" />
           {page === 0 && (
             <Box>
-              {loadingTable || loadingFetch ?
+              {loadingTable || loadingFetch || !haveCoordinates ?
                 <LoadingMessage />
                 :
                 <><MainResultsTable
@@ -592,7 +869,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                       mainQueryParams.snp.rsID ?
                         `cCREs within ${mainQueryParams.snp.distance}bp of ${mainQueryParams.snp.rsID} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
                         :
-                        `Searching ${mainQueryParams.coordinates.chromosome} in ${mainQueryParams.coordinates.assembly} from ${mainQueryParams.coordinates.start.toLocaleString("en-US")} to ${mainQueryParams.coordinates.end.toLocaleString("en-US")}`}
+                        `Searching ${mainQueryParams.coordinates.chromosome} in ${mainQueryParams.coordinates.assembly} from ${mainQueryParams.coordinates.start?.toLocaleString("en-US")} to ${mainQueryParams.coordinates.end?.toLocaleString("en-US")}`}
                   titleHoverInfo={mainQueryParams.searchConfig.bed_intersect ?
                     `${intersectWarning.current === "true" ?
                       "The file you uploaded, " + intersectFilenames.current + ", is too large to be completely intersected. Results are incomplete."
@@ -604,7 +881,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                   assembly={mainQueryParams.coordinates.assembly}
                   onRowClick={handlecCREClick}
                   useLinkedGenes={useLinkedGenes}
-                  />
+                />
                   <Stack direction="row" alignItems={"center"} sx={{ mt: 1 }}>
                     <Button
                       disabled={typeof bedLoadingPercent === "number"}
@@ -647,7 +924,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           {mainQueryParams.gene.name && page === 2 &&
             <GeneExpression assembly={mainQueryParams.coordinates.assembly} genes={[{ name: mainQueryParams.gene.name }]} />
           }
-          {mainQueryParams.gene.name && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" && page === 3 && (
+          {mainQueryParams.gene.name && haveCoordinates && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" && page === 3 && (
             <Rampage genes={[{ name: mainQueryParams.gene.name }]} />
           )}
           {page >= numberOfDefaultTabs && opencCREs.length > 0 && (
