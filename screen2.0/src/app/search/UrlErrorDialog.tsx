@@ -37,15 +37,13 @@ const UrlErrorDialog = ({errorMsg, open, searchParams}: UrlErrorDialogProps) => 
           If this is unexpected based on the info above, please feel free to <Link href="/about#contact-us">report it using our "Contact Us" form</Link> and provide us the error you're facing.
         </DialogContentText>
       </DialogContent>
-      <DialogActions>
-        <Stack direction="row" justifyContent="space-between">
-          <Button LinkComponent={Link} href="/about#contact-us" endIcon={<ReportProblem />}>
+      <DialogActions sx={{justifyContent: "space-between"}}>
+          <Button LinkComponent={Link} href="/about#contact-us" endIcon={<ReportProblem />} variant="outlined">
             Report This Error
           </Button>
-          <Button LinkComponent={Link} href="/" endIcon={<Home />}>
+          <Button LinkComponent={Link} href="/" endIcon={<Home />} variant="outlined">
             Go To Home
           </Button>
-        </Stack>
       </DialogActions>
     </Dialog>
   )
