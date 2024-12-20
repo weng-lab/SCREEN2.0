@@ -1,5 +1,5 @@
 import { Home, KeyboardArrowRight, ReportProblem } from "@mui/icons-material"
-import { Accordion, AccordionDetails, AccordionSummary, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Stack } from "@mui/material"
+import { Accordion, AccordionDetails, AccordionSummary, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material"
 import Link from "next/link"
 
 type UrlErrorDialogProps = {
@@ -34,7 +34,7 @@ const UrlErrorDialog = ({errorMsg, open, searchParams}: UrlErrorDialogProps) => 
           </AccordionDetails>
         </Accordion>
         <DialogContentText>
-          If this is unexpected based on the info above, please feel free to <Link href="/about#contact-us">report it using our "Contact Us" form</Link> and provide us the error you're facing.
+          If this is unexpected based on the info above, please feel free to <Link href="/about#contact-us">report it using our "Contact Us" form</Link> and provide us the error you're facing. Please copy the error before navigating! It will be lost.
         </DialogContentText>
       </DialogContent>
       <DialogActions sx={{justifyContent: "space-between"}}>

@@ -210,9 +210,9 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const [TSSs, setTSSs] = useState<number[]>(null)
   const [TSSranges, setTSSranges] = useState<{ start: number, end: number }[]>(null)
   const [bedLoadingPercent, setBedLoadingPercent] = useState<number>(null)
+  const [urlParseError, setUrlParseError] = useState<string>(null)
 
 
-  const [urlParseError, setUrlParseError] = useState(null)
   const [getGeneCoords] = useLazyQuery(GET_GENE_COORDS)
   const [getSNPCoords] = useLazyQuery(GET_SNP_COORDS)
   const [getAccessionCoords] = useLazyQuery(GET_ACCESSION_COORDS)
@@ -228,17 +228,11 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   }, [mainQueryParams.coordinates]) 
 
   const initialDomain = useMemo(() => {
-    // if (haveCoordinates) {
-      return ({
-        chromosome: initialBrowserCoords.chromosome,
-        start: initialBrowserCoords.start,
-        end: initialBrowserCoords.end
-      })
-    // } else return ({
-    //   chromosome: 'chr1',
-    //   start: 1,
-    //   end: 1000
-    // })
+    return ({
+      chromosome: initialBrowserCoords.chromosome,
+      start: initialBrowserCoords.start,
+      end: initialBrowserCoords.end
+    })
   }, [initialBrowserCoords.chromosome, initialBrowserCoords.end, initialBrowserCoords.start])
 
   const initialTracks = useMemo(() => {
@@ -257,15 +251,14 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   }, [initialDomain, initialTracks]) 
 
   const [browserState, browserDispatch] = useBrowserState(initialBrowserState)
+  const [browserInitialized, setBrowserInitialized] = useState(haveCoordinates ? true : false)
 
   /**
    * Backwards compatibility for ENCODE
    * This is for sure going to be buggy, need to test many edge cases
    */
   useEffect(() => {
-    
-    //If coordinates are not present, fill them in
-    if (!mainQueryParams.coordinates.assembly || !mainQueryParams.coordinates.chromosome || !mainQueryParams.coordinates.start || !mainQueryParams.coordinates.end) {
+    const fetchCoordinates = async () => {
       let searchType: "gene" | "snp" | "accession" | "region"
       let assembly: "GRCh38" | "mm10"
       let foundCoordinates: {
@@ -317,7 +310,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               foundChr = searchParams.q.split(":")[0]
               foundStart = +searchParams.q.split(":")[1].split("-")[0]
               foundEnd = +searchParams.q.split(":")[1].split("-")[1]
-            } else if (!isFromENCODE) {
+            } else {
               foundChr = searchParams.chromosome || "chr12"
               foundStart = +searchParams.start || 53380176
               foundEnd = +searchParams.end || 53416446
@@ -340,33 +333,32 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                 //fix capitalization
                 ? searchParams.q.toUpperCase()
                 : searchParams.q.charAt(0).toUpperCase() + searchParams.q.slice(1).toLowerCase()
-            } else if (!isFromENCODE) {
+            } else {
               gene = searchParams.gene
             }
             if (gene) {
-              getGeneCoords({
+              const geneCoords = await getGeneCoords({
                 variables: {
                   name: gene,
                   assembly: assembly,
                   version: assembly === "GRCh38" ? 40 : 25
                 }
-              }).then(d => {
-                const coords = d.data.gene[0].coordinates
-                if (d.error || !coords) throw new Error(JSON.stringify(d.error))
-                foundCoordinates = {
-                  assembly: assembly,
-                  chromosome: coords.chromosome,
-                  start: coords.start,
-                  end: coords.end
+              })
+              const coords = geneCoords.data?.gene[0]?.coordinates;
+              if (!coords || geneCoords.error) throw new Error(JSON.stringify(geneCoords.error))
+              foundCoordinates = {
+                assembly,
+                chromosome: coords.chromosome,
+                start: coords.start,
+                end: coords.end,
+              }
+              toAddIntoMQP = {
+                gene: {
+                  name: gene,
+                  distance: 0,
+                  nearTSS: false
                 }
-                toAddIntoMQP = {
-                  gene: {
-                    name: gene,
-                    distance: 0,
-                    nearTSS: false
-                  }
-                }
-              }).catch((error) => { throw new Error(`Issue fetching coordinates for gene ${gene} in assembly ${assembly} \nURL Params: \n${JSON.stringify(searchParams)} \n${error}`) })
+              }
             } else { throw new Error(`Error parsing url input gene ${gene} in assembly ${assembly} \nURL Params: \n${JSON.stringify(searchParams)}`) }
             break;
           }
@@ -378,27 +370,26 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               snp = searchParams.snpid
             }
             if (snp) {
-              getSNPCoords({
+              const snpCoords = await getSNPCoords({
                 variables: {
                   snpid: snp,
                   assembly
                 }
-              }).then(d => {
-                const coords = d.data.snpAutocompleteQuery[0].coordinates
-                if (d.error || !coords) throw new Error(JSON.stringify(d.error))
-                foundCoordinates = {
-                  assembly: assembly,
-                  chromosome: coords.chromosome,
-                  start: coords.start,
-                  end: coords.end
+              })
+              const coords = snpCoords.data?.snpAutocompleteQuery[0]?.coordinates
+              if (snpCoords.error || !coords) throw new Error(JSON.stringify(snpCoords.error))
+              foundCoordinates = {
+                assembly: assembly,
+                chromosome: coords.chromosome,
+                start: coords.start,
+                end: coords.end
+              }
+              toAddIntoMQP = {
+                snp: {
+                  rsID: snp,
+                  distance: 0
                 }
-                toAddIntoMQP = {
-                  snp: {
-                    rsID: searchParams.q,
-                    distance: 0
-                  }
-                }
-              }).catch((error) => { throw new Error(`Issue fetching coordinates for SNP rsID ${snp} in assembly ${assembly} \nURL Params: \n${JSON.stringify(searchParams)} \n${error}`) })
+              }
             } else { throw new Error(`Error parsing url input SNP rsID ${snp} in assembly ${assembly} \nURL Params: \n${JSON.stringify(searchParams)}`) }
             break;
           }
@@ -413,32 +404,31 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               }
             }
             if (accession) {
-              getAccessionCoords({
+              const accessionCoords = await getAccessionCoords({
                 variables: {
                   accession,
                   assembly
                 }
-              }).then(d => {
-                const coords = d.data.cCREQuery[0].coordinates
-                if (d.error || !coords) throw new Error(JSON.stringify(d.error))
-                foundCoordinates = {
-                  assembly: assembly,
-                  chromosome: coords.chromosome,
-                  start: coords.start,
-                  end: coords.end
-                }
-                setOpencCREs([{
-                  ID: searchParams.q,
-                  region: { start: coords.start, end: coords.end, chrom: coords.chromosome }
-                }])
-                setPage(2)
-              }).catch((error) => { throw new Error(`Issue fetching coordinates for cCRE Accession ${accession} in assembly ${assembly} \nURL Params: \n${JSON.stringify(searchParams)} \n${error}`) })
+              })
+              const coords = accessionCoords.data?.cCREQuery[0]?.coordinates
+              if (accessionCoords.error || !coords) throw new Error(JSON.stringify(accessionCoords.error))
+              foundCoordinates = {
+                assembly: assembly,
+                chromosome: coords.chromosome,
+                start: coords.start,
+                end: coords.end
+              }
+              setOpencCREs([{
+                ID: accession,
+                region: { start: coords.start, end: coords.end, chrom: coords.chromosome }
+              }])
+              setPage(2)
             } else { throw new Error(`Error parsing url input accession ${accession} in assembly ${assembly} \nURL Params: \n${JSON.stringify(searchParams)}`) }
             break;
           }
         }
       } catch (error) {
-        setUrlParseError(error)
+        setUrlParseError(String(error))
         console.error(error)
       } finally {
         console.log("reached the end with " + JSON.stringify(foundCoordinates) + JSON.stringify(toAddIntoMQP))
@@ -449,15 +439,24 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
             coordinates: { ...foundCoordinates }
           }
         })
-        browserDispatch({ type: BrowserActionType.SET_DOMAIN, domain: initialDomain })
-        getDefaultTracks(foundCoordinates).forEach((track) => {
-          browserDispatch({ type: BrowserActionType.ADD_TRACK, track })
-        })
       }
     }
-    //DEFINE SOME FALLBACK IF PARSING FAILS
-  }, [browserDispatch, getAccessionCoords, getGeneCoords, getSNPCoords, initialDomain, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.end, mainQueryParams.coordinates.start, searchParams])
 
+    if (!haveCoordinates) {
+      fetchCoordinates()
+    }
+  }, [getAccessionCoords, getGeneCoords, getSNPCoords, haveCoordinates, searchParams])
+
+  //This is really bad, this file relies way too much on useEffects. Need major rewrite.
+  useEffect(() => {
+    if (!browserInitialized && haveCoordinates){
+      browserDispatch({ type: BrowserActionType.SET_DOMAIN, domain: initialDomain })
+      getDefaultTracks(mainQueryParams.coordinates).forEach((track) => {
+        browserDispatch({ type: BrowserActionType.ADD_TRACK, track })
+      })
+      setBrowserInitialized(true)
+    }
+  }, [browserDispatch, browserInitialized, haveCoordinates, initialDomain, mainQueryParams.coordinates])
 
   //Used to set just biosample in filters.
   const handleSetBiosample = (biosample: RegistryBiosample) => { setMainQueryParams({ ...mainQueryParams, biosample: biosample }) }
@@ -949,7 +948,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           )}
         </Main>
       </Box>
-      <UrlErrorDialog open={Boolean(urlParseError)} searchParams={searchParams} errorMsg={JSON.stringify(urlParseError)} />
+      <UrlErrorDialog open={Boolean(urlParseError)} searchParams={searchParams} errorMsg={urlParseError} />
     </>
   )
 }
