@@ -345,7 +345,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                 }
               })
               const coords = geneCoords.data?.gene[0]?.coordinates;
-              if (!coords || geneCoords.error) throw new Error(JSON.stringify(geneCoords.error))
+              if (geneCoords.error) throw new Error(JSON.stringify(geneCoords.error))
+              if (!coords) throw new Error(`Failed to fetch coordinates for gene ${gene} in assembly ${assembly}`)
               foundCoordinates = {
                 assembly,
                 chromosome: coords.chromosome,
@@ -377,7 +378,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                 }
               })
               const coords = snpCoords.data?.snpAutocompleteQuery[0]?.coordinates
-              if (snpCoords.error || !coords) throw new Error(JSON.stringify(snpCoords.error))
+              if (snpCoords.error) throw new Error(JSON.stringify(snpCoords.error))
+              if (!coords) throw new Error(`Failed to fetch coordinates for SNP rsID ${snp} in assembly ${assembly}`)
               foundCoordinates = {
                 assembly: assembly,
                 chromosome: coords.chromosome,
@@ -400,7 +402,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
             } else {
               accession = searchParams.accessions
               if (accession.split(',').length > 1) {
-                throw new Error("Sorry we don't currently support multiple simultaneous cCRE accession searched")
+                throw new Error("Sorry we don't currently support multiple simultaneous cCRE accession searched. Try a region search that encompases all cCREs of interest")
               }
             }
             if (accession) {
@@ -411,7 +413,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                 }
               })
               const coords = accessionCoords.data?.cCREQuery[0]?.coordinates
-              if (accessionCoords.error || !coords) throw new Error(JSON.stringify(accessionCoords.error))
+              if (accessionCoords.error) throw new Error(JSON.stringify(accessionCoords.error))
+              if (!coords) throw new Error(`Failed to fetch coordinates for accession ${accession} in assembly ${assembly}`)
               foundCoordinates = {
                 assembly: assembly,
                 chromosome: coords.chromosome,
@@ -448,15 +451,24 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   }, [getAccessionCoords, getGeneCoords, getSNPCoords, haveCoordinates, searchParams])
 
   //This is really bad, this file relies way too much on useEffects. Need major rewrite.
+  //Initialize genome browser if coordinates were missing initially
   useEffect(() => {
-    if (!browserInitialized && haveCoordinates){
-      browserDispatch({ type: BrowserActionType.SET_DOMAIN, domain: initialDomain })
-      getDefaultTracks(mainQueryParams.coordinates).forEach((track) => {
-        browserDispatch({ type: BrowserActionType.ADD_TRACK, track })
-      })
-      setBrowserInitialized(true)
+    if (!browserInitialized && haveCoordinates) {
+      console.log("adding tracks: ");
+      const tracks = getDefaultTracks(mainQueryParams.coordinates);
+      browserDispatch({ type: BrowserActionType.SET_DOMAIN, domain: initialDomain });
+      tracks.forEach((track) => {
+        // This was needed to prevent track from being added twice in development mode, since effects are run twice. 
+        // The fact that this is necessary is emblematic of bigger issues with this code
+        if (!browserState.tracks.some(x => x.title === track.title)) {
+          browserDispatch({ type: BrowserActionType.ADD_TRACK, track })
+        }
+      });
+      // Mark as initialized
+      setBrowserInitialized(true);
     }
-  }, [browserDispatch, browserInitialized, haveCoordinates, initialDomain, mainQueryParams.coordinates])
+  }, [browserDispatch, browserInitialized, browserState.tracks, haveCoordinates, initialDomain, mainQueryParams.coordinates]);
+  
 
   //Used to set just biosample in filters.
   const handleSetBiosample = (biosample: RegistryBiosample) => { setMainQueryParams({ ...mainQueryParams, biosample: biosample }) }
