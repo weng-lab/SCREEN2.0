@@ -10,7 +10,7 @@ import { MainResultsTable } from "./mainresultstable"
 import { MainResultsFilters } from "./mainresultsfilters"
 import { CcreDetails, LinkedGeneInfo, } from "./_ccredetails/ccredetails"
 import { usePathname, useRouter } from "next/navigation"
-import { GenomeBrowserView } from "./_gbview/genomebrowserview"
+import { expandCoordinates, GenomeBrowserView } from "./_gbview/genomebrowserview"
 import { generateFilteredRows } from "./searchhelpers"
 import { Drawer } from "@mui/material"
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar'
@@ -25,6 +25,10 @@ import { LoadingMessage } from "../../common/lib/utility"
 import { Download } from "@mui/icons-material"
 import { ApolloQueryResult, useLazyQuery } from "@apollo/client"
 import { LINKED_GENES } from "./_ccredetails/queries"
+import { Browser } from "./_newgbview/browser"
+import { BrowserActionType, useBrowserState } from "@weng-lab/genomebrowser"
+import { getDefaultTracks } from "./_newgbview/genTracks"
+import { GROUP_COLOR_MAP } from "./_ccredetails/utils"
 
 /**
  * @todo:
@@ -150,7 +154,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const [opencCREs, setOpencCREs] = useState<{
     ID: string,
     region: { start: number, end: number, chrom: string }
-  }[]>(searchParams.accessions ? searchParams.accessions.split(',').map(x => {return {ID: x, region: null}}) : [])
+  }[]>(searchParams.accessions ? searchParams.accessions.split(',').map(x => { return { ID: x, region: null } }) : [])
   const [biosampleData, setBiosampleData] = useState<ApolloQueryResult<BIOSAMPLE_Data>>(null)
   const [mainQueryData, setMainQueryData] = useState<MainQueryData>(null)
   //potential performance improvement if I make an initializer function vs passing param here.
@@ -163,6 +167,18 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const [TSSranges, setTSSranges] = useState<{ start: number, end: number }[]>(null)
   const [bedLoadingPercent, setBedLoadingPercent] = useState<number>(null)
 
+  // Browser State
+  const initialBrowserCoords = expandCoordinates(mainQueryParams.coordinates)
+  const [browserState, browserDispatch] = useBrowserState({
+    domain: {
+      chromosome: initialBrowserCoords.chromosome,
+      start: initialBrowserCoords.start,
+      end: initialBrowserCoords.end
+    },
+    width: 1500,
+    tracks: getDefaultTracks({ ...initialBrowserCoords, assembly: mainQueryParams.coordinates.assembly }),
+    highlights: []
+  })
 
   //Used to set just biosample in filters.
   const handleSetBiosample = (biosample: RegistryBiosample) => { setMainQueryParams({ ...mainQueryParams, biosample: biosample }) }
@@ -182,8 +198,10 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const handleDrawerClose = () => { setOpen(false) }
 
   //Handle opening a cCRE or navigating to its open tab
-  const handlecCREClick = (row) => {
-    const newcCRE = { ID: row.accession, region: { start: row.start, end: row.end, chrom: row.chromosome } }
+  const handlecCREClick = (item) => {
+    const newcCRE = { ID: item.name || item.accession, region: { start: item.start, end: item.end, chrom: item.chromosome } }
+    console.log(item)
+    browserDispatch({ type: BrowserActionType.ADD_HIGHLIGHT, highlight: { domain: { chromosome: item.chromosome, start: item.start, end: item.end }, color: item.color, id: item.name || item.accession } })
     //If cCRE isn't in open cCREs, add and push as current accession.
     if (!opencCREs.find((x) => x.ID === newcCRE.ID)) {
       setOpencCREs([...opencCREs, newcCRE])
@@ -194,6 +212,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   }
   //Handle closing cCRE, and changing page if needed
   const handleClosecCRE = (closedID: string) => {
+    browserDispatch({ type: BrowserActionType.REMOVE_HIGHLIGHT, id: closedID })
     const newOpencCREs = opencCREs.filter((cCRE) => cCRE.ID != closedID)
 
 
@@ -348,6 +367,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           true
         )
         const newOpencCREs = [...opencCRE_data.map((cCRE) => {
+          let color = GROUP_COLOR_MAP.get(cCRE.class).split(":")[1] || "#8c8c8c"
+          browserDispatch({ type: BrowserActionType.ADD_HIGHLIGHT, highlight: { domain: { chromosome: cCRE.chromosome, start: cCRE.start, end: cCRE.end }, color, id: cCRE.accession } })
           return (
             {
               ID: cCRE.accession,
@@ -381,7 +402,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     setLoadingTable(true)
     if (mainQueryData) {
       //remove trailing space in gene name return data. Hopefully can replace eventually, JF 7/14/24
-      const rows = generateFilteredRows(mainQueryData, dataLinkedGenes ? dataLinkedGenes.linkedGenes.map((x) => {return {...x, gene: x.gene.split(' ')[0]}}) : null, filterCriteria, false, mainQueryParams.gene.nearTSS ? TSSranges : undefined)
+      const rows = generateFilteredRows(mainQueryData, dataLinkedGenes ? dataLinkedGenes.linkedGenes.map((x) => { return { ...x, gene: x.gene.split(' ')[0] } }) : null, filterCriteria, false, mainQueryParams.gene.nearTSS ? TSSranges : undefined)
       setLoadingTable(false)
       return (rows)
     } else {
@@ -464,7 +485,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               aria-label="navigation tabs"
               value={page}
               onChange={handlePageChange}
-              
+
             >
               {/* Hidden empty icon to keep tab height consistent */}
               <StyledHorizontalTab iconPosition="end" icon={<Box sx={{ display: 'none' }} />} value={0} label="Table View" />
@@ -479,7 +500,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               {mainQueryParams.gene.name && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" &&
                 <StyledHorizontalTab value={3} label={<p><i>{mainQueryParams.gene.name}</i> RAMPAGE</p>} />
               }
-
               {/* Map opencCREs to tabs */}
               {opencCREs.length > 0 && opencCREs.map((cCRE, i) => {
                 return (
@@ -537,7 +557,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               setTSSranges={setTSSranges}
               genomeBrowserView={page === 1}
               useLinkedGenes={useLinkedGenes}
-              
+
             />
             :
             <Tabs
@@ -604,7 +624,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                   assembly={mainQueryParams.coordinates.assembly}
                   onRowClick={handlecCREClick}
                   useLinkedGenes={useLinkedGenes}
-                  />
+                />
                   <Stack direction="row" alignItems={"center"} sx={{ mt: 1 }}>
                     <Button
                       disabled={typeof bedLoadingPercent === "number"}
@@ -625,24 +645,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
             </Box>
           )}
           {page === 1 && (
-            <GenomeBrowserView
-              handlecCREClickInTrack={handlecCREClick}
-              accessions={opencCREs.map(a => {
-
-                return {
-                  accession: a.ID,
-                  chromosome: a.region.chrom,
-                  start: a.region.start,
-                  end: a.region.end
-
-                }
-              })}
-              gene={mainQueryParams.gene.name}
-              biosample={mainQueryParams.biosample?.name}
-              biosampledisplayname={mainQueryParams.biosample?.displayname}
-              assembly={mainQueryParams.coordinates.assembly}
-              coordinates={{ start: mainQueryParams.coordinates.start, end: mainQueryParams.coordinates.end, chromosome: mainQueryParams.coordinates.chromosome }}
-            />
+            <Browser cCREClick={handlecCREClick} state={browserState} dispatch={browserDispatch} coordinates={mainQueryParams.coordinates} gene={mainQueryParams.gene.name} biosample={mainQueryParams.biosample} />
           )}
           {mainQueryParams.gene.name && page === 2 &&
             <GeneExpression assembly={mainQueryParams.coordinates.assembly} genes={[{ name: mainQueryParams.gene.name }]} />

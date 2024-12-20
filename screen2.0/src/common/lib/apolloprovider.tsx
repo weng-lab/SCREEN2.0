@@ -32,15 +32,18 @@ function makeClient() {
     link:
       typeof window === "undefined"
         ? ApolloLink.from([
-            // in a SSR environment, if you use multipart features like
-            // @defer, you need to decide how to handle these.
-            // This strips all interfaces with a `@defer` directive from your queries.
-            new SSRMultipartLink({
-              stripDefer: true,
-            }),
-            httpLink,
-          ])
+          // in a SSR environment, if you use multipart features like
+          // @defer, you need to decide how to handle these.
+          // This strips all interfaces with a `@defer` directive from your queries.
+          new SSRMultipartLink({
+            stripDefer: true,
+          }),
+          httpLink,
+        ])
         : httpLink,
+    devtools: {
+      enabled: true,
+    },
   });
 }
 

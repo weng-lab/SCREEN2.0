@@ -3,7 +3,7 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 COPY package.json ./
-RUN  yarn install --production
+RUN  yarn install --production --network-timeout=300000
 
 FROM node:18-alpine AS builder
 WORKDIR /app
