@@ -69,9 +69,7 @@ const CCRETooltip: React.FC<CCRETooltipProps> = ({ assembly, name, biosample }) 
       padding: "0.75em",
       background: "#ffffff",
       maxWidth: "400px",
-      width: "max-content",
-      overflowY: "visible",
-      whiteSpace: "normal",
+      width: "400px",
       height: "auto",
       minHeight: loading || !data?.cCREQuery?.[0] ? "40px" : "auto"
     }}>
@@ -79,12 +77,10 @@ const CCRETooltip: React.FC<CCRETooltipProps> = ({ assembly, name, biosample }) 
         display: "flex",
         flexDirection: "column",
         justifyContent: "flex-start",
-        width: "max-content",
-        minWidth: "300px",
+        width: "400px",
         alignItems: "baseline",
         minHeight: "205px",
         height: "auto",
-        transition: "all 0.2s ease-in-out"
       }}>
         {loading || !data?.cCREQuery?.[0] ? (
           <CircularProgress />
@@ -104,7 +100,9 @@ const CCRETooltip: React.FC<CCRETooltipProps> = ({ assembly, name, biosample }) 
             <div>{GROUP_COLOR_MAP.get(data.cCREQuery[0].group)?.split(":")[0]}</div>
             Click for details about this cCRE
             <br />
-            <strong>{biosample ? "Z-scores in " + biosample.displayname : "Max Z-scores across all biosamples:"}</strong>
+            <p style={{ wordWrap: "break-word", whiteSpace: "normal" }}>
+              <strong>{biosample ? "Z-scores in " + biosample.displayname : "Max Z-scores across all biosamples:"}</strong>
+            </p>
             {(biosample ? marks(biosample) : MARKS).map((x, i) => {
               return (
                 <div key={i} style={{ display: "flex", flexDirection: "row", justifyContent: "left", width: "100%" }}>
