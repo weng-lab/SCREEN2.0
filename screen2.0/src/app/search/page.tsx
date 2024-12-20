@@ -5,12 +5,12 @@ import { FilterCriteria, MainQueryData, MainQueryParams, RegistryBiosample } fro
 import { constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, downloadBED, fetchcCREData } from "./searchhelpers"
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import { styled } from '@mui/material/styles';
-import { Divider, IconButton, Tab, Tabs, Typography, Box, Button, CircularProgressProps, CircularProgress, Stack } from "@mui/material"
+import { Divider, IconButton, Tab, Tabs, Typography, Box, Button, CircularProgressProps, CircularProgress, Stack, Dialog } from "@mui/material"
 import { MainResultsTable } from "./mainresultstable"
 import { MainResultsFilters } from "./mainresultsfilters"
 import { CcreDetails, LinkedGeneInfo, } from "./_ccredetails/ccredetails"
 import { usePathname, useRouter } from "next/navigation"
-import { expandCoordinates, GenomeBrowserView } from "./_gbview/genomebrowserview"
+import { expandCoordinates } from "./_gbview/genomebrowserview"
 import { generateFilteredRows } from "./searchhelpers"
 import { Drawer } from "@mui/material"
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar'
@@ -210,6 +210,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const [TSSranges, setTSSranges] = useState<{ start: number, end: number }[]>(null)
   const [bedLoadingPercent, setBedLoadingPercent] = useState<number>(null)
 
+
+  const [urlParseError, setUrlParseError] = useState(false)
   const [getGeneCoords] = useLazyQuery(GET_GENE_COORDS)
   const [getSNPCoords] = useLazyQuery(GET_SNP_COORDS)
   const [getAccessionCoords] = useLazyQuery(GET_ACCESSION_COORDS)
@@ -223,41 +225,126 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     //If coordinates are not present, fill them in
     if (!mainQueryParams.coordinates.assembly || !mainQueryParams.coordinates.chromosome || !mainQueryParams.coordinates.start || !mainQueryParams.coordinates.end) {
       try {
-        //if q in searchParams, the request is coming from ENCODE
-        if (searchParams.q) {
-          //Request from ENCODE should always have assembly
-          const assembly = searchParams.assembly as "GRCh38" | "mm10"
-          //Spaces transformed into '+'
-          let searchType: "gene" | "snp" | "accession" | "region" = "gene"
+        const isFromENCODE = Boolean(searchParams.q)
+        let searchType: "gene" | "snp" | "accession" | "region"
+        let assembly: "GRCh38" | "mm10"
+        if (isFromENCODE) {
+          //ENCODE will send assembly
+          assembly = searchParams.assembly as "GRCh38" | "mm10"
           //No human or mouse genes have "chr" followed by a number, so safe to check this way
           if (/chr\d+/.test(searchParams.q)) searchType = "region"
           //check for "rs" followed by number. Genes RS1 and Rs1 exist, but lowercase r is differentiator
-          if (/rs\d+/.test(searchParams.q)) searchType = "snp"
-          if (/^(EH38E|EM10E)\d+$/.test(searchParams.q)) searchType = "accession"
-
-          switch (searchType) {
-            case ("region"): {
+          else if (/rs\d+/.test(searchParams.q)) searchType = "snp"
+          //check for beginning of cCRE accession. No Genes start with these
+          else if (/^(EH38E|EM10E)\d+$/.test(searchParams.q)) searchType = "accession"
+          //if fails other checks, assume it's a gene
+          else searchType = "gene"
+        }
+        else if (!isFromENCODE) {
+          if (searchParams.gene) {
+            searchType = "gene"
+            //if second character in gene is uppercase, assume it's human
+            assembly = searchParams.gene.charAt(1) === searchParams.gene.charAt(1).toUpperCase() ? "GRCh38" : "mm10"
+          }
+          else if (searchParams.snpid) {
+            searchType = "snp"
+            assembly = "GRCh38"
+          }
+          else if (searchParams.accessions) {
+            searchType = "accession"
+            assembly = searchParams.accessions.charAt(1) === "H" ? "GRCh38" : "mm10"
+          }
+          else {
+            searchType = "region"
+            assembly = "GRCh38"
+          }
+        }
+        switch (searchType){
+          case ("region"): {
+            let chr: string;
+            let start: number;
+            let end: number;
+            if (isFromENCODE){
+              chr = searchParams.q.split(":")[0]
+              start = +searchParams.q.split(":")[1].split("-")[0]
+              end = +searchParams.q.split(":")[1].split("-")[1]
+            } else if (!isFromENCODE) {
+              chr = searchParams.chromosome || "chr12"
+              start = +searchParams.start || 53380176
+              end = +searchParams.end || 53416446
+            }
+            //check that chr start end are not null/undefined
+            if (chr && (start || start === 0) && (end || end === 0)) {
               setMainQueryParams(MQP => {
                 return {
                   ...MQP,
                   coordinates: {
                     assembly,
-                    chromosome: searchParams.q.split(":")[0],
-                    start: +searchParams.q.split(":")[1].split("-")[0],
-                    end: +searchParams.q.split(":")[1].split("-")[1]
+                    chromosome: chr,
+                    start: start,
+                    end: end
                   }
                 }
               })
-              break;
+            } else { throw new Error(`Error parsing url input region chr:${chr} start:${start} end: ${end} \nURL Params: \n${JSON.stringify(searchParams)}`) }
+            break;
+          }
+          case ("gene"): {
+            let gene: string;
+            if (isFromENCODE){
+              gene = assembly === "GRCh38"
+                //fix capitalization
+                ? searchParams.q.toUpperCase()
+                : searchParams.q.charAt(0).toUpperCase() + searchParams.q.slice(1).toLowerCase()
+            } else if (!isFromENCODE){
+              gene = searchParams.gene
             }
-            case ("snp"): {
+            if (gene) {
+              getGeneCoords({
+                variables: {
+                  name: gene,
+                  assembly: assembly,
+                  version: assembly === "GRCh38" ? 40 : 25
+                }
+              }).then(d => {
+                const coords = d.data.gene[0].coordinates
+                if (d.error || !coords) throw new Error(JSON.stringify(d.error))
+                setMainQueryParams(MQP => {
+                  return {
+                    ...MQP,
+                    coordinates: {
+                      assembly,
+                      chromosome: coords.chromosome,
+                      start: coords.start,
+                      end: coords.end
+                    },
+                    gene: {
+                      name: gene,
+                      distance: 0,
+                      nearTSS: false
+                    }
+                  }
+                })
+              }).catch((error) => { throw new Error(`Issue fetching coordinates for gene ${gene} in assembly ${assembly} \nURL Params: \n${JSON.stringify(searchParams)} \n${error}`)})
+            } else { throw new Error(`Error parsing url input gene ${gene} in assembly ${assembly} \nURL Params: \n${JSON.stringify(searchParams)}`) }
+            break;
+          }
+          case ("snp"): {
+            let snp: string;
+            if (isFromENCODE){
+              snp = searchParams.q
+            } else {
+              snp = searchParams.snpid
+            }
+            if (snp) {
               getSNPCoords({
                 variables: {
-                  snpid: searchParams.q,
+                  snpid: snp,
                   assembly
                 }
               }).then(d => {
                 const coords = d.data.snpAutocompleteQuery[0].coordinates
+                if (d.error || !coords) throw new Error(JSON.stringify(d.error))
                 setMainQueryParams(MQP => {
                   return {
                     ...MQP,
@@ -273,17 +360,29 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                     }
                   }
                 })
-              })
-              break;
+              }).catch((error) => { throw new Error(`Issue fetching coordinates for SNP rsID ${snp} in assembly ${assembly} \nURL Params: \n${JSON.stringify(searchParams)} \n${error}`)})
+            } else { throw new Error(`Error parsing url input SNP rsID ${snp} in assembly ${assembly} \nURL Params: \n${JSON.stringify(searchParams)}`) }
+            break;
+          }
+          case ("accession"): {
+            let accession: string
+            if (isFromENCODE){
+              accession = searchParams.q
+            } else {
+              accession = searchParams.accessions
+              if (accession.split(',').length > 1) {
+                throw new Error("Sorry we don't currently support multiple simultaneous cCRE accession searched")
+              }
             }
-            case ("accession"): {
+            if (accession) {
               getAccessionCoords({
                 variables: {
-                  accession: searchParams.q,
+                  accession,
                   assembly
                 }
               }).then(d => {
                 const coords = d.data.cCREQuery[0].coordinates
+                if (d.error || !coords) throw new Error(JSON.stringify(d.error))
                 setMainQueryParams(MQP => {
                   return {
                     ...MQP,
@@ -300,147 +399,235 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                   region: { start: coords.start, end: coords.end, chrom: coords.chromosome }
                 }])
                 setPage(2)
-              })
-              break;
-            }
-            case ("gene"): {
-              const gene = assembly === "GRCh38"
-                //fix capitalization
-                ? searchParams.q.toUpperCase()
-                : searchParams.q.charAt(0).toUpperCase() + searchParams.q.slice(1).toLowerCase()
-              getGeneCoords({
-                variables: {
-                  name: gene,
-                  assembly: assembly,
-                  version: assembly === "GRCh38" ? 40 : 25
-                }
-              }).then(d => {
-                const coords = d.data.gene[0].coordinates
-                setMainQueryParams(MQP => {
-                  return {
-                    ...MQP,
-                    coordinates: {
-                      assembly,
-                      chromosome: coords.chromosome,
-                      start: coords.start,
-                      end: coords.end
-                    },
-                    gene: {
-                      name: gene,
-                      distance: 0,
-                      nearTSS: false
-                    }
-                  }
-                })
-              })
-              break;
-            }
-          }
-
-        }
-        //else parse from gene/accession/snpid
-        else {
-          let searchType: "gene" | "snp" | "accession"
-          if (searchParams.gene) searchType = "gene"
-          if (searchParams.snpid) searchType = "snp"
-          if (searchParams.accessions) searchType = "accession"
-
-          switch (searchType) {
-            case ("gene"): {
-              const gene = searchParams.gene
-              //if second character in gene is uppercase, assume it's human
-              const assembly = gene.charAt(1) === gene.charAt(1).toUpperCase() ? "GRCh38" : "mm10"
-              getGeneCoords({
-                variables: {
-                  name: gene,
-                  assembly: assembly,
-                  version: assembly === "GRCh38" ? 40 : 25
-                }
-              }).then(d => {
-                const coords = d.data.gene[0].coordinates
-                setMainQueryParams(MQP => {
-                  return {
-                    ...MQP,
-                    coordinates: {
-                      assembly,
-                      chromosome: coords.chromosome,
-                      start: coords.start,
-                      end: coords.end
-                    },
-                    gene: {
-                      name: gene,
-                      distance: 0,
-                      nearTSS: false
-                    }
-                  }
-                })
-              })
-              break;
-            }
-            case ("snp"): {
-              const snp = searchParams.snpid
-              //Assuming all SNPs are human for now
-              const assembly = "GRCh38"
-              getSNPCoords({
-                variables: {
-                  snpid: snp,
-                  assembly
-                }
-              }).then(d => {
-                const coords = d.data.snpAutocompleteQuery[0].coordinates
-                setMainQueryParams(MQP => {
-                  return {
-                    ...MQP,
-                    coordinates: {
-                      assembly,
-                      chromosome: coords.chromosome,
-                      start: coords.start,
-                      end: coords.end
-                    },
-                    snp: {
-                      rsID: snp,
-                      distance: 0
-                    }
-                  }
-                })
-              })
-              break;
-            }
-            case ("accession"): {
-              //This does not handle having multiple comma-separated cCREs. Will fail if more than one passed
-              const accession = searchParams.accessions
-              const assembly = accession.charAt(1) === "H" ? "GRCh38" : "mm10"
-              getAccessionCoords({
-                variables: {
-                  accession,
-                  assembly
-                }
-              }).then(d => {
-                const coords = d.data.cCREQuery[0].coordinates
-                setMainQueryParams(MQP => {
-                  return {
-                    ...MQP,
-                    coordinates: {
-                      assembly,
-                      chromosome: coords.chromosome,
-                      start: coords.start,
-                      end: coords.end
-                    }
-                  }
-                })
-                setPage(2)
-              })
-              break;
-            }
+              }).catch((error) => { throw new Error(`Issue fetching coordinates for cCRE Accession ${accession} in assembly ${assembly} \nURL Params: \n${JSON.stringify(searchParams)} \n${error}`)})
+            } else { throw new Error(`Error parsing url input accession ${accession} in assembly ${assembly} \nURL Params: \n${JSON.stringify(searchParams)}`) }
+            break;
           }
         }
+
       } catch (error) {
-        window.alert("Something went wrong parsing the url parameters:\n" + JSON.stringify(searchParams) + error)
+        setUrlParseError(true)
+        console.error(error)
       }
+      // try {
+      //   //if q in searchParams, the request is coming from ENCODE
+      //   if (searchParams.q) {
+      //     //Request from ENCODE should always have assembly
+      //     const assembly = searchParams.assembly as "GRCh38" | "mm10"
+      //     //Spaces transformed into '+'
+      //     let searchType: "gene" | "snp" | "accession" | "region" = "gene"
+      //     //No human or mouse genes have "chr" followed by a number, so safe to check this way
+      //     if (/chr\d+/.test(searchParams.q)) searchType = "region"
+      //     //check for "rs" followed by number. Genes RS1 and Rs1 exist, but lowercase r is differentiator
+      //     if (/rs\d+/.test(searchParams.q)) searchType = "snp"
+      //     if (/^(EH38E|EM10E)\d+$/.test(searchParams.q)) searchType = "accession"
 
+      //     switch (searchType) {
+      //       case ("region"): {
+      //         setMainQueryParams(MQP => {
+      //           return {
+      //             ...MQP,
+      //             coordinates: {
+      //               assembly,
+      //               chromosome: searchParams.q.split(":")[0],
+      //               start: +searchParams.q.split(":")[1].split("-")[0],
+      //               end: +searchParams.q.split(":")[1].split("-")[1]
+      //             }
+      //           }
+      //         })
+      //         break;
+      //       }
+      //       case ("snp"): {
+      //         getSNPCoords({
+      //           variables: {
+      //             snpid: searchParams.q,
+      //             assembly
+      //           }
+      //         }).then(d => {
+      //           const coords = d.data.snpAutocompleteQuery[0].coordinates
+      //           setMainQueryParams(MQP => {
+      //             return {
+      //               ...MQP,
+      //               coordinates: {
+      //                 assembly,
+      //                 chromosome: coords.chromosome,
+      //                 start: coords.start,
+      //                 end: coords.end
+      //               },
+      //               snp: {
+      //                 rsID: searchParams.q,
+      //                 distance: 0
+      //               }
+      //             }
+      //           })
+      //         })
+      //         break;
+      //       }
+      //       case ("accession"): {
+      //         getAccessionCoords({
+      //           variables: {
+      //             accession: searchParams.q,
+      //             assembly
+      //           }
+      //         }).then(d => {
+      //           const coords = d.data.cCREQuery[0].coordinates
+      //           setMainQueryParams(MQP => {
+      //             return {
+      //               ...MQP,
+      //               coordinates: {
+      //                 assembly,
+      //                 chromosome: coords.chromosome,
+      //                 start: coords.start,
+      //                 end: coords.end
+      //               }
+      //             }
+      //           })
+      //           setOpencCREs([{
+      //             ID: searchParams.q,
+      //             region: { start: coords.start, end: coords.end, chrom: coords.chromosome }
+      //           }])
+      //           setPage(2)
+      //         })
+      //         break;
+      //       }
+      //       case ("gene"): {
+      //         const gene = assembly === "GRCh38"
+      //           //fix capitalization
+      //           ? searchParams.q.toUpperCase()
+      //           : searchParams.q.charAt(0).toUpperCase() + searchParams.q.slice(1).toLowerCase()
+      //         getGeneCoords({
+      //           variables: {
+      //             name: gene,
+      //             assembly: assembly,
+      //             version: assembly === "GRCh38" ? 40 : 25
+      //           }
+      //         }).then(d => {
+      //           const coords = d.data.gene[0].coordinates
+      //           setMainQueryParams(MQP => {
+      //             return {
+      //               ...MQP,
+      //               coordinates: {
+      //                 assembly,
+      //                 chromosome: coords.chromosome,
+      //                 start: coords.start,
+      //                 end: coords.end
+      //               },
+      //               gene: {
+      //                 name: gene,
+      //                 distance: 0,
+      //                 nearTSS: false
+      //               }
+      //             }
+      //           })
+      //         })
+      //         break;
+      //       }
+      //     }
+
+      //   }
+      //   //else parse from gene/accession/snpid
+      //   else {
+      //     let searchType: "gene" | "snp" | "accession"
+      //     if (searchParams.gene) searchType = "gene"
+      //     if (searchParams.snpid) searchType = "snp"
+      //     if (searchParams.accessions) searchType = "accession"
+
+      //     switch (searchType) {
+      //       case ("gene"): {
+      //         const gene = searchParams.gene
+      //         //if second character in gene is uppercase, assume it's human
+      //         const assembly = gene.charAt(1) === gene.charAt(1).toUpperCase() ? "GRCh38" : "mm10"
+      //         getGeneCoords({
+      //           variables: {
+      //             name: gene,
+      //             assembly: assembly,
+      //             version: assembly === "GRCh38" ? 40 : 25
+      //           }
+      //         }).then(d => {
+      //           const coords = d.data.gene[0].coordinates
+      //           setMainQueryParams(MQP => {
+      //             return {
+      //               ...MQP,
+      //               coordinates: {
+      //                 assembly,
+      //                 chromosome: coords.chromosome,
+      //                 start: coords.start,
+      //                 end: coords.end
+      //               },
+      //               gene: {
+      //                 name: gene,
+      //                 distance: 0,
+      //                 nearTSS: false
+      //               }
+      //             }
+      //           })
+      //         })
+      //         break;
+      //       }
+      //       case ("snp"): {
+      //         const snp = searchParams.snpid
+      //         //Assuming all SNPs are human for now
+      //         const assembly = "GRCh38"
+      //         getSNPCoords({
+      //           variables: {
+      //             snpid: snp,
+      //             assembly
+      //           }
+      //         }).then(d => {
+      //           const coords = d.data.snpAutocompleteQuery[0].coordinates
+      //           setMainQueryParams(MQP => {
+      //             return {
+      //               ...MQP,
+      //               coordinates: {
+      //                 assembly,
+      //                 chromosome: coords.chromosome,
+      //                 start: coords.start,
+      //                 end: coords.end
+      //               },
+      //               snp: {
+      //                 rsID: snp,
+      //                 distance: 0
+      //               }
+      //             }
+      //           })
+      //         })
+      //         break;
+      //       }
+      //       case ("accession"): {
+      //         //This does not handle having multiple comma-separated cCREs. Will fail if more than one passed
+      //         const accession = searchParams.accessions
+      //         const assembly = accession.charAt(1) === "H" ? "GRCh38" : "mm10"
+      //         getAccessionCoords({
+      //           variables: {
+      //             accession,
+      //             assembly
+      //           }
+      //         }).then(d => {
+      //           const coords = d.data.cCREQuery[0].coordinates
+      //           setMainQueryParams(MQP => {
+      //             return {
+      //               ...MQP,
+      //               coordinates: {
+      //                 assembly,
+      //                 chromosome: coords.chromosome,
+      //                 start: coords.start,
+      //                 end: coords.end
+      //               }
+      //             }
+      //           })
+      //           setPage(2)
+      //         })
+      //         break;
+      //       }
+      //     }
+      //   }
+      // } catch (error) {
+      //   setUrlParseError(true)
+      //   console.error("Something went wrong parsing the url parameters:\n" + JSON.stringify(searchParams) + error)
+      // }
     }
     //DEFINE SOME FALLBACK IF PARSING FAILS
-  }, [getAccessionCoords, getGeneCoords, getSNPCoords, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.end, mainQueryParams.coordinates.start, router, searchParams.accessions, searchParams.assembly, searchParams.gene, searchParams.q, searchParams.snpid])
+  }, [getAccessionCoords, getGeneCoords, getSNPCoords, mainQueryParams.coordinates.assembly, mainQueryParams.coordinates.chromosome, mainQueryParams.coordinates.end, mainQueryParams.coordinates.start, searchParams])
 
   // Browser State
   const initialBrowserCoords = expandCoordinates(mainQueryParams.coordinates)
@@ -644,7 +831,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         true
       )
       const newOpencCREs = [...opencCRE_data.map((cCRE) => {
-        let color = GROUP_COLOR_MAP.get(cCRE.class).split(":")[1] || "#8c8c8c"
+        const color = GROUP_COLOR_MAP.get(cCRE.class).split(":")[1] || "#8c8c8c"
         browserDispatch({ type: BrowserActionType.ADD_HIGHLIGHT, highlight: { domain: { chromosome: cCRE.chromosome, start: cCRE.start, end: cCRE.end }, color, id: cCRE.accession } })
         return (
           {
@@ -945,6 +1132,10 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           )}
         </Main>
       </Box>
+
+        <Dialog open={urlParseError}>
+          
+        </Dialog>
     </>
   )
 }
