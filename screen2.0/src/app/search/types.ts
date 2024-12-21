@@ -9,9 +9,9 @@ export type GenomicRegion = {
 export type MainQueryParams = {
   coordinates: {
     assembly: "GRCh38" | "mm10"
-    chromosome: string | null
-    start: number | null
-    end: number | null
+    chromosome: string
+    start: number
+    end: number
   }
   biosample: RegistryBiosample
   snp: {

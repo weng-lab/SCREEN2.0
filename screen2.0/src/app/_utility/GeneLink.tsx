@@ -13,8 +13,8 @@ export interface GeneLinkProps {
 }
 
 const GET_GENE_COORDS = gql(`
-  query getGeneLocation($name: String!, $assembly: String!) {
-    gene(name: [$name], assembly: $assembly, version: 40) {
+  query getGeneLocation($name: String!, $assembly: String!, $version: Int!) {
+    gene(name: [$name], assembly: $assembly, version: $version) {
       coordinates {
         chromosome
         start
@@ -38,7 +38,7 @@ const GeneLink = ({ geneName, assembly, typographyProps }: GeneLinkProps) => {
 
   const [getGeneCoords, { data: dataCoords, loading: loadingCoords, error: errorCoords, called: coordsWereFetched }] = useLazyQuery(
     GET_GENE_COORDS,
-    { variables: { name: geneName, assembly: assembly } }
+    { variables: { name: geneName, assembly: assembly, version: assembly === "GRCh38" ? 40 :25 } }
   )
 
   const coordinates = dataCoords && dataCoords.gene.length > 0 && dataCoords.gene[0].coordinates
