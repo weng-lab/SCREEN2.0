@@ -283,7 +283,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                 toAddIntoMQP = {
                   biosample: cellLine
                 }
-                const cellLineIndex = items.indexOf(cellLine.name)
+                const cellLineIndex = items.findIndex(x => x.toLowerCase() === cellLine.displayname.toLowerCase())
                 encodeInput = items[cellLineIndex === 1 ? 0 : 1]
               } else throw new Error(`Couldn't find specified Cell Line in input. Check spelling or remove trailing space.\n URL Params:\n${JSON.stringify(searchParams)}`)
               break;
@@ -454,7 +454,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         setUrlParseError(String(error))
         console.error(error)
       } finally {
-        console.log("reached the end with " + JSON.stringify(foundCoordinates) + JSON.stringify(toAddIntoMQP))
         setMainQueryParams(MQP => {
           return {
             ...MQP,
