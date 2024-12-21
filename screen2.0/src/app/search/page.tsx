@@ -267,18 +267,36 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         start: number
         end: number
       }
-      let toAddIntoMQP: Partial<MainQueryParams>
+      let toAddIntoMQP: Partial<MainQueryParams> = {}
       try {
-        const isFromENCODE = Boolean(searchParams.q)
+        let encodeInput = searchParams.q
+        const isFromENCODE = Boolean(encodeInput)
         if (isFromENCODE) {
           //ENCODE will send assembly
           assembly = searchParams.assembly as "GRCh38" | "mm10"
+          switch (encodeInput.split(' ').length) {
+            case (1): break;
+            case (2): {
+              const items = encodeInput.split(' ')
+              const cellLine = biosampleData.data.human.biosamples.find(sample => items.some(x => x.toLowerCase() === sample.displayname.toLowerCase()))
+              if (cellLine) {
+                toAddIntoMQP = {
+                  biosample: cellLine
+                }
+                const cellLineIndex = items.indexOf(cellLine.name)
+                encodeInput = items[cellLineIndex === 1 ? 0 : 1]
+              } else throw new Error(`Couldn't find specified Cell Line in input. Check spelling or remove trailing space.\n URL Params:\n${JSON.stringify(searchParams)}`)
+              break;
+            }
+            default: throw new Error(`Error parsing ENCODE request. Too many items to parse. Search for a region, rsID, gene, or accession, and optionally filter results by Cell Line by adding it to your search separated by a space.\n URL Params:\n${JSON.stringify(searchParams)}`)
+          }
+         
           //No human or mouse genes have "chr" followed by a number, so safe to check this way
-          if (/chr\d+/.test(searchParams.q)) searchType = "region"
+          if (/chr\d+/.test(encodeInput)) searchType = "region"
           //check for "rs" followed by number. Genes RS1 and Rs1 exist, but lowercase r is differentiator
-          else if (/rs\d+/.test(searchParams.q)) searchType = "snp"
+          else if (/rs\d+/.test(encodeInput)) searchType = "snp"
           //check for beginning of cCRE accession. No Genes start with these
-          else if (/^(EH38E|EM10E)\d+$/.test(searchParams.q)) searchType = "accession"
+          else if (/^(EH38E|EM10E)\d+$/.test(encodeInput)) searchType = "accession"
           //if fails other checks, assume it's a gene
           else searchType = "gene"
         }
@@ -307,9 +325,9 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
             let foundStart: number;
             let foundEnd: number;
             if (isFromENCODE) {
-              foundChr = searchParams.q.split(":")[0]
-              foundStart = +searchParams.q.split(":")[1].split("-")[0]
-              foundEnd = +searchParams.q.split(":")[1].split("-")[1]
+              foundChr = encodeInput.split(":")[0]
+              foundStart = +encodeInput.split(":")[1].split("-")[0]
+              foundEnd = +encodeInput.split(":")[1].split("-")[1]
             } else {
               foundChr = searchParams.chromosome || "chr12"
               foundStart = +searchParams.start || 53380176
@@ -331,8 +349,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
             if (isFromENCODE) {
               gene = assembly === "GRCh38"
                 //fix capitalization
-                ? searchParams.q.toUpperCase()
-                : searchParams.q.charAt(0).toUpperCase() + searchParams.q.slice(1).toLowerCase()
+                ? encodeInput.toUpperCase()
+                : encodeInput.charAt(0).toUpperCase() + encodeInput.slice(1).toLowerCase()
             } else {
               gene = searchParams.gene
             }
@@ -346,7 +364,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               })
               const coords = geneCoords.data?.gene[0]?.coordinates;
               if (geneCoords.error) throw new Error(JSON.stringify(geneCoords.error))
-              if (!coords) throw new Error(`Failed to fetch coordinates for gene ${gene} in assembly ${assembly}`)
+              if (!coords) throw new Error(`Failed to fetch coordinates for gene ${gene} in assembly ${assembly} \nURL Params: \n${JSON.stringify(searchParams)}`)
               foundCoordinates = {
                 assembly,
                 chromosome: coords.chromosome,
@@ -354,6 +372,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                 end: coords.end,
               }
               toAddIntoMQP = {
+                ...toAddIntoMQP,
                 gene: {
                   name: gene,
                   distance: 0,
@@ -366,7 +385,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           case ("snp"): {
             let snp: string;
             if (isFromENCODE) {
-              snp = searchParams.q
+              snp = encodeInput
             } else {
               snp = searchParams.snpid
             }
@@ -379,7 +398,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               })
               const coords = snpCoords.data?.snpAutocompleteQuery[0]?.coordinates
               if (snpCoords.error) throw new Error(JSON.stringify(snpCoords.error))
-              if (!coords) throw new Error(`Failed to fetch coordinates for SNP rsID ${snp} in assembly ${assembly}`)
+              if (!coords) throw new Error(`Failed to fetch coordinates for SNP rsID ${snp} in assembly ${assembly} \nURL Params: \n${JSON.stringify(searchParams)}`)
               foundCoordinates = {
                 assembly: assembly,
                 chromosome: coords.chromosome,
@@ -387,6 +406,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                 end: coords.end
               }
               toAddIntoMQP = {
+                ...toAddIntoMQP,
                 snp: {
                   rsID: snp,
                   distance: 0
@@ -398,7 +418,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           case ("accession"): {
             let accession: string
             if (isFromENCODE) {
-              accession = searchParams.q
+              accession = encodeInput
             } else {
               accession = searchParams.accessions
               if (accession.split(',').length > 1) {
@@ -414,7 +434,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               })
               const coords = accessionCoords.data?.cCREQuery[0]?.coordinates
               if (accessionCoords.error) throw new Error(JSON.stringify(accessionCoords.error))
-              if (!coords) throw new Error(`Failed to fetch coordinates for accession ${accession} in assembly ${assembly}`)
+              if (!coords) throw new Error(`Failed to fetch coordinates for accession ${accession} in assembly ${assembly} \nURL Params: \n${JSON.stringify(searchParams)}`)
               foundCoordinates = {
                 assembly: assembly,
                 chromosome: coords.chromosome,
@@ -445,10 +465,10 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       }
     }
 
-    if (!haveCoordinates) {
+    if (!haveCoordinates && biosampleData) {
       fetchCoordinates()
     }
-  }, [getAccessionCoords, getGeneCoords, getSNPCoords, haveCoordinates, searchParams])
+  }, [biosampleData, getAccessionCoords, getGeneCoords, getSNPCoords, haveCoordinates, searchParams])
 
   //This is really bad, this file relies way too much on useEffects. Need major rewrite.
   //Initialize genome browser if coordinates were missing initially

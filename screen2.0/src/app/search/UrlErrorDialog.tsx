@@ -1,4 +1,4 @@
-import { Home, KeyboardArrowRight, ReportProblem } from "@mui/icons-material"
+import { ExpandMore, Home, ReportProblem } from "@mui/icons-material"
 import { Accordion, AccordionDetails, AccordionSummary, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material"
 import Link from "next/link"
 
@@ -26,7 +26,7 @@ const UrlErrorDialog = ({errorMsg, open, searchParams}: UrlErrorDialogProps) => 
           Please try search again from the homepage
         </DialogContentText>
         <Accordion>
-          <AccordionSummary expandIcon={<KeyboardArrowRight />}>
+          <AccordionSummary expandIcon={<ExpandMore />}>
             Full Error
           </AccordionSummary>
           <AccordionDetails>
