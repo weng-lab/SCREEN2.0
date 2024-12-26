@@ -25,7 +25,6 @@ const GeneTable: React.FC<GeneTableProps> = ({
 
     return (
         <DataTable
-            key={Math.random()}
             columns={geneColumns}
             rows={geneRows}
             sortDescending

@@ -1,6 +1,6 @@
 import React from "react";
 import { CCREAssays, CCREClasses, ElementAccordianProps } from "../types";
-import { Accordion, AccordionDetails, AccordionSummary, Checkbox, FormControl, FormControlLabel, FormGroup, IconButton, Paper, Radio, RadioGroup, Stack, Typography } from "@mui/material";
+import { Accordion, AccordionDetails, AccordionSummary, Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, IconButton, Paper, Radio, RadioGroup, Stack, Typography } from "@mui/material";
 import BiosampleTables from "../../../_biosampleTables/BiosampleTables";
 import Grid from "@mui/material/Grid2"
 import { CancelRounded } from "@mui/icons-material"
@@ -184,9 +184,8 @@ const ElementFilters: React.FC<ElementAccordianProps> = ({
                             />
                         </AccordionDetails>
                     </Accordion>
-
-                    <FormGroup>
-                        <Typography mt={2}>Include Classes</Typography>
+                    <FormControl sx={{mt: 1}}>
+                        <FormLabel component="legend">Include Classes</FormLabel>
                         <FormControlLabel
                             control={
                                 <Checkbox
@@ -272,9 +271,9 @@ const ElementFilters: React.FC<ElementAccordianProps> = ({
                                 </FormGroup>
                             </Grid>
                         </Grid>
-                    </FormGroup>
-                    <FormGroup>
-                        <Typography>Include Assay Z-Scores</Typography>
+                    </FormControl>
+                    <FormControl>
+                        <FormLabel component="legend" mt={2}>Include Assay Z-Scores</FormLabel>
                         <FormControlLabel
                             control={
                                 <Checkbox
@@ -347,10 +346,10 @@ const ElementFilters: React.FC<ElementAccordianProps> = ({
                                 />
                             </Grid>
                         </Grid>
-                    </FormGroup>
+                    </FormControl>
                 </Stack>
-                <FormControl sx={{ ml: 2 }}>
-                    <Typography>Rank cCREs With Matching Input Region By</Typography>
+                <FormControl sx={{ ml: 2, mt: 1}}>
+                    <FormLabel component="legend">Rank cCREs With Matching Input Region By</FormLabel>
                     <RadioGroup
                         row
                         value={elementFilterVariables.rankBy}

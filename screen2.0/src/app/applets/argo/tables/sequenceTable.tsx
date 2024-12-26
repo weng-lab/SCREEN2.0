@@ -94,7 +94,6 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
     return (
         <>
             <DataTable
-                key={Math.random()}
                 columns={sequenceColumns}
                 rows={sequenceRows}
                 sortDescending
