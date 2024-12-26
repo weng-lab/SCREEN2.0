@@ -1,15 +1,8 @@
 import { RegistryBiosample } from "../../_biosampleTables/types"
 
-export type LinkedGenes = {
-    gene_id: string
-    method: string
-    tpm: number
-}
-
 export type ZScores = {
     accession: string
     user_id: string
-    linked_genes: LinkedGenes[]
     dnase: number
     dnase_rank: number
     h3k4me3: number
@@ -39,7 +32,7 @@ export type GenomicRegion = {
     end: number
 }
 
-export type RankedRegions = (GenomicRegion & {rank: number})[]
+export type RankedRegions = (GenomicRegion & { rank: number })[]
 
 export type InputRegions = (GenomicRegion & {
     regionID: number
@@ -73,9 +66,9 @@ export type CCREAssays = {
     h3k27ac: boolean
 }
 
-export type Alignment = 
-    "241-mam-phyloP" | 
-    "447-mam-phyloP" | 
+export type Alignment =
+    "241-mam-phyloP" |
+    "447-mam-phyloP" |
     "241-mam-phastCons" |
     "43-prim-phyloP" |
     "43-prim-phastCons" |
@@ -83,7 +76,9 @@ export type Alignment =
     "100-vert-phyloP" |
     "100-vert-phastCons"
 
-  export type SequenceFilterState = {
+export type GeneLinkingMethod = "distance" | "eQTLs" | "Intact_HiC" | "CRISPRi_FlowFISH" | "CTCF_ChIAPET" | "RNAPII_ChIAPET"
+
+export type SequenceFilterState = {
     useConservation: boolean;
     alignment: Alignment;
     rankBy: string;
@@ -93,9 +88,9 @@ export type Alignment =
     motifScoreDelta: boolean;
     overlapsTFPeak: boolean;
     tfPeakStrength: boolean;
-  }
+}
 
-  export type ElementFilterState = {
+export type ElementFilterState = {
     usecCREs: boolean;
     cCREAssembly: "GRCh38" | "mm10";
     mustHaveOrtholog: boolean;
@@ -104,15 +99,15 @@ export type Alignment =
     rankBy: "avg" | "max";
     availableAssays: CCREAssays;
     classes: CCREClasses;
-  }
+}
 
-  export type GeneFilterState = {
+export type GeneFilterState = {
     useGenes: boolean;
-    methodOfLinkage: string; // wait for more specific instructions
-    proteinOnly: boolean;
+    methodOfLinkage: { [key in GeneLinkingMethod]: boolean }
+    mustBeProteinCoding: boolean;
     mustHaveOrtholog: boolean;
-
-  }
+    rankBy: "max" | "avg";
+}
 
 type UpdateSequenceFilter = <K extends keyof SequenceFilterState>(
     key: K,
@@ -140,6 +135,8 @@ export type FilterProps = {
     toggleDrawer: () => void;
 }
 
+export type Panel = "gene" | "sequence" | "element"
+
 export type SequenceAccordianProps = {
     sequenceFilterVariables: SequenceFilterState;
     updateSequenceFilter: UpdateSequenceFilter;
@@ -157,8 +154,8 @@ export type ElementAccordianProps = {
 export type GeneAccordianProps = {
     geneFilterVariables: GeneFilterState;
     updateGeneFilter: UpdateGeneFilter;
-    isExpanded: (panel: string) => boolean;
-    handleAccordionChange: (panel: string) => () => void;
+    isExpanded: (panel: Panel) => boolean;
+    handleAccordionChange: (panel: Panel) => () => void;
 }
 
 export type UploadProps = {
@@ -170,6 +167,23 @@ export type UploadProps = {
 export type SubTableTitleProps = {
     title: string;
 };
+
+export type AllLinkedGenes = {
+    accession: string;
+    genes: {
+        name: string;
+        geneId: string;
+        expressionSpecificity?: number;
+        linkedBy: string[];
+    }[];
+}[]
+
+export type LinkedGenes = {
+    accession: string
+    name: string
+    geneid: string
+    linkedBy: GeneLinkingMethod[]
+}[];
 
 export type MainTableRow = {
     regionID: number
@@ -208,6 +222,9 @@ export type ElementTableRow = {
 export type GeneTableRow = {
     regionID: number
     inputRegion: GenomicRegion
+    maxExpression?: number
+    expressionSpecificity?: number
+    linkedGenes?: LinkedGenes
 }
 
 export type AssayRankEntry = {
@@ -242,26 +259,45 @@ type TOMTOMMatch = {
     e_value: number;
     jaspar_name?: string | null;
     target_id: string;
-  };
-  
-  export type TomtomMatchQueryData = {
-      target_motifs: TOMTOMMatch[];
-  };
+};
 
-  export type SequenceTableProps = {
+export type TomtomMatchQueryData = {
+    target_motifs: TOMTOMMatch[];
+};
+
+export type SequenceTableProps = {
     sequenceFilterVariables: SequenceFilterState;
     SubTableTitle: React.FC<SubTableTitleProps>;
     sequenceRows: SequenceTableRow[];
-  }
+}
 
-  export type ElementTableProps = {
+export type ElementTableProps = {
     elementFilterVariables: ElementFilterState;
     SubTableTitle: React.FC<SubTableTitleProps>;
     elementRows: ElementTableRow[];
-  }
+}
 
-  export type GeneTableProps = {
+export type GeneTableProps = {
     geneFilterVariables: GeneFilterState;
     SubTableTitle: React.FC<SubTableTitleProps>;
     geneRows: GeneTableRow[];
-  }
+}
+
+export type ClosestGenetocCRE = {
+    __typename?: "ClosestGene";
+    ccre?: string | null;
+    strand?: string | null;
+    chromosome?: string | null;
+    start?: number | null;
+    stop?: number | null;
+    transcriptid?: string | null;
+    gene?: {
+        __typename?: "CcreNearestGene";
+        name?: string | null;
+        type?: string | null;
+        geneid?: string | null;
+        chromosome?: string | null;
+        stop?: number | null;
+        start?: number | null;
+    } | null;
+}[]

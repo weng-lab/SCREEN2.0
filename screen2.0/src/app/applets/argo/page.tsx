@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useMemo } from "react"
 import { useState } from "react"
 import { Stack, Typography, Box, Alert, CircularProgress, IconButton } from "@mui/material"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
-import { ORTHOLOG_QUERY, Z_SCORES_QUERY, BIG_REQUEST_QUERY, MOTIF_QUERY } from "./queries"
+import { ORTHOLOG_QUERY, Z_SCORES_QUERY, BIG_REQUEST_QUERY, MOTIF_QUERY, CLOSEST_LINKED_QUERY, SPECIFICITY_QUERY } from "./queries"
 import { QueryResult, useLazyQuery, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
 import { RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, CCREs, InputRegions, SubTableTitleProps } from "./types"
@@ -13,7 +13,7 @@ import Filters from "./filters/filters"
 import { CancelRounded } from "@mui/icons-material"
 import ArgoUpload from "./argoUpload"
 import { BigRequest, OccurrencesQuery } from "../../../graphql/__generated__/graphql"
-import { batchRegions, calculateAggregateRanks, calculateConservationScores, generateElementRanks, generateSequenceRanks, getNumOverlappingMotifs, handleSameInputRegion, mapScores, mapScoresCTSpecific, matchRanks } from "./helpers"
+import { batchRegions, calculateAggregateRanks, calculateConservationScores, generateElementRanks, generateGeneRanks, generateSequenceRanks, getNumOverlappingMotifs, getSpecificityScores, handleSameInputRegion, mapScores, mapScoresCTSpecific, matchRanks, parseLinkedGenes, pushClosestGenes } from "./helpers"
 import SequenceTable from "./tables/sequenceTable"
 import ElementTable from "./tables/elementTable"
 import GeneTable from "./tables/geneTable"
@@ -23,20 +23,18 @@ export default function Argo() {
     const [inputRegions, setInputRegions] = useState<InputRegions>([]);
     const [getIntersectingCcres, { data: intersectArray }] = useLazyQuery(BED_INTERSECT_QUERY)
     const [getMemeOccurrences] = useLazyQuery(MOTIF_QUERY)
+    const [getGeneSpecificity, { data: geneSpecificity, loading: loading_gene_specificity }] = useLazyQuery(SPECIFICITY_QUERY)
     const [occurrences, setOccurrences] = useState<QueryResult<OccurrencesQuery>[]>([]);
     const [loadingMainRows, setLoadingMainRows] = useState(true);
     const [loadingElementRanks, setLoadingElementRanks] = useState(true);
     const [loadingSequenceRanks, setLoadingSequenceRanks] = useState(true);
+    const [loadingGeneRanks, setLoadingGeneRanks] = useState(true);
 
     //UI state variables
     const [selectedSearch, setSelectedSearch] = useState<string>("TSV File")
     const [drawerOpen, setDrawerOpen] = useState(true);
     const toggleDrawer = () => setDrawerOpen(!drawerOpen);
     const [shownTable, setShownTable] = useState<"sequence" | "elements" | "genes">(null);
-
-    // These will be deleted once functionality is implemented
-    const [geneRanks, setGeneRanks] = useState<RankedRegions>([]);
-    const [geneRows, setGeneRows] = useState<GeneTableRow[]>([])
 
     // Filter state variables
     const [sequenceFilterVariables, setSequenceFilterVariables] = useState<SequenceFilterState>({
@@ -85,10 +83,17 @@ export default function Argo() {
 
     const [geneFilterVariables, setGeneFilterVariables] = useState<GeneFilterState>({
         useGenes: true,
-        methodOfLinkage: "distance",
-        proteinOnly: false,
+        methodOfLinkage: {
+            distance: true,
+            eQTLs: true,
+            CRISPRi_FlowFISH: true,
+            Intact_HiC: true,
+            CTCF_ChIAPET: true,
+            RNAPII_ChIAPET: true
+        },
+        mustBeProteinCoding: false,
         mustHaveOrtholog: false,
-
+        rankBy: "max",
     });
 
     //update specific variable in sequence filters
@@ -160,6 +165,7 @@ export default function Argo() {
         setLoadingMainRows(true)
         setLoadingSequenceRanks(true)
         setLoadingElementRanks(true)
+        setLoadingGeneRanks(true)
         updateElementFilter('selectedBiosample', null)
         if (search) {
             setSelectedSearch(search)
@@ -307,7 +313,7 @@ export default function Argo() {
         setLoadingSequenceRanks(true);
 
         const rankedRegions = generateSequenceRanks(sequenceRows)
-        
+
         return rankedRegions;
     }, [sequenceRows]);
 
@@ -343,13 +349,15 @@ export default function Argo() {
         }
     }, [inputRegions, intersectArray]);
 
-    //query to get orthologous cCREs of the intersecting cCREs
+    //query to get orthologous cCREs of the intersecting cCREs (also used in gene)
     const { loading: loading_ortho, data: orthoData } = useQuery(ORTHOLOG_QUERY, {
         variables: {
             assembly: "GRCh38",
             accessions: intersectingCcres ? intersectingCcres.map((ccre) => ccre.accession) : [],
         },
-        skip: (!elementFilterVariables.mustHaveOrtholog && elementFilterVariables.cCREAssembly !== "mm10") || !intersectingCcres,
+        skip: ((!elementFilterVariables.mustHaveOrtholog && elementFilterVariables.cCREAssembly !== "mm10") &&
+            (!geneFilterVariables.mustHaveOrtholog)) ||
+            !intersectingCcres,
         client: client,
         fetchPolicy: 'cache-first',
     })
@@ -408,9 +416,9 @@ export default function Argo() {
 
     // Filter cCREs based on class and ortholog
     const elementRows: ElementTableRow[] = useMemo(() => {
-        if (allElementData.length === 0 || !elementFilterVariables.usecCREs) return [];
-        setLoadingElementRanks(true);
-
+        if (allElementData.length === 0) {
+            return [];
+        }
         let data = allElementData;
         //filter through ortholog
         if (elementFilterVariables.mustHaveOrtholog && orthoData && elementFilterVariables.cCREAssembly !== "mm10") {
@@ -434,12 +442,19 @@ export default function Argo() {
         const filteredClasses = data.filter(row => elementFilterVariables.classes[row.class] !== false);
         return filteredClasses;
 
-    }, [allElementData, elementFilterVariables.cCREAssembly, elementFilterVariables.classes, elementFilterVariables.mustHaveOrtholog, elementFilterVariables.usecCREs, orthoData]);
+    }, [allElementData, elementFilterVariables.cCREAssembly, elementFilterVariables.classes, elementFilterVariables.mustHaveOrtholog, orthoData]);
 
     // Generate element ranks
     const elementRanks = useMemo<RankedRegions>(() => {
-        if (elementRows.length === 0 || !elementFilterVariables.usecCREs) {
+        if (elementRows.length === 0) {
             return [];
+        } else if (!elementFilterVariables.usecCREs) {
+            return elementRows.map((row) => ({
+                chr: row.inputRegion.chr,
+                start: row.inputRegion.start,
+                end: row.inputRegion.end,
+                rank: 0, // Add rank of 0 to each row
+            }));
         }
         setLoadingElementRanks(true);
 
@@ -452,7 +467,89 @@ export default function Argo() {
     }, [elementFilterVariables, elementRows]);
 
     /*------------------------------------------ Gene Stuff ------------------------------------------*/
-    //TODO
+    //Query to get the closest gene to eah ccre
+    const { loading: loading_linked_genes, data: closestAndLinkedGenes } = useQuery(CLOSEST_LINKED_QUERY, {
+        variables: {
+            accessions: intersectingCcres ? intersectingCcres.map((ccre) => ccre.accession) : [],
+        },
+        skip: !intersectingCcres,
+        client: client,
+        fetchPolicy: 'cache-first',
+    });
+
+    const geneRows = useMemo<GeneTableRow[]>(() => {
+        if (!intersectingCcres || !closestAndLinkedGenes) {
+            return [];
+        }
+        const linkedGenes = parseLinkedGenes(closestAndLinkedGenes.linkedGenesQuery);
+
+        //switch between protein coding and all
+        let closestGenes = closestAndLinkedGenes.closestGenetocCRE.filter((gene) => gene.gene.type === "ALL")
+        if (geneFilterVariables.mustBeProteinCoding) {
+            closestGenes = closestAndLinkedGenes.closestGenetocCRE.filter((gene) => gene.gene.type === "PC")
+        }
+        const allGenes = pushClosestGenes(closestGenes, linkedGenes);
+
+        //Switch between regular and ortho ccres
+        let accessions = intersectingCcres;
+        if (geneFilterVariables.mustHaveOrtholog && orthoData) {
+            const orthologMapping: { [accession: string]: string | undefined } = {};
+
+            orthoData.orthologQuery.forEach((entry: { accession: string; ortholog: Array<{ accession: string }> }) => {
+                if (entry.ortholog.length > 0) {
+                    orthologMapping[entry.accession] = entry.ortholog[0].accession;
+                }
+            });
+
+            accessions = intersectingCcres
+                .map((ccre) => ({
+                    ...ccre,
+                    ortholog: orthologMapping[ccre.accession]
+                }))
+                .filter((ccre) => ccre.ortholog !== undefined);
+        }
+
+        //get all of the geneID's from allGenes
+        const geneIds = allGenes.flatMap((entry) => 
+            entry.genes.map((gene) => gene.geneId)
+        );
+
+        //Query to get the gene specificty for each gene id from the previous query
+        if (closestAndLinkedGenes.closestGenetocCRE.length > 0) {
+            getGeneSpecificity({
+                variables: {
+                    geneids: geneIds
+                },
+                client: client,
+                fetchPolicy: 'cache-and-network',
+            })
+        }
+        if (geneSpecificity) {
+            const specificityRows = getSpecificityScores(allGenes, accessions, geneSpecificity, geneFilterVariables)
+            return specificityRows
+        } else {
+            return []
+        }
+
+    }, [closestAndLinkedGenes, geneFilterVariables, geneSpecificity, getGeneSpecificity, intersectingCcres, orthoData]);
+
+    const geneRanks = useMemo<RankedRegions>(() => {
+        if (geneRows.length === 0) {
+            return [];
+        } else if (!geneFilterVariables.useGenes) {
+            return geneRows.map((row) => ({
+                chr: row.inputRegion.chr,
+                start: row.inputRegion.start,
+                end: row.inputRegion.end,
+                rank: 0, // Add rank of 0 to each row
+            }));
+        }
+        setLoadingGeneRanks(true);
+
+        const rankedRegions = generateGeneRanks(geneRows)
+        return rankedRegions
+
+    }, [geneFilterVariables.useGenes, geneRows]);
 
     /*------------------------------------------ Main Table Stuff ------------------------------------------*/
 
@@ -463,20 +560,22 @@ export default function Argo() {
 
         const aggregateRanks = calculateAggregateRanks(inputRegions, sequenceRanks, elementRanks, geneRanks)
         //TODO add gene ranks below
-        const updatedMainRows = matchRanks(inputRegions, sequenceRanks, elementRanks, aggregateRanks)
-
-        if (elementRanks.length > 0) {
-            setLoadingElementRanks(false)
-        }
+        const updatedMainRows = matchRanks(inputRegions, sequenceRanks, elementRanks, geneRanks, aggregateRanks)
         if (sequenceRanks.length > 0 && !loading_conservation_scores) {
             setLoadingSequenceRanks(false)
         }
-        if (elementRanks.length > 0 && sequenceRanks.length > 0 && !loading_conservation_scores) {
+        if (elementRanks.length > 0) {
+            setLoadingElementRanks(false)
+        }
+        if (geneRanks.length > 0 && !loading_gene_specificity) {
+            setLoadingGeneRanks(false)
+        }
+        if (elementRanks.length > 0 && sequenceRanks.length > 0 && geneRanks.length > 0 && !loading_gene_specificity && !loading_conservation_scores) {
             setLoadingMainRows(false)
         }
 
         return updatedMainRows;
-    }, [elementRanks, geneRanks, inputRegions, loading_conservation_scores, sequenceRanks]);
+    }, [elementRanks, geneRanks, inputRegions, loading_conservation_scores, loading_gene_specificity, sequenceRanks]);
 
     //handle column changes for the main rank table
     const mainColumns: DataTableColumn<MainTableRow>[] = useMemo(() => {
@@ -509,11 +608,25 @@ export default function Argo() {
                 render: (row) => loadingElementRanks || loading_scores || loading_ortho ? <CircularProgress size={10} /> : row.elementRank === 0 ? "N/A" : row.elementRank
             })
         }
-        if (geneFilterVariables.useGenes) { cols.push({ header: "Gene", HeaderRender: () => <MainColHeader tableName="Genes" onClick={() => shownTable === "genes" ? setShownTable(null) : setShownTable("genes")} />, value: (row) => "N/A" }) }
+        if (geneFilterVariables.useGenes) {
+            cols.push({
+                header: "Gene", HeaderRender: () => <MainColHeader tableName="Genes" onClick={() => shownTable === "genes" ? setShownTable(null) : setShownTable("genes")} />,
+                value: (row) => row.geneRank,
+                sort: (a, b) => {
+                    const rankA = a.geneRank
+                    const rankB = b.geneRank
+
+                    if (rankA === 0) return 1;
+                    if (rankB === 0) return -1;
+                    return rankA - rankB;
+                },
+                render: (row) => loading_linked_genes || loading_gene_specificity || loadingGeneRanks ? <CircularProgress size={10} /> : row.geneRank === 0 ? "N/A" : row.geneRank
+            })
+        }
 
         return cols
 
-    }, [MainColHeader, elementFilterVariables.usecCREs, geneFilterVariables.useGenes, loadingElementRanks, loadingMainRows, loadingSequenceRanks, loading_ortho, loading_scores, sequenceFilterVariables.useConservation, sequenceFilterVariables.useMotifs, shownTable])
+    }, [MainColHeader, elementFilterVariables.usecCREs, geneFilterVariables.useGenes, loadingElementRanks, loadingGeneRanks, loadingMainRows, loadingSequenceRanks, loading_gene_specificity, loading_linked_genes, loading_ortho, loading_scores, sequenceFilterVariables.useConservation, sequenceFilterVariables.useMotifs, shownTable])
 
     return (
         <Box display="flex" >
@@ -591,7 +704,7 @@ export default function Argo() {
                             </Box>
                         )}
 
-                        {shownTable === "genes" && (
+                        {(shownTable === "genes" && geneFilterVariables.useGenes) && (
                             <Box mt="20px">
                                 <GeneTable
                                     geneFilterVariables={geneFilterVariables}

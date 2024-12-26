@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FilterProps } from '../types';
+import { FilterProps, Panel } from '../types';
 import { Box, Drawer, IconButton, Stack, Typography } from '@mui/material';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -19,11 +19,20 @@ const Filters: React.FC<FilterProps> = ({
 }) => {
 
     //Keep track of which tab is expanded in the drawer
-    const [expandedAccordions, setExpandedAccordions] = useState<string[]>(["sequence"]);
+    /**
+     * 
+     * 
+     * 
+     * Change this back before merging changes
+     * 
+     * 
+     * 
+     */
+    const [expandedAccordions, setExpandedAccordions] = useState<Panel[]>(["gene"]);
 
-    const isExpanded = (panel: string) => expandedAccordions.includes(panel);
+    const isExpanded = (panel: Panel) => expandedAccordions.includes(panel);
 
-    const handleAccordionChange = (panel: string) => () => {
+    const handleAccordionChange = (panel: Panel) => () => {
         setExpandedAccordions((prevExpanded) =>
             prevExpanded.includes(panel)
                 ? prevExpanded.filter((p) => p !== panel)

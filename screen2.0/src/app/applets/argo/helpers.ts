@@ -1,11 +1,11 @@
 import { OperationVariables, QueryResult } from "@apollo/client";
-import { AssayRankEntry, CCREAssays, CCREClasses, ElementTableRow, GenomicRegion, InputRegions, MainTableRow, MotifQueryDataOccurrence, RankedRegions, SequenceTableRow } from "./types";
-import { OccurrencesQuery } from "../../../graphql/__generated__/graphql";
+import { AllLinkedGenes, AssayRankEntry, CCREAssays, CCREClasses, CCREs, ClosestGenetocCRE, ElementTableRow, GeneFilterState, GeneLinkingMethod, GeneTableRow, GenomicRegion, InputRegions, MainTableRow, MotifQueryDataOccurrence, RankedRegions, SequenceTableRow } from "./types";
+import { GeneSpecificityQuery, OccurrencesQuery } from "../../../graphql/__generated__/graphql";
 
 const assayNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
 
 // switch between min, max, avg for conservation scores, calculate each respectivley
-export const  calculateConservationScores = (scores, rankBy: string, inputRegions: InputRegions): SequenceTableRow[] => {
+export const calculateConservationScores = (scores, rankBy: string, inputRegions: InputRegions): SequenceTableRow[] => {
     return scores.map((request) => {
         const data = request.data;
 
@@ -124,7 +124,7 @@ export const generateSequenceRanks = (sequenceRows: SequenceTableRow[]): RankedR
         let rank = 1;
         return sortedRows.map((row, index) => {
             if (index > 0 && sortedRows[index].numOverlappingMotifs !== sortedRows[index - 1].numOverlappingMotifs) {
-                rank = index + 1; 
+                rank = index + 1;
             }
             return {
                 ...row,
@@ -157,7 +157,7 @@ export const generateSequenceRanks = (sequenceRows: SequenceTableRow[]): RankedR
                 chr: row.inputRegion.chr,
                 start: row.inputRegion.start,
                 end: row.inputRegion.end,
-                rank, 
+                rank,
             };
         });
     })();
@@ -251,69 +251,284 @@ export const handleSameInputRegion = (rankBy: string, elementRows: ElementTableR
 export const generateElementRanks = (rows: ElementTableRow[], classes: CCREClasses, assays: CCREAssays): RankedRegions => {
     const assayRanks: { [key: number]: AssayRankEntry } = {};
 
-        //assign a rank to each assay
-        assayNames.forEach(assay => {
-            const sortedRows = rows
-                .sort((a, b) => {
-                    if (classes[a.class] && classes[b.class]) {
-                        return b[assay] - a[assay];
-                    }
-                    return 0;
-                });
-
-            sortedRows.forEach((row, index) => {
-                const isClassEnabled = classes[row.class];
-                const score = row[assay];
-
-                if (!assayRanks[row.inputRegion.start]) {
-                    assayRanks[row.inputRegion.start] = {
-                        chr: row.inputRegion.chr,
-                        start: row.inputRegion.start,
-                        end: row.inputRegion.end,
-                        ranks: {}
-                    };
+    //assign a rank to each assay
+    assayNames.forEach(assay => {
+        const sortedRows = rows
+            .sort((a, b) => {
+                if (classes[a.class] && classes[b.class]) {
+                    return b[assay] - a[assay];
                 }
-
-                // Assign rank based on score order if the class is enabled, otherwise assign rank 0
-                assayRanks[row.inputRegion.start].ranks[assay] = isClassEnabled && score !== null ? index + 1 : 0;
+                return 0;
             });
+
+        sortedRows.forEach((row, index) => {
+            const isClassEnabled = classes[row.class];
+            const score = row[assay];
+
+            if (!assayRanks[row.inputRegion.start]) {
+                assayRanks[row.inputRegion.start] = {
+                    chr: row.inputRegion.chr,
+                    start: row.inputRegion.start,
+                    end: row.inputRegion.end,
+                    ranks: {}
+                };
+            }
+
+            // Assign rank based on score order if the class is enabled, otherwise assign rank 0
+            assayRanks[row.inputRegion.start].ranks[assay] = isClassEnabled && score !== null ? index + 1 : 0;
         });
+    });
 
-        // add up all assay ranks
-        const totalAssayRanks = Object.values(assayRanks).map((row) => {
-            const totalRank = assayNames.reduce((sum, assay) => {
-                return assays[assay] ? sum + (row.ranks[assay] || 0) : sum;
-            }, 0);
+    // add up all assay ranks
+    const totalAssayRanks = Object.values(assayRanks).map((row) => {
+        const totalRank = assayNames.reduce((sum, assay) => {
+            return assays[assay] ? sum + (row.ranks[assay] || 0) : sum;
+        }, 0);
 
+        return {
+            chr: row.chr,
+            start: row.start,
+            end: row.end,
+            totalRank: totalRank,
+        };
+    });
+
+    // Sort by total rank score in ascending order
+    const rankedRegions: RankedRegions = [];
+    totalAssayRanks.sort((a, b) => a.totalRank - b.totalRank);
+
+    // Assign ranks, accounting for ties
+    let currentRank = 1;
+    let prevTotalRank = null;
+
+    totalAssayRanks.forEach((region, index) => {
+        if (region.totalRank !== prevTotalRank) {
+            currentRank = index + 1;
+            prevTotalRank = region.totalRank;
+        }
+        rankedRegions.push({
+            chr: region.chr,
+            start: region.start,
+            end: region.end,
+            rank: region.totalRank === 0 ? 0 : currentRank,
+        });
+    });
+    return rankedRegions
+};
+
+export const getSpecificityScores = (allGenes: AllLinkedGenes, accessions: CCREs, geneSpecificity: GeneSpecificityQuery, geneFilterVariables: GeneFilterState): GeneTableRow[] => {
+    
+    const updatedAllGenes: AllLinkedGenes = allGenes.map((gene) => ({
+        ...gene,
+        genes: gene.genes.map((geneEntry) => {
+            // Find the matching gene in geneSpecificity
+            const matchingGene = geneSpecificity.geneSpecificity.find(
+                (specificityGene) => specificityGene.name.replace(/\s+/g, "") === geneEntry.name.replace(/\s+/g, "")
+            );
+
+            // Return a new geneEntry with the expressionSpecificity if a match is found
             return {
-                chr: row.chr,
-                start: row.start,
-                end: row.end,
-                totalRank: totalRank,
+                ...geneEntry,
+                expressionSpecificity: matchingGene ? matchingGene.score : geneEntry.expressionSpecificity,
+            };
+        }),
+    }));
+
+    const specificityRows: GeneTableRow[] = accessions.flatMap((ccre) => {
+        // Filter out ccres by matching accession
+        const matchingGenes = updatedAllGenes.filter((gene) => ccre.accession === gene.accession);
+
+        const filteredGenes = matchingGenes.map((gene) => ({
+            ...gene,
+            genes: gene.genes.filter((linkedGene) => {
+                // Check if at least one linkage method is valid based on geneFilterVariables
+                return linkedGene.linkedBy.some((method) =>
+                    geneFilterVariables.methodOfLinkage[method as keyof GeneFilterState['methodOfLinkage']]
+                );
+            }),
+        }));
+
+        const specificityScores = filteredGenes.flatMap((gene) =>
+            gene.genes.map((linkedGene) => linkedGene.expressionSpecificity || 0)
+        );
+
+        // Calculate expressionSpecificity based on rankBy, only including filtered genes
+        const expressionSpecificity =
+            geneFilterVariables.rankBy === "max"
+                ? Math.max(...specificityScores)
+                : specificityScores.reduce((sum, score) => sum + score, 0) / specificityScores.length || 0;
+
+        // Map each matching gene's details to the GeneTableRow format
+        return matchingGenes.map((gene) => ({
+            regionID: ccre.regionID,
+            inputRegion: ccre.inputRegion,
+            expressionSpecificity: expressionSpecificity === -Infinity ? 0 : expressionSpecificity,
+            linkedGenes: gene.genes.map((linkedGene) => ({
+                accession: gene.accession,
+                name: linkedGene.name,
+                geneid: linkedGene.geneId,
+                linkedBy: linkedGene.linkedBy as GeneLinkingMethod[],
+            })),
+        }));
+    });
+
+    return specificityRows
+}
+
+export const parseLinkedGenes = (data): AllLinkedGenes => {
+    const uniqueAccessions: {
+        accession: string;
+        genes: { name: string; geneId: string; linkedBy: string[] }[]
+    }[] = [];
+
+    for (const gene of data) {
+        const geneNameToPush = gene.gene;
+        const geneIdToPush = gene.geneid
+        const methodToPush = (gene.assay ?? gene.method).replace(/-/g, '_');
+        const geneAccession = gene.accession;
+
+        const existingGeneEntry = uniqueAccessions.find((uniqueGene) => uniqueGene.accession === geneAccession);
+
+        if (existingGeneEntry) {
+            const existingGene = existingGeneEntry.genes.find((gene) => gene.name === geneNameToPush && gene.geneId === geneIdToPush);
+
+            if (existingGene) {
+                // Add the method if it's not already in the linkedBy array
+                if (!existingGene.linkedBy.includes(methodToPush)) {
+                    existingGene.linkedBy.push(methodToPush);
+                }
+            } else {
+                // Add a new gene entry if the gene name and geneId don't exist
+                existingGeneEntry.genes.push({ name: geneNameToPush, geneId: geneIdToPush, linkedBy: [methodToPush] });
+            }
+        } else {
+            // Create a new entry for the accession if it doesn't exist
+            uniqueAccessions.push({
+                accession: geneAccession,
+                genes: [{ name: geneNameToPush, geneId: geneIdToPush, linkedBy: [methodToPush] }],
+            });
+        }
+    }
+
+    return uniqueAccessions
+}
+
+export const pushClosestGenes = (closestGenes: ClosestGenetocCRE, linkedGenes: AllLinkedGenes): AllLinkedGenes => {
+    // Iterate over each closest gene
+    for (const closestGene of closestGenes) {
+        const closestGeneName = closestGene.gene.name;
+        const closestGeneId = closestGene.gene.geneid;
+        const accession = closestGene.ccre;
+
+        // Find the matching accession in linkedGenes
+        const linkedAccession = linkedGenes.find((linked) => linked.accession === accession);
+
+        if (linkedAccession) {
+            // Find the matching gene in the linked genes
+            const existingGene = linkedAccession.genes.find(
+                (gene) => gene.name === closestGeneName && gene.geneId === closestGeneId
+            );
+
+            if (existingGene) {
+                // Add "distance" to the linkedBy array if not already present
+                if (!existingGene.linkedBy.includes("distance")) {
+                    existingGene.linkedBy.push("distance");
+                }
+            } else {
+                // Add a new gene with "distance" as the linkedBy method
+                linkedAccession.genes.push({
+                    name: closestGeneName,
+                    geneId: closestGeneId,
+                    linkedBy: ["distance"],
+                });
+            }
+        } else {
+            // If no matching accession exists, add a new accession with the gene
+            linkedGenes.push({
+                accession: accession,
+                genes: [
+                    {
+                        name: closestGeneName,
+                        geneId: closestGeneId,
+                        linkedBy: ["distance"],
+                    },
+                ],
+            });
+        }
+    }
+
+    return linkedGenes;
+}
+
+export const generateGeneRanks = (geneRows: GeneTableRow[]): RankedRegions => {
+    // Assign ranks based on expression specificity
+    const expressionSpecificityRankedRows = (() => {
+        const sortedRows = [...geneRows].sort((a, b) => b.expressionSpecificity - a.expressionSpecificity);
+        let rank = 1; // Start rank at 1
+        return sortedRows.map((row, index) => {
+            if (row.expressionSpecificity === 0) {
+                return { ...row, speceficityRank: 0 }; // Set rank to 0 for 0 specificity
+            }
+            if (index > 0 && sortedRows[index].expressionSpecificity !== sortedRows[index - 1].expressionSpecificity) {
+                rank = index + 1;
+            }
+            return { ...row, speceficityRank: rank };
+        });
+    })();
+
+    // Assign ranks based on maxExpression
+    const maxExpressionRankedRows = (() => {
+        const sortedRows = [...geneRows].sort((a, b) => (b.maxExpression ?? 0) - (a.maxExpression ?? 0));
+        let rank = 1; // Start rank at 1
+        return sortedRows.map((row, index) => {
+            if ((row.maxExpression ?? 0) === 0) {
+                return { ...row, maxExpRank: 0 }; // Set rank to 0 for 0 maxExpression
+            }
+            if (index > 0 && (sortedRows[index].maxExpression ?? 0) !== (sortedRows[index - 1].maxExpression ?? 0)) {
+                rank = index + 1;
+            }
+            return { ...row, maxExpRank: rank };
+        });
+    })();
+
+    // Merge ranks and calculate total rank
+    const combinedRanks = expressionSpecificityRankedRows.map((row) => {
+        const rankedGenes = maxExpressionRankedRows.find(
+            (motifRow) => motifRow.regionID === row.regionID
+        )?.maxExpRank;
+
+        return {
+            ...row,
+            totalRank: row.speceficityRank + (rankedGenes ?? 0), // Use 0 if rank is missing
+        };
+    });
+
+    // Sort by total rank and assign final ranks
+    const rankedRegions: RankedRegions = (() => {
+        const sortedByTotalRank = [...combinedRanks].sort((a, b) => a.totalRank - b.totalRank);
+        let rank = 1; // Start rank at 1
+        return sortedByTotalRank.map((row, index) => {
+            if (row.totalRank === 0) {
+                return {
+                    chr: row.inputRegion.chr,
+                    start: row.inputRegion.start,
+                    end: row.inputRegion.end,
+                    rank: 0, // Set rank to 0 if totalRank is 0
+                };
+            }
+            if (index > 0 && sortedByTotalRank[index].totalRank !== sortedByTotalRank[index - 1].totalRank) {
+                rank = index + 1;
+            }
+            return {
+                chr: row.inputRegion.chr,
+                start: row.inputRegion.start,
+                end: row.inputRegion.end,
+                rank,
             };
         });
+    })();
 
-        // Sort by total rank score in ascending order
-        const rankedRegions: RankedRegions = [];
-        totalAssayRanks.sort((a, b) => a.totalRank - b.totalRank);
-
-        // Assign ranks, accounting for ties
-        let currentRank = 1;
-        let prevTotalRank = null;
-
-        totalAssayRanks.forEach((region, index) => {
-            if (region.totalRank !== prevTotalRank) {
-                currentRank = index + 1;
-                prevTotalRank = region.totalRank;
-            }
-            rankedRegions.push({
-                chr: region.chr,
-                start: region.start,
-                end: region.end,
-                rank: region.totalRank === 0 ? 0 : currentRank,
-            });
-        });
-        return rankedRegions
+    return rankedRegions;
 };
 
 // calculate the aggregate rank for each input region
@@ -370,12 +585,12 @@ export const calculateAggregateRanks = (inputRegions: InputRegions, sequenceRank
             };
         });
 
-        return (aggregateRanks as RankedRegions)
+    return (aggregateRanks as RankedRegions)
 };
 
-export const matchRanks = (inputRegions: InputRegions, sequenceRanks: RankedRegions, elementRanks: RankedRegions, aggregateRanks: RankedRegions): MainTableRow[] => {
+export const matchRanks = (inputRegions: InputRegions, sequenceRanks: RankedRegions, elementRanks: RankedRegions, geneRanks: RankedRegions, aggregateRanks: RankedRegions): MainTableRow[] => {
     const updatedMainRows = inputRegions.map(row => {
-        // Find the matching rank for this `inputRegion`
+        // Find the matching ranks for this `inputRegion`
         const matchingElement = elementRanks.find(
             element =>
                 element.chr == row.chr &&
@@ -394,7 +609,14 @@ export const matchRanks = (inputRegions: InputRegions, sequenceRanks: RankedRegi
 
         const sequenceRank = matchingSequence ? matchingSequence.rank : 0;
 
-        //TODO add other ranks (Gene)
+        const matchingGene = geneRanks.find(
+            gene =>
+                gene.chr == row.chr &&
+                gene.start == row.start &&
+                gene.end == row.end
+        );
+
+        const geneRank = matchingGene ? matchingGene.rank : 0;
 
         const matchingAggregateRank = aggregateRanks.find(
             mainRank =>
@@ -410,6 +632,7 @@ export const matchRanks = (inputRegions: InputRegions, sequenceRanks: RankedRegi
             inputRegion: { chr: row.chr, start: row.start, end: row.end },
             sequenceRank,
             elementRank,
+            geneRank,
             aggregateRank
         };
     }).filter(row => row.aggregateRank !== 0);
