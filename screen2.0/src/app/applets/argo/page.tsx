@@ -704,7 +704,7 @@ export default function Argo() {
                             </Box>
                         )}
 
-                        {shownTable === "genes" && (
+                        {(shownTable === "genes" && geneFilterVariables.useGenes) && (
                             <Box mt="20px">
                                 <GeneTable
                                     geneFilterVariables={geneFilterVariables}

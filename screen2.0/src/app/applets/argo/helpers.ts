@@ -531,8 +531,6 @@ export const generateGeneRanks = (geneRows: GeneTableRow[]): RankedRegions => {
     return rankedRegions;
 };
 
-
-
 // calculate the aggregate rank for each input region
 export const calculateAggregateRanks = (inputRegions: InputRegions, sequenceRanks: RankedRegions, elementRanks: RankedRegions, geneRanks: RankedRegions): RankedRegions => {
     const totalRanks = inputRegions.map(row => {
