@@ -362,7 +362,7 @@ export const getSpecificityScores = (allGenes: AllLinkedGenes, accessions: CCREs
         return matchingGenes.map((gene) => ({
             regionID: ccre.regionID,
             inputRegion: ccre.inputRegion,
-            expressionSpecificity,
+            expressionSpecificity: expressionSpecificity === -Infinity ? 0 : expressionSpecificity,
             linkedGenes: gene.genes.map((linkedGene) => ({
                 accession: gene.accession,
                 name: linkedGene.name,
@@ -386,7 +386,6 @@ export const parseLinkedGenes = (data): AllLinkedGenes => {
         const geneIdToPush = gene.geneid
         const methodToPush = (gene.assay ?? gene.method).replace(/-/g, '_');
         const geneAccession = gene.accession;
-        console.log(methodToPush)
 
         const existingGeneEntry = uniqueAccessions.find((uniqueGene) => uniqueGene.accession === geneAccession);
 
@@ -465,30 +464,30 @@ export const generateGeneRanks = (geneRows: GeneTableRow[]): RankedRegions => {
     // Assign ranks based on expression specificity
     const expressionSpecificityRankedRows = (() => {
         const sortedRows = [...geneRows].sort((a, b) => b.expressionSpecificity - a.expressionSpecificity);
-        let rank = 1;
+        let rank = 1; // Start rank at 1
         return sortedRows.map((row, index) => {
+            if (row.expressionSpecificity === 0) {
+                return { ...row, speceficityRank: 0 }; // Set rank to 0 for 0 specificity
+            }
             if (index > 0 && sortedRows[index].expressionSpecificity !== sortedRows[index - 1].expressionSpecificity) {
                 rank = index + 1;
             }
-            return {
-                ...row,
-                speceficityRank: rank,
-            };
+            return { ...row, speceficityRank: rank };
         });
     })();
 
     // Assign ranks based on maxExpression
     const maxExpressionRankedRows = (() => {
-        const sortedRows = [...geneRows].sort((a, b) => b.maxExpression! - a.maxExpression!);
-        let rank = 1;
+        const sortedRows = [...geneRows].sort((a, b) => (b.maxExpression ?? 0) - (a.maxExpression ?? 0));
+        let rank = 1; // Start rank at 1
         return sortedRows.map((row, index) => {
-            if (index > 0 && sortedRows[index].maxExpression !== sortedRows[index - 1].maxExpression) {
+            if ((row.maxExpression ?? 0) === 0) {
+                return { ...row, maxExpRank: 0 }; // Set rank to 0 for 0 maxExpression
+            }
+            if (index > 0 && (sortedRows[index].maxExpression ?? 0) !== (sortedRows[index - 1].maxExpression ?? 0)) {
                 rank = index + 1;
             }
-            return {
-                ...row,
-                maxExpRank: rank,
-            };
+            return { ...row, maxExpRank: rank };
         });
     })();
 
@@ -500,15 +499,23 @@ export const generateGeneRanks = (geneRows: GeneTableRow[]): RankedRegions => {
 
         return {
             ...row,
-            totalRank: row.speceficityRank + (rankedGenes ?? geneRows.length), // Sum of ranks
+            totalRank: row.speceficityRank + (rankedGenes ?? 0), // Use 0 if rank is missing
         };
     });
 
-    // Sort by total rank and assign final ranks 
+    // Sort by total rank and assign final ranks
     const rankedRegions: RankedRegions = (() => {
         const sortedByTotalRank = [...combinedRanks].sort((a, b) => a.totalRank - b.totalRank);
-        let rank = 1;
+        let rank = 1; // Start rank at 1
         return sortedByTotalRank.map((row, index) => {
+            if (row.totalRank === 0) {
+                return {
+                    chr: row.inputRegion.chr,
+                    start: row.inputRegion.start,
+                    end: row.inputRegion.end,
+                    rank: 0, // Set rank to 0 if totalRank is 0
+                };
+            }
             if (index > 0 && sortedByTotalRank[index].totalRank !== sortedByTotalRank[index - 1].totalRank) {
                 rank = index + 1;
             }
@@ -521,8 +528,9 @@ export const generateGeneRanks = (geneRows: GeneTableRow[]): RankedRegions => {
         });
     })();
 
-    return rankedRegions
-}
+    return rankedRegions;
+};
+
 
 
 // calculate the aggregate rank for each input region

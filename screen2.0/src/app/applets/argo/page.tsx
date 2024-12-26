@@ -526,7 +526,6 @@ export default function Argo() {
         }
         if (geneSpecificity) {
             const specificityRows = getSpecificityScores(allGenes, accessions, geneSpecificity, geneFilterVariables)
-            console.log(specificityRows)
             return specificityRows
         } else {
             return []
