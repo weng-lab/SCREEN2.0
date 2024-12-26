@@ -23,6 +23,9 @@ export const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) =>
   const [selectedSearch, setSelectedSearch] = useState<string>("Genomic Region")
 
   const handleSearchChange = (event: SelectChangeEvent) => {
+    if (event.target.value === "SNP rsID") {
+      setAssembly("GRCh38")
+    }
     setSelectedSearch(event.target.value)
   }
 
@@ -110,7 +113,7 @@ export const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) =>
               }
             >
               <MenuItem value={"GRCh38"}>GRCh38</MenuItem>
-              <MenuItem value={"mm10"}>mm10</MenuItem>
+              {selectedSearch !== "SNP rsID" && <MenuItem value={"mm10"}>mm10</MenuItem>}
             </Select>
           </FormControl>
           </Stack>

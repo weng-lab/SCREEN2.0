@@ -281,7 +281,6 @@ export function DataMatrices() {
 
   const scatterData = useMemo(() => {
     if (!fData) return [];
-    console.log(fData)
     const biosampleIds = biosamples.map(sample => sample.umap_coordinates);
   
     return fData.map((x) => {

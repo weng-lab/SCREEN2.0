@@ -406,21 +406,21 @@ export function constructSearchURL(
 }
 
 export function constructMainQueryParamsFromURL(searchParams: { [key: string]: string | undefined }): MainQueryParams {
-  
+
   return (
     {
       coordinates: {
         //If bed intersecting, set chr start end to null
         assembly: searchParams.assembly === "GRCh38" || searchParams.assembly === "mm10" ?
-          searchParams.assembly : "GRCh38",
+          searchParams.assembly : null,
         chromosome: (searchParams.intersect && checkTrueFalse(searchParams.intersect)) ?
-          null : searchParams.chromosome ?? "chr12",
+          null : searchParams.chromosome ?? null,
         start: (searchParams.intersect && checkTrueFalse(searchParams.intersect)) ?
           null : searchParams.start ?
-            +(searchParams.start) : 53380176,
+            +(searchParams.start) : null,
         end: (searchParams.intersect && checkTrueFalse(searchParams.intersect)) ?
           null : searchParams.end ?
-            +(searchParams.end) : 53416446,
+            +(searchParams.end) : null,
       },
       //Incomplete data, will be filled in once biosample query is loaded
       biosample: searchParams.Biosample ?
