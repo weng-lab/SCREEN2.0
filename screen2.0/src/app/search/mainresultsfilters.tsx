@@ -162,11 +162,11 @@ export function MainResultsFilters(
     data: geneTranscripts
   } = useQuery(GENE_TRANSCRIPTS_QUERY, {
     variables: {
-      assembly: mainQueryParams.coordinates.assembly.toLowerCase(),
+      assembly: mainQueryParams.coordinates.assembly?.toLowerCase(),
       name: [mainQueryParams.gene.name],
-      version: mainQueryParams.coordinates.assembly.toLowerCase() === "grch38" ? 40 : 25,
+      version: mainQueryParams.coordinates.assembly?.toLowerCase() === "grch38" ? 40 : 25,
     },
-    skip: !mainQueryParams.gene.name,
+    skip: !mainQueryParams.gene.name || !mainQueryParams.coordinates.assembly,
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first"
   })
@@ -538,12 +538,14 @@ export function MainResultsFilters(
               </Stack>
             </Paper>
           }
-          <BiosampleTables
-            assembly={mainQueryParams.coordinates.assembly}
-            selected={mainQueryParams.biosample?.name}
-            onBiosampleClicked={setBiosample}
-            slotProps={{ paperStack: { elevation: 0 }, headerStack: {mt: 0} }}
-          />
+          {mainQueryParams.coordinates.assembly &&
+            <BiosampleTables
+              assembly={mainQueryParams.coordinates.assembly}
+              selected={mainQueryParams.biosample?.name}
+              onBiosampleClicked={setBiosample}
+              slotProps={{ paperStack: { elevation: 0 }, headerStack: { mt: 0 } }}
+            />
+          }
         </AccordionDetails>
       </Accordion>
       {/* Hide all other filters when on genome browser view */}
