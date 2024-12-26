@@ -1,5 +1,5 @@
 import { OperationVariables, QueryResult } from "@apollo/client";
-import { AssayRankEntry, CCREAssays, CCREClasses, CCREs, ClosestGenetocCRE, ElementTableRow, GeneTableRow, GenomicRegion, InputRegions, MainTableRow, MotifQueryDataOccurrence, RankedRegions, SequenceTableRow } from "./types";
+import { AllLinkedGenes, AssayRankEntry, CCREAssays, CCREClasses, CCREs, ClosestGenetocCRE, ElementTableRow, GeneFilterState, GeneLinkingMethod, GeneTableRow, GenomicRegion, InputRegions, MainTableRow, MotifQueryDataOccurrence, RankedRegions, SequenceTableRow } from "./types";
 import { GeneSpecificityQuery, OccurrencesQuery } from "../../../graphql/__generated__/graphql";
 
 const assayNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
@@ -316,44 +316,66 @@ export const generateElementRanks = (rows: ElementTableRow[], classes: CCREClass
     return rankedRegions
 };
 
-export const getSpecificityScores = (closestGenes: ClosestGenetocCRE, accessions: CCREs, geneSpecificity: GeneSpecificityQuery): GeneTableRow[] => {
-    const matchingCcres = closestGenes.flatMap((gene) => {
-        // Find the matching gene in geneSpecificity
-        const matchingGene = geneSpecificity.geneSpecificity.find((specificityGene) =>
-            specificityGene.name == gene.gene.name
+export const getSpecificityScores = (allGenes: AllLinkedGenes, accessions: CCREs, geneSpecificity: GeneSpecificityQuery, geneFilterVariables: GeneFilterState): GeneTableRow[] => {
+    
+    const updatedAllGenes: AllLinkedGenes = allGenes.map((gene) => ({
+        ...gene,
+        genes: gene.genes.map((geneEntry) => {
+            // Find the matching gene in geneSpecificity
+            const matchingGene = geneSpecificity.geneSpecificity.find(
+                (specificityGene) => specificityGene.name.replace(/\s+/g, "") === geneEntry.name.replace(/\s+/g, "")
+            );
+
+            // Return a new geneEntry with the expressionSpecificity if a match is found
+            return {
+                ...geneEntry,
+                expressionSpecificity: matchingGene ? matchingGene.score : geneEntry.expressionSpecificity,
+            };
+        }),
+    }));
+
+    const specificityRows: GeneTableRow[] = accessions.flatMap((ccre) => {
+        // Filter out ccres by matching accession
+        const matchingGenes = updatedAllGenes.filter((gene) => ccre.accession === gene.accession);
+
+        const filteredGenes = matchingGenes.map((gene) => ({
+            ...gene,
+            genes: gene.genes.filter((linkedGene) => {
+                // Check if at least one linkage method is valid based on geneFilterVariables
+                return linkedGene.linkedBy.some((method) =>
+                    geneFilterVariables.methodOfLinkage[method as keyof GeneFilterState['methodOfLinkage']]
+                );
+            }),
+        }));
+
+        const specificityScores = filteredGenes.flatMap((gene) =>
+            gene.genes.map((linkedGene) => linkedGene.expressionSpecificity || 0)
         );
 
-        // If a match is found, return the combined result; otherwise, return an empty array
-        return matchingGene
-            ? [{
-                ccre: gene.ccre,
-                geneId: gene.gene.geneid,
-                chromosome: gene.chromosome,
-                start: gene.start,
-                end: gene.stop,
-                expressionSpecificity: matchingGene.score,
-            }]
-            : [];
-    });
+        // Calculate expressionSpecificity based on rankBy, only including filtered genes
+        const expressionSpecificity =
+            geneFilterVariables.rankBy === "max"
+                ? Math.max(...specificityScores)
+                : specificityScores.reduce((sum, score) => sum + score, 0) / specificityScores.length || 0;
 
-    const specificityRows = accessions.flatMap((ccre) => {
-        // Find matching genes in geneSpecificity
-        const matchingGenes = matchingCcres.filter((gene) =>
-            ccre.accession == gene.ccre
-        );
-
-        // Map to GeneTableRow format or just return ccre.inputRegion
+        // Map each matching gene's details to the GeneTableRow format
         return matchingGenes.map((gene) => ({
             regionID: ccre.regionID,
             inputRegion: ccre.inputRegion,
-            expressionSpecificity: gene.expressionSpecificity,
+            expressionSpecificity,
+            linkedGenes: gene.genes.map((linkedGene) => ({
+                accession: gene.accession,
+                name: linkedGene.name,
+                geneid: linkedGene.geneId,
+                linkedBy: linkedGene.linkedBy as GeneLinkingMethod[],
+            })),
         }));
     });
 
     return specificityRows
 }
 
-export const parseLinkedGenes = (data) => {
+export const parseLinkedGenes = (data): AllLinkedGenes => {
     const uniqueAccessions: {
         accession: string;
         genes: { name: string; geneId: string; linkedBy: string[] }[]
@@ -362,8 +384,9 @@ export const parseLinkedGenes = (data) => {
     for (const gene of data) {
         const geneNameToPush = gene.gene;
         const geneIdToPush = gene.geneid
-        const methodToPush = gene.assay ?? gene.method;
+        const methodToPush = (gene.assay ?? gene.method).replace(/-/g, '_');
         const geneAccession = gene.accession;
+        console.log(methodToPush)
 
         const existingGeneEntry = uniqueAccessions.find((uniqueGene) => uniqueGene.accession === geneAccession);
 
@@ -389,6 +412,53 @@ export const parseLinkedGenes = (data) => {
     }
 
     return uniqueAccessions
+}
+
+export const pushClosestGenes = (closestGenes: ClosestGenetocCRE, linkedGenes: AllLinkedGenes): AllLinkedGenes => {
+    // Iterate over each closest gene
+    for (const closestGene of closestGenes) {
+        const closestGeneName = closestGene.gene.name;
+        const closestGeneId = closestGene.gene.geneid;
+        const accession = closestGene.ccre;
+
+        // Find the matching accession in linkedGenes
+        const linkedAccession = linkedGenes.find((linked) => linked.accession === accession);
+
+        if (linkedAccession) {
+            // Find the matching gene in the linked genes
+            const existingGene = linkedAccession.genes.find(
+                (gene) => gene.name === closestGeneName && gene.geneId === closestGeneId
+            );
+
+            if (existingGene) {
+                // Add "distance" to the linkedBy array if not already present
+                if (!existingGene.linkedBy.includes("distance")) {
+                    existingGene.linkedBy.push("distance");
+                }
+            } else {
+                // Add a new gene with "distance" as the linkedBy method
+                linkedAccession.genes.push({
+                    name: closestGeneName,
+                    geneId: closestGeneId,
+                    linkedBy: ["distance"],
+                });
+            }
+        } else {
+            // If no matching accession exists, add a new accession with the gene
+            linkedGenes.push({
+                accession: accession,
+                genes: [
+                    {
+                        name: closestGeneName,
+                        geneId: closestGeneId,
+                        linkedBy: ["distance"],
+                    },
+                ],
+            });
+        }
+    }
+
+    return linkedGenes;
 }
 
 export const generateGeneRanks = (geneRows: GeneTableRow[]): RankedRegions => {

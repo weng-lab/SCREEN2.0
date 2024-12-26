@@ -55,7 +55,7 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
                         <RadioGroup
                             row
                             value={geneFilterVariables.rankBy}
-                            onChange={(event) => updateGeneFilter("rankBy", event.target.value as "max" | "min")}
+                            onChange={(event) => updateGeneFilter("rankBy", event.target.value as "max" | "avg")}
                         >
                             <FormControlLabel
                                 value="max"

@@ -106,7 +106,7 @@ export type GeneFilterState = {
     methodOfLinkage: { [key in GeneLinkingMethod]: boolean }
     mustBeProteinCoding: boolean;
     mustHaveOrtholog: boolean;
-    rankBy: "max" | "min";
+    rankBy: "max" | "avg";
 }
 
 type UpdateSequenceFilter = <K extends keyof SequenceFilterState>(
@@ -168,8 +168,19 @@ export type SubTableTitleProps = {
     title: string;
 };
 
+export type AllLinkedGenes = {
+    accession: string;
+    genes: {
+        name: string;
+        geneId: string;
+        expressionSpecificity?: number;
+        linkedBy: string[];
+    }[];
+}[]
+
 export type LinkedGenes = {
-    gene: string
+    accession: string
+    name: string
     geneid: string
     linkedBy: GeneLinkingMethod[]
 }[];

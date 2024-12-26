@@ -13,7 +13,7 @@ import Filters from "./filters/filters"
 import { CancelRounded } from "@mui/icons-material"
 import ArgoUpload from "./argoUpload"
 import { BigRequest, OccurrencesQuery } from "../../../graphql/__generated__/graphql"
-import { batchRegions, calculateAggregateRanks, calculateConservationScores, generateElementRanks, generateGeneRanks, generateSequenceRanks, getNumOverlappingMotifs, getSpecificityScores, handleSameInputRegion, mapScores, mapScoresCTSpecific, matchRanks, parseLinkedGenes } from "./helpers"
+import { batchRegions, calculateAggregateRanks, calculateConservationScores, generateElementRanks, generateGeneRanks, generateSequenceRanks, getNumOverlappingMotifs, getSpecificityScores, handleSameInputRegion, mapScores, mapScoresCTSpecific, matchRanks, parseLinkedGenes, pushClosestGenes } from "./helpers"
 import SequenceTable from "./tables/sequenceTable"
 import ElementTable from "./tables/elementTable"
 import GeneTable from "./tables/geneTable"
@@ -481,15 +481,14 @@ export default function Argo() {
         if (!intersectingCcres || !closestAndLinkedGenes) {
             return [];
         }
-        const uniqueAccessions = parseLinkedGenes(closestAndLinkedGenes.linkedGenesQuery);
-
-        console.log(uniqueAccessions)
+        const linkedGenes = parseLinkedGenes(closestAndLinkedGenes.linkedGenesQuery);
 
         //switch between protein coding and all
         let closestGenes = closestAndLinkedGenes.closestGenetocCRE.filter((gene) => gene.gene.type === "ALL")
         if (geneFilterVariables.mustBeProteinCoding) {
             closestGenes = closestAndLinkedGenes.closestGenetocCRE.filter((gene) => gene.gene.type === "PC")
         }
+        const allGenes = pushClosestGenes(closestGenes, linkedGenes);
 
         //Switch between regular and ortho ccres
         let accessions = intersectingCcres;
@@ -510,25 +509,30 @@ export default function Argo() {
                 .filter((ccre) => ccre.ortholog !== undefined);
         }
 
+        //get all of the geneID's from allGenes
+        const geneIds = allGenes.flatMap((entry) => 
+            entry.genes.map((gene) => gene.geneId)
+        );
+
         //Query to get the gene specificty for each gene id from the previous query
         if (closestAndLinkedGenes.closestGenetocCRE.length > 0) {
             getGeneSpecificity({
                 variables: {
-                    geneids: closestGenes.map((gene) => gene.gene.geneid)
+                    geneids: geneIds
                 },
                 client: client,
                 fetchPolicy: 'cache-and-network',
             })
         }
         if (geneSpecificity) {
-            const specificityRows = getSpecificityScores(closestGenes, accessions, geneSpecificity)
-
+            const specificityRows = getSpecificityScores(allGenes, accessions, geneSpecificity, geneFilterVariables)
+            console.log(specificityRows)
             return specificityRows
         } else {
             return []
         }
 
-    }, [closestAndLinkedGenes, geneFilterVariables.mustBeProteinCoding, geneFilterVariables.mustHaveOrtholog, geneSpecificity, getGeneSpecificity, intersectingCcres, orthoData]);
+    }, [closestAndLinkedGenes, geneFilterVariables, geneSpecificity, getGeneSpecificity, intersectingCcres, orthoData]);
 
     const geneRanks = useMemo<RankedRegions>(() => {
         if (geneRows.length === 0) {
