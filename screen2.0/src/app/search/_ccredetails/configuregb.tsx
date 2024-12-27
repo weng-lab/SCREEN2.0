@@ -134,6 +134,7 @@ const ConfigureGenomeBrowser = (props: {
             assembly={props.coordinates.assembly}
             showRNAseq
             allowMultiSelect
+            showCheckboxes
             selected={selectedBiosamples.map(x => x.name)}
             onChange={handleSetSelected}
             slotProps={{ paperStack: { minWidth: { xs: '300px', lg: '500px' } } }}

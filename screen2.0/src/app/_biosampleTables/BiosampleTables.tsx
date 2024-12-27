@@ -47,6 +47,10 @@ export const BiosampleTables = <
   const [searchString, setSearchString] = useState<string>("")
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)  //Anchor for dropdown menu
 
+  //This should not be necessary, but is needed until DataTable is fixed to refresh when columns are changed.
+  //This is needed so that DataTable can be refreshed manually to sync checkbox states without losing page state
+  const [pageStates, setPageStates] = useState<{ [key: string]: number }>({})
+
   const handleSetSampleTypeFilter = (newState: SampleTypeCheckboxes) => { setSampleTypeFilter(newState) }
   const handleSetCollectionFilter = (newState: CollectionCheckboxes) => { setCollectionFilter(newState) }
   const handleSetLifeStageFilter = (newState: LifeStageCheckboxes) => { setLifeStageFilter(newState) }
@@ -143,6 +147,8 @@ export const BiosampleTables = <
     return foundMatches
   }, [allowMultiSelect, selected, unfilteredBiosamples])
 
+
+
   const biosampleTables = useMemo(() => {
     let cols: DataTableColumn<BiosampleData<HasRNASeq>>[] = [
       {
@@ -160,6 +166,22 @@ export const BiosampleTables = <
         render: (row) => <AssayWheel row={row} />,
       }
     ]
+
+    if (showCheckboxes) cols.unshift(
+      {
+        header: "Select All",
+        value: (row) => +selectedSamples.some(x => x.name === row.name),
+        render: (row) => (
+          <Checkbox
+            checked={selectedSamples.some(x => x.name === row.name)}
+            onClick={(e) => {
+              e.stopPropagation()
+              handleRowClick(row)
+            }}
+          />
+        ),
+      }
+    )
 
     if (showRNAseq) cols.push({
       header: "RNA-Seq",
@@ -217,14 +239,13 @@ export const BiosampleTables = <
       return <Typography>Something went wrong fetching biosamples, check the console for more information.</Typography>
     }
 
-    //this does not work here since we're trying to return the selected samples back in onChange, and the selected samples are not necessarily within biosmaples here due to filtering or diff accordion
     const handleRowClick = (clicked: BiosampleData<HasRNASeq>) => {
       if (onChange && typeof onChange === 'function') {
         if (allowMultiSelect) {
           //If clicked sample is already selected, remove it, otherwise add it
           if (selectedSamples.some(sample => sample.name === clicked.name)) {
             //using type casting since proper type guard was a big cumbersome
-            (onChange as (selected: BiosampleData<HasRNASeq>[]) => void)(selectedSamples.filter(x => x !== clicked))
+            (onChange as (selected: BiosampleData<HasRNASeq>[]) => void)(selectedSamples.filter(x => x.name !== clicked.name))
           } else {
             (onChange as (selected: BiosampleData<HasRNASeq>[]) => void)([...selectedSamples, clicked])
           }
@@ -260,6 +281,15 @@ export const BiosampleTables = <
               </AccordionSummary>
               <AccordionDetails>
                 <DataTable
+                  //force refresh when selected samples change - this is hacky
+                  key={JSON.stringify(selectedSamples)}
+                  page={pageStates[ontology] || 0}
+                  onDisplayedRowsChange={(newPage) => {
+                    if (pageStates[ontology] === undefined || pageStates[ontology] !== newPage){
+                      setPageStates({ ...pageStates, [ontology]: newPage })
+                    }
+                  }}
+
                   columns={cols}
                   rows={biosamples}
                   dense
@@ -275,7 +305,7 @@ export const BiosampleTables = <
         })
     )
 
-  }, [showRNAseq, showDownloads, loadingBiosamples, loading_rnaseq, errorBiosamples, error_rnaseq, filteredBiosamples, onChange, allowMultiSelect, selectedSamples, unfilteredBiosamples])
+  }, [showCheckboxes, showRNAseq, showDownloads, loadingBiosamples, loading_rnaseq, errorBiosamples, error_rnaseq, filteredBiosamples, selectedSamples, onChange, allowMultiSelect, unfilteredBiosamples, pageStates])
 
   const filtersActive: boolean = useMemo(() => {
     return mustHaveRnaSeq
