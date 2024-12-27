@@ -150,7 +150,7 @@ export const BiosampleTables = <
 
 
   const biosampleTables = useMemo(() => {
-    let cols: DataTableColumn<BiosampleData<HasRNASeq>>[] = [
+    let colsToSpread: DataTableColumn<BiosampleData<HasRNASeq>>[] = [
       {
         header: "Biosample",
         value: (row) => row.displayname,
@@ -167,23 +167,7 @@ export const BiosampleTables = <
       }
     ]
 
-    if (showCheckboxes) cols.unshift(
-      {
-        header: "Select All",
-        value: (row) => +selectedSamples.some(x => x.name === row.name),
-        render: (row) => (
-          <Checkbox
-            checked={selectedSamples.some(x => x.name === row.name)}
-            onClick={(e) => {
-              e.stopPropagation()
-              handleRowClick(row)
-            }}
-          />
-        ),
-      }
-    )
-
-    if (showRNAseq) cols.push({
+    if (showRNAseq) colsToSpread.push({
       header: "RNA-Seq",
       value: (row) => +(row as RegistryBiosamplePlusRNA).rnaseq,
       render: (row) => {
@@ -195,41 +179,39 @@ export const BiosampleTables = <
       },
     })
 
-    if (showDownloads) {
-      cols = [
-        ...cols,
-        {
-          header: "cCREs",
-          value: (row) => +!!(row.dnase || row.ctcf || row.h3k27ac || row.h3k4me3),
-          render: (row) => <DownloadButton row={row} downloadType="celltypeccres" />
-        },
-        {
-          header: "DNase Signal",
-          value: (row) => +!!row.dnase,
-          render: (row) => <DownloadButton row={row} downloadType="dnase" />
-        },
-        {
-          header: "ATAC Signal",
-          value: (row) => +!!row.atac,
-          render: (row) => <DownloadButton row={row} downloadType="atac" />
-        },
-        {
-          header: "CTCF Signal",
-          value: (row) => +!!row.ctcf,
-          render: (row) => <DownloadButton row={row} downloadType="ctcf" />
-        },
-        {
-          header: "H3K27ac Signal",
-          value: (row) => +!!row.h3k27ac,
-          render: (row) => <DownloadButton row={row} downloadType="h3k27ac" />
-        },
-        {
-          header: "H3K4me3 Signal",
-          value: (row) => +!!row.h3k4me3,
-          render: (row) => <DownloadButton row={row} downloadType="h3k4me3" />
-        }
-      ]
-    }
+    if (showDownloads) colsToSpread.push(
+      {
+        header: "cCREs",
+        value: (row) => +!!(row.dnase || row.ctcf || row.h3k27ac || row.h3k4me3),
+        render: (row) => <DownloadButton row={row} downloadType="celltypeccres" />
+      },
+      {
+        header: "DNase Signal",
+        value: (row) => +!!row.dnase,
+        render: (row) => <DownloadButton row={row} downloadType="dnase" />
+      },
+      {
+        header: "ATAC Signal",
+        value: (row) => +!!row.atac,
+        render: (row) => <DownloadButton row={row} downloadType="atac" />
+      },
+      {
+        header: "CTCF Signal",
+        value: (row) => +!!row.ctcf,
+        render: (row) => <DownloadButton row={row} downloadType="ctcf" />
+      },
+      {
+        header: "H3K27ac Signal",
+        value: (row) => +!!row.h3k27ac,
+        render: (row) => <DownloadButton row={row} downloadType="h3k27ac" />
+      },
+      {
+        header: "H3K4me3 Signal",
+        value: (row) => +!!row.h3k4me3,
+        render: (row) => <DownloadButton row={row} downloadType="h3k4me3" />
+      }
+    )
+    
 
     if (loadingBiosamples || loading_rnaseq) {
       return <CircularProgress sx={{ margin: "auto" }} />
@@ -255,6 +237,19 @@ export const BiosampleTables = <
       }
     }
 
+    const handleModifyAll = (samples: BiosampleData<HasRNASeq>[], action: "select" | "deselect") => {
+      console.log("modifying all")
+      if (onChange && typeof onChange === 'function') {
+        if (action === "select") {
+          const toAdd = samples.filter(sample => !selectedSamples.some(x => x.name === sample.name));
+          (onChange as (selected: BiosampleData<HasRNASeq>[]) => void)([...selectedSamples, ...toAdd])
+        } else {
+          const toRemove = samples.filter(sample => selectedSamples.some(x => x.name === sample.name));
+          (onChange as (selected: BiosampleData<HasRNASeq>[]) => void)(selectedSamples.filter(x => !toRemove.includes(x)))
+        }
+      }
+    }
+
     return (
       Object.entries(filteredBiosamples)
         .sort(([aKey, aValue], [bKey, bValue]) => {
@@ -263,6 +258,39 @@ export const BiosampleTables = <
           return aKey.localeCompare(bKey);
         })
         .map(([ontology, biosamples]) => {
+          const columns = [...colsToSpread]
+
+          const selectAllChecked = biosamples.every(sample => selectedSamples.some(x => x.name === sample.name))
+          const selectAllIndeterminate = biosamples.some(sample => selectedSamples.some(x => x.name === sample.name)) && !selectAllChecked
+          
+          //needed to add the select all checkbox here since it needs to be in the same scope as biosamples
+          if (showCheckboxes) {
+            columns.unshift({
+              header: "Select All",
+              HeaderRender: () => (
+                <Checkbox
+                  id={"Select All " + ontology}
+                  checked={selectAllChecked}
+                  indeterminate={selectAllIndeterminate}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleModifyAll(biosamples, selectAllChecked ? "deselect" : "select")
+                  }}
+                />
+              ),
+              value: (row) => +selectedSamples.some(x => x.name === row.name),
+              render: (row) => (
+                <Checkbox
+                  checked={selectedSamples.some(x => x.name === row.name)}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleRowClick(row)
+                  }}
+                />
+              ),
+            })
+          }
+
           return (
             <Accordion key={ontology} slotProps={{ transition: { unmountOnExit: true } }} disabled={biosamples.length === 0} disableGutters>
               <AccordionSummary
@@ -289,8 +317,7 @@ export const BiosampleTables = <
                       setPageStates({ ...pageStates, [ontology]: newPage })
                     }
                   }}
-
-                  columns={cols}
+                  columns={columns}
                   rows={biosamples}
                   dense
                   itemsPerPage={5}
