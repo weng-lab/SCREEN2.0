@@ -818,11 +818,12 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                     onClick={(event) => event.preventDefault} key={i} value={numberOfDefaultTabs + i}
                     label={cCRE.ID}
                     icon={
-                      <Box onClick={(event) => { event.stopPropagation(); handleClosecCRE(cCRE.ID) }}>
-                        <CloseIcon />
-                      </Box>
+                      <IconButton onClick={(event) => { event.stopPropagation(); handleClosecCRE(cCRE.ID) }}>
+                        <CloseIcon fontSize="small"  />
+                      </IconButton>
                     }
-                    iconPosition="end" />
+                    iconPosition="end"
+                  />
                 )
               })}
             </Tabs>
