@@ -129,28 +129,26 @@ export const BiosampleTables = <
     if (!selected || (Array.isArray(selected) && selected.length === 0)) return []
 
     const data = Object.values(unfilteredBiosamples).flat()
-    const foundMatches = [] 
+    const foundMatches = []
 
     if (allowMultiSelect) {
       (selected as string[]).forEach(x => {
         const match = data.find(y => (y.name === x) || (y.displayname === x))
-        if (match) { 
+        if (match) {
           foundMatches.push(match)
         } else {
           console.error(`Could not find biosample with name or displayname: ${x}`)
         }
       })
     } else {
-      foundMatches.push(data.find(sample => (sample.name === selected) || (sample.displayname === selected))) 
+      foundMatches.push(data.find(sample => (sample.name === selected) || (sample.displayname === selected)))
     }
 
     return foundMatches
   }, [allowMultiSelect, selected, unfilteredBiosamples])
 
-
-
   const biosampleTables = useMemo(() => {
-    let colsToSpread: DataTableColumn<BiosampleData<HasRNASeq>>[] = [
+    const colsToSpread: DataTableColumn<BiosampleData<HasRNASeq>>[] = [
       {
         header: "Biosample",
         value: (row) => row.displayname,
@@ -211,7 +209,7 @@ export const BiosampleTables = <
         render: (row) => <DownloadButton row={row} downloadType="h3k4me3" />
       }
     )
-    
+
 
     if (loadingBiosamples || loading_rnaseq) {
       return <CircularProgress sx={{ margin: "auto" }} />
@@ -262,7 +260,7 @@ export const BiosampleTables = <
 
           const selectAllChecked = biosamples.every(sample => selectedSamples.some(x => x.name === sample.name))
           const selectAllIndeterminate = biosamples.some(sample => selectedSamples.some(x => x.name === sample.name)) && !selectAllChecked
-          
+
           //needed to add the select all checkbox here since it needs to be in the same scope as biosamples
           if (showCheckboxes) {
             columns.unshift({
@@ -303,17 +301,17 @@ export const BiosampleTables = <
                 }}
               >
                 {biosamples.length !== unfilteredBiosamples[ontology].length ?
-                 <Typography>{ontology.charAt(0).toUpperCase() + ontology.slice(1)} ({biosamples.length} <span style={{ opacity: 0.5 }}><s>{unfilteredBiosamples[ontology].length}</s></span>)</Typography>
-                 : <Typography>{ontology.charAt(0).toUpperCase() + ontology.slice(1) + ` (${biosamples.length})`}</Typography>
+                  <Typography>{ontology.charAt(0).toUpperCase() + ontology.slice(1)} ({biosamples.length} <span style={{ opacity: 0.5 }}><s>{unfilteredBiosamples[ontology].length}</s></span>)</Typography>
+                  : <Typography>{ontology.charAt(0).toUpperCase() + ontology.slice(1) + ` (${biosamples.length})`}</Typography>
                 }
               </AccordionSummary>
               <AccordionDetails>
                 <DataTable
                   //force refresh when selected samples change - this is hacky
-                  key={JSON.stringify(selectedSamples)}
+                  key={JSON.stringify(selectedSamples) + biosamples.length}
                   page={pageStates[ontology] || 0}
                   onDisplayedRowsChange={(newPage) => {
-                    if (pageStates[ontology] === undefined || pageStates[ontology] !== newPage){
+                    if (pageStates[ontology] === undefined || pageStates[ontology] !== newPage) {
                       setPageStates({ ...pageStates, [ontology]: newPage })
                     }
                   }}
