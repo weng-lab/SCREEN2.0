@@ -121,12 +121,26 @@ export const BiosampleTables = <
   }, [unfilteredBiosamples, sampleTypeFilter, collectionFilter, lifeStageFilter, mustHaveRnaSeq, searchString])
 
   const selectedSamples: BiosampleData<HasRNASeq>[] = useMemo(() => {
-    const samples = Object.values(unfilteredBiosamples).flat()
+    //handle empty string, empty array, or null selected
+    if (!selected || (Array.isArray(selected) && selected.length === 0)) return []
+
+    const data = Object.values(unfilteredBiosamples).flat()
+    const foundMatches = [] 
+
     if (allowMultiSelect) {
-      (selected as string[]).map(x => samples.find(y => (y.name === x) || (y.displayname === x)))
+      (selected as string[]).forEach(x => {
+        const match = data.find(y => (y.name === x) || (y.displayname === x))
+        if (match) { 
+          foundMatches.push(match)
+        } else {
+          console.error(`Could not find biosample with name or displayname: ${x}`)
+        }
+      })
     } else {
-      return [samples.find(sample => (sample.name === selected) || (sample.displayname === selected))]
+      foundMatches.push(data.find(sample => (sample.name === selected) || (sample.displayname === selected))) 
     }
+
+    return foundMatches
   }, [allowMultiSelect, selected, unfilteredBiosamples])
 
   const biosampleTables = useMemo(() => {
@@ -261,7 +275,7 @@ export const BiosampleTables = <
         })
     )
 
-  }, [showRNAseq, showDownloads, loadingBiosamples, loading_rnaseq, errorBiosamples, error_rnaseq, filteredBiosamples, onChange, allowMultiSelect, selectedSamples])
+  }, [showRNAseq, showDownloads, loadingBiosamples, loading_rnaseq, errorBiosamples, error_rnaseq, filteredBiosamples, onChange, allowMultiSelect, selectedSamples, unfilteredBiosamples])
 
   const filtersActive: boolean = useMemo(() => {
     return mustHaveRnaSeq
