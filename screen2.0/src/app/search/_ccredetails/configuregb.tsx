@@ -109,10 +109,8 @@ const ConfigureGenomeBrowser = (props: {
     }, 0)
   }
 
-  const handleClickBiosample = (biosample: RegistryBiosamplePlusRNA) => {
-    if (!selectedBiosamples.includes(biosample)) {
-      setSelectedBiosamples([...selectedBiosamples, biosample])
-    }
+  const handleSetSelected = (selected: RegistryBiosamplePlusRNA[]) => {
+    setSelectedBiosamples(selected)
   }
 
   return (
@@ -135,15 +133,19 @@ const ConfigureGenomeBrowser = (props: {
           <BiosampleTables
             assembly={props.coordinates.assembly}
             showRNAseq
+            allowMultiSelect
+            /**
+             * try passing junk string to see what happens
+             */
             selected={selectedBiosamples.map(x => x.name)}
-            onBiosampleClicked={handleClickBiosample}
+            onChange={handleSetSelected}
             slotProps={{ paperStack: { minWidth: { xs: '300px', lg: '500px' } } }}
           />
           <div>
-            <Typography minWidth={"300px"} visibility={selectedBiosamples.length > 0 ? "visible" : "hidden"} mt={2}>Selected Biosamples:</Typography>
+            <Typography minWidth={"350px"} visibility={selectedBiosamples.length > 0 ? "visible" : "hidden"} mt={2}>Selected Biosamples:</Typography>
             {selectedBiosamples.map((biosample, i) => {
               return (
-                <Stack minWidth={"300px"} mt={1} direction="row" alignItems={"center"} key={i}>
+                <Stack minWidth={"350px"} mt={1} direction="row" alignItems={"center"} key={i}>
                   <IconButton onClick={() => setSelectedBiosamples(selectedBiosamples.filter((x) => x.displayname !== biosample.displayname))}>
                     <Close />
                   </IconButton>

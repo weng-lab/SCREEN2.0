@@ -28,16 +28,21 @@ export type RegistryBiosample = {
 };
 
 /**
+ * @todo allow user-defined columns like (sample: BiosampleData<HasRNASeq>) => DataTableColumn[] to be spread into the table
+ * This would allow the removal of showDownloads and showRNAseq. Would need to replace showRNAseq with a fetchRNASeq prop
+ */
+
+/**
  * Props for biosample tables
  */
 export interface BiosampleTablesProps<
-  HasRNASeq extends boolean = false,
-  AllowTissueSelection extends boolean = false
+  HasRNASeq extends boolean,
+  AllowMultiSelect extends boolean
 > {
   /**
-   * Adds UI element for selecting all samples from a tissue category
+   * Allows selecting multiple samples
    */
-  allowTissueSelection?: AllowTissueSelection
+  allowMultiSelect?: AllowMultiSelect,
   /**
    * Assembly used in fetching samples
    */
@@ -47,19 +52,15 @@ export interface BiosampleTablesProps<
    * More complex filtering can be done with preFilterBiosamples
    * @default ["dnase","h3k4me3","h3k27ac","ctcf","atac"]
    */
-  fetchBiosamplesWith?: ("dnase" | "h3k4me3" | "h3k27ac" | "ctcf" | "atac")[]
+  fetchBiosamplesWith?: ("dnase" | "h3k4me3" | "h3k27ac" | "ctcf" | "atac")[],
   /**
-   * 
+   * @param selected 
    * @param selected 
    * Fired on click of biosample
-  */
-  onBiosampleClicked?: (selected: BiosampleData<HasRNASeq>) => void,
-  /**
-   * Fired when a tissue is selected (only if allowTissueSelection is true)
+   * @param selected
+   * Fired on click of biosample
    */
-  onTissueSelected?: AllowTissueSelection extends true
-  ? (selected: { tissue: string; samples: BiosampleData<HasRNASeq>[] }) => void
-  : never;
+  onChange?: AllowMultiSelect extends true ? (selected: BiosampleData<HasRNASeq>[]) => void : (selected: BiosampleData<HasRNASeq>) => void,
   /**
    * @param sample 
    * If specified, samples will be passed through this function before populating tables
@@ -68,7 +69,11 @@ export interface BiosampleTablesProps<
   /**
    * Highlights samples in the tables. Can pass name or displayname of sample
    */
-  selected?: string | string[],
+  selected?: AllowMultiSelect extends true ? string[] : string,
+  /**
+   * If true, table will display checkboxes for selecting samples and enable select all
+   */
+  showCheckboxes?: AllowMultiSelect extends true ? boolean : never,
   /**
    * If true, table will display columns for assay signal files for each biosample
    */

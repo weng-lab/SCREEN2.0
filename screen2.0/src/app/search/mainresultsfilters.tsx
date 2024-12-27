@@ -6,7 +6,6 @@ import {
   AccordionSummary,
   AccordionDetails,
   Typography,
-  Button,
   Paper,
   FormGroup,
   FormControlLabel,
@@ -144,7 +143,7 @@ export function MainResultsFilters(
     useLinkedGenes,
   } = props;
 
-  const [getLinkedGenes, { loading: loadingLinkedGenes, data: dataLinkedGenes, error: errorLinkedGenes }] = useLinkedGenes
+  const [getLinkedGenes, { loading: loadingLinkedGenes, data: dataLinkedGenes }] = useLinkedGenes
 
   type LGBiosampleReturnData = {
     linkedGenesCelltypes: {
@@ -154,7 +153,7 @@ export function MainResultsFilters(
     }[]
   }
 
-  const [getLGBiosamples, { loading: loadingLGBiosamples, data: dataLGBiosamples, error: errorLGBiosamples }] = useLazyQuery<LGBiosampleReturnData, {}>(
+  const [getLGBiosamples, { loading: loadingLGBiosamples, data: dataLGBiosamples, error: errorLGBiosamples }] = useLazyQuery<LGBiosampleReturnData>(
     GET_LG_BIOSAMPLE,
   )
 
@@ -206,7 +205,7 @@ export function MainResultsFilters(
   const linkedGenesWithNums: { geneName: string, accessions: string[] }[] = useMemo(() => {
     const genesWithNums: { geneName: string, accessions: string[] }[] = []
     if (dataLinkedGenes?.linkedGenes) {
-      for (const linkedGene of dataLinkedGenes?.linkedGenes) {
+      for (const linkedGene of dataLinkedGenes.linkedGenes) {
         const entry = genesWithNums.find(x => (x.geneName === linkedGene.gene.split(' ')[0]))
         //If entry exists, check if accession already documented. If not, add accession
         if (entry) {
@@ -275,7 +274,7 @@ export function MainResultsFilters(
     }
     const uniqueeQTLcCREs: string[] = []
     if (dataLinkedGenes?.linkedGenes) {
-      for (const linkedGene of dataLinkedGenes?.linkedGenes) {
+      for (const linkedGene of dataLinkedGenes.linkedGenes) {
         //fetched data has trailing space to strip
         if (linkedGene.gene.split(' ')[0] !== filterCriteria.linkedGeneName) { continue; }
         //This is relying on the fact that eQTL-linked genes are the only one that doesn't have an assay field.
@@ -542,7 +541,7 @@ export function MainResultsFilters(
             <BiosampleTables
               assembly={mainQueryParams.coordinates.assembly}
               selected={mainQueryParams.biosample?.name}
-              onBiosampleClicked={setBiosample}
+              onChange={setBiosample}
               slotProps={{ paperStack: { elevation: 0 }, headerStack: { mt: 0 } }}
             />
           }
