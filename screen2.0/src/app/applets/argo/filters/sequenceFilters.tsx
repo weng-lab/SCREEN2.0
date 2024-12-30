@@ -1,4 +1,4 @@
-import { Accordion, AccordionDetails, AccordionSummary, Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, MenuItem, Radio, RadioGroup, Select, Stack, Tooltip, Typography } from "@mui/material";
+import { Accordion, AccordionDetails, AccordionSummary, Checkbox, FormControl, FormControlLabel, FormGroup, MenuItem, Radio, RadioGroup, Select, Stack, Tooltip, Typography } from "@mui/material";
 import React from "react";
 import { ExpandMore, InfoOutlined } from "@mui/icons-material"
 import { Alignment, SequenceAccordianProps } from "../types";
@@ -51,7 +51,7 @@ const SequenceFilters: React.FC<SequenceAccordianProps> = ({
                         </FormControl>
                     </FormGroup>
                     <FormControl sx={{ mt: 1 }}>
-                        <FormLabel component="legend">Rank Conservation Scores By</FormLabel>
+                        <Typography>Rank Conservation Scores By</Typography>
                         <RadioGroup
                             row
                             value={sequenceFilterVariables.rankBy}
@@ -108,7 +108,7 @@ const SequenceFilters: React.FC<SequenceAccordianProps> = ({
                 </FormGroup>
                 <FormGroup>
                     <FormControl sx={{marginLeft: 2}}>
-                        <FormLabel component="legend">Include in Ranking</FormLabel>
+                        <Typography>Include in Ranking</Typography>
                         <FormControlLabel value="numMotifs" control={<Checkbox onChange={() => updateSequenceFilter("numOverlappingMotifs", !sequenceFilterVariables.numOverlappingMotifs)} checked={sequenceFilterVariables.numOverlappingMotifs} />} label="Number of Overlaping Motifs" disabled={!sequenceFilterVariables.useMotifs} />
                         <FormControlLabel value="motifScoreDelta" control={<Checkbox onChange={() => updateSequenceFilter("motifScoreDelta", !sequenceFilterVariables.motifScoreDelta)} checked={sequenceFilterVariables.motifScoreDelta} />} label="Motif Score Delta" disabled={!sequenceFilterVariables.useMotifs} />
                         <FormControlLabel value="tfPeakStrength" control={<Checkbox onChange={() => updateSequenceFilter("tfPeakStrength", !sequenceFilterVariables.tfPeakStrength)} checked={sequenceFilterVariables.tfPeakStrength && sequenceFilterVariables.motifCatalog === "factorbook"} />} label="TF Peak Strength" disabled={!sequenceFilterVariables.useMotifs || !sequenceFilterVariables.overlapsTFPeak || sequenceFilterVariables.motifCatalog !== "factorbook"} />

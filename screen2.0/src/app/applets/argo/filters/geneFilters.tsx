@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { GeneAccordianProps, GeneLinkingMethod } from "../types";
-import { Accordion, AccordionDetails, AccordionSummary, Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, Radio, RadioGroup, Stack, Tooltip, Typography } from "@mui/material";
+import { Accordion, AccordionDetails, AccordionSummary, Checkbox, FormControl, FormControlLabel, FormGroup, Radio, RadioGroup, Stack, Tooltip, Typography } from "@mui/material";
 import { ExpandMore, InfoOutlined } from "@mui/icons-material"
 import Grid from "@mui/material/Grid2"
 
@@ -60,7 +60,7 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
                 <FormControlLabel value="genes" control={<Checkbox onChange={() => updateGeneFilter("useGenes", !geneFilterVariables.useGenes)} checked={geneFilterVariables.useGenes} />} label="Linked Genes" />
                 <Stack ml={2}>
                 <FormControl disabled={!geneFilterVariables.useGenes}>
-                        <FormLabel component="legend" sx={{ mt: 1 }}>Rank Expression Specificity By</FormLabel>
+                        <Typography sx={{ mt: 1 }}>Rank Expression Specificity By</Typography>
                         <RadioGroup
                             row
                             value={geneFilterVariables.rankBy}
@@ -79,7 +79,7 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
                         </RadioGroup>
                     </FormControl>
                     <FormControl disabled={!geneFilterVariables.useGenes} sx={{ mt: 1 }}>
-                        <FormLabel component="legend">Method of Linkage</FormLabel>
+                        <Typography>Method of Linkage</Typography>
                         <FormGroup>
                             <FormControlLabel
                                 label="Select All"
@@ -132,7 +132,7 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
                         </FormGroup>
                     </FormControl>
                     <FormControl disabled={!geneFilterVariables.useGenes}>
-                        <FormLabel component="legend" sx={{ mt: 1 }}>Gene Filters</FormLabel>
+                        <Typography sx={{ mt: 1 }}>Gene Filters</Typography>
                         <FormGroup>
                             <FormControlLabel
                                 label="Must be Protein Coding"
