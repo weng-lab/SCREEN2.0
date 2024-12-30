@@ -72,7 +72,7 @@ const Filters: React.FC<FilterProps> = ({
                     overflow="auto"
                 >
                     <Stack direction={"row"} justifyContent={"space-between"} padding={1}>
-                        <Typography sx={{ fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif' }} alignContent={"center"}>Filters</Typography>
+                        <Typography  variant="h5" sx={{ fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif' }} alignContent={"center"}>Filters</Typography>
                         <IconButton
                             color="primary"
                             onClick={toggleDrawer}

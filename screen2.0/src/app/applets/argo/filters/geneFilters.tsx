@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { GeneAccordianProps, GeneLinkingMethod } from "../types";
-import { Accordion, AccordionDetails, AccordionSummary, Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, Radio, RadioGroup, Stack } from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
+import { Accordion, AccordionDetails, AccordionSummary, Checkbox, FormControl, FormControlLabel, FormGroup, Radio, RadioGroup, Stack, Tooltip, Typography } from "@mui/material";
+import { ExpandMore, InfoOutlined } from "@mui/icons-material"
 import Grid from "@mui/material/Grid2"
 
 const GeneFilters: React.FC<GeneAccordianProps> = ({
@@ -40,18 +40,27 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
             expanded={isExpanded('gene')}
             onChange={handleAccordionChange('gene')}
         >
-            <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: isExpanded('gene') ? '#030f98' : 'inherit' }} />} sx={{
-                color: isExpanded('gene') ? '#030f98' : 'inherit',
-                fontSize: isExpanded('gene') ? 'large' : 'normal',
-                fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif'
-            }}>
-                Genes
+            <AccordionSummary expandIcon={<ExpandMore sx={{ color: isExpanded('gene') ? '#030f98' : 'inherit' }} />}>
+                <Stack direction="row" spacing={1} alignItems={'center'}>
+                    <Typography
+                        sx={{
+                            color: isExpanded('gene') ? '#030f98' : 'inherit',
+                            fontSize: isExpanded('gene') ? 'large' : 'normal',
+                            fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+                        }}
+                    >
+                        Genes
+                    </Typography>
+                    <Tooltip arrow placement="right-end" title={"Filter results based on linked genes and thier method of linkage"}>
+                        <InfoOutlined fontSize="small" />
+                    </Tooltip>
+                </Stack>
             </AccordionSummary>
             <AccordionDetails>
                 <FormControlLabel value="genes" control={<Checkbox onChange={() => updateGeneFilter("useGenes", !geneFilterVariables.useGenes)} checked={geneFilterVariables.useGenes} />} label="Linked Genes" />
                 <Stack ml={2}>
                 <FormControl disabled={!geneFilterVariables.useGenes}>
-                        <FormLabel component="legend" sx={{ mt: 1 }}>Rank Expression Specificity By</FormLabel>
+                        <Typography sx={{ mt: 1 }}>Rank Expression Specificity By</Typography>
                         <RadioGroup
                             row
                             value={geneFilterVariables.rankBy}
@@ -70,7 +79,7 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
                         </RadioGroup>
                     </FormControl>
                     <FormControl disabled={!geneFilterVariables.useGenes} sx={{ mt: 1 }}>
-                        <FormLabel component="legend">Method of Linkage</FormLabel>
+                        <Typography>Method of Linkage</Typography>
                         <FormGroup>
                             <FormControlLabel
                                 label="Select All"
@@ -123,7 +132,7 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
                         </FormGroup>
                     </FormControl>
                     <FormControl disabled={!geneFilterVariables.useGenes}>
-                        <FormLabel component="legend" sx={{ mt: 1 }}>Gene Filters</FormLabel>
+                        <Typography sx={{ mt: 1 }}>Gene Filters</Typography>
                         <FormGroup>
                             <FormControlLabel
                                 label="Must be Protein Coding"

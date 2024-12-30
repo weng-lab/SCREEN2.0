@@ -23,6 +23,11 @@ const GeneTable: React.FC<GeneTableProps> = ({
 
     }, [geneFilterVariables])
 
+    //open ccre details on ccre click
+    const handleRowClick = (row: GeneTableRow) => {
+        window.open(`/search?assembly=GRCh38&chromosome=${row.inputRegion.chr}&start=${row.inputRegion.start}&end=${row.inputRegion.end}&accessions=${row.linkedGenes[0].accession}&page=2`, "_blank", "noopener,noreferrer")
+    }
+
     return (
         <DataTable
             columns={geneColumns}
@@ -31,6 +36,7 @@ const GeneTable: React.FC<GeneTableProps> = ({
             itemsPerPage={10}
             searchable
             tableTitle={<SubTableTitle title="Gene Details" />}
+            onRowClick={handleRowClick}
         />
     )
 }

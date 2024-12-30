@@ -1,6 +1,6 @@
-import { Accordion, AccordionDetails, AccordionSummary, Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, MenuItem, Radio, RadioGroup, Select, Stack } from "@mui/material";
+import { Accordion, AccordionDetails, AccordionSummary, Checkbox, FormControl, FormControlLabel, FormGroup, MenuItem, Radio, RadioGroup, Select, Stack, Tooltip, Typography } from "@mui/material";
 import React from "react";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
+import { ExpandMore, InfoOutlined } from "@mui/icons-material"
 import { Alignment, SequenceAccordianProps } from "../types";
 
 const SequenceFilters: React.FC<SequenceAccordianProps> = ({
@@ -17,12 +17,21 @@ const SequenceFilters: React.FC<SequenceAccordianProps> = ({
             expanded={isExpanded('sequence')}
             onChange={handleAccordionChange('sequence')}
         >
-            <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: isExpanded('sequence') ? '#030f98' : 'inherit' }} />} sx={{
-                color: isExpanded('sequence') ? '#030f98' : 'inherit',
-                fontSize: isExpanded('sequence') ? 'large' : 'normal',
-                fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif'
-            }}>
-                Sequence
+            <AccordionSummary expandIcon={<ExpandMore sx={{ color: isExpanded('sequence') ? '#030f98' : 'inherit' }} />}>
+                <Stack direction="row" spacing={1} alignItems={'center'}>
+                    <Typography
+                        sx={{
+                            color: isExpanded('sequence') ? '#030f98' : 'inherit',
+                            fontSize: isExpanded('sequence') ? 'large' : 'normal',
+                            fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+                        }}
+                    >
+                        Sequence
+                    </Typography>
+                    <Tooltip arrow placement="right-end" title={"Filter results based on conservation score (Mammal, Primate, and Vertebrate) or TF Motif details"}>
+                        <InfoOutlined fontSize="small" />
+                    </Tooltip>
+                </Stack>
             </AccordionSummary>
             <AccordionDetails>
                 <FormControlLabel value="conservation" control={<Checkbox onChange={() => updateSequenceFilter("useConservation", !sequenceFilterVariables.useConservation)} checked={sequenceFilterVariables.useConservation} />} label="Conservation" />
@@ -42,7 +51,7 @@ const SequenceFilters: React.FC<SequenceAccordianProps> = ({
                         </FormControl>
                     </FormGroup>
                     <FormControl sx={{ mt: 1 }}>
-                        <FormLabel component="legend">Rank Conservation Scores By</FormLabel>
+                        <Typography>Rank Conservation Scores By</Typography>
                         <RadioGroup
                             row
                             value={sequenceFilterVariables.rankBy}
@@ -99,7 +108,7 @@ const SequenceFilters: React.FC<SequenceAccordianProps> = ({
                 </FormGroup>
                 <FormGroup>
                     <FormControl sx={{marginLeft: 2}}>
-                        <FormLabel component="legend">Include in Ranking</FormLabel>
+                        <Typography>Include in Ranking</Typography>
                         <FormControlLabel value="numMotifs" control={<Checkbox onChange={() => updateSequenceFilter("numOverlappingMotifs", !sequenceFilterVariables.numOverlappingMotifs)} checked={sequenceFilterVariables.numOverlappingMotifs} />} label="Number of Overlaping Motifs" disabled={!sequenceFilterVariables.useMotifs} />
                         <FormControlLabel value="motifScoreDelta" control={<Checkbox onChange={() => updateSequenceFilter("motifScoreDelta", !sequenceFilterVariables.motifScoreDelta)} checked={sequenceFilterVariables.motifScoreDelta} />} label="Motif Score Delta" disabled={!sequenceFilterVariables.useMotifs} />
                         <FormControlLabel value="tfPeakStrength" control={<Checkbox onChange={() => updateSequenceFilter("tfPeakStrength", !sequenceFilterVariables.tfPeakStrength)} checked={sequenceFilterVariables.tfPeakStrength && sequenceFilterVariables.motifCatalog === "factorbook"} />} label="TF Peak Strength" disabled={!sequenceFilterVariables.useMotifs || !sequenceFilterVariables.overlapsTFPeak || sequenceFilterVariables.motifCatalog !== "factorbook"} />
