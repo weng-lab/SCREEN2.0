@@ -18,17 +18,7 @@ const Filters: React.FC<FilterProps> = ({
     toggleDrawer,
 }) => {
 
-    //Keep track of which tab is expanded in the drawer
-    /**
-     * 
-     * 
-     * 
-     * Change this back before merging changes
-     * 
-     * 
-     * 
-     */
-    const [expandedAccordions, setExpandedAccordions] = useState<Panel[]>(["gene"]);
+    const [expandedAccordions, setExpandedAccordions] = useState<Panel[]>([]);
 
     const isExpanded = (panel: Panel) => expandedAccordions.includes(panel);
 
