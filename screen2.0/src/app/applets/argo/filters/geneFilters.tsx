@@ -40,12 +40,12 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
             expanded={isExpanded('gene')}
             onChange={handleAccordionChange('gene')}
         >
-            <AccordionSummary expandIcon={<ExpandMore sx={{ color: isExpanded('element') ? '#030f98' : 'inherit' }} />}>
+            <AccordionSummary expandIcon={<ExpandMore sx={{ color: isExpanded('genes') ? '#030f98' : 'inherit' }} />}>
                 <Stack direction="row" spacing={1} alignItems={'center'}>
                     <Typography
                         sx={{
-                            color: isExpanded('element') ? '#030f98' : 'inherit',
-                            fontSize: isExpanded('element') ? 'large' : 'normal',
+                            color: isExpanded('genes') ? '#030f98' : 'inherit',
+                            fontSize: isExpanded('genes') ? 'large' : 'normal',
                             fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
                         }}
                     >
