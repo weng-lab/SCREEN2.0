@@ -438,11 +438,10 @@ export default function Argo() {
                 .filter((row) => row.ortholog !== undefined);
         }
 
-        //filter through classes
-        const filteredClasses = data.filter(row => elementFilterVariables.classes[row.class] !== false);
-        return filteredClasses;
+        
+        return data;
 
-    }, [allElementData, elementFilterVariables.cCREAssembly, elementFilterVariables.classes, elementFilterVariables.mustHaveOrtholog, orthoData]);
+    }, [allElementData, elementFilterVariables.cCREAssembly, elementFilterVariables.mustHaveOrtholog, orthoData]);
 
     // Generate element ranks
     const elementRanks = useMemo<RankedRegions>(() => {
@@ -457,9 +456,19 @@ export default function Argo() {
             }));
         }
         setLoadingElementRanks(true);
+        //filter through classes return if the data set i fully filtered
+        const filteredClasses = elementRows.filter(row => elementFilterVariables.classes[row.class] !== false);
+        if (filteredClasses.length === 0) {
+            return elementRows.map((row) => ({
+                chr: row.inputRegion.chr,
+                start: row.inputRegion.start,
+                end: row.inputRegion.end,
+                rank: 0, // Add rank of 0 to each row
+            }));
+        }
 
         //find ccres with same input region and combine them based on users rank by selected
-        const processedRows = handleSameInputRegion(elementFilterVariables.rankBy, elementRows)
+        const processedRows = handleSameInputRegion(elementFilterVariables.rankBy, filteredClasses)
         const rankedRegions = generateElementRanks(processedRows, elementFilterVariables.classes, elementFilterVariables.assays)
 
         return rankedRegions;

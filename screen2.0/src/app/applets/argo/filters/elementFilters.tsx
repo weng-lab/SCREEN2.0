@@ -1,10 +1,9 @@
 import React from "react";
 import { CCREAssays, CCREClasses, ElementAccordianProps } from "../types";
-import { Accordion, AccordionDetails, AccordionSummary, Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, IconButton, Paper, Radio, RadioGroup, Stack, Typography } from "@mui/material";
+import { Accordion, AccordionDetails, AccordionSummary, Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, IconButton, Paper, Radio, RadioGroup, Stack, Tooltip, Typography } from "@mui/material";
 import BiosampleTables from "../../../_biosampleTables/BiosampleTables";
 import Grid from "@mui/material/Grid2"
-import { CancelRounded } from "@mui/icons-material"
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
+import { CancelRounded, InfoOutlined, ExpandMore } from "@mui/icons-material"
 
 const ElementFilters: React.FC<ElementAccordianProps> = ({
     elementFilterVariables,
@@ -121,12 +120,21 @@ const ElementFilters: React.FC<ElementAccordianProps> = ({
             expanded={isExpanded('element')}
             onChange={handleAccordionChange('element')}
         >
-            <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: isExpanded('element') ? '#030f98' : 'inherit' }} />} sx={{
-                color: isExpanded('element') ? '#030f98' : 'inherit',
-                fontSize: isExpanded('element') ? 'large' : 'normal',
-                fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif'
-            }}>
-                Elements
+            <AccordionSummary expandIcon={<ExpandMore sx={{ color: isExpanded('element') ? '#030f98' : 'inherit' }} />}>
+                <Stack direction="row" spacing={1} alignItems={'center'}>
+                    <Typography
+                        sx={{
+                            color: isExpanded('element') ? '#030f98' : 'inherit',
+                            fontSize: isExpanded('element') ? 'large' : 'normal',
+                            fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+                        }}
+                    >
+                        Elements
+                    </Typography>
+                    <Tooltip arrow placement="right-end" title={"Filter results based on overlapping cCREs and thier classification or assay Z-scores"}>
+                        <InfoOutlined fontSize="small" />
+                    </Tooltip>
+                </Stack>
             </AccordionSummary>
             <AccordionDetails>
                 <FormControlLabel value="cCREs" control={<Checkbox onChange={() => updateElementFilter("usecCREs", !elementFilterVariables.usecCREs)} checked={elementFilterVariables.usecCREs} />} label="Overlapping cCREs" />
@@ -173,7 +181,7 @@ const ElementFilters: React.FC<ElementAccordianProps> = ({
                         </Paper>
                     )}
                     <Accordion square disableGutters disabled={!elementFilterVariables.usecCREs}>
-                        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <AccordionSummary expandIcon={<ExpandMore />}>
                             Within a Biosample
                         </AccordionSummary>
                         <AccordionDetails>

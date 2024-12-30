@@ -1,6 +1,6 @@
-import { Accordion, AccordionDetails, AccordionSummary, Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, MenuItem, Radio, RadioGroup, Select, Stack } from "@mui/material";
+import { Accordion, AccordionDetails, AccordionSummary, Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, MenuItem, Radio, RadioGroup, Select, Stack, Tooltip, Typography } from "@mui/material";
 import React from "react";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
+import { ExpandMore, InfoOutlined } from "@mui/icons-material"
 import { Alignment, SequenceAccordianProps } from "../types";
 
 const SequenceFilters: React.FC<SequenceAccordianProps> = ({
@@ -17,12 +17,21 @@ const SequenceFilters: React.FC<SequenceAccordianProps> = ({
             expanded={isExpanded('sequence')}
             onChange={handleAccordionChange('sequence')}
         >
-            <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: isExpanded('sequence') ? '#030f98' : 'inherit' }} />} sx={{
-                color: isExpanded('sequence') ? '#030f98' : 'inherit',
-                fontSize: isExpanded('sequence') ? 'large' : 'normal',
-                fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif'
-            }}>
-                Sequence
+            <AccordionSummary expandIcon={<ExpandMore sx={{ color: isExpanded('element') ? '#030f98' : 'inherit' }} />}>
+                <Stack direction="row" spacing={1} alignItems={'center'}>
+                    <Typography
+                        sx={{
+                            color: isExpanded('element') ? '#030f98' : 'inherit',
+                            fontSize: isExpanded('element') ? 'large' : 'normal',
+                            fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+                        }}
+                    >
+                        Sequence
+                    </Typography>
+                    <Tooltip arrow placement="right-end" title={"Filter results based on conservation score (Mammal, Primate, and Vertebrate) or TF Motif details"}>
+                        <InfoOutlined fontSize="small" />
+                    </Tooltip>
+                </Stack>
             </AccordionSummary>
             <AccordionDetails>
                 <FormControlLabel value="conservation" control={<Checkbox onChange={() => updateSequenceFilter("useConservation", !sequenceFilterVariables.useConservation)} checked={sequenceFilterVariables.useConservation} />} label="Conservation" />
