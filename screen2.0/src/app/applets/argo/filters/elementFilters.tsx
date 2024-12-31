@@ -140,7 +140,7 @@ const ElementFilters: React.FC<ElementAccordianProps> = ({
                 <FormControlLabel value="cCREs" control={<Checkbox onChange={() => updateElementFilter("usecCREs", !elementFilterVariables.usecCREs)} checked={elementFilterVariables.usecCREs} />} label="Overlapping cCREs" />
                 <Stack ml={2}>
                     <RadioGroup row value={elementFilterVariables.cCREAssembly} onChange={(event) => { updateElementFilter("cCREAssembly", event.target.value as "GRCh38" | "mm10"); handleDeselectBiosample() }}>
-                        <FormControlLabel value="GRCh38" control={<Radio />} label="GRCH38" disabled={!elementFilterVariables.usecCREs} />
+                        <FormControlLabel value="GRCh38" control={<Radio />} label="GRCh38" disabled={!elementFilterVariables.usecCREs} />
                         <FormControlLabel value="mm10" control={<Radio />} label="mm10" disabled={!elementFilterVariables.usecCREs} />
                     </RadioGroup>
                     <FormControlLabel
