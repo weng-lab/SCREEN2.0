@@ -40,7 +40,7 @@ const SequenceFilters: React.FC<SequenceAccordianProps> = ({
                         <FormControl fullWidth>
                             <Select size="small" value={sequenceFilterVariables.alignment} disabled={!sequenceFilterVariables.useConservation} onChange={(event) => updateSequenceFilter("alignment", event.target.value as Alignment)}>
                                 <MenuItem value={"241-mam-phyloP"}>241-Mammal(phyloP)</MenuItem>
-                                {/* <MenuItem value={"447-mam-phyloP"}>447-Mammal(phyloP)</MenuItem> */}
+                                <MenuItem value={"447-mam-phyloP"}>447-Mammal(phyloP)</MenuItem>
                                 <MenuItem value={"241-mam-phastCons"}>241-Mammal(phastCons)</MenuItem>
                                 <MenuItem value={"43-prim-phyloP"}>43-Primate(phyloP)</MenuItem>
                                 <MenuItem value={"43-prim-phastCons"}>43-Primate(phastCons)</MenuItem>

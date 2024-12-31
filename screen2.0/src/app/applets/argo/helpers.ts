@@ -6,15 +6,47 @@ const assayNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
 
 // switch between min, max, avg for conservation scores, calculate each respectivley
 export const calculateConservationScores = (scores, rankBy: string, inputRegions: InputRegions): SequenceTableRow[] => {
-    return scores.map((request) => {
+    const conservationScores = scores.map((request) => {
         const data = request.data;
 
         // Extract the shared information for chr, start, and end
         //query's first item is one base pair back so we use the end of the first item for the start
         //and the end of the last item for the end
         const chr = data[0]?.chr || '';
-        const start = data[0]?.end || 0;
-        const end = data[data.length - 1]?.end || 0;
+        let start = data[0]?.end || 0;
+        let end = data[data.length - 1]?.end || 0;
+
+        //Some of the files were not built properly and return a several base pair score
+        //this checks each start and end to see if they actually exist in input regions to get the real start and end
+        if (data[0].end - data[0].start > 1) {
+            for (let i = data[0].start; i < data[0].end; i++) {
+                const newStart = inputRegions.find(
+                    region => region.start === i
+                )
+                if (newStart) {
+                    start = newStart.start
+                    break
+                }
+            }
+        }
+        if (data[data.length - 1].end - data[data.length - 1].start > 1) {
+            for (let i = data[data.length - 1].start; i < data[data.length - 1].end; i++) {
+                const newEnd = inputRegions.find(
+                    region => region.end === i
+                )
+                if (newEnd) {
+                    end = newEnd.end
+                    break
+                }
+            }
+        }
+        
+        // Find matching input region with the same chromosome, start, and end
+        const matchingRegion = inputRegions.find(
+            region => region.chr === chr &&
+                region.start === start &&
+                region.end === end
+        );
 
         let score;
         // calculate the score based on selected rank by
@@ -27,19 +59,14 @@ export const calculateConservationScores = (scores, rankBy: string, inputRegions
             score = data.length > 0 ? sum / data.length : 0;
         }
 
-        // Find matching input region with the same chromosome, start, and end
-        const matchingRegion = inputRegions.find(
-            region => region.chr === chr &&
-                region.start === start &&
-                region.end === end
-        );
-
         return {
             regionID: matchingRegion?.regionID,
             inputRegion: { chr, start, end },
             conservationScore: score
         } as SequenceTableRow;
     });
+
+    return conservationScores.filter(row => row.regionID !== undefined)
 }
 
 //function to batch the input regions together to call smaller queries
