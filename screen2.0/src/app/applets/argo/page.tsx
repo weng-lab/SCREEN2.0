@@ -437,43 +437,38 @@ export default function Argo() {
                 }))
                 .filter((row) => row.ortholog !== undefined);
         }
-
+        //filter through classes return if the data set i fully filtered
+        const filteredClasses = data.filter(row => elementFilterVariables.classes[row.class] !== false);
+        if (filteredClasses.length === 0) {
+            return null
+        }
         
-        return data;
+        return filteredClasses;
 
-    }, [allElementData, elementFilterVariables.cCREAssembly, elementFilterVariables.mustHaveOrtholog, orthoData]);
+    }, [allElementData, elementFilterVariables.cCREAssembly, elementFilterVariables.classes, elementFilterVariables.mustHaveOrtholog, orthoData]);
 
     // Generate element ranks
     const elementRanks = useMemo<RankedRegions>(() => {
-        if (elementRows.length === 0) {
+        if (elementRows === null || !elementFilterVariables.usecCREs) {
+            return allElementData.map((row) => ({
+                chr: row.inputRegion.chr,
+                start: row.inputRegion.start,
+                end: row.inputRegion.end,
+                rank: 0, // Add rank of 0 to each row
+            }));
+        } else if (elementRows.length === 0) {
             return [];
-        } else if (!elementFilterVariables.usecCREs) {
-            return elementRows.map((row) => ({
-                chr: row.inputRegion.chr,
-                start: row.inputRegion.start,
-                end: row.inputRegion.end,
-                rank: 0, // Add rank of 0 to each row
-            }));
-        }
-        setLoadingElementRanks(true);
-        //filter through classes return if the data set i fully filtered
-        const filteredClasses = elementRows.filter(row => elementFilterVariables.classes[row.class] !== false);
-        if (filteredClasses.length === 0) {
-            return elementRows.map((row) => ({
-                chr: row.inputRegion.chr,
-                start: row.inputRegion.start,
-                end: row.inputRegion.end,
-                rank: 0, // Add rank of 0 to each row
-            }));
         }
 
+        setLoadingElementRanks(true);
+
         //find ccres with same input region and combine them based on users rank by selected
-        const processedRows = handleSameInputRegion(elementFilterVariables.rankBy, filteredClasses)
+        const processedRows = handleSameInputRegion(elementFilterVariables.rankBy, elementRows)
         const rankedRegions = generateElementRanks(processedRows, elementFilterVariables.classes, elementFilterVariables.assays)
 
         return rankedRegions;
 
-    }, [elementFilterVariables, elementRows]);
+    }, [allElementData, elementFilterVariables.assays, elementFilterVariables.classes, elementFilterVariables.rankBy, elementFilterVariables.usecCREs, elementRows]);
 
     /*------------------------------------------ Gene Stuff ------------------------------------------*/
     //Query to get the closest gene to eah ccre
@@ -518,6 +513,10 @@ export default function Argo() {
                 .filter((ccre) => ccre.ortholog !== undefined);
         }
 
+        if (accessions.length === 0) {
+            return null;
+        }
+
         //get all of the geneID's from allGenes
         const geneIds = allGenes.flatMap((entry) => 
             entry.genes.map((gene) => gene.geneId)
@@ -543,22 +542,22 @@ export default function Argo() {
     }, [closestAndLinkedGenes, geneFilterVariables, geneSpecificity, getGeneSpecificity, intersectingCcres, orthoData]);
 
     const geneRanks = useMemo<RankedRegions>(() => {
-        if (geneRows.length === 0) {
-            return [];
-        } else if (!geneFilterVariables.useGenes) {
-            return geneRows.map((row) => ({
-                chr: row.inputRegion.chr,
-                start: row.inputRegion.start,
-                end: row.inputRegion.end,
+        if (geneRows === null || !geneFilterVariables.useGenes) {
+            return inputRegions.map((row) => ({
+                chr: row.chr,
+                start: row.start,
+                end: row.end,
                 rank: 0, // Add rank of 0 to each row
             }));
+        } else if (geneRows.length === 0) {
+            return [];
         }
         setLoadingGeneRanks(true);
 
         const rankedRegions = generateGeneRanks(geneRows)
         return rankedRegions
 
-    }, [geneFilterVariables.useGenes, geneRows]);
+    }, [geneFilterVariables.useGenes, geneRows, inputRegions]);
 
     /*------------------------------------------ Main Table Stuff ------------------------------------------*/
 
