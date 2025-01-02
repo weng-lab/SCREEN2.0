@@ -770,6 +770,32 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     )
   }
 
+  // Create a styled close button that looks like an IconButton
+  // Needed to prevent IconButton from being child of button in tab (hydration error)
+  const CloseIconButton = styled('div')(({ theme }) => ({
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 4,
+    borderRadius: '50%',
+    marginLeft: theme.spacing(1),
+    cursor: 'pointer',
+    '&:hover': {
+      backgroundColor: theme.palette.action.hover,
+    },
+    '& svg': {
+      fontSize: '1.25rem',
+    }
+  }));
+
+  const CloseTabButton = (cCRE) => {
+    return (
+      <CloseIconButton onClick={(event) => { event.stopPropagation(); handleClosecCRE(cCRE.ID) }}>
+        <CloseIcon />
+      </CloseIconButton>
+    )
+  }
+
   return (
     <>
       <Box id="Outer Box" sx={{ display: 'flex' }} component={'main'}>
@@ -817,12 +843,12 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                   <StyledHorizontalTab
                     onClick={(event) => event.preventDefault} key={i} value={numberOfDefaultTabs + i}
                     label={cCRE.ID}
-                    icon={
-                      <Box onClick={(event) => { event.stopPropagation(); handleClosecCRE(cCRE.ID) }}>
-                        <CloseIcon />
-                      </Box>
-                    }
-                    iconPosition="end" />
+                    sx={{
+                      '& .MuiTab-icon': {ml: 0}
+                    }}
+                    icon={<CloseTabButton {...cCRE} />}
+                    iconPosition="end"
+                  />
                 )
               })}
             </Tabs>

@@ -126,7 +126,7 @@ export const DownloadRange: React.FC = () => {
         <BiosampleTables
           assembly={assembly}
           selected={selectedBiosample?.name}
-          onBiosampleClicked={(selected: RegistryBiosample) => handleSetSelectedBiosample(selected)}
+          onChange={(selected: RegistryBiosample) => handleSetSelectedBiosample(selected)}
         />
       </Grid>
       <Grid size={{ xs: 6 }} flexGrow={1}>
