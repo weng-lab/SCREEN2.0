@@ -27,7 +27,7 @@
     "@parcel/watcher": "^2.4.1",
     "@vercel/analytics": "^1.4.1",
     "@visx/visx": "^3.12.0",
-    "@weng-lab/genomebrowser": "^0.0.13",
+    "@weng-lab/genomebrowser": "^0.0.14",
     "@weng-lab/psychscreen-ui-components": "^2.0.8",
     "@weng-lab/ts-ztable": "^4.0.1",
     "autoprefixer": "10.4.20",
