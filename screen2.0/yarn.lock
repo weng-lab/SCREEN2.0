@@ -3417,9 +3417,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@weng-lab/genomebrowser@npm:^0.0.13":
-  version: 0.0.13
-  resolution: "@weng-lab/genomebrowser@npm:0.0.13"
+"@weng-lab/genomebrowser@npm:^0.0.14":
+  version: 0.0.14
+  resolution: "@weng-lab/genomebrowser@npm:0.0.14"
   dependencies:
     "@apollo/client": "npm:^3.11.10"
     bigwig-reader: "npm:^1.3.1"
@@ -3431,7 +3431,7 @@ __metadata:
   peerDependencies:
     react: ^18.3.1
     react-dom: ^18.3.1
-  checksum: 10/a70aad38d402745495653b7ac99e921bc6e055962caddb1655a24ed7f20b8e36ce768d2445c4098f5d947b1338909cec35317cf5177887b57b6fc5e03b75b57d
+  checksum: 10/fd1b174303a0ad1079f85077893591a5da8229b311a5ba7e3e8d2675ae55100802677608bc000dbc016805cff97a4871efd5bec746e16db1f4853d2241422ec9
   languageName: node
   linkType: hard
 
@@ -8318,7 +8318,7 @@ __metadata:
     "@types/react-dom": "npm:^18.3.1"
     "@vercel/analytics": "npm:^1.4.1"
     "@visx/visx": "npm:^3.12.0"
-    "@weng-lab/genomebrowser": "npm:^0.0.13"
+    "@weng-lab/genomebrowser": "npm:^0.0.14"
     "@weng-lab/psychscreen-ui-components": "npm:^2.0.8"
     "@weng-lab/ts-ztable": "npm:^4.0.1"
     autoprefixer: "npm:10.4.20"
