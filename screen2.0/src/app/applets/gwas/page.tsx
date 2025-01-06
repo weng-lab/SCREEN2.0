@@ -364,7 +364,7 @@ export default function GWAS() {
                 assembly={"GRCh38"}
                 fetchBiosamplesWith={['dnase']}
                 selected={selectedSample?.name}
-                onBiosampleClicked={handleSetSelectedSample}
+                onChange={handleSetSelectedSample}
                 slotProps={{paperStack: {elevation: 0}, headerStack: {mt: 1}}}
               />
             </Stack>
