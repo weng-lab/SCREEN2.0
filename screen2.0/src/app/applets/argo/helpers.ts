@@ -47,7 +47,6 @@ export const calculateConservationScores = (scores, rankBy: string, inputRegions
                 region.start === start &&
                 region.end === end
         );
-
         let score;
         // calculate the score based on selected rank by
         if (rankBy === "max") {

@@ -75,7 +75,7 @@ const SequenceFilters: React.FC<SequenceAccordianProps> = ({
                         </RadioGroup>
                     </FormControl>
                 </Stack>
-                <FormGroup>
+                {/* <FormGroup>
                     <FormControlLabel value="TFMotifs" control={<Checkbox onChange={() => updateSequenceFilter("useMotifs", !sequenceFilterVariables.useMotifs)} checked={sequenceFilterVariables.useMotifs} />} label="TF Motifs" />
                     <Stack ml={2}>
                         <RadioGroup
@@ -92,7 +92,7 @@ const SequenceFilters: React.FC<SequenceAccordianProps> = ({
                         >
                             <FormControlLabel value="factorbook" control={<Radio />} label="Factorbook" disabled={!sequenceFilterVariables.useMotifs} />
                             <FormControlLabel value="hocomoco" control={<Radio />} label="HOCOMOCO" disabled={!sequenceFilterVariables.useMotifs} />
-                            {/* <FormControlLabel value="zMotif" control={<Radio />} label="ZMotif" disabled={!sequenceFilterVariables.useMotifs} /> */}
+                            <FormControlLabel value="zMotif" control={<Radio />} label="ZMotif" disabled={!sequenceFilterVariables.useMotifs} />
                         </RadioGroup>
                         <FormControlLabel
                             label="Must Overlap TF Peak"
@@ -113,7 +113,7 @@ const SequenceFilters: React.FC<SequenceAccordianProps> = ({
                         <FormControlLabel value="motifScoreDelta" control={<Checkbox onChange={() => updateSequenceFilter("motifScoreDelta", !sequenceFilterVariables.motifScoreDelta)} checked={sequenceFilterVariables.motifScoreDelta} />} label="Motif Score Delta" disabled={!sequenceFilterVariables.useMotifs} />
                         <FormControlLabel value="tfPeakStrength" control={<Checkbox onChange={() => updateSequenceFilter("tfPeakStrength", !sequenceFilterVariables.tfPeakStrength)} checked={sequenceFilterVariables.tfPeakStrength && sequenceFilterVariables.motifCatalog === "factorbook"} />} label="TF Peak Strength" disabled={!sequenceFilterVariables.useMotifs || !sequenceFilterVariables.overlapsTFPeak || sequenceFilterVariables.motifCatalog !== "factorbook"} />
                     </FormControl>
-                </FormGroup>
+                </FormGroup> */}
             </AccordionDetails>
         </Accordion>
     )
