@@ -37,7 +37,7 @@ const ElementTable: React.FC<ElementTableProps> = ({
     return (
         <DataTable
             columns={elementColumns}
-            rows={elementRows}
+            rows={elementRows === null ? [] : elementRows}
             sortDescending
             itemsPerPage={10}
             searchable
