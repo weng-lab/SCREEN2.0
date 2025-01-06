@@ -144,7 +144,7 @@ const ElementFilters: React.FC<ElementAccordianProps> = ({
                         <FormControlLabel value="mm10" control={<Radio />} label="mm10" disabled={!elementFilterVariables.usecCREs} />
                     </RadioGroup>
                     <FormControlLabel
-                        label="Must Have Mouse Ortholog"
+                        label="cCREs Must Have Mouse Ortholog"
                         control={
                             <Checkbox
                                 onChange={() => updateElementFilter("mustHaveOrtholog", !elementFilterVariables.mustHaveOrtholog)}

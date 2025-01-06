@@ -1,6 +1,6 @@
 import { OperationVariables, QueryResult } from "@apollo/client";
 import { AllLinkedGenes, AssayRankEntry, CCREAssays, CCREClasses, CCREs, ClosestGenetocCRE, ElementTableRow, GeneFilterState, GeneLinkingMethod, GeneTableRow, GenomicRegion, InputRegions, MainTableRow, MotifQueryDataOccurrence, RankedRegions, SequenceTableRow } from "./types";
-import { GeneSpecificityQuery, OccurrencesQuery } from "../../../graphql/__generated__/graphql";
+import { GeneOrthologQueryQuery, GeneSpecificityQuery, OccurrencesQuery } from "../../../graphql/__generated__/graphql";
 
 const assayNames = ["dnase", "h3k4me3", "h3k27ac", "ctcf", "atac"]
 
@@ -484,6 +484,26 @@ export const pushClosestGenes = (closestGenes: ClosestGenetocCRE, linkedGenes: A
     }
 
     return linkedGenes;
+}
+
+export const filterOrthologGenes = (orthoGenes: GeneOrthologQueryQuery, allGenes: AllLinkedGenes): AllLinkedGenes => {
+    const orthologs = orthoGenes.geneOrthologQuery; // List of ortholog genes
+    const orthologNames = new Set(
+        orthologs.map((ortholog: { humanGene: string }) => ortholog.humanGene)
+    );
+
+    // Filter out genes that do not have an ortholog
+    const filteredGenes = allGenes
+        .map((item) => ({
+            ...item,
+            genes: item.genes.filter((gene) => {
+                const geneNameWithoutSpaces = gene.name.replace(/\s+/g, '');
+                return orthologNames.has(geneNameWithoutSpaces);
+            }),
+        }))
+        .filter((item) => item.genes.length > 0); // Remove items that end up with no genes
+
+    return (filteredGenes)
 }
 
 export const generateGeneRanks = (geneRows: GeneTableRow[]): RankedRegions => {

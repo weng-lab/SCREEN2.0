@@ -141,7 +141,7 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateGeneFilter("mustBeProteinCoding", e.target.checked)}
                             />
                             <FormControlLabel
-                                label="Must have Mouse Ortholog"
+                                label="Genes Must Have Mouse Ortholog"
                                 control={<Checkbox />}
                                 checked={geneFilterVariables.mustHaveOrtholog}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateGeneFilter("mustHaveOrtholog", e.target.checked)}

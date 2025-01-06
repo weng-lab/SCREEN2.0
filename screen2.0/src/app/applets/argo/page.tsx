@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useMemo } from "react"
 import { useState } from "react"
 import { Stack, Typography, Box, Alert, CircularProgress, IconButton } from "@mui/material"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
-import { ORTHOLOG_QUERY, Z_SCORES_QUERY, BIG_REQUEST_QUERY, MOTIF_QUERY, CLOSEST_LINKED_QUERY, SPECIFICITY_QUERY } from "./queries"
+import { ORTHOLOG_QUERY, Z_SCORES_QUERY, BIG_REQUEST_QUERY, MOTIF_QUERY, CLOSEST_LINKED_QUERY, SPECIFICITY_QUERY, GENE_ORTHO_QUERY } from "./queries"
 import { QueryResult, useLazyQuery, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
 import { RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, CCREs, InputRegions, SubTableTitleProps } from "./types"
@@ -13,7 +13,7 @@ import Filters from "./filters/filters"
 import { CancelRounded } from "@mui/icons-material"
 import ArgoUpload from "./argoUpload"
 import { BigRequest, OccurrencesQuery } from "../../../graphql/__generated__/graphql"
-import { batchRegions, calculateAggregateRanks, calculateConservationScores, generateElementRanks, generateGeneRanks, generateSequenceRanks, getNumOverlappingMotifs, getSpecificityScores, handleSameInputRegion, mapScores, mapScoresCTSpecific, matchRanks, parseLinkedGenes, pushClosestGenes } from "./helpers"
+import { batchRegions, calculateAggregateRanks, calculateConservationScores, filterOrthologGenes, generateElementRanks, generateGeneRanks, generateSequenceRanks, getNumOverlappingMotifs, getSpecificityScores, handleSameInputRegion, mapScores, mapScoresCTSpecific, matchRanks, parseLinkedGenes, pushClosestGenes } from "./helpers"
 import SequenceTable from "./tables/sequenceTable"
 import ElementTable from "./tables/elementTable"
 import GeneTable from "./tables/geneTable"
@@ -24,6 +24,7 @@ export default function Argo() {
     const [getIntersectingCcres, { data: intersectArray }] = useLazyQuery(BED_INTERSECT_QUERY)
     const [getMemeOccurrences] = useLazyQuery(MOTIF_QUERY)
     const [getGeneSpecificity, { data: geneSpecificity, loading: loading_gene_specificity }] = useLazyQuery(SPECIFICITY_QUERY)
+    const [getOrthoGenes, { data: orthoGenes }] = useLazyQuery(GENE_ORTHO_QUERY)
     const [occurrences, setOccurrences] = useState<QueryResult<OccurrencesQuery>[]>([]);
     const [loadingMainRows, setLoadingMainRows] = useState(true);
     const [loadingElementRanks, setLoadingElementRanks] = useState(true);
@@ -493,32 +494,31 @@ export default function Argo() {
             closestGenes = closestAndLinkedGenes.closestGenetocCRE.filter((gene) => gene.gene.type === "PC")
         }
         const allGenes = pushClosestGenes(closestGenes, linkedGenes);
-
-        //Switch between regular and ortho ccres
-        let accessions = intersectingCcres;
-        if (geneFilterVariables.mustHaveOrtholog && orthoData) {
-            const orthologMapping: { [accession: string]: string | undefined } = {};
-
-            orthoData.orthologQuery.forEach((entry: { accession: string; ortholog: Array<{ accession: string }> }) => {
-                if (entry.ortholog.length > 0) {
-                    orthologMapping[entry.accession] = entry.ortholog[0].accession;
-                }
-            });
-
-            accessions = intersectingCcres
-                .map((ccre) => ({
-                    ...ccre,
-                    ortholog: orthologMapping[ccre.accession]
-                }))
-                .filter((ccre) => ccre.ortholog !== undefined);
+        const uniqueGeneNames = Array.from(
+            new Set(
+                allGenes.flatMap((item) => item.genes.map((gene) => gene.name))
+            )
+        );
+        let filteredGenes = allGenes; 
+        if (geneFilterVariables.mustHaveOrtholog) {
+            getOrthoGenes({
+                variables: {
+                    name: uniqueGeneNames,
+                    assembly: "grch38"
+                },
+                client: client,
+                fetchPolicy: 'cache-and-network',
+            })
+            if (orthoGenes) {
+                filteredGenes = filterOrthologGenes(orthoGenes, allGenes)
+            }
         }
-
-        if (accessions.length === 0) {
-            return null;
+        if (filteredGenes.length === 0) {
+            return null
         }
 
         //get all of the geneID's from allGenes
-        const geneIds = allGenes.flatMap((entry) => 
+        const geneIds = filteredGenes.flatMap((entry) => 
             entry.genes.map((gene) => gene.geneId)
         );
 
@@ -533,13 +533,13 @@ export default function Argo() {
             })
         }
         if (geneSpecificity) {
-            const specificityRows = getSpecificityScores(allGenes, accessions, geneSpecificity, geneFilterVariables)
+            const specificityRows = getSpecificityScores(filteredGenes, intersectingCcres, geneSpecificity, geneFilterVariables)
             return specificityRows
         } else {
             return []
         }
 
-    }, [closestAndLinkedGenes, geneFilterVariables, geneSpecificity, getGeneSpecificity, intersectingCcres, orthoData]);
+    }, [closestAndLinkedGenes, geneFilterVariables, geneSpecificity, getGeneSpecificity, getOrthoGenes, intersectingCcres, orthoGenes]);
 
     const geneRanks = useMemo<RankedRegions>(() => {
         if (geneRows === null || !geneFilterVariables.useGenes) {

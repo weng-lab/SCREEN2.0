@@ -31,7 +31,7 @@ const GeneTable: React.FC<GeneTableProps> = ({
     return (
         <DataTable
             columns={geneColumns}
-            rows={geneRows}
+            rows={geneRows  === null ? [] : geneRows}
             sortDescending
             itemsPerPage={10}
             searchable

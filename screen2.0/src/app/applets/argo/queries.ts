@@ -171,4 +171,13 @@ export const ALLELE_QUERY = gql(`
 }
   `)
 
+export const GENE_ORTHO_QUERY = gql(`
+    query geneOrthologQuery($name: [String]!, $assembly: String!) {
+    geneOrthologQuery: geneorthologQuery(name: $name, assembly: $assembly) {
+      humanGene: external_gene_name
+      mouseGene: mmusculus_homolog_associated_gene_name
+    }
+  }
+    `)
+
 
