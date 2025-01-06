@@ -187,7 +187,7 @@ const ElementFilters: React.FC<ElementAccordianProps> = ({
                         <AccordionDetails>
                             <BiosampleTables
                                 selected={elementFilterVariables.selectedBiosample?.name}
-                                onBiosampleClicked={(biosample) => handleSelectedBiosample(biosample)}
+                                onChange={(biosample) => handleSelectedBiosample(biosample)}
                                 assembly={elementFilterVariables.cCREAssembly}
                             />
                         </AccordionDetails>
