@@ -225,7 +225,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   // Browser State
   const initialBrowserCoords = useMemo(() => {
     return expandCoordinates(mainQueryParams.coordinates)
-  }, [mainQueryParams.coordinates]) 
+  }, [mainQueryParams.coordinates])
 
   const initialDomain = useMemo(() => {
     return ({
@@ -240,7 +240,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       return getDefaultTracks({ ...initialBrowserCoords, assembly: mainQueryParams.coordinates.assembly })
     } else return []
   }, [initialBrowserCoords, mainQueryParams.coordinates.assembly])
-  
+
   const initialBrowserState = useMemo(() => {
     return {
       domain: initialDomain,
@@ -248,7 +248,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       tracks: initialTracks,
       highlights: []
     }
-  }, [initialDomain, initialTracks]) 
+  }, [initialDomain, initialTracks])
 
   const [browserState, browserDispatch] = useBrowserState(initialBrowserState)
   const [browserInitialized, setBrowserInitialized] = useState(haveCoordinates ? true : false)
@@ -290,7 +290,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
             }
             default: throw new Error(`Error parsing ENCODE request. Too many items to parse. Search for a region, rsID, gene, or accession, and optionally filter results by Cell Line by adding it to your search separated by a space.\n URL Params:\n${JSON.stringify(searchParams)}`)
           }
-         
+
           //No human or mouse genes have "chr" followed by a number, so safe to check this way
           if (/chr\d+/.test(encodeInput)) searchType = "region"
           //check for "rs" followed by number. Genes RS1 and Rs1 exist, but lowercase r is differentiator
@@ -473,21 +473,16 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   //Initialize genome browser if coordinates were missing initially
   useEffect(() => {
     if (!browserInitialized && haveCoordinates) {
-      console.log("adding tracks: ");
       const tracks = getDefaultTracks(mainQueryParams.coordinates);
       browserDispatch({ type: BrowserActionType.SET_DOMAIN, domain: initialDomain });
       tracks.forEach((track) => {
-        // This was needed to prevent track from being added twice in development mode, since effects are run twice. 
-        // The fact that this is necessary is emblematic of bigger issues with this code
-        if (!browserState.tracks.some(x => x.title === track.title)) {
-          browserDispatch({ type: BrowserActionType.ADD_TRACK, track })
-        }
+        browserDispatch({ type: BrowserActionType.ADD_TRACK, track })
       });
       // Mark as initialized
       setBrowserInitialized(true);
     }
   }, [browserDispatch, browserInitialized, browserState.tracks, haveCoordinates, initialDomain, mainQueryParams.coordinates]);
-  
+
 
   //Used to set just biosample in filters.
   const handleSetBiosample = (biosample: RegistryBiosample) => { setMainQueryParams({ ...mainQueryParams, biosample: biosample }) }
@@ -844,7 +839,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                     onClick={(event) => event.preventDefault} key={i} value={numberOfDefaultTabs + i}
                     label={cCRE.ID}
                     sx={{
-                      '& .MuiTab-icon': {ml: 0}
+                      '& .MuiTab-icon': { ml: 0 }
                     }}
                     icon={<CloseTabButton {...cCRE} />}
                     iconPosition="end"
@@ -987,7 +982,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           {page === 2 && mainQueryParams.gene.name && haveCoordinates &&
             <GeneExpression assembly={mainQueryParams.coordinates.assembly} genes={[{ name: mainQueryParams.gene.name }]} />
           }
-          {page === 3 && mainQueryParams.gene.name && haveCoordinates && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" &&  (
+          {page === 3 && mainQueryParams.gene.name && haveCoordinates && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" && (
             <Rampage genes={[{ name: mainQueryParams.gene.name }]} />
           )}
           {page >= numberOfDefaultTabs && opencCREs.length > 0 && (
