@@ -555,6 +555,7 @@ export default function Argo() {
         setLoadingGeneRanks(true);
 
         const rankedRegions = generateGeneRanks(geneRows)
+
         return rankedRegions
 
     }, [geneFilterVariables.useGenes, geneRows, inputRegions]);
@@ -671,6 +672,7 @@ export default function Argo() {
                                     columns={mainColumns}
                                     rows={mainRows}
                                     sortDescending
+                                    sortColumn={2}
                                     itemsPerPage={5}
                                     searchable
                                     tableTitle="Ranked Regions"

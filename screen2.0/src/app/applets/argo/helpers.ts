@@ -600,9 +600,9 @@ export const calculateAggregateRanks = (inputRegions: InputRegions, sequenceRank
         );
 
         // Calculate the total rank, using 0 if no matching rank is found for any
-        const totalRank = (matchingSequence?.rank || 0) +
-            (matchingElement?.rank || 0) +
-            (matchingGene?.rank || 0);
+        const totalRank = (matchingSequence?.rank || 1000000) +
+            (matchingElement?.rank || 1000000) +
+            (matchingGene?.rank || 1000000);
 
         return {
             ...row,
