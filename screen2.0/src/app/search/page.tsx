@@ -504,8 +504,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   //Handle opening a cCRE or navigating to its open tab
   const handlecCREClick = (item) => {
     const newcCRE = { ID: item.name || item.accession, region: { start: item.start, end: item.end, chrom: item.chromosome } }
-    console.log(item)
-    browserDispatch({ type: BrowserActionType.ADD_HIGHLIGHT, highlight: { domain: { chromosome: item.chromosome, start: item.start, end: item.end }, color: item.color, id: item.name || item.accession } })
+    const color = item.color || GROUP_COLOR_MAP.get(item.class).split(":")[1] || "#8c8c8c"
+    browserDispatch({ type: BrowserActionType.ADD_HIGHLIGHT, highlight: { domain: { chromosome: item.chromosome, start: item.start, end: item.end }, color, id: item.name || item.accession } })
     //If cCRE isn't in open cCREs, add and push as current accession.
     if (!opencCREs.find((x) => x.ID === newcCRE.ID)) {
       setOpencCREs([...opencCREs, newcCRE])
