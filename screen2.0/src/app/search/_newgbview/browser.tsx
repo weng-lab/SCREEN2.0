@@ -1,6 +1,6 @@
 import Grid from "@mui/material/Grid2";
 import { BrowserActionType, GenomeBrowser, BrowserAction, TrackType, BrowserState, Controls, GQLCytobands, GQLWrapper } from '@weng-lab/genomebrowser';
-import { Dispatch, useEffect, useRef, useState } from 'react';
+import { Dispatch, useEffect, useMemo, useRef, useState } from 'react';
 import { RegistryBiosample } from '../types';
 import { genBiosampleTracks } from './genTracks';
 import CCRETooltip from "../_gbview/ccretooltip";
@@ -114,16 +114,27 @@ export const Browser = ({ cCREClick, state, dispatch, coordinates, gene, biosamp
         nextFetchPolicy: "cache-first",
     })
 
-    const [biosampleIDs, setBiosampleIDs] = useState<string[]>([])
+    const biosampleIDs = useMemo(() => {
+        return state.tracks.filter(track => track.id.startsWith("sample-")).map(track => track.id)
+    }, [state.tracks])
+
     useEffect(() => {
+        // if there are biosample tracks, check if the current sample is the same as the biosample
+        if (biosampleIDs.length > 0) {
+            const currentSample = state.tracks[state.tracks.length - 1].id.split("-")[2]
+            // return to avoid adding the same sample twice
+            if (biosample && currentSample === biosample.name) {
+                return
+            }
+        }
+        // when biosample changes, delete old biosample tracks
         biosampleIDs.forEach(id => {
             dispatch({ type: BrowserActionType.DELETE_TRACK, id: id })
-        }) // when biosample changes, delete old biosample tracks
-        setBiosampleIDs([])
+        })
+
         loadBiosample()
         if (bdata && biosample) {
             const tracks = genBiosampleTracks(biosample, coordinates, bdata)
-            const ids = []
             tracks.forEach(track => {
                 if (track.trackType === TrackType.BIGBED) {
                     let bedTrack = { ...track, onMouseOut: bedMouseOut, onMouseOver: bedMouseOver, onClick: bedClick, tooltipContent: (item: Rect) => CCRETooltip({ biosample, assembly: coordinates.assembly, name: item.name }) }
@@ -133,9 +144,7 @@ export const Browser = ({ cCREClick, state, dispatch, coordinates, gene, biosamp
                         type: BrowserActionType.ADD_TRACK, track
                     })
                 }
-                ids.push(track.id)
             })
-            setBiosampleIDs(ids)
         }
     }, [bdata, biosample, coordinates.assembly])
 
