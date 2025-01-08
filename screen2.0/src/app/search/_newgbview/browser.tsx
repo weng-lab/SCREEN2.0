@@ -149,57 +149,55 @@ export const Browser = ({ cCREClick, state, dispatch, coordinates, gene, biosamp
     }, [bdata, biosample, coordinates.assembly])
 
     return (
-        <GQLWrapper>
-            <Grid container spacing={3} sx={{ mt: "0rem", mb: "1rem" }} ref={containerRef} justifyContent="center" alignItems="center">
-                <Grid size={{ xs: 12, lg: 12 }} style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", marginTop: "0px" }}>
-                    <h3 style={{ marginBottom: "0px", marginTop: "0px" }}>
-                        {coordinates.assembly} at {state.domain.chromosome}:{state.domain.start.toLocaleString()}-{state.domain.end.toLocaleString()}
-                    </h3>
-                    <svg id="cytobands" width={"700px"} height={20}>
-                        <GQLCytobands assembly={coordinates.assembly === "GRCh38" ? "hg38" : "mm10"} chromosome={coordinates.chromosome} currentDomain={state.domain} />
-                    </svg>
-                </Grid>
-                <Grid size={{ xs: 12, lg: 12 }}>
-                    <div style={{ width: "100%" }}>
-                        <Controls
-                            inputButtonComponent={
-                                <IconButton type="button" sx={{
-                                    color: "black",
-                                    maxHeight: "100%",
-                                    padding: "4px"
-                                }}>
-                                    <Search fontSize="small" />
-                                </IconButton>
-                            }
-                            inputComponent={SearchInput(state.domain.chromosome + ":" + state.domain.start + "-" + state.domain.end)}
-                            buttonComponent={
-                                <Button
-                                    variant="outlined"
-                                    sx={{
-                                        minWidth: "0px",
-                                        width: { xs: "100%", sm: "80%" },
-                                        maxWidth: "120px",
-                                        fontSize: "0.8rem",
-                                        padding: "4px 8px"
-                                    }}
-                                />
-                            }
-                            domain={state.domain}
-                            dispatch={dispatch}
-                            withInput
-                            style={{
-                                paddingBottom: "4px",
-                                display: "flex",
-                                flexWrap: "wrap",
-                                gap: "4px",
-                                width: "100%"
-                            }}
-                        />
-                    </div>
-                    <GenomeBrowser width={"100%"} browserState={state} browserDispatch={dispatch} />
-                </Grid>
-            </Grid >
-        </GQLWrapper>
+        <Grid container spacing={3} sx={{ mt: "0rem", mb: "1rem" }} ref={containerRef} justifyContent="center" alignItems="center">
+            <Grid size={{ xs: 12, lg: 12 }} style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", marginTop: "0px" }}>
+                <h3 style={{ marginBottom: "0px", marginTop: "0px" }}>
+                    {coordinates.assembly} at {state.domain.chromosome}:{state.domain.start.toLocaleString()}-{state.domain.end.toLocaleString()}
+                </h3>
+                <svg id="cytobands" width={"700px"} height={20}>
+                    <GQLCytobands assembly={coordinates.assembly === "GRCh38" ? "hg38" : "mm10"} chromosome={coordinates.chromosome} currentDomain={state.domain} />
+                </svg>
+            </Grid>
+            <Grid size={{ xs: 12, lg: 12 }}>
+                <div style={{ width: "100%" }}>
+                    <Controls
+                        inputButtonComponent={
+                            <IconButton type="button" sx={{
+                                color: "black",
+                                maxHeight: "100%",
+                                padding: "4px"
+                            }}>
+                                <Search fontSize="small" />
+                            </IconButton>
+                        }
+                        inputComponent={SearchInput(state.domain.chromosome + ":" + state.domain.start + "-" + state.domain.end)}
+                        buttonComponent={
+                            <Button
+                                variant="outlined"
+                                sx={{
+                                    minWidth: "0px",
+                                    width: { xs: "100%", sm: "80%" },
+                                    maxWidth: "120px",
+                                    fontSize: "0.8rem",
+                                    padding: "4px 8px"
+                                }}
+                            />
+                        }
+                        domain={state.domain}
+                        dispatch={dispatch}
+                        withInput
+                        style={{
+                            paddingBottom: "4px",
+                            display: "flex",
+                            flexWrap: "wrap",
+                            gap: "4px",
+                            width: "100%"
+                        }}
+                    />
+                </div>
+                <GenomeBrowser width={"100%"} browserState={state} browserDispatch={dispatch} />
+            </Grid>
+        </Grid >
     )
 }
 
