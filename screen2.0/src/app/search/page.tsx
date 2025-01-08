@@ -519,7 +519,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     browserDispatch({ type: BrowserActionType.REMOVE_HIGHLIGHT, id: closedID })
     const newOpencCREs = opencCREs.filter((cCRE) => cCRE.ID != closedID)
 
-
     const closedPage = opencCREs.findIndex(x => x.ID === closedID) + numberOfDefaultTabs
     if (newOpencCREs.length === 0 && closedPage === page) {
       setPage(0)
