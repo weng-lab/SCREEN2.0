@@ -476,7 +476,9 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       const tracks = getDefaultTracks(mainQueryParams.coordinates);
       browserDispatch({ type: BrowserActionType.SET_DOMAIN, domain: initialDomain });
       tracks.forEach((track) => {
-        browserDispatch({ type: BrowserActionType.ADD_TRACK, track })
+        if (!browserState.tracks.find(t => t.id === track.id)) {
+          browserDispatch({ type: BrowserActionType.ADD_TRACK, track })
+        }
       });
       // Mark as initialized
       setBrowserInitialized(true);
