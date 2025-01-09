@@ -922,83 +922,116 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
         <Main id="Main Content" open={open}>
           {/* Bumps content below app bar */}
           <DrawerHeader id="DrawerHeader" />
-          {page === 0 && (
-            <Box>
-              {loadingTable || loadingFetch || !haveCoordinates ?
-                <LoadingMessage />
-                :
-                <><MainResultsTable
-                  rows={filteredTableRows}
-                  /**
-                   * @todo this logic is pretty horrific, should move this into it's own function
-                   */
-                  tableTitle={mainQueryParams.searchConfig.bed_intersect ?
-                    `Intersecting by uploaded .bed file in ${mainQueryParams.coordinates.assembly}${intersectWarning.current === "true" ? " (Partial)" : ""}`
-                    :
-                    mainQueryParams.gene.name ?
-                      mainQueryParams.gene.nearTSS ?
-                        `cCREs within ${mainQueryParams.gene.distance / 1000}kb of TSSs of ${mainQueryParams.gene.name} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.start.toLocaleString("en-US")}-${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
+          <div>
+            {/* Table View */}
+            <div style={{ display: page === 0 ? 'block' : 'none' }}>
+              <Box>
+                {loadingTable || loadingFetch || !haveCoordinates ? (
+                  <LoadingMessage />
+                ) : (
+                  <>
+                    <MainResultsTable
+                      rows={filteredTableRows}
+                      /**
+                       * @todo this logic is pretty horrific, should move this into it's own function
+                       */
+                      tableTitle={mainQueryParams.searchConfig.bed_intersect ?
+                        `Intersecting by uploaded .bed file in ${mainQueryParams.coordinates.assembly}${intersectWarning.current === "true" ? " (Partial)" : ""}`
                         :
-                        `cCREs overlapping ${mainQueryParams.gene.name} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.start.toLocaleString("en-US")}-${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
+                        mainQueryParams.gene.name ?
+                          mainQueryParams.gene.nearTSS ?
+                            `cCREs within ${mainQueryParams.gene.distance / 1000}kb of TSSs of ${mainQueryParams.gene.name} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.start.toLocaleString("en-US")}-${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
+                            :
+                            `cCREs overlapping ${mainQueryParams.gene.name} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.start.toLocaleString("en-US")}-${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
 
-                      :
-                      mainQueryParams.snp.rsID ?
-                        `cCREs within ${mainQueryParams.snp.distance}bp of ${mainQueryParams.snp.rsID} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
+                          :
+                          mainQueryParams.snp.rsID ?
+                            `cCREs within ${mainQueryParams.snp.distance}bp of ${mainQueryParams.snp.rsID} - ${mainQueryParams.coordinates.chromosome}:${mainQueryParams.coordinates.end.toLocaleString("en-US")}`
+                            :
+                            `Searching ${mainQueryParams.coordinates.chromosome} in ${mainQueryParams.coordinates.assembly} from ${mainQueryParams.coordinates.start?.toLocaleString("en-US")} to ${mainQueryParams.coordinates.end?.toLocaleString("en-US")}`
+                      }
+                      titleHoverInfo={mainQueryParams.searchConfig.bed_intersect ?
+                        `${intersectWarning.current === "true" ?
+                          "The file you uploaded, " + intersectFilenames.current + ", is too large to be completely intersected. Results are incomplete."
+                          :
+                          intersectFilenames.current}`
                         :
-                        `Searching ${mainQueryParams.coordinates.chromosome} in ${mainQueryParams.coordinates.assembly} from ${mainQueryParams.coordinates.start?.toLocaleString("en-US")} to ${mainQueryParams.coordinates.end?.toLocaleString("en-US")}`}
-                  titleHoverInfo={mainQueryParams.searchConfig.bed_intersect ?
-                    `${intersectWarning.current === "true" ?
-                      "The file you uploaded, " + intersectFilenames.current + ", is too large to be completely intersected. Results are incomplete."
-                      :
-                      intersectFilenames.current}`
-                    :
-                    null}
-                  itemsPerPage={[10, 25, 50]}
-                  assembly={mainQueryParams.coordinates.assembly}
-                  onRowClick={handlecCREClick}
-                  useLinkedGenes={useLinkedGenes}
+                        null}
+                      itemsPerPage={[10, 25, 50]}
+                      assembly={mainQueryParams.coordinates.assembly}
+                      onRowClick={handlecCREClick}
+                      useLinkedGenes={useLinkedGenes}
+                    />
+                    <Stack direction="row" alignItems={"center"} sx={{ mt: 1 }}>
+                      <Button
+                        disabled={typeof bedLoadingPercent === "number"}
+                        variant="outlined"
+                        sx={{ textTransform: 'none' }}
+                        onClick={() => {
+                          handleDownloadBed()
+                        }}
+                        endIcon={<Download />}
+                      >
+                        Download Unfiltered Search Results (.bed)
+                      </Button>
+                      {bedLoadingPercent !== null && <CircularProgressWithLabel value={bedLoadingPercent} />}
+                    </Stack>
+                  </>
+                )}
+              </Box>
+            </div>
+
+            {/* Genome Browser View */}
+            <div style={{ display: page === 1 ? 'block' : 'none' }}>
+              {haveCoordinates && (
+                <Browser
+                  cCREClick={handlecCREClick}
+                  state={browserState}
+                  dispatch={browserDispatch}
+                  coordinates={mainQueryParams.coordinates}
+                  gene={mainQueryParams.gene.name}
+                  biosample={mainQueryParams.biosample}
                 />
-                  <Stack direction="row" alignItems={"center"} sx={{ mt: 1 }}>
-                    <Button
-                      disabled={typeof bedLoadingPercent === "number"}
-                      variant="outlined"
-                      sx={{ textTransform: 'none' }}
-                      onClick={() => {
-                        handleDownloadBed()
-                      }}
-                      endIcon={<Download />}
-                    >
-                      Download Unfiltered Search Results (.bed)
-                    </Button>
-                    {bedLoadingPercent !== null && <CircularProgressWithLabel value={bedLoadingPercent} />}
-                  </Stack>
+              )}
+            </div>
 
-                </>
-              }
-            </Box>
-          )}
-          {page === 1 && haveCoordinates && (
-            <Browser cCREClick={handlecCREClick} state={browserState} dispatch={browserDispatch} coordinates={mainQueryParams.coordinates} gene={mainQueryParams.gene.name} biosample={mainQueryParams.biosample} />
-          )}
-          {page === 2 && mainQueryParams.gene.name && haveCoordinates &&
-            <GeneExpression assembly={mainQueryParams.coordinates.assembly} genes={[{ name: mainQueryParams.gene.name }]} />
-          }
-          {page === 3 && mainQueryParams.gene.name && haveCoordinates && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" && (
-            <Rampage genes={[{ name: mainQueryParams.gene.name }]} />
-          )}
-          {page >= numberOfDefaultTabs && opencCREs.length > 0 && (
-            opencCREs[page - numberOfDefaultTabs] ?
-              <CcreDetails
-                key={opencCREs[page - numberOfDefaultTabs].ID}
-                accession={opencCREs[page - numberOfDefaultTabs].ID}
-                region={opencCREs[page - numberOfDefaultTabs].region}
-                assembly={mainQueryParams.coordinates.assembly}
-                page={detailsPage}
-                handleOpencCRE={handlecCREClick}
-              />
-              :
-              <LoadingMessage />
-          )}
+            {/* Gene Expression */}
+            <div style={{ display: page === 2 ? 'block' : 'none' }}>
+              {mainQueryParams.gene.name && haveCoordinates && (
+                <GeneExpression
+                  assembly={mainQueryParams.coordinates.assembly}
+                  genes={[{ name: mainQueryParams.gene.name }]}
+                />
+              )}
+            </div>
+
+            {/* RAMPAGE */}
+            <div style={{ display: page === 3 ? 'block' : 'none' }}>
+              {mainQueryParams.gene.name && haveCoordinates && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" && (
+                <Rampage genes={[{ name: mainQueryParams.gene.name }]} />
+              )}
+            </div>
+
+            {/* cCRE Details */}
+            {opencCREs.map((ccre, index) => {
+              return (
+                <div
+                  key={ccre.ID}
+                  style={{
+                    display: page === (index + numberOfDefaultTabs) ? 'block' : 'none'
+                  }}
+                >
+                  <CcreDetails
+                    accession={ccre.ID}
+                    region={ccre.region}
+                    assembly={mainQueryParams.coordinates.assembly}
+                    page={detailsPage}
+                    handleOpencCRE={handlecCREClick}
+                  />
+                </div>
+              )
+            })}
+          </div>
         </Main>
       </Box>
       <UrlErrorDialog open={Boolean(urlParseError)} searchParams={searchParams} errorMsg={urlParseError} />
