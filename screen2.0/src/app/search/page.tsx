@@ -54,6 +54,14 @@ const StyledVerticalTab = styled(Tab)(() => ({
   minWidth: 'auto'
 }))
 
+function TabPanel({ page, value, children }: { page: number, value: number, children: React.ReactNode }) {
+  return (
+    <div style={{ display: page === value ? 'block' : 'none' }}>
+      {children}
+    </div>
+  )
+}
+
 //Wrapper for the table
 const Main = styled('div', { shouldForwardProp: (prop) => prop !== 'open' })<{
   open?: boolean;
@@ -924,7 +932,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
           <DrawerHeader id="DrawerHeader" />
           <div>
             {/* Table View */}
-            <div style={{ display: page === 0 ? 'block' : 'none' }}>
+            <TabPanel page={page} value={0}>
               <Box>
                 {loadingTable || loadingFetch || !haveCoordinates ? (
                   <LoadingMessage />
@@ -979,10 +987,10 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                   </>
                 )}
               </Box>
-            </div>
+            </TabPanel>
 
             {/* Genome Browser View */}
-            <div style={{ display: page === 1 ? 'block' : 'none' }}>
+            <TabPanel page={page} value={1}>
               {haveCoordinates && (
                 <Browser
                   cCREClick={handlecCREClick}
@@ -993,33 +1001,32 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                   biosample={mainQueryParams.biosample}
                 />
               )}
-            </div>
+            </TabPanel>
 
             {/* Gene Expression */}
-            <div style={{ display: page === 2 ? 'block' : 'none' }}>
+            <TabPanel page={page} value={2}>
               {mainQueryParams.gene.name && haveCoordinates && (
                 <GeneExpression
                   assembly={mainQueryParams.coordinates.assembly}
                   genes={[{ name: mainQueryParams.gene.name }]}
                 />
               )}
-            </div>
+            </TabPanel>
 
             {/* RAMPAGE */}
-            <div style={{ display: page === 3 ? 'block' : 'none' }}>
+            <TabPanel page={page} value={3}>
               {mainQueryParams.gene.name && haveCoordinates && mainQueryParams.coordinates.assembly.toLowerCase() !== "mm10" && (
                 <Rampage genes={[{ name: mainQueryParams.gene.name }]} />
               )}
-            </div>
+            </TabPanel>
 
             {/* cCRE Details */}
             {opencCREs.map((ccre, index) => {
               return (
-                <div
+                <TabPanel
+                  page={page}
+                  value={index + numberOfDefaultTabs}
                   key={ccre.ID}
-                  style={{
-                    display: page === (index + numberOfDefaultTabs) ? 'block' : 'none'
-                  }}
                 >
                   <CcreDetails
                     accession={ccre.ID}
@@ -1028,7 +1035,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
                     page={detailsPage}
                     handleOpencCRE={handlecCREClick}
                   />
-                </div>
+                </TabPanel>
               )
             })}
           </div>
