@@ -82,7 +82,6 @@ export const Browser = ({ cCREClick, state, dispatch, coordinates, gene, biosamp
         cCREClick(ccre)
     }, [state.domain, state.highlights, cCREClick])
 
-    const initialLoad = useRef(true)
     useEffect(() => {
         const bigbeds = state.tracks.filter(track => track.trackType === TrackType.BIGBED)
         bigbeds.forEach(track => {
