@@ -2367,10 +2367,10 @@
     "@visx/event" "3.12.0"
     prop-types "^15.6.2"
 
-"@weng-lab/genomebrowser@^0.0.16":
-  version "0.0.16"
-  resolved "https://registry.yarnpkg.com/@weng-lab/genomebrowser/-/genomebrowser-0.0.16.tgz#98c9fc26ae1e03431298bf4e7062db3d25b04e69"
-  integrity sha512-hpBbY0aoYzTrD5uySsz70GDHN2sEcsmRWeTbP+sUNLSCNc8GOAasN8jql/lVD0u3Co4MA36KhfOo+zxmKXWAXQ==
+"@weng-lab/genomebrowser@^0.0.17":
+  version "0.0.17"
+  resolved "https://registry.yarnpkg.com/@weng-lab/genomebrowser/-/genomebrowser-0.0.17.tgz#25ced50736d77a516f9828bb1771187669c8bbd8"
+  integrity sha512-y78btarkivq9fa5Ex+Wd//LWTWTzx29S9rLogivzBqBR9kVKUGBVc7jiqiLEoj24OBStwCnqxvU2GGxuX/9SQg==
   dependencies:
     "@apollo/client" "^3.11.10"
     bigwig-reader "^1.3.1"
