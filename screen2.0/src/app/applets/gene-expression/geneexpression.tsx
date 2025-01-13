@@ -601,15 +601,13 @@ export function GeneExpression(props: {
           </Grid>
           :
           dataExperiments ?
-            // <Grid size={12}>
-              <VerticalBarPlot
-                data={plotData}
-                topAxisLabel={(gene + " Gene Expression in " + assembly + ' - ') + (scale === "linearTPM" ? "Linear TPM" : "Log10(TPM + 1)")}
-                SVGref={plotRef}
-                onBarClicked={(x) => window.open("https://www.encodeproject.org/experiments/" + x.metadata.accession, "_blank", "noopener,noreferrer")}
-                TooltipContents={(bar) => <PlotTooltip {...bar} />}
-              />
-            // </Grid>
+            <VerticalBarPlot
+              data={plotData}
+              topAxisLabel={(gene + " Gene Expression in " + assembly + ' - ') + (scale === "linearTPM" ? "Linear TPM" : "Log10(TPM + 1)")}
+              SVGref={plotRef}
+              onBarClicked={(x) => window.open("https://www.encodeproject.org/experiments/" + x.metadata.accession, "_blank", "noopener,noreferrer")}
+              TooltipContents={(bar) => <PlotTooltip {...bar} />}
+            />
             :
             <Typography variant="h5">
               Please Select a Gene

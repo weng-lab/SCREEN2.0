@@ -3,7 +3,7 @@
 import { BIOSAMPLE_Data, biosampleQuery } from "../../common/lib/queries"
 import { FilterCriteria, MainQueryData, MainQueryParams, RegistryBiosample } from "./types"
 import { constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, downloadBED, fetchcCREData } from "./searchhelpers"
-import React, { useEffect, useMemo, useRef, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { styled } from '@mui/material/styles';
 import { Divider, IconButton, Tab, Tabs, Typography, Box, Button, CircularProgressProps, CircularProgress, Stack } from "@mui/material"
 import { MainResultsTable } from "./mainresultstable"
@@ -264,6 +264,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   /**
    * Backwards compatibility for ENCODE
    * This is for sure going to be buggy, need to test many edge cases
+   * @todo move this to it's own file. Taking up way too much space
    */
   useEffect(() => {
     const fetchCoordinates = async () => {
@@ -511,8 +512,12 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   const handleDrawerOpen = () => { setOpen(true) }
   const handleDrawerClose = () => { setOpen(false) }
 
+  const findTabByID = useCallback((id: string, numberOfTable: number = 2) => {
+    return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)
+  }, [opencCREs]) 
+
   //Handle opening a cCRE or navigating to its open tab
-  const handlecCREClick = (item) => {
+  const handlecCREClick = useCallback((item) => {
     const newcCRE = { ID: item.name || item.accession, region: { start: item.start, end: item.end, chrom: item.chromosome } }
     const color = item.color || GROUP_COLOR_MAP.get(item.class).split(":")[1] || "#8c8c8c"
     browserDispatch({ type: BrowserActionType.ADD_HIGHLIGHT, highlight: { domain: { chromosome: item.chromosome, start: item.start, end: item.end }, color, id: item.name || item.accession } })
@@ -523,7 +528,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     } else {
       setPage(findTabByID(newcCRE.ID, numberOfDefaultTabs))
     }
-  }
+  }, [browserDispatch, opencCREs, numberOfDefaultTabs, findTabByID])
+  
   //Handle closing cCRE, and changing page if needed
   const handleClosecCRE = (closedID: string) => {
     browserDispatch({ type: BrowserActionType.REMOVE_HIGHLIGHT, id: closedID })
@@ -725,10 +731,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     }
   }, [mainQueryData, dataLinkedGenes, filterCriteria, mainQueryParams.gene.nearTSS, TSSranges])
 
-  const findTabByID = (id: string, numberOfTable: number = 2) => {
-    return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)
-  }
-
   /**
    * @todo Make this (and other download tool) properly download new linked genes
    */
@@ -898,7 +900,6 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               setTSSranges={setTSSranges}
               genomeBrowserView={page === 1}
               useLinkedGenes={useLinkedGenes}
-
             />
             :
             <Tabs
