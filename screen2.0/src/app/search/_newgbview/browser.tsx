@@ -75,39 +75,37 @@ export const Browser = ({ cCREClick, state, dispatch, coordinates, gene, biosamp
     const bedMouseOut = () => {
         dispatch({ type: BrowserActionType.REMOVE_LAST_HIGHLIGHT })
     }
-    const bedClick = (item: Rect) => {
+    const bedClick = useMemo(() => (item: Rect) => {
         dispatch({ type: BrowserActionType.REMOVE_LAST_HIGHLIGHT })
         const { left, right } = linearScale(state.domain, item.start, item.end)
         const ccre = { start: left, end: right, color: item.color, name: item.name, score: item.score, chromosome: state.domain.chromosome }
         cCREClick(ccre)
-    }
+    }, [state.domain, state.highlights, cCREClick])
+
     const initialLoad = useRef(true)
     useEffect(() => {
-        if (initialLoad.current) {
-            const bigbeds = state.tracks.filter(track => track.trackType === TrackType.BIGBED)
-            bigbeds.forEach(track => {
-                dispatch({
-                    type: BrowserActionType.UPDATE_TRACK, id: track.id, track: {
-                        ...track,
-                        onMouseOut: bedMouseOut,
-                        onMouseOver: bedMouseOver,
-                        onClick: bedClick,
-                        tooltipContent: (item: Rect) => CCRETooltip({ biosample, assembly: coordinates.assembly, name: item.name })
-                    }
-                })
+        const bigbeds = state.tracks.filter(track => track.trackType === TrackType.BIGBED)
+        bigbeds.forEach(track => {
+            dispatch({
+                type: BrowserActionType.UPDATE_TRACK, id: track.id, track: {
+                    ...track,
+                    onMouseOut: bedMouseOut,
+                    onMouseOver: bedMouseOver,
+                    onClick: bedClick,
+                    tooltipContent: (item: Rect) => CCRETooltip({ biosample, assembly: coordinates.assembly, name: item.name })
+                }
             })
-            const transcripts = state.tracks.filter(track => track.trackType === TrackType.TRANSCRIPT)
-            transcripts.forEach(track => {
-                dispatch({
-                    type: BrowserActionType.UPDATE_PROPS, id: track.id,
-                    props: {
-                        geneName: gene
-                    }
-                })
+        })
+        const transcripts = state.tracks.filter(track => track.trackType === TrackType.TRANSCRIPT)
+        transcripts.forEach(track => {
+            dispatch({
+                type: BrowserActionType.UPDATE_PROPS, id: track.id,
+                props: {
+                    geneName: gene
+                }
             })
-            initialLoad.current = false
-        }
-    }, [])
+        })
+    }, [cCREClick])
 
     const [loadBiosample, { loading: bloading, data: bdata }] = useLazyQuery(BIOSAMPLE_QUERY, {
         fetchPolicy: "cache-and-network",
