@@ -811,7 +811,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       let searchType = 'region'
       if (mainQueryParams.gene.name) searchType = 'gene'
       if (mainQueryParams.snp.rsID) searchType = 'snp'
-      if (mainQueryParams.searchConfig) searchType = 'bed intersect'
+      if (mainQueryParams.searchConfig.bed_intersect) searchType = 'bed intersect'
       track('Search', {type: searchType, searchConfig: JSON.stringify(mainQueryParams), referrer: document.referrer})
       parsedSearchSent.current = true
     }
