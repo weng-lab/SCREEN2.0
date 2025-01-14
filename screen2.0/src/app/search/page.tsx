@@ -812,7 +812,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       if (mainQueryParams.gene.name) searchType = 'gene'
       if (mainQueryParams.snp.rsID) searchType = 'snp'
       if (mainQueryParams.searchConfig.bed_intersect) searchType = 'bed intersect'
-      track('Search', {type: searchType, searchConfig: JSON.stringify(mainQueryParams), referrer: document.referrer})
+      track('Search', {type: searchType, assembly: mainQueryParams.coordinates.assembly, searchConfig: JSON.stringify(mainQueryParams), referrer: document.referrer})
       parsedSearchSent.current = true
     }
   }, [haveCoordinates, mainQueryParams])
