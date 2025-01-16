@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { FilterProps, Panel } from '../types';
+import { FilterProps, Panel } from './types';
 import { Box, Drawer, IconButton, Stack, Typography } from '@mui/material';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import FilterListIcon from '@mui/icons-material/FilterList';
-import SequenceFilters from './sequenceFilters';
-import ElementFilters from './elementFilters';
-import GeneFilters from './geneFilters';
+import SequenceFilters from './sequence/sequenceFilters';
+import ElementFilters from './elements/elementFilters';
+import GeneFilters from './genes/geneFilters';
 
 const Filters: React.FC<FilterProps> = ({
     sequenceFilterVariables,
