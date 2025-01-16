@@ -15,7 +15,7 @@ export default function Home() {
       <Grid container spacing={3} sx={{ mr: "auto", ml: "auto", mt: 5, maxWidth: '95%' }}>
         <Grid size={{ xs: 12, lg: 6 }}>
           <Box position={"relative"} height={{ xs: 150, md: 150 }}>
-            <Image priority src={"SCREEN_logo_light_large.png"} alt={"SCREEN home image"} fill style={{objectFit: "contain", objectPosition: "left center"}} />
+            <Image priority src={"/SCREEN_logo_light_large.png"} alt={"SCREEN home image"} fill style={{objectFit: "contain", objectPosition: "left center"}} />
           </Box>
           <Typography variant="h5" mb={3} mt={2}>Search Candidate cis-Regulatory Elements by ENCODE</Typography>
           <MainSearch />
@@ -68,7 +68,7 @@ export default function Home() {
           </Grid>
         </Grid>
         <Grid size={{ xs: 12, lg: 6 }} position={"relative"} minHeight={400}>
-          <Image priority src={"SCREEN-Landing.png"} alt={"SCREEN home image"} fill style={{objectFit: "contain", objectPosition: "left"}} />
+          <Image priority src={"/SCREEN-Landing.png"} alt={"SCREEN home image"} fill style={{objectFit: "contain", objectPosition: "left"}} />
         </Grid>
       </Grid>
     </main>

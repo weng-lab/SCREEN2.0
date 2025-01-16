@@ -35,8 +35,10 @@ const VerticalBarPlot = <T,>({
   onBarClicked,
   TooltipContents
 }: BarPlotProps<T>) => {
-  const [spaceForLabel, setSpaceForLabel] = useState(200) //this needs to be initialized with zero. Will break useEffect if changed
+  const [spaceForLabel, setSpaceForLabel] = useState(200)
   const [labelSpaceDecided, setLabelSpaceDecided] = useState(false)
+  // Unique ID needed to not mix up getElementByID calls if multiple charts are in DOM
+  const [uniqueID] = useState(topAxisLabel + String(Math.random()))
   const { tooltipOpen, tooltipLeft, tooltipTop, tooltipData, hideTooltip, showTooltip } = useTooltip<BarData<T>>({});
   const requestRef = useRef<number | null>(null);
   const tooltipDataRef = useRef<{ top: number; left: number; data: BarData<T> } | null>(null);
@@ -47,6 +49,8 @@ const VerticalBarPlot = <T,>({
    */
   const Portal = VisxPortal as unknown as React.FC<PortalProps>;
   const TooltipWithBounds = VisxTooltipWithBounds as unknown as React.FC<TooltipWithBoundsProps>;
+
+  const outerSvgRef = useRef<SVGSVGElement>(null)
 
   const handleMouseMove = useCallback((event: React.MouseEvent, barData: BarData<T>) => {
     tooltipDataRef.current = {
@@ -91,19 +95,21 @@ const VerticalBarPlot = <T,>({
       range: [0, Math.max(width - spaceForCategory - spaceForLabel, 0)],
     }), [data, spaceForLabel, width])
 
+  
+    //use prop ref or fallback if ref not passed
+  const containerWidth = SVGref ? SVGref.current?.clientWidth : outerSvgRef.current?.clientWidth
+
   //This feels really dumb but I couldn't figure out a better way to have the labels not overflow sometimes - JF 11/8/24
   //Whenever xScale is adjusted, it checks to see if any of the labels overflow the container, and if so
   //it sets the spaceForLabel to be the amount overflowed.
   useEffect(() => {
-    const containerWidth = document.getElementById('outerSVG')?.clientWidth
     if (!containerWidth) { return }
 
     let maxOverflow = 0
     let minUnderflow: number = null
-    // let maxOverflowingPoint: [BarData<T>, { textWidth: number, barWidth: number, totalWidth: number, overflow: number }]
 
     data.forEach((d, i) => {
-      const textElement = document.getElementById(`label-${i}`) as unknown as SVGSVGElement;
+      const textElement = document.getElementById(`label-${i}-${uniqueID}`) as unknown as SVGSVGElement;
 
       if (textElement) {
         const textWidth = textElement.getBBox().width;
@@ -137,14 +143,25 @@ const VerticalBarPlot = <T,>({
       setLabelSpaceDecided(true)
     }
 
-  }, [data, xScale]);
+  }, [data, xScale, spaceForLabel, labelSpaceDecided, SVGref, containerWidth, topAxisLabel, uniqueID]);
 
   return (
     <div ref={parentRef} style={{position: "relative"}}>
       {data.length === 0 ?
         <p>No Data To Display</p>
         :
-        <svg ref={SVGref} width={width} height={totalHeight} opacity={(labelSpaceDecided && ParentWidth > 0) ? 1 : 0.3}  id={'outerSVG'}>
+        <svg
+          //define fallback ref if not passed through props
+          ref={(node) => {
+            if (SVGref) {
+              SVGref.current = node;
+            }
+            outerSvgRef.current = node;
+          }}
+          width={width}
+          height={totalHeight}
+          opacity={(labelSpaceDecided && ParentWidth > 0) ? 1 : 0.3}
+        >
           <Group left={spaceForCategory} top={spaceForTopAxis} >
             {/* Top Axis with Label */}
             <AxisTop scale={xScale} top={0} label={topAxisLabel} labelProps={{ dy: -5, fontSize: 16, fontFamily: fontFamily }} numTicks={width < 600 ? 4 : undefined} />
@@ -185,7 +202,7 @@ const VerticalBarPlot = <T,>({
                     />
                     {/* Value label next to the bar */}
                     <Text
-                      id={`label-${i}`}
+                      id={`label-${i}-${uniqueID}`}
                       x={barX + barWidth + gapBetweenTextAndBar}  // Position label slightly after the end of the bar
                       y={(barY ?? 0) + barHeight / 2}
                       dy=".35em"  // Vertically align to the middle of the bar

@@ -601,7 +601,7 @@ export function DataMatrices() {
           <BiosampleTables
             assembly={selectedAssay?.assembly === "Human" ? "GRCh38" : "mm10"}
             fetchBiosamplesWith={[selectedAssay.assay.toLowerCase() as ("dnase" | "h3k4me3" | "h3k27ac" | "ctcf")]}
-            onBiosampleClicked={handleSetSelectedSample}
+            onChange={handleSetSelectedSample}
             slotProps={{
               paperStack: { overflow: 'hidden', flexGrow: 1 }
             }}
