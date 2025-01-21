@@ -1,82 +1,79 @@
-import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
+import { DataTable } from "@weng-lab/psychscreen-ui-components"
+import React from "react"
+import { client } from "./client"
+import { useQuery } from "@apollo/client"
+import { Link } from "@mui/material"
+import { gql } from "../../../graphql/__generated__/gql"
 
-type Row = {
-    chromosome: string;
-    start: number;
-    stop: number;
-    biosample: string;
-    experiment_accession: string;
-    sequencing_platform: string;
-    number_of_support_reads: number;
-    reads_per_million: number;
-};
-
-const TranscriptionColumns: DataTableColumn<Row>[] = [
-    {
-        header: "Chromosome",
-        value: (row) => row.chromosome,
-    },
-    {
-        header: "Start",
-        value: (row) => row.start,
-    },
-    {
-        header: "End",
-        value: (row) => row.stop,
-    },
-    {
-        header: "Biosample",
-        value: (row) => row.biosample,
-    },
-    {
-        header: "Accession",
-        value: (row) => row.experiment_accession,
-    },
-    {
-        header: "Sequencing platform",
-        value: (row) => row.sequencing_platform,
-    },
-    {
-        header: "Number of support reads",
-        value: (row) => row.number_of_support_reads,
-    },
-    {
-        header: "Reads per million",
-        value: (row) => row.reads_per_million,
+const TRANSCRIPTION_QUERY = gql(`
+    query fetchccreTrannscription($assembly: String!, $chromosome: String!, $stop: Int!, $start: Int!){
+        ccreTranscriptionQuery(assembly: $assembly, chromosome: $chromosome, stop: $stop, start: $start){
+            chromosome
+            start
+            stop
+            biosample
+            experiment_accession
+            sequencing_platform
+            number_of_support_reads
+            reads_per_million
+        }
     }
-];
+`)
 
-const DummyData: Row[] = [
-    {
-        chromosome: "chr1", 
-        start: 1000,
-        stop: 2000,
-        biosample: "brain",
-        experiment_accession: "EH38E3018689",
-        sequencing_platform: "Illumina",
-        number_of_support_reads: 12,
-        reads_per_million: 10
-    },
-    {
-        chromosome: "chr1", 
-        start: 2000,
-        stop: 4000,
-        biosample: "liver",
-        experiment_accession: "EH38E3018691",
-        sequencing_platform: "Illumina",
-        number_of_support_reads: 12,
-        reads_per_million: 10
-    }
-];
-
-export const TranscriptionAtcCREs = (props: { coordinates }) => {
+export const TranscriptionData = (props: { assembly: string, coordinates: {chromosome: string, start: number, end: number} }) => {
+    const { data, loading, error } = useQuery(TRANSCRIPTION_QUERY, {
+        variables: { assembly: props.assembly,
+                     chromosome: props.coordinates.chromosome, 
+                     start: props.coordinates.start, 
+                     stop: props.coordinates.end },
+        fetchPolicy: "cache-and-network",
+        nextFetchPolicy: "cache-first",
+        client,
+    });
+    if (loading) return 'Loading...';
+    if (error) return 'Error';
+    const tableTitle = props.assembly == "GRCh38" ? `Transcription start sites on Human cCREs` : `Transcription start sites on Mouse cCREs`;
     return <>
-            <DataTable
-                tableTitle={'Transcription start sites on cCREs'}
-                rows={DummyData}
-                columns={TranscriptionColumns}
-                itemsPerPage={5}
-                searchable={true}
-            />  
+        <DataTable
+            tableTitle={tableTitle}
+            columns={[
+                {
+                    header: "Chromosome",
+                    value: (row) => row.chromosome,
+                },
+                {
+                    header: "Start",
+                    value: (row) => row.start,
+                },
+                {
+                    header: "End",
+                    value: (row) => row.stop,
+                },
+                {
+                    header: "Biosample",
+                    value: (row) => row.biosample,
+                },
+                {
+                    header: "Accession",
+                    value: (row) => row.experiment_accession,
+                    render: (row) => <Link href={`https://www.encodeproject.org/experiments/${row.experiment_accession}`}> {row.experiment_accession} </Link>
+                },
+                {
+                    header: "Sequencing platform",
+                    value: (row) => row.sequencing_platform,
+                },
+                {
+                    header: "Number of support reads",
+                    value: (row) => row.number_of_support_reads,
+                },
+                {
+                    header: "Reads per million",
+                    value: (row) => row.reads_per_million,
+                }
+            ]}
+            rows={data?.ccreTranscriptionQuery || []}
+            itemsPerPage={5}
+            searchable={true}
+        />
     </>
 }
