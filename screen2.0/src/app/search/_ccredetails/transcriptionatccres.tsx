@@ -17,7 +17,7 @@ export const TranscriptionData = (props: { assembly: string, coordinates: {chrom
     });
     if (loading) return 'Loading...';
     if (error) return 'Error';
-    const tableTitle = props.assembly == "GRCh38" ? `Transcription start sites on Human cCREs` : `Transcription start sites on Mouse cCREs`;
+    const tableTitle = props.assembly == "GRCh38" ? `Transcription Start Sites on Human cCREs` : `Transcription Start Sites on Mouse cCREs`;
     return <>
         <DataTable
             tableTitle={tableTitle}
