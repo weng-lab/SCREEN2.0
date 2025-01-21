@@ -128,7 +128,7 @@ query rdhs($rDHS: [String!],$assembly: String!) {
 }
 `)
 
-export const FUNCTIONAL_DATA_QUERY= gql(`
+export const FUNCTIONAL_DATA_QUERY = gql(`
 query functionalCharacterizationQuery($coordinates: [GenomicRangeInput!],$assembly: String!) {
   functionalCharacterizationQuery(assembly: $assembly, coordinates: $coordinates) {
     tissues
@@ -355,8 +355,8 @@ export const GENE_QUERY = gql(`
     }
   } 
     `
-  )
-   
+)
+
 export const TSS_RAMPAGE_QUERY = gql(`
   query tssRampage($gene: String!) {
   tssrampageQuery(genename: $gene) {
@@ -380,3 +380,16 @@ export const TSS_RAMPAGE_QUERY = gql(`
   }
 }`
 )
+export const ProCapPeaks_QUERY = gql(`
+  query fetchprocappeaks($chromosome: String!, $stop: Int!, $start: Int!){
+   proCapPeaksQuery(chromosome: $chromosome, stop: $stop, start: $start) {
+     chromosome
+     start
+     stop
+     stringency
+     celltype
+     file_accession
+     experiment_accession
+   }
+ }
+`)

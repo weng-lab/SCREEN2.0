@@ -1,14 +1,17 @@
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
+import { useQuery } from "@apollo/client"
+import { Link, Typography } from "@mui/material";
+import { ProCapPeaks_QUERY } from "./queries";
 
-type Row = {
-    id: number;
+   type Row = { 
     chromosome: string;
     start: number;
     stop: number;
-    cellType: string;
-    stringency: string;
-    experimentAccession: string;
-  };
+    stringency?: string | null;
+    celltype?: string | null;
+    file_accession?: string | null;
+    experiment_accession?: string | null;
+}
   
   const ProCapPeaksColumns: DataTableColumn<Row>[] = [
     {
@@ -25,7 +28,9 @@ type Row = {
     },
     {
       header: 'Cell Type',
-      value: (row) => row.cellType,
+      value: (row) => row.celltype.replaceAll('_', ' '),
+      render: (row) => <Typography variant="body2" minWidth={'200px'} maxWidth={'400px'}>{row.celltype.replaceAll('_', ' ')}</Typography>
+    
     },
     {
       header: 'Stringency',
@@ -33,20 +38,28 @@ type Row = {
     },
     {
         header: 'Experiment Accession',
-        value: (row) => row.experimentAccession,
+        value: (row) => row.experiment_accession,
+        render: (row) => <Link href={`https://www.encodeproject.org/experiments/${row.experiment_accession}/`}> {row.experiment_accession} </Link>
     },
   ];
   
 
-const ProCapPeaksMockData: Row[] = [
-    { id: 1, chromosome: 'chr1', start: 100, stop: 200, cellType: 'N/A', stringency: 'N/A', experimentAccession: 'ENCFF560ALK' },
-    { id: 2, chromosome: 'chr2', start: 300, stop: 400, cellType: 'N/A', stringency: 'N/A', experimentAccession: 'ENCSR273ORE' },
-  ];
+export const TranscriptionAtcCREs = (props: { assembly: string, coordinates: { chromosome: string; start: number; end: number; } }) => {
 
-export const TranscriptionAtcCREs = (props: { coordinates }) => {
+    const { data, loading, error} = useQuery(ProCapPeaks_QUERY, {
+        variables: { chromosome: props.coordinates.chromosome, start: props.coordinates.start, stop: props.coordinates.end},
+        fetchPolicy: "cache-and-network",
+        nextFetchPolicy: "cache-first"
+    })
+
+
+    if (loading) return 'Loading...';
+    if (error) return `Error! ${error.message}`;
+
+
 return <>
   <DataTable
-      rows={ProCapPeaksMockData}
+      rows={data?.proCapPeaksQuery || []}
       columns={ProCapPeaksColumns}
       tableTitle="Pro Cap Peaks Data"
       itemsPerPage={5}
