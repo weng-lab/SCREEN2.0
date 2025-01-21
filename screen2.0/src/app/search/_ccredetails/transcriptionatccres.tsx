@@ -23,13 +23,13 @@ import { ProCapPeaks_QUERY } from "./queries";
       value: (row) => row.start.toLocaleString(),
     },
     {
-      header: 'Stop',
+      header: 'End',
       value: (row) => row.stop.toLocaleString(),
     },
     {
       header: 'Cell Type',
-      value: (row) => row.celltype.replaceAll('_', ' '),
-      render: (row) => <Typography variant="body2" minWidth={'200px'} maxWidth={'400px'}>{row.celltype.replaceAll('_', ' ')}</Typography>
+      value: (row) => row.celltype.replaceAll('_', ' ').replaceAll('Homo sapiens', ' '),
+      render: (row) => <Typography variant="body2" minWidth={'200px'} maxWidth={'400px'}>{ row.celltype.replaceAll('_', ' ').replaceAll('Homo sapiens', ' ')}</Typography>
     
     },
     {
@@ -61,7 +61,7 @@ return <>
   <DataTable
       rows={data?.proCapPeaksQuery || []}
       columns={ProCapPeaksColumns}
-      tableTitle="Pro Cap Peaks Data"
+      tableTitle="Pro Cap Peaks"
       itemsPerPage={5}
       searchable={true}
     />
