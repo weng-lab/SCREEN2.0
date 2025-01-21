@@ -3,22 +3,7 @@ import React from "react"
 import { client } from "./client"
 import { useQuery } from "@apollo/client"
 import { Link } from "@mui/material"
-import { gql } from "../../../graphql/__generated__/gql"
-
-const TRANSCRIPTION_QUERY = gql(`
-    query fetchccreTrannscription($assembly: String!, $chromosome: String!, $stop: Int!, $start: Int!){
-        ccreTranscriptionQuery(assembly: $assembly, chromosome: $chromosome, stop: $stop, start: $start){
-            chromosome
-            start
-            stop
-            biosample
-            experiment_accession
-            sequencing_platform
-            number_of_support_reads
-            reads_per_million
-        }
-    }
-`)
+import {TRANSCRIPTION_QUERY} from "./queries"
 
 export const TranscriptionData = (props: { assembly: string, coordinates: {chromosome: string, start: number, end: number} }) => {
     const { data, loading, error } = useQuery(TRANSCRIPTION_QUERY, {

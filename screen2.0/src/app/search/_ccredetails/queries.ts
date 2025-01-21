@@ -380,3 +380,18 @@ export const TSS_RAMPAGE_QUERY = gql(`
   }
 }`
 )
+
+export const TRANSCRIPTION_QUERY = gql(`
+    query fetchccreTrannscription($assembly: String!, $chromosome: String!, $stop: Int!, $start: Int!){
+        ccreTranscriptionQuery(assembly: $assembly, chromosome: $chromosome, stop: $stop, start: $start){
+            chromosome
+            start
+            stop
+            biosample
+            experiment_accession
+            sequencing_platform
+            number_of_support_reads
+            reads_per_million
+        }
+    }
+`)
