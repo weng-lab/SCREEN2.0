@@ -141,7 +141,7 @@ function ResponsiveAppBar() {
               <Box component={Link} href={'/'} height={45} width={87} position={"relative"}>
                 <Image
                   priority
-                  src={"SCREEN_logo_dark_small.png"}
+                  src={"/SCREEN_logo_dark_small.png"}
                   alt="SCREEN Icon"
                   fill
                   style={{ objectFit: "contain", objectPosition: 'left center' }}

@@ -27,13 +27,15 @@ function hasRNASeq<HasRNASeq extends boolean>(
  * @param biosamples 
  * @param checkboxes 
  * @returns biosamples filtered by state of checkboxes
+ * @todo this should have early returns within the filter if one of the checks fails
  */
 export const filterBiosamples = <HasRNASeq extends boolean>(
   biosamples: { [key: string]: BiosampleData<HasRNASeq>[] },
   sampleTypeFilter: SampleTypeCheckboxes,
   collectionFilter: CollectionCheckboxes,
   lifeStageFiler: LifeStageCheckboxes,
-  mustHaveRnaSeq: boolean
+  mustHaveRnaSeq: boolean,
+  globalSearch: string,
 ) => {
   const filteredBiosamples: { [key: string]: BiosampleData<HasRNASeq>[] } = {}
 
@@ -77,7 +79,12 @@ export const filterBiosamples = <HasRNASeq extends boolean>(
       }
 
       const passesRNAseq = hasRNASeq(biosample, mustHaveRnaSeq);
-      return (passesType && passesLifestage && passesCollection && passesRNAseq)
+
+      //typeof check needed since rnaseq is a boolean
+      const passesGlobalSearch = globalSearch ? Object.values(biosample).some(val => typeof val === "string" && val?.toLowerCase().includes(globalSearch.toLowerCase()))
+        : true
+
+      return (passesType && passesLifestage && passesCollection && passesRNAseq && passesGlobalSearch)
     })
   }
   return filteredBiosamples

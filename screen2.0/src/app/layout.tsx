@@ -5,6 +5,7 @@ import ResponsiveAppBar from "./header"
 import { Footer } from "./footer"
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter'
 import { CssBaseline, ThemeProvider } from "@mui/material"
+import { Analytics } from "@vercel/analytics/react"
 import theme from "../theme"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </ThemeProvider>
           </AppRouterCacheProvider>
         </ApolloWrapper>
+        <Analytics />
       </body>
     </html>
   )
