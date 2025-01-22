@@ -90,7 +90,7 @@ export const TranscriptionAtcCREs = (props: { assembly: string, coordinates: { c
                     },
                     {
                         header: "Biosample",
-                        value: (row) => row.biosample,
+                        value: (row) => row.biosample.replaceAll('Homo sapiens', ' '),
                     },
                     {
                         header: "Accession",
