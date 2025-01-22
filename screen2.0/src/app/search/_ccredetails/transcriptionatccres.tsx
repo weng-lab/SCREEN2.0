@@ -1,9 +1,9 @@
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { useQuery } from "@apollo/client"
 import { Link, Typography } from "@mui/material";
-import { ProCapPeaks_QUERY } from "./queries";
+import { ProCapPeaks_QUERY, TRANSCRIPTION_QUERY } from "./queries";
 
-   type Row = { 
+type Row = { 
     chromosome: string;
     start: number;
     stop: number;
@@ -13,7 +13,7 @@ import { ProCapPeaks_QUERY } from "./queries";
     experiment_accession?: string | null;
 }
   
-  const ProCapPeaksColumns: DataTableColumn<Row>[] = [
+const ProCapPeaksColumns: DataTableColumn<Row>[] = [
     {
       header: 'Chromosome',
       value: (row) => row.chromosome,
@@ -41,30 +41,78 @@ import { ProCapPeaks_QUERY } from "./queries";
         value: (row) => row.experiment_accession,
         render: (row) => <Link href={`https://www.encodeproject.org/experiments/${row.experiment_accession}/`}> {row.experiment_accession} </Link>
     },
-  ];
+];
   
 
 export const TranscriptionAtcCREs = (props: { assembly: string, coordinates: { chromosome: string; start: number; end: number; } }) => {
 
-    const { data, loading, error} = useQuery(ProCapPeaks_QUERY, {
+    const { data: proCapData, loading, error} = useQuery(ProCapPeaks_QUERY, {
         variables: { chromosome: props.coordinates.chromosome, start: props.coordinates.start, stop: props.coordinates.end},
         fetchPolicy: "cache-and-network",
         nextFetchPolicy: "cache-first"
     })
+  
+    const { data: transcriptionData, loading: loadingTR, error: errorTR } = useQuery(TRANSCRIPTION_QUERY, {
+        variables: { assembly: props.assembly,
+                     chromosome: props.coordinates.chromosome, 
+                     start: props.coordinates.start, 
+                     stop: props.coordinates.end },
+        fetchPolicy: "cache-and-network",
+        nextFetchPolicy: "cache-first",
+    })
+    if (loading || loadingTR) return 'Loading...';
+    if (error || errorTR) return `Error! ${error.message}`;
+    const tableTitle = props.assembly == "GRCh38" ? `Transcription Start Sites on Human cCREs` : `Transcription Start Sites on Mouse cCREs`;
 
-
-    if (loading) return 'Loading...';
-    if (error) return `Error! ${error.message}`;
-
-
-return <>
-  <DataTable
-      rows={data?.proCapPeaksQuery || []}
-      columns={ProCapPeaksColumns}
-      tableTitle="Pro Cap Peaks"
-      itemsPerPage={5}
-      searchable={true}
-    />
-
-</>
+    return <>
+        <DataTable
+            rows={proCapData?.proCapPeaksQuery || []}
+            columns={ProCapPeaksColumns}
+            tableTitle="Pro Cap Peaks"
+            itemsPerPage={5}
+            searchable={true}
+        />
+        <br></br>
+        <DataTable
+            tableTitle={tableTitle}
+            columns={[
+                    {
+                        header: "Chromosome",
+                        value: (row) => row.chromosome,
+                    },
+                    {
+                        header: "Start",
+                        value: (row) => row.start,
+                    },
+                    {
+                        header: "End",
+                        value: (row) => row.stop,
+                    },
+                    {
+                        header: "Biosample",
+                        value: (row) => row.biosample,
+                    },
+                    {
+                        header: "Accession",
+                        value: (row) => row.experiment_accession,
+                        render: (row) => <Link href={`https://www.encodeproject.org/experiments/${row.experiment_accession}`}> {row.experiment_accession} </Link>
+                    },
+                    {
+                        header: "Sequencing platform",
+                        value: (row) => row.sequencing_platform,
+                    },
+                    {
+                        header: "Number of support reads",
+                        value: (row) => row.number_of_support_reads,
+                    },
+                    {
+                        header: "Reads per million",
+                        value: (row) => row.reads_per_million,
+                    }
+                ]}
+            rows={transcriptionData?.ccreTranscriptionQuery || []}
+            itemsPerPage={5}
+            searchable={true}
+        />
+    </>
 }
