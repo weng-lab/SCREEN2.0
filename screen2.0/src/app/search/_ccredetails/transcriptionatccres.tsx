@@ -3,7 +3,7 @@ import { useQuery } from "@apollo/client"
 import { Link, Typography } from "@mui/material";
 import { ProCapPeaks_QUERY, TRANSCRIPTION_QUERY } from "./queries";
 
-   type Row = { 
+type Row = { 
     chromosome: string;
     start: number;
     stop: number;
@@ -13,7 +13,7 @@ import { ProCapPeaks_QUERY, TRANSCRIPTION_QUERY } from "./queries";
     experiment_accession?: string | null;
 }
   
-  const ProCapPeaksColumns: DataTableColumn<Row>[] = [
+const ProCapPeaksColumns: DataTableColumn<Row>[] = [
     {
       header: 'Chromosome',
       value: (row) => row.chromosome,
@@ -41,7 +41,7 @@ import { ProCapPeaks_QUERY, TRANSCRIPTION_QUERY } from "./queries";
         value: (row) => row.experiment_accession,
         render: (row) => <Link href={`https://www.encodeproject.org/experiments/${row.experiment_accession}/`}> {row.experiment_accession} </Link>
     },
-  ];
+];
   
 
 export const TranscriptionAtcCREs = (props: { assembly: string, coordinates: { chromosome: string; start: number; end: number; } }) => {
@@ -66,16 +66,16 @@ export const TranscriptionAtcCREs = (props: { assembly: string, coordinates: { c
 
     return <>
         <DataTable
-              rows={proCapData?.proCapPeaksQuery || []}
-              columns={ProCapPeaksColumns}
-              tableTitle="Pro Cap Peaks"
-              itemsPerPage={5}
-              searchable={true}
-          />
-          <br></br>
+            rows={proCapData?.proCapPeaksQuery || []}
+            columns={ProCapPeaksColumns}
+            tableTitle="Pro Cap Peaks"
+            itemsPerPage={5}
+            searchable={true}
+        />
+        <br></br>
         <DataTable
-                tableTitle={tableTitle}
-                columns={[
+            tableTitle={tableTitle}
+            columns={[
                     {
                         header: "Chromosome",
                         value: (row) => row.chromosome,
@@ -110,10 +110,9 @@ export const TranscriptionAtcCREs = (props: { assembly: string, coordinates: { c
                         value: (row) => row.reads_per_million,
                     }
                 ]}
-                rows={transcriptionData?.ccreTranscriptionQuery || []}
-                itemsPerPage={5}
-                searchable={true}
-            />
-
+            rows={transcriptionData?.ccreTranscriptionQuery || []}
+            itemsPerPage={5}
+            searchable={true}
+        />
     </>
 }
