@@ -46,23 +46,22 @@ import { ProCapPeaks_QUERY, TRANSCRIPTION_QUERY } from "./queries";
 
 export const TranscriptionAtcCREs = (props: { assembly: string, coordinates: { chromosome: string; start: number; end: number; } }) => {
 
-    const { proCapData, loadingPR, errorPR} = useQuery(ProCapPeaks_QUERY, {
+    const { data: proCapData, loading, error} = useQuery(ProCapPeaks_QUERY, {
         variables: { chromosome: props.coordinates.chromosome, start: props.coordinates.start, stop: props.coordinates.end},
         fetchPolicy: "cache-and-network",
         nextFetchPolicy: "cache-first"
     })
-
   
-    const { transcriptionData, loadingTR, errorTR } = useQuery(TRANSCRIPTION_QUERY, {
+    const { data: transcriptionData, loading: loadingTR, error: errorTR } = useQuery(TRANSCRIPTION_QUERY, {
         variables: { assembly: props.assembly,
                      chromosome: props.coordinates.chromosome, 
                      start: props.coordinates.start, 
                      stop: props.coordinates.end },
         fetchPolicy: "cache-and-network",
         nextFetchPolicy: "cache-first",
-    });
-    if (loadingPR || loadingTR) return 'Loading...';
-    if (errorPR || errorTR) return `Error! ${errorPR.message}`;
+    })
+    if (loading || loadingTR) return 'Loading...';
+    if (error || errorTR) return `Error! ${error.message}`;
     const tableTitle = props.assembly == "GRCh38" ? `Transcription Start Sites on Human cCREs` : `Transcription Start Sites on Mouse cCREs`;
 
     return <>
@@ -73,6 +72,7 @@ export const TranscriptionAtcCREs = (props: { assembly: string, coordinates: { c
               itemsPerPage={5}
               searchable={true}
           />
+          <br></br>
         <DataTable
                 tableTitle={tableTitle}
                 columns={[

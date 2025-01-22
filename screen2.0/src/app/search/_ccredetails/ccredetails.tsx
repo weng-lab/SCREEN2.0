@@ -10,7 +10,7 @@ import { TfIntersection } from "./tfintersection"
 import { FunctionData } from "./functionaldata"
 import { ChromHMM } from "./chromhmm";
 import { ENTExData } from "./entexdata";
-import { TranscriptionData } from "./transcriptionatccres";
+import { TranscriptionAtcCREs } from "./transcriptionatccres";
 import Rampage from "./rampage"
 import { GeneExpression } from "../../applets/gene-expression/geneexpression"
 import { TfSequenceFeatures } from "../_gbview/tfsequencefeatures"
@@ -235,7 +235,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, ass
         <ENTExData accession={accession}  coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }}/>
       }
         {page === 11 &&
-        <TranscriptionData assembly = {assembly} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end } } />
+        <TranscriptionAtcCREs assembly = {assembly} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end } } />
       }
     </>
     :
