@@ -23,7 +23,7 @@ export function getDefaultTracks(coordinates: { assembly: "GRCh38" | "mm10", chr
         title: "GENCODE genes",
         height: 100,
         color: "#AAAAAA",
-        version: coordinates.assembly.toLowerCase() === "mm10" ? TranscriptMouseVersion.V36 : TranscriptHumanVersion.V47,
+        version: coordinates.assembly.toLowerCase() === "mm10" ? TranscriptMouseVersion.V25 : TranscriptHumanVersion.V40,
         assembly: coordinates.assembly,
         queryType: "gene",
     } as TranscriptTrackProps
