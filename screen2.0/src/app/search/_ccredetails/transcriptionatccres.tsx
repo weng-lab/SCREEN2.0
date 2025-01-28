@@ -1,7 +1,8 @@
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { useQuery } from "@apollo/client"
-import { Link, Typography } from "@mui/material";
+import { Typography } from "@mui/material";
 import { ProCapPeaks_QUERY, TRANSCRIPTION_QUERY } from "./queries";
+import { CreateLink } from "../../../common/lib/utility";
 
 type Row = { 
     chromosome: string;
@@ -13,6 +14,13 @@ type Row = {
     experiment_accession?: string | null;
 }
   
+function confidenceTooltip() {
+    return (
+      <div>
+        {"Confidence about the peak pair. Can be: \nStringent(qval), which means the two peaks on both forward and reverse strands are significant based on their q-values; \nStringent(pval), which means one peak is significant according to q-value while the other one is significant according to p-value; \nRelaxed, which means only one peak is significant in the pair.\nWorld"}
+      </div>
+    );
+}
 const ProCapPeaksColumns: DataTableColumn<Row>[] = [
     {
       header: 'Chromosome',
@@ -29,17 +37,24 @@ const ProCapPeaksColumns: DataTableColumn<Row>[] = [
     {
       header: 'Cell Type',
       value: (row) => row.celltype.replaceAll('_', ' ').replaceAll('Homo sapiens', ' '),
-      render: (row) => <Typography variant="body2" minWidth={'200px'} maxWidth={'400px'}>{ row.celltype.replaceAll('_', ' ').replaceAll('Homo sapiens', ' ')}</Typography>
+      render: (row) => <Typography variant="body2" minWidth={'200px'} maxWidth={'400px'}>{ row.celltype.replaceAll('_', ' ').replaceAll('Homo sapiens', ' ').replace(/\w+[.!?]?$/, '')}</Typography>
     
     },
     {
-      header: 'Stringency',
+      header: 'Confidence',
       value: (row) => row.stringency,
+      tooltip:  <> Confidence about the peak pair. Can be: <br />
+      - Stringent(qval), which means the two peaks on both forward and reverse strands are significant based on their q-values;<br /> 
+      - Stringent(pval), which means one peak is significant according to q-value while the other one is significant according to p-value; <br />
+      - Relaxed, which means only one peak is significant in the pair. <br />
+      <CreateLink linkPrefix="https://github.com/hyulab/PINTS" label="https://github.com/hyulab/PINTS"></CreateLink>
+      </>,
+      
     },
     {
         header: 'Experiment Accession',
         value: (row) => row.experiment_accession,
-        render: (row) => <Link href={`https://www.encodeproject.org/experiments/${row.experiment_accession}/`}> {row.experiment_accession} </Link>
+        render: (row) => <CreateLink linkPrefix="https://www.encodeproject.org/experiments/" linkArg={row.experiment_accession} label={row.experiment_accession} showExternalIcon underline="hover" />
     },
 ];
   
@@ -82,20 +97,20 @@ export const TranscriptionAtcCREs = (props: { assembly: string, coordinates: { c
                     },
                     {
                         header: "Start",
-                        value: (row) => row.start,
+                        value:  (row) => row.start.toString().replaceAll(/\B(?=(\d{3})+(?!\d))/g, ","),
                     },
                     {
                         header: "End",
-                        value: (row) => row.stop,
+                        value: (row) => row.stop.toString().replaceAll(/\B(?=(\d{3})+(?!\d))/g, ","),
                     },
                     {
                         header: "Biosample",
-                        value: (row) => row.biosample,
+                        value: (row) => row.biosample.replaceAll('Homo sapiens', ' '),
                     },
                     {
                         header: "Accession",
                         value: (row) => row.experiment_accession,
-                        render: (row) => <Link href={`https://www.encodeproject.org/experiments/${row.experiment_accession}`}> {row.experiment_accession} </Link>
+                        render: (row) => <CreateLink linkPrefix="https://www.encodeproject.org/experiments/${row.experiment_accession}/" linkArg={row.experiment_accession} label={row.experiment_accession} showExternalIcon underline="hover" />
                     },
                     {
                         header: "Sequencing platform",
@@ -107,7 +122,7 @@ export const TranscriptionAtcCREs = (props: { assembly: string, coordinates: { c
                     },
                     {
                         header: "Reads per million",
-                        value: (row) => row.reads_per_million,
+                        value: (row) => row.reads_per_million.toFixed(2),
                     }
                 ]}
             rows={transcriptionData?.ccreTranscriptionQuery || []}
