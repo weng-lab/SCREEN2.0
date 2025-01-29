@@ -79,11 +79,11 @@ export type NearbyWithDistanceAndLinked = {
 }
 
 export type NearbyAndLinkedVariables = {
-  accessions: String[]
-  assembly: String
-  geneSearchStart: Number
-  geneSearchEnd: Number
-  geneSearchChrom: String
+  accessions: string[]
+  assembly: string
+  geneSearchStart: number
+  geneSearchEnd: number
+  geneSearchChrom: string
   geneVersion: 40 | 25
 }
 
@@ -137,9 +137,9 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, ass
           methodToPush = (gene as LinkedGeneInfo).assay ?? (gene as LinkedGeneInfo).method
         }
         const existingGeneEntry = uniqueGenes.find((uniqueGene) => uniqueGene.name === geneName)
-        if (existingGeneEntry) {
+        if (existingGeneEntry && !existingGeneEntry.linkedBy.some(method => method === methodToPush)) {
           //add linking method if duplicate doesn't exist
-          !existingGeneEntry.linkedBy.find(method => method === methodToPush) && existingGeneEntry.linkedBy.push(methodToPush)
+          existingGeneEntry.linkedBy.push(methodToPush)
         } else uniqueGenes.push({ name: geneName, linkedBy: [methodToPush] })
       }
     }

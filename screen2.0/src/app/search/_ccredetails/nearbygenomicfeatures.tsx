@@ -35,20 +35,20 @@ export const NearByGenomicFeatures: React.FC<{
     NEARBY_GENOMIC_FEATURES_QUERY,
     {
       variables:
-         {
-            a: "hg38",
-            b: assembly.toLowerCase(),
-            c: assembly.toLowerCase(),
-            coordinates: {
-              chromosome: coordinates.chromosome,
-              start: coordinates.start - 1000000,
-              end: coordinates.end + 1000000,
-            },
-            chromosome: coordinates.chromosome,
-            start: coordinates.start - 1000000,
-            end: coordinates.end + 1000000,
-            version: 40
-          },
+      {
+        a: "hg38",
+        b: assembly.toLowerCase(),
+        c: assembly.toLowerCase(),
+        coordinates: {
+          chromosome: coordinates.chromosome,
+          start: coordinates.start - 1000000,
+          end: coordinates.end + 1000000,
+        },
+        chromosome: coordinates.chromosome,
+        start: coordinates.start - 1000000,
+        end: coordinates.end + 1000000,
+        version: 40
+      },
       skip: assembly !== "GRCh38",
       fetchPolicy: "cache-and-network",
       nextFetchPolicy: "cache-first",
@@ -59,19 +59,19 @@ export const NearByGenomicFeatures: React.FC<{
   const { loading: loadingMouse, data: dataMouse } = useQuery(
     NEARBY_GENOMIC_FEATURES_NOSNPS_QUERY,
     {
-      variables:{
-            b: assembly.toLowerCase(),
-            c: assembly.toLowerCase(),
-            coordinates: {
-              chromosome: coordinates.chromosome,
-              start: coordinates.start - 1000000,
-              end: coordinates.end + 1000000,
-            },
-            chromosome: coordinates.chromosome,
-            start: coordinates.start - 1000000,
-            end: coordinates.end + 1000000,
-            version: 25
-          },
+      variables: {
+        b: assembly.toLowerCase(),
+        c: assembly.toLowerCase(),
+        coordinates: {
+          chromosome: coordinates.chromosome,
+          start: coordinates.start - 1000000,
+          end: coordinates.end + 1000000,
+        },
+        chromosome: coordinates.chromosome,
+        start: coordinates.start - 1000000,
+        end: coordinates.end + 1000000,
+        version: 25
+      },
       skip: assembly !== "mm10",
       fetchPolicy: "cache-and-network",
       nextFetchPolicy: "cache-first",
@@ -104,7 +104,8 @@ export const NearByGenomicFeatures: React.FC<{
         distance: calcDistRegionToRegion({start: c.coordinates.start, end: c.coordinates.end}, {start: coordinates.start, end: coordinates.end}),
         chromosome: c.coordinates.chromosome,
         start: c.coordinates.start,
-        end: c.coordinates.end
+        end: c.coordinates.end,
+        class: c.group
       }
     })
 
@@ -203,7 +204,7 @@ export const NearByGenomicFeatures: React.FC<{
                   },
                 ]}
                 onRowClick={(row) => {
-                  handleOpencCRE({...row, accession: row.name })
+                  handleOpencCRE(row)
                 }}
                 sortColumn={1}
                 tableTitle="Nearby cCREs"
