@@ -1,9 +1,9 @@
 import { IconButton, Modal, Paper, Typography } from '@mui/material';
 import { DataTable, DataTableColumn } from '@weng-lab/psychscreen-ui-components';
 import React, { useMemo, useState } from 'react';
-import { MotifQueryDataOccurrence, MotifQueryDataOccurrenceMotif, TomtomMatchQueryData } from './types';
+import { MotifQueryDataOccurrence, MotifQueryDataOccurrenceMotif, TomtomMatchQueryData } from '../types';
 import { DNALogo } from 'logots-react';
-import { TOMTOM_MATCH_QUERY } from './queries';
+import { TOMTOM_MATCH_QUERY } from '../queries';
 import { useQuery } from '@apollo/client';
 import CloseIcon from '@mui/icons-material/Close';
 

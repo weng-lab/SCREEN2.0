@@ -9,14 +9,17 @@ import { client } from "../../search/_ccredetails/client"
 import { RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, CCREs, InputRegions, SubTableTitleProps } from "./types"
 import { BED_INTERSECT_QUERY } from "../../_mainsearch/queries"
 import ExpandCircleDownIcon from '@mui/icons-material/ExpandCircleDown';
-import Filters from "./filters/filters"
+import Filters from "./filters"
 import { CancelRounded } from "@mui/icons-material"
 import ArgoUpload from "./argoUpload"
 import { BigRequest, OccurrencesQuery } from "../../../graphql/__generated__/graphql"
-import { batchRegions, calculateAggregateRanks, calculateConservationScores, filterOrthologGenes, generateElementRanks, generateGeneRanks, generateSequenceRanks, getNumOverlappingMotifs, getSpecificityScores, handleSameInputRegion, mapScores, mapScoresCTSpecific, matchRanks, parseLinkedGenes, pushClosestGenes } from "./helpers"
-import SequenceTable from "./tables/sequenceTable"
-import ElementTable from "./tables/elementTable"
-import GeneTable from "./tables/geneTable"
+import { calculateAggregateRanks, matchRanks } from "./helpers"
+import { batchRegions, calculateConservationScores, generateSequenceRanks, getNumOverlappingMotifs } from "./sequence/sequenceHelpers"
+import { generateElementRanks, handleSameInputRegion, mapScores, mapScoresCTSpecific } from "./elements/elementHelpers"
+import { filterOrthologGenes, generateGeneRanks, getSpecificityScores, parseLinkedGenes, pushClosestGenes } from "./genes/geneHelpers"
+import SequenceTable from "./sequence/sequenceTable"
+import ElementTable from "./elements/elementTable"
+import GeneTable from "./genes/geneTable"
 
 export default function Argo() {
 
@@ -446,7 +449,7 @@ export default function Argo() {
         
         return filteredClasses;
 
-    }, [allElementData, elementFilterVariables.cCREAssembly, elementFilterVariables.classes, elementFilterVariables.mustHaveOrtholog, orthoData]);
+    }, [allElementData, elementFilterVariables, orthoData]);
 
     // Generate element ranks
     const elementRanks = useMemo<RankedRegions>(() => {

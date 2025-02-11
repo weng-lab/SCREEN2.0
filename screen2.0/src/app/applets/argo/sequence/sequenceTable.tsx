@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { MotifQueryDataOccurrence, SequenceTableProps, SequenceTableRow } from "../types";
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components";
-import MotifsModal from "../motifModal";
+import MotifsModal from "./motifModal";
 
 const SequenceTable: React.FC<SequenceTableProps> = ({
     sequenceFilterVariables,
@@ -94,6 +94,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
     return (
         <>
             <DataTable
+                key={Math.random()}
                 columns={sequenceColumns}
                 rows={sequenceRows}
                 sortDescending

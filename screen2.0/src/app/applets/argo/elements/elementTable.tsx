@@ -36,6 +36,7 @@ const ElementTable: React.FC<ElementTableProps> = ({
     
     return (
         <DataTable
+            key={Math.random()}
             columns={elementColumns}
             rows={elementRows === null ? [] : elementRows}
             sortDescending
