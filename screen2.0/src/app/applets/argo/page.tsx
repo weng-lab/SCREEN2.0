@@ -158,9 +158,9 @@ export default function Argo() {
     ), [shownTables])
 
     //stylized title for the sequence,element, and gene data tables
-    const SubTableTitle: React.FC<SubTableTitleProps> = ({ title }) => (
+    const SubTableTitle: React.FC<SubTableTitleProps> = ({ title, table }) => (
         <Stack direction={"row"} alignItems={"center"} spacing={1}>
-            <IconButton onClick={() => toggleTable(title.toLowerCase())} color={"primary"}>
+            <IconButton onClick={() => toggleTable(table)} color={"primary"}>
                 <CancelRounded />
             </IconButton>
             <Typography

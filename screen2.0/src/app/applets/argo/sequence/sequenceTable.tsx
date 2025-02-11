@@ -100,7 +100,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                 sortDescending
                 itemsPerPage={10}
                 searchable
-                tableTitle={<SubTableTitle title="Sequence Details" />}
+                tableTitle={<SubTableTitle title="Sequence Details" table="sequence" />}
             />
             {modalData && (
                 <MotifsModal

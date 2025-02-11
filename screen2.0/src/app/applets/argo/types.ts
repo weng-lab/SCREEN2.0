@@ -166,6 +166,7 @@ export type UploadProps = {
 
 export type SubTableTitleProps = {
     title: string;
+    table: string;
 };
 
 export type AllLinkedGenes = {
