@@ -38,7 +38,7 @@ export default function Argo() {
     const [selectedSearch, setSelectedSearch] = useState<string>("TSV File")
     const [drawerOpen, setDrawerOpen] = useState(true);
     const toggleDrawer = () => setDrawerOpen(!drawerOpen);
-    const [shownTable, setShownTable] = useState<"sequence" | "elements" | "genes">(null);
+    const [shownTables, setShownTables] = useState<Set<"sequence" | "elements" | "genes">>(new Set());
 
     // Filter state variables
     const [sequenceFilterVariables, setSequenceFilterVariables] = useState<SequenceFilterState>({
@@ -124,31 +124,43 @@ export default function Argo() {
         }));
     };
 
+    const toggleTable = (table) => {
+        setShownTables((prev) => {
+            const newSet = new Set(prev);
+            if (newSet.has(table)) {
+                newSet.delete(table); // Close the table if it's already open
+            } else {
+                newSet.add(table); // Open the table if it's not open
+            }
+            return newSet;
+        });
+    };
+
     //stylized header for main rank table columns
     const MainColHeader = useCallback(({ tableName, onClick }) => (
         <div style={{ display: 'flex', alignItems: 'center' }}>
-            <span style={{ color: shownTable === tableName.toLowerCase() ? '#030f98' : 'inherit', fontWeight: shownTable === tableName.toLowerCase() ? 'bolder' : 'normal' }}>
+            <span style={{ color: shownTables.has(tableName.toLowerCase()) ? '#030f98' : 'inherit', fontWeight: shownTables.has(tableName.toLowerCase()) ? 'bolder' : 'normal' }}>
                 {tableName}
             </span>
             <IconButton
                 size="small"
                 onClick={onClick}
                 style={{
-                    transform: shownTable === tableName.toLowerCase() ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transform: shownTables.has(tableName.toLowerCase()) ? 'rotate(180deg)' : 'rotate(0deg)',
                 }}
             >
                 <ExpandCircleDownIcon
                     fontSize="inherit"
-                    color={shownTable === tableName.toLowerCase() ? "primary" : "inherit"}
+                    color={shownTables.has(tableName.toLowerCase()) ? "primary" : "inherit"}
                 />
             </IconButton>
         </div>
-    ), [shownTable])
+    ), [shownTables])
 
     //stylized title for the sequence,element, and gene data tables
     const SubTableTitle: React.FC<SubTableTitleProps> = ({ title }) => (
         <Stack direction={"row"} alignItems={"center"} spacing={1}>
-            <IconButton onClick={() => setShownTable(null)} color={"primary"}>
+            <IconButton onClick={() => toggleTable(title.toLowerCase())} color={"primary"}>
                 <CancelRounded />
             </IconButton>
             <Typography
@@ -174,7 +186,7 @@ export default function Argo() {
         if (search) {
             setSelectedSearch(search)
         }
-        setShownTable(null)
+        setShownTables(new Set());
         handleRegionsConfigured([])
     }
 
@@ -601,14 +613,14 @@ export default function Argo() {
         if (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs) {
             cols.push({
                 header: "Seqence",
-                HeaderRender: () => <MainColHeader tableName="Sequence" onClick={() => shownTable === "sequence" ? setShownTable(null) : setShownTable("sequence")} />,
+                HeaderRender: () => <MainColHeader tableName="Sequence" onClick={() => toggleTable("sequence")} />,
                 value: (row) => row.sequenceRank,
                 render: (row) => loadingSequenceRanks ? <CircularProgress size={10} /> : row.sequenceRank
             })
         }
         if (elementFilterVariables.usecCREs) {
             cols.push({
-                header: "Element", HeaderRender: () => <MainColHeader tableName="Elements" onClick={() => shownTable === "elements" ? setShownTable(null) : setShownTable("elements")} />, value: (row) => row.elementRank === 0 ? "N/A" : row.elementRank,
+                header: "Element", HeaderRender: () => <MainColHeader tableName="Elements" onClick={() => toggleTable("elements")} />, value: (row) => row.elementRank === 0 ? "N/A" : row.elementRank,
                 sort: (a, b) => {
                     const rankA = a.elementRank
                     const rankB = b.elementRank
@@ -622,7 +634,7 @@ export default function Argo() {
         }
         if (geneFilterVariables.useGenes) {
             cols.push({
-                header: "Gene", HeaderRender: () => <MainColHeader tableName="Genes" onClick={() => shownTable === "genes" ? setShownTable(null) : setShownTable("genes")} />,
+                header: "Gene", HeaderRender: () => <MainColHeader tableName="Genes" onClick={() => toggleTable("genes")} />,
                 value: (row) => row.geneRank,
                 sort: (a, b) => {
                     const rankA = a.geneRank
@@ -638,7 +650,7 @@ export default function Argo() {
 
         return cols
 
-    }, [MainColHeader, elementFilterVariables.usecCREs, geneFilterVariables.useGenes, loadingElementRanks, loadingGeneRanks, loadingMainRows, loadingSequenceRanks, loading_gene_specificity, loading_linked_genes, loading_ortho, loading_scores, sequenceFilterVariables.useConservation, sequenceFilterVariables.useMotifs, shownTable])
+    }, [MainColHeader, elementFilterVariables.usecCREs, geneFilterVariables.useGenes, loadingElementRanks, loadingGeneRanks, loadingMainRows, loadingSequenceRanks, loading_gene_specificity, loading_linked_genes, loading_ortho, loading_scores, sequenceFilterVariables.useConservation, sequenceFilterVariables.useMotifs])
 
     return (
         <Box display="flex" >
@@ -683,7 +695,7 @@ export default function Argo() {
                             }
                         </Box>
 
-                        {(shownTable === "sequence" && (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs)) && (
+                        {(shownTables.has("sequence") && (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs)) && (
                             <Box mt="20px">
                                 {error_conservation_scores && (
                                     <Alert variant="filled" severity="error">
@@ -700,7 +712,7 @@ export default function Argo() {
                             </Box>
                         )}
 
-                        {(shownTable === "elements" && elementFilterVariables.usecCREs) && (
+                        {(shownTables.has("elements") && elementFilterVariables.usecCREs) && (
                             <Box mt="20px">
                                 {error_scores && (
                                     <Alert variant="filled" severity="error">
@@ -717,7 +729,7 @@ export default function Argo() {
                             </Box>
                         )}
 
-                        {(shownTable === "genes" && geneFilterVariables.useGenes) && (
+                        {(shownTables.has("genes") && geneFilterVariables.useGenes) && (
                             <Box mt="20px">
                                 <GeneTable
                                     geneFilterVariables={geneFilterVariables}
