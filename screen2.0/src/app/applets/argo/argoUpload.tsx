@@ -96,7 +96,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
                             url: "https://downloads.wenglab.org/hg38.2bit",
                             regions: [{
                                 chr1: region.chr,
-                                start: region.start,
+                                start: region.start + 1, // Start is not included when gathering the allele positions
                                 end: region.end,
                             }],
                         },
