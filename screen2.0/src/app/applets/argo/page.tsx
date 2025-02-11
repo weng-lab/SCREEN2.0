@@ -449,7 +449,7 @@ export default function Argo() {
         
         return filteredClasses;
 
-    }, [allElementData, elementFilterVariables.cCREAssembly, elementFilterVariables.classes, elementFilterVariables.mustHaveOrtholog, orthoData]);
+    }, [allElementData, elementFilterVariables, orthoData]);
 
     // Generate element ranks
     const elementRanks = useMemo<RankedRegions>(() => {
