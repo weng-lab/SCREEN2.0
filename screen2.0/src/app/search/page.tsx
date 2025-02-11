@@ -31,7 +31,7 @@ import { BrowserActionType, useBrowserState } from "@weng-lab/genomebrowser"
 import { getDefaultTracks } from "./_newgbview/genTracks"
 import { GROUP_COLOR_MAP } from "./_ccredetails/utils"
 import UrlErrorDialog from "./UrlErrorDialog"
-import { track } from "@vercel/analytics/react"
+// import { track } from "@vercel/analytics/react"
 
 /**
  * @todo:
@@ -463,7 +463,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       } catch (error) {
         setUrlParseError(String(error))
         console.error(error)
-        track('Search Parse Error', { searchParams: JSON.stringify(searchParams), referrer: document.referrer })
+        // track('Search Parse Error', { searchParams: JSON.stringify(searchParams), referrer: document.referrer })
       } finally {
         setMainQueryParams(MQP => {
           return {
@@ -805,25 +805,25 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
   }
 
   //Once coordinates have been determined, send analytics with search type
-  const parsedSearchSent = useRef(false)
-  useEffect(() => {
-    if (haveCoordinates && !parsedSearchSent.current) {
-      let searchType = 'region'
-      if (mainQueryParams.gene.name) searchType = 'gene'
-      if (mainQueryParams.snp.rsID) searchType = 'snp'
-      if (mainQueryParams.searchConfig.bed_intersect) searchType = 'bed intersect'
-      track('Search', {type: searchType, assembly: mainQueryParams.coordinates.assembly, searchConfig: JSON.stringify(mainQueryParams), referrer: document.referrer})
-      parsedSearchSent.current = true
-    }
-  }, [haveCoordinates, mainQueryParams])
+  // const parsedSearchSent = useRef(false)
+  // useEffect(() => {
+  //   if (haveCoordinates && !parsedSearchSent.current) {
+  //     let searchType = 'region'
+  //     if (mainQueryParams.gene.name) searchType = 'gene'
+  //     if (mainQueryParams.snp.rsID) searchType = 'snp'
+  //     if (mainQueryParams.searchConfig.bed_intersect) searchType = 'bed intersect'
+  //     track('Search', {type: searchType, assembly: mainQueryParams.coordinates.assembly, searchConfig: JSON.stringify(mainQueryParams), referrer: document.referrer})
+  //     parsedSearchSent.current = true
+  //   }
+  // }, [haveCoordinates, mainQueryParams])
 
-  const rawSearchSent = useRef(false)
-  useEffect(() => {
-    if (!rawSearchSent.current){
-      track('Raw Search', {searchParams: JSON.stringify(searchParams), referrer: document.referrer })
-      rawSearchSent.current = true
-    }
-  }, [searchParams])
+  // const rawSearchSent = useRef(false)
+  // useEffect(() => {
+  //   if (!rawSearchSent.current){
+  //     track('Raw Search', {searchParams: JSON.stringify(searchParams), referrer: document.referrer })
+  //     rawSearchSent.current = true
+  //   }
+  // }, [searchParams])
 
   return (
     <>
