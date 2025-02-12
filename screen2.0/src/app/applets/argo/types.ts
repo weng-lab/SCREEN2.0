@@ -35,7 +35,7 @@ export type GenomicRegion = {
 export type RankedRegions = (GenomicRegion & { rank: number })[]
 
 export type InputRegions = (GenomicRegion & {
-    regionID: number
+    regionID: number | string
     ref: string
     alt: string
     strand: string
@@ -44,7 +44,7 @@ export type InputRegions = (GenomicRegion & {
 export type CCREs = (GenomicRegion & {
     accession: string
     inputRegion: GenomicRegion
-    regionID: number
+    regionID: number | string
 })[]
 
 export type CCREClasses = {
@@ -166,6 +166,7 @@ export type UploadProps = {
 
 export type SubTableTitleProps = {
     title: string;
+    table: string;
 };
 
 export type AllLinkedGenes = {
@@ -186,7 +187,7 @@ export type LinkedGenes = {
 }[];
 
 export type MainTableRow = {
-    regionID: number
+    regionID: number | string
     inputRegion: GenomicRegion
     aggregateRank?: number
     sequenceRank?: number
@@ -195,7 +196,7 @@ export type MainTableRow = {
 }
 
 export type SequenceTableRow = {
-    regionID: number
+    regionID: number | string
     inputRegion: GenomicRegion
     conservationScore?: number
     numOverlappingMotifs?: number
@@ -204,7 +205,7 @@ export type SequenceTableRow = {
 }
 
 export type ElementTableRow = {
-    regionID: number
+    regionID: number | string
     inputRegion: GenomicRegion
     chr: number
     start: number
@@ -220,11 +221,18 @@ export type ElementTableRow = {
 }
 
 export type GeneTableRow = {
-    regionID: number
+    regionID: number | string
     inputRegion: GenomicRegion
     maxExpression?: number
     expressionSpecificity?: number
     linkedGenes?: LinkedGenes
+}
+
+export type IsolatedRow = {
+    main: MainTableRow[];
+    sequence: SequenceTableRow[];
+    element: ElementTableRow[];
+    gene: GeneTableRow[];
 }
 
 export type AssayRankEntry = {
@@ -269,18 +277,21 @@ export type SequenceTableProps = {
     sequenceFilterVariables: SequenceFilterState;
     SubTableTitle: React.FC<SubTableTitleProps>;
     sequenceRows: SequenceTableRow[];
+    isolatedRows: IsolatedRow;
 }
 
 export type ElementTableProps = {
     elementFilterVariables: ElementFilterState;
     SubTableTitle: React.FC<SubTableTitleProps>;
     elementRows: ElementTableRow[];
+    isolatedRows: IsolatedRow;
 }
 
 export type GeneTableProps = {
     geneFilterVariables: GeneFilterState;
     SubTableTitle: React.FC<SubTableTitleProps>;
     geneRows: GeneTableRow[];
+    isolatedRows: IsolatedRow;
 }
 
 export type ClosestGenetocCRE = {
