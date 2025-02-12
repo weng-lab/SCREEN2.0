@@ -34,7 +34,7 @@ const GeneTable: React.FC<GeneTableProps> = ({
             columns={geneColumns}
             rows={geneRows  === null ? [] : geneRows}
             sortDescending
-            itemsPerPage={10}
+            itemsPerPage={5}
             searchable
             tableTitle={<SubTableTitle title="Gene Details" table="genes" />}
             onRowClick={handleRowClick}
