@@ -154,13 +154,13 @@ const ArgoUpload: React.FC<UploadProps> = ({
             (${Object.values(startEndErrorIndex).slice(0, -1).join(' ')})`;
         }
 
-        // Validate end position greater than or equal to start
+        // Validate end position greater than start
         const greaterThanErrorIndex = regions.find(region =>
-            region.end < region.start
+            region.end <= region.start
         );
         if (greaterThanErrorIndex) {
             setCellErr("numbers");
-            return `End position must be greater than or equal to start position at regionID: ${greaterThanErrorIndex.regionID}
+            return `End position must be greater than start position at regionID: ${greaterThanErrorIndex.regionID}
             (${Object.values(greaterThanErrorIndex).slice(0, -1).join(' ')})`;
         }
 
