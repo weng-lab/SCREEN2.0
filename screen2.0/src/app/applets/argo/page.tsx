@@ -209,14 +209,12 @@ export default function Argo() {
                     {title}
                 </Typography>
             </Stack>
-            {tableOrder.indexOf(table as "sequence" | "elements" | "genes") > 0 && (
-                <IconButton
-                    onClick={() => bringTableToTop(table as "sequence" | "elements" | "genes")}
-                    color="inherit"
-                >
-                    <VerticalAlignTop />
-                </IconButton>
-            )}
+            <IconButton
+                onClick={() => bringTableToTop(table as "sequence" | "elements" | "genes")}
+                color="inherit"
+            >
+                <VerticalAlignTop />
+            </IconButton>
         </Stack>
     );
 
