@@ -5,7 +5,8 @@ import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 const ElementTable: React.FC<ElementTableProps> = ({
     elementFilterVariables,
     SubTableTitle,
-    elementRows
+    elementRows,
+    isolatedRows
 }) => {
     //handle column changes for the Element rank table
     const elementColumns: DataTableColumn<ElementTableRow>[] = useMemo(() => {
@@ -38,11 +39,11 @@ const ElementTable: React.FC<ElementTableProps> = ({
         <DataTable
             key={Math.random()}
             columns={elementColumns}
-            rows={elementRows === null ? [] : elementRows}
+            rows={elementRows === null ? [] : isolatedRows ? isolatedRows.element : elementRows}
             sortDescending
-            itemsPerPage={10}
+            itemsPerPage={5}
             searchable
-            tableTitle={<SubTableTitle title="Element Details (Overlapping cCREs)" />}
+            tableTitle={<SubTableTitle title="Element Details (Overlapping cCREs)" table="elements" />}
             onRowClick={handlecCREClick}
         />
     )

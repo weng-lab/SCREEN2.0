@@ -6,7 +6,8 @@ import MotifsModal from "./motifModal";
 const SequenceTable: React.FC<SequenceTableProps> = ({
     sequenceFilterVariables,
     SubTableTitle,
-    sequenceRows
+    sequenceRows,
+    isolatedRows
 }) => {
     const [modalData, setModalData] = useState<{
         open: boolean;
@@ -96,11 +97,11 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
             <DataTable
                 key={Math.random()}
                 columns={sequenceColumns}
-                rows={sequenceRows}
+                rows={isolatedRows ? isolatedRows.sequence : sequenceRows}
                 sortDescending
-                itemsPerPage={10}
+                itemsPerPage={5}
                 searchable
-                tableTitle={<SubTableTitle title="Sequence Details" />}
+                tableTitle={<SubTableTitle title="Sequence Details" table="sequence" />}
             />
             {modalData && (
                 <MotifsModal

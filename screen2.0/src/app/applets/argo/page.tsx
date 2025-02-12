@@ -6,11 +6,11 @@ import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { ORTHOLOG_QUERY, Z_SCORES_QUERY, BIG_REQUEST_QUERY, MOTIF_QUERY, CLOSEST_LINKED_QUERY, SPECIFICITY_QUERY, GENE_ORTHO_QUERY } from "./queries"
 import { QueryResult, useLazyQuery, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
-import { RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, CCREs, InputRegions, SubTableTitleProps } from "./types"
+import { RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, CCREs, InputRegions, SubTableTitleProps, IsolatedRow } from "./types"
 import { BED_INTERSECT_QUERY } from "../../_mainsearch/queries"
 import ExpandCircleDownIcon from '@mui/icons-material/ExpandCircleDown';
 import Filters from "./filters"
-import { CancelRounded } from "@mui/icons-material"
+import { CancelRounded, VerticalAlignTop, Cancel } from "@mui/icons-material"
 import ArgoUpload from "./argoUpload"
 import { BigRequest, OccurrencesQuery } from "../../../graphql/__generated__/graphql"
 import { calculateAggregateRanks, matchRanks } from "./helpers"
@@ -20,6 +20,7 @@ import { filterOrthologGenes, generateGeneRanks, getSpecificityScores, parseLink
 import SequenceTable from "./sequence/sequenceTable"
 import ElementTable from "./elements/elementTable"
 import GeneTable from "./genes/geneTable"
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 export default function Argo() {
 
@@ -38,7 +39,13 @@ export default function Argo() {
     const [selectedSearch, setSelectedSearch] = useState<string>("TSV File")
     const [drawerOpen, setDrawerOpen] = useState(true);
     const toggleDrawer = () => setDrawerOpen(!drawerOpen);
-    const [shownTable, setShownTable] = useState<"sequence" | "elements" | "genes">(null);
+    const [shownTables, setShownTables] = useState<Set<"sequence" | "elements" | "genes">>(new Set());
+    const [tableOrder, setTableOrder] = useState<("sequence" | "elements" | "genes")[]>([
+        "sequence",
+        "elements",
+        "genes",
+    ]);
+    const [isolatedRowID, setIsolatedRowID] = useState<number | string>(null);
 
     // Filter state variables
     const [sequenceFilterVariables, setSequenceFilterVariables] = useState<SequenceFilterState>({
@@ -124,43 +131,92 @@ export default function Argo() {
         }));
     };
 
+    // open and close sub tables
+    const toggleTable = (table) => {
+        setShownTables((prev) => {
+            const newSet = new Set(prev);
+            if (newSet.has(table)) {
+                newSet.delete(table); // Close the table if it's already open
+            } else {
+                newSet.add(table); // Open the table if it's not open
+            }
+            return newSet;
+        });
+    };
+
+    //drag functionality for the tables, reorders the table order array
+    const onDragEnd = (result) => {
+        if (!result.destination) return; // If dropped outside the list, do nothing
+
+        const newOrder = [...tableOrder];
+        const [movedTable] = newOrder.splice(result.source.index, 1); // Remove dragged item
+        newOrder.splice(result.destination.index, 0, movedTable); // Insert at new position
+
+        setTableOrder(newOrder);
+    };
+
+    // snap sub table to top of the page
+    const bringTableToTop = (table: "sequence" | "elements" | "genes") => {
+        setTableOrder((prevOrder) => {
+            // Remove the table from its current position
+            const newOrder = prevOrder.filter((t) => t !== table);
+            // Prepend the table to the beginning of the array
+            return [table, ...newOrder];
+        });
+    };
+
+    //isolate a specific rowID
+    const isolateRow = (row: MainTableRow) => {
+        setIsolatedRowID(row.regionID)
+    }
+
     //stylized header for main rank table columns
     const MainColHeader = useCallback(({ tableName, onClick }) => (
         <div style={{ display: 'flex', alignItems: 'center' }}>
-            <span style={{ color: shownTable === tableName.toLowerCase() ? '#030f98' : 'inherit', fontWeight: shownTable === tableName.toLowerCase() ? 'bolder' : 'normal' }}>
+            <span style={{ color: shownTables.has(tableName.toLowerCase()) ? '#030f98' : 'inherit', fontWeight: shownTables.has(tableName.toLowerCase()) ? 'bolder' : 'normal' }}>
                 {tableName}
             </span>
             <IconButton
                 size="small"
                 onClick={onClick}
                 style={{
-                    transform: shownTable === tableName.toLowerCase() ? 'rotate(180deg)' : 'rotate(0deg)',
+                    transform: shownTables.has(tableName.toLowerCase()) ? 'rotate(180deg)' : 'rotate(0deg)',
                 }}
             >
                 <ExpandCircleDownIcon
                     fontSize="inherit"
-                    color={shownTable === tableName.toLowerCase() ? "primary" : "inherit"}
+                    color={shownTables.has(tableName.toLowerCase()) ? "primary" : "inherit"}
                 />
             </IconButton>
         </div>
-    ), [shownTable])
+    ), [shownTables])
 
     //stylized title for the sequence,element, and gene data tables
-    const SubTableTitle: React.FC<SubTableTitleProps> = ({ title }) => (
-        <Stack direction={"row"} alignItems={"center"} spacing={1}>
-            <IconButton onClick={() => setShownTable(null)} color={"primary"}>
-                <CancelRounded />
-            </IconButton>
-            <Typography
-                variant="h5"
-                noWrap
-                component="div"
-                sx={{
-                    display: { xs: 'none', sm: 'block' },
-                    fontWeight: 'normal',
-                }}>
-                {title}
-            </Typography>
+    const SubTableTitle: React.FC<SubTableTitleProps> = ({ title, table }) => (
+        <Stack direction={"row"} alignItems={"center"} justifyContent={"space-between"} width={"100%"}>
+            <Stack direction={"row"} alignItems={"center"} spacing={1}>
+                <IconButton onClick={() => toggleTable(table)} color={"primary"}>
+                    <CancelRounded />
+                </IconButton>
+                <Typography
+                    variant="h5"
+                    noWrap
+                    component="div"
+                    sx={{
+                        display: { xs: 'none', sm: 'block' },
+                        fontWeight: 'normal',
+                    }}>
+                    {title}
+                </Typography>
+            </Stack>
+            {tableOrder.indexOf(table as "sequence" | "elements" | "genes") > 0 && (
+                <IconButton
+                    onClick={() => bringTableToTop(table as "sequence" | "elements" | "genes")}
+                    color="inherit"
+                >
+                    <VerticalAlignTop />
+                </IconButton>
+            )}
         </Stack>
     );
 
@@ -174,8 +230,9 @@ export default function Argo() {
         if (search) {
             setSelectedSearch(search)
         }
-        setShownTable(null)
+        setShownTables(new Set());
         handleRegionsConfigured([])
+        setIsolatedRowID(null)
     }
 
     // This function will receive the regions from ArgoUpload and find the intersecting cCREs
@@ -434,7 +491,7 @@ export default function Argo() {
                 }
             });
 
-            data = allElementData
+            data = data
                 .map((row) => ({
                     ...row,
                     ortholog: orthologMapping[row.accession]
@@ -446,7 +503,7 @@ export default function Argo() {
         if (filteredClasses.length === 0) {
             return null
         }
-        
+
         return filteredClasses;
 
     }, [allElementData, elementFilterVariables, orthoData]);
@@ -502,7 +559,7 @@ export default function Argo() {
                 allGenes.flatMap((item) => item.genes.map((gene) => gene.name))
             )
         );
-        let filteredGenes = allGenes; 
+        let filteredGenes = allGenes;
         if (geneFilterVariables.mustHaveOrtholog) {
             getOrthoGenes({
                 variables: {
@@ -521,7 +578,7 @@ export default function Argo() {
         }
 
         //get all of the geneID's from allGenes
-        const geneIds = filteredGenes.flatMap((entry) => 
+        const geneIds = filteredGenes.flatMap((entry) =>
             entry.genes.map((gene) => gene.geneId)
         );
 
@@ -601,14 +658,14 @@ export default function Argo() {
         if (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs) {
             cols.push({
                 header: "Seqence",
-                HeaderRender: () => <MainColHeader tableName="Sequence" onClick={() => shownTable === "sequence" ? setShownTable(null) : setShownTable("sequence")} />,
+                HeaderRender: () => <MainColHeader tableName="Sequence" onClick={() => { toggleTable("sequence"); bringTableToTop("sequence") }} />,
                 value: (row) => row.sequenceRank,
                 render: (row) => loadingSequenceRanks ? <CircularProgress size={10} /> : row.sequenceRank
             })
         }
         if (elementFilterVariables.usecCREs) {
             cols.push({
-                header: "Element", HeaderRender: () => <MainColHeader tableName="Elements" onClick={() => shownTable === "elements" ? setShownTable(null) : setShownTable("elements")} />, value: (row) => row.elementRank === 0 ? "N/A" : row.elementRank,
+                header: "Element", HeaderRender: () => <MainColHeader tableName="Elements" onClick={() => { toggleTable("elements"); bringTableToTop("elements") }} />, value: (row) => row.elementRank === 0 ? "N/A" : row.elementRank,
                 sort: (a, b) => {
                     const rankA = a.elementRank
                     const rankB = b.elementRank
@@ -622,7 +679,7 @@ export default function Argo() {
         }
         if (geneFilterVariables.useGenes) {
             cols.push({
-                header: "Gene", HeaderRender: () => <MainColHeader tableName="Genes" onClick={() => shownTable === "genes" ? setShownTable(null) : setShownTable("genes")} />,
+                header: "Gene", HeaderRender: () => <MainColHeader tableName="Genes" onClick={() => { toggleTable("genes"); bringTableToTop("genes") }} />,
                 value: (row) => row.geneRank,
                 sort: (a, b) => {
                     const rankA = a.geneRank
@@ -638,7 +695,23 @@ export default function Argo() {
 
         return cols
 
-    }, [MainColHeader, elementFilterVariables.usecCREs, geneFilterVariables.useGenes, loadingElementRanks, loadingGeneRanks, loadingMainRows, loadingSequenceRanks, loading_gene_specificity, loading_linked_genes, loading_ortho, loading_scores, sequenceFilterVariables.useConservation, sequenceFilterVariables.useMotifs, shownTable])
+    }, [MainColHeader, elementFilterVariables.usecCREs, geneFilterVariables.useGenes, loadingElementRanks, loadingGeneRanks, loadingMainRows, loadingSequenceRanks, loading_gene_specificity, loading_linked_genes, loading_ortho, loading_scores, sequenceFilterVariables.useConservation, sequenceFilterVariables.useMotifs])
+
+    //find all the region id's of the isolated row and pass them to the other tables
+    const isolatedRows: IsolatedRow = useMemo(() => {
+        if (isolatedRowID === null) return null;
+        const mainIsolate = mainRows.filter((row) => row.regionID === isolatedRowID)
+        const sequenceIsolate = sequenceRows.filter((row) => row.regionID === isolatedRowID)
+        const elementIsolate = elementRows.filter((row) => row.regionID === isolatedRowID)
+        const geneIsolate = geneRows.filter((row) => row.regionID === isolatedRowID)
+
+        return {
+            main: mainIsolate,
+            sequence: sequenceIsolate,
+            element: elementIsolate,
+            gene: geneIsolate,
+        };
+    }, [isolatedRowID, sequenceRows, elementRows, geneRows, mainRows])
 
     return (
         <Box display="flex" >
@@ -657,6 +730,7 @@ export default function Argo() {
                 padding={3}
                 flexGrow={1}
                 height={"100%"}
+                zIndex={1}
             >
                 <Typography variant="h4" mb={3}>
                     <b>A</b>ggregate <b>R</b>ank <b>G</b>enerat<b>o</b>r
@@ -678,54 +752,101 @@ export default function Argo() {
                                     sortColumn={2}
                                     itemsPerPage={5}
                                     searchable
-                                    tableTitle="Ranked Regions"
+                                    tableTitle={
+                                        <>
+                                        <Typography mr={1} variant="h5">Ranked Regions</Typography>
+                                            {isolatedRowID &&
+                                                <Stack
+                                                    borderRadius={1}
+                                                    direction={"row"}
+                                                    spacing={1}
+                                                    sx={{ backgroundColor: "#E7EEF8", padding: 1 }}
+                                                    alignItems={"center"}
+                                                    justifyContent={"space-between"}
+                                                >
+                                                    <Typography>Isolated RegionID: {" "} {isolatedRowID}</Typography>
+                                                    <IconButton color="primary" onClick={() => setIsolatedRowID(null)}>
+                                                        <Cancel />
+                                                    </IconButton>
+                                                </Stack>
+                                            }
+                                        </>
+                                    }
+                                    onRowClick={isolateRow}
+                                    highlighted={isolatedRowID ? isolatedRows.main : []}
                                 />
                             }
                         </Box>
 
-                        {(shownTable === "sequence" && (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs)) && (
-                            <Box mt="20px">
-                                {error_conservation_scores && (
-                                    <Alert variant="filled" severity="error">
-                                        {error_conservation_scores.message}
-                                    </Alert>
-                                )}
-                                {loading_conservation_scores ? <CircularProgress /> :
-                                    <SequenceTable
-                                        sequenceFilterVariables={sequenceFilterVariables}
-                                        SubTableTitle={SubTableTitle}
-                                        sequenceRows={sequenceRows}
-                                    />
-                                }
-                            </Box>
-                        )}
+                        <DragDropContext onDragEnd={onDragEnd}>
+                            <Droppable droppableId="tables">
+                                {(provided) => (
+                                    <Box ref={provided.innerRef} {...provided.droppableProps}>
+                                        {tableOrder.map((table, index) => (
+                                            <Draggable key={table} draggableId={table} index={index}>
+                                                {(provided) => (
+                                                    <Box
+                                                        ref={provided.innerRef}
+                                                        {...provided.draggableProps}
+                                                        {...provided.dragHandleProps}
+                                                        sx={{
+                                                            cursor: 'grab',
+                                                            mt: '20px',
+                                                        }}
+                                                    >
+                                                        {table === "sequence" && shownTables.has("sequence") && (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs) && (
+                                                            <>
+                                                                {error_conservation_scores && (
+                                                                    <Alert variant="filled" severity="error">
+                                                                        {error_conservation_scores.message}
+                                                                    </Alert>
+                                                                )}
+                                                                {loading_conservation_scores ? <CircularProgress /> :
+                                                                    <SequenceTable
+                                                                        sequenceFilterVariables={sequenceFilterVariables}
+                                                                        SubTableTitle={SubTableTitle}
+                                                                        sequenceRows={sequenceRows}
+                                                                        isolatedRows={isolatedRows}
+                                                                    />
+                                                                }
+                                                            </>
+                                                        )}
 
-                        {(shownTable === "elements" && elementFilterVariables.usecCREs) && (
-                            <Box mt="20px">
-                                {error_scores && (
-                                    <Alert variant="filled" severity="error">
-                                        {error_scores.message}
-                                    </Alert>
-                                )}
-                                {loading_scores || loading_ortho ? <CircularProgress /> :
-                                    <ElementTable
-                                        elementFilterVariables={elementFilterVariables}
-                                        SubTableTitle={SubTableTitle}
-                                        elementRows={elementRows}
-                                    />
-                                }
-                            </Box>
-                        )}
+                                                        {table === "elements" && shownTables.has("elements") && elementFilterVariables.usecCREs && (
+                                                            <>
+                                                                {error_scores && (
+                                                                    <Alert variant="filled" severity="error">
+                                                                        {error_scores.message}
+                                                                    </Alert>
+                                                                )}
+                                                                {loading_scores || loading_ortho ? <CircularProgress /> :
+                                                                    <ElementTable
+                                                                        elementFilterVariables={elementFilterVariables}
+                                                                        SubTableTitle={SubTableTitle}
+                                                                        elementRows={elementRows}
+                                                                        isolatedRows={isolatedRows}
+                                                                    />
+                                                                }
+                                                            </>
+                                                        )}
 
-                        {(shownTable === "genes" && geneFilterVariables.useGenes) && (
-                            <Box mt="20px">
-                                <GeneTable
-                                    geneFilterVariables={geneFilterVariables}
-                                    SubTableTitle={SubTableTitle}
-                                    geneRows={geneRows}
-                                />
-                            </Box>
-                        )}
+                                                        {table === "genes" && shownTables.has("genes") && geneFilterVariables.useGenes && (
+                                                            <GeneTable
+                                                                geneFilterVariables={geneFilterVariables}
+                                                                SubTableTitle={SubTableTitle}
+                                                                geneRows={geneRows}
+                                                                isolatedRows={isolatedRows}
+                                                            />
+                                                        )}
+                                                    </Box>
+                                                )}
+                                            </Draggable>
+                                        ))}
+                                        {provided.placeholder}
+                                    </Box>
+                                )}
+                            </Droppable>
+                        </DragDropContext>
                     </>
                 )}
             </Box>
