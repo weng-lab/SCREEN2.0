@@ -5,7 +5,8 @@ import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 const GeneTable: React.FC<GeneTableProps> = ({
     geneFilterVariables,
     SubTableTitle,
-    geneRows
+    geneRows,
+    isolatedRows
 }) => {
     //handle column changes for the Gene rank table
     const geneColumns: DataTableColumn<GeneTableRow>[] = useMemo(() => {
@@ -32,7 +33,7 @@ const GeneTable: React.FC<GeneTableProps> = ({
         <DataTable
             key={Math.random()}
             columns={geneColumns}
-            rows={geneRows  === null ? [] : geneRows}
+            rows={geneRows  === null ? [] : isolatedRows ? isolatedRows.gene : geneRows}
             sortDescending
             itemsPerPage={5}
             searchable
