@@ -1,7 +1,7 @@
 "use client"
 import React, { useCallback, useEffect, useMemo } from "react"
 import { useState } from "react"
-import { Stack, Typography, Box, Alert, CircularProgress, IconButton } from "@mui/material"
+import { Stack, Typography, Box, Alert, CircularProgress, IconButton, Button } from "@mui/material"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { ORTHOLOG_QUERY, Z_SCORES_QUERY, BIG_REQUEST_QUERY, MOTIF_QUERY, CLOSEST_LINKED_QUERY, SPECIFICITY_QUERY, GENE_ORTHO_QUERY } from "./queries"
 import { QueryResult, useLazyQuery, useQuery } from "@apollo/client"
@@ -144,6 +144,18 @@ export default function Argo() {
         });
     };
 
+    const toggleAllTables = () => {
+        setShownTables((prev) =>
+            prev.size === 3 ? new Set()
+                :
+                new Set([
+                    "sequence",
+                    "elements",
+                    "genes",
+                ])
+        );
+    };
+
     //drag functionality for the tables, reorders the table order array
     const onDragEnd = (result) => {
         if (!result.destination) return; // If dropped outside the list, do nothing
@@ -168,6 +180,14 @@ export default function Argo() {
     //isolate a specific rowID
     const isolateRow = (row: MainTableRow) => {
         setIsolatedRowID(row.regionID)
+        //turn on all tables
+        setShownTables(
+            new Set([
+                "sequence",
+                "elements",
+                "genes",
+            ])
+        );
     }
 
     //stylized header for main rank table columns
@@ -751,24 +771,27 @@ export default function Argo() {
                                     itemsPerPage={5}
                                     searchable
                                     tableTitle={
-                                        <>
-                                        <Typography mr={1} variant="h5">Ranked Regions</Typography>
-                                            {isolatedRowID &&
-                                                <Stack
-                                                    borderRadius={1}
-                                                    direction={"row"}
-                                                    spacing={1}
-                                                    sx={{ backgroundColor: "#E7EEF8", padding: 1 }}
-                                                    alignItems={"center"}
-                                                    justifyContent={"space-between"}
-                                                >
-                                                    <Typography>Isolated RegionID: {" "} {isolatedRowID}</Typography>
-                                                    <IconButton color="primary" onClick={() => setIsolatedRowID(null)}>
-                                                        <Cancel />
-                                                    </IconButton>
-                                                </Stack>
-                                            }
-                                        </>
+                                        <Stack direction={"row"} justifyContent={"space-between"} alignItems={"center"} width={"100%"}>
+                                            <Stack direction={"row"} spacing={1} alignItems={"center"}>
+                                                <Typography variant="h5">Ranked Regions</Typography>
+                                                {isolatedRowID &&
+                                                    <Stack
+                                                        borderRadius={1}
+                                                        direction={"row"}
+                                                        spacing={1}
+                                                        sx={{ backgroundColor: "#E7EEF8", padding: 1 }}
+                                                        alignItems={"center"}
+                                                        justifyContent={"space-between"}
+                                                    >
+                                                        <Typography>Isolated RegionID: {" "} {isolatedRowID}</Typography>
+                                                        <IconButton color="primary" onClick={() => setIsolatedRowID(null)}>
+                                                            <Cancel />
+                                                        </IconButton>
+                                                    </Stack>
+                                                }
+                                            </Stack>
+                                            <Button variant="outlined" onClick={toggleAllTables}>Toggle All Tables</Button>
+                                        </Stack>
                                     }
                                     onRowClick={isolateRow}
                                     highlighted={isolatedRowID ? isolatedRows.main : []}
