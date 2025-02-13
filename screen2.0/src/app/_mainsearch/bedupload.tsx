@@ -119,9 +119,8 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
               <UploadFileIcon />
             }
             size="small"
-            sx={{ minWidth: "10rem", textTransform: 'none' }}
-            //This is a shortcut for now to color all elements in these buttons. Secondary is defined as white in the theme (not ideal)
-            color="secondary"
+            sx={{ minWidth: "10rem", textTransform: 'none'}}
+            color="inherit"
           >
             Select File
           </Button>
@@ -152,7 +151,7 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
           {!props.header && <Typography mb={1} variant="h5">Uploaded:</Typography>}
           <Stack direction="row" alignItems="center">
             <Typography>{`${props.header ? truncateFileName(files[0].name, 20) : truncateFileName(files[0].name, 40)}\u00A0-\u00A0${(files[0].size / 1000000).toFixed(1)}\u00A0mb`}</Typography>
-            <IconButton color={props.header ? "secondary" : "primary"} onClick={() => setFiles([])}>
+            <IconButton color={props.header ? "inherit" : "primary"} onClick={() => setFiles([])}>
               <Cancel />
             </IconButton>
           </Stack>
@@ -162,7 +161,7 @@ const BedUpload = (props: { assembly: "mm10" | "GRCh38", header?: boolean }) => 
             sx={{textTransform: 'none', maxWidth: "18rem", '&.MuiLoadingButton-root': props.header && {color: 'white', borderColor: 'white' }}}
             onClick={submitFiles}
             variant="outlined"
-            color={props.header ? "secondary" : "primary"}
+            color={props.header ? "inherit" : "primary"}
             endIcon={<Search />}
           >
             <span>

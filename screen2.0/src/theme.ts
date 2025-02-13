@@ -8,9 +8,8 @@ const theme = createTheme({
       main: "#000F9F",
       contrastText: "#FFFFFF"
     },
-    //This is used to color buttons white, may not be best way to do so
     secondary: {
-      main: "#ffffff",
+      main: "#E7EEF8",
     },
   },
   components: {
