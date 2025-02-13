@@ -40,7 +40,7 @@ const ElementTable: React.FC<ElementTableProps> = ({
             key={Math.random()}
             columns={elementColumns}
             rows={elementRows === null ? [] : isolatedRows ? isolatedRows.element : elementRows}
-            sortDescending
+            sortColumn={3}
             itemsPerPage={5}
             searchable
             tableTitle={<SubTableTitle title="Element Details (Overlapping cCREs)" table="elements" />}

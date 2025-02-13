@@ -98,7 +98,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                 key={Math.random()}
                 columns={sequenceColumns}
                 rows={isolatedRows ? isolatedRows.sequence : sequenceRows}
-                sortDescending
+                sortColumn={1}
                 itemsPerPage={5}
                 searchable
                 tableTitle={<SubTableTitle title="Sequence Details" table="sequence" />}
