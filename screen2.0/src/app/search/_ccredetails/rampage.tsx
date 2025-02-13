@@ -269,8 +269,7 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
         <Stack direction="row" spacing={3}>
           <Button
             variant="contained"
-            color="secondary"
-            sx={{ minWidth: 125, minHeight: 50 }}
+            sx={{ minWidth: 125, minHeight: 50, backgroundColor: "white" }}
             onClick={handleOpenConfigGB}
           >
             <Image style={{ objectFit: "contain" }} src="https://genome-euro.ucsc.edu/images/ucscHelixLogo.png" fill alt="ucsc-button" />
@@ -278,8 +277,7 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
           <Button
             variant="contained"
             href={"https://www.genecards.org/cgi-bin/carddisp.pl?gene=" + `${gene}`}
-            color="secondary"
-            sx={{ minWidth: 125, minHeight: 50 }}
+            sx={{ minWidth: 125, minHeight: 50, backgroundColor: "white" }}
           >
             <Image style={{ objectFit: "contain" }} src="https://geneanalytics.genecards.org/media/81632/gc.png" fill alt="gene-card-button" />
           </Button>
