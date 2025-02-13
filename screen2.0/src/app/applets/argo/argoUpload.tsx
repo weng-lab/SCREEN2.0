@@ -314,7 +314,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
                                 borderRadius={1}
                                 direction={"row"}
                                 spacing={3}
-                                sx={{ backgroundColor: "#E7EEF8", padding: 1 }}
+                                sx={{ backgroundColor: theme => theme.palette.secondary.main, padding: 1 }}
                                 alignItems={"center"}
                                 justifyContent={"space-between"}
                             >

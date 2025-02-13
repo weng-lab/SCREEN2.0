@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { MotifQueryDataOccurrence, SequenceTableProps, SequenceTableRow } from "../types";
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components";
 import MotifsModal from "./motifModal";
+import { useTheme } from "@mui/material";
 
 const SequenceTable: React.FC<SequenceTableProps> = ({
     sequenceFilterVariables,
@@ -16,6 +17,8 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
         end: number;
         occurrences: MotifQueryDataOccurrence[];
     } | null>(null);
+
+    const theme = useTheme();
 
     //handle column changes for the Sequence rank table
     const sequenceColumns: DataTableColumn<SequenceTableRow>[] = useMemo(() => {
@@ -102,7 +105,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                 itemsPerPage={5}
                 searchable
                 tableTitle={<SubTableTitle title="Sequence Details" table="sequence" />}
-                headerColor={{backgroundColor: `#E7EEF8`, textColor: "inherit"}}
+                headerColor={{backgroundColor: theme.palette.secondary.main as "#", textColor: "inherit"}}
             />
             {modalData && (
                 <MotifsModal

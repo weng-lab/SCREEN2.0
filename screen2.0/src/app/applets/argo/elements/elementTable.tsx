@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { ElementTableProps, ElementTableRow } from "../types";
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components";
+import { useTheme } from "@mui/material";
 
 const ElementTable: React.FC<ElementTableProps> = ({
     elementFilterVariables,
@@ -8,6 +9,8 @@ const ElementTable: React.FC<ElementTableProps> = ({
     elementRows,
     isolatedRows
 }) => {
+    const theme = useTheme();
+    
     //handle column changes for the Element rank table
     const elementColumns: DataTableColumn<ElementTableRow>[] = useMemo(() => {
 
@@ -45,7 +48,7 @@ const ElementTable: React.FC<ElementTableProps> = ({
             searchable
             tableTitle={<SubTableTitle title="Element Details (Overlapping cCREs)" table="elements" />}
             onRowClick={handlecCREClick}
-            headerColor={{backgroundColor: `#E7EEF8`, textColor: "inherit"}}
+            headerColor={{backgroundColor: theme.palette.secondary.main as "#", textColor: "inherit"}}
         />
     )
 }

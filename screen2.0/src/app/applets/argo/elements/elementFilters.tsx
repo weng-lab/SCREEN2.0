@@ -159,7 +159,7 @@ const ElementFilters: React.FC<ElementAccordianProps> = ({
                                 borderRadius={1}
                                 direction={"row"}
                                 spacing={3}
-                                sx={{ backgroundColor: "#E7EEF8" }}
+                                sx={{ backgroundColor: theme => theme.palette.secondary.main }}
                                 alignItems={"center"}
                             >
                                 <Typography

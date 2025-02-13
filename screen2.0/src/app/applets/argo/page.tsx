@@ -782,7 +782,7 @@ export default function Argo() {
                                                         borderRadius={1}
                                                         direction={"row"}
                                                         spacing={1}
-                                                        sx={{ backgroundColor: "#E7EEF8", padding: 1 }}
+                                                        sx={{ backgroundColor: theme => theme.palette.secondary.main, padding: 1 }}
                                                         alignItems={"center"}
                                                         justifyContent={"space-between"}
                                                     >

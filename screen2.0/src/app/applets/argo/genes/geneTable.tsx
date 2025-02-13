@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { GeneTableProps, GeneTableRow } from "../types";
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components";
+import { useTheme } from "@mui/material";
 
 const GeneTable: React.FC<GeneTableProps> = ({
     geneFilterVariables,
@@ -8,6 +9,8 @@ const GeneTable: React.FC<GeneTableProps> = ({
     geneRows,
     isolatedRows
 }) => {
+    const theme = useTheme();
+    
     //handle column changes for the Gene rank table
     const geneColumns: DataTableColumn<GeneTableRow>[] = useMemo(() => {
 
@@ -39,7 +42,7 @@ const GeneTable: React.FC<GeneTableProps> = ({
             searchable
             tableTitle={<SubTableTitle title="Gene Details" table="genes" />}
             onRowClick={handleRowClick}
-            headerColor={{backgroundColor: `#E7EEF8`, textColor: "inherit"}}
+            headerColor={{backgroundColor: theme.palette.secondary.main as "#", textColor: "inherit"}}
         />
     )
 }
