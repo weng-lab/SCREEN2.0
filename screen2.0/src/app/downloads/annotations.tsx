@@ -1,4 +1,4 @@
-import { Button, ButtonProps, Paper, Typography, Divider, Stack, Tabs, Tab } from "@mui/material"
+import { Button, ButtonProps, Typography, Stack, Tabs, Tab } from "@mui/material"
 import Grid from "@mui/material/Grid2"
 import React, { useEffect, useState } from "react"
 import Config from "../../config.json"
@@ -55,9 +55,8 @@ const InlineDownloadButton = (props: ButtonProps & { label: string; bordercolor:
 
   return (
     <Button
-      sx={{ textTransform: "none", borderLeft: `0.375rem solid ${props.bordercolor}`, justifyContent: "space-between" }}
+      sx={{ textTransform: "none", borderLeft: `0.375rem solid ${props.bordercolor}`, justifyContent: "space-between", backgroundColor: "white", color: "black" }}
       variant="contained"
-      color="secondary"
       href={props.href}
       endIcon={<DownloadIcon />}
       fullWidth

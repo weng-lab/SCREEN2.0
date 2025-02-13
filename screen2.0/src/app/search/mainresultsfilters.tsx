@@ -529,7 +529,7 @@ export function MainResultsFilters(
         <AccordionDetails sx={{ px: 0, pt: 0 }}>
           {mainQueryParams.biosample &&
             <Paper sx={{ mx: 2, mb: 1 }}>
-              <Stack borderRadius={1} direction={"row"} spacing={3} sx={{ backgroundColor: "#E7EEF8" }} alignItems={"center"}>
+              <Stack borderRadius={1} direction={"row"} spacing={3} sx={{ backgroundColor: theme => theme.palette.secondary.main }} alignItems={"center"}>
                 <Typography flexGrow={1} sx={{ color: "#2C5BA0", pl: 1 }}>{mainQueryParams.biosample.ontology.charAt(0).toUpperCase() + mainQueryParams.biosample.ontology.slice(1) + " - " + mainQueryParams.biosample.displayname.charAt(0).toUpperCase() + mainQueryParams.biosample.displayname.slice(1)}</Typography>
                 <IconButton onClick={() => setBiosample(null)} sx={{ m: 'auto', flexGrow: 0 }}>
                   <CancelRounded />

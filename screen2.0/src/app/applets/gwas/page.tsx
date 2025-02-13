@@ -289,7 +289,7 @@ export default function GWAS() {
   const SelectInfo: React.FC<SelectInfoProps> = (props: SelectInfoProps) => {
     return (
       <Paper>
-        <Stack borderRadius={1} direction={"row"} spacing={3} sx={{ backgroundColor: "#E7EEF8" }} alignItems={"center"}>
+        <Stack borderRadius={1} direction={"row"} spacing={3} sx={{ backgroundColor: theme => theme.palette.secondary.main }} alignItems={"center"}>
           <Typography flexGrow={1} sx={{ color: "#2C5BA0", pl: 1 }}>{props.info1}</Typography>
           <Typography flexGrow={0} sx={{ color: "#2C5BA0" }}>{props.info2}</Typography>
           <IconButton onClick={props.onClose} sx={{ m: 'auto', flexGrow: 0 }}>
