@@ -39,6 +39,7 @@ const GeneTable: React.FC<GeneTableProps> = ({
             searchable
             tableTitle={<SubTableTitle title="Gene Details" table="genes" />}
             onRowClick={handleRowClick}
+            headerColor={{backgroundColor: `#E7EEF8`, textColor: "inherit"}}
         />
     )
 }

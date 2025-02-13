@@ -1,7 +1,7 @@
 "use client"
 import React, { useCallback, useEffect, useMemo } from "react"
 import { useState } from "react"
-import { Stack, Typography, Box, Alert, CircularProgress, IconButton, Button } from "@mui/material"
+import { Stack, Typography, Box, Alert, CircularProgress, IconButton, Button, Tooltip } from "@mui/material"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { ORTHOLOG_QUERY, Z_SCORES_QUERY, BIG_REQUEST_QUERY, MOTIF_QUERY, CLOSEST_LINKED_QUERY, SPECIFICITY_QUERY, GENE_ORTHO_QUERY } from "./queries"
 import { QueryResult, useLazyQuery, useQuery } from "@apollo/client"
@@ -10,7 +10,7 @@ import { RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState
 import { BED_INTERSECT_QUERY } from "../../_mainsearch/queries"
 import ExpandCircleDownIcon from '@mui/icons-material/ExpandCircleDown';
 import Filters from "./filters"
-import { CancelRounded, VerticalAlignTop, Cancel } from "@mui/icons-material"
+import { CancelRounded, VerticalAlignTop, Cancel, InfoOutlined } from "@mui/icons-material"
 import ArgoUpload from "./argoUpload"
 import { BigRequest, OccurrencesQuery } from "../../../graphql/__generated__/graphql"
 import { calculateAggregateRanks, matchRanks } from "./helpers"
@@ -192,10 +192,7 @@ export default function Argo() {
 
     //stylized header for main rank table columns
     const MainColHeader = useCallback(({ tableName, onClick }) => (
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-            <span style={{ color: shownTables.has(tableName.toLowerCase()) ? '#030f98' : 'inherit', fontWeight: shownTables.has(tableName.toLowerCase()) ? 'bolder' : 'normal' }}>
-                {tableName}
-            </span>
+        <div style={{ display: 'flex', alignItems: 'center'}}>
             <IconButton
                 size="small"
                 onClick={onClick}
@@ -208,6 +205,9 @@ export default function Argo() {
                     color={shownTables.has(tableName.toLowerCase()) ? "primary" : "inherit"}
                 />
             </IconButton>
+            <span style={{ color: shownTables.has(tableName.toLowerCase()) ? '#030f98' : 'inherit', fontWeight: shownTables.has(tableName.toLowerCase()) ? 'bolder' : 'normal' }}>
+                {tableName}
+            </span>
         </div>
     ), [shownTables])
 
@@ -233,7 +233,7 @@ export default function Argo() {
                 onClick={() => bringTableToTop(table as "sequence" | "elements" | "genes")}
                 color="inherit"
             >
-                <VerticalAlignTop />
+                <VerticalAlignTop color="inherit"/>
             </IconButton>
         </Stack>
     );
@@ -773,6 +773,9 @@ export default function Argo() {
                                     tableTitle={
                                         <Stack direction={"row"} justifyContent={"space-between"} alignItems={"center"} width={"100%"}>
                                             <Stack direction={"row"} spacing={1} alignItems={"center"}>
+                                                <Tooltip title="Select a row to isolate it" arrow placement="top-start">
+                                                    <InfoOutlined fontSize="small" sx={{ cursor: "pointer" }} color="inherit"/>
+                                                </Tooltip>
                                                 <Typography variant="h5">Ranked Regions</Typography>
                                                 {isolatedRowID &&
                                                     <Stack

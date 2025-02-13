@@ -102,6 +102,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                 itemsPerPage={5}
                 searchable
                 tableTitle={<SubTableTitle title="Sequence Details" table="sequence" />}
+                headerColor={{backgroundColor: `#E7EEF8`, textColor: "inherit"}}
             />
             {modalData && (
                 <MotifsModal

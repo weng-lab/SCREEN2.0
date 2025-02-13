@@ -45,6 +45,7 @@ const ElementTable: React.FC<ElementTableProps> = ({
             searchable
             tableTitle={<SubTableTitle title="Element Details (Overlapping cCREs)" table="elements" />}
             onRowClick={handlecCREClick}
+            headerColor={{backgroundColor: `#E7EEF8`, textColor: "inherit"}}
         />
     )
 }
