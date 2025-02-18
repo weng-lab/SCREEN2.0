@@ -1,9 +1,9 @@
-import { Button, ButtonProps, Typography, Stack, Tabs, Tab } from "@mui/material"
+import { Button, ButtonProps, Typography, Stack, Tabs, Tab, Divider } from "@mui/material"
 import Grid from "@mui/material/Grid2"
 import React, { useEffect, useState } from "react"
 import Config from "../../config.json"
 import DownloadIcon from "@mui/icons-material/Download"
-import { CA_CTCF, CA_H3K4me3, CA_TF, CA_only, PLS, TF_only, dELS, pELS, CTCF_Bound, Gene_Links, ELS } from "../../common/lib/colors"
+import { CA_CTCF, CA_H3K4me3, CA_TF, CA_only, PLS, TF_only, dELS, pELS, CTCF_Bound, ELS } from "../../common/lib/colors"
 import Image from "next/image"
 import humanTransparentIcon from "../../../public/Transparent_HumanIcon.png"
 import mouseTransparentIcon from "../../../public/Transparent_MouseIcon.png"
@@ -46,7 +46,7 @@ const DownloadButton = (props: ButtonProps & { label: string }) => {
 }
 
 //Download tiles
-const InlineDownloadButton = (props: ButtonProps & { label: string; bordercolor: string }) => {
+const InlineDownloadButton = (props: ButtonProps & { label: string; bordercolor?: string }) => {
   const [fileSize, setFileSize] = useState<number>(null)
 
   useEffect(() => {
@@ -55,7 +55,7 @@ const InlineDownloadButton = (props: ButtonProps & { label: string; bordercolor:
 
   return (
     <Button
-      sx={{ textTransform: "none", borderLeft: `0.375rem solid ${props.bordercolor}`, justifyContent: "space-between", backgroundColor: "white", color: "black" }}
+      sx={{ textTransform: "none", borderLeft: props.bordercolor && `0.375rem solid ${props.bordercolor}`, justifyContent: "space-between", backgroundColor: "white", color: "black" }}
       variant="contained"
       href={props.href}
       endIcon={<DownloadIcon />}
@@ -98,6 +98,10 @@ export function Annotations() {
                 <Image src={humanTransparentIcon} alt={"Human Icon"} height={75} />
               </Stack>
               <DownloadButton href={Config.Downloads.HumanCCREs} label="All Human cCREs (2,348,854)" />
+              <Typography pt={1}>
+                cCREs by Class (.bed)
+              </Typography>
+              <Divider />
               <InlineDownloadButton href={Config.Downloads.HumanPromoters} label="Promoter-like (PLS) (47,532)" bordercolor={PLS} />
               <InlineDownloadButton href={Config.Downloads.HumanEnhancers} label="All Candidate Enhancers (pELS & dELS) (1,718,669)" bordercolor={ELS} />
               <InlineDownloadButton href={Config.Downloads.HumanProximalEnhancers} label="Proximal enhancer-like (pELS) (249,464)" bordercolor={pELS} />
@@ -108,7 +112,13 @@ export function Annotations() {
               <InlineDownloadButton href={Config.Downloads.HumanCA_only} label="Chromatin Accessible Only (CA) (245,985)" bordercolor={CA_only} />
               <InlineDownloadButton href={Config.Downloads.HumanTF_only} label="TF Only (TF) (105,286)" bordercolor={TF_only} />
               <InlineDownloadButton href={Config.Downloads.HumanCA_Bound} label="CTCF-Bound cCREs (948,642)" bordercolor={CTCF_Bound} />
-              <InlineDownloadButton href={Config.Downloads.HumanGeneLinks} label="cCRE-Gene Links (3D Chromatin, CRISPR, eQTLS)" bordercolor={Gene_Links} />
+              <Typography pt={1}>
+                cCRE-Gene Associations
+              </Typography>
+              <Divider />
+              <InlineDownloadButton href={Config.Downloads.HumanGeneLinks} label="cCRE-Gene Links (3D Chromatin, CRISPR, eQTLS) (.zip)" bordercolor="grey" />
+              <InlineDownloadButton href={Config.Downloads.HumanNearestPC} label="Nearest Gene by cCRE (protein-coding only) (.tsv)" bordercolor="grey" />
+              <InlineDownloadButton href={Config.Downloads.HumanNearestAll} label="Nearest Gene by cCRE (protein-coding and non protein-coding) (.tsv)" bordercolor="grey" />
             </Stack>
           </Grid>
           <Grid size={{ xs: 12, md: 6}} sx={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
@@ -135,6 +145,10 @@ export function Annotations() {
                 <Image src={mouseTransparentIcon} alt={"Mouse Icon"} height={75} />
               </Stack>
               <DownloadButton href={Config.Downloads.MouseCCREs} label="All Mouse cCREs" />
+              <Typography pt={1}>
+                cCREs by Class (.bed)
+              </Typography>
+              <Divider />
               <InlineDownloadButton href={Config.Downloads.MousePromoters} label={`Promoter-like (PLS) (27,332)`} bordercolor={PLS} />
               <InlineDownloadButton href={Config.Downloads.MouseEnhancers} label="All Candidate Enhancers (pELS & dELS) (512,001)" bordercolor={ELS} />
               <InlineDownloadButton href={Config.Downloads.MouseProximalEnhancers} label="Proximal enhancer-like (pELS) (111,218)" bordercolor={pELS} />
