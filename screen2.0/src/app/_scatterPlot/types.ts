@@ -20,7 +20,7 @@ export type Point<T> = {
 export type MiniMapProps = {
     show: boolean;
     position?: { right: number; bottom: number };
-    ref?: MutableRefObject<any>;
+    ref?: MutableRefObject<HTMLDivElement | null>;
 };
 
 /*
@@ -44,23 +44,20 @@ export type ChartProps<T> = {
     bottomAxisLabel: string;
 };
 
-export type ScatterProps<T> = {
-    zoom;
-    umapData: Point<T>[];
-    parentWidth: number;
-    parentHeight: number;
-    selectionType: "select" | "pan";
-    onSelectionChange: (selectedPoints: Point<T>[]) => void;
-    onPointClicked: (point: Point<T>) => void
-    tooltipBody: (point: Point<T>) => JSX.Element;
-    zoomScale: {
-        scaleX: number;
-        scaleY: number;
-    };
-    miniMap:  MiniMapProps;
-    leftAxisLable: string;
-    bottomAxisLabel: string;
-}
-
 export type Line = { x: number; y: number }[];
 export type Lines = Line[];
+
+export type MapProps<T> = {
+    miniMap: MiniMapProps;
+    width: number;
+    height: number;
+    pointData: Point<T>[];
+    xScale;
+    yScale;
+    zoom;
+}
+
+export type TooltipProps<T> = {
+    tooltipBody?: (point: Point<T>) => JSX.Element;
+    tooltipData: Point<T>;
+}

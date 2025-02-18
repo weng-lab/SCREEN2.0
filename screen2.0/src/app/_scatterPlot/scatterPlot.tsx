@@ -14,6 +14,7 @@ import { localPoint } from '@visx/event';
 import { Text } from '@visx/text';
 import { useDrag } from '@visx/drag';
 import { curveBasis } from '@visx/curve';
+import ScatterTooltip from './tooltip';
 
 const initialTransformMatrix = {
     scaleX: 1,
@@ -528,22 +529,10 @@ export const Chart = <T,>({
                             {
                                 tooltipOpen && tooltipData && isHoveredPointWithinBounds && (
                                     <Tooltip left={xScaleTransformed(tooltipData.x) + 50} top={yScaleTransformed(tooltipData.y) + 50}>
-                                        <div>
-                                            {tooltipBody ? tooltipBody(tooltipData) : (
-                                                <div>
-                                                    {tooltipData.metaData && Object.entries(tooltipData.metaData).map(([key, value]) => (
-                                                        <div key={key}>
-                                                            <strong>{key.charAt(0).toUpperCase() + key.slice(1)}: </strong>
-                                                            {typeof value === 'string'
-                                                                ? (value.length > 45
-                                                                    ? `${value.replace(/_/g, " ").slice(0, 45)}...`
-                                                                    : value.replace(/_/g, " "))
-                                                                : String(value)}
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
+                                        <ScatterTooltip
+                                            tooltipBody={tooltipBody}
+                                            tooltipData={tooltipData}
+                                        />
                                     </Tooltip>
                                 )
                             }
