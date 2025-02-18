@@ -1,65 +1,19 @@
-import React, { useMemo, useCallback, useState, useEffect, MutableRefObject, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import CircularProgress from '@mui/material/CircularProgress';
+import { Zoom as VisxZoom } from '@visx/zoom'
+import { ZoomProps } from '@visx/zoom/lib/Zoom'
+import { ChartProps, Line, Lines, Point } from './types';
+import { Tooltip as VisxTooltip } from '@visx/tooltip';
+import { TooltipProps } from '@visx/tooltip/lib/tooltips/Tooltip';
+import { createPortal } from 'react-dom';
 import { Group } from '@visx/group';
 import { scaleLinear } from '@visx/scale';
 import { AxisBottom, AxisLeft } from '@visx/axis';
 import { Circle, LinePath } from '@visx/shape';
 import { localPoint } from '@visx/event';
-import { Tooltip as VisxTooltip } from '@visx/tooltip';
-import { TooltipProps } from '@visx/tooltip/lib/tooltips/Tooltip';
 import { Text } from '@visx/text';
 import { useDrag } from '@visx/drag';
-import CircularProgress from '@mui/material/CircularProgress';
 import { curveBasis } from '@visx/curve';
-import { Zoom as VisxZoom } from '@visx/zoom'
-import { ZoomProps } from '@visx/zoom/lib/Zoom'
-import { createPortal } from 'react-dom';
-
-/*
-    All information given to a point on the plot, including its coordinates(x and y), its radius, color, and opacity, and its metadata information
-    which can be any amount of strings used to display in the tooltip
-*/
-type Point<T extends {}> = {
-    x: number;
-    y: number;
-    r?: number;
-    color: string;
-    opacity?: number;
-    metaData?: T;
-};
-
-/*
-    Properties given to the minimap including if its visible or not (shown) and its positioon in relation to its reference (both optional)
-    If not position or reference is given, it will default to the bottom right corner of the screen if shown
-*/
-type MiniMapProps = {
-    show: boolean;
-    position?: { right: number; bottom: number };
-    ref?: MutableRefObject<any>;
-};
-
-/*
-    Basic chart properties
-*/
-type ChartProps<T = {}> = {
-    width: number;
-    height: number;
-    pointData: Point<T>[];
-    loading: boolean;
-    selectionType: "select" | "pan";
-    //returns an array of selected points inside a lasso (optional)
-    onSelectionChange?: (selectedPoints: Point<T>[]) => void;
-    //returns a point when clicked on (optional)
-    onPointClicked?: (point: Point<T>) => void;
-    //custom tooltip formating (optional)
-    tooltipBody?: (point: Point<T>) => JSX.Element;
-    zoomScale: { scaleX: number; scaleY: number };
-    miniMap: MiniMapProps;
-    leftAxisLable: string;
-    bottomAxisLabel: string;
-};
-
-type Line = { x: number; y: number }[];
-type Lines = Line[];
 
 const initialTransformMatrix = {
     scaleX: 1,
@@ -70,22 +24,34 @@ const initialTransformMatrix = {
     skewY: 0,
 }
 
-export const Chart = <T extends {}>({ width: parentWidth, height: parentHeight, pointData: umapData, loading, selectionType, onSelectionChange, onPointClicked, tooltipBody, zoomScale, miniMap, leftAxisLable, bottomAxisLabel }: ChartProps<T>) => {
-    const [tooltipData, setTooltipData] = React.useState<Point<T> | null>(null);
-    const [tooltipOpen, setTooltipOpen] = React.useState(false);
-    const [lines, setLines] = useState<Lines>([]);
-    const margin = { top: 20, right: 20, bottom: 70, left: 70 };
-    const boundedWidth = Math.min(parentWidth * 0.9, parentHeight * 0.9) - margin.left;
-    const boundedHeight = boundedWidth;
-    const hoveredPoint = tooltipData ? umapData.find(point => point.x === tooltipData.x && point.y === tooltipData.y) : null;
-    const canvasRef = useRef(null);
-
+export const Chart = <T,>({
+    width,
+    height,
+    pointData,
+    loading, 
+    selectionType,
+    onSelectionChange,
+    onPointClicked,
+    tooltipBody,
+    zoomScale,
+    miniMap,
+    leftAxisLable,
+    bottomAxisLabel
+}: ChartProps<T>) => {
     /**
  * Hacky workaround for complex type compatability issues. Hopefully this will fix itself when ugrading to React 19 - Jonathan 12/11/24
  * @todo remove this when possible
  */
     const Zoom = VisxZoom as unknown as React.FC<ZoomProps<React.ReactElement>>;
     const Tooltip = VisxTooltip as unknown as React.FC<TooltipProps>;
+    const [tooltipData, setTooltipData] = React.useState<Point<T> | null>(null);
+    const [tooltipOpen, setTooltipOpen] = React.useState(false);
+    const [lines, setLines] = useState<Lines>([]);
+    const margin = { top: 20, right: 20, bottom: 70, left: 70 };
+    const boundedWidth = Math.min(width * 0.9, height * 0.9) - margin.left;
+    const boundedHeight = boundedWidth;
+    const hoveredPoint = tooltipData ? pointData.find(point => point.x === tooltipData.x && point.y === tooltipData.y) : null;
+    const canvasRef = useRef(null);
 
     //rescale x and y scales when zooming
     //converts to pixel values before applying transformations
@@ -113,28 +79,28 @@ export const Chart = <T extends {}>({ width: parentWidth, height: parentHeight, 
 
     //scales for the x and y axes
     const xScale = useMemo(() => {
-        if (!umapData || umapData.length === 0) return scaleLinear({ domain: [0, 1], range: [0, boundedWidth] });
+        if (!pointData || pointData.length === 0) return scaleLinear({ domain: [0, 1], range: [0, boundedWidth] });
         return scaleLinear({
             domain: [
-                Math.min(...umapData.map(d => d.x)) - 1,
-                Math.max(...umapData.map(d => d.x)) + 1,
+                Math.min(...pointData.map(d => d.x)) - 1,
+                Math.max(...pointData.map(d => d.x)) + 1,
             ],
             range: [0, boundedWidth],
             nice: true,
         });
-    }, [umapData, boundedWidth]);
+    }, [pointData, boundedWidth]);
 
     const yScale = useMemo(() => {
-        if (!umapData || umapData.length === 0) return scaleLinear({ domain: [0, 1], range: [boundedHeight, 0] });
+        if (!pointData || pointData.length === 0) return scaleLinear({ domain: [0, 1], range: [boundedHeight, 0] });
         return scaleLinear({
             domain: [
-                Math.min(...umapData.map(d => d.y)) - 1,
-                Math.max(...umapData.map(d => d.y)) + 1,
+                Math.min(...pointData.map(d => d.y)) - 1,
+                Math.max(...pointData.map(d => d.y)) + 1,
             ],
             range: [boundedHeight, 0], // Y-axis is inverted
             nice: true,
         });
-    }, [umapData, boundedHeight]);
+    }, [pointData, boundedHeight]);
 
     // Setup dragging for lasso drawing
     const onDragStart = useCallback(
@@ -193,7 +159,7 @@ export const Chart = <T extends {}>({ width: parentWidth, height: parentHeight, 
                 const xScaleTransformed = rescaleX(xScale, zoom);
                 const yScaleTransformed = rescaleY(yScale, zoom);
 
-                const pointsInsideLasso = umapData.filter((point) => {
+                const pointsInsideLasso = pointData.filter((point) => {
                     const scaledPoint = {
                         x: xScaleTransformed(point.x),
                         y: yScaleTransformed(point.y),
@@ -209,7 +175,7 @@ export const Chart = <T extends {}>({ width: parentWidth, height: parentHeight, 
                 setLines([]);
             }
         },
-        [lines, umapData, xScale, yScale, setLines, onSelectionChange, selectionType]
+        [lines, pointData, xScale, yScale, setLines, onSelectionChange, selectionType]
     );
 
     //visx draggable variables (canot declare before functions)
@@ -249,7 +215,7 @@ export const Chart = <T extends {}>({ width: parentWidth, height: parentHeight, 
             const threshhold = 5;
 
             //find the exact point being hovered over within the threshhold
-            const hoveredPoint = umapData.find((curr) => {
+            const hoveredPoint = pointData.find((curr) => {
                 const transformedX = xScaleTransformed(curr.x);
                 const transformedY = yScaleTransformed(curr.y);
                 return (
@@ -265,7 +231,7 @@ export const Chart = <T extends {}>({ width: parentWidth, height: parentHeight, 
                 setTooltipData(null);
                 setTooltipOpen(false);
             }
-        }, [umapData, xScale, yScale, margin.left, margin.top, isDragging]
+        }, [pointData, xScale, yScale, margin.left, margin.top, isDragging]
     );
 
 
@@ -302,13 +268,13 @@ export const Chart = <T extends {}>({ width: parentWidth, height: parentHeight, 
         </Text>
     );
 
-    if (loading || !umapData) {
+    if (loading || !pointData) {
         return <CircularProgress />;
     }
 
     return (
         <>
-            <Zoom width={parentWidth} height={parentHeight} scaleXMin={1 / 2} scaleXMax={10} scaleYMin={1 / 2} scaleYMax={10} initialTransformMatrix={initialTransformMatrix}>
+            <Zoom width={width} height={height} scaleXMin={1 / 2} scaleXMax={10} scaleYMin={1 / 2} scaleYMax={10} initialTransformMatrix={initialTransformMatrix}>
                 {(zoom) => {
                     // rescale as we zoom and pan
                     const xScaleTransformed = rescaleX(xScale, zoom);
@@ -318,26 +284,25 @@ export const Chart = <T extends {}>({ width: parentWidth, height: parentHeight, 
                         xScaleTransformed(hoveredPoint.x) <= boundedWidth &&
                         yScaleTransformed(hoveredPoint.y) >= 0 &&
                         yScaleTransformed(hoveredPoint.y) <= boundedHeight;
-
                     return (
                         <>
                             {/* Zoomable Group for Points */}
-                            <div style={{ position: 'relative'}}>
+                            <div style={{ position: 'relative' }}>
                                 <canvas
                                     ref={canvasRef}
-                                    width={parentWidth * 2}
-                                    height={parentHeight * 2}
+                                    width={width * 2}
+                                    height={height * 2}
                                     style={{
                                         cursor: selectionType === "select" ? (isDragging ? 'none' : 'default') : (zoom.isDragging ? 'grabbing' : 'grab'),
                                         userSelect: 'none',
                                         position: "absolute",
                                         top: margin.top,
                                         left: margin.left,
-                                        width: parentWidth,
-                                        height: parentHeight,
+                                        width: width,
+                                        height: height,
                                     }}
                                 />
-                                <svg width={parentWidth} height={parentHeight} style={{ position: "absolute", cursor: selectionType === "select" ? (isDragging ? 'none' : 'default') : (zoom.isDragging ? 'grabbing' : 'grab'), userSelect: 'none' }} onMouseMove={(e) => handleMouseMove(e, zoom)} onMouseLeave={handleMouseLeave} >
+                                <svg width={width} height={height} style={{ position: "absolute", cursor: selectionType === "select" ? (isDragging ? 'none' : 'default') : (zoom.isDragging ? 'grabbing' : 'grab'), userSelect: 'none' }} onMouseMove={(e) => handleMouseMove(e, zoom)} onMouseLeave={handleMouseLeave} >
                                     <Group top={margin.top} left={margin.left}>
                                         {selectionType === "select" && (
                                             <>
@@ -397,8 +362,8 @@ export const Chart = <T extends {}>({ width: parentWidth, height: parentHeight, 
                                         {/* Interactable surface */}
                                         <rect
                                             fill="transparent"
-                                            width={parentWidth}
-                                            height={parentHeight}
+                                            width={width}
+                                            height={height}
                                             onMouseDown={selectionType === "select" ? dragStart : zoom.dragStart}
                                             onMouseUp={selectionType === "select" ? (event) => {
                                                 dragEnd(event);
@@ -458,14 +423,14 @@ export const Chart = <T extends {}>({ width: parentWidth, height: parentHeight, 
                                     >
                                         {/* Canvas for rendering points on minimap */}
                                         <canvas
-                                            width={(parentWidth - 100) / 4}
-                                            height={(parentHeight - 100) / 4}
+                                            width={(width - 100) / 4}
+                                            height={(height - 100) / 4}
                                             ref={(canvas) => {
                                                 if (canvas) {
                                                     const context = canvas.getContext('2d');
                                                     const scaleFactor = 0.25;
-                                                    const scaledWidth = (parentWidth - 100) * scaleFactor;
-                                                    const scaledHeight = (parentHeight - 100) * scaleFactor;
+                                                    const scaledWidth = (width - 100) * scaleFactor;
+                                                    const scaledHeight = (height - 100) * scaleFactor;
 
                                                     // Clear canvas
                                                     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -478,7 +443,7 @@ export const Chart = <T extends {}>({ width: parentWidth, height: parentHeight, 
                                                     context.strokeRect(0, 0, scaledWidth, scaledHeight);
 
                                                     // Draw points
-                                                    umapData.forEach(point => {
+                                                    pointData.forEach(point => {
                                                         const transformedX = xScale(point.x) * scaleFactor;
                                                         const transformedY = yScale(point.y) * scaleFactor;
                                                         context.beginPath();
@@ -493,8 +458,8 @@ export const Chart = <T extends {}>({ width: parentWidth, height: parentHeight, 
 
                                         {/* SVG for rendering the zoom window */}
                                         <svg
-                                            width={(parentWidth - 100) / 4}
-                                            height={(parentHeight - 100) / 4}
+                                            width={(width - 100) / 4}
+                                            height={(height - 100) / 4}
                                             style={{ position: 'absolute', top: 0, left: 0 }}
                                         >
                                             <g
@@ -503,8 +468,8 @@ export const Chart = <T extends {}>({ width: parentWidth, height: parentHeight, 
                                                 `}
                                             >
                                                 <rect
-                                                    width={parentWidth - 100}
-                                                    height={parentHeight - 100}
+                                                    width={width - 100}
+                                                    height={height - 100}
                                                     fill="#0d0f98"
                                                     fillOpacity={0.2}
                                                     stroke="#0d0f98"
@@ -518,28 +483,17 @@ export const Chart = <T extends {}>({ width: parentWidth, height: parentHeight, 
                                     miniMap.ref ? miniMap.ref.current : document.body
                                 )
                             }
-
-
-                            {
-                                useEffect(() => {
-                                    if (zoomScale.scaleX === 1) {
-                                        zoom.reset();
-                                    } else {
-                                        zoom.scale({ scaleX: zoomScale.scaleX, scaleY: zoomScale.scaleY });
-                                    }
-                                }, [zoomScale])
-                            }
                             {
                                 useEffect(() => {
                                     const canvas = canvasRef.current;
                                     if (canvas) {
                                         const context = canvas.getContext('2d');
-                                        context.setTransform(2,0,0,2,0,0);
+                                        context.setTransform(2, 0, 0, 2, 0, 0);
 
                                         // Clear the canvas before rendering
-                                        context.clearRect(0, 0, parentWidth, parentHeight);
+                                        context.clearRect(0, 0, width, height);
                                         // Render points on the canvas
-                                        umapData.forEach(point => {
+                                        pointData.forEach(point => {
                                             const isHovered = hoveredPoint && hoveredPoint.x === point.x && hoveredPoint.y === point.y;
                                             const transformedX = xScaleTransformed(point.x);
                                             const transformedY = yScaleTransformed(point.y);;
@@ -558,8 +512,18 @@ export const Chart = <T extends {}>({ width: parentWidth, height: parentHeight, 
                                             }
                                         });
                                     }
-                                }, [umapData, parentWidth, parentHeight, hoveredPoint, zoom])
+                                }, [pointData, width, height, hoveredPoint, zoom, xScaleTransformed, yScaleTransformed, boundedWidth, boundedHeight])
                             }
+                            {
+                                useEffect(() => {
+                                    if (zoomScale.scaleX === 1) {
+                                        zoom.reset();
+                                    } else {
+                                        zoom.scale({ scaleX: zoomScale.scaleX, scaleY: zoomScale.scaleY });
+                                    }
+                                }, [zoomScale])
+                            }
+
                             {/* tooltip */}
                             {
                                 tooltipOpen && tooltipData && isHoveredPointWithinBounds && (

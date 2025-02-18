@@ -62,7 +62,7 @@ function colorMap(strings) {
 
 // Styling for selected biosamples modal
 const style = {
-  position: "absolute" as "absolute",
+  position: "absolute",
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
@@ -72,7 +72,7 @@ const style = {
 
 // Styling for download modal
 const downloadStyle = {
-  position: "absolute" as "absolute",
+  position: "absolute",
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
@@ -95,8 +95,7 @@ export function DataMatrices() {
   const [bounds, setBounds] = useState(undefined)
   const [lifeStage, setLifeStage] = useState("all")
   const [colorBy, setColorBy] = useState<"ontology" | "sampleType">("ontology")
-  const [tSelected, setTSelected] = useState(new Set([]))
-  const [searched, setSearched] = useState<String>(null)
+  const [searched, setSearched] = useState<string>(null)
   const [biosamples, setBiosamples] = useState<BiosampleUMAP[]>([])
   const [selectMode, setSelectMode] = useState<"select" | "pan">("select")
   const [openModalType, setOpenModalType] = useState<null | "biosamples" | "download">(null);
@@ -109,21 +108,21 @@ export function DataMatrices() {
           scaleX: 1.2,
           scaleY: 1.2,
       });
-  }, [zoom]);
+  }, []);
 
   const handleZoomOut = useCallback(() => {
       setZoom({
           scaleX: 0.8,
           scaleY: 0.8,
       });
-  }, [zoom]);
+  }, []);
 
   const handleReset = useCallback(() => {
     setZoom({
         scaleX: 1,
         scaleY: 1,
     });
-  }, [zoom]);
+  }, []);
 
   const toggleMiniMap = useCallback(() => {
     setShowMiniMap(!showMiniMap);
@@ -148,7 +147,7 @@ export function DataMatrices() {
     };
   }, []);
 
-  const handleSetSelectedSample = (selected: any) => {
+  const handleSetSelectedSample = (selected) => {
     setSearched(selected.displayname)
   }
 
@@ -210,9 +209,9 @@ export function DataMatrices() {
       umapData &&
       umapData.ccREBiosampleQuery.biosamples
         .filter((x) => x.umap_coordinates)
-        .filter((x) => (lifeStage === "all" || lifeStage === x.lifeStage) && (tSelected.size === 0 || tSelected.has(x[colorBy])))
+        .filter((x) => (lifeStage === "all" || lifeStage === x.lifeStage) )
     )
-  }, [umapData, lifeStage, colorBy, tSelected])
+  }, [umapData, lifeStage])
 
   const xMin = useMemo(
     () => (bounds ? Math.floor(bounds.x.start) : nearest5(Math.min(...((fData && fData.map((x) => x.umap_coordinates[0])) || [0])), true)),
@@ -240,7 +239,7 @@ export function DataMatrices() {
     )
   }, [xMax, xMin, yMax, yMin])
 
-  const [sampleTypeColors, sampleTypeCounts] = useMemo(
+  const [sampleTypeColors] = useMemo(
     () =>
       colorMap(
         (umapData && umapData.ccREBiosampleQuery &&
@@ -249,7 +248,7 @@ export function DataMatrices() {
       ),
     [umapData, isInbounds]
   )
-  const [ontologyColors, ontologyCounts] = useMemo(
+  const [ontologyColors] = useMemo(
     () =>
       colorMap(
         (umapData && umapData.ccREBiosampleQuery &&
@@ -300,7 +299,7 @@ export function DataMatrices() {
         }
       };
     });
-  }, [fData, searched, colorBy, sampleTypeColors, ontologyColors, isInbounds, biosamples]);
+  }, [fData, searched, colorBy, sampleTypeColors, ontologyColors, biosamples]);
   
   const legendEntries = useMemo(() => {
     // Create a color-count map based on scatterData
