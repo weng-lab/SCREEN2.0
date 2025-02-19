@@ -15,6 +15,8 @@ import { Text } from '@visx/text';
 import { useDrag } from '@visx/drag';
 import { curveBasis } from '@visx/curve';
 import ScatterTooltip from './tooltip';
+import ControlButtons from './controls';
+import { Box, Stack } from '@mui/material';
 
 const initialTransformMatrix = {
     scaleX: 1,
@@ -29,12 +31,10 @@ export const Chart = <T,>({
     width,
     height,
     pointData,
-    loading, 
-    selectionType,
+    loading,
     onSelectionChange,
     onPointClicked,
     tooltipBody,
-    zoomScale,
     miniMap,
     leftAxisLable,
     bottomAxisLabel
@@ -48,31 +48,38 @@ export const Chart = <T,>({
     const [tooltipData, setTooltipData] = React.useState<Point<T> | null>(null);
     const [tooltipOpen, setTooltipOpen] = React.useState(false);
     const [lines, setLines] = useState<Lines>([]);
+    const [selectMode, setSelectMode] = useState<"select" | "pan">("select")
+    const [initialLoad, setInitialLoad] = useState<boolean>(false)
+    const [prevPoints, setPrevPoints] = useState<Point<T>[]>(null)
     const margin = { top: 20, right: 20, bottom: 70, left: 70 };
     const boundedWidth = Math.min(width * 0.9, height * 0.9) - margin.left;
     const boundedHeight = boundedWidth;
     const hoveredPoint = tooltipData ? pointData.find(point => point.x === tooltipData.x && point.y === tooltipData.y) : null;
     const canvasRef = useRef(null);
 
+    const handleSelectionModeChange = (mode: "select" | "pan") => {
+        setSelectMode(mode);
+    };
+
     //rescale x and y scales when zooming
     //converts to pixel values before applying transformations
-    const rescaleX = (scale, zoom) => {
+    const rescaleX = (scale, translateX, scaleX) => {
         const newXDomain = scale
             .range()
             .map((r) =>
                 scale.invert(
-                    (r - zoom.transformMatrix.translateX) / zoom.transformMatrix.scaleX
+                    (r - translateX) / scaleX
                 )
             );
         return scale.copy().domain(newXDomain);
     };
 
-    const rescaleY = (scale, zoom) => {
+    const rescaleY = (scale, translateY, scaleY) => {
         const newXDomain = scale
             .range()
             .map((r) =>
                 scale.invert(
-                    (r - zoom.transformMatrix.translateY) / zoom.transformMatrix.scaleY
+                    (r - translateY) / scaleY
                 )
             );
         return scale.copy().domain(newXDomain);
@@ -106,19 +113,19 @@ export const Chart = <T,>({
     // Setup dragging for lasso drawing
     const onDragStart = useCallback(
         (currDrag) => {
-            if (selectionType === "select") {
+            if (selectMode === "select") {
                 // add the new line with the starting point
                 const adjustedX = (currDrag.x - margin.left);
                 const adjustedY = (currDrag.y - margin.top);
                 setLines((currLines) => [...currLines, [{ x: adjustedX, y: adjustedY }]]);
             }
         },
-        [selectionType, margin.left, margin.top],
+        [selectMode, margin.left, margin.top],
     );
 
     const onDragMove = useCallback(
         (currDrag) => {
-            if (selectionType === "select") {
+            if (selectMode === "select") {
                 // add the new point to the current line
                 const adjustedX = (currDrag.x - margin.left);
                 const adjustedY = (currDrag.y - margin.top);
@@ -131,7 +138,7 @@ export const Chart = <T,>({
                 });
             }
         },
-        [selectionType, margin.left, margin.top],
+        [selectMode, margin.left, margin.top],
     );
 
     //find all points within the drawn lasso for selection purposes
@@ -153,12 +160,12 @@ export const Chart = <T,>({
 
     const onDragEnd = useCallback(
         (zoom) => {
-            if (selectionType === "select") {
+            if (selectMode === "select") {
                 if (lines.length === 0) return;
 
                 const lasso = lines[lines.length - 1];
-                const xScaleTransformed = rescaleX(xScale, zoom);
-                const yScaleTransformed = rescaleY(yScale, zoom);
+                const xScaleTransformed = rescaleX(xScale, zoom.transformMatrix.translateX, zoom.transformMatrix.scaleX);
+                const yScaleTransformed = rescaleY(yScale, zoom.transformMatrix.translateY, zoom.transformMatrix.scaleY);
 
                 const pointsInsideLasso = pointData.filter((point) => {
                     const scaledPoint = {
@@ -176,7 +183,7 @@ export const Chart = <T,>({
                 setLines([]);
             }
         },
-        [lines, pointData, xScale, yScale, setLines, onSelectionChange, selectionType]
+        [lines, pointData, xScale, yScale, setLines, onSelectionChange, selectMode]
     );
 
     //visx draggable variables (canot declare before functions)
@@ -210,8 +217,8 @@ export const Chart = <T,>({
             const adjustedY = point.y - margin.top;
 
             //rescale the x and y coordinates with the current zoom state
-            const xScaleTransformed = rescaleX(xScale, zoom);
-            const yScaleTransformed = rescaleY(yScale, zoom);
+            const xScaleTransformed = rescaleX(xScale, zoom.transformMatrix.translateX, zoom.transformMatrix.scaleX);
+            const yScaleTransformed = rescaleY(yScale, zoom.transformMatrix.translateY, zoom.transformMatrix.scaleY);
 
             const threshhold = 5;
 
@@ -240,6 +247,55 @@ export const Chart = <T,>({
         setTooltipOpen(false);
         setTooltipData(null);
     }, []);
+
+    const drawPoints = useCallback((xScaleTransformed, yScaleTransformed) => {
+        const canvas = canvasRef.current;
+        if (canvas && initialLoad) {
+            console.log("Drawing Points")
+
+            const context = canvas.getContext('2d');
+            context.setTransform(2, 0, 0, 2, 0, 0);
+
+            // Clear the canvas before rendering
+            context.clearRect(0, 0, width, height);
+            // Render points on the canvas
+            pointData.forEach(point => {
+                const isHovered = hoveredPoint && hoveredPoint.x === point.x && hoveredPoint.y === point.y;
+                const transformedX = xScaleTransformed(point.x);
+                const transformedY = yScaleTransformed(point.y);;
+                const isPointWithinBounds =
+                    xScaleTransformed(point.x) >= 0 &&
+                    xScaleTransformed(point.x) <= boundedWidth &&
+                    yScaleTransformed(point.y) >= 0 &&
+                    yScaleTransformed(point.y) <= boundedHeight;
+
+                if (isPointWithinBounds && !isHovered) {
+                    context.beginPath();
+                    context.arc(transformedX, transformedY, point.r || 3, 0, Math.PI * 2);
+                    context.fillStyle = point.color;
+                    context.globalAlpha = (point.opacity !== undefined ? point.opacity : 1);
+                    context.fill();
+                }
+            });
+        }
+    }, [initialLoad, width, height, pointData, hoveredPoint, boundedWidth, boundedHeight])
+
+    // feels hacky, but this checks the canvas since we have to wait for the canvas to be 
+    // initialized, and we have to check if there was a page change so we can reset initialLoad
+    // TODO come up with a better solution
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (prevPoints !== pointData) {
+            //check to see if there was a page change by comparing the point data
+            setInitialLoad(false)
+        }
+        //check to see if the canvas has been initialized and if the initial points have been loaded already
+        if (canvas && !initialLoad) {
+            setInitialLoad(true)
+            setPrevPoints(pointData)
+        }
+
+    }, [initialLoad, pointData, prevPoints]);
 
     //Axis styling
     const axisLeftLabel = (
@@ -278,141 +334,170 @@ export const Chart = <T,>({
             <Zoom width={width} height={height} scaleXMin={1 / 2} scaleXMax={10} scaleYMin={1 / 2} scaleYMax={10} initialTransformMatrix={initialTransformMatrix}>
                 {(zoom) => {
                     // rescale as we zoom and pan
-                    const xScaleTransformed = rescaleX(xScale, zoom);
-                    const yScaleTransformed = rescaleY(yScale, zoom);
+                    const xScaleTransformed = rescaleX(xScale, zoom.transformMatrix.translateX, zoom.transformMatrix.scaleX);
+                    const yScaleTransformed = rescaleY(yScale, zoom.transformMatrix.translateY, zoom.transformMatrix.scaleY);
                     const isHoveredPointWithinBounds = hoveredPoint &&
                         xScaleTransformed(hoveredPoint.x) >= 0 &&
                         xScaleTransformed(hoveredPoint.x) <= boundedWidth &&
                         yScaleTransformed(hoveredPoint.y) >= 0 &&
                         yScaleTransformed(hoveredPoint.y) <= boundedHeight;
+
+                    const handleZoomIn = () => {
+                        zoom.scale({ scaleX: 1.2, scaleY: 1.2 });
+                    }
+
+                    const handleZoomOut = () => {
+                        zoom.scale({ scaleX: 0.8, scaleY: 0.8 });
+                    }
+
+                    const handleZoomReset = () => {
+                        zoom.reset();
+                    }
+
+                    drawPoints(xScaleTransformed, yScaleTransformed)
+                    
                     return (
                         <>
-                            {/* Zoomable Group for Points */}
-                            <div style={{ position: 'relative' }}>
-                                <canvas
-                                    ref={canvasRef}
-                                    width={width * 2}
-                                    height={height * 2}
-                                    style={{
-                                        cursor: selectionType === "select" ? (isDragging ? 'none' : 'default') : (zoom.isDragging ? 'grabbing' : 'grab'),
-                                        userSelect: 'none',
-                                        position: "absolute",
-                                        top: margin.top,
-                                        left: margin.left,
-                                        width: width,
-                                        height: height,
-                                    }}
+                            <Stack direction="column" sx={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', zIndex: 10 }}>
+                                <ControlButtons
+                                    handleSelectionModeChange={handleSelectionModeChange}
+                                    selectMode={selectMode}
+                                    zoomIn={handleZoomIn}
+                                    zoomOut={handleZoomOut}
+                                    zoomReset={handleZoomReset}
                                 />
-                                <svg width={width} height={height} style={{ position: "absolute", cursor: selectionType === "select" ? (isDragging ? 'none' : 'default') : (zoom.isDragging ? 'grabbing' : 'grab'), userSelect: 'none' }} onMouseMove={(e) => handleMouseMove(e, zoom)} onMouseLeave={handleMouseLeave} >
-                                    <Group top={margin.top} left={margin.left}>
-                                        {selectionType === "select" && (
-                                            <>
-                                                {/* Render lasso */}
-                                                {lines.map((line, i) => (
-                                                    <LinePath
-                                                        key={`line-${i}`}
-                                                        fill="transparent"
-                                                        stroke="black"
-                                                        strokeWidth={3}
-                                                        data={line}
-                                                        curve={curveBasis}
-                                                        x={(d) => d.x}
-                                                        y={(d) => d.y}
-                                                    />
-                                                ))}
-
-                                                {isDragging && (
-                                                    <g>
-                                                        {/* Crosshair styling */}
-                                                        <line
-                                                            x1={x - margin.left + dx - 6}
-                                                            y1={y - margin.top + dy}
-                                                            x2={x - margin.left + dx + 6}
-                                                            y2={y - margin.top + dy}
-                                                            stroke="black"
-                                                            strokeWidth={1}
-                                                        />
-                                                        <line
-                                                            x1={x - margin.left + dx}
-                                                            y1={y - margin.top + dy - 6}
-                                                            x2={x - margin.left + dx}
-                                                            y2={y - margin.top + dy + 6}
-                                                            stroke="black"
-                                                            strokeWidth={1}
-                                                        />
-                                                        <circle cx={x - margin.left} cy={y - margin.top} r={4} fill="transparent" stroke="black" pointerEvents="none" />
-                                                    </g>
-                                                )}
-                                            </>
-                                        )}
-
-                                        {/* Render hovered point last to bring it to foreground */}
-                                        {isHoveredPointWithinBounds && hoveredPoint && (
-                                            <Circle
-                                                cx={xScaleTransformed(hoveredPoint.x)}
-                                                cy={yScaleTransformed(hoveredPoint.y)}
-                                                r={hoveredPoint.r + 2}
-                                                fill={hoveredPoint.color}
-                                                stroke="black"
-                                                strokeWidth={1}
-                                                opacity={1}
-                                                onClick={() => onPointClicked && onPointClicked(hoveredPoint)}
-                                            />
-                                        )}
-
-                                        {/* Interactable surface */}
-                                        <rect
-                                            fill="transparent"
-                                            width={width}
-                                            height={height}
-                                            onMouseDown={selectionType === "select" ? dragStart : zoom.dragStart}
-                                            onMouseUp={selectionType === "select" ? (event) => {
-                                                dragEnd(event);
-                                                onDragEnd(zoom);
-                                            } : zoom.dragEnd}
-                                            onMouseMove={selectionType === "select" ? (isDragging ? dragMove : undefined) : zoom.dragMove}
-                                            onTouchStart={selectionType === "select" ? dragStart : zoom.dragStart}
-                                            onTouchEnd={selectionType === "select" ? (event) => {
-                                                dragEnd(event);
-                                                onDragEnd(zoom);
-                                            } : zoom.dragEnd}
-                                            onTouchMove={selectionType === "select" ? (isDragging ? dragMove : undefined) : zoom.dragMove}
-                                            onWheel={(event) => {
-                                                const point = localPoint(event) || { x: 0, y: 0 };
-                                                const zoomDirection = event.deltaY < 0 ? 1.1 : 0.9;
-                                                zoom.scale({ scaleX: zoomDirection, scaleY: zoomDirection, point });
+                            </Stack>
+                            {/* Zoomable Group for Points */}
+                            <Stack justifyContent="center" alignItems="center" direction="row" sx={{ position: "relative", }}>
+                                <Box sx={{ width: width, height: height }} >
+                                    <div style={{ position: 'relative' }}>
+                                        <canvas
+                                            ref={canvasRef}
+                                            width={width * 2}
+                                            height={height * 2}
+                                            style={{
+                                                cursor: selectMode === "select" ? (isDragging ? 'none' : 'default') : (zoom.isDragging ? 'grabbing' : 'grab'),
+                                                userSelect: 'none',
+                                                position: "absolute",
+                                                top: margin.top,
+                                                left: margin.left,
+                                                width: width,
+                                                height: height,
+                                                backgroundColor: "transparent"
                                             }}
                                         />
-                                    </Group>
+                                        <svg width={width} height={height} style={{ position: "absolute", cursor: selectMode === "select" ? (isDragging ? 'none' : 'default') : (zoom.isDragging ? 'grabbing' : 'grab'), userSelect: 'none' }} onMouseMove={(e) => handleMouseMove(e, zoom)} onMouseLeave={handleMouseLeave} >
+                                            <Group top={margin.top} left={margin.left}>
+                                                {selectMode === "select" && (
+                                                    <>
+                                                        {/* Render lasso */}
+                                                        {lines.map((line, i) => (
+                                                            <LinePath
+                                                                key={`line-${i}`}
+                                                                fill="transparent"
+                                                                stroke="black"
+                                                                strokeWidth={3}
+                                                                data={line}
+                                                                curve={curveBasis}
+                                                                x={(d) => d.x}
+                                                                y={(d) => d.y}
+                                                            />
+                                                        ))}
 
-                                    {/* Static Axes Group */}
-                                    <Group top={margin.top} left={margin.left}>
-                                        <AxisLeft
-                                            numTicks={4}
-                                            scale={yScaleTransformed}
-                                            tickLabelProps={() => ({
-                                                fill: '#1c1917',
-                                                fontSize: 10,
-                                                textAnchor: 'end',
-                                                verticalAnchor: 'middle',
-                                                x: -10,
-                                            })}
-                                        />
-                                        <AxisBottom
-                                            numTicks={4}
-                                            top={boundedHeight}
-                                            scale={xScaleTransformed}
-                                            tickLabelProps={() => ({
-                                                fill: '#1c1917',
-                                                fontSize: 11,
-                                                textAnchor: 'middle',
-                                            })}
-                                        />
-                                        {axisLeftLabel}
-                                        {axisBottomLabel}
-                                    </Group>
-                                </svg >
-                            </div>
+                                                        {isDragging && (
+                                                            <g>
+                                                                {/* Crosshair styling */}
+                                                                <line
+                                                                    x1={x - margin.left + dx - 6}
+                                                                    y1={y - margin.top + dy}
+                                                                    x2={x - margin.left + dx + 6}
+                                                                    y2={y - margin.top + dy}
+                                                                    stroke="black"
+                                                                    strokeWidth={1}
+                                                                />
+                                                                <line
+                                                                    x1={x - margin.left + dx}
+                                                                    y1={y - margin.top + dy - 6}
+                                                                    x2={x - margin.left + dx}
+                                                                    y2={y - margin.top + dy + 6}
+                                                                    stroke="black"
+                                                                    strokeWidth={1}
+                                                                />
+                                                                <circle cx={x - margin.left} cy={y - margin.top} r={4} fill="transparent" stroke="black" pointerEvents="none" />
+                                                            </g>
+                                                        )}
+                                                    </>
+                                                )}
+
+                                                {/* Render hovered point last to bring it to foreground */}
+                                                {isHoveredPointWithinBounds && hoveredPoint && (
+                                                    <Circle
+                                                        cx={xScaleTransformed(hoveredPoint.x)}
+                                                        cy={yScaleTransformed(hoveredPoint.y)}
+                                                        r={hoveredPoint.r + 2}
+                                                        fill={hoveredPoint.color}
+                                                        stroke="black"
+                                                        strokeWidth={1}
+                                                        opacity={1}
+                                                        onClick={() => onPointClicked && onPointClicked(hoveredPoint)}
+                                                    />
+                                                )}
+
+                                                {/* Interactable surface */}
+                                                <rect
+                                                    fill="transparent"
+                                                    width={width}
+                                                    height={height}
+                                                    onMouseDown={selectMode === "select" ? dragStart : zoom.dragStart}
+                                                    onMouseUp={selectMode === "select" ? (event) => {
+                                                        dragEnd(event);
+                                                        onDragEnd(zoom);
+                                                    } : zoom.dragEnd}
+                                                    onMouseMove={selectMode === "select" ? (isDragging ? dragMove : undefined) : zoom.dragMove}
+                                                    onTouchStart={selectMode === "select" ? dragStart : zoom.dragStart}
+                                                    onTouchEnd={selectMode === "select" ? (event) => {
+                                                        dragEnd(event);
+                                                        onDragEnd(zoom);
+                                                    } : zoom.dragEnd}
+                                                    onTouchMove={selectMode === "select" ? (isDragging ? dragMove : undefined) : zoom.dragMove}
+                                                    onWheel={(event) => {
+                                                        const point = localPoint(event) || { x: 0, y: 0 };
+                                                        const zoomDirection = event.deltaY < 0 ? 1.1 : 0.9;
+                                                        zoom.scale({ scaleX: zoomDirection, scaleY: zoomDirection, point });
+                                                    }}
+                                                />
+                                            </Group>
+
+                                            {/* Static Axes Group */}
+                                            <Group top={margin.top} left={margin.left}>
+                                                <AxisLeft
+                                                    numTicks={4}
+                                                    scale={yScaleTransformed}
+                                                    tickLabelProps={() => ({
+                                                        fill: '#1c1917',
+                                                        fontSize: 10,
+                                                        textAnchor: 'end',
+                                                        verticalAnchor: 'middle',
+                                                        x: -10,
+                                                    })}
+                                                />
+                                                <AxisBottom
+                                                    numTicks={4}
+                                                    top={boundedHeight}
+                                                    scale={xScaleTransformed}
+                                                    tickLabelProps={() => ({
+                                                        fill: '#1c1917',
+                                                        fontSize: 11,
+                                                        textAnchor: 'middle',
+                                                    })}
+                                                />
+                                                {axisLeftLabel}
+                                                {axisBottomLabel}
+                                            </Group>
+                                        </svg >
+                                    </div>
+                                </Box>
+                            </Stack>
                             {
                                 miniMap.show && createPortal(
                                     <div
@@ -484,51 +569,11 @@ export const Chart = <T,>({
                                     miniMap.ref ? miniMap.ref.current : document.body
                                 )
                             }
-                            {
-                                useEffect(() => {
-                                    const canvas = canvasRef.current;
-                                    if (canvas) {
-                                        const context = canvas.getContext('2d');
-                                        context.setTransform(2, 0, 0, 2, 0, 0);
-
-                                        // Clear the canvas before rendering
-                                        context.clearRect(0, 0, width, height);
-                                        // Render points on the canvas
-                                        pointData.forEach(point => {
-                                            const isHovered = hoveredPoint && hoveredPoint.x === point.x && hoveredPoint.y === point.y;
-                                            const transformedX = xScaleTransformed(point.x);
-                                            const transformedY = yScaleTransformed(point.y);;
-                                            const isPointWithinBounds =
-                                                xScaleTransformed(point.x) >= 0 &&
-                                                xScaleTransformed(point.x) <= boundedWidth &&
-                                                yScaleTransformed(point.y) >= 0 &&
-                                                yScaleTransformed(point.y) <= boundedHeight;
-
-                                            if (isPointWithinBounds && !isHovered) {
-                                                context.beginPath();
-                                                context.arc(transformedX, transformedY, point.r || 3, 0, Math.PI * 2);
-                                                context.fillStyle = point.color;
-                                                context.globalAlpha = (point.opacity !== undefined ? point.opacity : 1);
-                                                context.fill();
-                                            }
-                                        });
-                                    }
-                                }, [pointData, width, height, hoveredPoint, zoom, xScaleTransformed, yScaleTransformed, boundedWidth, boundedHeight])
-                            }
-                            {
-                                useEffect(() => {
-                                    if (zoomScale.scaleX === 1) {
-                                        zoom.reset();
-                                    } else {
-                                        zoom.scale({ scaleX: zoomScale.scaleX, scaleY: zoomScale.scaleY });
-                                    }
-                                }, [zoomScale])
-                            }
 
                             {/* tooltip */}
                             {
                                 tooltipOpen && tooltipData && isHoveredPointWithinBounds && (
-                                    <Tooltip left={xScaleTransformed(tooltipData.x) + 50} top={yScaleTransformed(tooltipData.y) + 50}>
+                                    <Tooltip left={xScaleTransformed(tooltipData.x)} top={yScaleTransformed(tooltipData.y)}>
                                         <ScatterTooltip
                                             tooltipBody={tooltipBody}
                                             tooltipData={tooltipData}

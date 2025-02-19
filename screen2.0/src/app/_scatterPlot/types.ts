@@ -31,14 +31,12 @@ export type ChartProps<T> = {
     height: number;
     pointData: Point<T>[];
     loading: boolean;
-    selectionType: "select" | "pan";
     //returns an array of selected points inside a lasso (optional)
     onSelectionChange?: (selectedPoints: Point<T>[]) => void;
     //returns a point when clicked on (optional)
     onPointClicked?: (point: Point<T>) => void;
     //custom tooltip formating (optional)
     tooltipBody?: (point: Point<T>) => JSX.Element;
-    zoomScale: { scaleX: number; scaleY: number };
     miniMap: MiniMapProps;
     leftAxisLable: string;
     bottomAxisLabel: string;
@@ -60,4 +58,12 @@ export type MapProps<T> = {
 export type TooltipProps<T> = {
     tooltipBody?: (point: Point<T>) => JSX.Element;
     tooltipData: Point<T>;
+}
+
+export type ControlButtonsProps = {
+    handleSelectionModeChange;
+    selectMode;
+    zoomIn;
+    zoomOut;
+    zoomReset;
 }
