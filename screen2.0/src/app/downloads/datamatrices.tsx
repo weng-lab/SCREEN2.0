@@ -19,9 +19,9 @@ import { Download, Visibility, CancelRounded } from "@mui/icons-material"
 import Image from "next/image"
 import humanTransparentIcon from "../../../public/Transparent_HumanIcon.png"
 import mouseTransparentIcon from "../../../public/Transparent_MouseIcon.png"
-import { DataTable, DataTableColumn, ScatterPlot } from "@weng-lab/psychscreen-ui-components"
+import { DataTable, DataTableColumn, ScatterPlot, Point } from "@weng-lab/psychscreen-ui-components"
 import Config from "../../config.json"
-import { BiosampleUMAP } from "./types"
+import { BiosampleUMAP, PointMetaData } from "./types"
 import { DNase_seq } from "../../common/lib/colors"
 import { H3K4me3 } from "../../common/lib/colors"
 import { H3K27ac } from "../../common/lib/colors"
@@ -219,7 +219,7 @@ export function DataMatrices() {
     setBiosamples(selectedBiosamples);
   };
 
-  const scatterData = useMemo(() => {
+  const scatterData: Point<PointMetaData>[] = useMemo(() => {
     if (!fData) return [];
     const biosampleIds = biosamples.map(sample => sample.umap_coordinates);
 

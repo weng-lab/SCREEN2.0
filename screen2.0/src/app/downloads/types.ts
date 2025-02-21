@@ -7,3 +7,8 @@ export type BiosampleUMAP = {
   umap_coordinates: number[]
   experimentAccession: string
 }
+
+export type PointMetaData = {
+  name: string
+  accession: string
+}

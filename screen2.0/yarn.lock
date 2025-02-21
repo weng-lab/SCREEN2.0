@@ -1823,10 +1823,10 @@
     react-draggable "^4.4.6"
     use-deep-compare-effect "^1.8.1"
 
-"@weng-lab/psychscreen-ui-components@^2.0.10":
-  version "2.0.10"
-  resolved "https://registry.npmjs.org/@weng-lab/psychscreen-ui-components/-/psychscreen-ui-components-2.0.10.tgz"
-  integrity sha512-UjEZkw+a2XgHO7R6xQbNoMWiTug4lW+y5Oj4XL4YhZx63z+QC0VdCnx0DC165FWFMckunSi52DkdMWIiqMmR3g==
+"@weng-lab/psychscreen-ui-components@^2.0.11":
+  version "2.0.11"
+  resolved "https://registry.npmjs.org/@weng-lab/psychscreen-ui-components/-/psychscreen-ui-components-2.0.11.tgz"
+  integrity sha512-3zVLuuli1E/g/yp/CTKWtdY8V+uM/WdsDo0jztCdbLZy7m73SYkvqg0p7Bs86n7doBxoTdCfKL56TMJ8TwhL1Q==
   dependencies:
     "@visx/axis" "^3.12.0"
     "@visx/drag" "^3.12.0"
