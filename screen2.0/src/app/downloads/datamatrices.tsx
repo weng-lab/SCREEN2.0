@@ -12,15 +12,14 @@ import {
   SelectChangeEvent,
   IconButton,
   Paper,
-  Tooltip
 } from "@mui/material"
 import { useQuery } from "@apollo/client"
 import Grid from "@mui/material/Grid2"
-import { Download, Visibility, CancelRounded, HighlightAlt } from "@mui/icons-material"
+import { Download, Visibility, CancelRounded } from "@mui/icons-material"
 import Image from "next/image"
 import humanTransparentIcon from "../../../public/Transparent_HumanIcon.png"
 import mouseTransparentIcon from "../../../public/Transparent_MouseIcon.png"
-import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
+import { DataTable, DataTableColumn, ScatterPlot } from "@weng-lab/psychscreen-ui-components"
 import Config from "../../config.json"
 import { BiosampleUMAP } from "./types"
 import { DNase_seq } from "../../common/lib/colors"
@@ -32,7 +31,6 @@ import { client } from "../search/_ccredetails/client"
 import { UMAP_QUERY } from "./queries"
 import BiosampleTables from "../_biosampleTables/BiosampleTables"
 import { ParentSize } from '@visx/responsive';
-import { Chart } from '../_scatterPlot/scatterPlot'
 
 type Selected = {
   assembly: "Human" | "Mouse"
@@ -98,12 +96,7 @@ export function DataMatrices() {
   const [searched, setSearched] = useState<string>(null)
   const [biosamples, setBiosamples] = useState<BiosampleUMAP[]>([])
   const [openModalType, setOpenModalType] = useState<null | "biosamples" | "download">(null);
-  const [showMiniMap, setShowMiniMap] = useState(false);
   const graphContainerRef = useRef(null);
-
-  const toggleMiniMap = useCallback(() => {
-    setShowMiniMap(!showMiniMap);
-  }, [showMiniMap]);
 
   useEffect(() => {
     const graphElement = graphContainerRef.current;
@@ -142,16 +135,15 @@ export function DataMatrices() {
 
   useEffect(() => setBiosamples([]), [selectedAssay])
 
-  const map = useMemo(() => {
-    return {
-      show: showMiniMap,
-      position: {
-        right: 50,
-        bottom: 50,
-      },
-      ref: graphContainerRef
-    };
-  }, [showMiniMap]);
+  const map = {
+    show: true,
+    defaultOpen: true,
+    position: {
+      right: 50,
+      bottom: 50,
+    },
+    ref: graphContainerRef
+  };
 
   const fData = useMemo(() => {
     return (
@@ -242,6 +234,7 @@ export function DataMatrices() {
           ? (colorBy === "sampleType" ? sampleTypeColors : ontologyColors)[x[colorBy]]
           : "#aaaaaa",
         opacity: biosampleIds.length === 0 ? 1 : (isInBiosample ? 1 : 0.1),
+        shape: "circle",
         metaData: {
           name: x.displayname,
           accession: x.experimentAccession
@@ -482,11 +475,12 @@ export function DataMatrices() {
                 const squareSize = Math.min(width, height);
 
                 return (
-                  <Chart
+                  <ScatterPlot
                     width={squareSize}
                     height={squareSize}
                     pointData={scatterData}
                     loading={umapLoading}
+                    selectable={true}
                     onSelectionChange={handleSelectionChange}
                     miniMap={map}
                     leftAxisLable="UMAP-2"
@@ -496,11 +490,6 @@ export function DataMatrices() {
               }
               }
             </ParentSize>
-            <Tooltip title="Toggle Minimap">
-              <IconButton sx={{ position: 'absolute', right: 10, bottom: 10, zIndex: 10, width: 'auto', height: 'auto', color: showMiniMap ? "primary.main" : "default" }} size="small" onClick={toggleMiniMap}>
-                <HighlightAlt />
-              </IconButton>
-            </Tooltip>
           </Stack>
 
         </Stack>
