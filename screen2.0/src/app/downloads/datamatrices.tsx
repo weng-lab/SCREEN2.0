@@ -136,7 +136,6 @@ export function DataMatrices() {
   useEffect(() => setBiosamples([]), [selectedAssay])
 
   const map = {
-    show: true,
     defaultOpen: true,
     position: {
       right: 50,
@@ -480,7 +479,7 @@ export function DataMatrices() {
                     height={squareSize}
                     pointData={scatterData}
                     loading={umapLoading}
-                    selectable={true}
+                    selectable
                     onSelectionChange={handleSelectionChange}
                     miniMap={map}
                     leftAxisLable="UMAP-2"
