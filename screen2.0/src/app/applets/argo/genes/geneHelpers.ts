@@ -1,5 +1,5 @@
 import { AllLinkedGenes, CCREs, ClosestGenetocCRE, GeneFilterState, GeneLinkingMethod, GeneTableRow, RankedRegions } from "../types";
-import { GeneOrthologQueryQuery, GeneSpecificityQuery } from "../../../../graphql/__generated__/graphql";
+import { GeneOrthologQueryQuery, GeneSpecificityQuery, GeneExpQueryQuery } from "../../../../graphql/__generated__/graphql";
 
 export const getSpecificityScores = (allGenes: AllLinkedGenes, accessions: CCREs, geneSpecificity: GeneSpecificityQuery, geneFilterVariables: GeneFilterState): GeneTableRow[] => {
     
@@ -58,6 +58,79 @@ export const getSpecificityScores = (allGenes: AllLinkedGenes, accessions: CCREs
     });
 
     return specificityRows
+}
+
+export const getExpressionScores = (allGenes: AllLinkedGenes, accessions: CCREs, geneExpression: GeneExpQueryQuery, geneFilterVariables: GeneFilterState): GeneTableRow[] => {
+    console.log(geneExpression)
+    
+    const updatedAllGenes: AllLinkedGenes = allGenes.map((gene) => ({
+        ...gene,
+        genes: gene.genes.map((geneEntry) => {
+            // Find the matching gene in geneExpression
+            const matchingGene = geneExpression.geneexpressiontpms.find(
+                (expressionGene) => expressionGene.gene === geneEntry.name.replace(/\s+/g, "")
+            );
+
+            // Return a new geneEntry with the geneExpression if a match is found
+            return {
+                ...geneEntry,
+                geneExpression: matchingGene ? matchingGene.tpm : geneEntry.geneExpression,
+            };
+        }),
+    }));
+
+    const expressionRows: GeneTableRow[] = accessions.flatMap((ccre) => {
+        // Filter out ccres by matching accession
+        const matchingGenes = updatedAllGenes.filter((gene) => ccre.accession === gene.accession);
+
+        const filteredGenes = matchingGenes.map((gene) => ({
+            ...gene,
+            genes: gene.genes.filter((linkedGene) => {
+                // Check if at least one linkage method is valid based on geneFilterVariables
+                return linkedGene.linkedBy.some((method) =>
+                    geneFilterVariables.methodOfLinkage[method as keyof GeneFilterState['methodOfLinkage']]
+                );
+            }),
+        }));
+
+        const expressionScores = filteredGenes.flatMap((gene) =>
+            gene.genes.map((linkedGene) => ({
+                geneName: linkedGene.name,
+                score: linkedGene.geneExpression || 0,
+            }))
+        );
+
+        // Calculate expressionSpecificity based on rankBy, only including filtered genes
+        let geneExpression: GeneTableRow["geneExpression"] | undefined;
+
+        if (expressionScores.length > 0) {
+            if (geneFilterVariables.rankBy === "max") {
+                const maxGene = expressionScores.reduce((prev, curr) =>
+                    curr.score > prev.score ? curr : prev
+                );
+                geneExpression = { geneName: maxGene.geneName, score: maxGene.score };
+            } else {
+                const avgScore =
+                    expressionScores.reduce((sum, { score }) => sum + score, 0) / expressionScores.length;
+                geneExpression = { geneName: "Average", score: avgScore };
+            }
+        }
+
+        // Map each matching gene's details to the GeneTableRow format
+        return matchingGenes.map((gene) => ({
+            regionID: ccre.regionID,
+            inputRegion: ccre.inputRegion,
+            geneExpression,
+            linkedGenes: gene.genes.map((linkedGene) => ({
+                accession: gene.accession,
+                name: linkedGene.name,
+                geneid: linkedGene.geneId,
+                linkedBy: linkedGene.linkedBy as GeneLinkingMethod[],
+            })),
+        }));
+    });
+
+    return expressionRows
 }
 
 export const parseLinkedGenes = (data): AllLinkedGenes => {
@@ -182,14 +255,14 @@ export const generateGeneRanks = (geneRows: GeneTableRow[]): RankedRegions => {
     })();
 
     // Assign ranks based on maxExpression
-    const maxExpressionRankedRows = (() => {
-        const sortedRows = [...geneRows].sort((a, b) => (b.maxExpression ?? 0) - (a.maxExpression ?? 0));
+    const geneExpressionRankedRows = (() => {
+        const sortedRows = [...geneRows].sort((a, b) => (b.geneExpression.score ?? 0) - (a.geneExpression.score ?? 0));
         let rank = 1; // Start rank at 1
         return sortedRows.map((row, index) => {
-            if ((row.maxExpression ?? 0) === 0) {
+            if ((row.geneExpression ?? 0) === 0) {
                 return { ...row, maxExpRank: 0 }; // Set rank to 0 for 0 maxExpression
             }
-            if (index > 0 && (sortedRows[index].maxExpression ?? 0) !== (sortedRows[index - 1].maxExpression ?? 0)) {
+            if (index > 0 && (sortedRows[index].geneExpression ?? 0) !== (sortedRows[index - 1].geneExpression ?? 0)) {
                 rank = index + 1;
             }
             return { ...row, maxExpRank: rank };
@@ -198,7 +271,7 @@ export const generateGeneRanks = (geneRows: GeneTableRow[]): RankedRegions => {
 
     // Merge ranks and calculate total rank
     const combinedRanks = expressionSpecificityRankedRows.map((row) => {
-        const rankedGenes = maxExpressionRankedRows.find(
+        const rankedGenes = geneExpressionRankedRows.find(
             (motifRow) => motifRow.regionID === row.regionID
         )?.maxExpRank;
 

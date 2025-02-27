@@ -175,6 +175,7 @@ export type AllLinkedGenes = {
         name: string;
         geneId: string;
         expressionSpecificity?: number;
+        geneExpression?: number;
         linkedBy: string[];
     }[];
 }[]
@@ -223,7 +224,10 @@ export type ElementTableRow = {
 export type GeneTableRow = {
     regionID: number | string
     inputRegion: GenomicRegion
-    maxExpression?: number
+    geneExpression?: {
+        geneName: string
+        score: number
+    }
     expressionSpecificity?: number
     linkedGenes?: LinkedGenes
 }

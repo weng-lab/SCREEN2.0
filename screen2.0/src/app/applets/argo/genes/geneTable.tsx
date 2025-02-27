@@ -19,7 +19,16 @@ const GeneTable: React.FC<GeneTableProps> = ({
         ]
 
         if (geneFilterVariables.useGenes) {
-            // cols.push({ header: "Max Expression", value: (row) => row.maxExpression })
+            cols.push({ header: "Gene Expression", value: (row) => row.geneExpression.score,
+                render: (row) =>
+                    row.geneExpression?.geneName !== "Average" ? (
+                        <span>
+                            <strong>Gene:</strong> {row.geneExpression.geneName} <strong>TPM:</strong> {row.geneExpression.score.toFixed(2)}
+                        </span>
+                    ) : row.geneExpression? (
+                        row.geneExpression.score.toFixed(2)
+                    ) : "N/A"
+             })
             cols.push({ header: "Expression Specificity", value: (row) => row.expressionSpecificity ? row.expressionSpecificity.toFixed(2) : "N/A" })
         }
 

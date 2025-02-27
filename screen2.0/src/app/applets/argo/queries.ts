@@ -27,21 +27,6 @@ query ccreSearchQuery($assembly: String!, $accessions: [String!], $cellType: Str
 }
 `)
 
-export const GENE_EXP_QUERY = gql(`
-query geneExpression($assembly: String!, $biosample_value: [String], $gene_id: [String]) {
-  gene_dataset(biosample_value: $biosample_value) {  
-    gene_quantification_files(assembly: $assembly) {
-      quantifications(gene_id_prefix: $gene_id) {
-        gene { id }
-        tpm
-        file_accession
-        fpkm
-      }
-    }
-  }
-}
- `)
-
 export const SPECIFICITY_QUERY = gql(`
   query geneSpecificity($geneids: [String]){
   geneSpecificity(geneid: $geneids) {
@@ -179,5 +164,17 @@ export const GENE_ORTHO_QUERY = gql(`
     }
   }
     `)
+
+export const GENE_EXP_QUERY = gql(`
+  query geneExpQuery($genes: [GeneExpressionInput!]) {
+	geneexpressiontpms(genes: $genes) {
+	tpm 
+	gene
+	tissue
+	biosample
+    error
+              }
+}
+  `)
 
 

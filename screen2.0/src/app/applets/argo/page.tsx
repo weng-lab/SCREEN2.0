@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useMemo } from "react"
 import { useState } from "react"
 import { Stack, Typography, Box, Alert, CircularProgress, IconButton, Button, Tooltip } from "@mui/material"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
-import { ORTHOLOG_QUERY, Z_SCORES_QUERY, BIG_REQUEST_QUERY, MOTIF_QUERY, CLOSEST_LINKED_QUERY, SPECIFICITY_QUERY, GENE_ORTHO_QUERY } from "./queries"
+import { ORTHOLOG_QUERY, Z_SCORES_QUERY, BIG_REQUEST_QUERY, MOTIF_QUERY, CLOSEST_LINKED_QUERY, SPECIFICITY_QUERY, GENE_ORTHO_QUERY, GENE_EXP_QUERY } from "./queries"
 import { QueryResult, useLazyQuery, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
 import { RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, CCREs, InputRegions, SubTableTitleProps, IsolatedRow } from "./types"
@@ -16,7 +16,7 @@ import { BigRequest, OccurrencesQuery } from "../../../graphql/__generated__/gra
 import { calculateAggregateRanks, matchRanks } from "./helpers"
 import { batchRegions, calculateConservationScores, generateSequenceRanks, getNumOverlappingMotifs } from "./sequence/sequenceHelpers"
 import { generateElementRanks, handleSameInputRegion, mapScores, mapScoresCTSpecific } from "./elements/elementHelpers"
-import { filterOrthologGenes, generateGeneRanks, getSpecificityScores, parseLinkedGenes, pushClosestGenes } from "./genes/geneHelpers"
+import { filterOrthologGenes, generateGeneRanks, getExpressionScores, getSpecificityScores, parseLinkedGenes, pushClosestGenes } from "./genes/geneHelpers"
 import SequenceTable from "./sequence/sequenceTable"
 import ElementTable from "./elements/elementTable"
 import GeneTable from "./genes/geneTable"
@@ -28,6 +28,7 @@ export default function Argo() {
     const [getIntersectingCcres, { data: intersectArray }] = useLazyQuery(BED_INTERSECT_QUERY)
     const [getMemeOccurrences] = useLazyQuery(MOTIF_QUERY)
     const [getGeneSpecificity, { data: geneSpecificity, loading: loading_gene_specificity }] = useLazyQuery(SPECIFICITY_QUERY)
+    const [getGeneExpression, { data: geneExpression, loading: loading_gene_expression }] = useLazyQuery(GENE_EXP_QUERY)
     const [getOrthoGenes, { data: orthoGenes }] = useLazyQuery(GENE_ORTHO_QUERY)
     const [occurrences, setOccurrences] = useState<QueryResult<OccurrencesQuery>[]>([]);
     const [loadingMainRows, setLoadingMainRows] = useState(true);
@@ -609,15 +610,52 @@ export default function Argo() {
                 client: client,
                 fetchPolicy: 'cache-and-network',
             })
+            getGeneExpression({
+                variables: {
+                    genes: Array.from(
+                        new Set(
+                            filteredGenes.flatMap((entry) =>
+                                entry.genes.map((gene) => gene.name.trim())
+                            )
+                        )
+                    ).map((name) => ({ gene: name }))
+                },
+                client: client,
+                fetchPolicy: 'cache-and-network'
+            })
         }
-        if (geneSpecificity) {
-            const specificityRows = getSpecificityScores(filteredGenes, intersectingCcres, geneSpecificity, geneFilterVariables)
-            return specificityRows
+        const specificityRows = geneSpecificity ? getSpecificityScores(filteredGenes, intersectingCcres, geneSpecificity, geneFilterVariables) : []
+        const expressionRows = geneExpression ? getExpressionScores(filteredGenes, intersectingCcres, geneExpression, geneFilterVariables) : []
+
+        const mergedRowsMap = new Map<string | number, GeneTableRow>();
+
+        specificityRows.forEach(row => {
+            mergedRowsMap.set(row.regionID, { ...row });
+        });
+        console.log(geneExpression)
+
+        // Process expressionRows, merging data when `regionID` matches
+        expressionRows.forEach(row => {
+            if (mergedRowsMap.has(row.regionID)) {
+                mergedRowsMap.set(row.regionID, {
+                    ...mergedRowsMap.get(row.regionID),
+                    geneExpression: row.geneExpression, 
+                });
+            } else {
+                // Otherwise, add as a new entry
+                mergedRowsMap.set(row.regionID, { ...row });
+            }
+        });
+
+        // Convert map back to an array
+        const mergedRows = Array.from(mergedRowsMap.values());
+        if (geneSpecificity && geneExpression) {
+            return mergedRows
         } else {
             return []
         }
 
-    }, [closestAndLinkedGenes, geneFilterVariables, geneSpecificity, getGeneSpecificity, getOrthoGenes, intersectingCcres, orthoGenes]);
+    }, [closestAndLinkedGenes, geneExpression, geneFilterVariables, geneSpecificity, getGeneExpression, getGeneSpecificity, getOrthoGenes, intersectingCcres, orthoGenes]);
 
     const geneRanks = useMemo<RankedRegions>(() => {
         if (geneRows === null || !geneFilterVariables.useGenes) {
@@ -654,7 +692,7 @@ export default function Argo() {
         if (elementRanks.length > 0) {
             setLoadingElementRanks(false)
         }
-        if (geneRanks.length > 0 && !loading_gene_specificity) {
+        if (geneRanks.length > 0 && !loading_gene_specificity && !loading_gene_expression) {
             setLoadingGeneRanks(false)
         }
         if (elementRanks.length > 0 && sequenceRanks.length > 0 && geneRanks.length > 0 && !loading_gene_specificity && !loading_conservation_scores) {
@@ -662,7 +700,7 @@ export default function Argo() {
         }
 
         return updatedMainRows;
-    }, [elementRanks, geneRanks, inputRegions, loading_conservation_scores, loading_gene_specificity, sequenceRanks]);
+    }, [elementRanks, geneRanks, inputRegions, loading_conservation_scores, loading_gene_expression, loading_gene_specificity, sequenceRanks]);
 
     //handle column changes for the main rank table
     const mainColumns: DataTableColumn<MainTableRow>[] = useMemo(() => {
