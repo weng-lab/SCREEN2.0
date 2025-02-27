@@ -12,17 +12,16 @@ import {
   SelectChangeEvent,
   IconButton,
   Paper,
-  Tooltip
 } from "@mui/material"
 import { useQuery } from "@apollo/client"
 import Grid from "@mui/material/Grid2"
-import { Download, Visibility, ZoomIn, ZoomOut, PanTool, Edit, CancelRounded, HighlightAlt } from "@mui/icons-material"
+import { Download, Visibility, CancelRounded } from "@mui/icons-material"
 import Image from "next/image"
 import humanTransparentIcon from "../../../public/Transparent_HumanIcon.png"
 import mouseTransparentIcon from "../../../public/Transparent_MouseIcon.png"
-import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
+import { DataTable, DataTableColumn, ScatterPlot, Point } from "@weng-lab/psychscreen-ui-components"
 import Config from "../../config.json"
-import { BiosampleUMAP } from "./types"
+import { BiosampleUMAP, PointMetaData } from "./types"
 import { DNase_seq } from "../../common/lib/colors"
 import { H3K4me3 } from "../../common/lib/colors"
 import { H3K27ac } from "../../common/lib/colors"
@@ -32,7 +31,6 @@ import { client } from "../search/_ccredetails/client"
 import { UMAP_QUERY } from "./queries"
 import BiosampleTables from "../_biosampleTables/BiosampleTables"
 import { ParentSize } from '@visx/responsive';
-import { Chart } from '../_scatterPlot/scatterPlot'
 
 type Selected = {
   assembly: "Human" | "Mouse"
@@ -62,7 +60,7 @@ function colorMap(strings) {
 
 // Styling for selected biosamples modal
 const style = {
-  position: "absolute" as "absolute",
+  position: "absolute",
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
@@ -72,7 +70,7 @@ const style = {
 
 // Styling for download modal
 const downloadStyle = {
-  position: "absolute" as "absolute",
+  position: "absolute",
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
@@ -84,55 +82,24 @@ const downloadStyle = {
 };
 
 export function DataMatrices() {
-  const [selectedAssay, setSelectedAssay] = useState<Selected>({assembly: "Human", assay: "DNase" })
-  
-  const {data: umapData, loading: umapLoading} = useQuery(UMAP_QUERY, {
-    variables: { assembly: selectedAssay.assembly==="Human" ? "grch38" :"mm10", assay: selectedAssay.assay, a:  selectedAssay.assay.toLowerCase() },
+  const [selectedAssay, setSelectedAssay] = useState<Selected>({ assembly: "Human", assay: "DNase" })
+
+  const { data: umapData, loading: umapLoading } = useQuery(UMAP_QUERY, {
+    variables: { assembly: selectedAssay.assembly === "Human" ? "grch38" : "mm10", assay: selectedAssay.assay, a: selectedAssay.assay.toLowerCase() },
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
     client,
-  })  
+  })
   const [bounds, setBounds] = useState(undefined)
   const [lifeStage, setLifeStage] = useState("all")
   const [colorBy, setColorBy] = useState<"ontology" | "sampleType">("ontology")
-  const [tSelected, setTSelected] = useState(new Set([]))
-  const [searched, setSearched] = useState<String>(null)
+  const [searched, setSearched] = useState<string>(null)
   const [biosamples, setBiosamples] = useState<BiosampleUMAP[]>([])
-  const [selectMode, setSelectMode] = useState<"select" | "pan">("select")
   const [openModalType, setOpenModalType] = useState<null | "biosamples" | "download">(null);
-  const [zoom, setZoom] = useState({ scaleX: 1, scaleY: 1 });
-  const [showMiniMap, setShowMiniMap] = useState(false);
   const graphContainerRef = useRef(null);
 
-  const handleZoomIn = useCallback(() => {
-      setZoom({
-          scaleX: 1.2,
-          scaleY: 1.2,
-      });
-  }, [zoom]);
-
-  const handleZoomOut = useCallback(() => {
-      setZoom({
-          scaleX: 0.8,
-          scaleY: 0.8,
-      });
-  }, [zoom]);
-
-  const handleReset = useCallback(() => {
-    setZoom({
-        scaleX: 1,
-        scaleY: 1,
-    });
-  }, [zoom]);
-
-  const toggleMiniMap = useCallback(() => {
-    setShowMiniMap(!showMiniMap);
-  }, [showMiniMap]);
-
-  const graphRef = useRef(null);
-
   useEffect(() => {
-    const graphElement = graphRef.current;
+    const graphElement = graphContainerRef.current;
 
     const handleWheel = (event: WheelEvent) => {
       // Prevent default scroll behavior when using the wheel in the graph
@@ -148,7 +115,7 @@ export function DataMatrices() {
     };
   }, []);
 
-  const handleSetSelectedSample = (selected: any) => {
+  const handleSetSelectedSample = (selected) => {
     setSearched(selected.displayname)
   }
 
@@ -165,54 +132,26 @@ export function DataMatrices() {
   const handleCloseModal = () => {
     setOpenModalType(null);
   };
-  
-  useEffect(()=> setBiosamples([]) ,[selectedAssay])
 
-  useEffect(() => {
-    // Function to handle key press
-    const handleKeyDown = (e) => {
-      if (e.key === 'Shift') {
-        setSelectMode('pan'); // Switch to pan mode when Shift is pressed
-      }
-    };
+  useEffect(() => setBiosamples([]), [selectedAssay])
 
-    // Function to handle key release
-    const handleKeyUp = (e) => {
-      if (e.key === 'Shift') {
-        setSelectMode('select'); // Switch back to select mode when Shift is released
-      }
-    };
-
-    // Add event listeners for key press and release
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-
-    // Clean up event listeners on unmount
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, []);
-
-  const map = useMemo(() => {
-    return {
-        show: showMiniMap,
-        position: {
-            right: 50,
-            bottom: 50, 
-        },
-        ref: graphContainerRef
-    };
-  }, [showMiniMap]);
+  const map = {
+    defaultOpen: true,
+    position: {
+      right: 50,
+      bottom: 50,
+    },
+    ref: graphContainerRef
+  };
 
   const fData = useMemo(() => {
     return (
       umapData &&
       umapData.ccREBiosampleQuery.biosamples
         .filter((x) => x.umap_coordinates)
-        .filter((x) => (lifeStage === "all" || lifeStage === x.lifeStage) && (tSelected.size === 0 || tSelected.has(x[colorBy])))
+        .filter((x) => (lifeStage === "all" || lifeStage === x.lifeStage))
     )
-  }, [umapData, lifeStage, colorBy, tSelected])
+  }, [umapData, lifeStage])
 
   const xMin = useMemo(
     () => (bounds ? Math.floor(bounds.x.start) : nearest5(Math.min(...((fData && fData.map((x) => x.umap_coordinates[0])) || [0])), true)),
@@ -240,7 +179,7 @@ export function DataMatrices() {
     )
   }, [xMax, xMin, yMax, yMin])
 
-  const [sampleTypeColors, sampleTypeCounts] = useMemo(
+  const [sampleTypeColors] = useMemo(
     () =>
       colorMap(
         (umapData && umapData.ccREBiosampleQuery &&
@@ -249,7 +188,7 @@ export function DataMatrices() {
       ),
     [umapData, isInbounds]
   )
-  const [ontologyColors, ontologyCounts] = useMemo(
+  const [ontologyColors] = useMemo(
     () =>
       colorMap(
         (umapData && umapData.ccREBiosampleQuery &&
@@ -263,29 +202,29 @@ export function DataMatrices() {
   const handleSelectionChange = (selectedPoints) => {
     const selected = selectedPoints.map(point => point.x);
     const selectedBiosamples = fData
-        .filter(biosample =>
-            selected.includes(biosample.umap_coordinates[0]) &&
-            biosample.umap_coordinates
-        )
-        .map(biosample => ({
-            name: biosample.name,
-            displayname: biosample.displayname,
-            ontology: biosample.ontology,
-            sampleType: biosample.sampleType,
-            lifeStage: biosample.lifeStage,
-            umap_coordinates: biosample.umap_coordinates!,
-            experimentAccession: biosample.experimentAccession,
-        }));
+      .filter(biosample =>
+        selected.includes(biosample.umap_coordinates[0]) &&
+        biosample.umap_coordinates
+      )
+      .map(biosample => ({
+        name: biosample.name,
+        displayname: biosample.displayname,
+        ontology: biosample.ontology,
+        sampleType: biosample.sampleType,
+        lifeStage: biosample.lifeStage,
+        umap_coordinates: biosample.umap_coordinates!,
+        experimentAccession: biosample.experimentAccession,
+      }));
     setBiosamples(selectedBiosamples);
   };
 
-  const scatterData = useMemo(() => {
+  const scatterData: Point<PointMetaData>[] = useMemo(() => {
     if (!fData) return [];
     const biosampleIds = biosamples.map(sample => sample.umap_coordinates);
-  
+
     return fData.map((x) => {
       const isInBiosample = biosampleIds.includes(x.umap_coordinates);
-  
+
       return {
         x: x.umap_coordinates![0],
         y: x.umap_coordinates![1],
@@ -294,14 +233,15 @@ export function DataMatrices() {
           ? (colorBy === "sampleType" ? sampleTypeColors : ontologyColors)[x[colorBy]]
           : "#aaaaaa",
         opacity: biosampleIds.length === 0 ? 1 : (isInBiosample ? 1 : 0.1),
+        shape: "circle",
         metaData: {
           name: x.displayname,
           accession: x.experimentAccession
         }
       };
     });
-  }, [fData, searched, colorBy, sampleTypeColors, ontologyColors, isInbounds, biosamples]);
-  
+  }, [fData, searched, colorBy, sampleTypeColors, ontologyColors, biosamples]);
+
   const legendEntries = useMemo(() => {
     // Create a color-count map based on scatterData
     const colorCounts = scatterData.reduce((acc, point) => {
@@ -310,7 +250,7 @@ export function DataMatrices() {
       return acc;
     }, {} as Record<string, number>);
     const colorMapping = colorBy === "sampleType" ? sampleTypeColors : ontologyColors;
-  
+
     // Map the color counts to the same format as before: label, color, and value
     return Object.entries(colorCounts).map(([color, count]) => ({
       label: Object.keys(colorMapping).find(key => colorMapping[key] === color) || color,
@@ -318,7 +258,7 @@ export function DataMatrices() {
       value: count
     })).sort((a, b) => b.value - a.value);
   }, [scatterData, colorBy, sampleTypeColors, ontologyColors]);
-  
+
 
   /**
    * @param assay an assay
@@ -344,7 +284,7 @@ export function DataMatrices() {
         variant="text"
         fullWidth
         onClick={() => {
-          setBounds(undefined)  
+          setBounds(undefined)
           setSelectedAssay(variant)
         }}
         sx={{
@@ -424,7 +364,7 @@ export function DataMatrices() {
   ]
 
   return (
-    <Grid container mt={1} direction="column" sx={{paddingX:5}}>
+    <Grid container mt={1} direction="column" sx={{ paddingX: 5 }}>
       <Stack direction="row" spacing={10}>
         <Stack direction="column" spacing={2}>
           <Stack direction="row" spacing={20}>
@@ -454,7 +394,7 @@ export function DataMatrices() {
               </Stack>
               <Stack direction="row" justifyContent="space-between">
                 <Grid container spacing={2} sx={{ flex: 1 }}>
-                  <Grid size={{ xs: 6}} mt={1}>
+                  <Grid size={{ xs: 6 }} mt={1}>
                     <InputLabel id="color-by-label">Color By</InputLabel>
                     <Select
                       size="small"
@@ -464,12 +404,12 @@ export function DataMatrices() {
                         setColorBy(event.target.value as "ontology" | "sampleType");
                       }}
                       fullWidth
-                      >
+                    >
                       <MenuItem value="ontology">Tissue/Organ</MenuItem>
                       <MenuItem value="sampleType">Biosample Type</MenuItem>
                     </Select>
                   </Grid>
-                  <Grid size={{ xs: 6}} mt={1}>
+                  <Grid size={{ xs: 6 }} mt={1}>
                     <InputLabel id="show-label">Show</InputLabel>
                     <Select
                       size="small"
@@ -479,7 +419,7 @@ export function DataMatrices() {
                         setLifeStage(event.target.value as "all" | "adult" | "embryonic");
                       }}
                       fullWidth
-                      >
+                    >
                       <MenuItem value="all">All</MenuItem>
                       <MenuItem value="adult">Adult</MenuItem>
                       <MenuItem value="embryonic">Embryonic</MenuItem>
@@ -522,72 +462,39 @@ export function DataMatrices() {
           </Stack>
 
           {/* graph section */}
-          <ParentSize>
-            {({ width, height }) => {
-              const squareSize = Math.min(width, height);
+          <Stack overflow={"hidden"} padding={1} sx={{ border: '2px solid', borderColor: 'grey.400', borderRadius: '8px', height: '57vh', position: 'relative' }} ref={graphContainerRef}>
+            <Stack direction="row" justifyContent="space-between" mt={1} sx={{ backgroundColor: '#dbdefc', borderRadius: '8px', zIndex: 10 }}>
+              <Button endIcon={biosamples.length !== 0 && <Visibility />} onClick={handleOpenModal}>
+                {`${biosamples.length} Experiments Selected`}
+              </Button>
+              <Button onClick={() => setBiosamples([])}>Clear Selection</Button>
+            </Stack>
+            <ParentSize>
+              {({ width, height }) => {
+                const squareSize = Math.min(width, height);
 
-              return (
-                <Stack overflow={"hidden"} padding={1} sx={{ border: '2px solid', borderColor: 'grey.400', borderRadius: '8px', height: '57vh', position: 'relative' }} ref={graphContainerRef}>
-                  <Stack direction="row" justifyContent="space-between" mt={1} sx={{ backgroundColor: '#dbdefc', borderRadius: '8px', zIndex: 10 }}>
-                    <Button endIcon={biosamples.length !== 0 && <Visibility />} onClick={handleOpenModal}>
-                      {`${biosamples.length} Experiments Selected`}
-                    </Button>
-                    <Button onClick={() => setBiosamples([])}>Clear Selection</Button>
-                  </Stack>
-                  <Stack justifyContent="center" alignItems="center" direction="row" sx={{ position: "relative", maxHeight: height }}>
-                    <Box sx={{ width: squareSize, height: squareSize }} ref={graphRef}>
-                      <Chart
-                        width={squareSize - 25}
-                        height={squareSize - 25}
-                        pointData={scatterData}
-                        loading={umapLoading}
-                        selectionType={selectMode}
-                        onSelectionChange={handleSelectionChange}
-                        zoomScale={zoom}
-                        miniMap={map}
-                        leftAxisLable="UMAP-2"
-                        bottomAxisLabel="UMAP-1"
-                      />
-                    </Box>
-                  </Stack>
-                  <Stack direction="column" justifyContent="flex-start" alignItems="center" spacing={5} sx={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)' }}>
-                    <Tooltip title="Drag to select">
-                      <IconButton aria-label="edit" onClick={() => setSelectMode('select')} sx={{ color: selectMode === "select" ? "primary.main" : "default" }}>
-                        <Edit />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Drag to pan, or hold Shift and drag">
-                      <IconButton aria-label="pan" onClick={() => setSelectMode('pan')} sx={{ color: selectMode === "pan" ? "primary.main" : "default" }}>
-                        <PanTool />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Zoom In">
-                      <IconButton aria-label="zoom-in" onClick={handleZoomIn}>
-                        <ZoomIn />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Zoom Out">
-                      <IconButton aria-label="zoom-out" onClick={handleZoomOut}>
-                        <ZoomOut />
-                      </IconButton>
-                    </Tooltip>
-                    <Button sx={{ height: '30px', textTransform: 'none' }} size="small" variant="outlined" onClick={handleReset}>
-                      Reset
-                    </Button>
-                  </Stack>
-                  <Tooltip title="Toggle Minimap">
-                    <IconButton sx={{ position: 'absolute', right: 10, bottom: 10, zIndex: 10, width: 'auto', height: 'auto', color: showMiniMap ? "primary.main" : "default" }} size="small" onClick={toggleMiniMap}>
-                      <HighlightAlt />
-                    </IconButton>
-                  </Tooltip>
-                </Stack>
-              )}
-            }
-          </ParentSize>
+                return (
+                  <ScatterPlot
+                    width={squareSize}
+                    height={squareSize}
+                    pointData={scatterData}
+                    loading={umapLoading}
+                    selectable
+                    onSelectionChange={handleSelectionChange}
+                    miniMap={map}
+                    leftAxisLable="UMAP-2"
+                    bottomAxisLabel="UMAP-1"
+                  />
+                )
+              }
+              }
+            </ParentSize>
+          </Stack>
+
         </Stack>
 
         {/* biosample table*/}
-        <Grid paddingBottom={0} sx={{ display: 'flex', flexDirection: 'column', flex: 1}}>
+        <Grid paddingBottom={0} sx={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
           {searched && (
             <Paper sx={{ mb: 1 }}>
               <Stack borderRadius={1} direction={"row"} spacing={3} sx={{ backgroundColor: theme => theme.palette.secondary.main }} alignItems={"center"}>
@@ -645,13 +552,13 @@ export function DataMatrices() {
           />
         </Box>
       </Modal>
-      
+
       <Modal
         open={openModalType === "download"}
         onClose={handleCloseModal}
         aria-labelledby="download-modal-title"
         aria-describedby="download-modal-description"
-        >
+      >
         <Box sx={downloadStyle}>
           <Typography id="download-modal-title" variant="h6">
             Download
@@ -668,7 +575,7 @@ export function DataMatrices() {
                     const url = matrixDownloadURL(selectedAssay, "signal");
                     window.location.href = url;
                   }}
-                  >
+                >
                   <Download />
                 </IconButton>
                 <Typography>
@@ -684,7 +591,7 @@ export function DataMatrices() {
                     const url = matrixDownloadURL(selectedAssay, "zScore");
                     window.location.href = url;
                   }}
-                  >
+                >
                   <Download />
                 </IconButton>
                 <Typography>Z-Score Matrix</Typography>
