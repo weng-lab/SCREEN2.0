@@ -1,1 +1,2 @@
 yarn check-format
+exit 1
