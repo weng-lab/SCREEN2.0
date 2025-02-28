@@ -44,7 +44,7 @@ export const getSpecificityScores = (allGenes: AllLinkedGenes, accessions: CCREs
         let expressionSpecificity: GeneTableRow["expressionSpecificity"] | undefined;
 
         if (specificityScores.length > 0) {
-            if (geneFilterVariables.rankBy === "max") {
+            if (geneFilterVariables.rankExpSpecBy === "max") {
                 const maxGene = specificityScores.reduce((prev, curr) =>
                     curr.score > prev.score ? curr : prev
                 );
@@ -117,7 +117,7 @@ export const getExpressionScores = (allGenes: AllLinkedGenes, accessions: CCREs,
         let geneExpression: GeneTableRow["geneExpression"] | undefined;
 
         if (expressionScores.length > 0) {
-            if (geneFilterVariables.rankBy === "max") {
+            if (geneFilterVariables.rankGeneExpBy === "max") {
                 const maxGene = expressionScores.reduce((prev, curr) =>
                     curr.score > prev.score ? curr : prev
                 );
@@ -255,28 +255,28 @@ export const generateGeneRanks = (geneRows: GeneTableRow[]): RankedRegions => {
     // Assign ranks based on expression specificity
     const expressionSpecificityRankedRows = (() => {
         const sortedRows = [...geneRows].sort((a, b) => b.expressionSpecificity.score - a.expressionSpecificity.score);
-        let rank = 1; // Start rank at 1
+        let rank = 1;
         return sortedRows.map((row, index) => {
             if (row.expressionSpecificity.score === 0) {
-                return { ...row, speceficityRank: 0 }; // Set rank to 0 for 0 specificity
+                return { ...row, specificityRank: 0 }; // Set rank to 0 for 0 specificity
             }
-            if (index > 0 && sortedRows[index].expressionSpecificity !== sortedRows[index - 1].expressionSpecificity) {
-                rank = index + 1;
+            if (index > 0 && sortedRows[index].expressionSpecificity.score !== sortedRows[index - 1].expressionSpecificity.score) {
+                rank = index + 1; // Update rank only if not tied
             }
-            return { ...row, speceficityRank: rank };
+            return { ...row, specificityRank: rank };
         });
     })();
 
     // Assign ranks based on maxExpression
     const geneExpressionRankedRows = (() => {
         const sortedRows = [...geneRows].sort((a, b) => (b.geneExpression.score ?? 0) - (a.geneExpression.score ?? 0));
-        let rank = 1; // Start rank at 1
+        let rank = 1;
         return sortedRows.map((row, index) => {
-            if ((row.geneExpression ?? 0) === 0) {
+            if ((row.geneExpression.score ?? 0) === 0) {
                 return { ...row, maxExpRank: 0 }; // Set rank to 0 for 0 maxExpression
             }
-            if (index > 0 && (sortedRows[index].geneExpression ?? 0) !== (sortedRows[index - 1].geneExpression ?? 0)) {
-                rank = index + 1;
+            if (index > 0 && (sortedRows[index].geneExpression.score ?? 0) !== (sortedRows[index - 1].geneExpression.score ?? 0)) {
+                rank = index + 1; // Update rank only if not tied
             }
             return { ...row, maxExpRank: rank };
         });
@@ -290,34 +290,30 @@ export const generateGeneRanks = (geneRows: GeneTableRow[]): RankedRegions => {
 
         return {
             ...row,
-            totalRank: row.speceficityRank + (rankedGenes ?? 0), // Use 0 if rank is missing
+            totalRank: row.specificityRank + (rankedGenes ?? 0), // Use 0 if rank is missing
         };
     });
 
-    // Sort by total rank and assign final ranks
-    const rankedRegions: RankedRegions = (() => {
-        const sortedByTotalRank = [...combinedRanks].sort((a, b) => a.totalRank - b.totalRank);
-        let rank = 1; // Start rank at 1
-        return sortedByTotalRank.map((row, index) => {
-            if (row.totalRank === 0) {
-                return {
-                    chr: row.inputRegion.chr,
-                    start: row.inputRegion.start,
-                    end: row.inputRegion.end,
-                    rank: 0, // Set rank to 0 if totalRank is 0
-                };
-            }
-            if (index > 0 && sortedByTotalRank[index].totalRank !== sortedByTotalRank[index - 1].totalRank) {
-                rank = index + 1;
-            }
-            return {
-                chr: row.inputRegion.chr,
-                start: row.inputRegion.start,
-                end: row.inputRegion.end,
-                rank,
-            };
+    // Sort by total rank score in ascending order
+    const rankedRegions: RankedRegions = [];
+    const sortedByTotalRank = [...combinedRanks].sort((a, b) => a.totalRank - b.totalRank);
+
+    // Assign ranks, accounting for ties
+    let currentRank = 1;
+    let prevTotalRank = null;
+
+    sortedByTotalRank.forEach((region, index) => {
+        if (region.totalRank !== prevTotalRank) {
+            currentRank = index + 1;
+            prevTotalRank = region.totalRank;
+        }
+        rankedRegions.push({
+            chr: region.inputRegion.chr,
+            start: region.inputRegion.start,
+            end: region.inputRegion.end,
+            rank: region.totalRank === 0 ? 0 : currentRank,
         });
-    })();
+    });
 
     return rankedRegions;
 };

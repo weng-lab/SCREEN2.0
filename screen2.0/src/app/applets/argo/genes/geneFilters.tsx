@@ -59,12 +59,31 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
             <AccordionDetails>
                 <FormControlLabel value="genes" control={<Checkbox onChange={() => updateGeneFilter("useGenes", !geneFilterVariables.useGenes)} checked={geneFilterVariables.useGenes} />} label="Linked Genes" />
                 <Stack ml={2}>
-                <FormControl disabled={!geneFilterVariables.useGenes}>
+                    <FormControl disabled={!geneFilterVariables.useGenes}>
                         <Typography sx={{ mt: 1 }}>Rank Expression Specificity By</Typography>
                         <RadioGroup
                             row
-                            value={geneFilterVariables.rankBy}
-                            onChange={(event) => updateGeneFilter("rankBy", event.target.value as "max" | "avg")}
+                            value={geneFilterVariables.rankExpSpecBy}
+                            onChange={(event) => updateGeneFilter("rankExpSpecBy", event.target.value as "max" | "avg")}
+                        >
+                            <FormControlLabel
+                                value="max"
+                                control={<Radio />}
+                                label="Max"
+                            />
+                            <FormControlLabel
+                                value="avg"
+                                control={<Radio />}
+                                label="Average"
+                            />
+                        </RadioGroup>
+                    </FormControl>
+                    <FormControl disabled={!geneFilterVariables.useGenes}>
+                        <Typography sx={{ mt: 1 }}>Rank Gene Expression By</Typography>
+                        <RadioGroup
+                            row
+                            value={geneFilterVariables.rankGeneExpBy}
+                            onChange={(event) => updateGeneFilter("rankGeneExpBy", event.target.value as "max" | "avg")}
                         >
                             <FormControlLabel
                                 value="max"
@@ -109,7 +128,7 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
                                     />
                                 </Grid>
                                 <Grid size={6}>
-                                <FormControlLabel
+                                    <FormControlLabel
                                         label="RNAPII ChIA-PET Interactions"
                                         control={<Checkbox />}
                                         checked={geneFilterVariables.methodOfLinkage.RNAPII_ChIAPET}

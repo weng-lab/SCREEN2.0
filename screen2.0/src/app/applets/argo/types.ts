@@ -106,7 +106,8 @@ export type GeneFilterState = {
     methodOfLinkage: { [key in GeneLinkingMethod]: boolean }
     mustBeProteinCoding: boolean;
     mustHaveOrtholog: boolean;
-    rankBy: "max" | "avg";
+    rankExpSpecBy: "max" | "avg";
+    rankGeneExpBy: "max" | "avg";
 }
 
 type UpdateSequenceFilter = <K extends keyof SequenceFilterState>(
