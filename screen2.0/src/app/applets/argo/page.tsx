@@ -107,6 +107,7 @@ export default function Argo() {
         mustHaveOrtholog: false,
         rankExpSpecBy: "max",
         rankGeneExpBy: "max",
+        selectedBiosample: null,
     });
 
     //update specific variable in sequence filters
@@ -619,7 +620,9 @@ export default function Argo() {
                                 entry.genes.map((gene) => gene.name.trim())
                             )
                         )
-                    ).map((name) => ({ gene: name }))
+                    ).map((name) => ({ 
+                        gene: name, 
+                        biosample: geneFilterVariables.selectedBiosample?.name })),
                 },
                 client: client,
                 fetchPolicy: 'cache-and-network'

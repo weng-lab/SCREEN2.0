@@ -1,8 +1,9 @@
 import React, { useMemo } from "react";
 import { GeneAccordianProps, GeneLinkingMethod } from "../types";
-import { Accordion, AccordionDetails, AccordionSummary, Checkbox, FormControl, FormControlLabel, FormGroup, Radio, RadioGroup, Stack, Tooltip, Typography } from "@mui/material";
-import { ExpandMore, InfoOutlined } from "@mui/icons-material"
+import { Accordion, AccordionDetails, AccordionSummary, Checkbox, FormControl, FormControlLabel, FormGroup, IconButton, Paper, Radio, RadioGroup, Stack, Tooltip, Typography } from "@mui/material";
+import { ExpandMore, InfoOutlined, CancelRounded } from "@mui/icons-material"
 import Grid from "@mui/material/Grid2"
+import BiosampleTables from "../../../_biosampleTables/BiosampleTables";
 
 const GeneFilters: React.FC<GeneAccordianProps> = ({
     geneFilterVariables,
@@ -32,6 +33,15 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
 
     const allChecked = useMemo(() => Object.values(geneFilterVariables.methodOfLinkage).every(val => val === true), [geneFilterVariables.methodOfLinkage])
     const noneChecked = useMemo(() => Object.values(geneFilterVariables.methodOfLinkage).every(val => val === false), [geneFilterVariables.methodOfLinkage])
+
+    //change assays and availible assays depending on if there is a biosample selected or not
+    const handleSelectedBiosample = (biosample) => {
+        updateGeneFilter("selectedBiosample", biosample)
+    }
+
+    const handleDeselectBiosample = () => {
+        updateGeneFilter("selectedBiosample", null);
+    }
 
     return (
         <Accordion
@@ -65,25 +75,6 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
                             row
                             value={geneFilterVariables.rankExpSpecBy}
                             onChange={(event) => updateGeneFilter("rankExpSpecBy", event.target.value as "max" | "avg")}
-                        >
-                            <FormControlLabel
-                                value="max"
-                                control={<Radio />}
-                                label="Max"
-                            />
-                            <FormControlLabel
-                                value="avg"
-                                control={<Radio />}
-                                label="Average"
-                            />
-                        </RadioGroup>
-                    </FormControl>
-                    <FormControl disabled={!geneFilterVariables.useGenes}>
-                        <Typography sx={{ mt: 1 }}>Rank Gene Expression By</Typography>
-                        <RadioGroup
-                            row
-                            value={geneFilterVariables.rankGeneExpBy}
-                            onChange={(event) => updateGeneFilter("rankGeneExpBy", event.target.value as "max" | "avg")}
                         >
                             <FormControlLabel
                                 value="max"
@@ -167,6 +158,66 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
                             />
                         </FormGroup>
                     </FormControl>
+                    <FormControl disabled={!geneFilterVariables.useGenes}>
+                        <Typography sx={{ mt: 1 }}>Rank Gene Expression By</Typography>
+                        <RadioGroup
+                            row
+                            value={geneFilterVariables.rankGeneExpBy}
+                            onChange={(event) => updateGeneFilter("rankGeneExpBy", event.target.value as "max" | "avg")}
+                        >
+                            <FormControlLabel
+                                value="max"
+                                control={<Radio />}
+                                label="Max"
+                            />
+                            <FormControlLabel
+                                value="avg"
+                                control={<Radio />}
+                                label="Average"
+                            />
+                        </RadioGroup>
+                    </FormControl>
+                    {geneFilterVariables.selectedBiosample && (
+                        <Paper elevation={0}>
+                            <Stack
+                                borderRadius={1}
+                                direction={"row"}
+                                spacing={3}
+                                sx={{ backgroundColor: theme => theme.palette.secondary.main }}
+                                alignItems={"center"}
+                            >
+                                <Typography
+                                    flexGrow={1}
+                                    sx={{ color: "#2C5BA0", pl: 1 }}
+                                >
+                                    {geneFilterVariables.selectedBiosample.ontology.charAt(0).toUpperCase() +
+                                        geneFilterVariables.selectedBiosample.ontology.slice(1) +
+                                        " - " +
+                                        geneFilterVariables.selectedBiosample.displayname}
+                                </Typography>
+                                <IconButton
+                                    onClick={() => { handleDeselectBiosample() }}
+                                    sx={{ m: 'auto', flexGrow: 0 }}
+                                >
+                                    <CancelRounded />
+                                </IconButton>
+                            </Stack>
+                        </Paper>
+                    )}
+                    <Accordion square disableGutters disabled={!geneFilterVariables.useGenes}>
+                        <AccordionSummary expandIcon={<ExpandMore />}>
+                            Within a Biosample
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            <BiosampleTables
+                                selected={geneFilterVariables.selectedBiosample?.name}
+                                onChange={(biosample) => handleSelectedBiosample(biosample)}
+                                assembly={"GRCh38"}
+                                showRNAseq
+                                preFilterBiosamples={(biosample) => biosample.rnaseq}
+                            />
+                        </AccordionDetails>
+                    </Accordion>
                 </Stack>
             </AccordionDetails>
         </Accordion>
