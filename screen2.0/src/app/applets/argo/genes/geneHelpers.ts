@@ -34,20 +34,33 @@ export const getSpecificityScores = (allGenes: AllLinkedGenes, accessions: CCREs
         }));
 
         const specificityScores = filteredGenes.flatMap((gene) =>
-            gene.genes.map((linkedGene) => linkedGene.expressionSpecificity || 0)
+            gene.genes.map((linkedGene) => ({
+                geneName: linkedGene.name,
+                score: linkedGene.expressionSpecificity || 0,
+            }))
         );
 
         // Calculate expressionSpecificity based on rankBy, only including filtered genes
-        const expressionSpecificity =
-            geneFilterVariables.rankBy === "max"
-                ? Math.max(...specificityScores)
-                : specificityScores.reduce((sum, score) => sum + score, 0) / specificityScores.length || 0;
+        let expressionSpecificity: GeneTableRow["expressionSpecificity"] | undefined;
+
+        if (specificityScores.length > 0) {
+            if (geneFilterVariables.rankBy === "max") {
+                const maxGene = specificityScores.reduce((prev, curr) =>
+                    curr.score > prev.score ? curr : prev
+                );
+                expressionSpecificity = { geneName: maxGene.geneName, score: maxGene.score };
+            } else {
+                const avgScore =
+                specificityScores.reduce((sum, { score }) => sum + score, 0) / specificityScores.length;
+                expressionSpecificity = { geneName: "Average", score: avgScore };
+            }
+        }
 
         // Map each matching gene's details to the GeneTableRow format
         return matchingGenes.map((gene) => ({
             regionID: ccre.regionID,
             inputRegion: ccre.inputRegion,
-            expressionSpecificity: expressionSpecificity === -Infinity ? 0 : expressionSpecificity,
+            expressionSpecificity,
             linkedGenes: gene.genes.map((linkedGene) => ({
                 accession: gene.accession,
                 name: linkedGene.name,
@@ -100,7 +113,7 @@ export const getExpressionScores = (allGenes: AllLinkedGenes, accessions: CCREs,
             }))
         );
 
-        // Calculate expressionSpecificity based on rankBy, only including filtered genes
+        // Calculate geneExpression based on rankBy, only including filtered genes
         let geneExpression: GeneTableRow["geneExpression"] | undefined;
 
         if (expressionScores.length > 0) {
@@ -241,10 +254,10 @@ export const filterOrthologGenes = (orthoGenes: GeneOrthologQueryQuery, allGenes
 export const generateGeneRanks = (geneRows: GeneTableRow[]): RankedRegions => {
     // Assign ranks based on expression specificity
     const expressionSpecificityRankedRows = (() => {
-        const sortedRows = [...geneRows].sort((a, b) => b.expressionSpecificity - a.expressionSpecificity);
+        const sortedRows = [...geneRows].sort((a, b) => b.expressionSpecificity.score - a.expressionSpecificity.score);
         let rank = 1; // Start rank at 1
         return sortedRows.map((row, index) => {
-            if (row.expressionSpecificity === 0) {
+            if (row.expressionSpecificity.score === 0) {
                 return { ...row, speceficityRank: 0 }; // Set rank to 0 for 0 specificity
             }
             if (index > 0 && sortedRows[index].expressionSpecificity !== sortedRows[index - 1].expressionSpecificity) {

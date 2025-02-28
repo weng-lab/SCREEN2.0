@@ -228,7 +228,10 @@ export type GeneTableRow = {
         geneName: string
         score: number
     }
-    expressionSpecificity?: number
+    expressionSpecificity?:  {
+        geneName: string
+        score: number
+    }
     linkedGenes?: LinkedGenes
 }
 

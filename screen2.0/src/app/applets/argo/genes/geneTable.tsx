@@ -23,13 +23,22 @@ const GeneTable: React.FC<GeneTableProps> = ({
                 render: (row) =>
                     row.geneExpression?.geneName !== "Average" ? (
                         <span>
-                            <strong>Gene:</strong> {row.geneExpression.geneName} <strong>TPM:</strong> {row.geneExpression.score.toFixed(2)}
+                            <strong>Gene:</strong> {row.geneExpression.geneName.trim()}{" "} <strong>TPM:</strong> {row.geneExpression.score.toFixed(2)}
                         </span>
                     ) : row.geneExpression? (
                         row.geneExpression.score.toFixed(2)
                     ) : "N/A"
              })
-            cols.push({ header: "Expression Specificity", value: (row) => row.expressionSpecificity ? row.expressionSpecificity.toFixed(2) : "N/A" })
+            cols.push({ header: "Expression Specificity", value: (row) => row.expressionSpecificity.score,
+                render: (row) =>
+                    row.expressionSpecificity?.geneName !== "Average" ? (
+                        <span>
+                            <strong>Gene:</strong> {row.expressionSpecificity.geneName.trim()}{" "} <strong>Score:</strong> {row.expressionSpecificity.score.toFixed(2)}
+                        </span>
+                    ) : row.expressionSpecificity? (
+                        row.expressionSpecificity.score.toFixed(2)
+                    ) : "N/A"
+             })
         }
 
         return cols

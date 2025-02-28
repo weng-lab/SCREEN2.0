@@ -22,7 +22,7 @@ export const calculateAggregateRanks = (inputRegions: InputRegions, sequenceRank
             gene.end == row.end
         );
 
-        // Calculate the total rank, using 0 if no matching rank is found for any
+        // Calculate the total rank, using 1000000 if no matching rank is found for any
         const totalRank = (matchingSequence?.rank || 1000000) +
             (matchingElement?.rank || 1000000) +
             (matchingGene?.rank || 1000000);
