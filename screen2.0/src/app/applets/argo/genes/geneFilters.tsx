@@ -215,6 +215,8 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
                                 assembly={"GRCh38"}
                                 showRNAseq
                                 preFilterBiosamples={(biosample) => biosample.rnaseq}
+                                // allowMultiSelect
+                                // showCheckboxes
                             />
                         </AccordionDetails>
                     </Accordion>

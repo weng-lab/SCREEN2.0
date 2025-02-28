@@ -20,9 +20,9 @@ const GeneTable: React.FC<GeneTableProps> = ({
         ]
 
         if (geneFilterVariables.useGenes) {
-            cols.push({ header: "Gene Expression", value: (row) => row.geneExpression.score,
+            cols.push({ header: "Gene Expression", value: (row) => row.geneExpression.score, tooltip: "TPM",
                 render: (row) =>
-                    row.geneExpression ? (
+                    row.geneExpression?.geneName !== "Average" ? (
                         <Stack direction={"row"} alignItems={"center"} spacing={1}>
                             <Tooltip
                                 title={
@@ -37,19 +37,22 @@ const GeneTable: React.FC<GeneTableProps> = ({
                                 arrow
                                 placement="left"
                             >
-                                <Typography component="span">
+                                <Typography fontSize={"14px"}>
                                     {row.geneExpression.score.toFixed(2)}
                                 </Typography>
                             </Tooltip>
-                            <GeneLink assembly="GRCh38" geneName={row.geneExpression.geneName} />
+                            <GeneLink assembly="GRCh38" geneName={row.geneExpression.geneName.trim()} />
                         </Stack>
-                    ) : (
+                    ) : row.geneExpression ? (
+                        row.geneExpression.score.toFixed(2)
+                    ) :
+                    (
                         "N/A"
                     ),
              })
             cols.push({ header: "Expression Specificity", value: (row) => row.expressionSpecificity.score,
                 render: (row) =>
-                    row.expressionSpecificity ? (
+                    row.expressionSpecificity?.geneName !== "Average" ? (
                         <Stack direction={"row"} alignItems={"center"} spacing={1}>
                             <Tooltip
                                 title={
@@ -64,13 +67,16 @@ const GeneTable: React.FC<GeneTableProps> = ({
                                 arrow
                                 placement="left"
                             >
-                                <Typography component="span">
+                                <Typography fontSize={"14px"}>
                                     {row.expressionSpecificity.score.toFixed(2)}
                                 </Typography>
                             </Tooltip>
-                            <GeneLink assembly="GRCh38" geneName={row.expressionSpecificity.geneName} />
+                            <GeneLink assembly="GRCh38" geneName={row.expressionSpecificity.geneName.trim()} />
                         </Stack>
-                    ) : (
+                    ) :row.expressionSpecificity ? (
+                        row.expressionSpecificity.score.toFixed(2)
+                    ) :
+                    (
                         "N/A"
                     ),
              })

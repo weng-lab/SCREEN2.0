@@ -567,7 +567,10 @@ export default function Argo() {
         if (!intersectingCcres || !closestAndLinkedGenes) {
             return [];
         }
-        const linkedGenes = parseLinkedGenes(closestAndLinkedGenes.linkedGenesQuery);
+
+        const filteredLinkedGenes = geneFilterVariables.mustBeProteinCoding ? closestAndLinkedGenes.linkedGenesQuery.filter((gene) => gene.genetype === "protein_coding") 
+            : closestAndLinkedGenes.linkedGenesQuery
+        const linkedGenes = parseLinkedGenes(filteredLinkedGenes);
 
         //switch between protein coding and all
         let closestGenes = closestAndLinkedGenes.closestGenetocCRE.filter((gene) => gene.gene.type === "ALL")
@@ -636,7 +639,6 @@ export default function Argo() {
         specificityRows.forEach(row => {
             mergedRowsMap.set(row.regionID, { ...row });
         });
-        console.log(geneExpression)
 
         // Process expressionRows, merging data when `regionID` matches
         expressionRows.forEach(row => {
