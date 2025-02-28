@@ -1,7 +1,8 @@
 import React, { useMemo } from "react";
 import { GeneTableProps, GeneTableRow } from "../types";
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components";
-import { useTheme } from "@mui/material";
+import { Stack, Tooltip, Typography, useTheme } from "@mui/material";
+import GeneLink from "../../../_utility/GeneLink";
 
 const GeneTable: React.FC<GeneTableProps> = ({
     geneFilterVariables,
@@ -21,34 +22,63 @@ const GeneTable: React.FC<GeneTableProps> = ({
         if (geneFilterVariables.useGenes) {
             cols.push({ header: "Gene Expression", value: (row) => row.geneExpression.score,
                 render: (row) =>
-                    row.geneExpression?.geneName !== "Average" ? (
-                        <span>
-                            <strong>Gene:</strong> {row.geneExpression.geneName.trim()}{" "} <strong>TPM:</strong> {row.geneExpression.score.toFixed(2)}
-                        </span>
-                    ) : row.geneExpression? (
-                        row.geneExpression.score.toFixed(2)
-                    ) : "N/A"
+                    row.geneExpression ? (
+                        <Stack direction={"row"} alignItems={"center"} spacing={1}>
+                            <Tooltip
+                                title={
+                                    <span>
+                                        {row.geneExpression.linkedBy && (
+                                            <>
+                                                <strong>Linked By:</strong> {row.geneExpression.linkedBy.join(", ")}
+                                            </>
+                                        )}
+                                    </span>
+                                }
+                                arrow
+                                placement="left"
+                            >
+                                <Typography component="span">
+                                    {row.geneExpression.score.toFixed(2)}
+                                </Typography>
+                            </Tooltip>
+                            <GeneLink assembly="GRCh38" geneName={row.geneExpression.geneName} />
+                        </Stack>
+                    ) : (
+                        "N/A"
+                    ),
              })
             cols.push({ header: "Expression Specificity", value: (row) => row.expressionSpecificity.score,
                 render: (row) =>
-                    row.expressionSpecificity?.geneName !== "Average" ? (
-                        <span>
-                            <strong>Gene:</strong> {row.expressionSpecificity.geneName.trim()}{" "} <strong>Score:</strong> {row.expressionSpecificity.score.toFixed(2)}
-                        </span>
-                    ) : row.expressionSpecificity? (
-                        row.expressionSpecificity.score.toFixed(2)
-                    ) : "N/A"
+                    row.expressionSpecificity ? (
+                        <Stack direction={"row"} alignItems={"center"} spacing={1}>
+                            <Tooltip
+                                title={
+                                    <span>
+                                        {row.expressionSpecificity.linkedBy && (
+                                            <>
+                                                <strong>Linked By:</strong> {row.expressionSpecificity.linkedBy.join(", ")}
+                                            </>
+                                        )}
+                                    </span>
+                                }
+                                arrow
+                                placement="left"
+                            >
+                                <Typography component="span">
+                                    {row.expressionSpecificity.score.toFixed(2)}
+                                </Typography>
+                            </Tooltip>
+                            <GeneLink assembly="GRCh38" geneName={row.expressionSpecificity.geneName} />
+                        </Stack>
+                    ) : (
+                        "N/A"
+                    ),
              })
         }
 
         return cols
 
     }, [geneFilterVariables])
-
-    //open ccre details on ccre click
-    const handleRowClick = (row: GeneTableRow) => {
-        window.open(`/search?assembly=GRCh38&chromosome=${row.inputRegion.chr}&start=${row.inputRegion.start}&end=${row.inputRegion.end}&accessions=${row.linkedGenes[0].accession}&page=2`, "_blank", "noopener,noreferrer")
-    }
 
     return (
         <DataTable
@@ -59,7 +89,6 @@ const GeneTable: React.FC<GeneTableProps> = ({
             itemsPerPage={5}
             searchable
             tableTitle={<SubTableTitle title="Gene Details" table="genes" />}
-            onRowClick={handleRowClick}
             headerColor={{backgroundColor: theme.palette.secondary.main as "#", textColor: "inherit"}}
         />
     )

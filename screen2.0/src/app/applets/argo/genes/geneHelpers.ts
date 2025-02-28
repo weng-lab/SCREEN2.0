@@ -37,6 +37,7 @@ export const getSpecificityScores = (allGenes: AllLinkedGenes, accessions: CCREs
             gene.genes.map((linkedGene) => ({
                 geneName: linkedGene.name,
                 score: linkedGene.expressionSpecificity || 0,
+                linkedBy: linkedGene.linkedBy
             }))
         );
 
@@ -48,11 +49,12 @@ export const getSpecificityScores = (allGenes: AllLinkedGenes, accessions: CCREs
                 const maxGene = specificityScores.reduce((prev, curr) =>
                     curr.score > prev.score ? curr : prev
                 );
-                expressionSpecificity = { geneName: maxGene.geneName, score: maxGene.score };
+                expressionSpecificity = { geneName: maxGene.geneName, score: maxGene.score, linkedBy: maxGene.linkedBy };
             } else {
                 const avgScore =
                 specificityScores.reduce((sum, { score }) => sum + score, 0) / specificityScores.length;
-                expressionSpecificity = { geneName: "Average", score: avgScore };
+                const linkedBySet = new Set(specificityScores.flatMap(({ linkedBy }) => linkedBy));
+                expressionSpecificity = { geneName: "Average", score: avgScore, linkedBy: Array.from(linkedBySet) };
             }
         }
 
@@ -110,6 +112,7 @@ export const getExpressionScores = (allGenes: AllLinkedGenes, accessions: CCREs,
             gene.genes.map((linkedGene) => ({
                 geneName: linkedGene.name,
                 score: linkedGene.geneExpression || 0,
+                linkedBy: linkedGene.linkedBy
             }))
         );
 
@@ -121,11 +124,12 @@ export const getExpressionScores = (allGenes: AllLinkedGenes, accessions: CCREs,
                 const maxGene = expressionScores.reduce((prev, curr) =>
                     curr.score > prev.score ? curr : prev
                 );
-                geneExpression = { geneName: maxGene.geneName, score: maxGene.score };
+                geneExpression = { geneName: maxGene.geneName, score: maxGene.score, linkedBy: maxGene.linkedBy };
             } else {
                 const avgScore =
                     expressionScores.reduce((sum, { score }) => sum + score, 0) / expressionScores.length;
-                geneExpression = { geneName: "Average", score: avgScore };
+                    const linkedBySet = new Set(expressionScores.flatMap(({ linkedBy }) => linkedBy));
+                geneExpression = { geneName: "Average", score: avgScore, linkedBy: Array.from(linkedBySet) };
             }
         }
 
