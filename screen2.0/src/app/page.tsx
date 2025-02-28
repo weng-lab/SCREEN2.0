@@ -9,6 +9,9 @@ import mouseTransparentIcon from "../../public/Transparent_MouseIcon.png"
 import { Download } from "@mui/icons-material"
 import Config from "../config.json"
 
+/**
+ * Added this comment as a test
+ */
 export default function Home() {
   return (
     <main>
