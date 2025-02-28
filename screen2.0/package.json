@@ -12,7 +12,8 @@
     "export": "next export",
     "gen-types": "graphql-codegen",
     "gen-types -w": "graphql-codegen -w",
-    "prepare": "husky"
+    "prepare": "husky",
+    "check-format": "prettier --check ."
   },
   "dependencies": {
     "@apollo/client": "^3.11.8",
