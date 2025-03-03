@@ -12,7 +12,7 @@ import ExpandCircleDownIcon from '@mui/icons-material/ExpandCircleDown';
 import Filters from "./filters"
 import { CancelRounded, VerticalAlignTop, Cancel, InfoOutlined } from "@mui/icons-material"
 import ArgoUpload from "./argoUpload"
-import { BigRequest, OccurrencesQuery } from "../../../graphql/__generated__/graphql"
+import { AggregateByEnum, BigRequest, OccurrencesQuery } from "../../../graphql/__generated__/graphql"
 import { calculateAggregateRanks, matchRanks } from "./helpers"
 import { batchRegions, calculateConservationScores, generateSequenceRanks, getNumOverlappingMotifs } from "./sequence/sequenceHelpers"
 import { generateElementRanks, handleSameInputRegion, mapScores, mapScoresCTSpecific } from "./elements/elementHelpers"
@@ -568,11 +568,12 @@ export default function Argo() {
             return [];
         }
 
+        //switch between protein coding and all linked genes
         const filteredLinkedGenes = geneFilterVariables.mustBeProteinCoding ? closestAndLinkedGenes.linkedGenesQuery.filter((gene) => gene.genetype === "protein_coding") 
             : closestAndLinkedGenes.linkedGenesQuery
         const linkedGenes = parseLinkedGenes(filteredLinkedGenes);
 
-        //switch between protein coding and all
+        //switch between protein coding and all closest gene
         let closestGenes = closestAndLinkedGenes.closestGenetocCRE.filter((gene) => gene.gene.type === "ALL")
         if (geneFilterVariables.mustBeProteinCoding) {
             closestGenes = closestAndLinkedGenes.closestGenetocCRE.filter((gene) => gene.gene.type === "PC")
@@ -625,7 +626,9 @@ export default function Argo() {
                         )
                     ).map((name) => ({ 
                         gene: name, 
-                        biosample: geneFilterVariables.selectedBiosample?.name })),
+                        biosample: geneFilterVariables.selectedBiosample?.map((sample) => sample.name),
+                        aggregateBy: (geneFilterVariables.rankGeneExpBy === "avg" ? "AVERAGE" : "MAX") as AggregateByEnum
+                    })),
                 },
                 client: client,
                 fetchPolicy: 'cache-and-network'
@@ -751,13 +754,13 @@ export default function Argo() {
                     if (rankB === 0) return -1;
                     return rankA - rankB;
                 },
-                render: (row) => loading_linked_genes || loading_gene_specificity || loadingGeneRanks ? <CircularProgress size={10} /> : row.geneRank === 0 ? "N/A" : row.geneRank
+                render: (row) => loading_linked_genes || loading_gene_specificity || loading_gene_expression || loadingGeneRanks ? <CircularProgress size={10} /> : row.geneRank === 0 ? "N/A" : row.geneRank
             })
         }
 
         return cols
 
-    }, [MainColHeader, elementFilterVariables.usecCREs, geneFilterVariables.useGenes, loadingElementRanks, loadingGeneRanks, loadingMainRows, loadingSequenceRanks, loading_gene_specificity, loading_linked_genes, loading_ortho, loading_scores, sequenceFilterVariables.useConservation, sequenceFilterVariables.useMotifs])
+    }, [MainColHeader, elementFilterVariables.usecCREs, geneFilterVariables.useGenes, loadingElementRanks, loadingGeneRanks, loadingMainRows, loadingSequenceRanks, loading_gene_expression, loading_gene_specificity, loading_linked_genes, loading_ortho, loading_scores, sequenceFilterVariables.useConservation, sequenceFilterVariables.useMotifs])
 
     //find all the region id's of the isolated row and pass them to the other tables
     const isolatedRows: IsolatedRow = useMemo(() => {

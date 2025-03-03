@@ -108,7 +108,7 @@ export type GeneFilterState = {
     mustHaveOrtholog: boolean;
     rankExpSpecBy: "max" | "avg";
     rankGeneExpBy: "max" | "avg";
-    selectedBiosample: RegistryBiosample | null;
+    selectedBiosample: RegistryBiosample[] | null;
 }
 
 type UpdateSequenceFilter = <K extends keyof SequenceFilterState>(

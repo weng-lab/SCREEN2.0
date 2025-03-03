@@ -67,6 +67,11 @@ export type AtacAggregate = {
   reverse_values: Array<Scalars['Float']['output']>;
 };
 
+export enum AggregateByEnum {
+  Average = 'AVERAGE',
+  Max = 'MAX'
+}
+
 export type AggregationResult = {
   __typename?: 'AggregationResult';
   total: Scalars['Int']['output'];
@@ -943,14 +948,15 @@ export type GeneDatasetTranscript_Quantification_FilesArgs = {
 };
 
 export type GeneExpressionInput = {
-  biosample?: InputMaybe<Scalars['String']['input']>;
+  aggregateBy?: InputMaybe<AggregateByEnum>;
+  biosample?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   gene: Scalars['String']['input'];
   tissue?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type GeneExpressionOutput = {
   __typename?: 'GeneExpressionOutput';
-  biosample?: Maybe<Scalars['String']['output']>;
+  biosample?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
   error?: Maybe<Scalars['String']['output']>;
   gene?: Maybe<Scalars['String']['output']>;
   tissue?: Maybe<Scalars['String']['output']>;
@@ -4174,7 +4180,7 @@ export type GeneExpQueryQueryVariables = Exact<{
 }>;
 
 
-export type GeneExpQueryQuery = { __typename?: 'Query', geneexpressiontpms?: Array<{ __typename?: 'GeneExpressionOutput', tpm?: number | null, gene?: string | null, tissue?: string | null, biosample?: string | null, error?: string | null } | null> | null };
+export type GeneExpQueryQuery = { __typename?: 'Query', geneexpressiontpms?: Array<{ __typename?: 'GeneExpressionOutput', tpm?: number | null, gene?: string | null, tissue?: string | null, biosample?: Array<string | null> | null, error?: string | null } | null> | null };
 
 export type GeneexpressionQueryVariables = Exact<{
   assembly: Scalars['String']['input'];

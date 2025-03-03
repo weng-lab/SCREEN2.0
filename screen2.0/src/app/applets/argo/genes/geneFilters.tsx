@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { GeneAccordianProps, GeneLinkingMethod } from "../types";
 import { Accordion, AccordionDetails, AccordionSummary, Checkbox, FormControl, FormControlLabel, FormGroup, IconButton, Paper, Radio, RadioGroup, Stack, Tooltip, Typography } from "@mui/material";
 import { ExpandMore, InfoOutlined, CancelRounded } from "@mui/icons-material"
@@ -42,6 +42,12 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
     const handleDeselectBiosample = () => {
         updateGeneFilter("selectedBiosample", null);
     }
+
+    useEffect(() => {
+        if (geneFilterVariables.selectedBiosample?.length === 0) {
+            updateGeneFilter("selectedBiosample", null);
+        }
+    },[geneFilterVariables.selectedBiosample, updateGeneFilter])
 
     return (
         <Accordion
@@ -182,25 +188,36 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
                             <Stack
                                 borderRadius={1}
                                 direction={"row"}
-                                spacing={3}
+                                spacing={1}
                                 sx={{ backgroundColor: theme => theme.palette.secondary.main }}
                                 alignItems={"center"}
                             >
-                                <Typography
-                                    flexGrow={1}
-                                    sx={{ color: "#2C5BA0", pl: 1 }}
-                                >
-                                    {geneFilterVariables.selectedBiosample.ontology.charAt(0).toUpperCase() +
-                                        geneFilterVariables.selectedBiosample.ontology.slice(1) +
-                                        " - " +
-                                        geneFilterVariables.selectedBiosample.displayname}
-                                </Typography>
                                 <IconButton
                                     onClick={() => { handleDeselectBiosample() }}
-                                    sx={{ m: 'auto', flexGrow: 0 }}
                                 >
                                     <CancelRounded />
                                 </IconButton>
+                                <Tooltip
+                                    title={
+                                        geneFilterVariables.selectedBiosample.length > 0 ? (
+                                            <span>
+                                                {geneFilterVariables.selectedBiosample.map((biosample) => (
+                                                    <div key={biosample.displayname}>{biosample.displayname}</div>
+                                                ))}
+                                            </span>
+                                        ) : "No biosamples selected"
+                                    }
+                                    arrow
+                                    placement="right"
+                                >
+                                    <Stack direction={"row"} spacing={1}>
+                                        <Typography
+                                            sx={{ color: "#2C5BA0", pl: 1 }}>
+                                            Selected Biosamples
+                                        </Typography>
+                                        <InfoOutlined />
+                                    </Stack>
+                                </Tooltip>
                             </Stack>
                         </Paper>
                     )}
@@ -210,13 +227,13 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
                         </AccordionSummary>
                         <AccordionDetails>
                             <BiosampleTables
-                                selected={geneFilterVariables.selectedBiosample?.name}
+                                selected={geneFilterVariables.selectedBiosample?.map((sample) => sample.name)}
                                 onChange={(biosample) => handleSelectedBiosample(biosample)}
                                 assembly={"GRCh38"}
                                 showRNAseq
                                 preFilterBiosamples={(biosample) => biosample.rnaseq}
-                                // allowMultiSelect
-                                // showCheckboxes
+                                allowMultiSelect
+                                showCheckboxes
                             />
                         </AccordionDetails>
                     </Accordion>
