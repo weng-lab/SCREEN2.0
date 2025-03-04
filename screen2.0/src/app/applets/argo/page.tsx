@@ -571,14 +571,15 @@ export default function Argo() {
         //switch between protein coding and all linked genes
         const filteredLinkedGenes = geneFilterVariables.mustBeProteinCoding ? closestAndLinkedGenes.linkedGenesQuery.filter((gene) => gene.genetype === "protein_coding") 
             : closestAndLinkedGenes.linkedGenesQuery
-        const linkedGenes = parseLinkedGenes(filteredLinkedGenes);
+        const linkedGenes = parseLinkedGenes(filteredLinkedGenes, geneFilterVariables.methodOfLinkage);
 
         //switch between protein coding and all closest gene
         let closestGenes = closestAndLinkedGenes.closestGenetocCRE.filter((gene) => gene.gene.type === "ALL")
         if (geneFilterVariables.mustBeProteinCoding) {
             closestGenes = closestAndLinkedGenes.closestGenetocCRE.filter((gene) => gene.gene.type === "PC")
         }
-        const allGenes = pushClosestGenes(closestGenes, linkedGenes);
+
+        const allGenes = geneFilterVariables.methodOfLinkage.distance ? pushClosestGenes(closestGenes, linkedGenes) : linkedGenes;
         const uniqueGeneNames = Array.from(
             new Set(
                 allGenes.flatMap((item) => item.genes.map((gene) => gene.name))
@@ -598,11 +599,25 @@ export default function Argo() {
                 filteredGenes = filterOrthologGenes(orthoGenes, allGenes)
             }
         }
-        if (filteredGenes.length === 0) {
+        
+        filteredGenes.map((gene) => ({
+            ...gene,
+            genes: gene.genes
+                .map((linkedGene) => ({
+                    ...linkedGene,
+                    linkedBy: linkedGene.linkedBy.filter((method) =>
+                        geneFilterVariables.methodOfLinkage[method as keyof GeneFilterState["methodOfLinkage"]]
+                    ),
+                }))
+                .filter((linkedGene) => linkedGene.linkedBy.length > 0), // Step 1: Remove genes with empty linkedBy
+        })).filter((accession) => accession.genes.length > 0);
+
+        if (filteredGenes.length === 0 || Object.values(geneFilterVariables.methodOfLinkage).every(value => !value)) {
             return null
         }
+        // console.log(filteredGenes)
 
-        //get all of the geneID's from allGenes
+        //get all of the geneID's from filteredGenes
         const geneIds = filteredGenes.flatMap((entry) =>
             entry.genes.map((gene) => gene.geneId)
         );
@@ -631,9 +646,10 @@ export default function Argo() {
                     })),
                 },
                 client: client,
-                fetchPolicy: 'cache-and-network'
+                fetchPolicy: 'cache-and-network',
             })
         }
+        
         const specificityRows = geneSpecificity ? getSpecificityScores(filteredGenes, intersectingCcres, geneSpecificity, geneFilterVariables) : []
         const expressionRows = geneExpression ? getExpressionScores(filteredGenes, intersectingCcres, geneExpression, geneFilterVariables) : []
 

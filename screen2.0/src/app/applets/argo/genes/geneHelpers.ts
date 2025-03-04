@@ -76,12 +76,13 @@ export const getSpecificityScores = (allGenes: AllLinkedGenes, accessions: CCREs
 }
 
 export const getExpressionScores = (allGenes: AllLinkedGenes, accessions: CCREs, geneExpression: GeneExpQueryQuery, geneFilterVariables: GeneFilterState): GeneTableRow[] => {
-    
+    const filteredGeneExpression = geneExpression.geneexpressiontpms.filter((tpm) => !tpm.error)
+
     const updatedAllGenes: AllLinkedGenes = allGenes.map((gene) => ({
         ...gene,
         genes: gene.genes.map((geneEntry) => {
             // Find the matching gene in geneExpression
-            const matchingGene = geneExpression.geneexpressiontpms.find(
+            const matchingGene = filteredGeneExpression.find(
                 (expressionGene) => expressionGene.gene === geneEntry.name.replace(/\s+/g, "")
             );
 
@@ -149,7 +150,7 @@ export const getExpressionScores = (allGenes: AllLinkedGenes, accessions: CCREs,
     return expressionRows
 }
 
-export const parseLinkedGenes = (data): AllLinkedGenes => {
+export const parseLinkedGenes = (data, methodOfLinkage: { [key in GeneLinkingMethod]: boolean }): AllLinkedGenes => {
     const uniqueAccessions: {
         accession: string;
         genes: { name: string; geneId: string; linkedBy: string[] }[]
@@ -168,18 +169,18 @@ export const parseLinkedGenes = (data): AllLinkedGenes => {
 
             if (existingGene) {
                 // Add the method if it's not already in the linkedBy array
-                if (!existingGene.linkedBy.includes(methodToPush)) {
+                if (!existingGene.linkedBy.includes(methodToPush) && methodOfLinkage[methodToPush]) {
                     existingGene.linkedBy.push(methodToPush);
                 }
             } else {
                 // Add a new gene entry if the gene name and geneId don't exist
-                existingGeneEntry.genes.push({ name: geneNameToPush, geneId: geneIdToPush, linkedBy: [methodToPush] });
+                existingGeneEntry.genes.push({ name: geneNameToPush, geneId: geneIdToPush, linkedBy: methodOfLinkage[methodToPush] ? [methodToPush] : [] });
             }
         } else {
             // Create a new entry for the accession if it doesn't exist
             uniqueAccessions.push({
                 accession: geneAccession,
-                genes: [{ name: geneNameToPush, geneId: geneIdToPush, linkedBy: [methodToPush] }],
+                genes: [{ name: geneNameToPush, geneId: geneIdToPush, linkedBy: methodOfLinkage[methodToPush] ? [methodToPush] : [] }],
             });
         }
     }
@@ -255,6 +256,7 @@ export const filterOrthologGenes = (orthoGenes: GeneOrthologQueryQuery, allGenes
 }
 
 export const generateGeneRanks = (geneRows: GeneTableRow[]): RankedRegions => {
+    console.log(geneRows)
     // Assign ranks based on expression specificity
     const expressionSpecificityRankedRows = (() => {
         const sortedRows = [...geneRows].sort((a, b) => b.expressionSpecificity.score - a.expressionSpecificity.score);
