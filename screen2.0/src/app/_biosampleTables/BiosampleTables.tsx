@@ -236,7 +236,6 @@ export const BiosampleTables = <
     }
 
     const handleModifyAll = (samples: BiosampleData<HasRNASeq>[], action: "select" | "deselect") => {
-      console.log("modifying all")
       if (onChange && typeof onChange === 'function') {
         if (action === "select") {
           const toAdd = samples.filter(sample => !selectedSamples.some(x => x.name === sample.name));
@@ -301,15 +300,20 @@ export const BiosampleTables = <
                   backgroundColor: (selectedSamples.some(sample => sample.ontology === ontology) && allowMultiSelect) ? "#ebecf8" : "transparent",
                 }}
               >
-                {biosamples.length !== unfilteredBiosamples[ontology].length ?
-                  <Typography>{ontology.charAt(0).toUpperCase() + ontology.slice(1)} ({biosamples.length} <span style={{ opacity: 0.5 }}><s>{unfilteredBiosamples[ontology].length}</s></span>)</Typography>
-                  : <Typography>{ontology.charAt(0).toUpperCase() + ontology.slice(1) + ` (${biosamples.length})`}</Typography>
-                }
-                {selectedSamples.filter(sample => sample.ontology === ontology).length > 0 && allowMultiSelect && (
-                  <Typography sx={{ marginLeft: 1, fontWeight: "bold", }}>
-                    <em>{selectedSamples.filter(sample => sample.ontology === ontology).length}{" "}Selected</em>
-                  </Typography>
-                )}
+                <Stack direction={"row"} spacing={1} ml={1} alignItems={"center"}>
+                  {biosamples.length !== unfilteredBiosamples[ontology].length ?
+                    <Typography>{ontology.charAt(0).toUpperCase() + ontology.slice(1)} ({biosamples.length} <span style={{ opacity: 0.5 }}><s>{unfilteredBiosamples[ontology].length}</s></span>)</Typography>
+                    : <Typography>{ontology.charAt(0).toUpperCase() + ontology.slice(1) + ` (${biosamples.length})`}</Typography>
+                  }
+                  {selectedSamples.filter(sample => sample.ontology === ontology).length > 0 && allowMultiSelect && (
+                    <>
+                      <Typography sx={{ fontWeight: "bold" }}>
+                        <em>{selectedSamples.filter(sample => sample.ontology === ontology).length}{" "}Selected</em>
+                      </Typography>
+                      <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleModifyAll(selectedSamples.filter(sample => sample.ontology === ontology), "deselect") }}><Close /></IconButton>
+                    </>
+                  )}
+                </Stack>
               </AccordionSummary>
               <AccordionDetails>
                 <DataTable
