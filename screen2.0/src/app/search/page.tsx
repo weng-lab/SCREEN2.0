@@ -629,7 +629,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     //I could fetch the coordinates here, if I change constructMainQueryParamsFromURL to return null for coordinates instead of default
 
     const getcCREs = async () => {
-      const coords = mainQueryParams.searchConfig.bed_intersect ? {
+      const coords = !mainQueryParams.searchConfig.bed_intersect ? {
         chromosome: mainQueryParams.coordinates.chromosome,
         start,
         end, 
