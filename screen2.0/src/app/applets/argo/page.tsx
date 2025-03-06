@@ -31,10 +31,6 @@ export default function Argo() {
     const [getGeneExpression, { data: geneExpression, loading: loading_gene_expression }] = useLazyQuery(GENE_EXP_QUERY)
     const [getOrthoGenes, { data: orthoGenes }] = useLazyQuery(GENE_ORTHO_QUERY)
     const [occurrences, setOccurrences] = useState<QueryResult<OccurrencesQuery>[]>([]);
-    const [loadingMainRows, setLoadingMainRows] = useState(true);
-    const [loadingElementRanks, setLoadingElementRanks] = useState(true);
-    const [loadingSequenceRanks, setLoadingSequenceRanks] = useState(true);
-    const [loadingGeneRanks, setLoadingGeneRanks] = useState(true);
 
     //UI state variables
     const [selectedSearch, setSelectedSearch] = useState<string>("TSV File")
@@ -243,10 +239,6 @@ export default function Argo() {
 
     //reset variables when switching btwn TSV and txt, or when you remove a file
     const handleSearchChange = (search: string) => {
-        setLoadingMainRows(true)
-        setLoadingSequenceRanks(true)
-        setLoadingElementRanks(true)
-        setLoadingGeneRanks(true)
         updateElementFilter('selectedBiosample', null)
         if (search) {
             setSelectedSearch(search)
@@ -308,9 +300,6 @@ export default function Argo() {
         skip: !sequenceFilterVariables.useConservation || bigRequests.length === 0,
         client: client,
         fetchPolicy: 'cache-first',
-        onError() {
-            setLoadingSequenceRanks(false)
-        }
     });
 
     //query the motif occurences fron the input regions
@@ -391,8 +380,6 @@ export default function Argo() {
         if (sequenceRows.length === 0) {
             return [];
         }
-
-        setLoadingSequenceRanks(true);
 
         const rankedRegions = generateSequenceRanks(sequenceRows)
 
@@ -542,8 +529,6 @@ export default function Argo() {
             return [];
         }
 
-        setLoadingElementRanks(true);
-
         //find ccres with same input region and combine them based on users rank by selected
         const processedRows = handleSameInputRegion(elementFilterVariables.rankBy, elementRows)
         const rankedRegions = generateElementRanks(processedRows, elementFilterVariables.classes, elementFilterVariables.assays)
@@ -692,7 +677,6 @@ export default function Argo() {
         } else if (geneRows.length === 0) {
             return [];
         }
-        setLoadingGeneRanks(true);
 
         const rankedRegions = generateGeneRanks(geneRows)
 
@@ -702,29 +686,21 @@ export default function Argo() {
 
     /*------------------------------------------ Main Table Stuff ------------------------------------------*/
 
+    // All loading states for main table columns
+    const loadingSequenceRanks = sequenceRanks.length === 0 || loading_conservation_scores;
+    const loadingElementRanks = elementRanks.length === 0 || loading_scores || loading_ortho;
+    const loadingGeneRanks = geneRanks.length === 0 || loading_gene_specificity || loading_gene_expression || loading_linked_genes;
+    const loadingMainRows = loadingSequenceRanks || loadingElementRanks || loadingGeneRanks;
+
     //find the matching ranks for each input region and update the rows of the main table
     const mainRows: MainTableRow[] = useMemo(() => {
         if ((sequenceRanks.length === 0 && elementRanks.length === 0 && geneRanks.length === 0) || inputRegions.length === 0) return [];
-        setLoadingMainRows(true)
 
         const aggregateRanks = calculateAggregateRanks(inputRegions, sequenceRanks, elementRanks, geneRanks)
-        //TODO add gene ranks below
         const updatedMainRows = matchRanks(inputRegions, sequenceRanks, elementRanks, geneRanks, aggregateRanks)
-        if (sequenceRanks.length > 0 && !loading_conservation_scores) {
-            setLoadingSequenceRanks(false)
-        }
-        if (elementRanks.length > 0) {
-            setLoadingElementRanks(false)
-        }
-        if (geneRanks.length > 0 && !loading_gene_specificity && !loading_gene_expression) {
-            setLoadingGeneRanks(false)
-        }
-        if (elementRanks.length > 0 && sequenceRanks.length > 0 && geneRanks.length > 0 && !loading_gene_specificity && !loading_conservation_scores) {
-            setLoadingMainRows(false)
-        }
 
         return updatedMainRows;
-    }, [elementRanks, geneRanks, inputRegions, loading_conservation_scores, loading_gene_expression, loading_gene_specificity, sequenceRanks]);
+    }, [elementRanks, geneRanks, inputRegions, sequenceRanks]);
 
     //handle column changes for the main rank table
     const mainColumns: DataTableColumn<MainTableRow>[] = useMemo(() => {
@@ -754,7 +730,7 @@ export default function Argo() {
                     if (rankB === 0) return -1;
                     return rankA - rankB;
                 },
-                render: (row) => loadingElementRanks || loading_scores || loading_ortho ? <CircularProgress size={10} /> : row.elementRank === 0 ? "N/A" : row.elementRank
+                render: (row) => loadingElementRanks  ? <CircularProgress size={10} /> : row.elementRank === 0 ? "N/A" : row.elementRank
             })
         }
         if (geneFilterVariables.useGenes) {
@@ -769,13 +745,13 @@ export default function Argo() {
                     if (rankB === 0) return -1;
                     return rankA - rankB;
                 },
-                render: (row) => loading_linked_genes || loading_gene_specificity || loading_gene_expression || loadingGeneRanks ? <CircularProgress size={10} /> : row.geneRank === 0 ? "N/A" : row.geneRank
+                render: (row) => loadingGeneRanks ? <CircularProgress size={10} /> : row.geneRank === 0 ? "N/A" : row.geneRank
             })
         }
 
         return cols
 
-    }, [MainColHeader, elementFilterVariables.usecCREs, geneFilterVariables.useGenes, loadingElementRanks, loadingGeneRanks, loadingMainRows, loadingSequenceRanks, loading_gene_expression, loading_gene_specificity, loading_linked_genes, loading_ortho, loading_scores, sequenceFilterVariables.useConservation, sequenceFilterVariables.useMotifs])
+    }, [MainColHeader, elementFilterVariables.usecCREs, geneFilterVariables.useGenes, loadingElementRanks, loadingGeneRanks, loadingMainRows, loadingSequenceRanks, sequenceFilterVariables.useConservation, sequenceFilterVariables.useMotifs])
 
     //find all the region id's of the isolated row and pass them to the other tables
     const isolatedRows: IsolatedRow = useMemo(() => {
