@@ -615,7 +615,6 @@ export default function Argo() {
         if (filteredGenes.length === 0 || Object.values(geneFilterVariables.methodOfLinkage).every(value => !value)) {
             return null
         }
-        // console.log(filteredGenes)
 
         //get all of the geneID's from filteredGenes
         const geneIds = filteredGenes.flatMap((entry) =>

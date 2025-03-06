@@ -94,6 +94,8 @@ export const getExpressionScores = (allGenes: AllLinkedGenes, accessions: CCREs,
         }),
     }));
 
+    console.log(updatedAllGenes)
+
     const expressionRows: GeneTableRow[] = accessions.flatMap((ccre) => {
         // Filter out ccres by matching accession
         const matchingGenes = updatedAllGenes.filter((gene) => ccre.accession === gene.accession);
@@ -146,6 +148,8 @@ export const getExpressionScores = (allGenes: AllLinkedGenes, accessions: CCREs,
             })),
         }));
     });
+
+    console.log(expressionRows)
 
     return expressionRows
 }
@@ -256,7 +260,7 @@ export const filterOrthologGenes = (orthoGenes: GeneOrthologQueryQuery, allGenes
 }
 
 export const generateGeneRanks = (geneRows: GeneTableRow[]): RankedRegions => {
-    console.log(geneRows)
+    
     // Assign ranks based on expression specificity
     const expressionSpecificityRankedRows = (() => {
         const sortedRows = [...geneRows].sort((a, b) => b.expressionSpecificity.score - a.expressionSpecificity.score);

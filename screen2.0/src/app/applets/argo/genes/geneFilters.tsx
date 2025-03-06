@@ -200,13 +200,16 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
                                 <Tooltip
                                     title={
                                         geneFilterVariables.selectedBiosample.length > 0 ? (
-                                            <span>
-                                                {geneFilterVariables.selectedBiosample.map((biosample) => (
-                                                    <div key={biosample.displayname}>{biosample.displayname}</div>
-                                                ))}
-                                            </span>
+                                          <span>
+                                            {geneFilterVariables.selectedBiosample.slice(0, 5).map((biosample) => (
+                                              <div key={biosample.displayname}>{biosample.displayname}</div>
+                                            ))}
+                                            {geneFilterVariables.selectedBiosample.length > 5 && (
+                                              <div>and {geneFilterVariables.selectedBiosample.length - 5} more...</div>
+                                            )}
+                                          </span>
                                         ) : "No biosamples selected"
-                                    }
+                                      }
                                     arrow
                                     placement="right"
                                 >

@@ -298,12 +298,18 @@ export const BiosampleTables = <
                   "& .MuiAccordionSummary-expandIconWrapper.Mui-expanded": {
                     transform: "rotate(90deg)",
                   },
+                  backgroundColor: (selectedSamples.some(sample => sample.ontology === ontology) && allowMultiSelect) ? "#ebecf8" : "transparent",
                 }}
               >
                 {biosamples.length !== unfilteredBiosamples[ontology].length ?
                   <Typography>{ontology.charAt(0).toUpperCase() + ontology.slice(1)} ({biosamples.length} <span style={{ opacity: 0.5 }}><s>{unfilteredBiosamples[ontology].length}</s></span>)</Typography>
                   : <Typography>{ontology.charAt(0).toUpperCase() + ontology.slice(1) + ` (${biosamples.length})`}</Typography>
                 }
+                {selectedSamples.filter(sample => sample.ontology === ontology).length > 0 && allowMultiSelect && (
+                  <Typography sx={{ marginLeft: 1, fontWeight: "bold", }}>
+                    <em>{selectedSamples.filter(sample => sample.ontology === ontology).length}{" "}Selected</em>
+                  </Typography>
+                )}
               </AccordionSummary>
               <AccordionDetails>
                 <DataTable
