@@ -615,19 +615,22 @@ export default function Argo() {
                 client: client,
                 fetchPolicy: 'cache-and-network',
             })
+
+            const geneExpressionVariables = Array.from(
+                new Set(
+                    filteredGenes.flatMap((entry) =>
+                        entry.genes.map((gene) => gene.name.trim())
+                    )
+                )
+            ).map((name) => ({ 
+                gene: name, 
+                biosample: geneFilterVariables.selectedBiosample?.map((sample) => sample.name),
+                aggregateBy: (geneFilterVariables.rankGeneExpBy === "avg" ? "AVERAGE" : "MAX") as AggregateByEnum
+            }))
+
             getGeneExpression({
                 variables: {
-                    genes: Array.from(
-                        new Set(
-                            filteredGenes.flatMap((entry) =>
-                                entry.genes.map((gene) => gene.name.trim())
-                            )
-                        )
-                    ).map((name) => ({ 
-                        gene: name, 
-                        biosample: geneFilterVariables.selectedBiosample?.map((sample) => sample.name),
-                        aggregateBy: (geneFilterVariables.rankGeneExpBy === "avg" ? "AVERAGE" : "MAX") as AggregateByEnum
-                    })),
+                    genes: geneExpressionVariables,
                 },
                 client: client,
                 fetchPolicy: 'cache-and-network',
