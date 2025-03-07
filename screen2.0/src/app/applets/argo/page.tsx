@@ -1,46 +1,55 @@
 "use client"
-import React, { useCallback, useEffect, useMemo } from "react"
+import React, { useEffect, useMemo } from "react"
 import { useState } from "react"
-import { Stack, Typography, Box, Alert, CircularProgress, IconButton, Button, Tooltip } from "@mui/material"
+import { Stack, Typography, Box, Alert, CircularProgress, IconButton, Tooltip } from "@mui/material"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
-import { ORTHOLOG_QUERY, Z_SCORES_QUERY, BIG_REQUEST_QUERY, MOTIF_QUERY, CLOSEST_LINKED_QUERY, SPECIFICITY_QUERY, GENE_ORTHO_QUERY, GENE_EXP_QUERY } from "./queries"
+import { ORTHOLOG_QUERY, Z_SCORES_QUERY, BIG_REQUEST_QUERY, MOTIF_QUERY } from "./queries"
 import { QueryResult, useLazyQuery, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
-import { RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, CCREs, InputRegions, SubTableTitleProps, IsolatedRow, AllLinkedGenes } from "./types"
+import { RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, CCREs, InputRegions, SubTableTitleProps, IsolatedRow, GeneTableRow } from "./types"
 import { BED_INTERSECT_QUERY } from "../../_mainsearch/queries"
-import ExpandCircleDownIcon from '@mui/icons-material/ExpandCircleDown';
 import Filters from "./filters"
-import { CancelRounded, VerticalAlignTop, Cancel, InfoOutlined } from "@mui/icons-material"
+import { VerticalAlignTop, Cancel, InfoOutlined } from "@mui/icons-material"
 import ArgoUpload from "./argoUpload"
-import { AggregateByEnum, BigRequest, OccurrencesQuery } from "../../../graphql/__generated__/graphql"
+import { BigRequest, OccurrencesQuery } from "../../../graphql/__generated__/graphql"
 import { calculateAggregateRanks, matchRanks } from "./helpers"
 import { batchRegions, calculateConservationScores, generateSequenceRanks, getNumOverlappingMotifs } from "./sequence/sequenceHelpers"
 import { generateElementRanks, handleSameInputRegion, mapScores, mapScoresCTSpecific } from "./elements/elementHelpers"
-import { filterOrthologGenes, generateGeneRanks, getExpressionScores, getSpecificityScores, parseLinkedGenes, pushClosestGenes } from "./genes/geneHelpers"
 import SequenceTable from "./sequence/sequenceTable"
 import ElementTable from "./elements/elementTable"
 import GeneTable from "./genes/geneTable"
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { generateGeneRanks } from "./genes/geneHelpers"
 
 export default function Argo() {
 
     const [inputRegions, setInputRegions] = useState<InputRegions>([]);
     const [getIntersectingCcres, { data: intersectArray }] = useLazyQuery(BED_INTERSECT_QUERY)
     const [getMemeOccurrences] = useLazyQuery(MOTIF_QUERY)
-    const [getOrthoGenes, { data: orthoGenes }] = useLazyQuery(GENE_ORTHO_QUERY)
     const [occurrences, setOccurrences] = useState<QueryResult<OccurrencesQuery>[]>([]);
 
     //UI state variables
     const [selectedSearch, setSelectedSearch] = useState<string>("TSV File")
     const [drawerOpen, setDrawerOpen] = useState(true);
     const toggleDrawer = () => setDrawerOpen(!drawerOpen);
-    const [shownTables, setShownTables] = useState<Set<"sequence" | "elements" | "genes">>(new Set());
     const [tableOrder, setTableOrder] = useState<("sequence" | "elements" | "genes")[]>([
         "sequence",
         "elements",
         "genes",
     ]);
+
+    const [geneRows, setGeneRows] = useState<GeneTableRow[]>([])
     const [isolatedRowID, setIsolatedRowID] = useState<number | string>(null);
+
+    const [loadingGeneRows, setLoadingGeneRows] = useState<boolean>(true);
+
+    const updateGeneRows = (rows: GeneTableRow[]) => {
+        setGeneRows(rows)
+    }
+
+    const updateLoadingGeneRows = (loading: boolean) => {
+        setLoadingGeneRows(loading)
+    }
 
     // Filter state variables
     const [sequenceFilterVariables, setSequenceFilterVariables] = useState<SequenceFilterState>({
@@ -128,31 +137,6 @@ export default function Argo() {
         }));
     };
 
-    // open and close sub tables
-    const toggleTable = (table) => {
-        setShownTables((prev) => {
-            const newSet = new Set(prev);
-            if (newSet.has(table)) {
-                newSet.delete(table); // Close the table if it's already open
-            } else {
-                newSet.add(table); // Open the table if it's not open
-            }
-            return newSet;
-        });
-    };
-
-    const toggleAllTables = () => {
-        setShownTables((prev) =>
-            prev.size === 3 ? new Set()
-                :
-                new Set([
-                    "sequence",
-                    "elements",
-                    "genes",
-                ])
-        );
-    };
-
     //drag functionality for the tables, reorders the table order array
     const onDragEnd = (result) => {
         if (!result.destination) return; // If dropped outside the list, do nothing
@@ -177,44 +161,12 @@ export default function Argo() {
     //isolate a specific rowID
     const isolateRow = (row: MainTableRow) => {
         setIsolatedRowID(row.regionID)
-        //turn on all tables
-        setShownTables(
-            new Set([
-                "sequence",
-                "elements",
-                "genes",
-            ])
-        );
     }
-
-    //stylized header for main rank table columns
-    const MainColHeader = useCallback(({ tableName, onClick }) => (
-        <div style={{ display: 'flex', alignItems: 'center'}}>
-            <IconButton
-                size="small"
-                onClick={onClick}
-                style={{
-                    transform: shownTables.has(tableName.toLowerCase()) ? 'rotate(180deg)' : 'rotate(0deg)',
-                }}
-            >
-                <ExpandCircleDownIcon
-                    fontSize="inherit"
-                    color={shownTables.has(tableName.toLowerCase()) ? "primary" : "inherit"}
-                />
-            </IconButton>
-            <span style={{ color: shownTables.has(tableName.toLowerCase()) ? '#030f98' : 'inherit', fontWeight: shownTables.has(tableName.toLowerCase()) ? 'bolder' : 'normal' }}>
-                {tableName}
-            </span>
-        </div>
-    ), [shownTables])
 
     //stylized title for the sequence,element, and gene data tables
     const SubTableTitle: React.FC<SubTableTitleProps> = ({ title, table }) => (
         <Stack direction={"row"} alignItems={"center"} justifyContent={"space-between"} width={"100%"}>
             <Stack direction={"row"} alignItems={"center"} spacing={1}>
-                <IconButton onClick={() => toggleTable(table)} color={"primary"}>
-                    <CancelRounded />
-                </IconButton>
                 <Typography
                     variant="h5"
                     noWrap
@@ -241,7 +193,6 @@ export default function Argo() {
         if (search) {
             setSelectedSearch(search)
         }
-        setShownTables(new Set());
         handleRegionsConfigured([])
         setIsolatedRowID(null)
     }
@@ -536,143 +487,7 @@ export default function Argo() {
     }, [allElementData, elementFilterVariables.assays, elementFilterVariables.classes, elementFilterVariables.rankBy, elementFilterVariables.usecCREs, elementRows]);
 
     /*------------------------------------------ Gene Stuff ------------------------------------------*/
-    //Query to get the closest gene to eah ccre
-    const { loading: loading_linked_genes, data: closestAndLinkedGenes } = useQuery(CLOSEST_LINKED_QUERY, {
-        variables: {
-            accessions: intersectingCcres ? intersectingCcres.map((ccre) => ccre.accession) : [],
-        },
-        skip: !intersectingCcres,
-        client: client,
-        fetchPolicy: 'cache-first',
-    });
-
-    const filteredGenes = useMemo<AllLinkedGenes>(() => {
-        if (!intersectingCcres || !closestAndLinkedGenes) {
-            return [];
-        }
-
-        //switch between protein coding and all linked genes
-        const filteredLinkedGenes = geneFilterVariables.mustBeProteinCoding ? closestAndLinkedGenes.linkedGenesQuery.filter((gene) => gene.genetype === "protein_coding")
-            : closestAndLinkedGenes.linkedGenesQuery
-        const linkedGenes = parseLinkedGenes(filteredLinkedGenes, geneFilterVariables.methodOfLinkage);
-
-        //switch between protein coding and all closest gene
-        let closestGenes = closestAndLinkedGenes.closestGenetocCRE.filter((gene) => gene.gene.type === "ALL")
-        if (geneFilterVariables.mustBeProteinCoding) {
-            closestGenes = closestAndLinkedGenes.closestGenetocCRE.filter((gene) => gene.gene.type === "PC")
-        }
-
-        const allGenes = geneFilterVariables.methodOfLinkage.distance ? pushClosestGenes(closestGenes, linkedGenes) : linkedGenes;
-        const uniqueGeneNames = Array.from(
-            new Set(
-                allGenes.flatMap((item) => item.genes.map((gene) => gene.name))
-            )
-        );
-        let filteringGenes = allGenes;
-        if (geneFilterVariables.mustHaveOrtholog) {
-            getOrthoGenes({
-                variables: {
-                    name: uniqueGeneNames,
-                    assembly: "grch38"
-                },
-                client: client,
-                fetchPolicy: 'cache-and-network',
-            })
-            if (orthoGenes) {
-                filteringGenes = filterOrthologGenes(orthoGenes, allGenes)
-            }
-        }
-
-        filteringGenes.map((gene) => ({
-            ...gene,
-            genes: gene.genes
-                .map((linkedGene) => ({
-                    ...linkedGene,
-                    linkedBy: linkedGene.linkedBy.filter((method) =>
-                        geneFilterVariables.methodOfLinkage[method as keyof GeneFilterState["methodOfLinkage"]]
-                    ),
-                }))
-                .filter((linkedGene) => linkedGene.linkedBy.length > 0), // Step 1: Remove genes with empty linkedBy
-        })).filter((accession) => accession.genes.length > 0);
-
-        if (filteringGenes.length === 0 || Object.values(geneFilterVariables.methodOfLinkage).every(value => !value)) {
-            return null
-        }
-
-        return filteringGenes;
-
-    }, [closestAndLinkedGenes, geneFilterVariables.methodOfLinkage, geneFilterVariables.mustBeProteinCoding, geneFilterVariables.mustHaveOrtholog, getOrthoGenes, intersectingCcres, orthoGenes])
-
-    const { loading: loading_gene_specificity, data: geneSpecificity } = useQuery(SPECIFICITY_QUERY, {
-        variables: {
-            geneids: filteredGenes.flatMap((entry) =>
-                entry.genes.map((gene) => gene.geneId)
-            )
-        },
-        skip: !closestAndLinkedGenes || closestAndLinkedGenes.closestGenetocCRE.length === 0,
-        client: client,
-        fetchPolicy: 'cache-first',
-    });
-
-    const { loading: loading_gene_expression, data: geneExpression } = useQuery(GENE_EXP_QUERY, {
-        variables: {
-            genes: Array.from(
-                new Set(
-                    filteredGenes.flatMap((entry) =>
-                        entry.genes.map((gene) => gene.name.trim())
-                    )
-                )
-            ).map((name) => ({
-                gene: name,
-                biosample: geneFilterVariables.selectedBiosample?.map((sample) => sample.name),
-                aggregateBy: (geneFilterVariables.rankGeneExpBy === "avg" ? "AVERAGE" : "MAX") as AggregateByEnum
-            }))
-        },
-        skip: !closestAndLinkedGenes || closestAndLinkedGenes.closestGenetocCRE.length === 0,
-        client: client,
-        fetchPolicy: 'cache-first',
-    });
-
-    const geneRows = useMemo<GeneTableRow[]>(() => {
-        if (filteredGenes === null) {
-            return null
-        }
-        if (filteredGenes.length === 0) {
-            return []
-        }
-        
-        const specificityRows = geneSpecificity ? getSpecificityScores(filteredGenes, intersectingCcres, geneSpecificity, geneFilterVariables) : []
-        const expressionRows = geneExpression ? getExpressionScores(filteredGenes, intersectingCcres, geneExpression, geneFilterVariables) : []
-
-        const mergedRowsMap = new Map<string | number, GeneTableRow>();
-
-        specificityRows.forEach(row => {
-            mergedRowsMap.set(row.regionID, { ...row });
-        });
-
-        // Process expressionRows, merging data when `regionID` matches
-        expressionRows.forEach(row => {
-            if (mergedRowsMap.has(row.regionID)) {
-                mergedRowsMap.set(row.regionID, {
-                    ...mergedRowsMap.get(row.regionID),
-                    geneExpression: row.geneExpression, 
-                });
-            } else {
-                // Otherwise, add as a new entry
-                mergedRowsMap.set(row.regionID, { ...row });
-            }
-        });
-
-        // Convert map back to an array
-        const mergedRows = Array.from(mergedRowsMap.values());
-        if (geneSpecificity && geneExpression) {
-            return mergedRows
-        } else {
-            return []
-        }
-
-    }, [filteredGenes, geneExpression, geneFilterVariables, geneSpecificity, intersectingCcres]);
-
+    
     const geneRanks = useMemo<RankedRegions>(() => {
         if (geneRows === null || !geneFilterVariables.useGenes) {
             return inputRegions.map((row) => ({
@@ -690,13 +505,13 @@ export default function Argo() {
         return rankedRegions
 
     }, [geneFilterVariables.useGenes, geneRows, inputRegions]);
-
+    
     /*------------------------------------------ Main Table Stuff ------------------------------------------*/
 
     // All loading states for main table columns
     const loadingSequenceRanks = sequenceRanks.length === 0 || loading_conservation_scores;
     const loadingElementRanks = elementRanks.length === 0 || loading_scores || loading_ortho;
-    const loadingGeneRanks = geneRanks.length === 0 || loading_gene_specificity || loading_gene_expression || loading_linked_genes;
+    const loadingGeneRanks = geneRanks.length === 0 || loadingGeneRows;
     const loadingMainRows = loadingSequenceRanks || loadingElementRanks || loadingGeneRanks;
 
     //find the matching ranks for each input region and update the rows of the main table
@@ -721,14 +536,14 @@ export default function Argo() {
         if (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs) {
             cols.push({
                 header: "Seqence",
-                HeaderRender: () => <MainColHeader tableName="Sequence" onClick={() => { toggleTable("sequence"); bringTableToTop("sequence") }} />,
                 value: (row) => row.sequenceRank,
                 render: (row) => loadingSequenceRanks ? <CircularProgress size={10} /> : row.sequenceRank
             })
         }
         if (elementFilterVariables.usecCREs) {
             cols.push({
-                header: "Element", HeaderRender: () => <MainColHeader tableName="Elements" onClick={() => { toggleTable("elements"); bringTableToTop("elements") }} />, value: (row) => row.elementRank === 0 ? "N/A" : row.elementRank,
+                header: "Element", 
+                value: (row) => row.elementRank === 0 ? "N/A" : row.elementRank,
                 sort: (a, b) => {
                     const rankA = a.elementRank
                     const rankB = b.elementRank
@@ -742,7 +557,7 @@ export default function Argo() {
         }
         if (geneFilterVariables.useGenes) {
             cols.push({
-                header: "Gene", HeaderRender: () => <MainColHeader tableName="Genes" onClick={() => { toggleTable("genes"); bringTableToTop("genes") }} />,
+                header: "Gene",
                 value: (row) => row.geneRank,
                 sort: (a, b) => {
                     const rankA = a.geneRank
@@ -758,7 +573,7 @@ export default function Argo() {
 
         return cols
 
-    }, [MainColHeader, elementFilterVariables.usecCREs, geneFilterVariables.useGenes, loadingElementRanks, loadingGeneRanks, loadingMainRows, loadingSequenceRanks, sequenceFilterVariables.useConservation, sequenceFilterVariables.useMotifs])
+    }, [elementFilterVariables.usecCREs, geneFilterVariables.useGenes, loadingElementRanks, loadingGeneRanks, loadingMainRows, loadingSequenceRanks, sequenceFilterVariables.useConservation, sequenceFilterVariables.useMotifs])
 
     //find all the region id's of the isolated row and pass them to the other tables
     const isolatedRows: IsolatedRow = useMemo(() => {
@@ -838,7 +653,6 @@ export default function Argo() {
                                                     </Stack>
                                                 }
                                             </Stack>
-                                            <Button variant="outlined" onClick={toggleAllTables}>Toggle All Tables</Button>
                                         </Stack>
                                     }
                                     onRowClick={isolateRow}
@@ -863,7 +677,7 @@ export default function Argo() {
                                                             mt: '20px',
                                                         }}
                                                     >
-                                                        {table === "sequence" && shownTables.has("sequence") && (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs) && (
+                                                        {table === "sequence" && (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs) && (
                                                             <>
                                                                 {error_conservation_scores && (
                                                                     <Alert variant="filled" severity="error">
@@ -881,7 +695,7 @@ export default function Argo() {
                                                             </>
                                                         )}
 
-                                                        {table === "elements" && shownTables.has("elements") && elementFilterVariables.usecCREs && (
+                                                        {table === "elements" && elementFilterVariables.usecCREs && (
                                                             <>
                                                                 {error_scores && (
                                                                     <Alert variant="filled" severity="error">
@@ -899,12 +713,14 @@ export default function Argo() {
                                                             </>
                                                         )}
 
-                                                        {table === "genes" && shownTables.has("genes") && geneFilterVariables.useGenes && (
+                                                        {table === "genes" && geneFilterVariables.useGenes && (
                                                             <GeneTable
                                                                 geneFilterVariables={geneFilterVariables}
                                                                 SubTableTitle={SubTableTitle}
-                                                                geneRows={geneRows}
+                                                                intersectingCcres={intersectingCcres}
                                                                 isolatedRows={isolatedRows}
+                                                                updateGeneRows={updateGeneRows}
+                                                                updateLoadingGeneRows={updateLoadingGeneRows}
                                                             />
                                                         )}
                                                     </Box>

@@ -301,8 +301,10 @@ export type ElementTableProps = {
 export type GeneTableProps = {
     geneFilterVariables: GeneFilterState;
     SubTableTitle: React.FC<SubTableTitleProps>;
-    geneRows: GeneTableRow[];
+    intersectingCcres: CCREs;
     isolatedRows: IsolatedRow;
+    updateGeneRows: (rows: GeneTableRow[]) => void;
+    updateLoadingGeneRows: (loading: boolean) => void;
 }
 
 export type ClosestGenetocCRE = {
