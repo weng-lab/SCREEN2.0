@@ -27,8 +27,6 @@ export default function Argo() {
     const [inputRegions, setInputRegions] = useState<InputRegions>([]);
     const [getIntersectingCcres, { data: intersectArray }] = useLazyQuery(BED_INTERSECT_QUERY)
     const [getMemeOccurrences] = useLazyQuery(MOTIF_QUERY)
-    // const [getGeneSpecificity, { data: geneSpecificity, loading: loading_gene_specificity }] = useLazyQuery(SPECIFICITY_QUERY)
-    // const [getGeneExpression, { data: geneExpression, loading: loading_gene_expression }] = useLazyQuery(GENE_EXP_QUERY)
     const [getOrthoGenes, { data: orthoGenes }] = useLazyQuery(GENE_ORTHO_QUERY)
     const [occurrences, setOccurrences] = useState<QueryResult<OccurrencesQuery>[]>([]);
 
