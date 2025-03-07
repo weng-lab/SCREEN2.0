@@ -1,20 +1,18 @@
 "use client"
-import React, { useEffect, useMemo } from "react"
+import React, { useMemo } from "react"
 import { useState } from "react"
-import { Stack, Typography, Box, Alert, CircularProgress, IconButton, Tooltip } from "@mui/material"
+import { Stack, Typography, Box, CircularProgress, IconButton, Tooltip } from "@mui/material"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
-import { ORTHOLOG_QUERY, Z_SCORES_QUERY, BIG_REQUEST_QUERY, MOTIF_QUERY } from "./queries"
-import { QueryResult, useLazyQuery, useQuery } from "@apollo/client"
+import { useLazyQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
-import { RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, CCREs, InputRegions, SubTableTitleProps, IsolatedRow, GeneTableRow } from "./types"
+import { RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, CCREs, InputRegions, SubTableTitleProps, IsolatedRow, GeneTableRow, ElementTableRow, SequenceTableRow } from "./types"
 import { BED_INTERSECT_QUERY } from "../../_mainsearch/queries"
 import Filters from "./filters"
 import { VerticalAlignTop, Cancel, InfoOutlined } from "@mui/icons-material"
 import ArgoUpload from "./argoUpload"
-import { BigRequest, OccurrencesQuery } from "../../../graphql/__generated__/graphql"
 import { calculateAggregateRanks, matchRanks } from "./helpers"
-import { batchRegions, calculateConservationScores, generateSequenceRanks, getNumOverlappingMotifs } from "./sequence/sequenceHelpers"
-import { generateElementRanks, handleSameInputRegion, mapScores, mapScoresCTSpecific } from "./elements/elementHelpers"
+import { generateSequenceRanks } from "./sequence/sequenceHelpers"
+import { generateElementRanks, handleSameInputRegion } from "./elements/elementHelpers"
 import SequenceTable from "./sequence/sequenceTable"
 import ElementTable from "./elements/elementTable"
 import GeneTable from "./genes/geneTable"
@@ -25,8 +23,6 @@ export default function Argo() {
 
     const [inputRegions, setInputRegions] = useState<InputRegions>([]);
     const [getIntersectingCcres, { data: intersectArray }] = useLazyQuery(BED_INTERSECT_QUERY)
-    const [getMemeOccurrences] = useLazyQuery(MOTIF_QUERY)
-    const [occurrences, setOccurrences] = useState<QueryResult<OccurrencesQuery>[]>([]);
 
     //UI state variables
     const [selectedSearch, setSelectedSearch] = useState<string>("TSV File")
@@ -38,18 +34,14 @@ export default function Argo() {
         "genes",
     ]);
 
+    const [sequenceRows, setSequenceRows] = useState<SequenceTableRow[]>([])
+    const [elementRows, setElementRows] = useState<ElementTableRow[]>([])
     const [geneRows, setGeneRows] = useState<GeneTableRow[]>([])
     const [isolatedRowID, setIsolatedRowID] = useState<number | string>(null);
 
+    const [loadingSequenceRows, setLoadingSequenceRows] = useState<boolean>(true);
+    const [loadingElementRows, setLoadingElementRows] = useState<boolean>(true);
     const [loadingGeneRows, setLoadingGeneRows] = useState<boolean>(true);
-
-    const updateGeneRows = (rows: GeneTableRow[]) => {
-        setGeneRows(rows)
-    }
-
-    const updateLoadingGeneRows = (loading: boolean) => {
-        setLoadingGeneRows(loading)
-    }
 
     // Filter state variables
     const [sequenceFilterVariables, setSequenceFilterVariables] = useState<SequenceFilterState>({
@@ -112,6 +104,31 @@ export default function Argo() {
         rankGeneExpBy: "max",
         selectedBiosample: null,
     });
+
+    //update all rows and loading states
+    const updateSequenceRows = (rows: SequenceTableRow[]) => {
+        setSequenceRows(rows)
+    }
+
+    const updateLoadingSequenceRows = (loading: boolean) => {
+        setLoadingSequenceRows(loading)
+    }
+
+    const updateElementRows = (rows: ElementTableRow[]) => {
+        setElementRows(rows)
+    }
+
+    const updateLoadingElementRows = (loading: boolean) => {
+        setLoadingElementRows(loading)
+    }
+
+    const updateGeneRows = (rows: GeneTableRow[]) => {
+        setGeneRows(rows)
+    }
+
+    const updateLoadingGeneRows = (loading: boolean) => {
+        setLoadingGeneRows(loading)
+    }
 
     //update specific variable in sequence filters
     const updateSequenceFilter = (key: keyof SequenceFilterState, value: unknown) => {
@@ -182,7 +199,7 @@ export default function Argo() {
                 onClick={() => bringTableToTop(table as "sequence" | "elements" | "genes")}
                 color="inherit"
             >
-                <VerticalAlignTop color="inherit"/>
+                <VerticalAlignTop color="inherit" />
             </IconButton>
         </Stack>
     );
@@ -215,129 +232,6 @@ export default function Argo() {
         })
     };
 
-    /*------------------------------------------ Sequence Stuff ------------------------------------------*/
-
-    //build payload for bigRequest query
-    const bigRequests: BigRequest[] = useMemo(() => {
-        if (inputRegions.length === 0) { return [] }
-        const urlMapping: { [key: string]: string } = {
-            "241-mam-phyloP": "https://downloads.wenglab.org/241-mammalian-2020v2.bigWig",
-            "241-mam-phastCons": "https://downloads.wenglab.org/241Mammals-PhastCons.bigWig",
-            "447-mam-phyloP": "https://downloads.wenglab.org/mammals_phyloP-447.bigWig",
-            "100-vert-phyloP": "https://downloads.wenglab.org/hg38.phyloP100way.bw",
-            "100-vert-phastCons": "https://downloads.wenglab.org/hg38.phastCons100way.bw",
-            "243-prim-phastCons": "https://downloads.wenglab.org/primates_PhastCons-243.bigWig",
-            "43-prim-phyloP": "https://downloads.wenglab.org/PhyloP-43.bw",
-            "43-prim-phastCons": "https://downloads.wenglab.org/hg38_43primates_phastCons.bw",
-        };
-
-        const selectedUrl = urlMapping[sequenceFilterVariables.alignment] || "";
-
-        return inputRegions.map(({ chr, start, end }) => ({
-            chr1: chr,
-            start,
-            end,
-            url: selectedUrl,
-        }));
-    }, [inputRegions, sequenceFilterVariables.alignment]);
-
-    //query to get conservation scores based on selected url
-    const { loading: loading_conservation_scores, error: error_conservation_scores, data: conservationScores } = useQuery(BIG_REQUEST_QUERY, {
-        variables: {
-            requests: bigRequests
-        },
-        skip: !sequenceFilterVariables.useConservation || bigRequests.length === 0,
-        client: client,
-        fetchPolicy: 'cache-first',
-    });
-
-    //query the motif occurences fron the input regions
-    useEffect(() => {
-        if (inputRegions.length === 0 || !sequenceFilterVariables.useMotifs) {
-            return;
-        }
-
-        const fetchAllOccurrences = async () => {
-            try {
-                //batch the input regions
-                const batchedRegions = batchRegions(inputRegions, 200);
-
-                //query all batches in parrallel
-                const fetchPromises = batchedRegions.map((batch) =>
-                    getMemeOccurrences({
-                        variables: {
-                            limit: 30,
-                            range: batch.map((region) => ({
-                                chromosome: region.chr,
-                                start: region.start,
-                                end: region.end,
-                            })),
-                        },
-                        fetchPolicy: "cache-first",
-                    })
-                );
-
-                //wait for queries to resolve
-                const results = await Promise.all(fetchPromises);
-                // Filter results with non-empty meme_occurrences
-                const filteredResults = results.filter(result => result.data.meme_occurrences.length > 0)
-                setOccurrences(filteredResults);
-            } catch (error) {
-                console.error("Error fetching occurrences:", error);
-            }
-        };
-
-        fetchAllOccurrences();
-    }, [inputRegions, getMemeOccurrences, sequenceFilterVariables.useMotifs]);
-
-    const sequenceRows: SequenceTableRow[] = useMemo(() => {
-        if ((!conservationScores && !occurrences) || inputRegions.length === 0) {
-            return []
-        }
-
-        let calculatedConservationScores: SequenceTableRow[] = []
-        if (conservationScores) {
-            calculatedConservationScores = calculateConservationScores(conservationScores.bigRequests, sequenceFilterVariables.rankBy, inputRegions)
-        }
-        let numOverlappingMotifs: SequenceTableRow[] = []
-        if (occurrences) {
-            numOverlappingMotifs = getNumOverlappingMotifs(occurrences, inputRegions)
-        }
-        // Merge conservation scores and overlapping motifs
-        const mergedRows = inputRegions.map(region => {
-            const conservationRow = calculatedConservationScores.find(
-                row => row.regionID === region.regionID
-            )
-
-            const overlappingMotifsRow = numOverlappingMotifs.find(
-                row => row.regionID === region.regionID
-            )
-
-            return {
-                regionID: region.regionID,
-                inputRegion: region,
-                conservationScore: conservationRow?.conservationScore,
-                numOverlappingMotifs: overlappingMotifsRow?.numOverlappingMotifs,
-                occurrences: overlappingMotifsRow?.occurrences
-            }
-        })
-
-        return mergedRows
-    }, [conservationScores, occurrences, inputRegions, sequenceFilterVariables.rankBy])
-
-    const sequenceRanks: RankedRegions = useMemo(() => {
-        if (sequenceRows.length === 0) {
-            return [];
-        }
-
-        const rankedRegions = generateSequenceRanks(sequenceRows)
-
-        return rankedRegions;
-    }, [sequenceRows]);
-
-
-    /*------------------------------------------ Element Stuff ------------------------------------------*/
-
     //all ccres intersecting the user inputted regions
     const intersectingCcres: CCREs = useMemo(() => {
         if (intersectArray) {
@@ -367,111 +261,24 @@ export default function Argo() {
         }
     }, [inputRegions, intersectArray]);
 
-    //query to get orthologous cCREs of the intersecting cCREs (also used in gene)
-    const { loading: loading_ortho, data: orthoData } = useQuery(ORTHOLOG_QUERY, {
-        variables: {
-            assembly: "GRCh38",
-            accessions: intersectingCcres ? intersectingCcres.map((ccre) => ccre.accession) : [],
-        },
-        skip: ((!elementFilterVariables.mustHaveOrtholog && elementFilterVariables.cCREAssembly !== "mm10") &&
-            (!geneFilterVariables.mustHaveOrtholog)) ||
-            !intersectingCcres,
-        client: client,
-        fetchPolicy: 'cache-first',
-    })
-
-    const mouseAccessions = useMemo(() => {
-        if (elementFilterVariables.cCREAssembly === "mm10") {
-            return orthoData?.orthologQuery
-                .flatMap(entry => entry.ortholog)
-                .map(orthologEntry => orthologEntry.accession);
-        }
-    }, [elementFilterVariables.cCREAssembly, orthoData?.orthologQuery]);
-
-    //Query to get the assay zscores of the intersecting ccres
-    const { loading: loading_scores, error: error_scores, data: zScoreData } = useQuery(Z_SCORES_QUERY, {
-        variables: {
-            assembly: elementFilterVariables.cCREAssembly,
-            accessions: elementFilterVariables.cCREAssembly === "mm10" ? mouseAccessions : intersectingCcres ? intersectingCcres.map((ccre) => ccre.accession) : [],
-            cellType: elementFilterVariables.selectedBiosample ? elementFilterVariables.selectedBiosample.name : null
-        },
-        skip: !intersectingCcres || (elementFilterVariables.cCREAssembly === "mm10" && !mouseAccessions),
-        client: client,
-        fetchPolicy: 'cache-first',
-    });
-
-    //all data pertaining to the element table
-    const allElementData: ElementTableRow[] = useMemo(() => {
-        if (!zScoreData) return [];
-        const data = zScoreData['cCRESCREENSearch'];
-        let mapObj = intersectingCcres;
-
-        //use mouse accesion instead if mm10 selected
-        if (elementFilterVariables.cCREAssembly === "mm10") {
-            const orthologMapping: { [accession: string]: string | undefined } = {};
-
-            orthoData.orthologQuery.forEach((entry: { accession: string; ortholog: Array<{ accession: string }> }) => {
-                if (entry.ortholog.length > 0) {
-                    orthologMapping[entry.accession] = entry.ortholog[0].accession;
-                }
-            });
-
-            mapObj = intersectingCcres
-                .map((ccre) => ({
-                    ...ccre,
-                    accession: orthologMapping[ccre.accession]
-                }))
-                .filter((ccre) => ccre.accession !== undefined);
-        }
-
-        //map assay scores bsed on selected biosample
-        if (elementFilterVariables.selectedBiosample) {
-            return mapObj.map(obj => mapScoresCTSpecific(obj, data));
-        } else {
-            return mapObj.map(obj => mapScores(obj, data));
-        }
-    }, [zScoreData, intersectingCcres, elementFilterVariables.cCREAssembly, elementFilterVariables.selectedBiosample, orthoData]);
-
-    // Filter cCREs based on class and ortholog
-    const elementRows: ElementTableRow[] = useMemo(() => {
-        if (allElementData.length === 0) {
+    //sequence ranks for main table
+    const sequenceRanks: RankedRegions = useMemo(() => {
+        if (sequenceRows.length === 0) {
             return [];
         }
-        let data = allElementData;
-        //filter through ortholog
-        if (elementFilterVariables.mustHaveOrtholog && orthoData && elementFilterVariables.cCREAssembly !== "mm10") {
-            const orthologMapping: { [accession: string]: string | undefined } = {};
 
-            orthoData.orthologQuery.forEach((entry: { accession: string; ortholog: Array<{ accession: string }> }) => {
-                if (entry.ortholog.length > 0) {
-                    orthologMapping[entry.accession] = entry.ortholog[0].accession;
-                }
-            });
+        const rankedRegions = generateSequenceRanks(sequenceRows)
 
-            data = data
-                .map((row) => ({
-                    ...row,
-                    ortholog: orthologMapping[row.accession]
-                }))
-                .filter((row) => row.ortholog !== undefined);
-        }
-        //filter through classes return if the data set i fully filtered
-        const filteredClasses = data.filter(row => elementFilterVariables.classes[row.class] !== false);
-        if (filteredClasses.length === 0) {
-            return null
-        }
+        return rankedRegions;
+    }, [sequenceRows]);
 
-        return filteredClasses;
-
-    }, [allElementData, elementFilterVariables, orthoData]);
-
-    // Generate element ranks
+    // element ranks for main table
     const elementRanks = useMemo<RankedRegions>(() => {
         if (elementRows === null || !elementFilterVariables.usecCREs) {
-            return allElementData.map((row) => ({
-                chr: row.inputRegion.chr,
-                start: row.inputRegion.start,
-                end: row.inputRegion.end,
+            return inputRegions.map((row) => ({
+                chr: row.chr,
+                start: row.start,
+                end: row.end,
                 rank: 0, // Add rank of 0 to each row
             }));
         } else if (elementRows.length === 0) {
@@ -484,10 +291,9 @@ export default function Argo() {
 
         return rankedRegions;
 
-    }, [allElementData, elementFilterVariables.assays, elementFilterVariables.classes, elementFilterVariables.rankBy, elementFilterVariables.usecCREs, elementRows]);
+    }, [elementFilterVariables.assays, elementFilterVariables.classes, elementFilterVariables.rankBy, elementFilterVariables.usecCREs, elementRows, inputRegions]);
 
-    /*------------------------------------------ Gene Stuff ------------------------------------------*/
-    
+    //gene ranks for main table
     const geneRanks = useMemo<RankedRegions>(() => {
         if (geneRows === null || !geneFilterVariables.useGenes) {
             return inputRegions.map((row) => ({
@@ -505,12 +311,10 @@ export default function Argo() {
         return rankedRegions
 
     }, [geneFilterVariables.useGenes, geneRows, inputRegions]);
-    
-    /*------------------------------------------ Main Table Stuff ------------------------------------------*/
 
     // All loading states for main table columns
-    const loadingSequenceRanks = sequenceRanks.length === 0 || loading_conservation_scores;
-    const loadingElementRanks = elementRanks.length === 0 || loading_scores || loading_ortho;
+    const loadingSequenceRanks = sequenceRanks.length === 0 || loadingSequenceRows;
+    const loadingElementRanks = elementRanks.length === 0 || loadingElementRows;
     const loadingGeneRanks = geneRanks.length === 0 || loadingGeneRows;
     const loadingMainRows = loadingSequenceRanks || loadingElementRanks || loadingGeneRanks;
 
@@ -542,7 +346,7 @@ export default function Argo() {
         }
         if (elementFilterVariables.usecCREs) {
             cols.push({
-                header: "Element", 
+                header: "Element",
                 value: (row) => row.elementRank === 0 ? "N/A" : row.elementRank,
                 sort: (a, b) => {
                     const rankA = a.elementRank
@@ -552,7 +356,7 @@ export default function Argo() {
                     if (rankB === 0) return -1;
                     return rankA - rankB;
                 },
-                render: (row) => loadingElementRanks  ? <CircularProgress size={10} /> : row.elementRank === 0 ? "N/A" : row.elementRank
+                render: (row) => loadingElementRanks ? <CircularProgress size={10} /> : row.elementRank === 0 ? "N/A" : row.elementRank
             })
         }
         if (geneFilterVariables.useGenes) {
@@ -634,7 +438,7 @@ export default function Argo() {
                                         <Stack direction={"row"} justifyContent={"space-between"} alignItems={"center"} width={"100%"}>
                                             <Stack direction={"row"} spacing={1} alignItems={"center"}>
                                                 <Tooltip title="Select a row to isolate it" arrow placement="top-start">
-                                                    <InfoOutlined fontSize="small" sx={{ cursor: "pointer" }} color="inherit"/>
+                                                    <InfoOutlined fontSize="small" sx={{ cursor: "pointer" }} color="inherit" />
                                                 </Tooltip>
                                                 <Typography variant="h5">Ranked Regions</Typography>
                                                 {isolatedRowID &&
@@ -678,39 +482,25 @@ export default function Argo() {
                                                         }}
                                                     >
                                                         {table === "sequence" && (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs) && (
-                                                            <>
-                                                                {error_conservation_scores && (
-                                                                    <Alert variant="filled" severity="error">
-                                                                        {error_conservation_scores.message}
-                                                                    </Alert>
-                                                                )}
-                                                                {loading_conservation_scores ? <CircularProgress /> :
-                                                                    <SequenceTable
-                                                                        sequenceFilterVariables={sequenceFilterVariables}
-                                                                        SubTableTitle={SubTableTitle}
-                                                                        sequenceRows={sequenceRows}
-                                                                        isolatedRows={isolatedRows}
-                                                                    />
-                                                                }
-                                                            </>
+                                                            <SequenceTable
+                                                                sequenceFilterVariables={sequenceFilterVariables}
+                                                                SubTableTitle={SubTableTitle}
+                                                                inputRegions={inputRegions}
+                                                                isolatedRows={isolatedRows}
+                                                                updateSequenceRows={updateSequenceRows}
+                                                                updateLoadingSequenceRows={updateLoadingSequenceRows}
+                                                            />
                                                         )}
 
                                                         {table === "elements" && elementFilterVariables.usecCREs && (
-                                                            <>
-                                                                {error_scores && (
-                                                                    <Alert variant="filled" severity="error">
-                                                                        {error_scores.message}
-                                                                    </Alert>
-                                                                )}
-                                                                {loading_scores || loading_ortho ? <CircularProgress /> :
-                                                                    <ElementTable
-                                                                        elementFilterVariables={elementFilterVariables}
-                                                                        SubTableTitle={SubTableTitle}
-                                                                        elementRows={elementRows}
-                                                                        isolatedRows={isolatedRows}
-                                                                    />
-                                                                }
-                                                            </>
+                                                            <ElementTable
+                                                                elementFilterVariables={elementFilterVariables}
+                                                                SubTableTitle={SubTableTitle}
+                                                                intersectingCcres={intersectingCcres}
+                                                                isolatedRows={isolatedRows}
+                                                                updateElementRows={updateElementRows}
+                                                                updateLoadingElementRows={updateLoadingElementRows}
+                                                            />
                                                         )}
 
                                                         {table === "genes" && geneFilterVariables.useGenes && (
