@@ -149,7 +149,7 @@ const ElementTable: React.FC<ElementTableProps> = ({
             key={Math.random()}
             columns={elementColumns}
             rows={elementRows === null ? [] : isolatedRows ? isolatedRows.element : elementRows}
-            sortColumn={3}
+            sortColumn={Object.values(elementFilterVariables.assays).some(value => value) ?  3 : 0}
             itemsPerPage={5}
             searchable
             tableTitle={<SubTableTitle title="Element Details (Overlapping cCREs)" table="elements" />}

@@ -155,7 +155,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                     cols.push({ header: "241-Mammal(phyloP) Score", value: (row) => row.conservationScore ? row.conservationScore.toFixed(2) : null });
                     break;
                 case "447-mam-phyloP":
-                    cols.push({ header: "447-Mammal(phyloP) Score", value: (row) => row.conservationScore ? row.conservationScore.toFixed(2) : null  });
+                    cols.push({ header: "447-Mammal(phyloP) Score", value: (row) => row.conservationScore ? row.conservationScore.toFixed(2) : null });
                     break;
                 case "241-mam-phastCons":
                     cols.push({ header: "241-Mammal(phastCons) Score", value: (row) => row.conservationScore ? row.conservationScore.toFixed(2) : null });
@@ -216,7 +216,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
         return cols
 
     }, [sequenceFilterVariables])
-    
+
     return (
         <>
             <DataTable
@@ -227,7 +227,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                 itemsPerPage={5}
                 searchable
                 tableTitle={<SubTableTitle title="Sequence Details" table="sequence" />}
-                headerColor={{backgroundColor: theme.palette.secondary.main as "#", textColor: "inherit"}}
+                headerColor={{ backgroundColor: theme.palette.secondary.main as "#", textColor: "inherit" }}
             />
             {modalData && (
                 <MotifsModal
