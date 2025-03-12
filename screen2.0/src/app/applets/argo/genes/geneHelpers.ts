@@ -76,7 +76,6 @@ export const getSpecificityScores = (allGenes: AllLinkedGenes, accessions: CCREs
 }
 
 export const getExpressionScores = (allGenes: AllLinkedGenes, accessions: CCREs, geneExpression: GeneExpQueryQuery, geneFilterVariables: GeneFilterState): GeneTableRow[] => {
-    console.log(allGenes)
     const filteredGeneExpression = geneExpression.geneexpressiontpms.filter((tpm) => !tpm.error)
 
     const updatedAllGenes: AllLinkedGenes = allGenes.map((gene) => ({
@@ -147,8 +146,6 @@ export const getExpressionScores = (allGenes: AllLinkedGenes, accessions: CCREs,
             })),
         }));
     });
-
-    console.log(expressionRows)
 
     return expressionRows
 }

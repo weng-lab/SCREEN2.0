@@ -287,22 +287,30 @@ export type TomtomMatchQueryData = {
 export type SequenceTableProps = {
     sequenceFilterVariables: SequenceFilterState;
     SubTableTitle: React.FC<SubTableTitleProps>;
-    sequenceRows: SequenceTableRow[];
+    inputRegions: InputRegions;
     isolatedRows: IsolatedRow;
+    updateSequenceRows: (rows: SequenceTableRow[]) => void;
+    updateLoadingSequenceRows: (loading: boolean) => void;
 }
 
 export type ElementTableProps = {
     elementFilterVariables: ElementFilterState;
     SubTableTitle: React.FC<SubTableTitleProps>;
-    elementRows: ElementTableRow[];
+    intersectingCcres: CCREs;
+    loadingIntersect: boolean;
     isolatedRows: IsolatedRow;
+    updateElementRows: (rows: ElementTableRow[]) => void;
+    updateLoadingElementRows: (loading: boolean) => void;
 }
 
 export type GeneTableProps = {
     geneFilterVariables: GeneFilterState;
     SubTableTitle: React.FC<SubTableTitleProps>;
-    geneRows: GeneTableRow[];
+    intersectingCcres: CCREs;
+    loadingIntersect: boolean;
     isolatedRows: IsolatedRow;
+    updateGeneRows: (rows: GeneTableRow[]) => void;
+    updateLoadingGeneRows: (loading: boolean) => void;
 }
 
 export type ClosestGenetocCRE = {
