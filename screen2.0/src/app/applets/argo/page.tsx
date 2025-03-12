@@ -48,10 +48,23 @@ export default function Argo() {
         useConservation: true,
         alignment: "241-mam-phyloP",
         rankBy: "max",
-        useMotifs: false,
-        motifCatalog: "factorbook",
-        numOverlappingMotifs: true,
-        motifScoreDelta: false,
+        useMotifs: true,
+        motifCatalog: "hocomoco",
+        motifQuality: {
+            a: true,
+            b: true,
+            c: true
+        },
+        dataSource: {
+            p: true,
+            s: true,
+            m: true,
+            g: true,
+            i: true,
+            b: true
+        },
+        numOverlappingMotifs: false,
+        motifScoreDelta: true,
         overlapsTFPeak: false,
         tfPeakStrength: false
     });

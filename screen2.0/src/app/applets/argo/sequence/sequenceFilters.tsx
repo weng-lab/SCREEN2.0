@@ -1,7 +1,8 @@
 import { Accordion, AccordionDetails, AccordionSummary, Checkbox, FormControl, FormControlLabel, FormGroup, MenuItem, Radio, RadioGroup, Select, Stack, Tooltip, Typography } from "@mui/material";
 import React from "react";
 import { ExpandMore, InfoOutlined } from "@mui/icons-material"
-import { Alignment, SequenceAccordianProps } from "../types";
+import { Alignment, DataScource, MotifQuality, SequenceAccordianProps } from "../types";
+import Grid from "@mui/material/Grid2"
 
 const SequenceFilters: React.FC<SequenceAccordianProps> = ({
     sequenceFilterVariables,
@@ -9,6 +10,71 @@ const SequenceFilters: React.FC<SequenceAccordianProps> = ({
     isExpanded,
     handleAccordionChange
 }) => {
+
+    //update a specific quality
+    const toggleQuality = (quality: keyof MotifQuality) => {
+        updateSequenceFilter('motifQuality', {
+            ...sequenceFilterVariables.motifQuality,
+            [quality]: !sequenceFilterVariables.motifQuality[quality]
+        });
+    };
+
+    //update a specific source
+    const toggleDataSource = (source: keyof DataScource) => {
+        updateSequenceFilter('dataSource', {
+            ...sequenceFilterVariables.dataSource,
+            [source]: !sequenceFilterVariables.dataSource[source]
+        });
+    };
+
+    //functionality for the select all box for motif qualities
+    const handleSelectAllQualities = (event) => {
+        const isChecked = event.target.checked;
+
+        updateSequenceFilter("motifQuality", {
+            ...sequenceFilterVariables.motifQuality,
+            ...Object.keys(sequenceFilterVariables.motifQuality).reduce((acc, key) => {
+                acc[key] = isChecked;
+                return acc;
+            }, {})
+        });
+    };
+
+    const areAllQualitiesChecked = () => {
+        return Object.values(sequenceFilterVariables.motifQuality).every((isChecked) => isChecked);
+    };
+
+    const isIndeterminateQuality = () => {
+        const checkedCount = Object.values(sequenceFilterVariables.motifQuality).filter((isChecked) => isChecked).length;
+        const total = Object.keys(sequenceFilterVariables.motifQuality).length;
+
+        return checkedCount > 0 && checkedCount < total;
+    };
+
+    //functionality for the select all box for motif Sources
+    const handleSelectAllSources = (event) => {
+        const isChecked = event.target.checked;
+
+        updateSequenceFilter("dataSource", {
+            ...sequenceFilterVariables.dataSource,
+            ...Object.keys(sequenceFilterVariables.dataSource).reduce((acc, key) => {
+                acc[key] = isChecked;
+                return acc;
+            }, {})
+        });
+    };
+
+    const areAllSourcesChecked = () => {
+        return Object.values(sequenceFilterVariables.dataSource).every((isChecked) => isChecked);
+    };
+
+    const isIndeterminateSources = () => {
+        const checkedCount = Object.values(sequenceFilterVariables.dataSource).filter((isChecked) => isChecked).length;
+        const total = Object.keys(sequenceFilterVariables.dataSource).length;
+
+        return checkedCount > 0 && checkedCount < total;
+    };
+
     return (
         <Accordion
             defaultExpanded
@@ -90,11 +156,131 @@ const SequenceFilters: React.FC<SequenceAccordianProps> = ({
                                 updateSequenceFilter("motifCatalog", selectedValue);
                             }}
                         >
-                            <FormControlLabel value="factorbook" control={<Radio />} label="Factorbook" disabled={!sequenceFilterVariables.useMotifs} />
+                            {/* <FormControlLabel value="factorbook" control={<Radio />} label="Factorbook" disabled={!sequenceFilterVariables.useMotifs} /> */}
                             <FormControlLabel value="hocomoco" control={<Radio />} label="HOCOMOCO" disabled={!sequenceFilterVariables.useMotifs} />
-                            <FormControlLabel value="zMotif" control={<Radio />} label="ZMotif" disabled={!sequenceFilterVariables.useMotifs} />
+                            {/* <FormControlLabel value="zMotif" control={<Radio />} label="ZMotif" disabled={!sequenceFilterVariables.useMotifs} /> */}
                         </RadioGroup>
-                        <FormControlLabel
+                        {sequenceFilterVariables.motifCatalog === "hocomoco" &&
+                            <>
+                                <FormControl sx={{ mt: 1 }}>
+                                    <Typography>Motif Quality</Typography>
+                                    <FormControlLabel
+                                        control={
+                                            <Checkbox
+                                                checked={areAllQualitiesChecked()}
+                                                indeterminate={isIndeterminateQuality()}
+                                                onChange={(event) => { handleSelectAllQualities(event) }}
+                                            />
+                                        }
+                                        label="Select All"
+                                        disabled={!sequenceFilterVariables.useMotifs}
+                                    />
+                                    <Grid container spacing={0} ml={2}>
+                                        <Grid size={6}>
+                                            <FormGroup>
+                                                <FormControlLabel
+                                                    checked={sequenceFilterVariables.motifQuality.a}
+                                                    onChange={() => toggleQuality('a')}
+                                                    control={<Checkbox />}
+                                                    label="A"
+                                                    value="a"
+                                                    disabled={!sequenceFilterVariables.useMotifs}
+                                                />
+                                                <FormControlLabel
+                                                    checked={sequenceFilterVariables.motifQuality.b}
+                                                    onChange={() => toggleQuality('b')}
+                                                    control={<Checkbox />}
+                                                    label="B"
+                                                    value="b"
+                                                    disabled={!sequenceFilterVariables.useMotifs}
+                                                />
+                                                <FormControlLabel
+                                                    checked={sequenceFilterVariables.motifQuality.c}
+                                                    onChange={() => toggleQuality('c')}
+                                                    control={<Checkbox />}
+                                                    label="C"
+                                                    value="c"
+                                                    disabled={!sequenceFilterVariables.useMotifs}
+                                                />
+                                            </FormGroup>
+                                        </Grid>
+                                    </Grid>
+                                </FormControl>
+                                <FormControl sx={{ mt: 1 }}>
+                                    <Typography>Data Source</Typography>
+                                    <FormControlLabel
+                                        control={
+                                            <Checkbox
+                                                checked={areAllSourcesChecked()}
+                                                indeterminate={isIndeterminateSources()}
+                                                onChange={(event) => { handleSelectAllSources(event) }}
+                                            />
+                                        }
+                                        label="Select All"
+                                        disabled={!sequenceFilterVariables.useMotifs}
+                                    />
+                                    <Grid container spacing={0} ml={2}>
+                                        <Grid size={6}>
+                                            <FormGroup>
+                                                <FormControlLabel
+                                                    checked={sequenceFilterVariables.dataSource.p}
+                                                    onChange={() => toggleDataSource('p')}
+                                                    control={<Checkbox />}
+                                                    label="P"
+                                                    value="p"
+                                                    disabled={!sequenceFilterVariables.useMotifs}
+                                                />
+                                                <FormControlLabel
+                                                    checked={sequenceFilterVariables.dataSource.s}
+                                                    onChange={() => toggleDataSource('s')}
+                                                    control={<Checkbox />}
+                                                    label="S"
+                                                    value="s"
+                                                    disabled={!sequenceFilterVariables.useMotifs}
+                                                />
+                                                <FormControlLabel
+                                                    checked={sequenceFilterVariables.dataSource.m}
+                                                    onChange={() => toggleDataSource('m')}
+                                                    control={<Checkbox />}
+                                                    label="M"
+                                                    value="m"
+                                                    disabled={!sequenceFilterVariables.useMotifs}
+                                                />
+                                            </FormGroup>
+                                        </Grid>
+                                        <Grid size={6}>
+                                            <FormGroup>
+                                                <FormControlLabel
+                                                    checked={sequenceFilterVariables.dataSource.g}
+                                                    onChange={() => toggleDataSource('g')}
+                                                    control={<Checkbox />}
+                                                    label="G"
+                                                    value="g"
+                                                    disabled={!sequenceFilterVariables.useMotifs}
+                                                />
+                                                <FormControlLabel
+                                                    checked={sequenceFilterVariables.dataSource.i}
+                                                    onChange={() => toggleDataSource('i')}
+                                                    control={<Checkbox />}
+                                                    label="I"
+                                                    value="i"
+                                                    disabled={!sequenceFilterVariables.useMotifs}
+                                                />
+                                                <FormControlLabel
+                                                    checked={sequenceFilterVariables.dataSource.b}
+                                                    onChange={() => toggleDataSource('b')}
+                                                    control={<Checkbox />}
+                                                    label="B"
+                                                    value="b"
+                                                    disabled={!sequenceFilterVariables.useMotifs}
+                                                />
+                                            </FormGroup>
+                                        </Grid>
+                                    </Grid>
+                                </FormControl>
+                            </>
+                        }
+                        {/* <FormControlLabel
                             label="Must Overlap TF Peak"
                             control={
                                 <Checkbox
@@ -103,7 +289,7 @@ const SequenceFilters: React.FC<SequenceAccordianProps> = ({
                                     checked={sequenceFilterVariables.overlapsTFPeak && sequenceFilterVariables.motifCatalog === "factorbook"}
                                 />
                             }
-                        />
+                        /> */}
                     </Stack>
                 </FormGroup>
                 <FormGroup>

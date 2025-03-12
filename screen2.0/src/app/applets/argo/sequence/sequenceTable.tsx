@@ -6,7 +6,7 @@ import { Skeleton, useTheme } from "@mui/material";
 import { QueryResult, useLazyQuery, useQuery } from "@apollo/client";
 import { BigRequest } from "umms-gb/dist/components/tracks/trackset/types";
 import { client } from "../../../search/_ccredetails/client";
-import { BIG_REQUEST_QUERY, MOTIF_QUERY } from "../queries";
+import { BIG_REQUEST_QUERY, MOTIF_QUERY, MOTIF_RANKING_QUERY } from "../queries";
 import { batchRegions, calculateConservationScores, getNumOverlappingMotifs } from "./sequenceHelpers";
 import { OccurrencesQuery } from "../../../../graphql/__generated__/graphql";
 
@@ -27,7 +27,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
     } | null>(null);
 
     const theme = useTheme();
-    const [getMemeOccurrences] = useLazyQuery(MOTIF_QUERY)
+    // const [getMemeOccurrences] = useLazyQuery(MOTIF_QUERY)
     const [occurrences, setOccurrences] = useState<QueryResult<OccurrencesQuery>[]>([]);
 
     //build payload for bigRequest query
@@ -64,44 +64,63 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
         fetchPolicy: 'cache-first',
     });
 
-    //query the motif occurences fron the input regions
-    useEffect(() => {
-        if (inputRegions.length === 0 || !sequenceFilterVariables.useMotifs) {
-            return;
+    const {loading: loading_motif_ranking, data: motifRankingScores } = useQuery(MOTIF_RANKING_QUERY, {
+        variables: {
+            motifinputs: inputRegions.map(region => ({
+                id: region.regionID.toString(),
+                start: region.start,
+                end: region.end,
+                chrom: region.chr,
+                alt: region.alt,
+                ref: region.ref
+            }))
+        },
+        skip: !sequenceFilterVariables.useMotifs,
+        client: client,
+        fetchPolicy: 'cache-first',
+        onCompleted: (d) => {
+            console.log(d)
         }
+    })
 
-        const fetchAllOccurrences = async () => {
-            try {
-                //batch the input regions
-                const batchedRegions = batchRegions(inputRegions, 200);
+    //query the motif occurences fron the input regions
+    // useEffect(() => {
+    //     if (inputRegions.length === 0 || !sequenceFilterVariables.useMotifs) {
+    //         return;
+    //     }
 
-                //query all batches in parrallel
-                const fetchPromises = batchedRegions.map((batch) =>
-                    getMemeOccurrences({
-                        variables: {
-                            limit: 30,
-                            range: batch.map((region) => ({
-                                chromosome: region.chr,
-                                start: region.start,
-                                end: region.end,
-                            })),
-                        },
-                        fetchPolicy: "cache-first",
-                    })
-                );
+    //     const fetchAllOccurrences = async () => {
+    //         try {
+    //             //batch the input regions
+    //             const batchedRegions = batchRegions(inputRegions, 200);
 
-                //wait for queries to resolve
-                const results = await Promise.all(fetchPromises);
-                // Filter results with non-empty meme_occurrences
-                const filteredResults = results.filter(result => result.data.meme_occurrences.length > 0)
-                setOccurrences(filteredResults);
-            } catch (error) {
-                console.error("Error fetching occurrences:", error);
-            }
-        };
+    //             //query all batches in parrallel
+    //             const fetchPromises = batchedRegions.map((batch) =>
+    //                 getMemeOccurrences({
+    //                     variables: {
+    //                         limit: 30,
+    //                         range: batch.map((region) => ({
+    //                             chromosome: region.chr,
+    //                             start: region.start,
+    //                             end: region.end,
+    //                         })),
+    //                     },
+    //                     fetchPolicy: "cache-first",
+    //                 })
+    //             );
 
-        fetchAllOccurrences();
-    }, [inputRegions, getMemeOccurrences, sequenceFilterVariables.useMotifs]);
+    //             //wait for queries to resolve
+    //             const results = await Promise.all(fetchPromises);
+    //             // Filter results with non-empty meme_occurrences
+    //             const filteredResults = results.filter(result => result.data.meme_occurrences.length > 0)
+    //             setOccurrences(filteredResults);
+    //         } catch (error) {
+    //             console.error("Error fetching occurrences:", error);
+    //         }
+    //     };
+
+    //     fetchAllOccurrences();
+    // }, [inputRegions, getMemeOccurrences, sequenceFilterVariables.useMotifs]);
 
     const sequenceRows: SequenceTableRow[] = useMemo(() => {
         if ((!conservationScores && !occurrences) || inputRegions.length === 0 || loading_conservation_scores) {
@@ -139,7 +158,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
     }, [conservationScores, occurrences, inputRegions, loading_conservation_scores, sequenceFilterVariables.rankBy])
 
     updateSequenceRows(sequenceRows)
-    const loadingRows = loading_conservation_scores;
+    const loadingRows = loading_conservation_scores || loading_motif_ranking;
     updateLoadingSequenceRows(loadingRows);
 
     //handle column changes for the Sequence rank table

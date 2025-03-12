@@ -66,6 +66,21 @@ export type CCREAssays = {
     h3k27ac: boolean
 }
 
+export type MotifQuality = {
+    a: boolean
+    b: boolean
+    c: boolean
+}
+
+export type DataScource = {
+    p: boolean
+    s: boolean
+    m: boolean
+    g: boolean
+    i: boolean
+    b: boolean
+}
+
 export type Alignment =
     "241-mam-phyloP" |
     "447-mam-phyloP" |
@@ -84,6 +99,8 @@ export type SequenceFilterState = {
     rankBy: string;
     useMotifs: boolean;
     motifCatalog: "factorbook" | "hocomoco" | "zMotif";
+    motifQuality: MotifQuality;
+    dataSource: DataScource;
     numOverlappingMotifs: boolean;
     motifScoreDelta: boolean;
     overlapsTFPeak: boolean;

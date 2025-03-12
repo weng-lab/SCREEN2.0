@@ -177,4 +177,17 @@ export const GENE_EXP_QUERY = gql(`
 }
   `)
 
+export const MOTIF_RANKING_QUERY = gql(`
+  query MotifRankingQuery($motifinputs: [MotifRankingInput!]) {
+    motifranking(motifinputs: $motifinputs) {
+      alt
+      ref
+      diff
+      id    
+      threshold
+      motif
+    }
+  }
+  `)
+
 
