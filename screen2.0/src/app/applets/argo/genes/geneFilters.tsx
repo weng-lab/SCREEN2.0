@@ -47,7 +47,7 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
         if (geneFilterVariables.selectedBiosample?.length === 0) {
             updateGeneFilter("selectedBiosample", null);
         }
-    },[geneFilterVariables.selectedBiosample, updateGeneFilter])
+    }, [geneFilterVariables.selectedBiosample, updateGeneFilter])
 
     return (
         <Accordion
@@ -94,6 +94,82 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
                             />
                         </RadioGroup>
                     </FormControl>
+                    <FormControl disabled={!geneFilterVariables.useGenes}>
+                        <Typography sx={{ mt: 1 }}>Rank Gene Expression By</Typography>
+                        <RadioGroup
+                            row
+                            value={geneFilterVariables.rankGeneExpBy}
+                            onChange={(event) => updateGeneFilter("rankGeneExpBy", event.target.value as "max" | "avg")}
+                        >
+                            <FormControlLabel
+                                value="max"
+                                control={<Radio />}
+                                label="Max"
+                            />
+                            <FormControlLabel
+                                value="avg"
+                                control={<Radio />}
+                                label="Average"
+                            />
+                        </RadioGroup>
+                    </FormControl>
+                    {geneFilterVariables.selectedBiosample && (
+                        <Paper elevation={0}>
+                            <Stack
+                                borderRadius={1}
+                                direction={"row"}
+                                spacing={1}
+                                sx={{ backgroundColor: theme => theme.palette.secondary.main }}
+                                alignItems={"center"}
+                            >
+                                <IconButton
+                                    onClick={() => { handleDeselectBiosample() }}
+                                >
+                                    <CancelRounded />
+                                </IconButton>
+                                <Tooltip
+                                    title={
+                                        geneFilterVariables.selectedBiosample.length > 0 ? (
+                                            <span>
+                                                {geneFilterVariables.selectedBiosample.slice(0, 5).map((biosample) => (
+                                                    <div key={biosample.displayname}>{biosample.displayname}</div>
+                                                ))}
+                                                {geneFilterVariables.selectedBiosample.length > 5 && (
+                                                    <div>and {geneFilterVariables.selectedBiosample.length - 5} more...</div>
+                                                )}
+                                            </span>
+                                        ) : "No biosamples selected"
+                                    }
+                                    arrow
+                                    placement="right"
+                                >
+                                    <Stack direction={"row"} spacing={1}>
+                                        <Typography
+                                            sx={{ color: "#2C5BA0", pl: 1 }}>
+                                            Selected Biosamples
+                                        </Typography>
+                                        <InfoOutlined />
+                                    </Stack>
+                                </Tooltip>
+                            </Stack>
+                        </Paper>
+                    )}
+                    <Accordion square disableGutters disabled={!geneFilterVariables.useGenes}>
+                        <AccordionSummary expandIcon={<ExpandMore />}>
+                            Within a Biosample
+                        </AccordionSummary>
+                        <AccordionDetails>
+                            <BiosampleTables
+                                selected={geneFilterVariables.selectedBiosample?.map((sample) => sample.name)}
+                                onChange={(biosample) => handleSelectedBiosample(biosample)}
+                                assembly={"GRCh38"}
+                                showRNAseq
+                                preFilterBiosamples={(biosample) => biosample.rnaseq}
+                                allowMultiSelect
+                                showCheckboxes
+                            />
+                        </AccordionDetails>
+                    </Accordion>
                     <FormControl disabled={!geneFilterVariables.useGenes} sx={{ mt: 1 }}>
                         <Typography>Method of Linkage</Typography>
                         <FormGroup>
@@ -164,82 +240,6 @@ const GeneFilters: React.FC<GeneAccordianProps> = ({
                             />
                         </FormGroup>
                     </FormControl>
-                    <FormControl disabled={!geneFilterVariables.useGenes}>
-                        <Typography sx={{ mt: 1 }}>Rank Gene Expression By</Typography>
-                        <RadioGroup
-                            row
-                            value={geneFilterVariables.rankGeneExpBy}
-                            onChange={(event) => updateGeneFilter("rankGeneExpBy", event.target.value as "max" | "avg")}
-                        >
-                            <FormControlLabel
-                                value="max"
-                                control={<Radio />}
-                                label="Max"
-                            />
-                            <FormControlLabel
-                                value="avg"
-                                control={<Radio />}
-                                label="Average"
-                            />
-                        </RadioGroup>
-                    </FormControl>
-                    {geneFilterVariables.selectedBiosample && (
-                        <Paper elevation={0}>
-                            <Stack
-                                borderRadius={1}
-                                direction={"row"}
-                                spacing={1}
-                                sx={{ backgroundColor: theme => theme.palette.secondary.main }}
-                                alignItems={"center"}
-                            >
-                                <IconButton
-                                    onClick={() => { handleDeselectBiosample() }}
-                                >
-                                    <CancelRounded />
-                                </IconButton>
-                                <Tooltip
-                                    title={
-                                        geneFilterVariables.selectedBiosample.length > 0 ? (
-                                          <span>
-                                            {geneFilterVariables.selectedBiosample.slice(0, 5).map((biosample) => (
-                                              <div key={biosample.displayname}>{biosample.displayname}</div>
-                                            ))}
-                                            {geneFilterVariables.selectedBiosample.length > 5 && (
-                                              <div>and {geneFilterVariables.selectedBiosample.length - 5} more...</div>
-                                            )}
-                                          </span>
-                                        ) : "No biosamples selected"
-                                      }
-                                    arrow
-                                    placement="right"
-                                >
-                                    <Stack direction={"row"} spacing={1}>
-                                        <Typography
-                                            sx={{ color: "#2C5BA0", pl: 1 }}>
-                                            Selected Biosamples
-                                        </Typography>
-                                        <InfoOutlined />
-                                    </Stack>
-                                </Tooltip>
-                            </Stack>
-                        </Paper>
-                    )}
-                    <Accordion square disableGutters disabled={!geneFilterVariables.useGenes}>
-                        <AccordionSummary expandIcon={<ExpandMore />}>
-                            Within a Biosample
-                        </AccordionSummary>
-                        <AccordionDetails>
-                            <BiosampleTables
-                                selected={geneFilterVariables.selectedBiosample?.map((sample) => sample.name)}
-                                onChange={(biosample) => handleSelectedBiosample(biosample)}
-                                assembly={"GRCh38"}
-                                showRNAseq
-                                preFilterBiosamples={(biosample) => biosample.rnaseq}
-                                allowMultiSelect
-                                showCheckboxes
-                            />
-                        </AccordionDetails>
-                    </Accordion>
                 </Stack>
             </AccordionDetails>
         </Accordion>
