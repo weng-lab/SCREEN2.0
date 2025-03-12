@@ -6,7 +6,7 @@ import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { ORTHOLOG_QUERY, Z_SCORES_QUERY, BIG_REQUEST_QUERY, MOTIF_QUERY, CLOSEST_LINKED_QUERY, SPECIFICITY_QUERY, GENE_ORTHO_QUERY, GENE_EXP_QUERY } from "./queries"
 import { QueryResult, useLazyQuery, useQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
-import { RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, CCREs, InputRegions, SubTableTitleProps, IsolatedRow } from "./types"
+import { RankedRegions, ElementFilterState, SequenceFilterState, GeneFilterState, MainTableRow, SequenceTableRow, ElementTableRow, GeneTableRow, CCREs, InputRegions, SubTableTitleProps, IsolatedRow, AllLinkedGenes } from "./types"
 import { BED_INTERSECT_QUERY } from "../../_mainsearch/queries"
 import ExpandCircleDownIcon from '@mui/icons-material/ExpandCircleDown';
 import Filters from "./filters"
@@ -27,8 +27,6 @@ export default function Argo() {
     const [inputRegions, setInputRegions] = useState<InputRegions>([]);
     const [getIntersectingCcres, { data: intersectArray }] = useLazyQuery(BED_INTERSECT_QUERY)
     const [getMemeOccurrences] = useLazyQuery(MOTIF_QUERY)
-    const [getGeneSpecificity, { data: geneSpecificity, loading: loading_gene_specificity }] = useLazyQuery(SPECIFICITY_QUERY)
-    const [getGeneExpression, { data: geneExpression, loading: loading_gene_expression }] = useLazyQuery(GENE_EXP_QUERY)
     const [getOrthoGenes, { data: orthoGenes }] = useLazyQuery(GENE_ORTHO_QUERY)
     const [occurrences, setOccurrences] = useState<QueryResult<OccurrencesQuery>[]>([]);
 
@@ -548,13 +546,13 @@ export default function Argo() {
         fetchPolicy: 'cache-first',
     });
 
-    const geneRows = useMemo<GeneTableRow[]>(() => {
+    const filteredGenes = useMemo<AllLinkedGenes>(() => {
         if (!intersectingCcres || !closestAndLinkedGenes) {
             return [];
         }
 
         //switch between protein coding and all linked genes
-        const filteredLinkedGenes = geneFilterVariables.mustBeProteinCoding ? closestAndLinkedGenes.linkedGenesQuery.filter((gene) => gene.genetype === "protein_coding") 
+        const filteredLinkedGenes = geneFilterVariables.mustBeProteinCoding ? closestAndLinkedGenes.linkedGenesQuery.filter((gene) => gene.genetype === "protein_coding")
             : closestAndLinkedGenes.linkedGenesQuery
         const linkedGenes = parseLinkedGenes(filteredLinkedGenes, geneFilterVariables.methodOfLinkage);
 
@@ -570,7 +568,7 @@ export default function Argo() {
                 allGenes.flatMap((item) => item.genes.map((gene) => gene.name))
             )
         );
-        let filteredGenes = allGenes;
+        let filteringGenes = allGenes;
         if (geneFilterVariables.mustHaveOrtholog) {
             getOrthoGenes({
                 variables: {
@@ -581,11 +579,11 @@ export default function Argo() {
                 fetchPolicy: 'cache-and-network',
             })
             if (orthoGenes) {
-                filteredGenes = filterOrthologGenes(orthoGenes, allGenes)
+                filteringGenes = filterOrthologGenes(orthoGenes, allGenes)
             }
         }
-        
-        filteredGenes.map((gene) => ({
+
+        filteringGenes.map((gene) => ({
             ...gene,
             genes: gene.genes
                 .map((linkedGene) => ({
@@ -597,44 +595,50 @@ export default function Argo() {
                 .filter((linkedGene) => linkedGene.linkedBy.length > 0), // Step 1: Remove genes with empty linkedBy
         })).filter((accession) => accession.genes.length > 0);
 
-        if (filteredGenes.length === 0 || Object.values(geneFilterVariables.methodOfLinkage).every(value => !value)) {
+        if (filteringGenes.length === 0 || Object.values(geneFilterVariables.methodOfLinkage).every(value => !value)) {
             return null
         }
 
-        //get all of the geneID's from filteredGenes
-        const geneIds = filteredGenes.flatMap((entry) =>
-            entry.genes.map((gene) => gene.geneId)
-        );
+        return filteringGenes;
 
-        //Query to get the gene specificty for each gene id from the previous query
-        if (closestAndLinkedGenes.closestGenetocCRE.length > 0) {
-            getGeneSpecificity({
-                variables: {
-                    geneids: geneIds
-                },
-                client: client,
-                fetchPolicy: 'cache-and-network',
-            })
+    }, [closestAndLinkedGenes, geneFilterVariables.methodOfLinkage, geneFilterVariables.mustBeProteinCoding, geneFilterVariables.mustHaveOrtholog, getOrthoGenes, intersectingCcres, orthoGenes])
 
-            const geneExpressionVariables = Array.from(
+    const { loading: loading_gene_specificity, data: geneSpecificity } = useQuery(SPECIFICITY_QUERY, {
+        variables: {
+            geneids: filteredGenes.flatMap((entry) =>
+                entry.genes.map((gene) => gene.geneId)
+            )
+        },
+        skip: !closestAndLinkedGenes || closestAndLinkedGenes.closestGenetocCRE.length === 0,
+        client: client,
+        fetchPolicy: 'cache-first',
+    });
+
+    const { loading: loading_gene_expression, data: geneExpression } = useQuery(GENE_EXP_QUERY, {
+        variables: {
+            genes: Array.from(
                 new Set(
                     filteredGenes.flatMap((entry) =>
                         entry.genes.map((gene) => gene.name.trim())
                     )
                 )
-            ).map((name) => ({ 
-                gene: name, 
+            ).map((name) => ({
+                gene: name,
                 biosample: geneFilterVariables.selectedBiosample?.map((sample) => sample.name),
                 aggregateBy: (geneFilterVariables.rankGeneExpBy === "avg" ? "AVERAGE" : "MAX") as AggregateByEnum
             }))
+        },
+        skip: !closestAndLinkedGenes || closestAndLinkedGenes.closestGenetocCRE.length === 0,
+        client: client,
+        fetchPolicy: 'cache-first',
+    });
 
-            getGeneExpression({
-                variables: {
-                    genes: geneExpressionVariables,
-                },
-                client: client,
-                fetchPolicy: 'cache-and-network',
-            })
+    const geneRows = useMemo<GeneTableRow[]>(() => {
+        if (filteredGenes === null) {
+            return null
+        }
+        if (filteredGenes.length === 0) {
+            return []
         }
         
         const specificityRows = geneSpecificity ? getSpecificityScores(filteredGenes, intersectingCcres, geneSpecificity, geneFilterVariables) : []
@@ -667,7 +671,7 @@ export default function Argo() {
             return []
         }
 
-    }, [closestAndLinkedGenes, geneExpression, geneFilterVariables, geneSpecificity, getGeneExpression, getGeneSpecificity, getOrthoGenes, intersectingCcres, orthoGenes]);
+    }, [filteredGenes, geneExpression, geneFilterVariables, geneSpecificity, intersectingCcres]);
 
     const geneRanks = useMemo<RankedRegions>(() => {
         if (geneRows === null || !geneFilterVariables.useGenes) {
