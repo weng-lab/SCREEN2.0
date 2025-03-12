@@ -1,6 +1,5 @@
-import { OperationVariables, QueryResult } from "@apollo/client";
-import {  GenomicRegion, InputRegions, MotifQueryDataOccurrence, RankedRegions, SequenceTableRow } from "../types";
-import {  OccurrencesQuery } from "../../../../graphql/__generated__/graphql";
+import {  DataScource, GenomicRegion, InputRegions, MotifQuality, RankedRegions, SequenceTableRow } from "../types";
+import {  MotifRankingQueryQuery } from "../../../../graphql/__generated__/graphql";
 
 // switch between min, max, avg for conservation scores, calculate each respectivley
 export const calculateConservationScores = (scores, rankBy: string, inputRegions: InputRegions): SequenceTableRow[] => {
@@ -105,25 +104,57 @@ export const batchRegions = (regions: GenomicRegion[], maxBasePairs: number): Ge
     return result;
 }
 
-// find the number of overlapping motifs for each input region
-export const getNumOverlappingMotifs = (occurrences: QueryResult<OccurrencesQuery, OperationVariables>[], inputRegions: InputRegions): SequenceTableRow[] => {
-    if (occurrences.length === 0 || inputRegions.length === 0) return [];
-    return inputRegions.map(inputRegion => {
-        const overlappingMotifs = occurrences.flatMap(occurrence =>
-            occurrence.data.meme_occurrences.filter(motif =>
-                motif.genomic_region.chromosome === inputRegion.chr &&
-                motif.genomic_region.start < inputRegion.end &&
-                motif.genomic_region.end > inputRegion.start
-            )
-        );
+export const calculateMotifScores = (inputRegions: InputRegions, motifRankingScores: MotifRankingQueryQuery, qualities: MotifQuality, sources: DataScource): SequenceTableRow[] => {
+    const motifScores =  inputRegions.map(region => {
+        const matchingMotifs = motifRankingScores.motifranking.filter(motif => motif.id === region.regionID.toString());
+
+        // Find the one with the max absolute diff
+        const bestMotif = matchingMotifs.length > 0 
+            ? matchingMotifs.reduce((maxMotif, currMotif) => 
+                Math.abs(currMotif.diff) > Math.abs(maxMotif.diff) ? currMotif : maxMotif
+            ) 
+            : null;
 
         return {
-            regionID: inputRegion.regionID,
-            inputRegion: inputRegion,
-            numOverlappingMotifs: overlappingMotifs.length,
-            occurrences: overlappingMotifs as MotifQueryDataOccurrence[]
+            regionID: region.regionID,
+            inputRegion: {
+                chr: region.chr,
+                start: region.start,
+                end: region.end,
+            },
+            referenceAllele: {
+                sequence: region.ref,
+                score: bestMotif ? bestMotif.ref : null
+            },
+            alt: {
+                sequence: region.alt,
+                score: bestMotif ? bestMotif.alt : null
+            },
+            motifScoreDelta: bestMotif ? bestMotif.diff : null,
+            motifID: bestMotif ? bestMotif.motif : null
         };
     });
+
+    return motifScores
+}
+
+// find the number of overlapping motifs for each input region
+export const getNumOverlappingMotifs = (inputRegions: InputRegions, motifRankingScores: MotifRankingQueryQuery): SequenceTableRow[] => {
+    const overlapping = inputRegions.map(region => {
+        const matchingMotifs = motifRankingScores.motifranking.filter(motif => motif.id === region.regionID.toString());
+
+        return {
+            regionID: region.regionID,
+            inputRegion: {
+                chr: region.chr,
+                start: region.start,
+                end: region.end,
+            },
+            numOverlappingMotifs: matchingMotifs.length
+        };
+    })
+
+    return overlapping;
 }
 
 export const generateSequenceRanks = (sequenceRows: SequenceTableRow[]): RankedRegions => {
@@ -137,13 +168,28 @@ export const generateSequenceRanks = (sequenceRows: SequenceTableRow[]): RankedR
             }
             return {
                 ...row,
-                conservationRank: rank,
+                rank: rank,
+            };
+        });
+    })();
+
+    // Assign ranks based on difference
+    const differenceRankedRows = (() => {
+        const sortedRows = [...sequenceRows].sort((a, b) => b.motifScoreDelta! - a.motifScoreDelta!);
+        let rank = 1;
+        return sortedRows.map((row, index) => {
+            if (index > 0 && sortedRows[index].motifScoreDelta !== sortedRows[index - 1].motifScoreDelta) {
+                rank = index + 1;
+            }
+            return {
+                ...row,
+                rank: rank,
             };
         });
     })();
 
     // Assign ranks based on numOverlappingMotifs
-    const motifRankedRows = (() => {
+    const overlappingRankedRows = (() => {
         const sortedRows = [...sequenceRows].sort((a, b) => b.numOverlappingMotifs! - a.numOverlappingMotifs!);
         let rank = 1;
         return sortedRows.map((row, index) => {
@@ -152,20 +198,21 @@ export const generateSequenceRanks = (sequenceRows: SequenceTableRow[]): RankedR
             }
             return {
                 ...row,
-                motifRank: rank,
+                rank: rank,
             };
         });
     })();
 
     // Merge ranks and calculate total rank
-    const combinedRanks = conservationRankedRows.map((row) => {
-        const motifRank = motifRankedRows.find(
-            (motifRow) => motifRow.regionID === row.regionID
-        )?.motifRank;
+    const combinedRanks = sequenceRows.map((row) => {
+
+        const conservationRank = conservationRankedRows.find(r => r.regionID === row.regionID)?.rank ?? sequenceRows.length;
+        const motifRank = differenceRankedRows.find(r => r.regionID === row.regionID)?.rank ?? sequenceRows.length;
+        const numMotifRank = overlappingRankedRows.find(r => r.regionID === row.regionID)?.rank ?? sequenceRows.length;
 
         return {
             ...row,
-            totalRank: row.conservationRank + (motifRank ?? sequenceRows.length), // Sum of ranks
+            totalRank: conservationRank + motifRank + numMotifRank, // Sum of ranks
         };
     });
 

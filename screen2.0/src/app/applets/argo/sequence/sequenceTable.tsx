@@ -1,14 +1,13 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { MotifQueryDataOccurrence, SequenceTableProps, SequenceTableRow } from "../types";
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components";
 import MotifsModal from "./motifModal";
-import { Skeleton, useTheme } from "@mui/material";
-import { QueryResult, useLazyQuery, useQuery } from "@apollo/client";
+import { Skeleton, Tooltip, Typography, useTheme } from "@mui/material";
+import { useQuery } from "@apollo/client";
 import { BigRequest } from "umms-gb/dist/components/tracks/trackset/types";
 import { client } from "../../../search/_ccredetails/client";
-import { BIG_REQUEST_QUERY, MOTIF_QUERY, MOTIF_RANKING_QUERY } from "../queries";
-import { batchRegions, calculateConservationScores, getNumOverlappingMotifs } from "./sequenceHelpers";
-import { OccurrencesQuery } from "../../../../graphql/__generated__/graphql";
+import { BIG_REQUEST_QUERY, MOTIF_RANKING_QUERY } from "../queries";
+import { calculateConservationScores, calculateMotifScores, getNumOverlappingMotifs } from "./sequenceHelpers";
 
 const SequenceTable: React.FC<SequenceTableProps> = ({
     sequenceFilterVariables,
@@ -27,8 +26,6 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
     } | null>(null);
 
     const theme = useTheme();
-    // const [getMemeOccurrences] = useLazyQuery(MOTIF_QUERY)
-    const [occurrences, setOccurrences] = useState<QueryResult<OccurrencesQuery>[]>([]);
 
     //build payload for bigRequest query
     const bigRequests: BigRequest[] = useMemo(() => {
@@ -78,9 +75,6 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
         skip: !sequenceFilterVariables.useMotifs,
         client: client,
         fetchPolicy: 'cache-first',
-        onCompleted: (d) => {
-            console.log(d)
-        }
     })
 
     //query the motif occurences fron the input regions
@@ -123,7 +117,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
     // }, [inputRegions, getMemeOccurrences, sequenceFilterVariables.useMotifs]);
 
     const sequenceRows: SequenceTableRow[] = useMemo(() => {
-        if ((!conservationScores && !occurrences) || inputRegions.length === 0 || loading_conservation_scores) {
+        if (!conservationScores || inputRegions.length === 0 || loading_conservation_scores) {
             return []
         }
 
@@ -131,9 +125,13 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
         if (conservationScores) {
             calculatedConservationScores = calculateConservationScores(conservationScores.bigRequests, sequenceFilterVariables.rankBy, inputRegions)
         }
+        let calculatedMotifScores: SequenceTableRow[] = []
+        if (motifRankingScores && sequenceFilterVariables.motifScoreDelta) {
+            calculatedMotifScores = calculateMotifScores(inputRegions, motifRankingScores, sequenceFilterVariables.motifQuality, sequenceFilterVariables.dataSource)
+        }
         let numOverlappingMotifs: SequenceTableRow[] = []
-        if (occurrences) {
-            numOverlappingMotifs = getNumOverlappingMotifs(occurrences, inputRegions)
+        if (motifRankingScores && sequenceFilterVariables.numOverlappingMotifs) {
+            numOverlappingMotifs = getNumOverlappingMotifs(inputRegions, motifRankingScores)
         }
         // Merge conservation scores and overlapping motifs
         const mergedRows = inputRegions.map(region => {
@@ -141,7 +139,11 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                 row => row.regionID === region.regionID
             )
 
-            const overlappingMotifsRow = numOverlappingMotifs.find(
+            const motifScoresRow = calculatedMotifScores.find(
+                row => row.regionID === region.regionID
+            )
+
+            const numOverlappingMotifsRow = numOverlappingMotifs.find(
                 row => row.regionID === region.regionID
             )
 
@@ -149,13 +151,16 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                 regionID: region.regionID,
                 inputRegion: region,
                 conservationScore: conservationRow?.conservationScore,
-                numOverlappingMotifs: overlappingMotifsRow?.numOverlappingMotifs,
-                occurrences: overlappingMotifsRow?.occurrences
+                motifScoreDelta: motifScoresRow?.motifScoreDelta,
+                referenceAllele: motifScoresRow ? motifScoresRow.referenceAllele : {sequence: region.ref},
+                alt: motifScoresRow ? motifScoresRow.alt : {sequence: region.alt},
+                motifID: motifScoresRow?.motifID,
+                numOverlappingMotifs: numOverlappingMotifsRow?.numOverlappingMotifs
             }
         })
 
         return mergedRows
-    }, [conservationScores, occurrences, inputRegions, loading_conservation_scores, sequenceFilterVariables.rankBy])
+    }, [conservationScores, inputRegions, loading_conservation_scores, motifRankingScores, sequenceFilterVariables])
 
     updateSequenceRows(sequenceRows)
     const loadingRows = loading_conservation_scores || loading_motif_ranking;
@@ -199,6 +204,67 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
             }
         }
         if (sequenceFilterVariables.useMotifs) {
+            cols.push({
+                header: "Reference",
+                value: (row) => row.referenceAllele ? sequenceFilterVariables.motifScoreDelta ? row.referenceAllele.score : "N/A" : row.referenceAllele.sequence,
+                render: (row) => sequenceFilterVariables.motifScoreDelta ? (
+                    row.referenceAllele ? (
+                        <Tooltip
+                            title={
+                                <span>
+                                    {row.referenceAllele.sequence && (
+                                        <>
+                                            <strong>Allele:</strong> {row.referenceAllele.sequence}
+                                        </>
+                                    )}
+                                </span>
+                            }
+                            arrow
+                            placement="left"
+                        >
+                            <Typography fontSize={"14px"}>
+                                {row.referenceAllele.score?.toFixed(2)}
+                            </Typography>
+                        </Tooltip>
+                    ) : "N/A") : (
+                    row.referenceAllele.sequence
+                )
+            })
+            cols.push({
+                header: "Alternate",
+                value: (row) => row.alt ? sequenceFilterVariables.motifScoreDelta ? row.alt.score : "N/A" : row.alt.sequence,
+                render: (row) =>  sequenceFilterVariables.motifScoreDelta ? (
+                    row.alt ? (
+                    <Tooltip
+                        title={
+                            <span>
+                                {row.alt.sequence && (
+                                    <>
+                                        <strong>Allele:</strong> {row.alt.sequence}
+                                    </>
+                                )}
+                            </span>
+                        }
+                        arrow
+                        placement="left"
+                    >
+                        <Typography fontSize={"14px"}>
+                            {row.alt.score?.toFixed(2)}
+                        </Typography>
+                    </Tooltip>
+                ) : "N/A") : (
+                    row.alt.sequence
+                )
+            })
+            if (sequenceFilterVariables.motifScoreDelta) { 
+                cols.push({ header: "Difference", value: (row) => row.motifScoreDelta ? row.motifScoreDelta.toFixed(2) : "N/A" }) 
+                cols.push({
+                    header: "Motif ID",
+                    value: (row) => row.motifID
+                })
+            }
+            if (sequenceFilterVariables.overlapsTFPeak) { cols.push({ header: "Overlaps TF Peak", value: (row) => "N/A" }) }
+
             if (sequenceFilterVariables.numOverlappingMotifs) {
                 cols.push({
                     header: "# of Overlapping Motifs", value: (row) => row.numOverlappingMotifs,
@@ -228,8 +294,6 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                     )
                 })
             }
-            if (sequenceFilterVariables.motifScoreDelta) { cols.push({ header: "Motif Score Delta", value: (row) => "N/A" }) }
-            if (sequenceFilterVariables.overlapsTFPeak) { cols.push({ header: "Overlaps TF Peak", value: (row) => "N/A" }) }
         }
 
         return cols

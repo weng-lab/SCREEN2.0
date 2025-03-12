@@ -218,9 +218,18 @@ export type MainTableRow = {
 export type SequenceTableRow = {
     regionID: number | string
     inputRegion: GenomicRegion
+    referenceAllele?: {
+        sequence: string;
+        score?: number;
+    }
+    alt?: {
+        sequence: string;
+        score?: number;
+    }
+    motifID?: string;
     conservationScore?: number
     numOverlappingMotifs?: number
-    occurrences?: MotifQueryDataOccurrence[],
+    occurrences?: MotifQueryDataOccurrence[]
     motifScoreDelta?: number
 }
 
