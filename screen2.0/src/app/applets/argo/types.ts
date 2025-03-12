@@ -297,6 +297,7 @@ export type ElementTableProps = {
     elementFilterVariables: ElementFilterState;
     SubTableTitle: React.FC<SubTableTitleProps>;
     intersectingCcres: CCREs;
+    loadingIntersect: boolean;
     isolatedRows: IsolatedRow;
     updateElementRows: (rows: ElementTableRow[]) => void;
     updateLoadingElementRows: (loading: boolean) => void;
@@ -306,6 +307,7 @@ export type GeneTableProps = {
     geneFilterVariables: GeneFilterState;
     SubTableTitle: React.FC<SubTableTitleProps>;
     intersectingCcres: CCREs;
+    loadingIntersect: boolean;
     isolatedRows: IsolatedRow;
     updateGeneRows: (rows: GeneTableRow[]) => void;
     updateLoadingGeneRows: (loading: boolean) => void;

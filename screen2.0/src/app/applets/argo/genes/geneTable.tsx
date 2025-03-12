@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
-import { AllLinkedGenes, GeneFilterState, GeneTableProps, GeneTableRow } from "../types";
+import { AllLinkedGenes, GeneTableProps, GeneTableRow } from "../types";
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components";
-import { Stack, Tooltip, Typography, useTheme } from "@mui/material";
+import { Skeleton, Stack, Tooltip, Typography, useTheme } from "@mui/material";
 import GeneLink from "../../../_utility/GeneLink";
 import { useLazyQuery, useQuery } from "@apollo/client";
 import { AggregateByEnum } from "../../../../graphql/__generated__/graphql";
@@ -13,6 +13,7 @@ const GeneTable: React.FC<GeneTableProps> = ({
     geneFilterVariables,
     SubTableTitle,
     intersectingCcres,
+    loadingIntersect,
     isolatedRows,
     updateGeneRows,
     updateLoadingGeneRows
@@ -65,22 +66,6 @@ const GeneTable: React.FC<GeneTableProps> = ({
             if (orthoGenes) {
                 filteringGenes = filterOrthologGenes(orthoGenes, allGenes)
             }
-        }
-
-        filteringGenes.map((gene) => ({
-            ...gene,
-            genes: gene.genes
-                .map((linkedGene) => ({
-                    ...linkedGene,
-                    linkedBy: linkedGene.linkedBy.filter((method) =>
-                        geneFilterVariables.methodOfLinkage[method as keyof GeneFilterState["methodOfLinkage"]]
-                    ),
-                }))
-                .filter((linkedGene) => linkedGene.linkedBy.length > 0), // Step 1: Remove genes with empty linkedBy
-        })).filter((accession) => accession.genes.length > 0);
-
-        if (filteringGenes.length === 0 || Object.values(geneFilterVariables.methodOfLinkage).every(value => !value)) {
-            return null
         }
 
         return filteringGenes;
@@ -158,7 +143,7 @@ const GeneTable: React.FC<GeneTableProps> = ({
     }, [filteredGenes, geneExpression, geneFilterVariables, geneSpecificity, intersectingCcres]);
 
     updateGeneRows(geneRows)
-    const loadingRows = loading_gene_expression || loading_gene_specificity || loading_linked_genes;
+    const loadingRows = loading_gene_expression || loading_gene_specificity || loading_linked_genes || loadingIntersect;
     updateLoadingGeneRows(loadingRows);
     
     //handle column changes for the Gene rank table
@@ -236,16 +221,20 @@ const GeneTable: React.FC<GeneTableProps> = ({
     }, [geneFilterVariables])
 
     return (
-        <DataTable
-            key={Math.random()}
-            columns={geneColumns}
-            rows={geneRows  === null ? [] : isolatedRows ? isolatedRows.gene : geneRows}
-            sortColumn={1}
-            itemsPerPage={5}
-            searchable
-            tableTitle={<SubTableTitle title="Gene Details" table="genes" />}
-            headerColor={{backgroundColor: theme.palette.secondary.main as "#", textColor: "inherit"}}
-        />
+        <>
+            {loadingRows ? <Skeleton width={"auto"} height={"440px"} variant="rounded" /> :
+                <DataTable
+                    key={Math.random()}
+                    columns={geneColumns}
+                    rows={geneRows === null ? [] : isolatedRows ? isolatedRows.gene : geneRows}
+                    sortColumn={1}
+                    itemsPerPage={5}
+                    searchable
+                    tableTitle={<SubTableTitle title="Gene Details" table="genes" />}
+                    headerColor={{ backgroundColor: theme.palette.secondary.main as "#", textColor: "inherit" }}
+                />
+            }
+        </>
     )
 }
 

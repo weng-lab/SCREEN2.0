@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { MotifQueryDataOccurrence, SequenceTableProps, SequenceTableRow } from "../types";
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components";
 import MotifsModal from "./motifModal";
-import { useTheme } from "@mui/material";
+import { Skeleton, useTheme } from "@mui/material";
 import { QueryResult, useLazyQuery, useQuery } from "@apollo/client";
 import { BigRequest } from "umms-gb/dist/components/tracks/trackset/types";
 import { client } from "../../../search/_ccredetails/client";
@@ -134,7 +134,6 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                 occurrences: overlappingMotifsRow?.occurrences
             }
         })
-        console.log(mergedRows)
 
         return mergedRows
     }, [conservationScores, occurrences, inputRegions, loading_conservation_scores, sequenceFilterVariables.rankBy])
@@ -220,16 +219,18 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
 
     return (
         <>
-            <DataTable
-                key={Math.random()}
-                columns={sequenceColumns}
-                rows={isolatedRows ? isolatedRows.sequence : sequenceRows}
-                sortColumn={1}
-                itemsPerPage={5}
-                searchable
-                tableTitle={<SubTableTitle title="Sequence Details" table="sequence" />}
-                headerColor={{ backgroundColor: theme.palette.secondary.main as "#", textColor: "inherit" }}
-            />
+            {loadingRows ? <Skeleton width={"auto"} height={"440px"} variant="rounded" /> :
+                <DataTable
+                    key={Math.random()}
+                    columns={sequenceColumns}
+                    rows={isolatedRows ? isolatedRows.sequence : sequenceRows}
+                    sortColumn={1}
+                    itemsPerPage={5}
+                    searchable
+                    tableTitle={<SubTableTitle title="Sequence Details" table="sequence" />}
+                    headerColor={{ backgroundColor: theme.palette.secondary.main as "#", textColor: "inherit" }}
+                />
+            }
             {modalData && (
                 <MotifsModal
                     key={`${modalData?.chromosome}-${modalData?.start}-${modalData?.end}`}

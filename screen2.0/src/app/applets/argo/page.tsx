@@ -1,7 +1,7 @@
 "use client"
 import React, { useMemo } from "react"
 import { useState } from "react"
-import { Stack, Typography, Box, CircularProgress, IconButton, Tooltip } from "@mui/material"
+import { Stack, Typography, Box, CircularProgress, IconButton, Tooltip, Skeleton } from "@mui/material"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { useLazyQuery } from "@apollo/client"
 import { client } from "../../search/_ccredetails/client"
@@ -22,7 +22,7 @@ import { generateGeneRanks } from "./genes/geneHelpers"
 export default function Argo() {
 
     const [inputRegions, setInputRegions] = useState<InputRegions>([]);
-    const [getIntersectingCcres, { data: intersectArray }] = useLazyQuery(BED_INTERSECT_QUERY)
+    const [getIntersectingCcres, { data: intersectArray, loading: loadingIntersect }] = useLazyQuery(BED_INTERSECT_QUERY)
 
     //UI state variables
     const [selectedSearch, setSelectedSearch] = useState<string>("TSV File")
@@ -425,7 +425,7 @@ export default function Argo() {
                 {inputRegions.length > 0 && (
                     <>
                         <Box mt="20px" id="123456">
-                            {!mainRows ? <CircularProgress /> :
+                            {mainRows.length === 0 ? <Skeleton width={"auto"} height={"440px"} variant="rounded"/> :
                                 <DataTable
                                     key={Math.random()}
                                     columns={mainColumns}
@@ -497,6 +497,7 @@ export default function Argo() {
                                                                 elementFilterVariables={elementFilterVariables}
                                                                 SubTableTitle={SubTableTitle}
                                                                 intersectingCcres={intersectingCcres}
+                                                                loadingIntersect={loadingIntersect}
                                                                 isolatedRows={isolatedRows}
                                                                 updateElementRows={updateElementRows}
                                                                 updateLoadingElementRows={updateLoadingElementRows}
@@ -508,6 +509,7 @@ export default function Argo() {
                                                                 geneFilterVariables={geneFilterVariables}
                                                                 SubTableTitle={SubTableTitle}
                                                                 intersectingCcres={intersectingCcres}
+                                                                loadingIntersect={loadingIntersect}
                                                                 isolatedRows={isolatedRows}
                                                                 updateGeneRows={updateGeneRows}
                                                                 updateLoadingGeneRows={updateLoadingGeneRows}

@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { ElementTableProps, ElementTableRow } from "../types";
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components";
-import { useTheme } from "@mui/material";
+import { Skeleton, useTheme } from "@mui/material";
 import { useQuery } from "@apollo/client";
 import { client } from "../../../search/_ccredetails/client";
 import { ORTHOLOG_QUERY, Z_SCORES_QUERY } from "../queries";
@@ -11,6 +11,7 @@ const ElementTable: React.FC<ElementTableProps> = ({
     elementFilterVariables,
     SubTableTitle,
     intersectingCcres,
+    loadingIntersect,
     isolatedRows,
     updateElementRows,
     updateLoadingElementRows
@@ -114,7 +115,7 @@ const ElementTable: React.FC<ElementTableProps> = ({
     }, [allElementData, elementFilterVariables.cCREAssembly, elementFilterVariables.classes, elementFilterVariables.mustHaveOrtholog, loading_ortho, loading_scores, orthoData]);
 
     updateElementRows(elementRows)
-    const loadingRows = loading_ortho || loading_scores;
+    const loadingRows = loading_ortho || loading_scores || loadingIntersect;
     updateLoadingElementRows(loadingRows);
     
     //handle column changes for the Element rank table
@@ -143,19 +144,24 @@ const ElementTable: React.FC<ElementTableProps> = ({
     const handlecCREClick = (row) => {
         window.open(`/search?assembly=${elementFilterVariables.cCREAssembly}&chromosome=${row.chr}&start=${row.start}&end=${row.end}&accessions=${row.accession}&page=2`, "_blank", "noopener,noreferrer")
     }
-    
+
     return (
-        <DataTable
-            key={Math.random()}
-            columns={elementColumns}
-            rows={elementRows === null ? [] : isolatedRows ? isolatedRows.element : elementRows}
-            sortColumn={Object.values(elementFilterVariables.assays).some(value => value) ?  3 : 0}
-            itemsPerPage={5}
-            searchable
-            tableTitle={<SubTableTitle title="Element Details (Overlapping cCREs)" table="elements" />}
-            onRowClick={handlecCREClick}
-            headerColor={{backgroundColor: theme.palette.secondary.main as "#", textColor: "inherit"}}
-        />
+        <>
+            {loadingRows ? <Skeleton width={"auto"} height={"440px"} variant="rounded" /> :
+                <DataTable
+                    key={Math.random()}
+                    columns={elementColumns}
+                    rows={elementRows === null ? [] : isolatedRows ? isolatedRows.element : elementRows}
+                    sortColumn={Object.values(elementFilterVariables.assays).some(value => value) ? 3 : 0}
+                    itemsPerPage={5}
+                    searchable
+                    tableTitle={<SubTableTitle title="Element Details (Overlapping cCREs)" table="elements" />}
+                    onRowClick={handlecCREClick}
+                    headerColor={{ backgroundColor: theme.palette.secondary.main as "#", textColor: "inherit" }}
+                />
+            }
+
+        </>
     )
 }
 export default ElementTable;
