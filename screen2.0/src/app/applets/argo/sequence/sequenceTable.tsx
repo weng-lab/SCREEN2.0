@@ -263,7 +263,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                     value: (row) => row.motifID
                 })
             }
-            if (sequenceFilterVariables.overlapsTFPeak) { cols.push({ header: "Overlaps TF Peak", value: (row) => "N/A" }) }
+            // if (sequenceFilterVariables.overlapsTFPeak) { cols.push({ header: "Overlaps TF Peak", value: (row) => "N/A" }) }
 
             if (sequenceFilterVariables.numOverlappingMotifs) {
                 cols.push({
