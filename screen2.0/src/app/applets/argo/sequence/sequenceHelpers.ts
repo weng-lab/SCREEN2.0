@@ -108,9 +108,16 @@ export const calculateMotifScores = (inputRegions: InputRegions, motifRankingSco
     const motifScores =  inputRegions.map(region => {
         const matchingMotifs = motifRankingScores.motifranking.filter(motif => motif.id === region.regionID.toString());
 
+        //Filter through qualities
+        const filteredMotifs = matchingMotifs.filter(motif => {
+            const motifQuality = motif.motif.split(".").pop();
+            const motifDataSource = motif.motif.split(".")[3]
+            return qualities[motifQuality.toLowerCase() as keyof MotifQuality] && motifDataSource.split("").some(letter => sources[letter.toLowerCase() as keyof DataScource]);
+        });
+
         // Find the one with the max absolute diff
-        const bestMotif = matchingMotifs.length > 0 
-            ? matchingMotifs.reduce((maxMotif, currMotif) => 
+        const bestMotif = filteredMotifs.length > 0 
+            ? filteredMotifs.reduce((maxMotif, currMotif) => 
                 Math.abs(currMotif.diff) > Math.abs(maxMotif.diff) ? currMotif : maxMotif
             ) 
             : null;

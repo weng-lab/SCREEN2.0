@@ -226,7 +226,7 @@ const SequenceFilters: React.FC<SequenceAccordianProps> = ({
                                                     checked={sequenceFilterVariables.dataSource.p}
                                                     onChange={() => toggleDataSource('p')}
                                                     control={<Checkbox />}
-                                                    label="P"
+                                                    label="Chip-Seq"
                                                     value="p"
                                                     disabled={!sequenceFilterVariables.useMotifs}
                                                 />
@@ -234,7 +234,7 @@ const SequenceFilters: React.FC<SequenceAccordianProps> = ({
                                                     checked={sequenceFilterVariables.dataSource.s}
                                                     onChange={() => toggleDataSource('s')}
                                                     control={<Checkbox />}
-                                                    label="S"
+                                                    label="HT-Selex"
                                                     value="s"
                                                     disabled={!sequenceFilterVariables.useMotifs}
                                                 />
@@ -242,7 +242,7 @@ const SequenceFilters: React.FC<SequenceAccordianProps> = ({
                                                     checked={sequenceFilterVariables.dataSource.m}
                                                     onChange={() => toggleDataSource('m')}
                                                     control={<Checkbox />}
-                                                    label="M"
+                                                    label="Methyl HT-Selex"
                                                     value="m"
                                                     disabled={!sequenceFilterVariables.useMotifs}
                                                 />
@@ -254,7 +254,7 @@ const SequenceFilters: React.FC<SequenceAccordianProps> = ({
                                                     checked={sequenceFilterVariables.dataSource.g}
                                                     onChange={() => toggleDataSource('g')}
                                                     control={<Checkbox />}
-                                                    label="G"
+                                                    label="Genomic HT-Selex"
                                                     value="g"
                                                     disabled={!sequenceFilterVariables.useMotifs}
                                                 />
@@ -262,7 +262,7 @@ const SequenceFilters: React.FC<SequenceAccordianProps> = ({
                                                     checked={sequenceFilterVariables.dataSource.i}
                                                     onChange={() => toggleDataSource('i')}
                                                     control={<Checkbox />}
-                                                    label="I"
+                                                    label="SMiLe-Seq"
                                                     value="i"
                                                     disabled={!sequenceFilterVariables.useMotifs}
                                                 />
@@ -270,7 +270,7 @@ const SequenceFilters: React.FC<SequenceAccordianProps> = ({
                                                     checked={sequenceFilterVariables.dataSource.b}
                                                     onChange={() => toggleDataSource('b')}
                                                     control={<Checkbox />}
-                                                    label="B"
+                                                    label="PBM"
                                                     value="b"
                                                     disabled={!sequenceFilterVariables.useMotifs}
                                                 />
