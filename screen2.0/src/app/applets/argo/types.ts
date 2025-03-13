@@ -70,6 +70,7 @@ export type MotifQuality = {
     a: boolean
     b: boolean
     c: boolean
+    d: boolean
 }
 
 export type DataScource = {

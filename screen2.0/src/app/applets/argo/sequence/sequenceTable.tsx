@@ -63,18 +63,15 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
 
     const {loading: loading_motif_ranking, data: motifRankingScores } = useQuery(MOTIF_RANKING_QUERY, {
         variables: {
-            motifinputs: 
-            [
-                {"id": "5", "start": 53338940, "end": 53338943,  "chrom": "chr12", "alt": "---", "ref":  "AGT" },
-                ]
-            // inputRegions.map(region => ({
-            //     id: region.regionID.toString(),
-            //     start: region.start,
-            //     end: region.end,
-            //     chrom: region.chr,
-            //     alt: region.alt,
-            //     ref: region.ref
-            // }))
+            motifinputs:
+            inputRegions.map(region => ({
+                regionid: region.regionID.toString(),
+                start: region.start,
+                end: region.end,
+                chrom: region.chr,
+                alt: region.alt,
+                ref: region.ref
+            }))
         },
         skip: !sequenceFilterVariables.useMotifs,
         client: client,

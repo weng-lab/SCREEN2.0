@@ -183,7 +183,7 @@ export const MOTIF_RANKING_QUERY = gql(`
       alt
       ref
       diff
-      id    
+      regionid    
       threshold
       motif
     }

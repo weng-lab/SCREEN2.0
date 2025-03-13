@@ -53,7 +53,8 @@ export default function Argo() {
         motifQuality: {
             a: true,
             b: true,
-            c: true
+            c: true,
+            d: true
         },
         dataSource: {
             p: true,

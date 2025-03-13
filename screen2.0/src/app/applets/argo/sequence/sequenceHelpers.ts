@@ -106,7 +106,7 @@ export const batchRegions = (regions: GenomicRegion[], maxBasePairs: number): Ge
 
 export const calculateMotifScores = (inputRegions: InputRegions, motifRankingScores: MotifRankingQueryQuery, qualities: MotifQuality, sources: DataScource): SequenceTableRow[] => {
     const motifScores =  inputRegions.map(region => {
-        const matchingMotifs = motifRankingScores.motifranking.filter(motif => motif.id === region.regionID.toString());
+        const matchingMotifs = motifRankingScores.motifranking.filter(motif => motif.regionid === region.regionID.toString());
         // console.log(matchingMotifs)
 
         //Filter through qualities
@@ -151,7 +151,7 @@ export const calculateMotifScores = (inputRegions: InputRegions, motifRankingSco
 // find the number of overlapping motifs for each input region
 export const getNumOverlappingMotifs = (inputRegions: InputRegions, motifRankingScores: MotifRankingQueryQuery): SequenceTableRow[] => {
     const overlapping = inputRegions.map(region => {
-        const matchingMotifs = motifRankingScores.motifranking.filter(motif => motif.id === region.regionID.toString());
+        const matchingMotifs = motifRankingScores.motifranking.filter(motif => motif.regionid === region.regionID.toString());
 
         return {
             regionID: region.regionID,

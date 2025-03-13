@@ -163,7 +163,24 @@ const SequenceFilters: React.FC<SequenceAccordianProps> = ({
                         {sequenceFilterVariables.motifCatalog === "hocomoco" &&
                             <>
                                 <FormControl sx={{ mt: 1 }}>
-                                    <Typography>Motif Quality</Typography>
+                                    <Stack direction="row" alignItems="center" spacing={1}>
+                                        <Typography>Motif Quality</Typography>
+                                        <Tooltip
+                                            arrow
+                                            placement="right-end"
+                                            title={
+                                                <div>
+                                                    <b>A:</b> Found in both Chip-Seq and Ht-Selex <br />
+                                                    <b>B:</b> Reproducible in Chip-Seq or HT-Selex <br />
+                                                    <b>C:</b> Found in a single dataset <br />
+                                                    <b>D:</b> Subtypes built from motifs exclusively inherited from HOCOMOCO-v11
+                                                </div>
+                                            }
+                                        >
+                                            <InfoOutlined fontSize="small" />
+                                        </Tooltip>
+                                    </Stack>
+
                                     <FormControlLabel
                                         control={
                                             <Checkbox
@@ -194,6 +211,10 @@ const SequenceFilters: React.FC<SequenceAccordianProps> = ({
                                                     value="b"
                                                     disabled={!sequenceFilterVariables.useMotifs}
                                                 />
+                                            </FormGroup>
+                                        </Grid>
+                                        <Grid size={6}>
+                                            <FormGroup>
                                                 <FormControlLabel
                                                     checked={sequenceFilterVariables.motifQuality.c}
                                                     onChange={() => toggleQuality('c')}
@@ -202,12 +223,38 @@ const SequenceFilters: React.FC<SequenceAccordianProps> = ({
                                                     value="c"
                                                     disabled={!sequenceFilterVariables.useMotifs}
                                                 />
+                                                <FormControlLabel
+                                                    checked={sequenceFilterVariables.motifQuality.d}
+                                                    onChange={() => toggleQuality('d')}
+                                                    control={<Checkbox />}
+                                                    label="D"
+                                                    value="d"
+                                                    disabled={!sequenceFilterVariables.useMotifs}
+                                                />
                                             </FormGroup>
                                         </Grid>
                                     </Grid>
                                 </FormControl>
                                 <FormControl sx={{ mt: 1 }}>
-                                    <Typography>Data Source</Typography>
+                                <Stack direction="row" alignItems="center" spacing={1}>
+                                        <Typography>Data Source</Typography>
+                                        <Tooltip
+                                            arrow
+                                            placement="right-end"
+                                            title={
+                                                <div>
+                                                    <b>P:</b> Chip-Seq <br />
+                                                    <b>S:</b> HT-Selex <br />
+                                                    <b>M:</b> Methyl HT-Selex <br />
+                                                    <b>G:</b> Genomic HT-Selex <br />
+                                                    <b>I:</b> SMiLe-Seq <br />
+                                                    <b>B:</b> PBM <br />
+                                                </div>
+                                            }
+                                        >
+                                            <InfoOutlined fontSize="small" />
+                                        </Tooltip>
+                                    </Stack>
                                     <FormControlLabel
                                         control={
                                             <Checkbox
