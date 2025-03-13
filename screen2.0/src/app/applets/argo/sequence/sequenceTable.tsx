@@ -63,61 +63,72 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
 
     const {loading: loading_motif_ranking, data: motifRankingScores } = useQuery(MOTIF_RANKING_QUERY, {
         variables: {
-            motifinputs: inputRegions.map(region => ({
-                id: region.regionID.toString(),
-                start: region.start,
-                end: region.end,
-                chrom: region.chr,
-                alt: region.alt,
-                ref: region.ref
-            }))
+            motifinputs: 
+            [
+                {"id": "5", "start": 53338940, "end": 53338943,  "chrom": "chr12", "alt": "---", "ref":  "AGT" },
+                ]
+            // inputRegions.map(region => ({
+            //     id: region.regionID.toString(),
+            //     start: region.start,
+            //     end: region.end,
+            //     chrom: region.chr,
+            //     alt: region.alt,
+            //     ref: region.ref
+            // }))
         },
         skip: !sequenceFilterVariables.useMotifs,
         client: client,
         fetchPolicy: 'cache-first',
+        onCompleted: (d) => {
+            console.log(d)
+        }
     })
 
-    //query the motif occurences fron the input regions
-    // useEffect(() => {
-    //     if (inputRegions.length === 0 || !sequenceFilterVariables.useMotifs) {
-    //         return;
-    //     }
-
-    //     const fetchAllOccurrences = async () => {
-    //         try {
-    //             //batch the input regions
-    //             const batchedRegions = batchRegions(inputRegions, 200);
-
-    //             //query all batches in parrallel
-    //             const fetchPromises = batchedRegions.map((batch) =>
-    //                 getMemeOccurrences({
-    //                     variables: {
-    //                         limit: 30,
-    //                         range: batch.map((region) => ({
-    //                             chromosome: region.chr,
-    //                             start: region.start,
-    //                             end: region.end,
-    //                         })),
-    //                     },
-    //                     fetchPolicy: "cache-first",
-    //                 })
-    //             );
-
-    //             //wait for queries to resolve
-    //             const results = await Promise.all(fetchPromises);
-    //             // Filter results with non-empty meme_occurrences
-    //             const filteredResults = results.filter(result => result.data.meme_occurrences.length > 0)
-    //             setOccurrences(filteredResults);
-    //         } catch (error) {
-    //             console.error("Error fetching occurrences:", error);
-    //         }
-    //     };
-
-    //     fetchAllOccurrences();
-    // }, [inputRegions, getMemeOccurrences, sequenceFilterVariables.useMotifs]);
+    async function fetchMotifRanking() {
+        if (!sequenceFilterVariables.useMotifs) return;
+    
+        const response = await fetch('https://screen.api.wenglab.org/graphql', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                query: `
+                    query MotifRankingQuery($motifinputs: [MotifRankingInput!]) {
+                        motifranking(motifinputs: $motifinputs) {
+                            alt
+                            ref
+                            diff
+                            id    
+                            threshold
+                            motif
+                        }
+                    }
+                `,
+                variables: {
+                    motifinputs: [
+                        { id: "5", start: 53338940, end: 53338943, chrom: "chr12", alt: "---", ref: "AGT" }
+                    ]
+                }
+            })
+        });
+    
+        if (!response.ok) {
+            throw new Error(`Network response was not ok: ${response.statusText}`);
+        }
+    
+        const result = await response.json();
+        return result.data.motifranking;
+    }
+    
+    // Usage example
+    // fetchMotifRanking()
+    //     .then(data => console.log(data))
+    //     .catch(error => console.error(error));
+    
 
     const sequenceRows: SequenceTableRow[] = useMemo(() => {
-        if (!conservationScores || inputRegions.length === 0 || loading_conservation_scores) {
+        if (!conservationScores || inputRegions.length === 0 || loading_conservation_scores || !motifRankingScores || loading_motif_ranking) {
             return []
         }
 

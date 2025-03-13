@@ -107,6 +107,7 @@ export const batchRegions = (regions: GenomicRegion[], maxBasePairs: number): Ge
 export const calculateMotifScores = (inputRegions: InputRegions, motifRankingScores: MotifRankingQueryQuery, qualities: MotifQuality, sources: DataScource): SequenceTableRow[] => {
     const motifScores =  inputRegions.map(region => {
         const matchingMotifs = motifRankingScores.motifranking.filter(motif => motif.id === region.regionID.toString());
+        // console.log(matchingMotifs)
 
         //Filter through qualities
         const filteredMotifs = matchingMotifs.filter(motif => {
@@ -121,28 +122,30 @@ export const calculateMotifScores = (inputRegions: InputRegions, motifRankingSco
                 Math.abs(currMotif.diff) > Math.abs(maxMotif.diff) ? currMotif : maxMotif
             ) 
             : null;
-
-        return {
-            regionID: region.regionID,
-            inputRegion: {
-                chr: region.chr,
-                start: region.start,
-                end: region.end,
-            },
-            referenceAllele: {
-                sequence: region.ref,
-                score: bestMotif ? bestMotif.ref : null
-            },
-            alt: {
-                sequence: region.alt,
-                score: bestMotif ? bestMotif.alt : null
-            },
-            motifScoreDelta: bestMotif ? bestMotif.diff : null,
-            motifID: bestMotif ? bestMotif.motif : null
-        };
+        
+        if (bestMotif) {
+                return {
+                    regionID: region.regionID,
+                    inputRegion: {
+                        chr: region.chr,
+                        start: region.start,
+                        end: region.end,
+                    },
+                    referenceAllele: {
+                        sequence: region.ref,
+                        score: bestMotif.ref
+                    },
+                    alt: {
+                        sequence: region.alt,
+                        score: bestMotif.alt
+                    },
+                    motifScoreDelta: bestMotif.diff,
+                    motifID: bestMotif.motif
+                };
+            } else { return null}
     });
 
-    return motifScores
+    return motifScores.filter(motif => motif !== null)
 }
 
 // find the number of overlapping motifs for each input region

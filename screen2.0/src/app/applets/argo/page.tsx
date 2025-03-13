@@ -63,7 +63,7 @@ export default function Argo() {
             i: true,
             b: true
         },
-        numOverlappingMotifs: false,
+        numOverlappingMotifs: true,
         motifScoreDelta: true,
         overlapsTFPeak: false,
         tfPeakStrength: false
