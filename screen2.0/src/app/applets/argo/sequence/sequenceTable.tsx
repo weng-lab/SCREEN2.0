@@ -81,49 +81,6 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
         }
     })
 
-    async function fetchMotifRanking() {
-        if (!sequenceFilterVariables.useMotifs) return;
-    
-        const response = await fetch('https://screen.api.wenglab.org/graphql', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                query: `
-                    query MotifRankingQuery($motifinputs: [MotifRankingInput!]) {
-                        motifranking(motifinputs: $motifinputs) {
-                            alt
-                            ref
-                            diff
-                            id    
-                            threshold
-                            motif
-                        }
-                    }
-                `,
-                variables: {
-                    motifinputs: [
-                        { id: "5", start: 53338940, end: 53338943, chrom: "chr12", alt: "---", ref: "AGT" }
-                    ]
-                }
-            })
-        });
-    
-        if (!response.ok) {
-            throw new Error(`Network response was not ok: ${response.statusText}`);
-        }
-    
-        const result = await response.json();
-        return result.data.motifranking;
-    }
-    
-    // Usage example
-    // fetchMotifRanking()
-    //     .then(data => console.log(data))
-    //     .catch(error => console.error(error));
-    
-
     const sequenceRows: SequenceTableRow[] = useMemo(() => {
         if (!conservationScores || inputRegions.length === 0 || loading_conservation_scores || !motifRankingScores || loading_motif_ranking) {
             return []
