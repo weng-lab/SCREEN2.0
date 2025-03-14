@@ -8,7 +8,7 @@ import { BigRequest } from "umms-gb/dist/components/tracks/trackset/types";
 import { client } from "../../../search/_ccredetails/client";
 import { BIG_REQUEST_QUERY, MOTIF_RANKING_QUERY } from "../queries";
 import { calculateConservationScores, calculateMotifScores, getNumOverlappingMotifs } from "./sequenceHelpers";
-import { MotifRankingQueryQuery } from "../../../../graphql/__generated__/graphql";
+import Link from "next/link";
 
 const SequenceTable: React.FC<SequenceTableProps> = ({
     sequenceFilterVariables,
@@ -231,10 +231,26 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                 )
             })
             if (sequenceFilterVariables.motifScoreDelta) { 
-                cols.push({ header: "Difference", value: (row) => row.motifScoreDelta ? row.motifScoreDelta.toFixed(2) : "N/A" }) 
+                cols.push({ header: "Delta", value: (row) => row.motifScoreDelta ? row.motifScoreDelta.toFixed(2) : "N/A" }) 
                 cols.push({
                     header: "Motif ID",
-                    value: (row) => row.motifID ? row.motifID : "None"
+                    value: (row) => row.motifID ? row.motifID : "None",
+                    render: row => row.motifID ? (
+                        <Tooltip
+                            title={"Open Motif In HOCOMOCO"}
+                            arrow
+                            placement="left"
+                        >
+                            <Link
+                                href={`https://hocomoco12.autosome.org/motif/${row.motifID}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ color: "#007bff", textDecoration: "none" }}
+                            >
+                                {row.motifID}
+                            </Link>
+                        </Tooltip>
+                    ) : "None"
                 })
             }
             // if (sequenceFilterVariables.overlapsTFPeak) { cols.push({ header: "Overlaps TF Peak", value: (row) => "N/A" }) }

@@ -1,5 +1,4 @@
-import {  DataScource, GenomicRegion, InputRegions, MotifQuality, MotifRanking, RankedRegions, SequenceTableRow } from "../types";
-import {  MotifRankingQueryQuery } from "../../../../graphql/__generated__/graphql";
+import { GenomicRegion, InputRegions, MotifRanking, RankedRegions, SequenceTableRow } from "../types";
 
 // switch between min, max, avg for conservation scores, calculate each respectivley
 export const calculateConservationScores = (scores, rankBy: string, inputRegions: InputRegions): SequenceTableRow[] => {
@@ -131,7 +130,7 @@ export const calculateMotifScores = (inputRegions: InputRegions, scores: MotifRa
                         sequence: region.alt,
                         score: bestMotif.alt
                     },
-                    motifScoreDelta: bestMotif.diff,
+                    motifScoreDelta: Math.abs(bestMotif.diff),
                     motifID: bestMotif.motif
                 };
             } else { return null}

@@ -173,7 +173,7 @@ const SequenceFilters: React.FC<SequenceAccordianProps> = ({
                                                     <b>A:</b> Found in both Chip-Seq and Ht-Selex <br />
                                                     <b>B:</b> Reproducible in Chip-Seq or HT-Selex <br />
                                                     <b>C:</b> Found in a single dataset <br />
-                                                    <b>D:</b> Subtypes built from motifs exclusively inherited from HOCOMOCO-v11
+                                                    <b>D:</b> Subtypes built from motifs exclusively inherited from HOCOMOCO-v12
                                                 </div>
                                             }
                                         >
