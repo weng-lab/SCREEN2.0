@@ -77,13 +77,10 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
         skip: !sequenceFilterVariables.useMotifs,
         client: client,
         fetchPolicy: 'cache-first',
-        onCompleted: (d) => {
-            console.log(d)
-        }
     })
 
     const sequenceRows: SequenceTableRow[] = useMemo(() => {
-        if (!conservationScores || inputRegions.length === 0 || loading_conservation_scores || !motifRankingScores || loading_motif_ranking) {
+        if ((!conservationScores && !motifRankingScores) || inputRegions.length === 0 || loading_conservation_scores || loading_motif_ranking) {
             return []
         }
 
@@ -183,7 +180,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
         if (sequenceFilterVariables.useMotifs) {
             cols.push({
                 header: sequenceFilterVariables.motifScoreDelta ? "Reference Score" : "Reference",
-                value: (row) => row.referenceAllele ? sequenceFilterVariables.motifScoreDelta ? row.referenceAllele.score : "N/A" : row.referenceAllele.sequence,
+                value: (row) => row.referenceAllele ? sequenceFilterVariables.motifScoreDelta && row.referenceAllele.score ? row.referenceAllele.score : "N/A" : row.referenceAllele.sequence,
                 render: (row) => sequenceFilterVariables.motifScoreDelta ? (
                     row.referenceAllele ? (
                         <Tooltip
@@ -209,7 +206,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
             })
             cols.push({
                 header: sequenceFilterVariables.motifScoreDelta ? "Alternate Score" : "Alternate",
-                value: (row) => row.alt ? sequenceFilterVariables.motifScoreDelta ? row.alt.score : "N/A" : row.alt.sequence,
+                value: (row) => row.alt ? sequenceFilterVariables.motifScoreDelta && row.alt.score ? row.alt.score : "N/A" : row.alt.sequence,
                 render: (row) =>  sequenceFilterVariables.motifScoreDelta ? (
                     row.alt ? (
                     <Tooltip
@@ -284,7 +281,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                     key={Math.random()}
                     columns={sequenceColumns}
                     rows={isolatedRows ? isolatedRows.sequence : sequenceRows}
-                    sortColumn={1}
+                    sortColumn={sequenceFilterVariables.useConservation ? 1 : 3}
                     itemsPerPage={5}
                     searchable
                     tableTitle={<SubTableTitle title="Sequence Details" table="sequence" />}
