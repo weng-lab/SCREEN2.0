@@ -146,7 +146,7 @@ const Filters: React.FC<FilterProps> = ({
                     </IconButton>
                 </Stack>
                 <Box
-                    height="calc(100vh - 56px)"
+                    height="calc(100vh - 113px)"
                     overflow="auto"
                 >
                     <SequenceFilters

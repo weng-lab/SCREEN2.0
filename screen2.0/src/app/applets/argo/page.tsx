@@ -397,9 +397,9 @@ export default function Argo() {
     const isolatedRows: IsolatedRow = useMemo(() => {
         if (isolatedRowID === null) return null;
         const mainIsolate = mainRows.filter((row) => row.regionID === isolatedRowID)
-        const sequenceIsolate = sequenceRows.filter((row) => row.regionID === isolatedRowID)
-        const elementIsolate = elementRows.filter((row) => row.regionID === isolatedRowID)
-        const geneIsolate = geneRows.filter((row) => row.regionID === isolatedRowID)
+        const sequenceIsolate = sequenceRows?.filter((row) => row.regionID === isolatedRowID)
+        const elementIsolate = elementRows?.filter((row) => row.regionID === isolatedRowID)
+        const geneIsolate = geneRows?.filter((row) => row.regionID === isolatedRowID)
 
         return {
             main: mainIsolate,
