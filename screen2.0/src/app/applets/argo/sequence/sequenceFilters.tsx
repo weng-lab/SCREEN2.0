@@ -192,51 +192,43 @@ const SequenceFilters: React.FC<SequenceAccordianProps> = ({
                                         label="Select All"
                                         disabled={!sequenceFilterVariables.useMotifs}
                                     />
-                                    <Grid container spacing={0} ml={2}>
-                                        <Grid size={6}>
-                                            <FormGroup>
-                                                <FormControlLabel
-                                                    checked={sequenceFilterVariables.motifQuality.a}
-                                                    onChange={() => toggleQuality('a')}
-                                                    control={<Checkbox />}
-                                                    label="A"
-                                                    value="a"
-                                                    disabled={!sequenceFilterVariables.useMotifs}
-                                                />
-                                                <FormControlLabel
-                                                    checked={sequenceFilterVariables.motifQuality.b}
-                                                    onChange={() => toggleQuality('b')}
-                                                    control={<Checkbox />}
-                                                    label="B"
-                                                    value="b"
-                                                    disabled={!sequenceFilterVariables.useMotifs}
-                                                />
-                                            </FormGroup>
-                                        </Grid>
-                                        <Grid size={6}>
-                                            <FormGroup>
-                                                <FormControlLabel
-                                                    checked={sequenceFilterVariables.motifQuality.c}
-                                                    onChange={() => toggleQuality('c')}
-                                                    control={<Checkbox />}
-                                                    label="C"
-                                                    value="c"
-                                                    disabled={!sequenceFilterVariables.useMotifs}
-                                                />
-                                                <FormControlLabel
-                                                    checked={sequenceFilterVariables.motifQuality.d}
-                                                    onChange={() => toggleQuality('d')}
-                                                    control={<Checkbox />}
-                                                    label="D"
-                                                    value="d"
-                                                    disabled={!sequenceFilterVariables.useMotifs}
-                                                />
-                                            </FormGroup>
-                                        </Grid>
-                                    </Grid>
+                                    <FormGroup row sx={{ ml: 2 }}>
+                                        <FormControlLabel
+                                            checked={sequenceFilterVariables.motifQuality.a}
+                                            onChange={() => toggleQuality('a')}
+                                            control={<Checkbox />}
+                                            label="A"
+                                            value="a"
+                                            disabled={!sequenceFilterVariables.useMotifs}
+                                        />
+                                        <FormControlLabel
+                                            checked={sequenceFilterVariables.motifQuality.b}
+                                            onChange={() => toggleQuality('b')}
+                                            control={<Checkbox />}
+                                            label="B"
+                                            value="b"
+                                            disabled={!sequenceFilterVariables.useMotifs}
+                                        />
+                                        <FormControlLabel
+                                            checked={sequenceFilterVariables.motifQuality.c}
+                                            onChange={() => toggleQuality('c')}
+                                            control={<Checkbox />}
+                                            label="C"
+                                            value="c"
+                                            disabled={!sequenceFilterVariables.useMotifs}
+                                        />
+                                        <FormControlLabel
+                                            checked={sequenceFilterVariables.motifQuality.d}
+                                            onChange={() => toggleQuality('d')}
+                                            control={<Checkbox />}
+                                            label="D"
+                                            value="d"
+                                            disabled={!sequenceFilterVariables.useMotifs}
+                                        />
+                                    </FormGroup>
                                 </FormControl>
                                 <FormControl sx={{ mt: 1 }}>
-                                <Stack direction="row" alignItems="center" spacing={1}>
+                                    <Stack direction="row" alignItems="center" spacing={1}>
                                         <Typography>Data Source</Typography>
                                         <Tooltip
                                             arrow
@@ -340,7 +332,7 @@ const SequenceFilters: React.FC<SequenceAccordianProps> = ({
                     </Stack>
                 </FormGroup>
                 <FormGroup>
-                    <FormControl sx={{marginLeft: 2}}>
+                    <FormControl sx={{ marginLeft: 2 }}>
                         <Typography>Include in Ranking</Typography>
                         <FormControlLabel value="numMotifs" control={<Checkbox onChange={() => updateSequenceFilter("numOverlappingMotifs", !sequenceFilterVariables.numOverlappingMotifs)} checked={sequenceFilterVariables.numOverlappingMotifs} />} label="Number of Overlaping Motifs" disabled={!sequenceFilterVariables.useMotifs} />
                         <FormControlLabel value="motifScoreDelta" control={<Checkbox onChange={() => updateSequenceFilter("motifScoreDelta", !sequenceFilterVariables.motifScoreDelta)} checked={sequenceFilterVariables.motifScoreDelta} />} label="Motif Score Delta" disabled={!sequenceFilterVariables.useMotifs} />

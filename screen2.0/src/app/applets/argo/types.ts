@@ -358,3 +358,13 @@ export type ClosestGenetocCRE = {
         start?: number | null;
     } | null;
 }[]
+
+export type MotifRanking = {
+    __typename?: "MotifRanking";
+    alt?: number | null;
+    ref?: number | null;
+    diff?: number | null;
+    regionid?: string | null;
+    threshold?: number | null;
+    motif?: string | null;
+}[]

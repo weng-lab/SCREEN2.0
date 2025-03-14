@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { MotifQueryDataOccurrence, SequenceTableProps, SequenceTableRow } from "../types";
+import { DataScource, MotifQuality, MotifQueryDataOccurrence, MotifRanking, SequenceTableProps, SequenceTableRow } from "../types";
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components";
 import MotifsModal from "./motifModal";
 import { Skeleton, Tooltip, Typography, useTheme } from "@mui/material";
@@ -8,6 +8,7 @@ import { BigRequest } from "umms-gb/dist/components/tracks/trackset/types";
 import { client } from "../../../search/_ccredetails/client";
 import { BIG_REQUEST_QUERY, MOTIF_RANKING_QUERY } from "../queries";
 import { calculateConservationScores, calculateMotifScores, getNumOverlappingMotifs } from "./sequenceHelpers";
+import { MotifRankingQueryQuery } from "../../../../graphql/__generated__/graphql";
 
 const SequenceTable: React.FC<SequenceTableProps> = ({
     sequenceFilterVariables,
@@ -91,12 +92,20 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
             calculatedConservationScores = calculateConservationScores(conservationScores.bigRequests, sequenceFilterVariables.rankBy, inputRegions)
         }
         let calculatedMotifScores: SequenceTableRow[] = []
-        if (motifRankingScores && sequenceFilterVariables.motifScoreDelta) {
-            calculatedMotifScores = calculateMotifScores(inputRegions, motifRankingScores, sequenceFilterVariables.motifQuality, sequenceFilterVariables.dataSource)
+        let filteredMotifs: MotifRanking = []
+        if (motifRankingScores) {
+            //filter through qualities and data sources
+            filteredMotifs =  motifRankingScores.motifranking.filter(motif => {
+                const motifQuality = motif.motif.split(".").pop();
+                const motifDataSource = motif.motif.split(".")[3]
+                return sequenceFilterVariables.motifQuality[motifQuality.toLowerCase() as keyof MotifQuality] && motifDataSource.split("").some(letter => sequenceFilterVariables.dataSource[letter.toLowerCase() as keyof DataScource]);
+            });
+
+            calculatedMotifScores = calculateMotifScores(inputRegions, filteredMotifs)
         }
         let numOverlappingMotifs: SequenceTableRow[] = []
         if (motifRankingScores && sequenceFilterVariables.numOverlappingMotifs) {
-            numOverlappingMotifs = getNumOverlappingMotifs(inputRegions, motifRankingScores)
+            numOverlappingMotifs = getNumOverlappingMotifs(inputRegions, filteredMotifs)
         }
         // Merge conservation scores and overlapping motifs
         const mergedRows = inputRegions.map(region => {
@@ -124,7 +133,10 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
             }
         })
 
+        console.log(mergedRows)
+
         return mergedRows
+        
     }, [conservationScores, inputRegions, loading_conservation_scores, motifRankingScores, sequenceFilterVariables])
 
     updateSequenceRows(sequenceRows)
@@ -170,7 +182,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
         }
         if (sequenceFilterVariables.useMotifs) {
             cols.push({
-                header: "Reference",
+                header: sequenceFilterVariables.motifScoreDelta ? "Reference Score" : "Reference",
                 value: (row) => row.referenceAllele ? sequenceFilterVariables.motifScoreDelta ? row.referenceAllele.score : "N/A" : row.referenceAllele.sequence,
                 render: (row) => sequenceFilterVariables.motifScoreDelta ? (
                     row.referenceAllele ? (
@@ -188,7 +200,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                             placement="left"
                         >
                             <Typography fontSize={"14px"}>
-                                {row.referenceAllele.score?.toFixed(2)}
+                                {row.referenceAllele.score ? row.referenceAllele.score.toFixed(2) : "N/A"}
                             </Typography>
                         </Tooltip>
                     ) : "N/A") : (
@@ -196,7 +208,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                 )
             })
             cols.push({
-                header: "Alternate",
+                header: sequenceFilterVariables.motifScoreDelta ? "Alternate Score" : "Alternate",
                 value: (row) => row.alt ? sequenceFilterVariables.motifScoreDelta ? row.alt.score : "N/A" : row.alt.sequence,
                 render: (row) =>  sequenceFilterVariables.motifScoreDelta ? (
                     row.alt ? (
@@ -214,7 +226,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                         placement="left"
                     >
                         <Typography fontSize={"14px"}>
-                            {row.alt.score?.toFixed(2)}
+                            {row.alt.score ? row.alt.score?.toFixed(2) : "N/A"}
                         </Typography>
                     </Tooltip>
                 ) : "N/A") : (
@@ -225,7 +237,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                 cols.push({ header: "Difference", value: (row) => row.motifScoreDelta ? row.motifScoreDelta.toFixed(2) : "N/A" }) 
                 cols.push({
                     header: "Motif ID",
-                    value: (row) => row.motifID
+                    value: (row) => row.motifID ? row.motifID : "None"
                 })
             }
             // if (sequenceFilterVariables.overlapsTFPeak) { cols.push({ header: "Overlaps TF Peak", value: (row) => "N/A" }) }

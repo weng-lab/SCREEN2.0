@@ -1,4 +1,4 @@
-import {  DataScource, GenomicRegion, InputRegions, MotifQuality, RankedRegions, SequenceTableRow } from "../types";
+import {  DataScource, GenomicRegion, InputRegions, MotifQuality, MotifRanking, RankedRegions, SequenceTableRow } from "../types";
 import {  MotifRankingQueryQuery } from "../../../../graphql/__generated__/graphql";
 
 // switch between min, max, avg for conservation scores, calculate each respectivley
@@ -104,21 +104,13 @@ export const batchRegions = (regions: GenomicRegion[], maxBasePairs: number): Ge
     return result;
 }
 
-export const calculateMotifScores = (inputRegions: InputRegions, motifRankingScores: MotifRankingQueryQuery, qualities: MotifQuality, sources: DataScource): SequenceTableRow[] => {
+export const calculateMotifScores = (inputRegions: InputRegions, scores: MotifRanking): SequenceTableRow[] => {
     const motifScores =  inputRegions.map(region => {
-        const matchingMotifs = motifRankingScores.motifranking.filter(motif => motif.regionid === region.regionID.toString());
-        // console.log(matchingMotifs)
-
-        //Filter through qualities
-        const filteredMotifs = matchingMotifs.filter(motif => {
-            const motifQuality = motif.motif.split(".").pop();
-            const motifDataSource = motif.motif.split(".")[3]
-            return qualities[motifQuality.toLowerCase() as keyof MotifQuality] && motifDataSource.split("").some(letter => sources[letter.toLowerCase() as keyof DataScource]);
-        });
+        const matchingMotifs = scores.filter(motif => motif.regionid === region.regionID.toString());
 
         // Find the one with the max absolute diff
-        const bestMotif = filteredMotifs.length > 0 
-            ? filteredMotifs.reduce((maxMotif, currMotif) => 
+        const bestMotif = matchingMotifs.length > 0 
+            ? matchingMotifs.reduce((maxMotif, currMotif) => 
                 Math.abs(currMotif.diff) > Math.abs(maxMotif.diff) ? currMotif : maxMotif
             ) 
             : null;
@@ -149,9 +141,9 @@ export const calculateMotifScores = (inputRegions: InputRegions, motifRankingSco
 }
 
 // find the number of overlapping motifs for each input region
-export const getNumOverlappingMotifs = (inputRegions: InputRegions, motifRankingScores: MotifRankingQueryQuery): SequenceTableRow[] => {
+export const getNumOverlappingMotifs = (inputRegions: InputRegions, scores: MotifRanking): SequenceTableRow[] => {
     const overlapping = inputRegions.map(region => {
-        const matchingMotifs = motifRankingScores.motifranking.filter(motif => motif.regionid === region.regionID.toString());
+        const matchingMotifs = scores.filter(motif => motif.regionid === region.regionID.toString());
 
         return {
             regionID: region.regionID,
