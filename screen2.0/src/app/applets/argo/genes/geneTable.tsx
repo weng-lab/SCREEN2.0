@@ -77,17 +77,17 @@ const GeneTable: React.FC<GeneTableProps> = ({
             }))
             .filter(accession => accession.genes.length > 0);
 
-        return linkageFilter;
+        return linkageFilter.length > 0 ? linkageFilter : null;
 
     }, [closestAndLinkedGenes, geneFilterVariables.methodOfLinkage, geneFilterVariables.mustBeProteinCoding, geneFilterVariables.mustHaveOrtholog, getOrthoGenes, intersectingCcres, orthoGenes])
 
     const { loading: loading_gene_specificity, data: geneSpecificity } = useQuery(SPECIFICITY_QUERY, {
         variables: {
-            geneids: filteredGenes.flatMap((entry) =>
+            geneids: filteredGenes?.flatMap((entry) =>
                 entry.genes.map((gene) => gene.geneId)
             )
         },
-        skip: !closestAndLinkedGenes || closestAndLinkedGenes.closestGenetocCRE.length === 0,
+        skip: !closestAndLinkedGenes || closestAndLinkedGenes.closestGenetocCRE.length === 0 || filteredGenes === null,
         client: client,
         fetchPolicy: 'cache-first',
     });
@@ -96,7 +96,7 @@ const GeneTable: React.FC<GeneTableProps> = ({
         variables: {
             genes: Array.from(
                 new Set(
-                    filteredGenes.flatMap((entry) =>
+                    filteredGenes?.flatMap((entry) =>
                         entry.genes.map((gene) => gene.name.trim())
                     )
                 )
@@ -106,7 +106,7 @@ const GeneTable: React.FC<GeneTableProps> = ({
                 aggregateBy: (geneFilterVariables.rankGeneExpBy === "avg" ? "AVERAGE" : "MAX") as AggregateByEnum
             }))
         },
-        skip: !closestAndLinkedGenes || closestAndLinkedGenes.closestGenetocCRE.length === 0,
+        skip: !closestAndLinkedGenes || closestAndLinkedGenes.closestGenetocCRE.length === 0 || filteredGenes === null,
         client: client,
         fetchPolicy: 'cache-first',
     });

@@ -129,7 +129,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                 numOverlappingMotifs: numOverlappingMotifsRow?.numOverlappingMotifs
             }
         })
-
+        console.log(mergedRows)
         return mergedRows
         
     }, [conservationScores, inputRegions, loading_conservation_scores, motifRankingScores, sequenceFilterVariables])
@@ -148,28 +148,28 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
         if (sequenceFilterVariables.useConservation) {
             switch (sequenceFilterVariables.alignment) {
                 case "241-mam-phyloP":
-                    cols.push({ header: "241-Mammal(phyloP) Score", value: (row) => row.conservationScore ? row.conservationScore.toFixed(2) : "N/A" });
+                    cols.push({ header: "241-Mammal(phyloP) Score", value: (row) => row.conservationScore || row.conservationScore === 0 ? row.conservationScore.toFixed(2) : "N/A" });
                     break;
                 case "447-mam-phyloP":
-                    cols.push({ header: "447-Mammal(phyloP) Score", value: (row) => row.conservationScore ? row.conservationScore.toFixed(2) : "N/A" });
+                    cols.push({ header: "447-Mammal(phyloP) Score", value: (row) => row.conservationScore || row.conservationScore === 0 ? row.conservationScore.toFixed(2) : "N/A" });
                     break;
                 case "241-mam-phastCons":
-                    cols.push({ header: "241-Mammal(phastCons) Score", value: (row) => row.conservationScore ? row.conservationScore.toFixed(2) : "N/A" });
+                    cols.push({ header: "241-Mammal(phastCons) Score", value: (row) => row.conservationScore || row.conservationScore === 0 ? row.conservationScore.toFixed(2) : "N/A" });
                     break;
                 case "43-prim-phyloP":
-                    cols.push({ header: "43-Primate(phyloP) Score", value: (row) => row.conservationScore ? row.conservationScore.toFixed(2) : "N/A" });
+                    cols.push({ header: "43-Primate(phyloP) Score", value: (row) => row.conservationScore || row.conservationScore === 0 ? row.conservationScore.toFixed(2) : "N/A" });
                     break;
                 case "43-prim-phastCons":
-                    cols.push({ header: "43-Primate(phastCons) Score", value: (row) => row.conservationScore ? row.conservationScore.toFixed(2) : "N/A" });
+                    cols.push({ header: "43-Primate(phastCons) Score", value: (row) => row.conservationScore || row.conservationScore === 0 ? row.conservationScore.toFixed(2) : "N/A" });
                     break;
                 case "243-prim-phastCons":
-                    cols.push({ header: "243-Primate(phastCons) Score", value: (row) => row.conservationScore ? row.conservationScore.toFixed(2) : "N/A" });
+                    cols.push({ header: "243-Primate(phastCons) Score", value: (row) => row.conservationScore || row.conservationScore === 0 ? row.conservationScore.toFixed(2) : "N/A" });
                     break;
                 case "100-vert-phyloP":
-                    cols.push({ header: "100-Vertebrate(phyloP) Score", value: (row) => row.conservationScore ? row.conservationScore.toFixed(2) : "N/A" });
+                    cols.push({ header: "100-Vertebrate(phyloP) Score", value: (row) => row.conservationScore || row.conservationScore === 0 ? row.conservationScore.toFixed(2) : "N/A" });
                     break;
                 case "100-vert-phastCons":
-                    cols.push({ header: "100-Vertebrate(phastCons) Score", value: (row) => row.conservationScore ? row.conservationScore.toFixed(2) : "N/A" });
+                    cols.push({ header: "100-Vertebrate(phastCons) Score", value: (row) => row.conservationScore || row.conservationScore === 0 ? row.conservationScore.toFixed(2) : "N/A" });
                     break;
                 default:
                     break;

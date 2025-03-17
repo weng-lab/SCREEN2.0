@@ -60,7 +60,7 @@ export const calculateConservationScores = (scores, rankBy: string, inputRegions
             conservationScore: score
         } as SequenceTableRow;
     });
-
+    
     return conservationScores.filter(row => row.regionID !== undefined)
 }
 

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react"
-import { Button, Typography, Stack, IconButton, FormControl, Box, TextField, Alert, Container, Table, TableBody, TableCell, TableRow, RadioGroup, FormControlLabel, Radio, Accordion, AccordionSummary, AccordionDetails } from "@mui/material"
+import { Button, Typography, Stack, IconButton, FormControl, Box, TextField, Alert, Container, Table, TableBody, TableCell, TableRow, RadioGroup, FormControlLabel, Radio, Accordion, AccordionSummary, AccordionDetails, Tooltip } from "@mui/material"
 import { useDropzone } from "react-dropzone"
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { Cancel } from "@mui/icons-material"
@@ -181,6 +181,21 @@ const ArgoUpload: React.FC<UploadProps> = ({
             return refError;
         }
 
+        const validAlts = /^[CGTA-]+$/;
+        const altErrorIndex = regions.find(region => !validAlts.test(region.alt));
+        if (altErrorIndex) {
+            setCellErr("alt")
+            return `Alternate allele must only include these 5 characters [A, C, T, G, -] at regionID: ${altErrorIndex.regionID}
+            (${Object.values(altErrorIndex).slice(0, -1).join(' ')})`;
+        }
+
+        const validStrands = ["+", "-"];
+        const strandErrorIndex = regions.find(region => !validStrands.includes(region.strand));
+        if (altErrorIndex) {
+            setCellErr("strand")
+            return `Strand must only but + or - at regionID: ${strandErrorIndex.regionID}
+            (${Object.values(strandErrorIndex).slice(0, -1).join(' ')})`;
+        }
 
         // If no errors, return null
         return null;
@@ -507,13 +522,41 @@ const ArgoUpload: React.FC<UploadProps> = ({
                             >
                                 <TableBody>
                                     <TableRow>
-                                        <TableCell sx={{ backgroundColor: cellErr === "chr" ? "error.light" : "transparent" }}>Chromosome</TableCell>
-                                        <TableCell sx={{ backgroundColor: cellErr === "numbers" ? "error.light" : "transparent" }}>Start</TableCell>
-                                        <TableCell sx={{ backgroundColor: cellErr === "numbers" ? "error.light" : "transparent" }}>End</TableCell>
-                                        <TableCell sx={{ backgroundColor: cellErr === "ref" ? "error.light" : "transparent" }}>Reference Allele</TableCell>
-                                        <TableCell>Alternate Allele</TableCell>
-                                        <TableCell>Strand</TableCell>
-                                        <TableCell>Region ID (optional)</TableCell>
+                                        <TableCell sx={{ backgroundColor: cellErr === "chr" ? "error.light" : "transparent" }}>
+                                            <Tooltip title="Chromosome where the variant is located Ex: Chr1" arrow>
+                                                <span>Chromosome</span>
+                                            </Tooltip>
+                                        </TableCell>
+                                        <TableCell sx={{ backgroundColor: cellErr === "numbers" ? "error.light" : "transparent" }}>
+                                            <Tooltip title="Start position of the variant Ex: 1000000" arrow>
+                                                <span>Start</span>
+                                            </Tooltip>
+                                        </TableCell>
+                                        <TableCell sx={{ backgroundColor: cellErr === "numbers" ? "error.light" : "transparent" }}>
+                                            <Tooltip title="End position of the variant Ex: 1000001" arrow>
+                                                <span>End</span>
+                                            </Tooltip>
+                                        </TableCell>
+                                        <TableCell sx={{ backgroundColor: cellErr === "ref" ? "error.light" : "transparent" }}>
+                                            <Tooltip title="Original Sequence Ex: G" arrow>
+                                                <span>Reference Allele</span>
+                                            </Tooltip>
+                                        </TableCell>
+                                        <TableCell sx={{ backgroundColor: cellErr === "alt" ? "error.light" : "transparent" }}>
+                                            <Tooltip title="Mutated Sequence, Insertion Ex: C, Deletion Ex: -" arrow>
+                                                <span>Alternate Allele</span>
+                                            </Tooltip>
+                                        </TableCell>
+                                        <TableCell sx={{ backgroundColor: cellErr === "strand" ? "error.light" : "transparent" }}>
+                                            <Tooltip title="Strand information (+ or -)" arrow>
+                                                <span>Strand</span>
+                                            </Tooltip>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Tooltip title="Optional region identifier, String or Number" arrow>
+                                                <span>Region ID (optional)</span>
+                                            </Tooltip>
+                                        </TableCell>
                                     </TableRow>
                                 </TableBody>
                             </Table>
