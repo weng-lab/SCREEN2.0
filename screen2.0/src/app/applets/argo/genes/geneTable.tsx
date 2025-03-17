@@ -50,9 +50,10 @@ const GeneTable: React.FC<GeneTableProps> = ({
         const allGenes = geneFilterVariables.methodOfLinkage.distance ? pushClosestGenes(closestGenes, linkedGenes) : linkedGenes;
         const uniqueGeneNames = Array.from(
             new Set(
-                allGenes.flatMap((item) => item.genes.map((gene) => gene.name))
+                allGenes.flatMap((item) => item.genes.map((gene) => gene.name.trim()))
             )
         );
+
         let filteringGenes = allGenes;
         if (geneFilterVariables.mustHaveOrtholog) {
             getOrthoGenes({
@@ -68,7 +69,15 @@ const GeneTable: React.FC<GeneTableProps> = ({
             }
         }
 
-        return filteringGenes;
+        //filter out all unselected methods of linkage
+        const linkageFilter: AllLinkedGenes = filteringGenes
+            .map(accession => ({
+                accession: accession.accession,
+                genes: accession.genes.filter(gene => gene.linkedBy.length > 0)
+            }))
+            .filter(accession => accession.genes.length > 0);
+
+        return linkageFilter;
 
     }, [closestAndLinkedGenes, geneFilterVariables.methodOfLinkage, geneFilterVariables.mustBeProteinCoding, geneFilterVariables.mustHaveOrtholog, getOrthoGenes, intersectingCcres, orthoGenes])
 

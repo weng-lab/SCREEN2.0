@@ -130,8 +130,6 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
             }
         })
 
-        console.log(mergedRows)
-
         return mergedRows
         
     }, [conservationScores, inputRegions, loading_conservation_scores, motifRankingScores, sequenceFilterVariables])
