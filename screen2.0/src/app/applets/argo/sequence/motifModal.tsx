@@ -179,6 +179,13 @@ const MotifsModal: React.FC<MotifsModalProps> = ({
                         Motifs found in {chromosome}:{peakStart.toLocaleString()}-
                         {peakEnd.toLocaleString()}
                     </Typography>
+                    <br />
+                    <Typography>
+                        <b>Reference Allele: </b>{motifs[0].referenceAllele.sequence}
+                    </Typography>
+                    <Typography>
+                        <b>Alternate Allele: </b>{motifs[0].alt.sequence}
+                    </Typography>
                     <br/>
                     {motifs && (
                         <DataTable
