@@ -1,4 +1,4 @@
-import { IconButton, Modal, Paper, Typography } from '@mui/material';
+import { IconButton, Modal, Paper, Tooltip, Typography } from '@mui/material';
 import { DataTable, DataTableColumn } from '@weng-lab/psychscreen-ui-components';
 import React, { useMemo, useState } from 'react';
 import { MotifQueryDataOccurrence, MotifQueryDataOccurrenceMotif, TomtomMatchQueryData } from '../types';
@@ -6,6 +6,7 @@ import { DNALogo } from 'logots-react';
 import { TOMTOM_MATCH_QUERY } from '../queries';
 import { useQuery } from '@apollo/client';
 import CloseIcon from '@mui/icons-material/Close';
+import Link from 'next/link';
 
 const PWMCell: React.FC<{
     peaks_accession: string;
@@ -43,13 +44,26 @@ const PWMCell: React.FC<{
     );
 };
 
+export type MotifProps = {
+    referenceAllele: {
+        sequence: string;
+        score?: number;
+    }
+    alt: {
+        sequence: string;
+        score?: number;
+    }
+    diff: number;
+    motifID: string;
+}
+
 type MotifsModalProps = {
     open: boolean;
     setOpen: (open: boolean) => void;
     chromosome: string;
     start: number;
     end: number;
-    occurrences: MotifQueryDataOccurrence[];
+    motifs: MotifProps[]
 };
 
 const MotifsModal: React.FC<MotifsModalProps> = ({
@@ -58,62 +72,81 @@ const MotifsModal: React.FC<MotifsModalProps> = ({
     chromosome,
     start: peakStart,
     end: peakEnd,
-    occurrences,
+    motifs,
 }) => {
-    const motifs = useMemo(
-        () =>
-            occurrences
-                .slice()
-                .sort((a, b) => a.genomic_region.start - b.genomic_region.start) || [],
-        [occurrences]
-    );
-    const [page, setPage] = useState(1);
-    const width = 500;
-    const height = 25;
-    const start = Math.min(peakStart, motifs[0]?.genomic_region.start || 0);
-    const end = Math.max(
-        peakEnd,
-        motifs[motifs.length - 1]?.genomic_region.end || 0
-    );
-    const rangeSize = end - start;
-    const pageSize = 4;
-    const pageStart = Math.min(motifs.length - 1, (page - 1) * pageSize);
-    const pageEnd = Math.min(motifs.length, (page - 1 + 1) * pageSize);
-    const pageRangeStart = motifs[pageStart]?.genomic_region.start || 0;
-    const pageRangeEnd = motifs[pageEnd - 1]?.genomic_region.end || 0;
-    const pagePxStart = ((pageRangeStart - start) / rangeSize) * width;
-    const pagePxEnd = ((pageRangeEnd - start) / rangeSize) * width;
-    const firstY = height * 0.8;
-    const secondY = firstY + height * 2;
 
-    const handleDisplayedRowsChange = (newPage: number) => {
-        setPage(newPage + 1);
-    };
-
-    const MOTIFS_COLS: DataTableColumn<MotifQueryDataOccurrence>[] = [
+    const MOTIFS_COLS: DataTableColumn<MotifProps>[] = [
         {
-            header: "Chromosome",
-            value: (row) => row.genomic_region.chromosome,
+            header: "Reference Score",
+            value: (row) => row.referenceAllele && row.referenceAllele.score ? row.referenceAllele.score : "N/A",
+            render: (row) =>
+                row.referenceAllele ? (
+                    <Tooltip
+                        title={
+                            <span>
+                                {row.referenceAllele.sequence && (
+                                    <>
+                                        <strong>Allele:</strong> {row.referenceAllele.sequence}
+                                    </>
+                                )}
+                            </span>
+                        }
+                        arrow
+                        placement="left"
+                    >
+                        <Typography fontSize={"14px"}>
+                            {row.referenceAllele.score ? row.referenceAllele.score?.toFixed(2) : "N/A"}
+                        </Typography>
+                    </Tooltip>
+                ) : "N/A"
         },
         {
-            header: "Start",
-            value: (row) => row.genomic_region.start,
-            render: (row) => row.genomic_region.start.toLocaleString(),
+            header: "Alternate Score",
+            value: (row) => row.alt && row.alt.score ? row.alt.score : "N/A",
+            render: (row) =>
+                row.alt ? (
+                    <Tooltip
+                        title={
+                            <span>
+                                {row.alt.sequence && (
+                                    <>
+                                        <strong>Allele:</strong> {row.alt.sequence}
+                                    </>
+                                )}
+                            </span>
+                        }
+                        arrow
+                        placement="left"
+                    >
+                        <Typography fontSize={"14px"}>
+                            {row.alt.score ? row.alt.score?.toFixed(2) : "N/A"}
+                        </Typography>
+                    </Tooltip>
+                ) : "N/A"
         },
         {
-            header: "Peaks file",
-            value: (row) => row.peaks_accession,
+            header: "Delta",
+            value: (row) => row.diff || row.diff === 0 ? row.diff.toFixed(2) : "N/A"
         },
         {
-            header: "PWM",
-            value: () => "",
-            render: (row) => (
-                <PWMCell peaks_accession={row.peaks_accession} motif={row.motif} />
-            ),
-        },
-        {
-            header: "q value",
-            value: (row) => row.q_value.toFixed(2),
+            header: "Motif ID",
+            value: (row) => row.motifID ? row.motifID : "None",
+            render: row => row.motifID ? (
+                <Tooltip
+                    title={"Open Motif In HOCOMOCO"}
+                    arrow
+                    placement="left"
+                >
+                    <Link
+                        href={`https://hocomoco12.autosome.org/motif/${row.motifID}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: "#007bff", textDecoration: "none" }}
+                    >
+                        {row.motifID}
+                    </Link>
+                </Tooltip>
+            ) : "None"
         },
     ];
 
@@ -125,139 +158,6 @@ const MotifsModal: React.FC<MotifsModalProps> = ({
         width: 1000,
         p: 4,
     };
-
-    const pageMotifs = motifs.slice(pageStart, pageEnd);
-    const overlaps = (
-        range: [number, number],
-        instance: MotifQueryDataOccurrence
-    ) =>
-        instance.genomic_region.start < range[1] &&
-        instance.genomic_region.end > range[0];
-    let groupRange: [number, number] | undefined = undefined;
-    const groups: MotifQueryDataOccurrence[][] = [];
-    let group: MotifQueryDataOccurrence[] = [];
-    for (let i = 0; i < pageMotifs.length; i++) {
-        const instance = pageMotifs[i];
-        if (groupRange === undefined) {
-            groupRange = [instance.genomic_region.start, instance.genomic_region.end];
-        }
-        if (overlaps(groupRange, instance)) {
-            group.push(instance);
-            groupRange[1] = instance.genomic_region.end;
-        } else {
-            groups.push(group);
-            group = [instance];
-            groupRange = [instance.genomic_region.start, instance.genomic_region.end];
-        }
-    }
-    groups.push(group);
-    const peakView = (
-        <svg width={width} height={height * 5}>
-            <text textAnchor={"start"} dominantBaseline="hanging" x={0} y={0}>
-                {start.toLocaleString()}
-            </text>
-            <text textAnchor={"end"} dominantBaseline="hanging" x={width} y={0}>
-                {end.toLocaleString()}
-            </text>
-            <rect
-                width={width}
-                height={height}
-                y={firstY}
-                rx="5"
-                style={{
-                    fill: "grey",
-                    strokeWidth: 3,
-                    stroke: "none",
-                }}
-            />
-            <g>
-                {motifs.map((instance, i) => {
-                    const motifStart = instance.genomic_region.start - start;
-                    const motifEnd = instance.genomic_region.end - start;
-                    const pxStart = (width * motifStart) / rangeSize;
-                    const pxEnd = (width * motifEnd) / rangeSize;
-                    return (
-                        <rect
-                            key={i}
-                            width={pxEnd - pxStart}
-                            height={height}
-                            x={pxStart}
-                            y={firstY}
-                            style={{ fill: "red", opacity: "50%" }}
-                        />
-                    );
-                })}
-            </g>
-            <line
-                x1={pagePxStart}
-                x2={0}
-                y1={firstY + height}
-                y2={secondY}
-                style={{ stroke: "black", strokeWidth: "1px" }}
-            />
-            <line
-                x1={pagePxEnd}
-                x2={width}
-                y1={firstY + height}
-                y2={secondY}
-                style={{ stroke: "black", strokeWidth: "1px" }}
-            />
-            <rect
-                width={width}
-                height={height}
-                y={secondY}
-                rx="5"
-                style={{
-                    fill: "grey",
-                    strokeWidth: 3,
-                    stroke: "none",
-                }}
-            />
-            <g>
-                {groups.flatMap((group, groupi) =>
-                    group.map((instance, i) => {
-                        const rangeSize = pageRangeEnd - pageRangeStart;
-                        const start = instance.genomic_region.start - pageRangeStart;
-                        const end = instance.genomic_region.end - pageRangeStart;
-                        const pxStart = (width * start) / rangeSize;
-                        const pxEnd = (width * end) / rangeSize;
-                        return (
-                            <rect
-                                key={groupi * 100 + i}
-                                x={pxStart}
-                                width={pxEnd - pxStart}
-                                y={secondY + i * (height / group.length)}
-                                height={height / group.length}
-                                rx={5}
-                                style={{
-                                    fill: "red",
-                                    opacity: "50%",
-                                    stroke: "darkred",
-                                    strokeWidth: "1px",
-                                }}
-                            />
-                        );
-                    })
-                )}
-            </g>
-            <text
-                textAnchor={"start"}
-                dominantBaseline="baseline"
-                x={0}
-                y={secondY + height * 1.8}
-            >
-                {pageRangeStart.toLocaleString()}
-            </text>
-            <text
-                textAnchor={"end"}
-                dominantBaseline="baseline"
-                x={width}
-                y={secondY + height * 1.8}
-            >
-                {pageRangeEnd.toLocaleString()}
-            </text>
-        </svg>
-    );
 
     return (
         <Modal open={open} onClose={() => setOpen(false)}>
@@ -279,22 +179,15 @@ const MotifsModal: React.FC<MotifsModalProps> = ({
                         Motifs found in {chromosome}:{peakStart.toLocaleString()}-
                         {peakEnd.toLocaleString()}
                     </Typography>
-                    <br />
-                    <div style={{ display: "flex", justifyContent: "center" }}>
-                        {peakView}
-                    </div>
-                    <br />
+                    <br/>
                     {motifs && (
                         <DataTable
                             searchable
                             columns={MOTIFS_COLS}
                             rows={motifs}
-                            sortColumn={1}
-                            key={"tfpeaks" + page}
-                            onDisplayedRowsChange={handleDisplayedRowsChange}
-                            sortDescending
-                            itemsPerPage={pageSize}
-                            page={page - 1}
+                            sortColumn={2}
+                            key={"tfpeaks"}
+                            itemsPerPage={10}
                         />
                     )}
                 </Paper>

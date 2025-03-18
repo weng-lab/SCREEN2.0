@@ -151,7 +151,19 @@ export const getNumOverlappingMotifs = (inputRegions: InputRegions, scores: Moti
                 start: region.start,
                 end: region.end,
             },
-            numOverlappingMotifs: matchingMotifs.length
+            numOverlappingMotifs: matchingMotifs.length,
+            motifs: matchingMotifs.map(motif => ({
+                referenceAllele: {
+                    sequence: region.ref,
+                    score: motif.ref,
+                },
+                alt: {
+                    sequence: region.alt,
+                    score: motif.alt,
+                },
+                diff: Math.abs(motif.diff),
+                motifID: motif.motif,
+            }))
         };
     })
 

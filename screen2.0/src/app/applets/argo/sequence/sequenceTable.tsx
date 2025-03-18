@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { DataScource, MotifQuality, MotifQueryDataOccurrence, MotifRanking, SequenceTableProps, SequenceTableRow } from "../types";
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components";
-import MotifsModal from "./motifModal";
+import MotifsModal, { MotifProps } from "./motifModal";
 import { Skeleton, Tooltip, Typography, useTheme } from "@mui/material";
 import { useQuery } from "@apollo/client";
 import { BigRequest } from "umms-gb/dist/components/tracks/trackset/types";
@@ -23,7 +23,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
         chromosome: string;
         start: number;
         end: number;
-        occurrences: MotifQueryDataOccurrence[];
+        motifs: MotifProps[];
     } | null>(null);
 
     const theme = useTheme();
@@ -94,6 +94,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
         let calculatedMotifScores: SequenceTableRow[] = []
         let filteredMotifs: MotifRanking = []
         if (motifRankingScores) {
+            console.log(motifRankingScores)
             //filter through qualities and data sources
             filteredMotifs =  motifRankingScores.motifranking.filter(motif => {
                 const motifQuality = motif.motif.split(".").pop();
@@ -129,7 +130,8 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                 referenceAllele: motifScoresRow ? motifScoresRow.referenceAllele : {sequence: region.ref},
                 alt: motifScoresRow ? motifScoresRow.alt : {sequence: region.alt},
                 motifID: motifScoresRow?.motifID,
-                numOverlappingMotifs: numOverlappingMotifsRow?.numOverlappingMotifs
+                numOverlappingMotifs: numOverlappingMotifsRow?.numOverlappingMotifs,
+                motifs: numOverlappingMotifsRow?.motifs
             }
         })
 
@@ -276,7 +278,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                                     chromosome: row.inputRegion.chr,
                                     start: row.inputRegion.start,
                                     end: row.inputRegion.end,
-                                    occurrences: row.occurrences,
+                                    motifs: row.motifs
                                 })
                             }
                         >
@@ -315,7 +317,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                     chromosome={modalData?.chromosome || ""}
                     start={modalData?.start || 0}
                     end={modalData?.end || 0}
-                    occurrences={modalData?.occurrences || []}
+                    motifs={modalData?.motifs || []}
                 />
             )}
         </>

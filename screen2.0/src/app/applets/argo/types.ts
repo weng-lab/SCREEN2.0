@@ -230,7 +230,18 @@ export type SequenceTableRow = {
     motifID?: string;
     conservationScore?: number
     numOverlappingMotifs?: number
-    occurrences?: MotifQueryDataOccurrence[]
+    motifs?: {
+        referenceAllele: {
+            sequence: string;
+            score?: number;
+        }
+        alt: {
+            sequence: string;
+            score?: number;
+        }
+        diff: number;
+        motifID: string;
+    }[]
     motifScoreDelta?: number
 }
 
