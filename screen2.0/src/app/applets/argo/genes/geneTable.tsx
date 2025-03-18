@@ -22,7 +22,7 @@ const GeneTable: React.FC<GeneTableProps> = ({
     const [getOrthoGenes, { data: orthoGenes }] = useLazyQuery(GENE_ORTHO_QUERY)
 
     //Query to get the closest gene to eah ccre
-    const { loading: loading_linked_genes, data: closestAndLinkedGenes } = useQuery(CLOSEST_LINKED_QUERY, {
+    const { loading: loading_linked_genes, data: closestAndLinkedGenes, error: error_linked_genes } = useQuery(CLOSEST_LINKED_QUERY, {
         variables: {
             accessions: intersectingCcres ? intersectingCcres.map((ccre) => ccre.accession) : [],
         },
@@ -92,7 +92,7 @@ const GeneTable: React.FC<GeneTableProps> = ({
         fetchPolicy: 'cache-first',
     });
 
-    const { loading: loading_gene_expression, data: geneExpression } = useQuery(GENE_EXP_QUERY, {
+    const { loading: loading_gene_expression, data: geneExpression, error: error_gene_expression } = useQuery(GENE_EXP_QUERY, {
         variables: {
             genes: Array.from(
                 new Set(
@@ -112,7 +112,7 @@ const GeneTable: React.FC<GeneTableProps> = ({
     });
 
     const geneRows = useMemo<GeneTableRow[]>(() => {
-        if (filteredGenes === null) {
+        if (filteredGenes === null || error_gene_expression || error_linked_genes) {
             return null
         }
         if (filteredGenes.length === 0) {
@@ -149,7 +149,7 @@ const GeneTable: React.FC<GeneTableProps> = ({
             return []
         }
 
-    }, [filteredGenes, geneExpression, geneFilterVariables, geneSpecificity, intersectingCcres]);
+    }, [filteredGenes, geneExpression, geneFilterVariables, geneSpecificity, intersectingCcres, error_gene_expression]);
 
     updateGeneRows(geneRows)
     const loadingRows = loading_gene_expression || loading_gene_specificity || loading_linked_genes || loadingIntersect;

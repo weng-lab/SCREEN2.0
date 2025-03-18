@@ -191,7 +191,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
 
         const validStrands = ["+", "-"];
         const strandErrorIndex = regions.find(region => !validStrands.includes(region.strand));
-        if (altErrorIndex) {
+        if (strandErrorIndex) {
             setCellErr("strand")
             return `Strand must only but + or - at regionID: ${strandErrorIndex.regionID}
             (${Object.values(strandErrorIndex).slice(0, -1).join(' ')})`;

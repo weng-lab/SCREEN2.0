@@ -53,7 +53,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
     }, [inputRegions, sequenceFilterVariables.alignment]);
 
     //query to get conservation scores based on selected url
-    const { loading: loading_conservation_scores, data: conservationScores } = useQuery(BIG_REQUEST_QUERY, {
+    const { loading: loading_conservation_scores, data: conservationScores, error: error_conservations_scores } = useQuery(BIG_REQUEST_QUERY, {
         variables: {
             requests: bigRequests
         },
@@ -62,7 +62,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
         fetchPolicy: 'cache-first',
     });
 
-    const {loading: loading_motif_ranking, data: motifRankingScores } = useQuery(MOTIF_RANKING_QUERY, {
+    const {loading: loading_motif_ranking, data: motifRankingScores, error: error_motif_ranking} = useQuery(MOTIF_RANKING_QUERY, {
         variables: {
             motifinputs:
             inputRegions.map(region => ({
@@ -80,6 +80,9 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
     })
 
     const sequenceRows: SequenceTableRow[] = useMemo(() => {
+        if (error_conservations_scores || error_motif_ranking) {
+            return null;
+        }
         if ((!conservationScores && !motifRankingScores) || inputRegions.length === 0 || loading_conservation_scores || loading_motif_ranking) {
             return []
         }
@@ -129,10 +132,10 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                 numOverlappingMotifs: numOverlappingMotifsRow?.numOverlappingMotifs
             }
         })
-        console.log(mergedRows)
+
         return mergedRows
         
-    }, [conservationScores, inputRegions, loading_conservation_scores, motifRankingScores, sequenceFilterVariables])
+    }, [conservationScores, inputRegions, loading_conservation_scores, motifRankingScores, sequenceFilterVariables, error_conservations_scores, error_motif_ranking])
 
     updateSequenceRows(sequenceRows)
     const loadingRows = loading_conservation_scores || loading_motif_ranking;

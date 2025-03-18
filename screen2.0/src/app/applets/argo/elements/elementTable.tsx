@@ -19,7 +19,7 @@ const ElementTable: React.FC<ElementTableProps> = ({
     const theme = useTheme();
 
     //query to get orthologous cCREs of the intersecting cCREs (also used in gene)
-    const { loading: loading_ortho, data: orthoData } = useQuery(ORTHOLOG_QUERY, {
+    const { loading: loading_ortho, data: orthoData, error: error_ortho } = useQuery(ORTHOLOG_QUERY, {
         variables: {
             assembly: "GRCh38",
             accessions: intersectingCcres ? intersectingCcres.map((ccre) => ccre.accession) : [],
@@ -38,7 +38,7 @@ const ElementTable: React.FC<ElementTableProps> = ({
     }, [elementFilterVariables.cCREAssembly, orthoData?.orthologQuery]);
 
     //Query to get the assay zscores of the intersecting ccres
-    const { loading: loading_scores, data: zScoreData } = useQuery(Z_SCORES_QUERY, {
+    const { loading: loading_scores, data: zScoreData, error: error_scores } = useQuery(Z_SCORES_QUERY, {
         variables: {
             assembly: elementFilterVariables.cCREAssembly,
             accessions: elementFilterVariables.cCREAssembly === "mm10" ? mouseAccessions : intersectingCcres ? intersectingCcres.map((ccre) => ccre.accession) : [],
@@ -83,6 +83,7 @@ const ElementTable: React.FC<ElementTableProps> = ({
 
     // Filter cCREs based on class and ortholog
     const elementRows: ElementTableRow[] = useMemo(() => {
+        if (error_ortho || error_scores)
         if (allElementData.length === 0 || loading_scores || loading_ortho) {
             return [];
         }
@@ -112,7 +113,7 @@ const ElementTable: React.FC<ElementTableProps> = ({
 
         return filteredClasses;
 
-    }, [allElementData, elementFilterVariables.cCREAssembly, elementFilterVariables.classes, elementFilterVariables.mustHaveOrtholog, loading_ortho, loading_scores, orthoData]);
+    }, [allElementData, elementFilterVariables.cCREAssembly, elementFilterVariables.classes, elementFilterVariables.mustHaveOrtholog, loading_ortho, loading_scores, orthoData, error_ortho, error_scores]);
 
     updateElementRows(elementRows)
     const loadingRows = loading_ortho || loading_scores || loadingIntersect;
