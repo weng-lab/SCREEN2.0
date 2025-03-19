@@ -191,7 +191,9 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                                 <span>
                                     {row.referenceAllele.sequence && (
                                         <>
-                                            <strong>Allele:</strong> {row.referenceAllele.sequence}
+                                            <strong>Allele:</strong> {row.referenceAllele.sequence.length > 5
+                                                ? `${row.referenceAllele.sequence.slice(0, 5)}...`
+                                                : row.referenceAllele.sequence}
                                         </>
                                     )}
                                 </span>
@@ -204,7 +206,9 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                             </Typography>
                         </Tooltip>
                     ) : "N/A") : (
-                    row.referenceAllele.sequence
+                    row.referenceAllele.sequence.length > 5
+                        ? `${row.referenceAllele.sequence.slice(0, 5)}...`
+                        : row.referenceAllele.sequence
                 )
             })
             cols.push({
@@ -217,7 +221,9 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                             <span>
                                 {row.alt.sequence && (
                                     <>
-                                        <strong>Allele:</strong> {row.alt.sequence}
+                                            <strong>Allele:</strong> {row.alt.sequence.length > 5
+                                                ? `${row.alt.sequence.slice(0, 5)}...`
+                                                : row.alt.sequence}
                                     </>
                                 )}
                             </span>
@@ -230,7 +236,9 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                         </Typography>
                     </Tooltip>
                 ) : "N/A") : (
-                    row.alt.sequence
+                        row.alt.sequence.length > 5
+                            ? `${row.alt.sequence.slice(0, 5)}...`
+                            : row.alt.sequence
                 )
             })
             if (sequenceFilterVariables.motifScoreDelta) { 
