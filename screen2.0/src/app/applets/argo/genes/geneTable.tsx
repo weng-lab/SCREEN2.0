@@ -149,7 +149,7 @@ const GeneTable: React.FC<GeneTableProps> = ({
             return []
         }
 
-    }, [filteredGenes, geneExpression, geneFilterVariables, geneSpecificity, intersectingCcres, error_gene_expression]);
+    }, [filteredGenes, error_gene_expression, error_linked_genes, geneSpecificity, intersectingCcres, geneFilterVariables, geneExpression]);
 
     updateGeneRows(geneRows)
     const loadingRows = loading_gene_expression || loading_gene_specificity || loading_linked_genes || loadingIntersect;

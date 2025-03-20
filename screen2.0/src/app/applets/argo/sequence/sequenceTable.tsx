@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { DataScource, MotifQuality, MotifQueryDataOccurrence, MotifRanking, SequenceTableProps, SequenceTableRow } from "../types";
+import { DataScource, MotifQuality, MotifRanking, SequenceTableProps, SequenceTableRow } from "../types";
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components";
 import MotifsModal, { MotifProps } from "./motifModal";
 import { Skeleton, Tooltip, Typography, useTheme } from "@mui/material";
@@ -137,7 +137,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
 
         return mergedRows
         
-    }, [conservationScores, inputRegions, loading_conservation_scores, motifRankingScores, sequenceFilterVariables, error_conservations_scores, error_motif_ranking])
+    }, [error_conservations_scores, error_motif_ranking, conservationScores, motifRankingScores, inputRegions, loading_conservation_scores, loading_motif_ranking, sequenceFilterVariables.numOverlappingMotifs, sequenceFilterVariables.rankBy, sequenceFilterVariables.motifQuality, sequenceFilterVariables.dataSource])
 
     updateSequenceRows(sequenceRows)
     const loadingRows = loading_conservation_scores || loading_motif_ranking;
