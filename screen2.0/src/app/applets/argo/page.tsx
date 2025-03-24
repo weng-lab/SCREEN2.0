@@ -231,19 +231,21 @@ export default function Argo() {
     // This function will receive the regions from ArgoUpload and find the intersecting cCREs
     const handleRegionsConfigured = (regions: InputRegions) => {
         setInputRegions(regions);
-        const user_ccres = regions.map(region => [
-            region.chr,
-            region.start.toString(),
-            region.end.toString(),
-        ]);
-        getIntersectingCcres({
-            variables: {
-                user_ccres: user_ccres,
-                assembly: "GRCh38",
-            },
-            client: client,
-            fetchPolicy: 'cache-and-network',
-        })
+        if (regions.length > 0) {
+            const user_ccres = regions.map(region => [
+                region.chr,
+                region.start.toString(),
+                region.end.toString(),
+            ]);
+            getIntersectingCcres({
+                variables: {
+                    user_ccres: user_ccres,
+                    assembly: "GRCh38",
+                },
+                client: client,
+                fetchPolicy: 'cache-and-network',
+            })
+        }
     };
 
     //all ccres intersecting the user inputted regions

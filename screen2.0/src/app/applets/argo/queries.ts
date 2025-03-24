@@ -64,15 +64,6 @@ export const CLOSEST_LINKED_QUERY = gql(`
       geneid
       genetype
       method
-      grnaid
-      effectsize
-      assay
-      celltype
-      experiment_accession
-      tissue
-      variantid
-      source
-      slope
       score
       displayname
     }
@@ -85,7 +76,7 @@ export const ORTHOLOG_QUERY = gql(`
     assembly
     accession
     ortholog
-     {
+     { 
       accession
     }
   }
