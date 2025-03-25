@@ -629,11 +629,20 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
     //I could fetch the coordinates here, if I change constructMainQueryParamsFromURL to return null for coordinates instead of default
 
     const getcCREs = async () => {
+      const coords = !mainQueryParams.searchConfig.bed_intersect ? {
+        chromosome: mainQueryParams.coordinates.chromosome,
+        start,
+        end, 
+      } : {
+        chromosome: null,
+        start: null,
+        end: null,
+      }
       const mainQueryData = await fetchcCREData(
         mainQueryParams.coordinates.assembly,
-        mainQueryParams.coordinates.chromosome,
-        start,
-        end,
+        coords.chromosome,
+        coords.start,
+        coords.end,
         mainQueryParams.biosample?.name ? mainQueryParams.biosample.name : undefined,
         null,
         1,
@@ -713,7 +722,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       setOpencCREsInitialized(true)
     }
 
-    if (cCREsToFetch?.length > 0 && !opencCREsInitialized && haveCoordinates) {
+    if (cCREsToFetch?.length > 0 && cCREsToFetch[0] !== "" && !opencCREsInitialized && haveCoordinates) {
       getOpencCREs()
     } else if ((!cCREsToFetch || cCREsToFetch?.length === 0) && !opencCREsInitialized) {
       setOpencCREsInitialized(true)
