@@ -53,6 +53,7 @@ const GeneTable: React.FC<GeneTableProps> = ({
                 allGenes.flatMap((item) => item.genes.map((gene) => gene.name.trim()))
             )
         );
+        console.log(allGenes)
 
         let filteringGenes = allGenes;
         if (geneFilterVariables.mustHaveOrtholog) {
@@ -94,17 +95,9 @@ const GeneTable: React.FC<GeneTableProps> = ({
 
     const { loading: loading_gene_expression, data: geneExpression, error: error_gene_expression } = useQuery(GENE_EXP_QUERY, {
         variables: {
-            genes: Array.from(
-                new Set(
-                    filteredGenes?.flatMap((entry) =>
-                        entry.genes.map((gene) => gene.name.trim())
-                    )
-                )
-            ).map((name) => ({
-                gene: name,
-                biosample: geneFilterVariables.selectedBiosample?.map((sample) => sample.name),
-                aggregateBy: (geneFilterVariables.rankGeneExpBy === "avg" ? "AVERAGE" : "MAX") as AggregateByEnum
-            }))
+            genes: filteredGenes?.flatMap((entry) => entry.genes.map((gene) => gene.geneId)),
+            biosample: geneFilterVariables.selectedBiosample?.map((sample) => sample.name),
+            aggregateBy: (geneFilterVariables.rankGeneExpBy === "avg" ? "AVERAGE" : "MAX") as AggregateByEnum
         },
         skip: !closestAndLinkedGenes || closestAndLinkedGenes.closestGenetocCRE.length === 0 || filteredGenes === null,
         client: client,

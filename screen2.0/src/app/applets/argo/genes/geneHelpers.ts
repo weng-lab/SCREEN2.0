@@ -1,5 +1,5 @@
 import { AllLinkedGenes, CCREs, ClosestGenetocCRE, GeneFilterState, GeneLinkingMethod, GeneTableRow, RankedRegions } from "../types";
-import { GeneOrthologQueryQuery, GeneSpecificityQuery, GeneExpQueryQuery } from "../../../../graphql/__generated__/graphql";
+import { GeneOrthologQueryQuery, GeneSpecificityQuery, Test_GeneEXpBiosampleQueryQuery } from "../../../../graphql/__generated__/graphql";
 
 export const getSpecificityScores = (allGenes: AllLinkedGenes, accessions: CCREs, geneSpecificity: GeneSpecificityQuery, geneFilterVariables: GeneFilterState): GeneTableRow[] => {
     
@@ -75,14 +75,13 @@ export const getSpecificityScores = (allGenes: AllLinkedGenes, accessions: CCREs
     return specificityRows
 }
 
-export const getExpressionScores = (allGenes: AllLinkedGenes, accessions: CCREs, geneExpression: GeneExpQueryQuery, geneFilterVariables: GeneFilterState): GeneTableRow[] => {
-    const filteredGeneExpression = geneExpression.geneexpressiontpms.filter((tpm) => !tpm.error)
+export const getExpressionScores = (allGenes: AllLinkedGenes, accessions: CCREs, geneExpression: Test_GeneEXpBiosampleQueryQuery, geneFilterVariables: GeneFilterState): GeneTableRow[] => {
 
     const updatedAllGenes: AllLinkedGenes = allGenes.map((gene) => ({
         ...gene,
         genes: gene.genes.map((geneEntry) => {
             // Find the matching gene in geneExpression
-            const matchingGene = filteredGeneExpression.find(
+            const matchingGene = geneExpression.geneexpressiontpms.find(
                 (expressionGene) => expressionGene.gene === geneEntry.name.replace(/\s+/g, "")
             );
 

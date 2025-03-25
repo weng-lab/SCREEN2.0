@@ -66,6 +66,7 @@ export const CLOSEST_LINKED_QUERY = gql(`
       method
       score
       displayname
+      assay
     }
 }
   `)
@@ -157,15 +158,13 @@ export const GENE_ORTHO_QUERY = gql(`
     `)
 
 export const GENE_EXP_QUERY = gql(`
-  query geneExpQuery($genes: [GeneExpressionInput!]) {
-	geneexpressiontpms(genes: $genes) {
-	tpm 
-	gene
-	tissue
-	biosample
-    error
-              }
-}
+  query test_geneEXpBiosampleQuery($genes: [String!]!, $tissue:  [String!], $biosample:  [String!], $aggregateBy: AggregateByEnum) {
+    geneexpressiontpms(genes: $genes, tissue: $tissue, biosample: $biosample, aggregateBy: $aggregateBy) {
+      tpm 
+      gene
+      geneid
+    }
+  }
   `)
 
 export const MOTIF_RANKING_QUERY = gql(`
