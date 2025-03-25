@@ -294,8 +294,8 @@ const ArgoUpload: React.FC<UploadProps> = ({
     //set files to the example file provided
     const handleUseExample = async () => {
         handleReset("TSV File")
-        const url = "/ArgoExample.tsv";
-        // const url = "/ArgoExample(2).tsv";
+        // const url = "/ArgoExample.tsv";
+        const url = "/ArgoExample(2).tsv";
         try {
             const response = await fetch(url);
             if (!response.ok) {

@@ -43,6 +43,8 @@ export default function Argo() {
     const [loadingElementRows, setLoadingElementRows] = useState<boolean>(true);
     const [loadingGeneRows, setLoadingGeneRows] = useState<boolean>(true);
 
+    const [page, setPage] = useState<number>(0);
+
     // Filter state variables
     const [sequenceFilterVariables, setSequenceFilterVariables] = useState<SequenceFilterState>({
         useConservation: true,
@@ -443,13 +445,17 @@ export default function Argo() {
                         <Box mt="20px" id="123456">
                             {mainRows.length === 0 ? <Skeleton width={"auto"} height={"440px"} variant="rounded"/> :
                                 <DataTable
-                                    key={Math.random()}
+                                    key={JSON.stringify(inputRegions) + JSON.stringify(elementRanks) + JSON.stringify(sequenceRanks) + JSON.stringify(geneRanks)}
                                     columns={mainColumns}
                                     rows={mainRows}
                                     sortDescending
                                     sortColumn={2}
                                     itemsPerPage={5}
+                                    page={page}
                                     searchable
+                                    onDisplayedRowsChange={(newPage) => {
+                                        setPage(newPage)
+                                      }}
                                     tableTitle={
                                         <Stack direction={"row"} justifyContent={"space-between"} alignItems={"center"} width={"100%"}>
                                             <Stack direction={"row"} spacing={1} alignItems={"center"}>
