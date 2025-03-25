@@ -4,9 +4,8 @@ import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import MotifsModal, { MotifProps } from "./motifModal";
 import { Skeleton, Tooltip, Typography, useTheme } from "@mui/material";
 import { useQuery } from "@apollo/client";
-import { BigRequest } from "umms-gb/dist/components/tracks/trackset/types";
 import { client } from "../../../search/_ccredetails/client";
-import { BIG_REQUEST_QUERY, MOTIF_RANKING_QUERY } from "../queries";
+import { ALLELE_QUERY, MOTIF_RANKING_QUERY } from "../queries";
 import { calculateConservationScores, calculateMotifScores, getNumOverlappingMotifs } from "./sequenceHelpers";
 import Link from "next/link";
 
@@ -28,36 +27,30 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
 
     const theme = useTheme();
 
-    //build payload for bigRequest query
-    const bigRequests: BigRequest[] = useMemo(() => {
-        if (inputRegions.length === 0) { return [] }
-        const urlMapping: { [key: string]: string } = {
-            "241-mam-phyloP": "https://downloads.wenglab.org/241-mammalian-2020v2.bigWig",
-            "241-mam-phastCons": "https://downloads.wenglab.org/241Mammals-PhastCons.bigWig",
-            "447-mam-phyloP": "https://downloads.wenglab.org/mammals_phyloP-447.bigWig",
-            "100-vert-phyloP": "https://downloads.wenglab.org/hg38.phyloP100way.bw",
-            "100-vert-phastCons": "https://downloads.wenglab.org/hg38.phastCons100way.bw",
-            "243-prim-phastCons": "https://downloads.wenglab.org/primates_PhastCons-243.bigWig",
-            "43-prim-phyloP": "https://downloads.wenglab.org/PhyloP-43.bw",
-            "43-prim-phastCons": "https://downloads.wenglab.org/hg38_43primates_phastCons.bw",
-        };
-
-        const selectedUrl = urlMapping[sequenceFilterVariables.alignment] || "";
-
-        return inputRegions.map(({ chr, start, end }) => ({
-            chr1: chr,
-            start,
-            end,
-            url: selectedUrl,
-        }));
-    }, [inputRegions, sequenceFilterVariables.alignment]);
+    const urlMapping: { [key: string]: string } = {
+        "241-mam-phyloP": "https://downloads.wenglab.org/241-mammalian-2020v2.bigWig",
+        "241-mam-phastCons": "https://downloads.wenglab.org/241Mammals-PhastCons.bigWig",
+        "447-mam-phyloP": "https://downloads.wenglab.org/mammals_phyloP-447.bigWig",
+        "100-vert-phyloP": "https://downloads.wenglab.org/hg38.phyloP100way.bw",
+        "100-vert-phastCons": "https://downloads.wenglab.org/hg38.phastCons100way.bw",
+        "243-prim-phastCons": "https://downloads.wenglab.org/primates_PhastCons-243.bigWig",
+        "43-prim-phyloP": "https://downloads.wenglab.org/PhyloP-43.bw",
+        "43-prim-phastCons": "https://downloads.wenglab.org/hg38_43primates_phastCons.bw",
+    };
 
     //query to get conservation scores based on selected url
-    const { loading: loading_conservation_scores, data: conservationScores, error: error_conservations_scores } = useQuery(BIG_REQUEST_QUERY, {
+    const { loading: loading_conservation_scores, data: conservationScores, error: error_conservations_scores } = useQuery(ALLELE_QUERY, {
         variables: {
-            requests: bigRequests
+            requests: {
+                url: urlMapping[sequenceFilterVariables.alignment],
+                regions: inputRegions.map(({ chr, start, end }) => ({
+                    chr1: chr,
+                    start,
+                    end,
+                }))
+            }
         },
-        skip: !sequenceFilterVariables.useConservation || bigRequests.length === 0,
+        skip: !sequenceFilterVariables.useConservation || inputRegions.length === 0,
         client: client,
         fetchPolicy: 'cache-first',
     });
@@ -89,7 +82,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
 
         let calculatedConservationScores: SequenceTableRow[] = []
         if (conservationScores) {
-            calculatedConservationScores = calculateConservationScores(conservationScores.bigRequests, sequenceFilterVariables.rankBy, inputRegions)
+            calculatedConservationScores = calculateConservationScores(conservationScores.bigRequestsMultipleRegions, sequenceFilterVariables.rankBy, inputRegions)
         }
         let calculatedMotifScores: SequenceTableRow[] = []
         let filteredMotifs: MotifRanking = []
