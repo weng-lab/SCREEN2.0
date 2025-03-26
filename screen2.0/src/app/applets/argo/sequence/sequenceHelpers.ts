@@ -65,42 +65,12 @@ export const calculateConservationScores = (scores, rankBy: string, inputRegions
 }
 
 //function to batch the input regions together to call smaller queries
-export const batchRegions = (regions: GenomicRegion[], maxBasePairs: number): GenomicRegion[][] => {
-    const result: GenomicRegion[][] = [];
-    let currentBatch: GenomicRegion[] = [];
-    let currentBatchLength = 0;
-
-    for (const region of regions) {
-        let regionStart = region.start;
-
-        // If the region is larger than maxBasePairs, split it into chunks
-        while (regionStart < region.end) {
-            const chunkEnd = Math.min(regionStart + maxBasePairs, region.end);
-            const chunk = { chr: region.chr, start: regionStart, end: chunkEnd };
-            const chunkLength = chunk.end - chunk.start;
-
-            // If adding this chunk exceeds the max base pairs for the current batch
-            if (currentBatchLength + chunkLength > maxBasePairs) {
-                result.push(currentBatch);
-                currentBatch = [];
-                currentBatchLength = 0;
-            }
-
-            // Add the chunk to the current batch
-            currentBatch.push(chunk);
-            currentBatchLength += chunkLength;
-
-            // Move the start pointer forward
-            regionStart = chunkEnd;
-        }
+export const batchRegions = (regions: GenomicRegion[], limit: number): GenomicRegion[][] => {
+    const batches: GenomicRegion[][] = [];
+    for (let i = 0; i < regions.length; i += limit) {
+        batches.push(regions.slice(i, i + limit));
     }
-
-    // Push any remaining regions in the final batch
-    if (currentBatch.length > 0) {
-        result.push(currentBatch);
-    }
-
-    return result;
+    return batches;
 }
 
 export const calculateMotifScores = (inputRegions: InputRegions, scores: MotifRanking): SequenceTableRow[] => {

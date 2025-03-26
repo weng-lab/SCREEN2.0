@@ -261,9 +261,6 @@ export const generateGeneRanks = (geneRows: GeneTableRow[]): RankedRegions => {
         const sortedRows = [...geneRows].sort((a, b) => b.expressionSpecificity.score - a.expressionSpecificity.score);
         let rank = 1;
         return sortedRows.map((row, index) => {
-            if (row.expressionSpecificity.score === 0) {
-                return { ...row, specificityRank: 0 }; // Set rank to 0 for 0 specificity
-            }
             if (index > 0 && sortedRows[index].expressionSpecificity.score !== sortedRows[index - 1].expressionSpecificity.score) {
                 rank = index + 1; // Update rank only if not tied
             }
@@ -276,9 +273,6 @@ export const generateGeneRanks = (geneRows: GeneTableRow[]): RankedRegions => {
         const sortedRows = [...geneRows].sort((a, b) => (b.geneExpression.score ?? 0) - (a.geneExpression.score ?? 0));
         let rank = 1;
         return sortedRows.map((row, index) => {
-            if ((row.geneExpression.score ?? 0) === 0) {
-                return { ...row, maxExpRank: 0 }; // Set rank to 0 for 0 maxExpression
-            }
             if (index > 0 && (sortedRows[index].geneExpression.score ?? 0) !== (sortedRows[index - 1].geneExpression.score ?? 0)) {
                 rank = index + 1; // Update rank only if not tied
             }
@@ -294,7 +288,7 @@ export const generateGeneRanks = (geneRows: GeneTableRow[]): RankedRegions => {
 
         return {
             ...row,
-            totalRank: row.specificityRank + (rankedGenes ?? 0), // Use 0 if rank is missing
+            totalRank: row.specificityRank + (rankedGenes ?? -1), // Use -1 if rank is missing
         };
     });
 

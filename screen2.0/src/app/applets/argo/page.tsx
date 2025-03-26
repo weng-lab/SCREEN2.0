@@ -281,14 +281,21 @@ export default function Argo() {
 
     //sequence ranks for main table
     const sequenceRanks: RankedRegions = useMemo(() => {
-        if (sequenceRows.length === 0) {
+        if (sequenceRows === null || (!sequenceFilterVariables.useConservation && !sequenceFilterVariables.useMotifs)) {
+            return inputRegions.map((row) => ({
+                chr: row.chr,
+                start: row.start,
+                end: row.end,
+                rank: 0, // Add rank of 0 to each row
+            }));
+        } else if (sequenceRows.length === 0) {
             return [];
         }
 
         const rankedRegions = generateSequenceRanks(sequenceRows)
 
         return rankedRegions;
-    }, [sequenceRows]);
+    }, [inputRegions, sequenceFilterVariables.useConservation, sequenceFilterVariables.useMotifs, sequenceRows]);
 
     // element ranks for main table
     const elementRanks = useMemo<RankedRegions>(() => {
@@ -318,7 +325,7 @@ export default function Argo() {
                 chr: row.chr,
                 start: row.start,
                 end: row.end,
-                rank: 0, // Add rank of 0 to each row
+                rank: -1, // Add rank of 0 to each row
             }));
         } else if (geneRows.length === 0) {
             return [];
@@ -331,9 +338,9 @@ export default function Argo() {
     }, [geneFilterVariables.useGenes, geneRows, inputRegions]);
 
     // All loading states for main table columns
-    const loadingSequenceRanks = sequenceRanks.length === 0 || loadingSequenceRows;
-    const loadingElementRanks = elementRanks.length === 0 || loadingElementRows;
-    const loadingGeneRanks = geneRanks.length === 0 || loadingGeneRows;
+    const loadingSequenceRanks = (sequenceRanks.length === 0 || loadingSequenceRows) && (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs);
+    const loadingElementRanks = (elementRanks.length === 0 || loadingElementRows) && (elementFilterVariables.usecCREs);
+    const loadingGeneRanks = (geneRanks.length === 0 || loadingGeneRows) && (geneFilterVariables.useGenes);
     const loadingMainRows = loadingSequenceRanks || loadingElementRanks || loadingGeneRanks;
 
     //find the matching ranks for each input region and update the rows of the main table
@@ -389,7 +396,7 @@ export default function Argo() {
                     if (rankB === 0) return -1;
                     return rankA - rankB;
                 },
-                render: (row) => loadingGeneRanks ? <CircularProgress size={10} /> : row.geneRank === 0 ? "N/A" : row.geneRank
+                render: (row) => loadingGeneRanks ? <CircularProgress size={10} /> : row.geneRank === -1 ? "N/A" : row.geneRank
             })
         }
 

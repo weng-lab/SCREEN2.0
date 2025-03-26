@@ -53,7 +53,6 @@ const GeneTable: React.FC<GeneTableProps> = ({
                 allGenes.flatMap((item) => item.genes.map((gene) => gene.name.trim()))
             )
         );
-        console.log(allGenes)
 
         let filteringGenes = allGenes;
         if (geneFilterVariables.mustHaveOrtholog) {
