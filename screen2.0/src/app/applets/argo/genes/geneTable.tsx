@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { AllLinkedGenes, GeneTableProps, GeneTableRow } from "../types";
+import React, { useMemo, useState } from "react";
+import { AllLinkedGenes, GeneTableProps, GeneTableRow, LinkedGenes } from "../types";
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components";
 import { Skeleton, Stack, Tooltip, Typography, useTheme } from "@mui/material";
 import GeneLink from "../../../_utility/GeneLink";
@@ -8,6 +8,7 @@ import { AggregateByEnum } from "../../../../graphql/__generated__/graphql";
 import { client } from "../../../search/_ccredetails/client";
 import { CLOSEST_LINKED_QUERY, SPECIFICITY_QUERY, GENE_EXP_QUERY, GENE_ORTHO_QUERY } from "../queries";
 import { parseLinkedGenes, pushClosestGenes, filterOrthologGenes, getSpecificityScores, getExpressionScores } from "./geneHelpers";
+import GenesModal from "./linkedGenesModal";
 
 const GeneTable: React.FC<GeneTableProps> = ({
     geneFilterVariables,
@@ -20,6 +21,13 @@ const GeneTable: React.FC<GeneTableProps> = ({
 }) => {
     const theme = useTheme();
     const [getOrthoGenes, { data: orthoGenes }] = useLazyQuery(GENE_ORTHO_QUERY)
+    const [modalData, setModalData] = useState<{
+        open: boolean;
+        chromosome: string;
+        start: number;
+        end: number;
+        genes: LinkedGenes;
+    } | null>(null);
 
     //Query to get the closest gene to eah ccre
     const { loading: loading_linked_genes, data: closestAndLinkedGenes, error: error_linked_genes } = useQuery(CLOSEST_LINKED_QUERY, {
@@ -215,6 +223,33 @@ const GeneTable: React.FC<GeneTableProps> = ({
                         "N/A"
                     ),
              })
+             cols.push({
+                header: "# of Linked Genes", value: (row) => row.linkedGenes.length,
+                render: (row) => (
+                    <button
+                        style={{
+                            background: "none",
+                            border: "none",
+                            padding: 0,
+                            fontFamily: "arial, sans-serif",
+                            color: "#030f98",
+                            cursor: "pointer",
+                            outline: "none",
+                        }}
+                        onClick={() =>
+                            setModalData({
+                                open: true,
+                                chromosome: row.inputRegion.chr,
+                                start: row.inputRegion.start,
+                                end: row.inputRegion.end,
+                                genes: row.linkedGenes
+                            })
+                        }
+                    >
+                        {row.linkedGenes.length}
+                    </button>
+                )
+            })
         }
 
         return cols
@@ -235,6 +270,19 @@ const GeneTable: React.FC<GeneTableProps> = ({
                     headerColor={{ backgroundColor: theme.palette.secondary.main as "#", textColor: "inherit" }}
                 />
             }
+            {modalData && (
+                <GenesModal
+                    key={`${modalData?.chromosome}-${modalData?.start}-${modalData?.end}`}
+                    open={modalData?.open || false}
+                    setOpen={(isOpen) =>
+                        setModalData((prev) => (prev ? { ...prev, open: isOpen } : null))
+                    }
+                    chromosome={modalData?.chromosome || ""}
+                    start={modalData?.start || 0}
+                    end={modalData?.end || 0}
+                    genes={modalData?.genes || []}
+                />
+            )}
         </>
     )
 }
