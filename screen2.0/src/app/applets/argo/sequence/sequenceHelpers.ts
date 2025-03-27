@@ -2,7 +2,9 @@ import { GenomicRegion, InputRegions, MotifRanking, RankedRegions, SequenceTable
 
 // switch between min, max, avg for conservation scores, calculate each respectivley
 export const calculateConservationScores = (scores, rankBy: string, inputRegions: InputRegions): SequenceTableRow[] => {
-    const conservationScores = scores.map((request) => {
+    const filteredScores = scores.filter((request) => request.data.length > 0)
+
+    const conservationScores = filteredScores.map((request) => {
         const data = request.data;
 
         // Extract the shared information for chr, start, and end
@@ -61,7 +63,7 @@ export const calculateConservationScores = (scores, rankBy: string, inputRegions
         } as SequenceTableRow;
     });
     
-    return conservationScores.filter(row => row.regionID !== undefined)
+    return conservationScores
 }
 
 //function to batch the input regions together to call smaller queries
