@@ -387,7 +387,7 @@ export default function Argo() {
         if (geneFilterVariables.useGenes) {
             cols.push({
                 header: "Gene",
-                value: (row) => row.geneRank,
+                value: (row) => row.geneRank === 0 ? "N/A" : row.geneRank,
                 sort: (a, b) => {
                     const rankA = a.geneRank
                     const rankB = b.geneRank
@@ -396,7 +396,7 @@ export default function Argo() {
                     if (rankB === 0) return -1;
                     return rankA - rankB;
                 },
-                render: (row) => loadingGeneRanks ? <CircularProgress size={10} /> : row.geneRank === -1 ? "N/A" : row.geneRank
+                render: (row) => loadingGeneRanks ? <CircularProgress size={10} /> : row.geneRank === 0 ? "N/A" : row.geneRank
             })
         }
 

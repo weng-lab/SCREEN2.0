@@ -288,7 +288,7 @@ export const generateGeneRanks = (geneRows: GeneTableRow[]): RankedRegions => {
 
         return {
             ...row,
-            totalRank: row.specificityRank + (rankedGenes ?? -1), // Use -1 if rank is missing
+            totalRank: row.specificityRank + (rankedGenes),
         };
     });
 
