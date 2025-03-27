@@ -268,6 +268,7 @@ const GeneTable: React.FC<GeneTableProps> = ({
                     searchable
                     tableTitle={<SubTableTitle title="Gene Details" table="genes" />}
                     headerColor={{ backgroundColor: theme.palette.secondary.main as "#", textColor: "inherit" }}
+                    downloadFileName="GeneRanks.tsv"
                 />
             }
             {modalData && (

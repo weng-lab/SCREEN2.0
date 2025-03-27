@@ -337,6 +337,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                     searchable
                     tableTitle={<SubTableTitle title="Sequence Details" table="sequence" />}
                     headerColor={{ backgroundColor: theme.palette.secondary.main as "#", textColor: "inherit" }}
+                    downloadFileName="SequenceRanks.tsv"
                 />
             }
             {modalData && (

@@ -232,6 +232,7 @@ export default function Argo() {
 
     // This function will receive the regions from ArgoUpload and find the intersecting cCREs
     const handleRegionsConfigured = (regions: InputRegions) => {
+        console.log(regions)
         setInputRegions(regions);
         if (regions.length > 0) {
             const user_ccres = regions.map(region => [
@@ -490,6 +491,7 @@ export default function Argo() {
                                     }
                                     onRowClick={isolateRow}
                                     highlighted={isolatedRowID ? isolatedRows.main : []}
+                                    downloadFileName="AggregateRanks.tsv"
                                 />
                             }
                         </Box>

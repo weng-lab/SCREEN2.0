@@ -159,6 +159,7 @@ const ElementTable: React.FC<ElementTableProps> = ({
                     tableTitle={<SubTableTitle title="Element Details (Overlapping cCREs)" table="elements" />}
                     onRowClick={handlecCREClick}
                     headerColor={{ backgroundColor: theme.palette.secondary.main as "#", textColor: "inherit" }}
+                    downloadFileName="ElementRanks.tsv"
                 />
             }
 

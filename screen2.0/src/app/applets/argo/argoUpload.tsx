@@ -211,7 +211,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
             ref: item[3],
             alt: item[4],
             strand: item[5],
-            regionID: item.length === 7 ? item[6] : index + 1,
+            regionID: item.length === 7 ? item[6].replace("\r", "") : index + 1,
         }));
 
         setLoading(true);
