@@ -127,6 +127,8 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
             }
         })
 
+        console.log(mergedRows)
+
         return mergedRows
         
     }, [error_conservations_scores, error_motif_ranking, conservationScores, motifRankingScores, inputRegions, loading_conservation_scores, loading_motif_ranking, sequenceFilterVariables.numOverlappingMotifs, sequenceFilterVariables.rankBy, sequenceFilterVariables.motifQuality, sequenceFilterVariables.dataSource])
@@ -226,7 +228,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                             placement="left"
                         >
                             <Typography fontSize={"14px"}>
-                                {row.referenceAllele.score ? row.referenceAllele.score.toFixed(2) : "N/A"}
+                                {row.referenceAllele.score ? Number(row.referenceAllele.score).toFixed(2) : "N/A"}
                             </Typography>
                         </Tooltip>
                     ) : "N/A") : (

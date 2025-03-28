@@ -180,4 +180,17 @@ export const MOTIF_RANKING_QUERY = gql(`
   }
   `)
 
+export const REF_CHECK_QUERY = gql(`
+    query RefCheckMotifRankingQuery($inputs: [MotifRankingRefCheckInput!]!) {
+  refcheckmotifranking(refcheckmotifinputs: $inputs) {
+    chrom
+    start
+    end
+    ref
+    regionid
+    refTrue
+  }
+}
+    `)
+
 

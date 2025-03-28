@@ -6,10 +6,10 @@ import { Cancel } from "@mui/icons-material"
 import { LoadingButton } from "@mui/lab"
 import { InputRegions, UploadProps } from "./types";
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
-// import { useLazyQuery } from "@apollo/client";
-// import { ALLELE_QUERY } from "./queries";
+import { useLazyQuery } from "@apollo/client";
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
+import { REF_CHECK_QUERY } from "./queries";
 
 const ArgoUpload: React.FC<UploadProps> = ({
     selectedSearch,
@@ -27,7 +27,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
     const [textValue, setTextValue] = useState(""); // State to control the TextField value
     const [submittedText, setSubmittedText] = useState("")
     const [textChanged, setTextChanged] = useState(true);
-    // const [getAllele] = useLazyQuery(ALLELE_QUERY);
+    const [getAllele] = useLazyQuery(REF_CHECK_QUERY);
     const [cellErr, setCellErr] = useState("");
     const [expanded, setExpanded] = useState(true);
 
@@ -87,39 +87,35 @@ const ArgoUpload: React.FC<UploadProps> = ({
         return allLines
     }
 
-    // const compareRegionsToReferences = useCallback(async (regions: InputRegions, regionRefs: string[]): Promise<string> => {
-    //     const results = await Promise.all(
-    //         regions.map((region) =>
-    //             getAllele({
-    //                 variables: {
-    //                     requests: {
-    //                         url: "https://downloads.wenglab.org/hg38.2bit",
-    //                         regions: [{
-    //                             chr1: region.chr,
-    //                             start: region.start + 1, // Start is not included when gathering the allele positions
-    //                             end: region.end,
-    //                         }],
-    //                     },
-    //                 },
-    //                 fetchPolicy: "cache-first",
-    //             }).then((response) => ({
-    //                 region,
-    //                 responseData: response.data?.bigRequestsMultipleRegions.flatMap((item) => item.data ?? []),
-    //             }))
-    //         )
-    //     );
-
-    //     // Iterate through results and compare each response to its reference
-    //     for (let index = 0; index < results.length; index++) {
-    //         const { region, responseData } = results[index];
-    //         const ref = regionRefs[index];
-    //         if (!responseData?.includes(ref)) {
-    //             return (`Reference allele does not match at at regionID: ${region.regionID}
-    //             (${Object.values(region).slice(0, -1).join(' ')})`);
-    //         }
-    //     }
-    //     return "";
-    // }, [getAllele])
+    const compareRegionsToReferences = useCallback(async (regions: InputRegions, regionRefs: string[]): Promise<string> => {
+        const response = await getAllele({
+            variables: {
+                inputs: regions.map(region => ({
+                    chrom: region.chr,
+                    start: region.start,
+                    end: region.end,
+                    regionid: region.regionID as string,
+                    ref: region.ref,
+                    strand: region.strand
+                })),
+            },
+            fetchPolicy: "cache-first",
+        });
+    
+        // Extract mismatched regions from the response
+        const mismatchedRegions = response.data?.refcheckmotifranking ?? [];
+    
+        // If there are no mismatches, return an empty string
+        if (mismatchedRegions.length === 0) {
+            return "";
+        }
+    
+        // Format the error message for mismatched regions
+        return mismatchedRegions.map(region => 
+            `Reference allele does not match at regionID: ${region.regionid} 
+            (${region.chrom} ${region.start} ${region.end}), the correct reference allele would be ${region.refTrue}`
+        ).join("\n");
+    }, [getAllele]);
 
     //check for errors in input file / text
     const validateRegions = useCallback(async (regions: InputRegions): Promise<string | null> => {
@@ -174,12 +170,12 @@ const ArgoUpload: React.FC<UploadProps> = ({
         }
 
         // Validate reference alleles
-        // const regionRefs = regions.map((region) => region.ref);
-        // const refError = await compareRegionsToReferences(regions, regionRefs);
-        // if (refError !== "") {
-        //     setCellErr("ref")
-        //     return refError;
-        // }
+        const regionRefs = regions.map((region) => region.ref);
+        const refError = await compareRegionsToReferences(regions, regionRefs);
+        if (refError !== "") {
+            setCellErr("ref")
+            return refError;
+        }
 
         const validAlts = /^[CGTA-]+$/;
         const altErrorIndex = regions.find(region => !validAlts.test(region.alt));
@@ -199,8 +195,7 @@ const ArgoUpload: React.FC<UploadProps> = ({
 
         // If no errors, return null
         return null;
-    }, [])
-    // compareRegionsToReferences ^^^^ []
+    }, [compareRegionsToReferences])
 
     //map parsed file / text to Genomic region type and sort them
     const configureInputedRegions = useCallback(async (data) => {
@@ -295,7 +290,6 @@ const ArgoUpload: React.FC<UploadProps> = ({
     const handleUseExample = async () => {
         handleReset("TSV File")
         const url = "/ArgoExample.tsv";
-        // const url = "/ArgoExample(2).tsv";
         // const url = "/ARGOTESTING.tsv";
         try {
             const response = await fetch(url);

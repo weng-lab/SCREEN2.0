@@ -95,7 +95,7 @@ const MotifsModal: React.FC<MotifsModalProps> = ({
                         placement="left"
                     >
                         <Typography fontSize={"14px"}>
-                            {row.referenceAllele.score ? row.referenceAllele.score?.toFixed(2) : "N/A"}
+                            {row.referenceAllele.score ? Number(row.referenceAllele.score).toFixed(2) : "N/A"}
                         </Typography>
                     </Tooltip>
                 ) : "N/A"
