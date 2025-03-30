@@ -34,7 +34,7 @@
     "bpnet-ui": "^0.3.8",
     "graphql": "^16.9.0",
     "logots-react": "^0.2.0",
-    "next": "14.2.13",
+    "next": "14.2.15",
     "queryz": "^0.0.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
