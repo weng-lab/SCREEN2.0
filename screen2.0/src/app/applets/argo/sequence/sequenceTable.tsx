@@ -92,7 +92,10 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                 const motifQuality = motif.motif.split(".").pop();
                 const motifDataSource = motif.motif.split(".")[3]
                 return sequenceFilterVariables.motifQuality[motifQuality.toLowerCase() as keyof MotifQuality] && motifDataSource.split("").some(letter => sequenceFilterVariables.dataSource[letter.toLowerCase() as keyof DataScource]);
-            });
+            }).map(motif => ({
+                ...motif,
+                ref: Number(motif.ref) // Cast ref to a number
+            }));
 
             calculatedMotifScores = calculateMotifScores(inputRegions, filteredMotifs)
         }
