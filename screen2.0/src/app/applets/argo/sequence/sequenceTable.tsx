@@ -268,7 +268,7 @@ const SequenceTable: React.FC<SequenceTableProps> = ({
                 )
             })
             if (sequenceFilterVariables.motifScoreDelta) { 
-                cols.push({ header: "Delta", value: (row) => row.motifScoreDelta ? row.motifScoreDelta.toFixed(2) : "N/A" }) 
+                cols.push({ header: "Delta", value: (row) => row.motifScoreDelta || row.motifScoreDelta === 0 ? row.motifScoreDelta.toFixed(2) : "N/A" }) 
                 cols.push({
                     header: "Motif ID",
                     value: (row) => row.motifID ? row.motifID : "None",

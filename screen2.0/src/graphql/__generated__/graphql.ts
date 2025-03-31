@@ -67,6 +67,12 @@ export type AtacAggregate = {
   reverse_values: Array<Scalars['Float']['output']>;
 };
 
+export type ActiveCelltypesIcres = {
+  __typename?: 'ActiveCelltypesIcres';
+  accession: Scalars['String']['output'];
+  activeCellTypes?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
+};
+
 export enum AggregateByEnum {
   Average = 'AVERAGE',
   Max = 'MAX'
@@ -1354,8 +1360,11 @@ export type ImmuneAtacData = {
   accession: Scalars['String']['output'];
   assay: Scalars['String']['output'];
   biosample: Scalars['String']['output'];
+  biosample_order: Scalars['Int']['output'];
   biosampleid: Scalars['String']['output'];
   celltype: Scalars['String']['output'];
+  celltype_stim: Scalars['String']['output'];
+  celltype_stim_order: Scalars['Int']['output'];
   chromosome: Scalars['String']['output'];
   class: Scalars['String']['output'];
   end?: Maybe<Scalars['Int']['output']>;
@@ -2178,6 +2187,8 @@ export type Query = {
   iCREsCountQuery?: Maybe<Scalars['Int']['output']>;
   icreeQTLQuery?: Maybe<Array<Maybe<Eqtl>>>;
   immuneRnaUmapQuery?: Maybe<Array<Maybe<ImmuneRnaData>>>;
+  immuneUpsetPlotCountsQuery?: Maybe<Array<Maybe<UpsetPlotCounts>>>;
+  immuneiCREsActiveCelltypesQuery?: Maybe<Array<Maybe<ActiveCelltypesIcres>>>;
   immuneiCREsUmapQuery?: Maybe<Array<Maybe<ImmuneAtacData>>>;
   intersection?: Maybe<Array<Maybe<Scalars['cCRE']['output']>>>;
   ldr: Array<LdrEnrichment>;
@@ -2904,8 +2915,18 @@ export type QueryImmuneRnaUmapQueryArgs = {
 };
 
 
+export type QueryImmuneUpsetPlotCountsQueryArgs = {
+  targetcelltypes: Array<InputMaybe<Scalars['String']['input']>>;
+};
+
+
+export type QueryImmuneiCrEsActiveCelltypesQueryArgs = {
+  accession: Array<InputMaybe<Scalars['String']['input']>>;
+};
+
+
 export type QueryImmuneiCrEsUmapQueryArgs = {
-  accession: Scalars['String']['input'];
+  accession: Array<InputMaybe<Scalars['String']['input']>>;
 };
 
 
@@ -4070,6 +4091,14 @@ export type UnreplicatedPeaksPeaksArgs = {
   chrom: Scalars['String']['input'];
   chrom_end: Scalars['Int']['input'];
   chrom_start: Scalars['Int']['input'];
+};
+
+export type UpsetPlotCounts = {
+  __typename?: 'UpsetPlotCounts';
+  counts: Scalars['Int']['output'];
+  excludedCelltypes?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
+  includedCelltypes: Array<Maybe<Scalars['String']['output']>>;
+  name: Scalars['String']['output'];
 };
 
 export type UserCollection = {
