@@ -65,6 +65,42 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@apollo/client@npm:^3.13.1":
+  version: 3.13.5
+  resolution: "@apollo/client@npm:3.13.5"
+  dependencies:
+    "@graphql-typed-document-node/core": "npm:^3.1.1"
+    "@wry/caches": "npm:^1.0.0"
+    "@wry/equality": "npm:^0.5.6"
+    "@wry/trie": "npm:^0.5.0"
+    graphql-tag: "npm:^2.12.6"
+    hoist-non-react-statics: "npm:^3.3.2"
+    optimism: "npm:^0.18.0"
+    prop-types: "npm:^15.7.2"
+    rehackt: "npm:^0.1.0"
+    symbol-observable: "npm:^4.0.0"
+    ts-invariant: "npm:^0.10.3"
+    tslib: "npm:^2.3.0"
+    zen-observable-ts: "npm:^1.2.5"
+  peerDependencies:
+    graphql: ^15.0.0 || ^16.0.0
+    graphql-ws: ^5.5.5 || ^6.0.3
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || >=19.0.0-rc
+    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || >=19.0.0-rc
+    subscriptions-transport-ws: ^0.9.0 || ^0.11.0
+  peerDependenciesMeta:
+    graphql-ws:
+      optional: true
+    react:
+      optional: true
+    react-dom:
+      optional: true
+    subscriptions-transport-ws:
+      optional: true
+  checksum: 10/be6df8793dc0839bcb94f61a3a9f4dcc5a36ea9aff3eb4dc65980af8d4d2f3b1255882350d557ca62c91edd6b2ba4f56dff0baf22ac96ea07b8a06bf956139a9
+  languageName: node
+  linkType: hard
+
 "@apollo/experimental-nextjs-app-support@npm:^0.11.3":
   version: 0.11.9
   resolution: "@apollo/experimental-nextjs-app-support@npm:0.11.9"
@@ -2047,6 +2083,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/query-core@npm:5.71.1":
+  version: 5.71.1
+  resolution: "@tanstack/query-core@npm:5.71.1"
+  checksum: 10/40027a59e6683b3473fd494d9900cf3ecc7acf91e0bdc0c8acb2704056105bd4954942f1a5b0e9e93ccb8330cd9216c950c047f82a2679c5b9d5ea8712486f5c
+  languageName: node
+  linkType: hard
+
+"@tanstack/react-query@npm:^5.67.1":
+  version: 5.71.1
+  resolution: "@tanstack/react-query@npm:5.71.1"
+  dependencies:
+    "@tanstack/query-core": "npm:5.71.1"
+  peerDependencies:
+    react: ^18 || ^19
+  checksum: 10/0153c3f2b130a43a8ec53bc830cde38321ab139427fe2df82f8113b1cebc99b080df24e62504e41a7c366546e8404a8aba4cf5c659fd72bf04fead66c74e9153
+  languageName: node
+  linkType: hard
+
 "@types/d3-array@npm:3.0.3":
   version: 3.0.3
   resolution: "@types/d3-array@npm:3.0.3"
@@ -2802,7 +2856,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@visx/responsive@npm:3.12.0":
+"@visx/responsive@npm:3.12.0, @visx/responsive@npm:^3.12.0":
   version: 3.12.0
   resolution: "@visx/responsive@npm:3.12.0"
   dependencies:
@@ -3072,19 +3126,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@weng-lab/psychscreen-ui-components@npm:^2.0.13":
-  version: 2.0.13
-  resolution: "@weng-lab/psychscreen-ui-components@npm:2.0.13"
+"@weng-lab/psychscreen-ui-components@npm:^2.0.21":
+  version: 2.0.21
+  resolution: "@weng-lab/psychscreen-ui-components@npm:2.0.21"
   dependencies:
+    "@apollo/client": "npm:^3.13.1"
+    "@tanstack/react-query": "npm:^5.67.1"
     "@visx/axis": "npm:^3.12.0"
     "@visx/drag": "npm:^3.12.0"
     "@visx/group": "npm:^3.12.0"
+    "@visx/responsive": "npm:^3.12.0"
     "@visx/scale": "npm:^3.12.0"
     "@visx/tooltip": "npm:^3.12.0"
     "@visx/zoom": "npm:^3.12.0"
     cytoscape: "npm:^3.30.2"
     cytoscape-cose-bilkent: "npm:^4.1.0"
     cytoscape-popper: "npm:^4.0.1"
+    graphql: "npm:^16.10.0"
+    html2canvas: "npm:^1.4.1"
     tippy.js: "npm:^6.3.7"
     use-react-screenshot: "npm:^4.0.0"
   peerDependencies:
@@ -3094,7 +3153,7 @@ __metadata:
     "@mui/material": ^6.1.1
     react: ^18.3.1
     react-dom: ^18.3.1
-  checksum: 10/340ee47d4278a8126debf46de318ada70a6babe5dc7014c8e725d7e9a4bd4447b4144e033c65ee1c0a93003059f1e8b2b5075b37ed71bd8998ce8e8a2d714ace
+  checksum: 10/3f3b7a5f2bc2421c7f01bc4a4e8e967c4c554f9d6f61604c65ac3c3dc1e0cff440a80a82abd34166d760a8e22e4a9e71e0bd6b3c0ad35eda81b2fe6524d7e421
   languageName: node
   linkType: hard
 
@@ -3533,6 +3592,13 @@ __metadata:
   version: 1.0.2
   resolution: "balanced-match@npm:1.0.2"
   checksum: 10/9706c088a283058a8a99e0bf91b0a2f75497f185980d9ffa8b304de1d9e58ebda7c72c07ebf01dadedaac5b2907b2c6f566f660d62bd336c3468e960403b9d65
+  languageName: node
+  linkType: hard
+
+"base64-arraybuffer@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "base64-arraybuffer@npm:1.0.2"
+  checksum: 10/15e6400d2d028bf18be4ed97702b11418f8f8779fb8c743251c863b726638d52f69571d4cc1843224da7838abef0949c670bde46936663c45ad078e89fee5c62
   languageName: node
   linkType: hard
 
@@ -4030,6 +4096,15 @@ __metadata:
     shebang-command: "npm:^2.0.0"
     which: "npm:^2.0.1"
   checksum: 10/0d52657d7ae36eb130999dffff1168ec348687b48dd38e2ff59992ed916c88d328cf1d07ff4a4a10bc78de5e1c23f04b306d569e42f7a2293915c081e4dfee86
+  languageName: node
+  linkType: hard
+
+"css-line-break@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "css-line-break@npm:2.1.0"
+  dependencies:
+    utrie: "npm:^1.0.2"
+  checksum: 10/e75cae40de511026228d4fa69e8d464895714f8899880b8268a446b57f0faa84b490ba1bdda5ed9e7f38f99ab947c6bc941bb505d8119c49072db079c1cacea5
   languageName: node
   linkType: hard
 
@@ -5521,7 +5596,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql@npm:^16.9.0":
+"graphql@npm:^16.10.0, graphql@npm:^16.9.0":
   version: 16.10.0
   resolution: "graphql@npm:16.10.0"
   checksum: 10/d42cf81ddcf3a61dfb213217576bf33c326f15b02c4cee369b373dc74100cbdcdc4479b3b797e79b654dabd8fddf50ef65ff75420e9ce5596c02e21f24c9126a
@@ -5601,6 +5676,16 @@ __metadata:
   dependencies:
     react-is: "npm:^16.7.0"
   checksum: 10/1acbe85f33e5a39f90c822ad4d28b24daeb60f71c545279431dc98c312cd28a54f8d64788e477fe21dc502b0e3cf58589ebe5c1ad22af27245370391c2d24ea6
+  languageName: node
+  linkType: hard
+
+"html2canvas@npm:^1.4.1":
+  version: 1.4.1
+  resolution: "html2canvas@npm:1.4.1"
+  dependencies:
+    css-line-break: "npm:^2.1.0"
+    text-segmentation: "npm:^1.0.3"
+  checksum: 10/595790810557a1d4287f07b6ead49aed4f169f08eb00e20c1f030b93344003e84797d28cd8a220e8ec1b78641d460ca6add11b8531960725526f11a7b9fa9900
   languageName: node
   linkType: hard
 
@@ -7887,7 +7972,7 @@ __metadata:
     "@vercel/analytics": "npm:^1.4.1"
     "@visx/visx": "npm:^3.12.0"
     "@weng-lab/genomebrowser": "npm:^0.0.17"
-    "@weng-lab/psychscreen-ui-components": "npm:^2.0.13"
+    "@weng-lab/psychscreen-ui-components": "npm:^2.0.21"
     "@weng-lab/ts-ztable": "npm:^4.0.1"
     autoprefixer: "npm:10.4.20"
     bpnet-ui: "npm:^0.3.8"
@@ -8480,6 +8565,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"text-segmentation@npm:^1.0.3":
+  version: 1.0.3
+  resolution: "text-segmentation@npm:1.0.3"
+  dependencies:
+    utrie: "npm:^1.0.2"
+  checksum: 10/86191de83f09b96f356628c3dbaf6d281eda46a4dd4c94c3827495428871b9dd44ead4ef4cdf06a188b08a3b83e3943c5911841422b55286b121ba9e04c846dd
+  languageName: node
+  linkType: hard
+
 "text-table@npm:^0.2.0":
   version: 0.2.0
   resolution: "text-table@npm:0.2.0"
@@ -8922,6 +9016,15 @@ __metadata:
   version: 3.11.0
   resolution: "utility-types@npm:3.11.0"
   checksum: 10/a3c51463fc807ed04ccc8b5d0fa6e31f3dcd7a4cbd30ab4bc6d760ce5319dd493d95bf04244693daf316f97e9ab2a37741edfed8748ad38572a595398ad0fdaf
+  languageName: node
+  linkType: hard
+
+"utrie@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "utrie@npm:1.0.2"
+  dependencies:
+    base64-arraybuffer: "npm:^1.0.2"
+  checksum: 10/0c9458380bf3113f425a268e3d605aef163bfbaea62bf24de517b62b6e6744394d8ef1cdd9b07423359aec5ed402baab4bb2c5beec64f674ec635dc2f8dbd4bf
   languageName: node
   linkType: hard
 
