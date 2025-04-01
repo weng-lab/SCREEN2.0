@@ -15,7 +15,7 @@ import {
 } from "@mui/material"
 import { useQuery } from "@apollo/client"
 import Grid from "@mui/material/Grid2"
-import { Download, Visibility, CancelRounded, ScatterPlotTwoTone } from "@mui/icons-material"
+import { Download, Visibility, CancelRounded } from "@mui/icons-material"
 import Image from "next/image"
 import humanTransparentIcon from "../../../public/Transparent_HumanIcon.png"
 import mouseTransparentIcon from "../../../public/Transparent_MouseIcon.png"
@@ -96,6 +96,24 @@ export function DataMatrices() {
   const [searched, setSearched] = useState<string>(null)
   const [biosamples, setBiosamples] = useState<BiosampleUMAP[]>([])
   const [openModalType, setOpenModalType] = useState<null | "biosamples" | "download">(null);
+  const graphContainerRef = useRef(null);
+
+  useEffect(() => {
+    const graphElement = graphContainerRef.current;
+
+    const handleWheel = (event: WheelEvent) => {
+      // Prevent default scroll behavior when using the wheel in the graph
+      event.preventDefault();
+    };
+    if (graphElement) {
+      graphElement.addEventListener('wheel', handleWheel, { passive: false });
+    }
+    return () => {
+      if (graphElement) {
+        graphElement.removeEventListener('wheel', handleWheel);
+      }
+    };
+  }, []);
 
   const handleSetSelectedSample = (selected) => {
     setSearched(selected.displayname)
@@ -121,7 +139,7 @@ export function DataMatrices() {
     position: {
       right: 50,
       bottom: 50,
-    },
+    }
   };
 
   const fData = useMemo(() => {
@@ -451,7 +469,7 @@ export function DataMatrices() {
             </Stack>
             <ScatterPlot
               pointData={scatterData}
-              loading={false}
+              loading={umapLoading}
               selectable
               onSelectionChange={handleSelectionChange}
               miniMap={map}
