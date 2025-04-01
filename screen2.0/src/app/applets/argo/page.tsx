@@ -232,9 +232,8 @@ export default function Argo() {
 
     // This function will receive the regions from ArgoUpload and find the intersecting cCREs
     const handleRegionsConfigured = (regions: InputRegions) => {
-        console.log(regions)
-        setInputRegions(regions);
         if (regions.length > 0) {
+            setInputRegions(regions);
             const user_ccres = regions.map(region => [
                 region.chr,
                 region.start.toString(),
@@ -451,7 +450,7 @@ export default function Argo() {
                 {inputRegions.length > 0 && (
                     <>
                         <Box mt="20px" id="123456">
-                            {mainRows.length === 0 ? <Skeleton width={"auto"} height={"440px"} variant="rounded"/> :
+                            {mainRows.length === 0 ? <Skeleton width={"auto"} height={"440px"} variant="rounded" /> :
                                 <DataTable
                                     key={JSON.stringify(inputRegions) + JSON.stringify(elementRanks) + JSON.stringify(sequenceRanks) + JSON.stringify(geneRanks)}
                                     columns={mainColumns}
@@ -463,7 +462,7 @@ export default function Argo() {
                                     searchable
                                     onDisplayedRowsChange={(newPage) => {
                                         setPage(newPage)
-                                      }}
+                                    }}
                                     tableTitle={
                                         <Stack direction={"row"} justifyContent={"space-between"} alignItems={"center"} width={"100%"}>
                                             <Stack direction={"row"} spacing={1} alignItems={"center"}>
