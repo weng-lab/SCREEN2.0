@@ -37,9 +37,6 @@ const GeneTable: React.FC<GeneTableProps> = ({
         skip: !intersectingCcres,
         client: client,
         fetchPolicy: 'cache-first',
-        onCompleted(d) {
-            console.log(d)
-        }
     });
 
     const filteredGenes = useMemo<AllLinkedGenes>(() => {
