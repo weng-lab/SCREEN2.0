@@ -37,6 +37,9 @@ const GeneTable: React.FC<GeneTableProps> = ({
         skip: !intersectingCcres,
         client: client,
         fetchPolicy: 'cache-first',
+        onCompleted(d) {
+            console.log(d)
+        }
     });
 
     const filteredGenes = useMemo<AllLinkedGenes>(() => {
@@ -44,9 +47,11 @@ const GeneTable: React.FC<GeneTableProps> = ({
             return [];
         }
 
+        const initialFilter = closestAndLinkedGenes.linkedGenesQuery.filter((gene) => gene.assay !== 'CRISPRi-FlowFISH' || (gene.assay === 'CRISPRi-FlowFISH' && gene.p_val < 0.05))
+
         //switch between protein coding and all linked genes
-        const filteredLinkedGenes = geneFilterVariables.mustBeProteinCoding ? closestAndLinkedGenes.linkedGenesQuery.filter((gene) => gene.genetype === "protein_coding")
-            : closestAndLinkedGenes.linkedGenesQuery
+        const filteredLinkedGenes = geneFilterVariables.mustBeProteinCoding ? initialFilter.filter((gene) => gene.genetype === "protein_coding")
+            : initialFilter
         const linkedGenes = parseLinkedGenes(filteredLinkedGenes, geneFilterVariables.methodOfLinkage);
 
         //switch between protein coding and all closest gene
