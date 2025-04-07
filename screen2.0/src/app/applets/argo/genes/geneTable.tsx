@@ -85,6 +85,8 @@ const GeneTable: React.FC<GeneTableProps> = ({
             }))
             .filter(accession => accession.genes.length > 0);
 
+            console.log(linkageFilter)
+
         return linkageFilter.length > 0 ? linkageFilter : null;
 
     }, [closestAndLinkedGenes, geneFilterVariables.methodOfLinkage, geneFilterVariables.mustBeProteinCoding, geneFilterVariables.mustHaveOrtholog, getOrthoGenes, intersectingCcres, orthoGenes])
@@ -102,13 +104,16 @@ const GeneTable: React.FC<GeneTableProps> = ({
 
     const { loading: loading_gene_expression, data: geneExpression, error: error_gene_expression } = useQuery(GENE_EXP_QUERY, {
         variables: {
-            genes: filteredGenes?.flatMap((entry) => entry.genes.map((gene) => gene.geneId)),
+            genes: filteredGenes?.flatMap((entry) => entry.genes.map((gene) => gene.geneId.split('.')[0])),
             biosample: geneFilterVariables.selectedBiosample?.map((sample) => sample.name),
             aggregateBy: (geneFilterVariables.rankGeneExpBy === "avg" ? "AVERAGE" : "MAX") as AggregateByEnum
         },
         skip: !closestAndLinkedGenes || closestAndLinkedGenes.closestGenetocCRE.length === 0 || filteredGenes === null,
         client: client,
         fetchPolicy: 'cache-first',
+        onCompleted(d) {
+            console.log(d)
+        }
     });
 
     const geneRows = useMemo<GeneTableRow[]>(() => {

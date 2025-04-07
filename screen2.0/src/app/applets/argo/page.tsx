@@ -364,7 +364,7 @@ export default function Argo() {
 
         if (sequenceFilterVariables.useConservation || sequenceFilterVariables.useMotifs) {
             cols.push({
-                header: "Seqence",
+                header: "Sequence",
                 value: (row) => row.sequenceRank,
                 render: (row) => loadingSequenceRanks ? <CircularProgress size={10} /> : row.sequenceRank
             })
