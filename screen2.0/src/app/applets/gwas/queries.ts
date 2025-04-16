@@ -28,10 +28,11 @@ export const GET_SNPS_FOR_GIVEN_GWASSTUDY= gql(`
 )
 
 export const BED_INTERSECT= gql(`
-  query bedIntersectCCRE ($inp: [cCRE]!, $assembly: String!) {
+  query bedIntersectCCRE ($inp: [cCRE]!, $assembly: String!, $maxOutputLength: Int) {
     intersection (
       userCcres: $inp,
-      assembly: $assembly
+      assembly: $assembly,
+      maxOutputLength: $maxOutputLength
     )
   }
 `)

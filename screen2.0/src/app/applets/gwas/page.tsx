@@ -123,7 +123,8 @@ export default function GWAS() {
   } = useQuery(BED_INTERSECT, {
     variables: {
       inp: snpsRegions,
-      assembly: "grch38"
+      assembly: "grch38",
+      maxOutputLength: 10000
     },
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
@@ -160,14 +161,15 @@ export default function GWAS() {
     return [... new Set([...cCREsIntersectionData.map(c => { return (+c.ldblock) })])]
   }, [cCREsIntersectionData])
 
-
+  console.log("number of cCRES",uniqueAccessions.length)
+  console.log("number of ld blocks",overlappingLdBlocks.length)
   const { data: enrichmentData, loading: enrichmentLoading, error: enrichmentError } = useQuery(
     CT_ENRICHMENT,
     {
       variables: {
         study: study?.study
       },
-      skip: !study,
+      skip:  !study,
       client
     }
   )
@@ -192,7 +194,7 @@ export default function GWAS() {
     },
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
-    skip: !(uniqueAccessions && uniqueAccessions.length > 0),
+    skip:  !(uniqueAccessions && uniqueAccessions.length > 0),
     client,
   })
 
