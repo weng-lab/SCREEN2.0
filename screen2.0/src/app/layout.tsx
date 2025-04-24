@@ -24,7 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <CssBaseline /> {/* See https://mui.com/material-ui/react-css-baseline/ */}
             <ThemeProvider theme={theme}> {/* Exposes theme to children */}
               <div id="content-wrapper">
-                <ResponsiveAppBar maintenance={false}/>
+                <ResponsiveAppBar maintenance={true}/>
                 <div id="body-wrapper">
                   {children}
                 </div>
