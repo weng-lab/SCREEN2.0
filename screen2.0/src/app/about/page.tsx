@@ -122,7 +122,7 @@ export default function About() {
             <Typography variant="body1" paragraph>
               To implement this Z-score normalization, we used the UCSC tool bigWigAverageOverBed to compute the signal for each rDHS for a DNase, H3K4me3, H3K27ac, or CTCF experiment. For DNase and CTCF, the signal was averaged across the genomic positions in the rDHS. The signals of H3K4me3 and H3K27ac were averaged across an extended region—the rDHS plus a 500-bp flanking region on each side—to account for these histone marks at the flanking nucleosomes. We then took the log10 of these signals and computed a Z-score for each rDHS compared with all other rDHSs within a biosample. rDHSs with a raw signal of 0 were assigned a Z-score of -10. For all analyses we defined &quot;high signal&quot; as a Z-score greater than 1.64, a threshold corresponding to the 95th percentile of a one-tailed test. We define a max-Z of a rDHS as the maximum z-score for a signal across all surveyed biosamples.
             </Typography>
-            <Typography variant="h6">
+            <Typography variant="h6" id="classifications">
               Classification of cCREs
             </Typography>
             <Typography variant="body1" paragraph>
@@ -162,20 +162,20 @@ export default function About() {
         </Grid>
         <Grid container size={12}>
           <Grid size={12}>
-            <Typography variant="h6">
+            <Typography variant="h6" id="core-collection">
               Core Collection
             </Typography>
             <Typography variant="body1" paragraph>
               Thanks to the extensive coordination efforts by the ENCODE4 Biosample Working Group, 171 biosamples have DNase, H3K4me3, H3K27ac, and CTCF data. We refer to these samples as the biosample-specific <i>Core Collection</i> of cCREs. These samples cover a variety of tissues and organs and primarily comprise primary tissues and cells. We suggest that users prioritize these samples for their analysis as they contain all the relevant marks for the most complete annotation of cCREs.
               </Typography>
             <Image src={biosamples} style={{display: 'block', maxWidth: "600px", height: "auto", margin: "auto"}} alt="Biosample types visual diagram" />
-            <Typography variant="h6">
+            <Typography variant="h6" id="partial-data-collection">
               Partial Data Collection
               </Typography>
             <Typography variant="body1" paragraph>
               To supplement this <i>Core Collection</i>, 1,154 biosamples have DNase in addition to various combinations of the other marks (but not all three). Though we are unable to annotate the full spectrum of cCRE classes in these biosamples, having DNase enables us to annotate element boundaries with high resolution. Therefore, we refer to this group as the <i>Partial Data Collection</i>. In these biosamples, we classify elements using the available marks. For example, if a sample lacks H3K27ac and CTCF, its cCREs can only be assigned to the promoter, CA-H3K4me3, and CA groups, not the enhancer or CA-CTCF groups. The <i>Partial Data Collection</i> contains some unique tissues and cell states that are not represented in the <i>Core Collection</i>, such as fetal brain tissue and stimulated immune cells that may be of high interest to some researchers. Therefore, if users are interested in cCRE annotations in such biosamples, we suggest leveraging the cell type-agnostic annotations or annotations from similar biosamples in the <i>Core Collection</i>, to supplement their analyses.
             </Typography>
-            <Typography variant="h6">
+            <Typography variant="h6" id="ancillary-collection">
               Ancillary Collection
             </Typography>
             <Typography variant="body1" paragraph>
