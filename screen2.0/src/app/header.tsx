@@ -142,39 +142,62 @@ function ResponsiveAppBar({ maintenance }: ResponsiveAppBarProps) {
       <Stack
         direction={"row"}
         style={{
-          position: 'fixed',
-          width: '100%',
+          position: "fixed",
+          width: "100%",
           height: "40px",
-          backgroundColor: '#ff9800',
+          backgroundColor: "#ff9800",
           zIndex: 1301,
-          color: '#fff',
-          textAlign: 'center',
-          display: !maintenance && "none"
+          color: "#fff",
+          textAlign: "center",
+          display: !maintenance && "none",
         }}
         justifyContent={"center"}
         alignItems={"center"}
         spacing={2}
       >
         <WarningAmberIcon />
-        <Typography sx={{ fontWeight: 'bold' }}>Scheduled maintenance is in progress... Some features may be unavailable</Typography>
+        <Typography sx={{ fontWeight: "bold" }}>
+          Scheduled maintenance is in progress... Some features may be
+          unavailable
+        </Typography>
         <WarningAmberIcon />
       </Stack>
-      <AppBar position="fixed" sx={{ top: maintenance ? '40px' : '0px' }}>
+      <AppBar position="fixed" sx={{ top: maintenance ? "40px" : "0px" }}>
         <Container maxWidth={false}>
-          <Toolbar disableGutters sx={{ justifyContent: "space-between", alignItems: "center" }}>
+          <Toolbar
+            disableGutters
+            sx={{ justifyContent: "space-between", alignItems: "center" }}
+          >
             {/* Logo, and desktop navigation */}
-            <Stack direction="row" gap={3} flexGrow={1} >
-              <Box component={Link} href={'/'} height={45} width={87} position={"relative"}>
+            <Stack direction="row" gap={3} flexGrow={1}>
+              <Box
+                component={Link}
+                href={"/"}
+                height={45}
+                width={87}
+                position={"relative"}
+              >
                 <Image
                   priority
-                  src={"/SCREEN_logo_dark_small.png"}
+                  src={"/SCREEN_logo_dark.png"}
                   alt="SCREEN Icon"
                   fill
-                  style={{ objectFit: "contain", objectPosition: 'left center' }}
+                  style={{
+                    objectFit: "contain",
+                    objectPosition: "left center",
+                    imageRendering: "auto",
+                  }}
                 />
               </Box>
               {/* Main navigation items for desktop, hide on small screen size */}
-              <Box sx={{ display: { xs: "none", lg: "flex" }, alignItems: 'stretch', gap: 2 }} id="NavItems">
+              <Box
+                sx={{
+                  display: { xs: "none", lg: "flex" },
+                  alignItems: "stretch",
+                  gap: 2,
+                }}
+                id="NavItems"
+              >
                 {pageLinks.map((page) => (
                   <Box
                     key={page.pageName}
@@ -201,15 +224,29 @@ function ResponsiveAppBar({ maintenance }: ResponsiveAppBarProps) {
                       <Menu
                         id={`${page.pageName}-dropdown-appbar`}
                         // This logic would need to change when adding another dropdown
-                        anchorEl={page.dropdownID === 0 ? anchorDropdown0 : anchorDropdown1}
+                        anchorEl={
+                          page.dropdownID === 0
+                            ? anchorDropdown0
+                            : anchorDropdown1
+                        }
                         anchorOrigin={{
                           vertical: "bottom",
                           horizontal: "left",
                         }}
-                        open={page.dropdownID === 0 ? Boolean(anchorDropdown0) : Boolean(anchorDropdown1)}
+                        open={
+                          page.dropdownID === 0
+                            ? Boolean(anchorDropdown0)
+                            : Boolean(anchorDropdown1)
+                        }
                         onClose={() => handleCloseDropdown(page.dropdownID)}
-                        slotProps={{ paper: { onMouseLeave: () => handleCloseDropdown(page.dropdownID), sx: { pointerEvents: 'auto' } } }}
-                        sx={{ pointerEvents: 'none', zIndex: 2000 }} //z index of AppBar is 1100 for whatever reason
+                        slotProps={{
+                          paper: {
+                            onMouseLeave: () =>
+                              handleCloseDropdown(page.dropdownID),
+                            sx: { pointerEvents: "auto" },
+                          },
+                        }}
+                        sx={{ pointerEvents: "none", zIndex: 2000 }} //z index of AppBar is 1100 for whatever reason
                       >
                         {page.subPages &&
                           page.subPages.map((subPage) => (
@@ -220,9 +257,7 @@ function ResponsiveAppBar({ maintenance }: ResponsiveAppBarProps) {
                               component={Link}
                               href={subPage.link}
                             >
-                              <MenuItem>
-                                {subPage.pageName}
-                              </MenuItem>
+                              <MenuItem>{subPage.pageName}</MenuItem>
                             </MuiLink>
                           ))}
                       </Menu>
@@ -271,10 +306,10 @@ function ResponsiveAppBar({ maintenance }: ResponsiveAppBarProps) {
       </AppBar>
       {/* Bumps content down since header is position="fixed" */}
       {/* Bumps content down even more if banner is open */}
-      {maintenance && <Box sx={{ height: '40px' }} />}
+      {maintenance && <Box sx={{ height: "40px" }} />}
       <Toolbar />
     </>
-  )
+  );
 }
 
 export default ResponsiveAppBar

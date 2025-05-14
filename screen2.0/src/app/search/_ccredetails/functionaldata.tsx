@@ -91,11 +91,16 @@ export const FunctionData = ({ coordinates , assembly, accession }) => {
               header: "Element Id",
               value: (row) => row.element_id,
               render: (row)=> {
-              const experiment_id =  assembly === "GRCh38" ? row.element_id.split("hs")[1] : row.element_id.split("mm")[1]
-              const organism_id = assembly === "GRCh38" ? 1: 2
-              return (<Link href={`https://enhancer.lbl.gov/cgi-bin/imagedb3.pl?form=presentation&show=1&experiment_id=${experiment_id}&organism_id=${organism_id}`} rel="noopener noreferrer" target="_blank">
-                    <button>{row.element_id}</button>
-               </Link>)}
+                return (
+                  <Link
+                    href={`https://enhancer.lbl.gov/vista/element?vistaId=${row.element_id}`}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                  >
+                    {row.element_id}
+                  </Link>
+                );
+              }
             },
             {
               header: "Assay Result",
