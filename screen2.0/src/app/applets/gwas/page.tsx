@@ -391,7 +391,7 @@ export default function GWAS() {
           </AccordionSummary>
           <AccordionDetails sx={{p: 0}}>
             {study ?
-              cCREIntersectionsLoading ?
+              (gwasstudySNPsLoading || cCREIntersectionsLoading) ?
                 <CircularProgress /> :
                 <DataTable
                   tableTitle={"LD Blocks"}
