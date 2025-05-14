@@ -116,24 +116,28 @@ export const downloadObjectAsJson = (exportObj: {[key: string]: any}, filename: 
  * 
  * @param exportArr 
  * @param filename prefix (.tsv added)
- * 
+ * @info IMPORTANT - removes single apostrophes to be compatible with R's `read.table` default `quote="\"'"`
  * @info Taken straight from ChatGPT, use with caution
  */
 export const downloadObjArrayAsTSV = (exportArr: {[key: string]: string | number}[], filename: string) => {
   //extract headers
-  const headers = Object.keys(exportArr[0])
+  const headers = Object.keys(exportArr[0]);
 
   // Map each object to a TSV row by joining values with tabs
   const tsvContent = [
-    headers.join('\t'), // Header row
-    ...exportArr.map(obj =>
-      headers.map(header => obj[header] || '').join('\t') // Data rows
-    )
-  ].join('\n'); // Join rows with newlines
+    headers.join("\t"), // Header row
+    ...exportArr.map(
+      (obj) => headers.map((header) => obj[header] || "").join("\t") // Data rows
+    ),
+  ]
+    .join("\n")// Join rows with newlines
+    .replaceAll("'", ""); //remove all single quotes
 
   // Create a downloadable TSV file
-  const dataStr = "data:text/tab-separated-values;charset=utf-8," + encodeURIComponent(tsvContent);
-  const downloadAnchorNode = document.createElement('a');
+  const dataStr =
+    "data:text/tab-separated-values;charset=utf-8," +
+    encodeURIComponent(tsvContent);
+  const downloadAnchorNode = document.createElement("a");
   downloadAnchorNode.setAttribute("href", dataStr);
   downloadAnchorNode.setAttribute("download", `${filename}.tsv`);
   document.body.appendChild(downloadAnchorNode); // Required for Firefox
