@@ -26,7 +26,7 @@ const NewAnnotations = () => {
     <TabContext value={encodeTabValue(selectedTab)}>
       <Stack direction={{ xs: "column", md: "row" }} gap={2}>
         <NewAnnotationsTabs onTabChange={setSelectedTab} />
-        <Stack flexGrow={1}>
+        <Stack flexGrow={1} gap={2}>
           <NewAnnotationsHeader assembly={selectedTab.assembly} />
           <TabPanel value={encodeTabValue(selectedTab)} sx={{ p: 0 }}>
             <Content selectedTab={selectedTab} />

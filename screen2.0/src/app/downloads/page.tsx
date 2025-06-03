@@ -24,7 +24,7 @@ export default function Downloads() {
   }
 
   return (
-    <Stack sx={{paddingX:15}}>
+    <Stack sx={{paddingX: '5%'}}>
       <Grid mt={2} container spacing={2}>
         <Grid size={{ xs: 12 }}>
           <Tabs value={page} onChange={handleChange} aria-label="basic tabs example" variant="scrollable" allowScrollButtonsMobile>

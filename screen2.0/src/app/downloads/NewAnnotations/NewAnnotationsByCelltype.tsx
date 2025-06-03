@@ -1,7 +1,7 @@
 import React from "react";
-import { Divider, Stack, Typography } from "@mui/material";
 import BiosampleTables from "../../_biosampleTables/BiosampleTables";
 import { Assembly } from "./NewAnnotationsHeader";
+import DownloadContentLayout from "./DownloadContentLayout";
 
 interface NewAnnotationsByCelltypeProps {
   assembly: Assembly;
@@ -9,19 +9,15 @@ interface NewAnnotationsByCelltypeProps {
 
 const NewAnnotationsByCelltype: React.FC<NewAnnotationsByCelltypeProps> = ({ assembly }) => {
   return (
-    <Stack gap={1}>
-      <Typography variant="subtitle1" fontWeight={600}>
-        cCREs by Cell and Tissue Type
-      </Typography>
-      <Divider />
+    <DownloadContentLayout title="cCREs by Cell and Tissue Type">
       <BiosampleTables
         assembly={assembly}
         showDownloads
         slotProps={{
-          paperStack: { overflow: 'hidden', flexGrow: 1, height: 'auto' }
+          paperStack: { overflow: "hidden", flexGrow: 1, height: "auto" },
         }}
       />
-    </Stack>
+    </DownloadContentLayout>
   );
 };
 

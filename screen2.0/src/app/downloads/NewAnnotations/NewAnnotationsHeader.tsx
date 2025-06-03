@@ -45,7 +45,7 @@ const NewAnnotationsHeader: React.FC<NewAnnotationsHeaderProps> = ({ assembly })
         variant="contained"
         color="primary"
         href={config.downloadUrl}
-        startIcon={<DownloadIcon />}
+        endIcon={<DownloadIcon />}
         download
         sx={{ whiteSpace: 'nowrap' }}
       >

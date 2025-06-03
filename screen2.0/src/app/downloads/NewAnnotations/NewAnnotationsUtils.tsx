@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import DownloadIcon from "@mui/icons-material/Download";
 import Button from "@mui/material/Button";
 import { Typography } from "@mui/material";
@@ -20,29 +20,41 @@ export const fetchFileSize = async (url: string, setFileSize: React.Dispatch<Rea
   }
 };
 
+export type DownloadButtonProps = {
+  href: string;
+  label: string;
+  fileSize?: string;
+  bordercolor?: string;
+};
+
 // Download button for class/gene links files
-export const InlineDownloadButton = (props: { href: string; label: string; bordercolor?: string }) => {
-  const [fileSize, setFileSize] = useState<number | null>(null);
-  useEffect(() => {
-    fetchFileSize(props.href, setFileSize);
-  }, [props.href]);
+export const DownloadButton = (props: DownloadButtonProps) => {
+  const [isHovered, setIsHovered] = useState<boolean>(false)
+  
   return (
     <Button
       sx={{
-      textTransform: "none",
-      borderLeft: props.bordercolor && `0.375rem solid ${props.bordercolor}`,
-      justifyContent: "space-between",
-      backgroundColor: "white",
-      color: "black",
+        textTransform: "none",
+        borderLeftColor: props.bordercolor && `${props.bordercolor}`,
+        borderLeftWidth: props.bordercolor && (isHovered ? '0.65rem' : '0.375rem'),
+        borderLeftStyle: 'solid',
+        transition: 'all 0.1s',
+        justifyContent: "space-between",
+        backgroundColor: "white",
+        color: "black",
       }}
       variant="contained"
       href={props.href}
       endIcon={<DownloadIcon />}
       fullWidth
       download
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      <Typography variant="body2" sx={{ flexGrow: 1 }}>{props.label}</Typography>
-      {fileSize ? (fileSize / 1000000).toFixed(1) + ' MB' : '\u00A0'}
+      <Typography variant="body2" sx={{ flexGrow: 1 }}>
+        {props.label}
+      </Typography>
+      {props.fileSize}
     </Button>
   );
 };
