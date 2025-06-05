@@ -140,7 +140,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, ass
         if (existingGeneEntry && !existingGeneEntry.linkedBy.some(method => method === methodToPush)) {
           //add linking method if duplicate doesn't exist
           existingGeneEntry.linkedBy.push(methodToPush)
-        } else uniqueGenes.push({ name: geneName, linkedBy: [methodToPush] })
+        } else if (!existingGeneEntry) uniqueGenes.push({ name: geneName, linkedBy: [methodToPush] })
       }
     }
     return uniqueGenes
