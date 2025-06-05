@@ -1,4 +1,4 @@
-import React, { Children } from "react";
+import React from "react";
 import BiosampleTables from "../../_biosampleTables/BiosampleTables";
 import DownloadContentLayout from "./DownloadContentLayout";
 import { Assembly } from "./Annotations";
@@ -21,7 +21,9 @@ import {
   useTreeItemModel,
   UseTreeItemParameters,
 } from "@mui/x-tree-view";
-import { Typography } from "@mui/material";
+import { Box, IconButton, Paper, Stack } from "@mui/material";
+import BiosampleTable from "./BiosampleTable";
+import { Download } from "@mui/icons-material";
 
 interface NewAnnotationsByCelltypeProps {
   assembly: Assembly;
@@ -104,49 +106,44 @@ const CustomTreeItem = React.forwardRef(function CustomTreeItem(
 
   const item = useTreeItemModel(itemId);
   const tableItems = item.children?.filter(x => !x.children)
-  console.log(item.label)
-  console.log(tableItems)
 
   const shouldRenderTable = tableItems?.length > 0
 
-  const {children: transitionChildren, ...rest} = getGroupTransitionProps()
+  const {children: transitionChildren, ...transitionProps} = getGroupTransitionProps()
+
+  if (!item.children) return
 
   return (
     <TreeItemProvider {...getContextProviderProps()}>
-      <TreeItemRoot {...getRootProps(other)}>
-        <TreeItemContent {...getContentProps()}>
-          <TreeItemIconContainer {...getIconContainerProps()}>
-            <TreeItemIcon status={status} />
-          </TreeItemIconContainer>
-          <TreeItemCheckbox {...getCheckboxProps()} />
-          {/* The label should only appear if the item has children (and thus can be expanded) */}
-          <TreeItemLabel {...getLabelProps()} />
-          <TreeItemDragAndDropOverlay {...getDragAndDropOverlayProps()} />
-        </TreeItemContent>
-        {/* This is the children of the item */}
-        {children && (
-          <TreeItemGroupTransition {...rest}>
-            {transitionChildren}
-            {shouldRenderTable && <Typography>These will be in table</Typography>}
-            {tableItems?.map((x) => (
-              <Typography>{x.label}</Typography>
-            ))}
-          </TreeItemGroupTransition>
-        )}
-      </TreeItemRoot>
+        <TreeItemRoot
+          {...getRootProps(other)}
+          sx={{ border: theme => `1px solid ${theme.palette.divider}`, borderRadius: 1, padding: 1 }}
+        >
+          <TreeItemContent {...getContentProps()}>
+            <TreeItemIconContainer {...getIconContainerProps()}>
+              <TreeItemIcon status={status} />
+            </TreeItemIconContainer>
+            <TreeItemCheckbox {...getCheckboxProps()} />
+            {/* The label should only appear if the item has children (and thus can be expanded) */}
+            <TreeItemLabel {...getLabelProps()} />
+            <IconButton size="small">
+              <Download />
+            </IconButton>
+            <TreeItemDragAndDropOverlay {...getDragAndDropOverlayProps()} />
+          </TreeItemContent>
+          {/* This is the children of the item */}
+          {children && (
+            <TreeItemGroupTransition {...transitionProps}>
+              {transitionChildren}
+              <Box>
+                {shouldRenderTable && <BiosampleTable items={tableItems} />}
+              </Box>
+            </TreeItemGroupTransition>
+          )}
+        </TreeItemRoot>
     </TreeItemProvider>
   );
 });
-
-//The parent needs to override the rendering of it's children
-
-//We need access to the node's children.
-//For each child:
-//If the child has children of it's own, render an element normally with the download button. Remove from list
-//Take rest of childless children, and put into a table
-
-//To get an item's children: https://mui.com/x/react-tree-view/rich-tree-view/items/#get-an-items-children-by-id
-//Need to use apiRef, and call method on that to recieve
 
 const AnnotationsByCelltype: React.FC<NewAnnotationsByCelltypeProps> = ({
   assembly,
@@ -157,6 +154,7 @@ const AnnotationsByCelltype: React.FC<NewAnnotationsByCelltypeProps> = ({
         items={ITEMS}
         disableSelection
         slots={{ item: CustomTreeItem }}
+        itemChildrenIndentation={0}
       />
       <BiosampleTables
         assembly={assembly}

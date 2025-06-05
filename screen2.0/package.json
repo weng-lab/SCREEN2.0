@@ -24,6 +24,7 @@
     "@mui/lab": "6.0.0-beta.13",
     "@mui/material": "^6.1.5",
     "@mui/material-nextjs": "^6.1.5",
+    "@mui/x-data-grid-pro": "^8.5.1",
     "@mui/x-tree-view-pro": "^8.5.0",
     "@parcel/watcher": "^2.4.1",
     "@vercel/analytics": "^1.4.1",

@@ -267,6 +267,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/runtime@npm:^7.27.4":
+  version: 7.27.6
+  resolution: "@babel/runtime@npm:7.27.6"
+  checksum: 10/cc957a12ba3781241b83d528eb69ddeb86ca5ac43179a825e83aa81263a6b3eb88c57bed8a937cdeacfc3192e07ec24c73acdfea4507d0c0428c8e23d6322bfe
+  languageName: node
+  linkType: hard
+
 "@babel/template@npm:^7.18.10, @babel/template@npm:^7.20.7, @babel/template@npm:^7.26.9, @babel/template@npm:^7.27.0":
   version: 7.27.0
   resolution: "@babel/template@npm:7.27.0"
@@ -1813,7 +1820,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mui/utils@npm:^7.0.2":
+"@mui/utils@npm:^7.0.2, @mui/utils@npm:^7.1.1":
   version: 7.1.1
   resolution: "@mui/utils@npm:7.1.1"
   dependencies:
@@ -1833,6 +1840,62 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@mui/x-data-grid-pro@npm:^8.5.1":
+  version: 8.5.1
+  resolution: "@mui/x-data-grid-pro@npm:8.5.1"
+  dependencies:
+    "@babel/runtime": "npm:^7.27.4"
+    "@mui/utils": "npm:^7.1.1"
+    "@mui/x-data-grid": "npm:8.5.1"
+    "@mui/x-internals": "npm:8.5.1"
+    "@mui/x-license": "npm:8.5.1"
+    "@types/format-util": "npm:^1.0.4"
+    clsx: "npm:^2.1.1"
+    prop-types: "npm:^15.8.1"
+    reselect: "npm:^5.1.1"
+  peerDependencies:
+    "@emotion/react": ^11.9.0
+    "@emotion/styled": ^11.8.1
+    "@mui/material": ^5.15.14 || ^6.0.0 || ^7.0.0
+    "@mui/system": ^5.15.14 || ^6.0.0 || ^7.0.0
+    react: ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-dom: ^17.0.0 || ^18.0.0 || ^19.0.0
+  peerDependenciesMeta:
+    "@emotion/react":
+      optional: true
+    "@emotion/styled":
+      optional: true
+  checksum: 10/94b6b6083123e413b1049fc5cb5c67105117c6fa281474a8dfd1153e0fa28455c0644cf75e099841ab19141f16f019918c513e160e5bd92a8383a08300127d2c
+  languageName: node
+  linkType: hard
+
+"@mui/x-data-grid@npm:8.5.1":
+  version: 8.5.1
+  resolution: "@mui/x-data-grid@npm:8.5.1"
+  dependencies:
+    "@babel/runtime": "npm:^7.27.4"
+    "@mui/utils": "npm:^7.1.1"
+    "@mui/x-internals": "npm:8.5.1"
+    clsx: "npm:^2.1.1"
+    prop-types: "npm:^15.8.1"
+    reselect: "npm:^5.1.1"
+    use-sync-external-store: "npm:^1.5.0"
+  peerDependencies:
+    "@emotion/react": ^11.9.0
+    "@emotion/styled": ^11.8.1
+    "@mui/material": ^5.15.14 || ^6.0.0 || ^7.0.0
+    "@mui/system": ^5.15.14 || ^6.0.0 || ^7.0.0
+    react: ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-dom: ^17.0.0 || ^18.0.0 || ^19.0.0
+  peerDependenciesMeta:
+    "@emotion/react":
+      optional: true
+    "@emotion/styled":
+      optional: true
+  checksum: 10/bb4cc6105d1c87177eca7b24fe03f1e3d11224d66656065c0003c7332405e16667ecdb08a9b4c813dd991f0df7da77ce0f7258f76f8ab91daa0b5789e51a94a1
+  languageName: node
+  linkType: hard
+
 "@mui/x-internals@npm:8.5.0":
   version: 8.5.0
   resolution: "@mui/x-internals@npm:8.5.0"
@@ -1843,6 +1906,19 @@ __metadata:
     "@mui/system": ^5.15.14 || ^6.0.0 || ^7.0.0
     react: ^17.0.0 || ^18.0.0 || ^19.0.0
   checksum: 10/55267689dadc509e75b1e6ec914a4a602ad903872799a9d692a38c5e650af1b04a0e604a36d1a7907a08c691dc2d7ea9a9917fc62fcddc5a52959edfb702ff5a
+  languageName: node
+  linkType: hard
+
+"@mui/x-internals@npm:8.5.1":
+  version: 8.5.1
+  resolution: "@mui/x-internals@npm:8.5.1"
+  dependencies:
+    "@babel/runtime": "npm:^7.27.4"
+    "@mui/utils": "npm:^7.1.1"
+  peerDependencies:
+    "@mui/system": ^5.15.14 || ^6.0.0 || ^7.0.0
+    react: ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10/b5cf1f42f72fbaf8d6a6c78cce802dfe1f887a5c0c09c7fd995dabdede03d3b943cc57f57ad4afeecc9ebc58ef55e3acdf67e510d03923957b5d5108560a6011
   languageName: node
   linkType: hard
 
@@ -1860,6 +1936,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@mui/x-license@npm:8.5.1":
+  version: 8.5.1
+  resolution: "@mui/x-license@npm:8.5.1"
+  dependencies:
+    "@babel/runtime": "npm:^7.27.4"
+    "@mui/utils": "npm:^7.1.1"
+    "@mui/x-internals": "npm:8.5.1"
+    "@mui/x-telemetry": "npm:8.5.1"
+  peerDependencies:
+    react: ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10/b0e6b6e40129bb03a5aafe527f592acda75734d41fabb674b7f5f45965c45706bc133351c3432ba23ffacf090e9c714cf71fb60c589890f5ed4ccfff81958378
+  languageName: node
+  linkType: hard
+
 "@mui/x-telemetry@npm:8.5.0":
   version: 8.5.0
   resolution: "@mui/x-telemetry@npm:8.5.0"
@@ -1871,6 +1961,20 @@ __metadata:
     is-docker: "npm:^3.0.0"
     node-machine-id: "npm:^1.1.12"
   checksum: 10/759e156471325e673bb1789b51b23eccd9e8519f1c7bcc94271ab9d2318b204643d0a6317cb5bb15600ca18caeec48c5c8e01134be3641ee6259e5744d5252ff
+  languageName: node
+  linkType: hard
+
+"@mui/x-telemetry@npm:8.5.1":
+  version: 8.5.1
+  resolution: "@mui/x-telemetry@npm:8.5.1"
+  dependencies:
+    "@babel/runtime": "npm:^7.27.4"
+    "@fingerprintjs/fingerprintjs": "npm:^3.4.2"
+    ci-info: "npm:^4.2.0"
+    conf: "npm:^11.0.2"
+    is-docker: "npm:^3.0.0"
+    node-machine-id: "npm:^1.1.12"
+  checksum: 10/8312938eea208d6301d9a1fb7baac59e9923fe1da572d5a518bae4aeb2097850c00c3b9f3fe490c3da45db5623805edeb828fdafadb47f41fbb925c30aed09ea
   languageName: node
   linkType: hard
 
@@ -2721,6 +2825,13 @@ __metadata:
   version: 1.0.7
   resolution: "@types/estree@npm:1.0.7"
   checksum: 10/419c845ece767ad4b21171e6e5b63dabb2eb46b9c0d97361edcd9cabbf6a95fcadb91d89b5fa098d1336fa0b8fceaea82fca97a2ef3971f5c86e53031e157b21
+  languageName: node
+  linkType: hard
+
+"@types/format-util@npm:^1.0.4":
+  version: 1.0.4
+  resolution: "@types/format-util@npm:1.0.4"
+  checksum: 10/2c0643203de286788986ef2a73d56e8b9609dbfa9cfe817792e8bf920c0fa72ff72beb502f5c53799b6752130a177e19afac0f0ae78d349f3bac7817ccbdaadc
   languageName: node
   linkType: hard
 
@@ -9406,6 +9517,7 @@ __metadata:
     "@mui/lab": "npm:6.0.0-beta.13"
     "@mui/material": "npm:^6.1.5"
     "@mui/material-nextjs": "npm:^6.1.5"
+    "@mui/x-data-grid-pro": "npm:^8.5.1"
     "@mui/x-tree-view-pro": "npm:^8.5.0"
     "@parcel/watcher": "npm:^2.4.1"
     "@types/node": "npm:^22"
