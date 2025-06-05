@@ -1,7 +1,6 @@
 import React from "react";
-import { Assembly } from "./NewAnnotationsHeader";
 import Config from "../../../config.json";
-import { DownloadButton, DownloadButtonProps } from "./NewAnnotationsUtils";
+import { DownloadButton, DownloadButtonProps } from "./DownloadButton";
 import {
   CA_CTCF,
   CA_H3K4me3,
@@ -15,6 +14,7 @@ import {
   ELS,
 } from "../../../common/lib/colors";
 import DownloadContentLayout from "./DownloadContentLayout";
+import { Assembly } from "./Annotations";
 
 const classDownloads: {
   GRCh38: DownloadButtonProps[];
@@ -150,7 +150,7 @@ interface NewAnnotationsByClassProps {
   assembly: Assembly;
 }
 
-const NewAnnotationsByClass: React.FC<NewAnnotationsByClassProps> = ({
+const AnnotationsByClass: React.FC<NewAnnotationsByClassProps> = ({
   assembly,
 }) => {
   return (
@@ -162,4 +162,4 @@ const NewAnnotationsByClass: React.FC<NewAnnotationsByClassProps> = ({
   );
 };
 
-export default NewAnnotationsByClass;
+export default AnnotationsByClass;

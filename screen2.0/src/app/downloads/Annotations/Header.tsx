@@ -2,8 +2,8 @@ import React from "react";
 import { Box, Button, Stack, Typography } from "@mui/material";
 import DownloadIcon from "@mui/icons-material/Download";
 import Config from "../../../config.json"
+import { Assembly } from "./Annotations";
 
-export type Assembly = "GRCh38" | "mm10";
 
 const ASSEMBLY_CONFIG = {
   GRCh38: {
@@ -22,11 +22,11 @@ const ASSEMBLY_CONFIG = {
   },
 } as const;
 
-type NewAnnotationsHeaderProps = {
+type AnnotationsHeaderProps = {
   assembly: Assembly;
 };
 
-const NewAnnotationsHeader: React.FC<NewAnnotationsHeaderProps> = ({ assembly }) => {
+const AnnotationsHeader: React.FC<AnnotationsHeaderProps> = ({ assembly }) => {
   const config = ASSEMBLY_CONFIG[assembly];
 
   return (
@@ -55,4 +55,4 @@ const NewAnnotationsHeader: React.FC<NewAnnotationsHeaderProps> = ({ assembly })
   );
 };
 
-export default NewAnnotationsHeader;
+export default AnnotationsHeader;
