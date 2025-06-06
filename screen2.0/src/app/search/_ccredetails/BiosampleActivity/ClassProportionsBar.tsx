@@ -3,8 +3,11 @@ import { CcreClass, cCRERow } from "./inspecificbiosample";
 import { BarStackHorizontal } from "@visx/shape";
 import { GROUP_COLOR_MAP } from "../utils";
 import { scaleBand, scaleLinear } from "@visx/scale";
-import { Tooltip, useTooltip, defaultStyles } from '@visx/tooltip';
+import { Tooltip as VisxTooltip, useTooltip, defaultStyles } from '@visx/tooltip';
 import { localPoint } from '@visx/event';
+import { TooltipProps } from "@visx/tooltip/lib/tooltips/Tooltip";
+
+const Tooltip = VisxTooltip as unknown as React.FC<TooltipProps>;
 
 export type ClassProportionBarProps = {
   rows: cCRERow[];
