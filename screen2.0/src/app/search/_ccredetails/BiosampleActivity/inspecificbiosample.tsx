@@ -1,12 +1,17 @@
 "use client"
 import React from "react"
 import { useQuery } from "@apollo/client"
-import { TOP_TISSUES, GET_CCRE_CT_TF } from "./queries"
+import { TOP_TISSUES, GET_CCRE_CT_TF } from "../queries"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
-import { z_score, z_score_render, GROUP_COLOR_MAP } from "./utils"
+import { z_score, z_score_render, GROUP_COLOR_MAP } from "../utils"
 import Grid from "@mui/material/Grid2"
-import { LoadingMessage } from "../../../common/lib/utility"
+import { LoadingMessage } from "../../../../common/lib/utility"
 import { DataTableColumn } from "@weng-lab/psychscreen-ui-components"
+import ParentSize from '@visx/responsive/lib/components/ParentSize';
+import ClassProportionsBar from "./ClassProportionsBar"
+import { Typography } from "@mui/material"
+
+export type CcreClass = "PLS" | "pELS" | "dELS" | "CA-H3K4me3" | "CA-CTCF" | "CA-TF" | "CA" | "TF" | "InActive" | "noclass"
 
 export type cCRERow = {
   ct?: string
@@ -16,7 +21,7 @@ export type cCRERow = {
   h3k27ac: number
   ctcf: number
   atac: number
-  group: string
+  class: CcreClass
   tf?: string
 }
 
@@ -28,7 +33,7 @@ type InSpecificBiosamplesProps = {
 
 
 const tableCols = (typeC = false) => {
-  let cols = typeC ? [
+  const cols = typeC ? [
     {
       header: "Cell Type",
       value: (row: cCRERow) =>
@@ -104,10 +109,10 @@ const tableCols = (typeC = false) => {
     },
     {
       header: "Classification",
-      value: (row: cCRERow) =>  GROUP_COLOR_MAP.get(row.group) ? GROUP_COLOR_MAP.get(row.group).split(":")[0] : "DNase only",
+      value: (row: cCRERow) =>  GROUP_COLOR_MAP.get(row.class) ? GROUP_COLOR_MAP.get(row.class).split(":")[0] : "DNase only",
       render: (row: cCRERow) => {
-        let group = row.group.split(",")[0]
-        let colormap = GROUP_COLOR_MAP.get(group)
+        const group = row.class
+        const colormap = GROUP_COLOR_MAP.get(group)
         return colormap ?
           <span style={{ color: colormap.split(":")[1] }}>
             <strong>{colormap.split(":")[0]}</strong>
@@ -162,9 +167,9 @@ const ctAgnosticColumns: () => DataTableColumn<{
     header: "Classification",
     value: (row) =>  GROUP_COLOR_MAP.get(row.group) ? GROUP_COLOR_MAP.get(row.group).split(":")[0] : "DNase only",
     render: (row) => {
-      let group =  row.group.split(",")[0]
+      const group =  row.group.split(",")[0]
       
-      let colormap = GROUP_COLOR_MAP.get(group)
+      const colormap = GROUP_COLOR_MAP.get(group)
       return colormap ? 
       <span style={{ color: colormap.split(":")[1] }}>
         <strong>{ colormap.split(":")[0]}</strong>
@@ -206,8 +211,8 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
 
   let partialDataCollection: cCRERow[], coreCollection: cCRERow[], ancillaryCollection: cCRERow[];
   if (data_toptissues) {
-    let r = data_toptissues.ccREBiosampleQuery.biosamples
-    let ctcfdata = r.map((rs) => {
+    const r = data_toptissues.ccREBiosampleQuery.biosamples
+    const ctcfdata = r.map((rs) => {
       return rs.cCREZScores
         .filter((d) => d.assay.toLowerCase() === "ctcf")
         .map((c) => {
@@ -215,14 +220,14 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
         })
     })
 
-    let d = ctcfdata.filter((s) => s.length > 0).flat()
+    const d = ctcfdata.filter((s) => s.length > 0).flat()
 
-    let c = {}
+    const c = {}
     d.forEach((g) => {
       c[g.ct] = { ctcf: g.score, tissue: g.tissue }
     })
 
-    let dnasedata = r.map((rs) => {
+    const dnasedata = r.map((rs) => {
       return rs.cCREZScores
         .filter((d) => d.assay.toLowerCase() === "dnase")
         .map((c) => {
@@ -230,14 +235,14 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
         })
     })
 
-    let dnase = dnasedata.filter((s) => s.length > 0).flat()
+    const dnase = dnasedata.filter((s) => s.length > 0).flat()
 
-    let dn = {}
+    const dn = {}
     dnase.forEach((g) => {
       dn[g.ct] = { dnase: g.score, tissue: g.tissue }
     })
 
-    let h3k4me3data = r.map((rs) => {
+    const h3k4me3data = r.map((rs) => {
       return rs.cCREZScores
         .filter((d) => d.assay.toLowerCase() === "h3k4me3")
         .map((c) => {
@@ -245,14 +250,14 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
         })
     })
 
-    let h3k4me3 = h3k4me3data.filter((s) => s.length > 0).flat()
+    const h3k4me3 = h3k4me3data.filter((s) => s.length > 0).flat()
 
-    let h3 = {}
+    const h3 = {}
     h3k4me3.forEach((g) => {
       h3[g.ct] = { h3k4me3: g.score, tissue: g.tissue }
     })
 
-    let h3k27acdata = r.map((rs) => {
+    const h3k27acdata = r.map((rs) => {
       return rs.cCREZScores
         .filter((d) => d.assay.toLowerCase() === "h3k27ac")
         .map((c) => {          
@@ -260,14 +265,14 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
         })
     })
 
-    let h3k27ac = h3k27acdata.filter((s) => s.length > 0).flat()
+    const h3k27ac = h3k27acdata.filter((s) => s.length > 0).flat()
 
-    let h3k = {}
+    const h3k = {}
     h3k27ac.forEach((g) => {
       h3k[g.ct] = { h3k27ac: g.score, tissue: g.tissue }
     })
 
-    let typedata = r.map((d) => {
+    const typedata = r.map((d) => {
       return {
         ct: d.name,
         tf: data_ccre_tf && data_ccre_tf.getcCRETFQuery.length>0 ? data_ccre_tf.getcCRETFQuery.find(a=> d.name===a.celltype)?.tf.toString(): undefined ,
@@ -291,54 +296,55 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
       }
     })
    
+
     
-    let ccreCts = typedata.map((t) => {
-      let group     
-      let tf =  data_ccre_tf && data_ccre_tf.getcCRETFQuery.length>0 ? data_ccre_tf.getcCRETFQuery.find(a=> t.ct===a.celltype)?.tf.toString(): undefined     
+    const ccreCts = typedata.map((t) => {
+      let ccreClass: CcreClass     
+      const tf =  data_ccre_tf && data_ccre_tf.getcCRETFQuery.length>0 ? data_ccre_tf.getcCRETFQuery.find(a=> t.ct===a.celltype)?.tf.toString(): undefined     
         
       if(t.dnase != -11.0)
       {
           if((t.dnase >= 1.64)) {
             if(t.h3k4me3 >= 1.64) {
                 if(distance <= 200) {
-                    group = "PLS" //Promoter-like signatures (promoter) must fall within 200 bp of a TSS and have high chromatin accessibility and H3K4me3 signals.
+                    ccreClass = "PLS" //Promoter-like signatures (promoter) must fall within 200 bp of a TSS and have high chromatin accessibility and H3K4me3 signals.
                 }
                 else if((t.h3k27ac < 1.64) && distance > 200) {
-                        group = "CA-H3K4me3" //Chromatin accessibility + H3K4me3 (CA-H3K4me3) have high chromatin accessibility and H3K4me3 signals but low H3K27ac signals and do not fall within 200 bp of a TSS.
+                        ccreClass = "CA-H3K4me3" //Chromatin accessibility + H3K4me3 (CA-H3K4me3) have high chromatin accessibility and H3K4me3 signals but low H3K27ac signals and do not fall within 200 bp of a TSS.
                 }
                 else if (distance <= 2000  && t.h3k27ac >= 1.64) {              
-                        group = "pELS" //Enhancer-like signatures (enhancer) have high chromatin accessibility and H3K27ac signals. Enhancers are further divided into TSS-proximal or distal with a 2 kb distance cutoff.          
+                        ccreClass = "pELS" //Enhancer-like signatures (enhancer) have high chromatin accessibility and H3K27ac signals. Enhancers are further divided into TSS-proximal or distal with a 2 kb distance cutoff.          
                 } else if(distance > 2000  && t.h3k27ac >= 1.64) {              
-                        group = "dELS" //Enhancer-like signatures (enhancer) have high chromatin accessibility and H3K27ac signals. Enhancers are further divided into TSS-proximal or distal with a 2 kb distance cutoff.          
+                        ccreClass = "dELS" //Enhancer-like signatures (enhancer) have high chromatin accessibility and H3K27ac signals. Enhancers are further divided into TSS-proximal or distal with a 2 kb distance cutoff.          
                 }
             }
             else if(t.h3k27ac >= 1.64) {
                 if(distance <= 2000) {   
-                        group ="pELS"       //Enhancer-like signatures (enhancer) have high chromatin accessibility and H3K27ac signals. Enhancers are further divided into TSS-proximal or distal with a 2 kb distance cutoff.          
+                        ccreClass ="pELS"       //Enhancer-like signatures (enhancer) have high chromatin accessibility and H3K27ac signals. Enhancers are further divided into TSS-proximal or distal with a 2 kb distance cutoff.          
                 } else if(distance > 2000) {
-                        group = "dELS"  //Enhancer-like signatures (enhancer) have high chromatin accessibility and H3K27ac signals. Enhancers are further divided into TSS-proximal or distal with a 2 kb distance cutoff.          
+                        ccreClass = "dELS"  //Enhancer-like signatures (enhancer) have high chromatin accessibility and H3K27ac signals. Enhancers are further divided into TSS-proximal or distal with a 2 kb distance cutoff.          
                 }
             }
             else if(t.ctcf >= 1.64) {
-                group = "CA-CTCF" //Chromatin accessibility + CTCF (CA-CTCF) have high chromatin accessibility and CTCF signals but low H3K4me3 and H3K27ac signals.
+                ccreClass = "CA-CTCF" //Chromatin accessibility + CTCF (CA-CTCF) have high chromatin accessibility and CTCF signals but low H3K4me3 and H3K27ac signals.
             }
             else if(tf==='1') {
-                group = "CA-TF" //Chromatin accessibility + transcription factor (CA-TF) have high chromatin accessibility, low H3K4me3, H3K27ac, and CTCF signals and are bound by a transcription factor.
+                ccreClass = "CA-TF" //Chromatin accessibility + transcription factor (CA-TF) have high chromatin accessibility, low H3K4me3, H3K27ac, and CTCF signals and are bound by a transcription factor.
             }
             else {
-                group = "CA" //Chromatin accessibility (CA) have high chromatin accessibility, and low H3K4me3, H3K27ac, and CTCF signals.
+                ccreClass = "CA" //Chromatin accessibility (CA) have high chromatin accessibility, and low H3K4me3, H3K27ac, and CTCF signals.
             }
           }
           else {            
             if(tf==='1'){
-              group = "TF" //Transcription factor (TF) have low chromatin accessibility, low H3K4me3, H3K27ac, and CTCF signals and are bound by a transcription factor.
+              ccreClass = "TF" //Transcription factor (TF) have low chromatin accessibility, low H3K4me3, H3K27ac, and CTCF signals and are bound by a transcription factor.
             } else {
-              group = "InActive" //low chromatin accessibility, low H3K4me3, H3K27ac, and CTCF signals and are NOT bound by a transcription factor.
+              ccreClass = "InActive" //low chromatin accessibility, low H3K4me3, H3K27ac, and CTCF signals and are NOT bound by a transcription factor.
             }            
           }
       }
       else {
-        group  = "noclass" //If not active in DNase, No class assigned
+        ccreClass  = "noclass" //If not active in DNase, No class assigned
       }
       
       let type: "core" | "partial" | "ancillary"
@@ -350,74 +356,110 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({ acce
           type = "core"
         }
       } 
-      return { ...t, type, group }
+      return { ...t, type, class: ccreClass }
     })
 
     coreCollection = ccreCts.filter((c) => c.type === "core")
     partialDataCollection = ccreCts.filter((c) => c.type === "partial")
     ancillaryCollection = ccreCts.filter((c) => c.type === "ancillary")
   }
-  return (loading_toptissues || error_toptissues ? (<Grid container spacing={3} sx={{ mt: "0rem", mb: "0rem" }}>
-    <Grid
-      size={{
-        xs: 12,
-        md: 12,
-        lg: 12
-      }}>
-      <LoadingMessage />
+  return loading_toptissues || error_toptissues ? (
+    <Grid container spacing={3} sx={{ mt: "0rem", mb: "0rem" }}>
+      <Grid
+        size={{
+          xs: 12,
+          md: 12,
+          lg: 12,
+        }}
+      >
+        <LoadingMessage />
+      </Grid>
     </Grid>
-  </Grid>) : (<Grid container spacing={3} sx={{ mt: "0rem", mb: "0rem" }}>
-    <Grid size={12}>
-      {data_toptissues && (
-        <DataTable
-          rows={[{ ...data_toptissues.cCREQuery[0] }]}
-          tableTitle="Cell type agnostic classification"
-          columns={ctAgnosticColumns()}
-          sortColumn={1}
-          itemsPerPage={1}
-          searchable
-          downloadFileName={`${assembly} ${accession} - Cell type agnostic classification.tsv`}
-        />
-      )}
+  ) : (
+    <Grid container spacing={3} sx={{ mt: "0rem", mb: "0rem" }}>
+      <Grid size={12}>
+        {data_toptissues && (
+          <DataTable
+            rows={[{ ...data_toptissues.cCREQuery[0] }]}
+            tableTitle="Cell type agnostic classification"
+            columns={ctAgnosticColumns()}
+            sortColumn={1}
+            itemsPerPage={1}
+            searchable
+            downloadFileName={`${assembly} ${accession} - Cell type agnostic classification.tsv`}
+          />
+        )}
+      </Grid>
+      <Grid size={12}>
+        {/* Core Collection */}
+        {coreCollection ? (
+          <ParentSize>
+            {({ width }) => (
+              <>
+                <Typography>Class Proportions in Core Collection:</Typography>
+                <ClassProportionsBar
+                  rows={coreCollection}
+                  height={15}
+                  width={width}
+                />
+                <DataTable
+                  columns={tableCols()}
+                  tableTitle="Core Collection"
+                  rows={coreCollection}
+                  sortColumn={1}
+                  searchable
+                  downloadFileName={`${assembly} ${accession} - Core Collection.tsv`}
+                />
+              </>
+            )}
+          </ParentSize>
+        ) : (
+          <LoadingMessage />
+        )}
+      </Grid>
+      <Grid size={12}>
+        {/* Type B & D */}
+        {partialDataCollection ? (
+          <ParentSize>
+            {({ width }) => (
+              <>
+                <Typography>Chromatin Accessibility in Partial Data Collection:</Typography>
+                <ClassProportionsBar
+                  rows={partialDataCollection}
+                  height={15}
+                  width={width}
+                  onlyUseChromatinAccessibility
+                />
+                <DataTable
+                  columns={tableCols()}
+                  sortColumn={1}
+                  tableTitle="Partial Data Collection"
+                  rows={partialDataCollection}
+                  searchable
+                  downloadFileName={`${assembly} ${accession} - Partial Data Collection.tsv`}
+                />
+              </>
+            )}
+          </ParentSize>
+        ) : (
+          <LoadingMessage />
+        )}
+      </Grid>
+      <Grid size={12}>
+        {/* Type C */}
+        {ancillaryCollection ? (
+          <DataTable
+            columns={tableCols(true)}
+            tableTitle="Ancillary Collection"
+            rows={ancillaryCollection}
+            sortColumn={1}
+            searchable
+            downloadFileName={`${assembly} ${accession} - Ancillary Collection.tsv`}
+          />
+        ) : (
+          <LoadingMessage />
+        )}
+      </Grid>
     </Grid>
-    <Grid size={12}>
-      {/* Core Collection */}
-      {coreCollection  ? (
-        <DataTable
-          columns={tableCols()}
-          tableTitle="Core Collection"
-          rows={coreCollection}
-          sortColumn={1}
-          searchable
-          downloadFileName={`${assembly} ${accession} - Core Collection.tsv`}
-        />
-      ) : <LoadingMessage />}
-    </Grid>
-    <Grid size={12}>
-      {/* Type B & D */}
-      {partialDataCollection  ? (
-        <DataTable
-          columns={tableCols()}
-          sortColumn={1}
-          tableTitle="Partial Data Collection"
-          rows={partialDataCollection}
-          searchable
-          downloadFileName={`${assembly} ${accession} - Partial Data Collection.tsv`}
-        />
-      ) : <LoadingMessage />}
-    </Grid>
-    <Grid size={12}>
-      {/* Type C */}
-      {ancillaryCollection ? (
-        <DataTable
-          columns={tableCols(true)}
-          tableTitle="Ancillary Collection"
-          rows={ancillaryCollection}
-          sortColumn={1}
-          searchable
-          downloadFileName={`${assembly} ${accession} - Ancillary Collection.tsv`}
-        />
-      ) : <LoadingMessage />}
-    </Grid>
-  </Grid>));
+  );
 }
