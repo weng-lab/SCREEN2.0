@@ -1,9 +1,9 @@
 import { Stack, styled } from "@mui/material";
 import React, { useState } from "react";
 import AnnotationsHeader from "./Header";
-import AnnotationsByClass from "./ByClass";
-import AnnotationsGeneLinks from "./CcreGeneLinks";
-import AnnotationsByCelltype from "./ByCelltype";
+import AnnotationsByClass from "./AnnotationsByClass";
+import AnnotationsGeneLinks from "./AnnotationsCcreGeneLinks";
+import AnnotationsByCelltype from "./AnnotationsByCelltype";
 import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
 import { TreeItem, TreeItemProps } from "@mui/x-tree-view";
 

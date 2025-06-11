@@ -81,6 +81,12 @@ const classDownloads: {
       fileSize: "63.0 MB",
       bordercolor: CTCF_Bound,
     },
+    {
+      href: Config.Downloads.HumanSilencers,
+      label: "Silencer Sets (.tar.gz)",
+      fileSize: "14.3 MB (unzipped)",
+      bordercolor: "gray"
+    }
   ],
   mm10: [
     {
