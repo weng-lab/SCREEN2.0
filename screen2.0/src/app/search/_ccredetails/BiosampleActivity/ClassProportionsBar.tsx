@@ -10,7 +10,6 @@ import {
   TableBody,
   TableCell,
   TableRow,
-  TooltipProps,
   Typography,
 } from "@mui/material";
 import { TooltipInPortalProps } from "@visx/tooltip/lib/hooks/useTooltipInPortal";
@@ -56,7 +55,7 @@ const ClassProportionsBar: React.FC<ClassProportionBarProps> = ({
         noclass: rows.filter((x) => x.class === "noclass").length,
       };
 
-  const { containerRef, containerBounds, TooltipInPortal } = useTooltipInPortal(
+  const { containerRef, TooltipInPortal } = useTooltipInPortal(
     {
       scroll: true,
       detectBounds: true,

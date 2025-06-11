@@ -9,7 +9,7 @@ import { LoadingMessage } from "../../../../common/lib/utility";
 import { DataTableColumn } from "@weng-lab/psychscreen-ui-components";
 import ParentSize from "@visx/responsive/lib/components/ParentSize";
 import ClassProportionsBar from "./ClassProportionsBar";
-import { Box, Stack, Typography } from "@mui/material";
+import { Stack } from "@mui/material";
 
 export type CcreClass =
   | "PLS"
