@@ -3,22 +3,24 @@ import { CcreClass, cCRERow } from "./inspecificbiosample";
 import { BarStack, BarStackHorizontal } from "@visx/shape";
 import { GROUP_COLOR_MAP } from "../utils";
 import { scaleBand, scaleLinear } from "@visx/scale";
-import {
-  useTooltip,
-  defaultStyles,
-  useTooltipInPortal,
-} from "@visx/tooltip";
+import { useTooltip, defaultStyles, useTooltipInPortal } from "@visx/tooltip";
 import { localPoint } from "@visx/event";
-import { Table, TableBody, TableCell, TableRow, Typography } from "@mui/material";
-
-// const TooltipWithBounds = VisxTooltipWithBounds as unknown as React.FC<TooltipProps>;
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
+  TooltipProps,
+  Typography,
+} from "@mui/material";
+import { TooltipInPortalProps } from "@visx/tooltip/lib/hooks/useTooltipInPortal";
 
 export type ClassProportionBarProps = {
   rows: cCRERow[];
   width: number;
   height: number;
   orientation: "vertical" | "horizontal";
-  tooltipTitle: string
+  tooltipTitle: string;
   onlyUseChromatinAccessibility?: boolean;
 };
 
@@ -54,10 +56,16 @@ const ClassProportionsBar: React.FC<ClassProportionBarProps> = ({
         noclass: rows.filter((x) => x.class === "noclass").length,
       };
 
-        const { containerRef, containerBounds, TooltipInPortal } = useTooltipInPortal({
-    scroll: true,
-    detectBounds: true,
-  });
+  const { containerRef, containerBounds, TooltipInPortal } = useTooltipInPortal(
+    {
+      scroll: true,
+      detectBounds: true,
+    }
+  );
+
+  //Fix weird type error on build
+  //Type error: 'TooltipInPortal' cannot be used as a JSX component.
+  const TooltipComponent = TooltipInPortal as unknown as React.FC<TooltipInPortalProps>;
 
   const {
     tooltipData,
@@ -70,7 +78,7 @@ const ClassProportionsBar: React.FC<ClassProportionBarProps> = ({
 
   const getColor = (key: CcreClass | ChromatinAccessibilityCategory) => {
     if (onlyUseChromatinAccessibility) {
-      return key === "highDNase" ? "#06DA93" : "#8c8c8c";
+      return key === "highDNase" ? "#06DA93" : "#e1e1e1";
     } else return GROUP_COLOR_MAP.get(key).split(":")[1];
   };
 
@@ -95,7 +103,10 @@ const ClassProportionsBar: React.FC<ClassProportionBarProps> = ({
     range: [0, 0],
   });
 
-  const handleMouseOver = (event: React.MouseEvent<HTMLDivElement, MouseEvent>, datum) => {
+  const handleMouseOver = (
+    event: React.MouseEvent<HTMLDivElement, MouseEvent>,
+    datum
+  ) => {
     const coords = localPoint(event, event);
     showTooltip({
       tooltipLeft: coords.x,
@@ -110,10 +121,13 @@ const ClassProportionsBar: React.FC<ClassProportionBarProps> = ({
     color: getColor,
   };
 
-  const hitboxPadding = 10
+  const hitboxPadding = 10;
 
   return (
-    <div style={{ position: "relative", zIndex: 1000, width, height }} ref={containerRef}>
+    <div
+      style={{ position: "relative", zIndex: 1000, width, height }}
+      ref={containerRef}
+    >
       <svg width={width} height={height} style={{ display: "block" }}>
         {orientation === "vertical" ? (
           <BarStack
@@ -148,11 +162,10 @@ const ClassProportionsBar: React.FC<ClassProportionBarProps> = ({
         onMouseLeave={hideTooltip}
       />
       {tooltipOpen && tooltipData && (
-        <TooltipInPortal
+        <TooltipComponent
           top={tooltipTop}
           left={tooltipLeft}
-          style={{zIndex: 1000, ...defaultStyles}}
-          
+          style={{ zIndex: 1000, ...defaultStyles }}
         >
           <Typography>{tooltipTitle}</Typography>
           <Table size="small">
@@ -162,7 +175,9 @@ const ClassProportionsBar: React.FC<ClassProportionBarProps> = ({
                 const formattedKey = getFormattedCategory(
                   key as CcreClass | ChromatinAccessibilityCategory
                 );
-                const color = getColor(key as CcreClass | ChromatinAccessibilityCategory)
+                const color = getColor(
+                  key as CcreClass | ChromatinAccessibilityCategory
+                );
                 return (
                   <TableRow>
                     <TableCell>
@@ -187,7 +202,7 @@ const ClassProportionsBar: React.FC<ClassProportionBarProps> = ({
               })}
             </TableBody>
           </Table>
-        </TooltipInPortal>
+        </TooltipComponent>
       )}
     </div>
   );

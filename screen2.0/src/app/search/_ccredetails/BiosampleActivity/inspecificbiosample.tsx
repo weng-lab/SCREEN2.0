@@ -127,13 +127,17 @@ const tableCols = (typeC = false) => {
           render: (row: cCRERow) => {
             const group = row.class;
             const colormap = GROUP_COLOR_MAP.get(group);
-            return colormap ? (
-              <span style={{ color: colormap.split(":")[1] }}>
-                <strong>{colormap.split(":")[0]}</strong>
-              </span>
-            ) : (
-              <span style={{ color: "#06da93" }}>
-                <strong>DNase only</strong>
+            const color = colormap
+              ? row.class === "InActive"
+                ? "gray"
+                : colormap.split(":")[1]
+              : "#06da93";
+            const classification = colormap
+              ? colormap.split(":")[0]
+              : "DNase only";
+            return (
+              <span style={{ color }}>
+                <strong>{classification}</strong>
               </span>
             );
           },
@@ -185,16 +189,17 @@ const ctAgnosticColumns: () => DataTableColumn<{
         ? GROUP_COLOR_MAP.get(row.group).split(":")[0]
         : "DNase only",
     render: (row) => {
-      const group = row.group.split(",")[0];
-
+      const group = row.group;
       const colormap = GROUP_COLOR_MAP.get(group);
-      return colormap ? (
-        <span style={{ color: colormap.split(":")[1] }}>
-          <strong>{colormap.split(":")[0]}</strong>
-        </span>
-      ) : (
-        <span style={{ color: "#06da93" }}>
-          <strong>DNase only</strong>
+      const color = colormap
+        ? row.group === "InActive"
+          ? "gray"
+          : colormap.split(":")[1]
+        : "#06da93";
+      const classification = colormap ? colormap.split(":")[0] : "DNase only";
+      return (
+        <span style={{ color }}>
+          <strong>{classification}</strong>
         </span>
       );
     },
@@ -207,7 +212,6 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({
   assembly,
   distanceToTSS,
 }) => {
-
   const {
     data: data_toptissues,
     loading: loading_toptissues,
@@ -480,7 +484,7 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({
                 <ClassProportionsBar
                   rows={partialDataCollection}
                   orientation="horizontal"
-                  height={6}
+                  height={4}
                   width={width}
                   tooltipTitle="Chromatin Accessibility, Partial Data Collection"
                   onlyUseChromatinAccessibility
