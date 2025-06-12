@@ -21,6 +21,10 @@ export type ClassProportionBarProps = {
   orientation: "vertical" | "horizontal";
   tooltipTitle: string;
   onlyUseChromatinAccessibility?: boolean;
+  /**
+   * applied to wrapper div
+   */
+  style?: React.CSSProperties
 };
 
 type ChromatinAccessibilityCategory = "highDNase" | "lowDNase";
@@ -32,6 +36,7 @@ const ClassProportionsBar: React.FC<ClassProportionBarProps> = ({
   orientation,
   tooltipTitle,
   onlyUseChromatinAccessibility = false,
+  style
 }) => {
   type Data =
     | { [key in CcreClass]: number }
@@ -124,7 +129,7 @@ const ClassProportionsBar: React.FC<ClassProportionBarProps> = ({
 
   return (
     <div
-      style={{ position: "relative", zIndex: 1000, width, height }}
+      style={{ position: "relative", zIndex: 1000, width, height, ...style }}
       ref={containerRef}
     >
       <svg width={width} height={height} style={{ display: "block" }}>

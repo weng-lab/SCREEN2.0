@@ -452,14 +452,17 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({
         {coreCollection ? (
           <ParentSize>
             {({ width }) => (
-              <Stack gap={1}>
-                <Typography variant="caption">Classification Proportions, Core Collection:</Typography>
+              <Stack>
+                <Typography variant="caption">
+                  Classification Proportions, Core Collection:
+                </Typography>
                 <ClassProportionsBar
                   rows={coreCollection}
                   height={4}
                   width={width}
                   orientation="horizontal"
                   tooltipTitle="Classification Proportions, Core Collection"
+                  style={{ marginBottom: "12px" }}
                 />
                 <DataTable
                   columns={tableCols()}
@@ -481,8 +484,10 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({
         {partialDataCollection ? (
           <ParentSize>
             {({ width }) => (
-              <Stack gap={1}>
-                <Typography variant='caption'>Chromatin Accessibility, Partial Data Collection:</Typography>
+              <Stack>
+                <Typography variant="caption">
+                  Chromatin Accessibility, Partial Data Collection:
+                </Typography>
                 <ClassProportionsBar
                   rows={partialDataCollection}
                   orientation="horizontal"
@@ -490,6 +495,7 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({
                   width={width}
                   tooltipTitle="Chromatin Accessibility, Partial Data Collection"
                   onlyUseChromatinAccessibility
+                  style={{ marginBottom: "12px" }}
                 />
                 <DataTable
                   columns={tableCols()}
