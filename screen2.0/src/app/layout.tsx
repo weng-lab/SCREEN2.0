@@ -7,6 +7,7 @@ import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter'
 import { CssBaseline, ThemeProvider } from "@mui/material"
 import { Analytics } from "@vercel/analytics/react"
 import theme from "../theme"
+import MuiXLicense from "../common/MuiXLicense";
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -33,6 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </ThemeProvider>
           </AppRouterCacheProvider>
         </ApolloWrapper>
+        <MuiXLicense />
         <Analytics />
       </body>
     </html>

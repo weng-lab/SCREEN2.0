@@ -29,6 +29,13 @@ const theme = createTheme({
           textTransform: "none"
         }
       }
+    },
+    MuiTab: {
+      styleOverrides: {
+        root: {
+          textTransform: "none"
+        }
+      }
     }
   },
 });
