@@ -2,7 +2,7 @@
 import React, { useMemo } from "react"
 import { Typography, Stack, Divider, CircularProgress } from "@mui/material"
 import { GenomicRegion } from "../types"
-import { InSpecificBiosamples } from "./inspecificbiosample"
+import { InSpecificBiosamples } from "./BiosampleActivity/inspecificbiosample"
 import { NearByGenomicFeatures } from "./nearbygenomicfeatures"
 import { LinkedGenes } from "./linkedgenes"
 import { Ortholog } from "./linkedccres"
