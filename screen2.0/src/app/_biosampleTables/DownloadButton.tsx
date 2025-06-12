@@ -3,12 +3,25 @@ import { CircularProgressProps, Box, CircularProgress, Typography, IconButton, T
 import { Close, Download } from "@mui/icons-material";
 import { downloadTSV } from "../downloads/utils";
 import { BiosampleData } from "./types";
-import { fetchFileSize } from "../downloads/annotations";
 
 export type DownloadButtonProps<T extends boolean> = {
   row: BiosampleData<T>
   downloadType: "dnase" | "h3k4me3" | "h3k27ac" | "ctcf" | "atac" | "celltypeccres"
 }
+
+const fetchFileSize = async (url: string, setFileSize: React.Dispatch<React.SetStateAction<number>>) => {
+  try {
+    const response = await fetch(url, { method: 'HEAD' });
+    const contentLength = response.headers.get('Content-Length');
+    if (contentLength) {
+      setFileSize(parseInt(contentLength, 10));
+    }
+  } catch (error) {
+    console.error("error fetching file size for ", url)
+    console.error(error)
+  }
+}
+
 
 /**
  * 

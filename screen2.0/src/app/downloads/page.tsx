@@ -1,12 +1,12 @@
 "use client"
 
 import * as React from "react"
-import { Tabs, Tab, Box, Container, Divider, Stack} from "@mui/material"
+import { Tabs, Tab, Divider, Stack} from "@mui/material"
 import Grid from "@mui/material/Grid2"
-import { Annotations } from "./annotations"
 import { DataMatrices } from "./datamatrices"
 import { useState } from "react"
 import { DownloadRange } from "./downloadrange"
+import Annotations from "./Annotations/Annotations"
 
 function a11yProps(index: number) {
   return {
@@ -23,13 +23,13 @@ export default function Downloads() {
   }
 
   return (
-    <Stack sx={{paddingX:15}}>
+    <Stack sx={{paddingX: '5%'}}>
       <Grid mt={2} container spacing={2}>
         <Grid size={{ xs: 12 }}>
           <Tabs value={page} onChange={handleChange} aria-label="basic tabs example" variant="scrollable" allowScrollButtonsMobile>
-            <Tab label="Annotations" sx={{ textTransform: "none" }} {...a11yProps(0)} />
-            <Tab label="Data Matrices" sx={{ textTransform: "none" }} {...a11yProps(1)} />
-            <Tab label="Download cCREs in Genomic Region" sx={{ textTransform: "none" }} {...a11yProps(2)} />
+            <Tab label="Annotations" {...a11yProps(0)} />
+            <Tab label="Data Matrices" {...a11yProps(1)} />
+            <Tab label="Download cCREs in Genomic Region" {...a11yProps(2)} />
           </Tabs>
           <Divider />
         </Grid>
