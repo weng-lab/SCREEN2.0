@@ -9,7 +9,7 @@ import { LoadingMessage } from "../../../../common/lib/utility";
 import { DataTableColumn } from "@weng-lab/psychscreen-ui-components";
 import ParentSize from "@visx/responsive/lib/components/ParentSize";
 import ClassProportionsBar from "./ClassProportionsBar";
-import { Stack } from "@mui/material";
+import { Stack, Typography } from "@mui/material";
 
 export type CcreClass =
   | "PLS"
@@ -453,12 +453,13 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({
           <ParentSize>
             {({ width }) => (
               <Stack gap={1}>
+                <Typography variant="caption">Classification Proportions, Core Collection:</Typography>
                 <ClassProportionsBar
                   rows={coreCollection}
                   height={4}
                   width={width}
                   orientation="horizontal"
-                  tooltipTitle="Class Proportions, Core Collection"
+                  tooltipTitle="Classification Proportions, Core Collection"
                 />
                 <DataTable
                   columns={tableCols()}
@@ -481,6 +482,7 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({
           <ParentSize>
             {({ width }) => (
               <Stack gap={1}>
+                <Typography variant='caption'>Chromatin Accessibility, Partial Data Collection:</Typography>
                 <ClassProportionsBar
                   rows={partialDataCollection}
                   orientation="horizontal"
