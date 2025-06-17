@@ -957,6 +957,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
               {mainQueryParams.coordinates.assembly !== "mm10" && <StyledVerticalTab value={9} label="ChromHMM States" />}
               <StyledVerticalTab value={7} label="Configure UCSC Genome Browser" />
               {mainQueryParams.coordinates.assembly !== "mm10" && <StyledVerticalTab value={10} label="ENTEx" />}
+              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledVerticalTab value={11} label="Silencers" />}
             </Tabs>
           }
         </Drawer>
