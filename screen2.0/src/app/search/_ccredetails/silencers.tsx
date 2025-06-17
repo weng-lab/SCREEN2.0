@@ -6,6 +6,8 @@ import { client } from "./client"
 import { CircularProgress } from "@mui/material"
 import { CreateLink } from "../../../common/lib/utility"
 import { gql } from "../../../graphql/__generated__/gql"
+import { Description } from "@mui/icons-material"
+import { Silencer_Studies } from "./const"
 
 const Silencers_Query = gql(`
 query silencersQuery($accession: [String]!){
@@ -14,18 +16,6 @@ query silencersQuery($accession: [String]!){
   }
 }
 `)
-
-export const Silencer_Study_Names: Map<string, string> = new Map([
-  ["Cai-Fullwood-2021.Silencer-cCREs", "Cai Fullwood (2021)"],
-  ["Jayavelu-Hawkins-2020.Silencer-cCREs", "Jayavelu Hawkins (2020)"],
-  ["Huan-Ovcharenko-2019.Silencer-cCREs", "Huan Ovcharenko (2019)"],
-  ["Pang-Snyder-2020.Silencer-cCREs", "Pang Snyder (2020)"],
-  ["REST-Enhancers", "REST Enhancers"],
-  ["REST-Silencers","REST Silencers"],
-  ["STARR-Silencers.Robust","STARR Silencers (Robust)"],
-  ["STARR-Silencers.Stringent","STARR Silencers (Stringent)"]
-])
-
 
 export const Silencers = (props: { accession }) => {
     const { data, loading } = useQuery(Silencers_Query, {
@@ -50,7 +40,16 @@ export const Silencers = (props: { accession }) => {
                         columns={[
                             {
                                 header: "Study",
-                                value: (row) => Silencer_Study_Names.get(row.study),
+                                value: (row) => Silencer_Studies.find(s=>s.value==row.study).study,
+                            },
+                            {
+                                header: "PMID",
+                                value: (row) => Silencer_Studies.find(s=>s.value==row.study).pubmed_id,
+                                render: (row) => <CreateLink linkPrefix={Silencer_Studies.find(s=>s.value==row.study).pubmed_link} label={Silencer_Studies.find(s=>s.value==row.study).pubmed_id} showExternalIcon underline="hover" />,
+                            },
+                            {
+                                header: "Method",
+                                value: (row) => Silencer_Studies.find(s=>s.value==row.study).method,
                             }
                         ]}
                         rows={data?.silencersQuery.flatMap(item =>
