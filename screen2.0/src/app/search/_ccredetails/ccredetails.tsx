@@ -235,7 +235,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, ass
         <ENTExData accession={accession}  coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }}/>
       }
       {page === 11 && assembly !== "mm10" &&
-        <Silencers accession={accession}  coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }}/>
+        <Silencers accession={accession}/>
       }
     </>
     :
