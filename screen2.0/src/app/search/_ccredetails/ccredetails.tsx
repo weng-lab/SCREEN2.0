@@ -10,6 +10,7 @@ import { TfIntersection } from "./tfintersection"
 import { FunctionData } from "./functionaldata"
 import { ChromHMM } from "./chromhmm";
 import { ENTExData } from "./entexdata";
+import { Silencers } from "./silencers";
 import Rampage from "./rampage"
 import { GeneExpression } from "../../applets/gene-expression/geneexpression"
 import { TfSequenceFeatures } from "../_gbview/tfsequencefeatures"
@@ -166,7 +167,13 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, ass
           :
           <LinkedGenes linkedGenes={nearest3AndLinkedGenes?.linkedGenes || []} assembly={assembly} />)
       }
-      {page === 2 && (
+       {page === 2 &&
+        <FunctionData accession={accession} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }} assembly={assembly} />
+      }
+       {page === 3 && assembly !== "mm10" &&
+        <Silencers accession={accession}/>
+      }
+      {page === 4 && (
         <NearByGenomicFeatures
           accession={accession}
           assembly={assembly}
@@ -178,10 +185,10 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, ass
           handleOpencCRE={handleOpencCRE}
         />
       )}
-      {page === 3 &&
+      {page === 5 &&
         <Ortholog accession={accession} assembly={assembly} />
       }
-      {(page === 4) &&
+      {(page === 6) &&
         (loadingLinkedGenes ?
         <CircularProgress />
         :
@@ -190,10 +197,19 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, ass
           :
           <GeneExpression assembly={assembly} genes={uniqueGenes || []} />)
       }
-      {page === 5 &&
-        <FunctionData accession={accession} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }} assembly={assembly} />
+     
+     
+      
+      {(page === 7 && assembly !== "mm10") &&
+      (!dataNearbyAndLinked || loadingLinkedGenes ?
+        <CircularProgress />
+        :
+        errorNearbyAndLinked ?
+          <Typography>{`Issue fetching Linked Genes for ${accession}.`}</Typography> 
+          :
+          <Rampage genes={uniqueGenes.length > 0 ? uniqueGenes : []} />)
       }
-      {page === 6 &&
+       {page === 8 &&
         <>
           <TfSequenceFeatures assembly={assembly} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }} />
           <TfIntersection
@@ -206,7 +222,10 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, ass
           />
         </>
       }
-      {page === 7 &&
+      {page === 9 && assembly !== "mm10" &&
+        <ChromHMM accession={accession} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }} assembly={assembly} />
+      }
+      {page === 10 &&
         <ConfigureGBTab
           coordinates={{
             assembly: assembly,
@@ -217,22 +236,11 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, ass
           accession={accession}
         />
       }
-      {page === 9 && assembly !== "mm10" &&
-        <ChromHMM accession={accession} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }} assembly={assembly} />
-      }
-
-      {(page === 8 && assembly !== "mm10") &&
-      (!dataNearbyAndLinked || loadingLinkedGenes ?
-        <CircularProgress />
-        :
-        errorNearbyAndLinked ?
-          <Typography>{`Issue fetching Linked Genes for ${accession}.`}</Typography> 
-          :
-          <Rampage genes={uniqueGenes.length > 0 ? uniqueGenes : []} />)
-      }
-      {page === 10 && assembly !== "mm10" &&
+      
+      {page === 11 && assembly !== "mm10" &&
         <ENTExData accession={accession}  coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }}/>
       }
+     
     </>
     :
     <LoadingMessage />
