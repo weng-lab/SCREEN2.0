@@ -16,7 +16,7 @@ export default function Home() {
         <Grid size={{ xs: 12, lg: 6 }}>
           <Box position={"relative"} height={{ xs: 150, md: 150 }}>
             <Image priority src={"/SCREEN_logo_light.png"} alt={"SCREEN home image"} fill style={{objectFit: "contain", objectPosition: "left center"}} />
-          </Box>
+          </Box>  
           <Typography variant="h5" mb={3} mt={2}>Search Candidate cis-Regulatory Elements by ENCODE</Typography>
           <MainSearch />
           <Typography variant="h5" mt={4}>
