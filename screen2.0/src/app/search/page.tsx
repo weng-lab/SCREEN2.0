@@ -948,15 +948,18 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
             >
               <StyledVerticalTab value={0} label="Biosample Activity" />
               {mainQueryParams.coordinates.assembly !== "mm10" && <StyledVerticalTab value={1} label="Linked Genes" />}
-              <StyledVerticalTab value={2} label="Nearby Genomic Features" />
-              <StyledVerticalTab value={3} label="Orthologous cCREs in Other Species" />
-              <StyledVerticalTab value={4} label="Associated Gene Expression" />
-              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledVerticalTab value={8} label="Associated Transcript Expression" />}
-              <StyledVerticalTab value={5} label="Functional Data" />
-              <StyledVerticalTab value={6} label="TF Motifs and Sequence Features" />
+              <StyledVerticalTab value={2} label="Functional Characterization" />
+              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledVerticalTab value={3} label="Silencers" />}
+              <StyledVerticalTab value={4} label="Nearby Genomic Features" />
+              <StyledVerticalTab value={5} label="Orthologous cCREs in Other Species" />
+              <StyledVerticalTab value={6} label="Associated Gene Expression" />
+              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledVerticalTab value={7} label="Associated Transcript Expression" />}
+              
+              <StyledVerticalTab value={8} label="TF Motifs and Sequence Features" />
               {mainQueryParams.coordinates.assembly !== "mm10" && <StyledVerticalTab value={9} label="ChromHMM States" />}
-              <StyledVerticalTab value={7} label="Configure UCSC Genome Browser" />
-              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledVerticalTab value={10} label="ENTEx" />}
+              <StyledVerticalTab value={10} label="Configure UCSC Genome Browser" />
+              {mainQueryParams.coordinates.assembly !== "mm10" && <StyledVerticalTab value={11} label="ENTEx" />}
+              
             </Tabs>
           }
         </Drawer>
