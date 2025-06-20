@@ -179,7 +179,7 @@ function ResponsiveAppBar({ maintenance }: ResponsiveAppBarProps) {
               >
                 <Image
                   priority
-                  src={"/SCREEN_logo_dark.png"}
+                  src={"/on-dark@16x.png"}
                   alt="SCREEN Icon"
                   fill
                   style={{
