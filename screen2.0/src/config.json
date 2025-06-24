@@ -49,7 +49,8 @@
     "HumanTF_only": "https://downloads.wenglab.org/Registry-V4/GRCh38-cCREs.TF.bed",
     "HumanCA_Bound": "https://downloads.wenglab.org/GRCh38-cCREs.CTCF-bound.bed",
     "HumanSilencers": "https://downloads.wenglab.org/Human_Silencers.tar.gz",
-    "HumanGeneLinks": "https://downloads.wenglab.org/Human-Gene-Links.zip",
+    "HumanGeneLinks1": "https://downloads.wenglab.org/Human-Gene-Links.zip",
+    "HumanGeneLinks2": "https://downloads.wenglab.org/V4-hg38.Gene-Links.Computational-Methods.txt.gz",
     "HumanNearestPC": "https://downloads.wenglab.org/GRCh38-Closest-Genes-PC.tsv",
     "HumanNearestAll": "https://downloads.wenglab.org/GRCh38-Closest-Genes-All.tsv",
 
