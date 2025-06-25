@@ -165,7 +165,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({ accession, region, ass
         errorNearbyAndLinked ?
           <Typography>{`Issue fetching Linked Genes for ${accession}.`}</Typography>
           :
-          <LinkedGenes linkedGenes={nearest3AndLinkedGenes?.linkedGenes || []} assembly={assembly} />)
+          <LinkedGenes linkedGenes={nearest3AndLinkedGenes?.linkedGenes || []} assembly={assembly} accession={accession}/>)
       }
        {page === 2 &&
         <FunctionData accession={accession} coordinates={{ chromosome: region.chrom, start: region.start, end: region.end }} assembly={assembly} />

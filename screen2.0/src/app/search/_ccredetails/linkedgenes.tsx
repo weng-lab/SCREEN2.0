@@ -6,30 +6,59 @@ import { CreateLink, toScientificNotationElement } from "../../../common/lib/uti
 import { Box, Paper, Typography } from "@mui/material"
 import { LinkedGeneInfo } from "./ccredetails"
 import GeneLink from "../../_utility/GeneLink"
+import { gql } from "../../../graphql/__generated__/gql"
+import { client } from "./client"
+import { useQuery } from "@apollo/client"
+import { CircularProgress } from "@mui/material"
+
+const ComputationalGeneLinks_Query = gql(`
+query ComputationalGeneLinksQuery($accession: String!){
+  ComputationalGeneLinksQuery(accession: $accession){
+   geneid
+   genename
+   genetype
+   method
+   celltype
+   score
+   methodregion
+   fileaccession
+  }
+}
+`)
 
 type props = {
   linkedGenes: LinkedGeneInfo[],
-  assembly: "mm10" | "GRCh38"
+  assembly: "mm10" | "GRCh38",
+  accession: string
 }
 
+type EmptyTileProps = {
+  title: string,
+  body: string
+}
+
+const EmptyTile: React.FC<EmptyTileProps> = (props: EmptyTileProps) =>
+  <Paper elevation={3}>
+    <Box p={"16px"}>
+      <Typography variant="h5" pb={1}>{props.title}</Typography>
+      <Typography>{props.body}</Typography>
+    </Box>
+  </Paper>
+  
 export const LinkedGenes: React.FC<props> = (props) => {
   const HiCLinked = props.linkedGenes.filter((x) => x.assay === "Intact-HiC")
   const ChIAPETLinked = props.linkedGenes.filter((x) => x.assay === "RNAPII-ChIAPET" || x.assay === "CTCF-ChIAPET")
   const crisprLinked = props.linkedGenes.filter((x) => x.method === "CRISPR")
   const eqtlLinked = props.linkedGenes.filter((x) => x.method === "eQTLs")
+  const { data, loading } = useQuery(ComputationalGeneLinks_Query, {
+          variables: { accession: props.accession },
+          skip: !props.accession,
+          fetchPolicy: "cache-and-network",
+          nextFetchPolicy: "cache-first",
+          client,
+  })
 
-  type EmptyTileProps = {
-    title: string,
-    body: string
-  }
-
-  const EmptyTile: React.FC<EmptyTileProps> = (props: EmptyTileProps) =>
-    <Paper elevation={3}>
-      <Box p={"16px"}>
-        <Typography variant="h5" pb={1}>{props.title}</Typography>
-        <Typography>{props.body}</Typography>
-      </Box>
-    </Paper>
+  console.log(data,loading)
 
   return (
     <Grid container spacing={3} sx={{ mt: "0rem", mb: "2rem" }}>
@@ -220,6 +249,49 @@ export const LinkedGenes: React.FC<props> = (props) => {
           :
           <EmptyTile title="eQTLs" body="This cCRE does not overlap a variant associated with significant changes in gene expression" />
         }
+      </Grid>
+      <Grid size={12}>
+        {loading && <CircularProgress />}
+        {data && !loading && data.ComputationalGeneLinksQuery.length > 0 ? <DataTable columns={[{
+                header: "Common Gene Name",
+                value: (row) => row.genename,
+                render: (row) =><GeneLink assembly={props.assembly} geneName={row.genename} />
+              },
+              {
+                header: "Gene Type",
+                value: (row) => row.genetype === 'lncRNA' ? row.genetype : row.genetype.replaceAll('_', ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+              },
+              {
+                header: "Gene ID",
+                value: (row) => row.geneid,
+              },
+              {
+                header: "Method",
+                value: (row) => row.method.replaceAll("_"," "),
+              },
+              {
+                header: "Method Region",
+                value: (row) => row.methodregion.replaceAll("_"," ").replace(/^(\S+)\s+(\S+)\s+(\S+)$/, '$1:$2-$3'),
+              },
+              {
+                header: "File ID",
+                value: (row) => row.fileaccession,
+                render: (row) => <CreateLink linkPrefix="https://www.encodeproject.org/files/" linkArg={row.fileaccession} label={row.fileaccession} showExternalIcon underline="hover" />
+              },
+              {
+                header: "Biosample",
+                value: (row) => row.celltype,
+                render: (row) => <Typography variant="body2" minWidth={'200px'} maxWidth={'400px'}>{row.celltype.replaceAll('_', ' ').split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</Typography>
+              },
+              {
+                header: "Score",
+                value: (row) => row.score.toFixed(2),
+              }]}  
+            tableTitle="Computational methods"
+            rows={data.ComputationalGeneLinksQuery}
+            sortColumn={7}
+            sortDescending
+            searchable/> : <EmptyTile title="Computational methods" body="This cCRE does not have any genes linked by computational method" /> }
       </Grid>
     </Grid>
   );
