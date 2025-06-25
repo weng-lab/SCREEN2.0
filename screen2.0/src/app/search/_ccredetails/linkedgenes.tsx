@@ -232,10 +232,6 @@ export const LinkedGenes: React.FC<props> = (props) => {
                         .join(" "),
               },
               {
-                header: "gRNA ID",
-                value: (row: LinkedGeneInfo) => row.grnaid,
-              },
-              {
                 header: "Assay Type",
                 value: (row: LinkedGeneInfo) => row.assay,
               },
