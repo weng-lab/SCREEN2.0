@@ -58,8 +58,6 @@ export const LinkedGenes: React.FC<props> = (props) => {
           client,
   })
 
-  console.log(data,loading)
-
   return (
     <Grid container spacing={3} sx={{ mt: "0rem", mb: "2rem" }}>
       <Grid size={12}>
@@ -252,7 +250,8 @@ export const LinkedGenes: React.FC<props> = (props) => {
       </Grid>
       <Grid size={12}>
         {loading && <CircularProgress />}
-        {data && !loading && data.ComputationalGeneLinksQuery.length > 0 ? <DataTable columns={[{
+        {data && !loading && data.ComputationalGeneLinksQuery.length > 0 ? 
+          <DataTable columns={[{
                 header: "Common Gene Name",
                 value: (row) => row.genename,
                 render: (row) =><GeneLink assembly={props.assembly} geneName={row.genename} />
@@ -291,7 +290,8 @@ export const LinkedGenes: React.FC<props> = (props) => {
             rows={data.ComputationalGeneLinksQuery}
             sortColumn={7}
             sortDescending
-            searchable/> : <EmptyTile title="Computational methods" body="This cCRE does not have any genes linked by computational method" /> }
+            searchable/> : 
+          <EmptyTile title="Computational methods" body="This cCRE does not have any genes linked by computational method" /> }
       </Grid>
     </Grid>
   );
