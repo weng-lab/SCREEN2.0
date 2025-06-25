@@ -222,79 +222,99 @@ export function MainResultsTable(props: MainResultsTableProps) {
 
         return (
           //If linked genes data hasn't been fetched, fetch
-          (<Box onClick={(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => { event.stopPropagation(); if (!row.linkedGenes) getLinkedGenes() }} key={row.accession}>
+          <Box
+            onClick={(event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+              event.stopPropagation();
+              if (!row.linkedGenes) getLinkedGenes();
+            }}
+            key={row.accession}
+          >
             <Accordion>
-              <AccordionSummary
-                expandIcon={<ExpandMoreIcon />}
-              >
-                {row.linkedGenes ? "Linked Genes (" + [...new Set(row.linkedGenes.map(x => x.gene))].length + " unique)" : 'Find Linked Genes'}
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                {row.linkedGenes
+                  ? "Linked Genes (" +
+                    [...new Set(row.linkedGenes.map((x) => x.gene))].length +
+                    " unique)"
+                  : "Find Linked Genes"}
               </AccordionSummary>
-              {!row.linkedGenes ?
+              {!row.linkedGenes ? (
                 <AccordionDetails>
                   <CircularProgress />
                 </AccordionDetails>
-                :
+              ) : (
                 <AccordionDetails>
                   <Accordion>
-                    <AccordionSummary
-                      expandIcon={<ExpandMoreIcon />}
-                    >
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                       Intact Hi-C Loops ({IntactHiC.length})
                     </AccordionSummary>
                     <AccordionDetails>
-                      {IntactHiC.length > 0 ?
-                        <LinkedGeneList genes={IntactHiC} type="Intact-HiC" assembly={props.assembly} />
-                        :
+                      {IntactHiC.length > 0 ? (
+                        <LinkedGeneList
+                          genes={IntactHiC}
+                          type="Intact-HiC"
+                          assembly={props.assembly}
+                        />
+                      ) : (
                         "No intact Hi-C loops overlap this cCRE and the promoter of a gene"
-                      }
+                      )}
                     </AccordionDetails>
                   </Accordion>
                   <Accordion>
-                    <AccordionSummary
-                      expandIcon={<ExpandMoreIcon />}
-                    >
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                       ChIA-PET Interactions ({ChIAPET.length})
                     </AccordionSummary>
                     <AccordionDetails>
-                      {ChIAPET.length > 0 ?
-                        <LinkedGeneList genes={ChIAPET} type="ChIAPET" assembly={props.assembly} />
-                        :
+                      {ChIAPET.length > 0 ? (
+                        <LinkedGeneList
+                          genes={ChIAPET}
+                          type="ChIAPET"
+                          assembly={props.assembly}
+                        />
+                      ) : (
                         "No ChIA-PET interactions overlap this cCRE and the promoter of a gene"
-                      }
+                      )}
                     </AccordionDetails>
                   </Accordion>
                   <Accordion>
-                    <AccordionSummary
-                      expandIcon={<ExpandMoreIcon />}
-                    >
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                       CRISPRi-FlowFISH ({CRISPR.length})
                     </AccordionSummary>
                     <AccordionDetails>
-                      {CRISPR.length > 0 ?
-                        <LinkedGeneList genes={CRISPR} type="CRISPR" assembly={props.assembly} />
-                        :
+                      {CRISPR.length > 0 ? (
+                        <LinkedGeneList
+                          genes={CRISPR}
+                          type="CRISPR"
+                          assembly={props.assembly}
+                        />
+                      ) : (
                         "This cCRE was not targeted in a CRISPRi-FlowFISH experiment"
-                      }
+                      )}
                     </AccordionDetails>
                   </Accordion>
                   <Accordion>
-                    <AccordionSummary
-                      expandIcon={<ExpandMoreIcon />}
-                    >
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                       eQTLs ({eQTLs.length})
                     </AccordionSummary>
                     <AccordionDetails>
-                      {eQTLs.length > 0 ?
-                        <LinkedGeneList genes={eQTLs} type="eQTLs" assembly={props.assembly} />
-                        :
+                      {eQTLs.length > 0 ? (
+                        <LinkedGeneList
+                          genes={eQTLs}
+                          type="eQTLs"
+                          assembly={props.assembly}
+                        />
+                      ) : (
                         "This cCRE does not overlap a variant associated with significant changes in gene expression"
-                      }
+                      )}
                     </AccordionDetails>
                   </Accordion>
+                  <Typography mt={1} variant="caption" display={"block"}>
+                    For ABC, EPIraction, GraphRegLR, and rE2G links visit Linked Genes
+                    tab of cCRE details
+                  </Typography>
                 </AccordionDetails>
-              }
+              )}
             </Accordion>
-          </Box>)
+          </Box>
         );
       }
     })
