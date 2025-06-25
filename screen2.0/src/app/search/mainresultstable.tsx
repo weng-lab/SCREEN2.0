@@ -308,7 +308,7 @@ export function MainResultsTable(props: MainResultsTableProps) {
                     </AccordionDetails>
                   </Accordion>
                   <Typography mt={1} variant="caption" display={"block"}>
-                    For ABC, EPIraction, GraphRegLR, and rE2G links visit Linked Genes
+                    For Computational Predictions (ABC, EPIraction, GraphRegLR, and rE2G) visit the Linked Genes
                     tab of cCRE details
                   </Typography>
                 </AccordionDetails>

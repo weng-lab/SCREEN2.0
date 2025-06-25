@@ -442,7 +442,7 @@ export const LinkedGenes: React.FC<props> = (props) => {
                 value: (row) => row.score.toFixed(2),
               },
             ]}
-            tableTitle="Other computational methods"
+            tableTitle="Computational Predictions"
             rows={data.ComputationalGeneLinksQuery}
             sortColumn={7}
             sortDescending
@@ -450,8 +450,8 @@ export const LinkedGenes: React.FC<props> = (props) => {
           />
         ) : (
           <EmptyTile
-            title="Other computational methods"
-            body="This cCRE does not have any genes linked by computational method"
+            title="Computational Predictions"
+            body="This cCRE does not have any genes linked by computational predictions"
           />
         )}
       </Grid>
