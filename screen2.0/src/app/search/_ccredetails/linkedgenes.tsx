@@ -9,7 +9,6 @@ import {
 import { Box, Paper, Typography } from "@mui/material";
 import { LinkedGeneInfo } from "./ccredetails";
 import GeneLink from "../../_utility/GeneLink";
-import { client } from "./client";
 import { useQuery } from "@apollo/client";
 import { CircularProgress } from "@mui/material";
 import { ComputationalGeneLinks_Query } from "./queries";
@@ -46,9 +45,6 @@ export const LinkedGenes: React.FC<props> = (props) => {
   const { data, loading } = useQuery(ComputationalGeneLinks_Query, {
     variables: { accession: props.accession },
     skip: !props.accession,
-    fetchPolicy: "cache-and-network",
-    nextFetchPolicy: "cache-first",
-    client,
   });
 
   return (
@@ -376,9 +372,9 @@ export const LinkedGenes: React.FC<props> = (props) => {
             columns={[
               {
                 header: "Common Gene Name",
-                value: (row) => row.genename,
+                value: (row) => row.gene,
                 render: (row) => (
-                  <GeneLink assembly={props.assembly} geneName={row.genename} />
+                  <GeneLink assembly={props.assembly} geneName={row.gene} />
                 ),
               },
               {

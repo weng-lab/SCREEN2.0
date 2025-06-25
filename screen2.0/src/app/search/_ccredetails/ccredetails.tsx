@@ -16,9 +16,13 @@ import { GeneExpression } from "../../applets/gene-expression/geneexpression";
 import { TfSequenceFeatures } from "../_gbview/tfsequencefeatures";
 import ConfigureGBTab from "./configuregbtab";
 import { useQuery } from "@apollo/client";
-import { NEARBY_AND_LINKED_GENES } from "./queries";
+import {
+  ComputationalGeneLinks_Query,
+  NEARBY_AND_LINKED_GENES,
+} from "./queries";
 import { calcDistToTSS } from "./utils";
 import { LoadingMessage } from "../../../common/lib/utility";
+import { ComputationalGeneLinksQuery } from "../../../graphql/__generated__/graphql";
 
 //Passing these props through this file could be done with context to reduce prop drilling
 type CcreDetailsProps = {
@@ -79,6 +83,7 @@ export type NearbyAndLinked = {
 export type NearbyWithDistanceAndLinked = {
   nearbyGenes: NearbyGeneInfoWithDistance[];
   linkedGenes: LinkedGeneInfo[];
+  otherComputationalLinkedGenes: ComputationalGeneLinksQuery["ComputationalGeneLinksQuery"]
 };
 
 export type NearbyAndLinkedVariables = {
@@ -119,9 +124,17 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({
     }
   );
 
+  const {
+    data: otherComputationalLinkedGenes,
+    loading: loadingOtherComputationalLinkedGenes,
+  } = useQuery(ComputationalGeneLinks_Query, {
+    variables: { accession },
+    skip: !accession,
+  });
+
   //Find distance to nearest TSS for each nearby gene, and only keep the closest 3
   const nearest3AndLinkedGenes: NearbyWithDistanceAndLinked = useMemo(() => {
-    return dataNearbyAndLinked
+    return dataNearbyAndLinked && otherComputationalLinkedGenes
       ? {
           //remove trailing space in return data
           linkedGenes: [
@@ -143,9 +156,11 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({
           ]
             .sort((a, b) => a.distanceToTSS - b.distanceToTSS)
             .slice(0, 3),
+          otherComputationalLinkedGenes:
+            otherComputationalLinkedGenes["ComputationalGeneLinksQuery"],
         }
       : null;
-  }, [dataNearbyAndLinked, region]);
+  }, [dataNearbyAndLinked, otherComputationalLinkedGenes, region]);
 
   //Used to pass genes and their linking method to Gene Expression and RAMPAGE pages
   const uniqueGenes: { name: string; linkedBy: string[] }[] = useMemo(() => {
@@ -154,6 +169,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({
       for (const gene of [
         ...nearest3AndLinkedGenes.nearbyGenes,
         ...nearest3AndLinkedGenes.linkedGenes,
+        ...nearest3AndLinkedGenes.otherComputationalLinkedGenes
       ]) {
         const isNearbyGene: boolean = Object.hasOwn(gene, "distanceToTSS");
         let geneName: string;
@@ -164,9 +180,10 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({
             gene as NearbyGeneInfoWithDistance
           ).distanceToTSS.toLocaleString()} bp`;
         } else {
-          geneName = (gene as LinkedGeneInfo).gene;
+          geneName = (gene as LinkedGeneInfo | ComputationalGeneLinksQuery["ComputationalGeneLinksQuery"][number]).gene;
           methodToPush =
-            (gene as LinkedGeneInfo).assay ?? (gene as LinkedGeneInfo).method;
+            //bad but whatever. This all will be refactored in redesign
+            (gene as any)?.assay ?? (gene as any)?.method;
         }
         const existingGeneEntry = uniqueGenes.find(
           (uniqueGene) => uniqueGene.name === geneName
@@ -212,7 +229,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({
       )}
       {page === 1 &&
         assembly !== "mm10" &&
-        (loadingLinkedGenes ? (
+        (loadingLinkedGenes || loadingOtherComputationalLinkedGenes ? (
           <CircularProgress />
         ) : errorNearbyAndLinked ? (
           <Typography>{`Issue fetching Linked Genes for ${accession}.`}</Typography>
@@ -249,22 +266,22 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({
       )}
       {page === 5 && <Ortholog accession={accession} assembly={assembly} />}
       {page === 6 &&
-        (loadingLinkedGenes ? (
+        (loadingLinkedGenes || loadingOtherComputationalLinkedGenes ? (
           <CircularProgress />
         ) : errorNearbyAndLinked ? (
           <Typography>{`Issue fetching Linked Genes for ${accession}. Please use our Gene Expression Applet`}</Typography>
         ) : (
-          <GeneExpression assembly={assembly} genes={uniqueGenes || []} />
+          <GeneExpression assembly={assembly} genes={uniqueGenes} />
         ))}
 
       {page === 7 &&
         assembly !== "mm10" &&
-        (!dataNearbyAndLinked || loadingLinkedGenes ? (
+        (!dataNearbyAndLinked || loadingLinkedGenes || loadingOtherComputationalLinkedGenes ? (
           <CircularProgress />
         ) : errorNearbyAndLinked ? (
           <Typography>{`Issue fetching Linked Genes for ${accession}.`}</Typography>
         ) : (
-          <Rampage genes={uniqueGenes.length > 0 ? uniqueGenes : []} />
+          <Rampage genes={uniqueGenes} />
         ))}
       {page === 8 && (
         <>
