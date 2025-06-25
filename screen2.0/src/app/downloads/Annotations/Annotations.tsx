@@ -6,6 +6,7 @@ import AnnotationsGeneLinks from "./AnnotationsCcreGeneLinks";
 import AnnotationsByCelltype from "./AnnotationsByCelltype";
 import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
 import { TreeItem, TreeItemProps } from "@mui/x-tree-view";
+import AnnotationsOtherOrthologous from "./AnnotationsOtherOrthologous";
 
 const StyledTreeItem = styled(TreeItem)<TreeItemProps>(({ theme }) => ({
   '& .MuiTreeItem-label': {
@@ -22,7 +23,7 @@ const StyledTreeItem = styled(TreeItem)<TreeItemProps>(({ theme }) => ({
   }
 }));
 
-export type Assembly = "GRCh38" | "mm10";
+export type Assembly = "GRCh38" | "mm10" | "other";
 
 
 const Annotations = () => {
@@ -34,6 +35,7 @@ const Annotations = () => {
       case("byClass"): return <AnnotationsByClass assembly={assembly} />
       case("byCelltype"): return <AnnotationsByCelltype assembly={assembly} />
       case("geneLinks"): return <AnnotationsGeneLinks />
+      case("ortho"): return <AnnotationsOtherOrthologous />
     }
   }
 
@@ -68,9 +70,18 @@ const Annotations = () => {
           <StyledTreeItem itemId="mm10/byClass" label="By Class" />
           <StyledTreeItem itemId="mm10/byCelltype" label="By Cell and Tissue Type" />
         </StyledTreeItem>
+        <StyledTreeItem
+          className="tree-category"
+          itemId="other"
+          label="Other"
+        >
+          <StyledTreeItem itemId="other/ortho" label="Orthologous cCREs" />
+        </StyledTreeItem>
       </SimpleTreeView>
       <Stack flexGrow={1} gap={2}>
-        <AnnotationsHeader assembly={assembly} />
+        {assembly !== "other" && (
+          <AnnotationsHeader assembly={assembly} />
+        )}
         <Content />
       </Stack>
     </Stack>

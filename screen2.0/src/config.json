@@ -66,6 +66,8 @@
     "MouseTF_only": "https://downloads.wenglab.org/Registry-V4/mm10-cCREs.TF.bed",
     "MouseCA_Bound": "https://downloads.wenglab.org/mm10-cCREs.CTCF-bound.bed",
 
+    "HumanMouseOrtholog": "https://downloads.wenglab.org/hg38-mm10-Homologous.txt",
+
     "HumanDNaseSignalMatrix": "https://www.encodeproject.org/files/ENCFF434ORT/@@download/ENCFF434ORT.txt.gz",
     "HumanPromoterSignalMatrix": "https://www.encodeproject.org/files/ENCFF015SIE/@@download/ENCFF015SIE.txt.gz",
     "HumanEnhancerSignalMatrix": "https://www.encodeproject.org/files/ENCFF701TDA/@@download/ENCFF701TDA.txt.gz",
