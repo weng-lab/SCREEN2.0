@@ -249,8 +249,8 @@ export const LinkedGenes: React.FC<props> = (props) => {
         }
       </Grid>
       <Grid size={12}>
-        {loading && <CircularProgress />}
-        {data && !loading && data.ComputationalGeneLinksQuery.length > 0 ? 
+        {loading ? <CircularProgress />:
+         data && data.ComputationalGeneLinksQuery.length > 0 ? 
           <DataTable columns={[{
                 header: "Common Gene Name",
                 value: (row) => row.genename,
