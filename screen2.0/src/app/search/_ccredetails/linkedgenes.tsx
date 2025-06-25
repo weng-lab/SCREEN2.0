@@ -445,7 +445,6 @@ export const LinkedGenes: React.FC<props> = (props) => {
             tableTitle="Computational Predictions"
             rows={data.ComputationalGeneLinksQuery}
             sortColumn={7}
-            sortDescending
             searchable
           />
         ) : (
