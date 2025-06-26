@@ -13,7 +13,7 @@ const AnnotationsByCelltype: React.FC<NewAnnotationsByCelltypeProps> = ({
   return (
     <DownloadContentLayout title="cCREs by Cell and Tissue Type">
       <BiosampleTables
-        assembly={assembly}
+        assembly={assembly as "GRCh38" | "mm10"}
         showDownloads
         slotProps={{
           paperStack: { overflow: "hidden", flexGrow: 1, height: "auto" },

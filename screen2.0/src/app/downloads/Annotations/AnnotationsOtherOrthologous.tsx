@@ -6,7 +6,7 @@ import DownloadContentLayout from "./DownloadContentLayout";
 const orthologousDownloads: DownloadButtonProps[] = [
   {
     href: Config.Downloads.HumanMouseOrtholog,
-    label: "Human/Mouse Orthologous cCREs (.txt)",
+    label: "Human/Mouse Orthologous cCREs (.tsv)",
     fileSize: "13.3 MB",
     bordercolor: "gray",
   }

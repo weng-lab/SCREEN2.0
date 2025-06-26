@@ -12,7 +12,7 @@ export function Footer() {
           Weng Lab
         </MuiLink>
         {", "}
-        <MuiLink color="inherit" href="https://www.moore-lab.org/">
+        <MuiLink color="inherit" href="https://sites.google.com/view/moore-lab/">
           Moore Lab
         </MuiLink>{" "}
         {new Date().getFullYear()}.
