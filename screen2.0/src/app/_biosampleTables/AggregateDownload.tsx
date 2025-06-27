@@ -125,7 +125,7 @@ export const AggregateDownloadButton = ({ ontology }: AggregateDownloadProps) =>
                         {availibleDownloads.length <= 1 && (
                             <>
                                 <Divider sx={{ marginTop: 1 }} />
-                                <Typography marginTop={1}><strong>No cancerous cell lines availible in this tissue</strong></Typography>
+                                <Typography marginTop={1}><strong>No cancerous cell lines available in this tissue</strong></Typography>
                             </>
                         )}
                     </Stack>
