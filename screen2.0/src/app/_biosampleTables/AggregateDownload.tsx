@@ -1,4 +1,4 @@
-import { Button, Tooltip, Box, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Stack } from "@mui/material";
+import { Button, Tooltip, Box, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, Stack, Typography, Divider } from "@mui/material";
 import { useCallback, useMemo, useState } from "react";
 import { Download } from "@mui/icons-material"
 import { ontologyDownloadMap } from "../_utility/ontologyDownloads";
@@ -72,6 +72,8 @@ export const AggregateDownloadButton = ({ ontology }: AggregateDownloadProps) =>
                         endIcon={<Download />}
                         disabled={availibleDownloads.length === 0}
                         variant="outlined"
+                        // rendering a button inseide accordian summary cause hydration error
+                        component="div"
                     >
                         Download
                     </Button>
@@ -79,7 +81,10 @@ export const AggregateDownloadButton = ({ ontology }: AggregateDownloadProps) =>
             </Tooltip>
             <Dialog
                 open={isDialogOpen}
-                onClose={() => setIsDialogOpen(false)}
+                onClose={(event) => {
+                    (event as React.MouseEvent).stopPropagation();
+                    setIsDialogOpen(false);
+                }}
                 aria-labelledby="export-dialog-title"
                 disableScrollLock
                 slotProps={{
@@ -88,12 +93,6 @@ export const AggregateDownloadButton = ({ ontology }: AggregateDownloadProps) =>
                             backgroundColor: "rgba(255, 255, 255, 0.1)",
                             backdropFilter: "blur(2px)",
                         },
-                    },
-                    paper: {
-                        sx: {
-                            width: "25vw",
-                            maxWidth: "90%",
-                        }
                     },
                 }}
             >
@@ -123,6 +122,12 @@ export const AggregateDownloadButton = ({ ontology }: AggregateDownloadProps) =>
                             }
                             label="Aggregate cCRES (excluding cancer cell lines)"
                         />
+                        {availibleDownloads.length <= 1 && (
+                            <>
+                                <Divider sx={{ marginTop: 1 }} />
+                                <Typography marginTop={1}><strong>No cancerous cell lines availible in this tissue</strong></Typography>
+                            </>
+                        )}
                     </Stack>
                 </DialogContent>
                 <DialogActions>
