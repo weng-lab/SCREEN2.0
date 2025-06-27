@@ -11,7 +11,7 @@ import { BIOSAMPLE_QUERY, RNA_SEQ_QUERY } from "./queries"
 import { AssayWheel } from "./AssayWheel"
 import { DownloadButton } from "./DownloadButton"
 import { FilterCheckboxGroup } from "./FilterCheckboxGroup"
-import { DownloadButtonGroup } from "./DownloadButtonGroup"
+import { AggregateDownloadButton } from "./AggregateDownload"
 
 export const BiosampleTables = <
   HasRNASeq extends boolean = false,
@@ -307,7 +307,7 @@ export const BiosampleTables = <
                     : <Typography>{ontology.charAt(0).toUpperCase() + ontology.slice(1) + ` (${biosamples.length})`}</Typography>
                   }
                   {showDownloads && assembly !== "mm10" && (
-                    <DownloadButtonGroup ontology={ontology}/>
+                    <AggregateDownloadButton ontology={ontology}/>
                   )}
                 </Stack>
               </AccordionSummary>

@@ -1,6 +1,6 @@
-import { ButtonGroup, Button, Popper, Grow, Paper, ClickAwayListener, MenuList, MenuItem, Divider, Tooltip, Box } from "@mui/material";
+import { ButtonGroup, Button, Popper, Grow, Paper, ClickAwayListener, MenuList, MenuItem, Tooltip, Box } from "@mui/material";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { ArrowDropDown, SaveAlt as SaveAltIcon, } from "@mui/icons-material"
+import { ArrowDropDown, Download, } from "@mui/icons-material"
 import { ontologyDownloadMap } from "../_utility/ontologyDownloads";
 
 export type DownloadButtonGroupProps = {
@@ -71,7 +71,7 @@ export const DownloadButtonGroup = ({ ontology }: DownloadButtonGroupProps) => {
                             "No Download Options"
                         ) : (
                             <Box>
-                                <strong>Download {ontology.charAt(0).toUpperCase() + ontology.slice(1)}:</strong>
+                                <strong>Download cCREs active in {ontology.charAt(0).toUpperCase() + ontology.slice(1)}:</strong>
                                 <ul style={{ margin: 0, paddingLeft: 16 }}>
                                     {availibleDownloads.map((d) => (
                                         <li key={d.filename}>{d.label}</li>
@@ -89,7 +89,7 @@ export const DownloadButtonGroup = ({ ontology }: DownloadButtonGroupProps) => {
                                 e.stopPropagation();
                                 handleDownloadAll();
                             }}
-                            startIcon={<SaveAltIcon />}
+                            startIcon={<Download />}
                             disabled={availibleDownloads.length === 0}
                             variant="text"
                         >
@@ -153,18 +153,6 @@ export const DownloadButtonGroup = ({ ontology }: DownloadButtonGroupProps) => {
                                             </MenuItem>
                                         );
                                     })}
-                                    <Divider />
-                                    <MenuItem
-                                        key={"all"}
-                                        component="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDownloadAll();
-                                        }}
-                                        disabled={availibleDownloads.length <= 1}
-                                    >
-                                        Download All Files
-                                    </MenuItem>
                                 </MenuList>
                             </ClickAwayListener>
                         </Paper>
