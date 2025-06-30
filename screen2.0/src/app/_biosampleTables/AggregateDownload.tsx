@@ -120,7 +120,7 @@ export const AggregateDownloadButton = ({ ontology }: AggregateDownloadProps) =>
                                     disabled={!ncFile}
                                 />
                             }
-                            label="Aggregate cCRES (excluding cancer cell lines)"
+                            label="Aggregate cCREs (excluding cancer cell lines)"
                         />
                         {availibleDownloads.length <= 1 && (
                             <>
