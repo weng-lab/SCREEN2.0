@@ -4,7 +4,7 @@ import { Inter } from "next/font/google"
 import ResponsiveAppBar from "./header"
 import { Footer } from "./footer"
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter'
-import { CssBaseline, ThemeProvider } from "@mui/material"
+import { CssBaseline, Stack, ThemeProvider } from "@mui/material"
 import { Analytics } from "@vercel/analytics/react"
 import theme from "../theme"
 import MuiXLicense from "../common/MuiXLicense";
@@ -24,13 +24,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <AppRouterCacheProvider> {/* Wrapper for MUIxNextjs integration, see https://mui.com/material-ui/integrations/nextjs/ */}
             <CssBaseline /> {/* See https://mui.com/material-ui/react-css-baseline/ */}
             <ThemeProvider theme={theme}> {/* Exposes theme to children */}
-              <div id="content-wrapper">
+              <Stack height={"100vh"} minHeight={0} id="app-wrapper">
                 <ResponsiveAppBar maintenance={false}/>
-                <div id="body-wrapper">
-                  {children}
-                </div>
-              </div>
-              <Footer />
+                <Stack flexGrow={1} overflow={"auto"} minHeight={0} id="content-wrapper">
+                  <Stack flexGrow={1}>{children}</Stack>
+                  <Footer />
+                </Stack>
+              </Stack>
             </ThemeProvider>
           </AppRouterCacheProvider>
         </ApolloWrapper>

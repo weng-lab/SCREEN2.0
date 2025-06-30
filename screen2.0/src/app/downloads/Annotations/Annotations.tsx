@@ -1,4 +1,4 @@
-import { Box, Button, Stack, styled, Typography } from "@mui/material";
+import { Stack, styled } from "@mui/material";
 import React, { useState } from "react";
 import AnnotationsHeader from "./Header";
 import AnnotationsByClass from "./AnnotationsByClass";
@@ -7,7 +7,7 @@ import AnnotationsByCelltype from "./AnnotationsByCelltype";
 import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
 import { TreeItem, TreeItemProps } from "@mui/x-tree-view";
 import AnnotationsOtherOrthologous from "./AnnotationsOtherOrthologous";
-import Link from "next/link";
+import AnnotationsContactUs from "./AnnotationsContactUs";
 
 const StyledTreeItem = styled(TreeItem)<TreeItemProps>(({ theme }) => ({
   '& .MuiTreeItem-label': {
@@ -41,8 +41,8 @@ const Annotations = () => {
   }
 
   return (
-    <Stack height={"80vh"} justifyContent={"space-between"}>
-      <Stack direction={{ xs: "column", md: "row" }} gap={4}>
+    <Stack gap={2} height={'100%'} justifyContent={"space-between"}>
+      <Stack direction={{ xs: "column", md: "row" }} gap={2}>
         <SimpleTreeView
           multiSelect={false}
           selectedItems={selectedTab}
@@ -50,7 +50,7 @@ const Annotations = () => {
           onSelectedItemsChange={(_, id) =>
             id.includes("/") && setSelectedTab(id)
           }
-          defaultExpandedItems={["human", "mouse"]}
+          defaultExpandedItems={["human", "mouse", "other"]}
         >
           <StyledTreeItem
             className="tree-category"
@@ -70,7 +70,10 @@ const Annotations = () => {
             label="Mouse"
           >
             <StyledTreeItem itemId="mm10/byClass" label="By Class" />
-            <StyledTreeItem itemId="mm10/byCelltype" label="By Cell and Tissue Type" />
+            <StyledTreeItem
+              itemId="mm10/byCelltype"
+              label="By Cell and Tissue Type"
+            />
           </StyledTreeItem>
           <StyledTreeItem
             className="tree-category"
@@ -81,38 +84,11 @@ const Annotations = () => {
           </StyledTreeItem>
         </SimpleTreeView>
         <Stack flexGrow={1} gap={2}>
-          {assembly !== "other" && (
-            <AnnotationsHeader assembly={assembly} />
-          )}
+          {assembly !== "other" && <AnnotationsHeader assembly={assembly} />}
           <Content />
         </Stack>
       </Stack>
-      <Box
-        sx={{
-          width: "100%",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          px: 3,
-          py: 2,
-          borderRadius: 2,
-          background: `linear-gradient(to right, white, #dbe5fc)`,
-          boxShadow: 1,
-        }}
-      >
-        <Box>
-          <Typography variant="subtitle1" fontWeight={600} color="primary.dark">
-            Can’t find the dataset you’re looking for?
-          </Typography>
-          <Typography variant="body2" color="primary.main">
-            Let us know what you need — we’re here to help you!
-          </Typography>
-        </Box>
-
-        <Button variant="outlined" size="small" LinkComponent={Link} href="/about#contact-us" >
-          Contact Us
-        </Button>
-      </Box>
+      <AnnotationsContactUs />
     </Stack>
   );
 };
