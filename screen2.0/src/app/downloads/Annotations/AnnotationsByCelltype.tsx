@@ -16,7 +16,7 @@ const AnnotationsByCelltype: React.FC<NewAnnotationsByCelltypeProps> = ({
         assembly={assembly as "GRCh38" | "mm10"}
         showDownloads
         slotProps={{
-          paperStack: { overflow: "hidden", flexGrow: 1, height: "auto" },
+          paperStack: { overflow: "auto", flexGrow: 1, flexDirection: "column", display: "flex" },
         }}
       />
     </DownloadContentLayout>
