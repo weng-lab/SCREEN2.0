@@ -1,9 +1,9 @@
-import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, CircularProgress, Accordion, IconButton, Menu, InputAdornment, Paper, Stack, Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, Box, Button } from "@mui/material"
+import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, CircularProgress, Accordion, IconButton, Menu, InputAdornment, Paper, Stack, Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, Box, Button} from "@mui/material"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
 import { useCallback, useMemo, useState } from "react"
 import { BiosampleData, CollectionCheckboxes, LifeStageCheckboxes, BiosampleTablesProps, RegistryBiosamplePlusRNA, SampleTypeCheckboxes } from "./types"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
-import { Check, Close, FilterList, RestartAlt } from "@mui/icons-material"
+import { Check, Close, FilterList, RestartAlt, } from "@mui/icons-material"
 import SearchIcon from '@mui/icons-material/Search';
 import { useQuery } from "@apollo/client"
 import { filterBiosamples } from "./helpers"
@@ -11,6 +11,7 @@ import { BIOSAMPLE_QUERY, RNA_SEQ_QUERY } from "./queries"
 import { AssayWheel } from "./AssayWheel"
 import { DownloadButton } from "./DownloadButton"
 import { FilterCheckboxGroup } from "./FilterCheckboxGroup"
+import { AggregateDownloadButton } from "./AggregateDownload"
 
 export const BiosampleTables = <
   HasRNASeq extends boolean = false,
@@ -300,10 +301,15 @@ export const BiosampleTables = <
                   },
                 }}
               >
-                {biosamples.length !== unfilteredBiosamples[ontology].length ?
-                  <Typography>{ontology.charAt(0).toUpperCase() + ontology.slice(1)} ({biosamples.length} <span style={{ opacity: 0.5 }}><s>{unfilteredBiosamples[ontology].length}</s></span>)</Typography>
-                  : <Typography>{ontology.charAt(0).toUpperCase() + ontology.slice(1) + ` (${biosamples.length})`}</Typography>
-                }
+                <Stack width={"100%"} direction={"row"} alignItems={"center"} justifyContent={"space-between"}>
+                  {biosamples.length !== unfilteredBiosamples[ontology].length ?
+                    <Typography>{ontology.charAt(0).toUpperCase() + ontology.slice(1)} ({biosamples.length} <span style={{ opacity: 0.5 }}><s>{unfilteredBiosamples[ontology].length}</s></span>)</Typography>
+                    : <Typography>{ontology.charAt(0).toUpperCase() + ontology.slice(1) + ` (${biosamples.length})`}</Typography>
+                  }
+                  {showDownloads && assembly !== "mm10" && (
+                    <AggregateDownloadButton ontology={ontology}/>
+                  )}
+                </Stack>
               </AccordionSummary>
               <AccordionDetails>
                 <DataTable
@@ -330,7 +336,7 @@ export const BiosampleTables = <
         })
     )
 
-  }, [showCheckboxes, showRNAseq, showDownloads, loadingBiosamples, loading_rnaseq, errorBiosamples, error_rnaseq, filteredBiosamples, selectedSamples, onChange, allowMultiSelect, unfilteredBiosamples, pageStates])
+  }, [showRNAseq, showDownloads, loadingBiosamples, loading_rnaseq, errorBiosamples, error_rnaseq, filteredBiosamples, onChange, allowMultiSelect, selectedSamples, showCheckboxes, unfilteredBiosamples, assembly, pageStates])
 
   const filtersActive: boolean = useMemo(() => {
     return mustHaveRnaSeq

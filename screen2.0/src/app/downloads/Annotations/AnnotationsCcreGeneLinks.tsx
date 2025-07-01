@@ -5,9 +5,15 @@ import DownloadContentLayout from "./DownloadContentLayout";
 
 const geneLinkDownloads: DownloadButtonProps[] = [
   {
-    href: Config.Downloads.HumanGeneLinks,
+    href: Config.Downloads.HumanGeneLinks1,
     label: "cCRE-Gene Links (3D Chromatin, CRISPR, eQTLs) (.zip)",
     fileSize: "463.3 MB",
+    bordercolor: "gray",
+  },
+  {
+    href: Config.Downloads.HumanGeneLinks2,
+    label: "cCRE-Gene-Links (ABC, EPIraction, GraphRegLR, rE2G) (.zip)",
+    fileSize: "8.9 GB",
     bordercolor: "gray",
   },
   {

@@ -70,7 +70,7 @@ export default function About() {
 
   return (
     <main>
-      <Grid container spacing={3} sx={{ maxWidth: "min(70%, 1000px)", minWidth: "600px", mr: "auto", ml: "auto", mt: "3rem" }}>
+      <Grid container spacing={3} sx={{ maxWidth: "min(70%, 1000px)", minWidth: "600px", marginX: "auto", marginY: "3rem" }}>
         {/* Header */}
         <Grid size={12}>
           <Typography variant="h2">About SCREEN</Typography>

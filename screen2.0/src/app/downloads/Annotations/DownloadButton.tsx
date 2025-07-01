@@ -24,11 +24,12 @@ export const DownloadButton = (props: DownloadButtonProps) => {
         justifyContent: "space-between",
         backgroundColor: "white",
         color: "black",
+        textAlign: "left"
       }}
       variant="contained"
-      href={props.href}
       endIcon={<Download />}
       fullWidth
+      href={props.href}
       download
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
