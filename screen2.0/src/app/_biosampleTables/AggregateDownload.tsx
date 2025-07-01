@@ -110,6 +110,7 @@ export const AggregateDownloadButton = ({ ontology }: AggregateDownloadProps) =>
                                     disabled={!allFile}
                                 />}
                             label="Aggregate cCREs (all biosamples)"
+                            onClick={(e) => e.stopPropagation()}
                         />
                         <FormControlLabel
                             control={
@@ -121,6 +122,7 @@ export const AggregateDownloadButton = ({ ontology }: AggregateDownloadProps) =>
                                 />
                             }
                             label="Aggregate cCREs (excluding cancer cell lines)"
+                            onClick={(e) => e.stopPropagation()}
                         />
                         {availibleDownloads.length <= 1 && (
                             <>
