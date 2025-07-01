@@ -20,6 +20,27 @@ const nextConfig = {
       fullUrl: true,
     },
   },
+
+  async redirects() {
+    return [
+      // SCREEN Redirects (Legacy link handling)
+      {
+        source: '/geApp',
+        destination: '/applets/gene-expression',
+        permanent: true,
+      },
+      {
+        source: '/index/about',
+        destination: '/about',
+        permanent: true,
+      },
+      {
+        source: '/index/cversions',
+        destination: '/about',
+        permanent: true,
+      },
+    ]
+  },
   
   webpack: (config, { isServer }) => {
     if (!isServer) {
