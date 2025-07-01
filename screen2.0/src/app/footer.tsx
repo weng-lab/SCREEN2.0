@@ -5,14 +5,14 @@ import MuiLink from "@mui/material/Link"
 
 export function Footer() {
   return (
-    <Box id="Footer" sx={{ position: "absolute", bottom: "0", textAlign: "center", width: "100%", height: "4rem" }}>
+    <Box id="Footer" sx={{ textAlign: "center", width: "100%", marginY: 1 }}>
       <Typography variant="body2" color="text.secondary">
         {"Copyright © "}
         <MuiLink color="inherit" href="https://www.umassmed.edu/zlab/">
           Weng Lab
         </MuiLink>
         {", "}
-        <MuiLink color="inherit" href="https://www.moore-lab.org/">
+        <MuiLink color="inherit" href="https://sites.google.com/view/moore-lab/">
           Moore Lab
         </MuiLink>{" "}
         {new Date().getFullYear()}.
