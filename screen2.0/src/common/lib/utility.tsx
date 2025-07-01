@@ -16,10 +16,11 @@ export const CreateLink: React.FC<{
    linkArg?: string, 
    label: string, 
    showExternalIcon?: boolean,
+   onClick?: React.MouseEventHandler<HTMLAnchorElement>
     variant?: OverridableStringUnion<Variant | 'inherit', TypographyPropsVariantOverrides>, textColor?: string, underline?: "none" | "always" | "hover" }> = (props) => {
   const link = props.linkPrefix + (props.linkArg ?? "")
   return (
-    <Link variant={props.variant} href={link} rel="noopener noreferrer" target="_blank" color={props.textColor} underline={props.underline}>
+    <Link variant={props.variant} href={link} rel="noopener noreferrer" target="_blank" color={props.textColor} underline={props.underline} onClick={props.onClick}>
       {props.label}
       {props.showExternalIcon && <Launch sx={{ display: "inline-flex", verticalAlign: "middle", ml: 0.5 }} color="inherit" fontSize="inherit" />}
     </Link>
