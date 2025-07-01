@@ -95,6 +95,7 @@ export const AggregateDownloadButton = ({ ontology }: AggregateDownloadProps) =>
                         },
                     },
                 }}
+                onClick={(e) => e.stopPropagation()}
             >
                 <DialogTitle id="export-dialog-title">
                     Download cCREs active in {ontology.charAt(0).toUpperCase() + ontology.slice(1)}:
@@ -106,23 +107,19 @@ export const AggregateDownloadButton = ({ ontology }: AggregateDownloadProps) =>
                                 <Checkbox
                                     checked={all}
                                     onChange={(e) => setAll(e.target.checked)}
-                                    onClick={(e) => e.stopPropagation()}
                                     disabled={!allFile}
                                 />}
                             label="Aggregate cCREs (all biosamples)"
-                            onClick={(e) => e.stopPropagation()}
                         />
                         <FormControlLabel
                             control={
                                 <Checkbox
                                     checked={noccl}
                                     onChange={(e) => setNoccl(e.target.checked)}
-                                    onClick={(e) => e.stopPropagation()}
                                     disabled={!ncFile}
                                 />
                             }
                             label="Aggregate cCREs (excluding cancer cell lines)"
-                            onClick={(e) => e.stopPropagation()}
                         />
                         {availibleDownloads.length <= 1 && (
                             <>
@@ -134,8 +131,7 @@ export const AggregateDownloadButton = ({ ontology }: AggregateDownloadProps) =>
                 </DialogContent>
                 <DialogActions>
                     <Button
-                        onClick={(e) => {
-                            e.stopPropagation();
+                        onClick={() => {
                             setIsDialogOpen(false)
                         }}
                     >
@@ -143,8 +139,7 @@ export const AggregateDownloadButton = ({ ontology }: AggregateDownloadProps) =>
                     </Button>
                     <Button
                         variant="contained"
-                        onClick={(e) => {
-                            e.stopPropagation();
+                        onClick={() => {
                             handleDownload();
                             setIsDialogOpen(false);
                         }}
