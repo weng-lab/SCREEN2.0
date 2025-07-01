@@ -57,10 +57,10 @@ const Annotations = () => {
             itemId="human"
             label="Human"
           >
-            <StyledTreeItem itemId="GRCh38/byClass" label={"By Class"} />
+            <StyledTreeItem itemId="GRCh38/byClass" label={"cCREs By Class"} />
             <StyledTreeItem
               itemId="GRCh38/byCelltype"
-              label="By Cell and Tissue Type"
+              label="cCREs By Cell and Tissue Type"
             />
             <StyledTreeItem itemId="GRCh38/geneLinks" label="cCRE-Gene Links" />
           </StyledTreeItem>
@@ -69,10 +69,10 @@ const Annotations = () => {
             itemId="mouse"
             label="Mouse"
           >
-            <StyledTreeItem itemId="mm10/byClass" label="By Class" />
+            <StyledTreeItem itemId="mm10/byClass" label="cCREs By Class" />
             <StyledTreeItem
               itemId="mm10/byCelltype"
-              label="By Cell and Tissue Type"
+              label="cCREs By Cell and Tissue Type"
             />
           </StyledTreeItem>
           <StyledTreeItem
