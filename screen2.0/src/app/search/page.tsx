@@ -303,6 +303,8 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
 
           //No human or mouse genes have "chr" followed by a number, so safe to check this way
           if (/chr\d+/.test(encodeInput)) searchType = "region"
+          //handle rs1 edge case in case user searches in lowercase
+          else if (encodeInput.toLowerCase() === "rs1") searchType = "gene"
           //check for "rs" followed by number. Genes RS1 and Rs1 exist, but lowercase r is differentiator
           else if (/rs\d+/.test(encodeInput)) searchType = "snp"
           //check for beginning of cCRE accession. No Genes start with these

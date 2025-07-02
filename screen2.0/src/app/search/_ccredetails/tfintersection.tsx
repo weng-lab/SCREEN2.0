@@ -6,7 +6,7 @@ import { useQuery } from "@apollo/client"
 import { TF_INTERSECTION_QUERY, CRE_TF_DCC_QUERY } from "./queries"
 import Grid from "@mui/material/Grid2"
 import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
-import { LoadingMessage } from "../../../common/lib/utility"
+import { CreateLink, LoadingMessage } from "../../../common/lib/utility"
 
 type TFBindData = {
   name: string;
@@ -75,7 +75,7 @@ export const TfIntersection: React.FC<{ assembly: string; coordinates: { chromos
       totalmap[x.target.name] = x.counts.total
     })
 
-  let tableData: TFBindData[] =
+  const tableData: TFBindData[] =
     data &&
     Object.keys(peakmap).map((k) => {
       return {
@@ -91,9 +91,13 @@ export const TfIntersection: React.FC<{ assembly: string; coordinates: { chromos
         header: "Factor",
         value: (row) => row.name,
         render: (row) => (
-          <Link href={`https://www.factorbook.org/tf/human/${row.name}/function`} rel="noopener noreferrer" target="_blank">
-            <button>{row.name}</button>
-          </Link>
+          <CreateLink
+            linkPrefix={`https://www.factorbook.org/tf/human/${row.name}/function`}
+            label={row.name}
+            showExternalIcon
+            underline="hover"
+            onClick={(e) => e.stopPropagation()}
+          />
         ),
       },
       {
@@ -154,13 +158,20 @@ export const TfIntersection: React.FC<{ assembly: string; coordinates: { chromos
                     header: "experiment/file",
                     value: (row) => row.expID,
                     render: (row) => (
-                      <Link
-                        href={`https://www.encodeproject.org/experiments/${row.expID.split("/")[0]}/`}
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        <button>{row.expID}</button>
-                      </Link>
+                      <CreateLink
+                        linkPrefix={`https://www.encodeproject.org/experiments/${row.expID.split("/")[0]}/`}
+                        label={row.expID}
+                        showExternalIcon
+                        underline="hover"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      // <Link
+                      //   href={`https://www.encodeproject.org/experiments/${row.expID.split("/")[0]}/`}
+                      //   rel="noopener noreferrer"
+                      //   target="_blank"
+                      // >
+                      //   <button>{row.expID}</button>
+                      // </Link>
                     ),
                   },
                 ]}
