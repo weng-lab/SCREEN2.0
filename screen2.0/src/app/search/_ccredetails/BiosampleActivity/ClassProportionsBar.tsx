@@ -183,7 +183,7 @@ const ClassProportionsBar: React.FC<ClassProportionBarProps> = ({
                   key as CcreClass | ChromatinAccessibilityCategory
                 );
                 return (
-                  <TableRow>
+                  <TableRow key={key}>
                     <TableCell>
                       <span
                         style={{

@@ -3,7 +3,7 @@
 import { BIOSAMPLE_Data, biosampleQuery } from "../../common/lib/queries"
 import { FilterCriteria, MainQueryData, MainQueryParams, RegistryBiosample } from "./types"
 import { constructFilterCriteriaFromURL, constructMainQueryParamsFromURL, constructSearchURL, downloadBED, fetchcCREData } from "./searchhelpers"
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState, use } from "react";
 import { styled } from '@mui/material/styles';
 import { Divider, IconButton, Tab, Tabs, Typography, Box, Button, CircularProgressProps, CircularProgress, Stack } from "@mui/material"
 import { MainResultsTable } from "./mainresultstable"
@@ -197,7 +197,8 @@ const GET_ACCESSION_COORDS = gql(`
   }
 `)
 
-export default function Search({ searchParams }: { searchParams: { [key: string]: string | undefined } }) {
+export default function Search(props: { searchParams: Promise<{ [key: string]: string | undefined }> }) {
+  const searchParams = use(props.searchParams);
   const router = useRouter()
   const basePathname = usePathname()
 
@@ -516,7 +517,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
 
   const findTabByID = useCallback((id: string, numberOfTable: number = 2) => {
     return (opencCREs.findIndex((x) => x.ID === id) + numberOfTable)
-  }, [opencCREs]) 
+  }, [opencCREs])
 
   //Handle opening a cCRE or navigating to its open tab
   const handlecCREClick = useCallback((item) => {
@@ -531,7 +532,7 @@ export default function Search({ searchParams }: { searchParams: { [key: string]
       setPage(findTabByID(newcCRE.ID, numberOfDefaultTabs))
     }
   }, [browserDispatch, opencCREs, numberOfDefaultTabs, findTabByID])
-  
+
   //Handle closing cCRE, and changing page if needed
   const handleClosecCRE = (closedID: string) => {
     browserDispatch({ type: BrowserActionType.REMOVE_HIGHLIGHT, id: closedID })
