@@ -8,6 +8,7 @@ import { SimpleTreeView } from '@mui/x-tree-view/SimpleTreeView';
 import { TreeItem, TreeItemProps } from "@mui/x-tree-view";
 import AnnotationsOtherOrthologous from "./AnnotationsOtherOrthologous";
 import AnnotationsContactUs from "./AnnotationsContactUs";
+import AnnotationsFunctional from "./AnnotationsFunctional";
 
 const StyledTreeItem = styled(TreeItem)<TreeItemProps>(({ theme }) => ({
   '& .MuiTreeItem-label': {
@@ -37,11 +38,12 @@ const Annotations = () => {
       case ("byCelltype"): return <AnnotationsByCelltype assembly={assembly} />
       case ("geneLinks"): return <AnnotationsGeneLinks />
       case ("ortho"): return <AnnotationsOtherOrthologous />
+      case ("functional"): return <AnnotationsFunctional assembly={assembly} />
     }
   }
 
   return (
-    <Stack gap={2} height={'100%'} justifyContent={"space-between"}>
+    <Stack gap={2} height={"100%"} justifyContent={"space-between"}>
       <Stack direction={{ xs: "column", md: "row" }} gap={2}>
         <SimpleTreeView
           multiSelect={false}
@@ -63,6 +65,7 @@ const Annotations = () => {
               label="cCREs by Cell and Tissue Type"
             />
             <StyledTreeItem itemId="GRCh38/geneLinks" label="cCRE-Gene Links" />
+            <StyledTreeItem itemId="GRCh38/functional" label="Functional Characterization" />
           </StyledTreeItem>
           <StyledTreeItem
             className="tree-category"
@@ -74,6 +77,7 @@ const Annotations = () => {
               itemId="mm10/byCelltype"
               label="cCREs by Cell and Tissue Type"
             />
+            <StyledTreeItem itemId="mm10/functional" label="Functional Characterization" />
           </StyledTreeItem>
           <StyledTreeItem
             className="tree-category"
