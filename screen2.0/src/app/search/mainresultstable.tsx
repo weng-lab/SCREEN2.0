@@ -1,5 +1,5 @@
 "use client"
-import { DataTable, DataTableProps, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
+import { DataTable, DataTableProps, DataTableColumn } from "psychscreen-legacy-components"
 import React, { useState, useMemo } from "react"
 import { Box, Typography, Stack, Button, Accordion, AccordionSummary, AccordionDetails, Tooltip, CircularProgress, List } from "@mui/material"
 import { MainResultTableRow, ConservationData } from "./types"

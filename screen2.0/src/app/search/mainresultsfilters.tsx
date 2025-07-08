@@ -27,7 +27,7 @@ import RadioGroup from '@mui/material/RadioGroup';
 import FormControl from '@mui/material/FormControl';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import Grid from "@mui/material/Grid2"
-import { RangeSlider } from "@weng-lab/psychscreen-ui-components"
+import { RangeSlider } from "psychscreen-legacy-components"
 import {  FilterCriteria, MainQueryParams, RegistryBiosample } from "./types"
 import { eQTLsTissues, filtersModified } from "./searchhelpers"
 import {  LazyQueryResultTuple, gql, useLazyQuery } from "@apollo/client"

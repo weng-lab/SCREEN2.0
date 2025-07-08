@@ -15,7 +15,7 @@ import { tissueColors } from "../../../common/lib/colors"
 import {  BigQueryResponse } from "../_gbview/types"
 import { BigBedData } from "bigwig-reader"
 import { styled } from '@mui/material/styles';
-import { DataTable } from "@weng-lab/psychscreen-ui-components"
+import { DataTable } from "psychscreen-legacy-components"
 import config from "../../../config.json"
 
 const StyledTab = styled(Tab)(() => ({

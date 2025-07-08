@@ -4,7 +4,7 @@ import { client } from "./client"
 import { useQuery } from "@apollo/client"
 import { ORTHOLOG_QUERY } from "./queries"
 import Grid from "@mui/material/Grid2"
-import { DataTable } from "@weng-lab/psychscreen-ui-components"
+import { DataTable } from "psychscreen-legacy-components"
 import { LoadingMessage, ErrorMessage } from "../../../common/lib/utility"
 import { Typography } from "@mui/material"
 

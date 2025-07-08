@@ -1,7 +1,7 @@
 "use client"
 import { Accordion, AccordionDetails, AccordionSummary, IconButton, Paper, Stack, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material"
 import React, { useState, useMemo } from "react"
-import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
+import { DataTable, DataTableColumn } from "psychscreen-legacy-components"
 import { CreateLink, LoadingMessage } from "../../../common/lib/utility"
 import Grid from "@mui/material/Grid2"
 import { CircularProgress } from "@mui/material"

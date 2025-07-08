@@ -5,7 +5,7 @@ import { client } from "./client"
 import { useQuery } from "@apollo/client"
 import { TF_INTERSECTION_QUERY, CRE_TF_DCC_QUERY } from "./queries"
 import Grid from "@mui/material/Grid2"
-import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
+import { DataTable, DataTableColumn } from "psychscreen-legacy-components"
 import { LoadingMessage } from "../../../common/lib/utility"
 
 type TFBindData = {

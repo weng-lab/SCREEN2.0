@@ -4,7 +4,7 @@ import { client } from "./client"
 import { useQuery } from "@apollo/client"
 import { FUNCTIONAL_DATA_QUERY, CCRE_RDHS_QUERY, MPRA_FUNCTIONAL_DATA_QUERY, CAPRA_SOLO_FUNCTIONAL_DATA_QUERY, CAPRA_DOUBLE_FUNCTIONAL_DATA_QUERY } from "./queries"
 import Grid from "@mui/material/Grid2"
-import { DataTable } from "@weng-lab/psychscreen-ui-components"
+import { DataTable } from "psychscreen-legacy-components"
 import { LoadingMessage, ErrorMessage } from "../../../common/lib/utility"
 import { Link } from "@mui/material"
 

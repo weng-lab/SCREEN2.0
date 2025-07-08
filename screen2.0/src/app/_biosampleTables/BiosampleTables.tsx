@@ -1,5 +1,5 @@
 import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, CircularProgress, Accordion, IconButton, Menu, InputAdornment, Paper, Stack, Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, Box, Button } from "@mui/material"
-import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
+import { DataTable, DataTableColumn } from "psychscreen-legacy-components"
 import { useCallback, useMemo, useState } from "react"
 import { BiosampleData, CollectionCheckboxes, LifeStageCheckboxes, BiosampleTablesProps, RegistryBiosamplePlusRNA, SampleTypeCheckboxes } from "./types"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"

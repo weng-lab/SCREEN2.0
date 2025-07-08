@@ -1,6 +1,6 @@
 import { useQuery } from "@apollo/client"
 import React from "react"
-import { DataTable } from "@weng-lab/psychscreen-ui-components"
+import { DataTable } from "psychscreen-legacy-components"
 import Grid from "@mui/material/Grid2"
 import { client } from "./client"
 import { CircularProgress } from "@mui/material"
