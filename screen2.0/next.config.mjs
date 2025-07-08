@@ -9,7 +9,7 @@ const nextConfig = {
   //Image optimization incompatible with static exports
   images: { unoptimized: true },
   devIndicators: {
-    buildActivityPosition: "bottom-right",
+    position: "bottom-right",
   },
   generateEtags: false,
   trailingSlash: false,
