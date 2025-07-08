@@ -11,7 +11,7 @@ const classDownloads: {
   GRCh38: [
     {
       href: Config.Downloads.HumanCAPRA,
-      label: "CAPRA",
+      label: "STARR seq Scores via CAPRA (whole genome)",
       fileSize: "1.79 GB (unzipped)",
       bordercolor: "gray",
     },
@@ -23,13 +23,13 @@ const classDownloads: {
     },
     {
       href: Config.Downloads.HumanCRISPR,
-      label: "CRISPR",
+      label: "CRISPR Perturbation Data",
       fileSize: "35.7 MB (unzipped)",
       bordercolor: "gray",
     },
     {
       href: Config.Downloads.HumanVISTA,
-      label: "VISTA",
+      label: "VISTA Enhancers",
       fileSize: "123 KB",
       bordercolor: "gray",
     },
@@ -37,18 +37,18 @@ const classDownloads: {
   mm10: [
     {
       href: Config.Downloads.MouseVISTA,
-      label: "VISTA",
+      label: "VISTA Enhancers",
       fileSize: "90 KB",
       bordercolor: "gray",
     },
   ],
 };
 
-interface NewAnnotationsByClassProps {
+interface AnnotationsFunctional {
   assembly: Assembly;
 }
 
-const AnnotationsFunctional: React.FC<NewAnnotationsByClassProps> = ({
+const AnnotationsFunctional: React.FC<AnnotationsFunctional> = ({
   assembly,
 }) => {
   return (
