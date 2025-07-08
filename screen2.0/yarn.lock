@@ -1341,6 +1341,15 @@
     "@mui/utils" "^7.1.1"
     reselect "^5.1.1"
 
+"@mui/x-internals@8.7.0":
+  version "8.7.0"
+  resolved "https://registry.yarnpkg.com/@mui/x-internals/-/x-internals-8.7.0.tgz#5266f501fd96a068d4ac7312771238df2fc55d61"
+  integrity sha512-1aduds7L2i6t0HIFNlqG4UB07SVEg+wcnJ9GGu8B/X8EVwO72Rt+rc8ZlqK10ooscq1AlTwi2dd0q+hz+aWk+Q==
+  dependencies:
+    "@babel/runtime" "^7.27.6"
+    "@mui/utils" "^7.1.1"
+    reselect "^5.1.1"
+
 "@mui/x-license@8.6.0":
   version "8.6.0"
   resolved "https://registry.yarnpkg.com/@mui/x-license/-/x-license-8.6.0.tgz#420bb538f598737277bfb222e54ac698c930323f"
@@ -1349,6 +1358,16 @@
     "@babel/runtime" "^7.27.6"
     "@mui/utils" "^7.1.1"
     "@mui/x-internals" "8.6.0"
+    "@mui/x-telemetry" "8.5.3"
+
+"@mui/x-license@^8.7.0":
+  version "8.7.0"
+  resolved "https://registry.yarnpkg.com/@mui/x-license/-/x-license-8.7.0.tgz#9d806ee2b9b13fbea64093d499aadb4dc64701dc"
+  integrity sha512-kZIHnWPGVzIo/W6cSaM/8l/YALpMSNX1jLcA9lutMAdddoxB9czGCx2V5aSg1HGwuiVuun0jTPkdIfrDhN0sRQ==
+  dependencies:
+    "@babel/runtime" "^7.27.6"
+    "@mui/utils" "^7.1.1"
+    "@mui/x-internals" "8.7.0"
     "@mui/x-telemetry" "8.5.3"
 
 "@mui/x-telemetry@8.5.3":
