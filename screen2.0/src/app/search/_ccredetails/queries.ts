@@ -382,7 +382,7 @@ export const TSS_RAMPAGE_QUERY = gql(`
 )
 
 export const ComputationalGeneLinks_Query = gql(`
-  query ComputationalGeneLinks($accession: String!){
+  query ComputationalGeneLinks($accession: [String]!){
     ComputationalGeneLinksQuery(accession: $accession){
       gene: genename
       geneid

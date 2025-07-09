@@ -5,8 +5,24 @@ import { useQuery } from "@apollo/client"
 import { FUNCTIONAL_DATA_QUERY, CCRE_RDHS_QUERY, MPRA_FUNCTIONAL_DATA_QUERY, CAPRA_SOLO_FUNCTIONAL_DATA_QUERY, CAPRA_DOUBLE_FUNCTIONAL_DATA_QUERY } from "./queries"
 import Grid from "@mui/material/Grid2"
 import { DataTable } from "@weng-lab/psychscreen-ui-components"
-import { LoadingMessage, ErrorMessage } from "../../../common/lib/utility"
+import { LoadingMessage, ErrorMessage, CreateLink } from "../../../common/lib/utility"
 import { Link } from "@mui/material"
+
+type ExperimentInfo = {
+  lab: string;
+  cellType: string;
+};
+
+// Define the map where experiment is the key
+const capra_experimentMap: Record<string, ExperimentInfo> = {
+  "ENCSR064KUD": { lab: "Kevin White, UChicago", cellType: "HCT116" },
+  "ENCSR135NXN": { lab: "Kevin White, UChicago", cellType: "HepG2" },
+  "ENCSR547SBZ": { lab: "Kevin White, UChicago", cellType: "MCF-7" },
+  "ENCSR661FOW": { lab: "Tim Reddy, Duke", cellType: "K562" },
+  "ENCSR858MPS": { lab: "Kevin White, UChicago", cellType: "K562" },
+  "ENCSR895FDL": { lab: "Kevin White, UChicago",  cellType: "A549" },
+  "ENCSR983SZZ": { lab: "Kevin White, UChicago", cellType: "SH-SY5Y" }
+};
 
 export const FunctionData = ({ coordinates , assembly, accession }) => {
   const { loading, error, data } = useQuery(FUNCTIONAL_DATA_QUERY, {
@@ -194,6 +210,21 @@ export const FunctionData = ({ coordinates , assembly, accession }) => {
             {
               header: "Experiment",
               value: (row) => row.experiment,
+              render: (row) => <CreateLink
+              linkPrefix="https://www.encodeproject.org/experiments/"
+              linkArg={row.experiment}
+              label={row.experiment}
+              showExternalIcon
+              underline="always"
+            />
+            },
+            {
+              header: "Celltype",
+              value: (row) => capra_experimentMap[row.experiment].cellType,
+            },
+            {
+              header: "Lab",
+              value: (row) => capra_experimentMap[row.experiment].lab,
             },
             {
               header: "DNA Rep1",
@@ -218,7 +249,7 @@ export const FunctionData = ({ coordinates , assembly, accession }) => {
             },
             {
               header: "P",
-              value: (row) => row.pvalue.toFixed(2),
+              value: (row) => !row.pvalue ? "n/a" : row.pvalue.toFixed(2),
               HeaderRender: () => <i>P</i>
             },
             {
@@ -227,7 +258,7 @@ export const FunctionData = ({ coordinates , assembly, accession }) => {
             }
           ]}
           rows={capra_data.capraFccSoloQuery || []}
-          sortColumn={5}
+          sortColumn={7}
           itemsPerPage={5}
         />
       </Grid>}</>}
@@ -250,6 +281,21 @@ export const FunctionData = ({ coordinates , assembly, accession }) => {
             {
               header: "Experiment",
               value: (row) => row.experiment,
+              render: (row) => <CreateLink
+                                  linkPrefix="https://www.encodeproject.org/experiments/"
+                                  linkArg={row.experiment}
+                                  label={row.experiment}
+                                  showExternalIcon
+                                  underline="always"
+                                />
+            },            
+            {
+              header: "Celltype",
+              value: (row) => capra_experimentMap[row.experiment].cellType,
+            },
+            {
+              header: "Lab",
+              value: (row) => capra_experimentMap[row.experiment].lab,
             },
             {
               header: "DNA Rep1",
@@ -274,7 +320,7 @@ export const FunctionData = ({ coordinates , assembly, accession }) => {
             },
             {
               header: "P",
-              value: (row) => row.pvalue.toFixed(2),
+              value: (row) => !row.pvalue ? "n/a" : row.pvalue.toFixed(2),
               HeaderRender: () => <i>P</i>,
             },
             {
@@ -285,7 +331,7 @@ export const FunctionData = ({ coordinates , assembly, accession }) => {
           rows={capra_double_data && 
             capra_double_data.capraFccDoubleQuery.map(c=>{  return {...c, ccrep1: capra_double_rdhs_data && capra_double_rdhs_data.cCREQuery.length>0 && capra_double_rdhs_data.cCREQuery[0].accession, ccrep2: capra_double_rdhs_data && capra_double_rdhs_data.cCREQuery.length>0 && capra_double_rdhs_data.cCREQuery[1].accession } }) 
             || []}
-          sortColumn={6}
+          sortColumn={8}
           itemsPerPage={5}
         />
       </Grid>}</>}
