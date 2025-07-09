@@ -87,6 +87,19 @@ query MPRA_FCC($coordinates: [GenomicRangeInput!]) {
   }
 }
 `)
+
+export const CRISPR_FUNCTIONAL_DATA_QUERY = gql(`
+  query crisprFccQuery($accession: [String]!) {
+    crisprFccQuery(accession: $accession) {
+      rdhs
+      log2fc
+      fdr      
+      pvalue
+      experiment
+    }
+  }
+  `)
+  
 export const CAPRA_SOLO_FUNCTIONAL_DATA_QUERY = gql(`
 query capraFccSoloQuery($accession: [String]!) {
   capraFccSoloQuery(accession: $accession) {
