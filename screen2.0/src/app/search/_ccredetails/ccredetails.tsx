@@ -8,7 +8,7 @@ import { LinkedGenes } from "./linkedgenes";
 import { Ortholog } from "./linkedccres";
 import { TfIntersection } from "./tfintersection";
 import { FunctionData } from "./functionaldata";
-import { ChromHMM } from "./chromhmm";
+import ChromHMM from "./_chromhmm/chromhmm";
 import { ENTExData } from "./entexdata";
 import { Silencers } from "./silencers";
 import Rampage from "./rampage";
@@ -83,7 +83,7 @@ export type NearbyAndLinked = {
 export type NearbyWithDistanceAndLinked = {
   nearbyGenes: NearbyGeneInfoWithDistance[];
   linkedGenes: LinkedGeneInfo[];
-  otherComputationalLinkedGenes: ComputationalGeneLinksQuery["ComputationalGeneLinksQuery"]
+  otherComputationalLinkedGenes: ComputationalGeneLinksQuery["ComputationalGeneLinksQuery"];
 };
 
 export type NearbyAndLinkedVariables = {
@@ -169,7 +169,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({
       for (const gene of [
         ...nearest3AndLinkedGenes.nearbyGenes,
         ...nearest3AndLinkedGenes.linkedGenes,
-        ...nearest3AndLinkedGenes.otherComputationalLinkedGenes
+        ...nearest3AndLinkedGenes.otherComputationalLinkedGenes,
       ]) {
         const isNearbyGene: boolean = Object.hasOwn(gene, "distanceToTSS");
         let geneName: string;
@@ -180,7 +180,11 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({
             gene as NearbyGeneInfoWithDistance
           ).distanceToTSS.toLocaleString()} bp`;
         } else {
-          geneName = (gene as LinkedGeneInfo | ComputationalGeneLinksQuery["ComputationalGeneLinksQuery"][number]).gene;
+          geneName = (
+            gene as
+              | LinkedGeneInfo
+              | ComputationalGeneLinksQuery["ComputationalGeneLinksQuery"][number]
+          ).gene;
           methodToPush =
             //bad but whatever. This all will be refactored in redesign
             (gene as any)?.assay ?? (gene as any)?.method;
@@ -276,7 +280,9 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({
 
       {page === 7 &&
         assembly !== "mm10" &&
-        (!dataNearbyAndLinked || loadingLinkedGenes || loadingOtherComputationalLinkedGenes ? (
+        (!dataNearbyAndLinked ||
+        loadingLinkedGenes ||
+        loadingOtherComputationalLinkedGenes ? (
           <CircularProgress />
         ) : errorNearbyAndLinked ? (
           <Typography>{`Issue fetching Linked Genes for ${accession}.`}</Typography>
@@ -305,13 +311,11 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({
       )}
       {page === 9 && assembly !== "mm10" && (
         <ChromHMM
-          accession={accession}
           coordinates={{
             chromosome: region.chrom,
             start: region.start,
             end: region.end,
           }}
-          assembly={assembly}
         />
       )}
       {page === 10 && (
