@@ -96,12 +96,12 @@ export const ChromHMM = (props: { coordinates; assembly; accession }) => {
       .then((x) => x.text())
       .then((x) => {
         const lines = x.split("\n");
-        let ch = {};
+        const ch = {};
         lines.forEach((e) => {
-          let val = e.split("\t");
+          const val = e.split("\t");
           if (val[2]) {
             if (ch[val[2]]) {
-              let e = ch[val[2]];
+              const e = ch[val[2]];
               e.push([
                 val[0],
                 val[3],
@@ -184,7 +184,7 @@ export const ChromHMM = (props: { coordinates; assembly; accession }) => {
     data &&
     !loading &&
     data.bigRequests.map((b, i) => {
-      let f = b.data[0] as BigBedData;
+      const f = b.data[0] as BigBedData;
       return {
         start: f.start,
         end: f.end,

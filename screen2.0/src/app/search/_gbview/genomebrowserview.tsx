@@ -160,7 +160,7 @@ export const GenomeBrowserView: React.FC<GenomeBrowserViewProps> = (props) => {
       //copy v4 bed files to google bucket
       const bigBedUrl = `https://downloads.wenglab.org/Registry-V4/${r.join("_")}.bigBed`
       console.log("bigBedUrl", bigBedUrl)
-      let tracks: [string, string, string][] = [[`cCREs colored by activity in ${props.biosampledisplayname}`, bigBedUrl, ""]]
+      const tracks: [string, string, string][] = [[`cCREs colored by activity in ${props.biosampledisplayname}`, bigBedUrl, ""]]
       if (result.dnase_signal)
         tracks.push([
           `DNase-seq signal in ${props.biosampledisplayname}`,

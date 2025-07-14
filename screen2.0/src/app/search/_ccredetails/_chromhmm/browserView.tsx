@@ -54,7 +54,7 @@ export default function ChromHMMBrowser({
     const tempTracks: Track[] = [];
     for (const tissue of Object.keys(tracks)) {
       const samples = tracks[tissue];
-      let bulkbed: BulkBedConfig = {
+      const bulkbed: BulkBedConfig = {
         id: `${tissue}-bulkbed`,
         titleSize: 12,
         color: tissueColors[tissue] ?? tissueColors.missing,
@@ -80,7 +80,6 @@ export default function ChromHMMBrowser({
   return (
     <div>
       <GBControls 
-        domain={currentDomain || initialState.domain}
         assembly="GRCh38"
       />
       <Legend />

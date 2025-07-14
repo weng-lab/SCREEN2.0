@@ -65,7 +65,7 @@ export function useChromHMMData(coordinates) {
       return null;
 
     return bigQueryData.bigRequests.map((b, i) => {
-      let f = b.data[0] as BigBedData;
+      const f = b.data[0] as BigBedData;
       return {
         start: f.start,
         end: f.end,

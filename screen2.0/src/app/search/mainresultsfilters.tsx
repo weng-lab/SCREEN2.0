@@ -129,7 +129,7 @@ export function MainResultsFilters(
     genomeBrowserView: boolean,
     useLinkedGenes: LazyQueryResultTuple<LinkedGenes, LinkedGenesVariables>
   }
-): JSX.Element {
+): React.ReactElement {
   const {
     mainQueryParams,
     setMainQueryParams,

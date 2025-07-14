@@ -60,7 +60,7 @@ export const TfIntersection: React.FC<{ assembly: string; coordinates: { chromos
       }
     })
   
-  let peakmap = {}
+  const peakmap = {}
   data &&
     data.peaks.peaks.forEach((d) => {
       if (!peakmap[d.dataset.target]) {
@@ -69,13 +69,13 @@ export const TfIntersection: React.FC<{ assembly: string; coordinates: { chromos
       peakmap[d.dataset.target].add(d.dataset.accession)
     })
     
-  let totalmap = {}
+  const totalmap = {}
   data &&
     data.peakDataset.partitionByTarget.forEach((x) => {
       totalmap[x.target.name] = x.counts.total
     })
 
-  let tableData: TFBindData[] =
+  const tableData: TFBindData[] =
     data &&
     Object.keys(peakmap).map((k) => {
       return {

@@ -71,7 +71,7 @@ export function GeneExpression(props: {
   const [downloadOpen, setDownloadOpen] = useState(false)
   const [search, setSearch] = useState<string>("")
 
-  const plotRef = useRef<SVGSVGElement>()
+  const plotRef = useRef<SVGSVGElement>(null)
 
   const handleOpenConfigGB = () => {
     if (gene) setConfigGBOpen(true)

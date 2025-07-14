@@ -46,7 +46,7 @@
     "umap-js": "1.4.0",
     "umms-gb": "^3.10.0",
     "uuid": "^10.0.0",
-    "track-logic": "0.0.3"
+    "track-logic": "0.0.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",

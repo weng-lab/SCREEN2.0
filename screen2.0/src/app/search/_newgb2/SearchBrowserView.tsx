@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import {
   Browser,
   InitialBrowserState,
@@ -45,7 +45,6 @@ export default function SearchBrowserView({
 }: SearchBrowserViewProps) {
   const addHighlight = useBrowserStore((state) => state.addHighlight);
   const removeHighlight = useBrowserStore((state) => state.removeHighlight);
-  const insertTrack = useTrackStore((state) => state.insertTrack);
 
   const initialState: InitialBrowserState = {
     domain: expandCoordinates(coordinates) as Domain,
@@ -53,12 +52,9 @@ export default function SearchBrowserView({
     trackWidth: 1350,
     multiplier: 3,
   };
-  const [initialTracks, setInitialTracks] = useState<Track[]>([]);
-
-  useEffect(() => {
+  const initialTracks = useMemo(() => {
     const tracks =
       coordinates.assembly === "GRCh38" ? humanTracks : mouseTracks;
-
     const geneTrack: TranscriptConfig = {
       assembly: coordinates.assembly,
       version: coordinates.assembly === "GRCh38" ? 40 : 25,
@@ -71,7 +67,6 @@ export default function SearchBrowserView({
       color: "#AAAAAA",
       geneName: geneName,
     };
-
     const ccreTrack: BigBedConfig = {
       id: "default-ccre",
       title: "All cCREs colored by group",
@@ -96,32 +91,57 @@ export default function SearchBrowserView({
       },
     };
 
-    const biosampleTracks = biosample
-      ? generateBiosampleTracks(biosample, coordinates.assembly, colors)
-      : [];
-
-    const allTracks = [geneTrack, ccreTrack, ...tracks, ...biosampleTracks];
-    setInitialTracks(allTracks);
+    return [geneTrack, ccreTrack, ...tracks];
   }, [
     coordinates.assembly,
     geneName,
-    biosample,
     addHighlight,
     removeHighlight,
     cCREClick,
   ]);
 
+  const biosampleTracks = useMemo(() => {
+    return biosample
+      ? generateBiosampleTracks(biosample, coordinates.assembly, colors)
+      : [];
+  }, [biosample, coordinates.assembly]);
+
+  // useEffect(() => {
+  //   const tracks = useTrackStore.getState().tracks;
+  //   const biosampleTracks = biosample
+  //     ? generateBiosampleTracks(biosample, coordinates.assembly, colors)
+  //     : [];
+  //   let index = tracks.length;
+  //   biosampleTracks.forEach((track) => {
+  //     console.log("inserting track", track, " at index ", index);
+  //     insertTrack(track, index);
+  //     index++;
+  //   });
+  // }, [biosample, coordinates.assembly, insertTrack]);
+
   if (initialTracks.length === 0) return <LoadingMessage />;
 
   return (
     <div>
+      <TrackTracker />
       <GBControls
         assembly={coordinates.assembly}
         style={{ marginBottom: "10px" }}
       />
-      <Browser tracks={initialTracks} state={initialState} />
+      <Browser
+        tracks={[...initialTracks, ...biosampleTracks]}
+        state={initialState}
+      />
     </div>
   );
+}
+
+function TrackTracker() {
+  const tracks = useTrackStore((state) => state.tracks);
+  useEffect(() => {
+    console.log("tracks", tracks);
+  }, [tracks]);
+  return null;
 }
 
 function expandCoordinates(

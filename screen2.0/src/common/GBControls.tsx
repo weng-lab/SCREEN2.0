@@ -145,11 +145,7 @@ const SearchInput: React.FC<{
   );
 };
 
-const GBControls: React.FC<GBControlsProps> = ({
-  assembly,
-  onDomainChanged,
-  style,
-}) => {
+const GBControls: React.FC<GBControlsProps> = ({ onDomainChanged, style }) => {
   const domain = useBrowserStore((state) => state.domain);
   const updateDomain = useBrowserStore((state) => state.setDomain);
 

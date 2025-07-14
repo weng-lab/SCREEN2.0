@@ -7,9 +7,8 @@ import {
   BrowserState,
   Controls,
   GQLCytobands,
-  GQLWrapper,
 } from "@weng-lab/genomebrowser";
-import { Dispatch, useEffect, useMemo, useRef, useState } from "react";
+import { Dispatch, useEffect, useMemo, useRef } from "react";
 import { RegistryBiosample } from "../types";
 import { genBiosampleTracks } from "./genTracks";
 import CCRETooltip from "../_gbview/ccretooltip";
@@ -151,7 +150,7 @@ export const Browser = ({
     });
   }, [cCREClick]);
 
-  const [loadBiosample, { loading: bloading, data: bdata }] = useLazyQuery(
+  const [loadBiosample, { loading: _, data: bdata }] = useLazyQuery(
     BIOSAMPLE_QUERY,
     {
       fetchPolicy: "cache-and-network",
@@ -185,7 +184,7 @@ export const Browser = ({
       const tracks = genBiosampleTracks(biosample, coordinates, bdata);
       tracks.forEach((track) => {
         if (track.trackType === TrackType.BIGBED) {
-          let bedTrack = {
+          const bedTrack = {
             ...track,
             onMouseOut: bedMouseOut,
             onMouseOver: bedMouseOver,

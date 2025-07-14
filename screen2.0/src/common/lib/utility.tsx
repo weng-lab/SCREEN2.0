@@ -80,15 +80,15 @@ export function ErrorMessage(props: { error: Error }) {
  */
 export function toScientificNotationString(num: number, sigFigs: number = 2) {
   // Convert the number to scientific notation using toExponential
-  let scientific = num.toExponential(sigFigs);
-  let [coefficient, exponent] = scientific.split('e');
+  const scientific = num.toExponential(sigFigs);
+  const [coefficient, exponent] = scientific.split('e');
   
   // Format the exponent part
-  let expSign = exponent[0];
-  exponent = exponent.slice(1);
+  const expSign = exponent[0];
+  const exponentString = exponent.slice(1);
   
   // Convert the exponent to a superscript string
-  let superscriptExponent = exponent
+  let superscriptExponent = exponentString
     .split('')
     .map(char => '⁰¹²³⁴⁵⁶⁷⁸⁹'[char] || char)
     .join('');
@@ -111,8 +111,8 @@ export function toScientificNotationElement(num: number, sigFigs: number, typogr
   if (num > 0.01) { return <Typography {...typographyProps}>{num.toFixed(2)}</Typography> }
 
   // Convert the number to scientific notation using toExponential
-  let scientific = num.toExponential(sigFigs);
-  let [coefficient, exponent] = scientific.split('e');
+  const scientific = num.toExponential(sigFigs);
+  const [coefficient, exponent] = scientific.split('e');
   
   return (
     <Typography {...typographyProps}>{coefficient}&nbsp;×&nbsp;10<sup>{exponent}</sup></Typography>
