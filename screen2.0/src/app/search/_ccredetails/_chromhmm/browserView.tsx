@@ -9,9 +9,11 @@ import {
   BulkBedConfig,
   Browser,
   Rect,
+  useBrowserStore,
 } from "track-logic";
 import { tissueColors } from "../../../../common/lib/colors";
 import { ChromTrack, stateDetails } from "./chromhmm";
+import GBControls from "../../../../common/GBControls";
 
 export default function ChromHMMBrowser({
   coordinates,
@@ -20,6 +22,7 @@ export default function ChromHMMBrowser({
   tracks: Record<string, ChromTrack[]>;
   coordinates: { chromosome: string; start: number; end: number };
 }) {
+  const currentDomain = useBrowserStore((state) => state.domain);
   const [initialTracks, setInitialTracks] = useState<Track[]>([
     {
       id: "gene-track",
@@ -76,6 +79,10 @@ export default function ChromHMMBrowser({
 
   return (
     <div>
+      <GBControls 
+        domain={currentDomain || initialState.domain}
+        assembly="GRCh38"
+      />
       <Legend />
       <Browser tracks={initialTracks} state={initialState} />
     </div>

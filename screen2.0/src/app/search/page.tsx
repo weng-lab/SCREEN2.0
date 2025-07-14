@@ -31,6 +31,7 @@ import { BrowserActionType, useBrowserState } from "@weng-lab/genomebrowser"
 import { getDefaultTracks } from "./_newgbview/genTracks"
 import { GROUP_COLOR_MAP } from "./_ccredetails/utils"
 import UrlErrorDialog from "./UrlErrorDialog"
+import SearchBrowserView from "./_newgb2/SearchBrowserView";
 // import { track } from "@vercel/analytics/react"
 
 /**
@@ -1029,12 +1030,10 @@ export default function Search(props: { searchParams: Promise<{ [key: string]: s
             {/* Genome Browser View */}
             <TabPanel page={page} value={1}>
               {haveCoordinates && (
-                <Browser
+                <SearchBrowserView 
                   cCREClick={handlecCREClick}
-                  state={browserState}
-                  dispatch={browserDispatch}
                   coordinates={mainQueryParams.coordinates}
-                  gene={mainQueryParams.gene.name}
+                  geneName={mainQueryParams.gene.name}
                   biosample={mainQueryParams.biosample}
                 />
               )}
