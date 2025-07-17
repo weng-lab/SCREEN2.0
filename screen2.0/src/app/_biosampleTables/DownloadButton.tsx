@@ -1,76 +1,96 @@
 import { useState, useEffect } from "react";
-import { CircularProgressProps, Box, CircularProgress, Typography, IconButton, Tooltip } from "@mui/material";
+import {
+  CircularProgressProps,
+  Box,
+  CircularProgress,
+  Typography,
+  IconButton,
+  Tooltip,
+} from "@mui/material";
 import { Close, Download } from "@mui/icons-material";
 import { downloadTSV } from "../downloads/utils";
 import { BiosampleData } from "./types";
 
 export type DownloadButtonProps<T extends boolean> = {
-  row: BiosampleData<T>
-  downloadType: "dnase" | "h3k4me3" | "h3k27ac" | "ctcf" | "atac" | "celltypeccres"
-}
+  row: BiosampleData<T>;
+  downloadType:
+    | "dnase"
+    | "h3k4me3"
+    | "h3k27ac"
+    | "ctcf"
+    | "atac"
+    | "celltypeccres";
+};
 
-const fetchFileSize = async (url: string, setFileSize: React.Dispatch<React.SetStateAction<number>>) => {
+const fetchFileSize = async (
+  url: string,
+  setFileSize: React.Dispatch<React.SetStateAction<number>>
+) => {
   try {
-    const response = await fetch(url, { method: 'HEAD' });
-    const contentLength = response.headers.get('Content-Length');
+    const response = await fetch(url, { method: "HEAD" });
+    const contentLength = response.headers.get("Content-Length");
     if (contentLength) {
       setFileSize(parseInt(contentLength, 10));
     }
   } catch (error) {
-    console.error("error fetching file size for ", url)
-    console.error(error)
+    console.error("error fetching file size for ", url);
+    console.error(error);
   }
-}
-
+};
 
 /**
- * 
+ *
  * @prop row
  * @prop downloadType
  * ```jsx
  * "dnase" | "h3k4me3" | "h3k27ac" | "ctcf" | "atac" | "celltypeccres"
  * ```
- * @returns 
+ * @returns
  */
-export const DownloadButton = <T extends boolean>({ row, downloadType }: DownloadButtonProps<T>) => {
-  const [progress, setProgress] = useState<number>(null) //for progress wheel
-  const [hover, setHover] = useState<boolean>(false) //for tracking if user is hovering over progress wheel
+export const DownloadButton = <T extends boolean>({
+  row,
+  downloadType,
+}: DownloadButtonProps<T>) => {
+  const [progress, setProgress] = useState<number>(null); //for progress wheel
+  const [hover, setHover] = useState<boolean>(false); //for tracking if user is hovering over progress wheel
   const [controller, setController] = useState(null); //used to hold an AbortController created in handleDL, which allows aborting download
-  const [fileSize, setFileSize] = useState<number>(null)
+  const [fileSize, setFileSize] = useState<number>(null);
 
-  let url: string
-  let fileName: string
+  let url: string;
+  let fileName: string;
   switch (downloadType) {
     case "dnase":
-      url = `https://downloads.wenglab.org/Registry-V4/SCREEN/Signal-Files/${row.dnase}-${row.dnase_signal}.txt`
-      fileName = `${row.dnase}-${row.dnase_signal}.txt`
-      break
+      url = `https://downloads.wenglab.org/Registry-V4/SCREEN/Signal-Files/${row.dnase}-${row.dnase_signal}.txt`;
+      fileName = `${row.dnase}-${row.dnase_signal}.txt`;
+      break;
     case "h3k4me3":
-      url = `https://downloads.wenglab.org/Registry-V4/SCREEN/Signal-Files/${row.h3k4me3}-${row.h3k4me3_signal}.txt`
-      fileName = `${row.h3k4me3}-${row.h3k4me3_signal}.txt`
-      break
+      url = `https://downloads.wenglab.org/Registry-V4/SCREEN/Signal-Files/${row.h3k4me3}-${row.h3k4me3_signal}.txt`;
+      fileName = `${row.h3k4me3}-${row.h3k4me3_signal}.txt`;
+      break;
     case "h3k27ac":
-      url = `https://downloads.wenglab.org/Registry-V4/SCREEN/Signal-Files/${row.h3k27ac}-${row.h3k27ac_signal}.txt`
-      fileName = `${row.h3k27ac}-${row.h3k27ac_signal}.txt`
-      break
+      url = `https://downloads.wenglab.org/Registry-V4/SCREEN/Signal-Files/${row.h3k27ac}-${row.h3k27ac_signal}.txt`;
+      fileName = `${row.h3k27ac}-${row.h3k27ac_signal}.txt`;
+      break;
     case "ctcf":
-      url = `https://downloads.wenglab.org/Registry-V4/SCREEN/Signal-Files/${row.ctcf}-${row.ctcf_signal}.txt`
-      fileName = `${row.ctcf}-${row.ctcf_signal}.txt`
-      break
+      url = `https://downloads.wenglab.org/Registry-V4/SCREEN/Signal-Files/${row.ctcf}-${row.ctcf_signal}.txt`;
+      fileName = `${row.ctcf}-${row.ctcf_signal}.txt`;
+      break;
     case "atac":
-      url = `https://downloads.wenglab.org/Registry-V4/SCREEN/Signal-Files/${row.atac}-${row.atac_signal}.txt`
-      fileName = `${row.atac}-${row.atac_signal}.txt`
-      break
+      url = `https://downloads.wenglab.org/Registry-V4/SCREEN/Signal-Files/${row.atac}-${row.atac_signal}.txt`;
+      fileName = `${row.atac}-${row.atac_signal}.txt`;
+      break;
     case "celltypeccres": {
       const signalIDs = [
         row.dnase_signal,
         row.h3k4me3_signal,
         row.h3k27ac_signal,
-        row.ctcf_signal
-      ].filter(id => id !== null && id !== undefined);
-      url = `https://downloads.wenglab.org/Registry-V4/${signalIDs.join('_')}.bed`
-      fileName = `${signalIDs.join('_')}.bed`
-      break
+        row.ctcf_signal,
+      ].filter((id) => id !== null && id !== undefined);
+      url = `https://downloads.wenglab.org/Registry-V4/${signalIDs.join(
+        "_"
+      )}.bed`;
+      fileName = `${signalIDs.join("_")}.bed`;
+      break;
     }
   }
 
@@ -91,12 +111,10 @@ export const DownloadButton = <T extends boolean>({ row, downloadType }: Downloa
   };
 
   function CircularProgressWithLabel(
-    props: CircularProgressProps & { value: number },
+    props: CircularProgressProps & { value: number }
   ) {
     return (
-      <Box
-        sx={{ position: 'relative', display: 'inline-flex' }}
-      >
+      <Box sx={{ position: "relative", display: "inline-flex" }}>
         <CircularProgress variant="determinate" {...props} />
         <Box
           sx={{
@@ -104,10 +122,10 @@ export const DownloadButton = <T extends boolean>({ row, downloadType }: Downloa
             left: 0,
             bottom: 0,
             right: 0,
-            position: 'absolute',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            position: "absolute",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
           <Typography
@@ -121,15 +139,17 @@ export const DownloadButton = <T extends boolean>({ row, downloadType }: Downloa
   }
 
   const handleSetHover = (isHovered: boolean) => {
-    setHover(isHovered)
-    if (isHovered && !fileSize){
-      fetchFileSize(url, setFileSize)
+    setHover(isHovered);
+    if (isHovered && !fileSize) {
+      fetchFileSize(url, setFileSize);
     }
-  }
+  };
 
-  if (row[downloadType] || (downloadType === "celltypeccres" && (row.dnase || row.ctcf || row.h3k27ac || row.h3k4me3))) {
-    
-
+  if (
+    row[downloadType] ||
+    (downloadType === "celltypeccres" &&
+      (row.dnase || row.ctcf || row.h3k27ac || row.h3k4me3))
+  ) {
     const handleDL = async () => {
       // Cleanup previous controller if any
       if (controller) {
@@ -155,7 +175,7 @@ export const DownloadButton = <T extends boolean>({ row, downloadType }: Downloa
         }
 
         const reader = response.body!.getReader();
-        const contentLength = +response.headers.get('Content-Length')!;
+        const contentLength = +response.headers.get("Content-Length")!;
 
         let receivedLength = 0;
         const chunks = [];
@@ -188,13 +208,13 @@ export const DownloadButton = <T extends boolean>({ row, downloadType }: Downloa
             position += chunk.length;
           }
 
-          const dataString = new TextDecoder('utf-8').decode(dataArray);
+          const dataString = new TextDecoder("utf-8").decode(dataArray);
 
           downloadTSV(dataString, fileName);
         }
       } catch (error) {
-        if (error.name !== 'AbortError') {
-          window.alert('Download failed:' + error);
+        if (error.name !== "AbortError") {
+          window.alert("Download failed:" + error);
         }
       } finally {
         setController(null);
@@ -207,21 +227,38 @@ export const DownloadButton = <T extends boolean>({ row, downloadType }: Downloa
         onMouseEnter={() => handleSetHover(true)}
         onMouseLeave={() => handleSetHover(false)}
       >
-        {progress ?
-          hover ?
-            <IconButton onClick={handleAbort}>
+        {progress ? (
+          hover ? (
+            <IconButton
+              onClick={(e) => {
+                e.stopPropagation();
+                handleAbort();
+              }}
+            >
               <Close />
             </IconButton>
-            :
+          ) : (
             <CircularProgressWithLabel value={progress} />
-          :
-          <Tooltip title={fileSize ? fileSize && (fileSize / 1000000).toFixed(1) + ' MB' : "Loading file size"}>
-            <IconButton onClick={handleDL}>
+          )
+        ) : (
+          <Tooltip
+            title={
+              fileSize
+                ? fileSize && (fileSize / 1000000).toFixed(1) + " MB"
+                : "Loading file size"
+            }
+          >
+            <IconButton
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDL();
+              }}
+            >
               <Download />
             </IconButton>
           </Tooltip>
-        }
+        )}
       </Box>
-    )
-  } else return null
-}
+    );
+  } else return null;
+};

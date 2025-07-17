@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Track,
   TrackType,
@@ -9,7 +9,8 @@ import {
   BulkBedConfig,
   Browser,
   Rect,
-  useBrowserStore,
+  createBrowserStore,
+  createTrackStore,
 } from "track-logic";
 import { tissueColors } from "../../../../common/lib/colors";
 import { ChromTrack, stateDetails } from "./chromhmm";
@@ -22,20 +23,6 @@ export default function ChromHMMBrowser({
   tracks: Record<string, ChromTrack[]>;
   coordinates: { chromosome: string; start: number; end: number };
 }) {
-  const currentDomain = useBrowserStore((state) => state.domain);
-  const [initialTracks, setInitialTracks] = useState<Track[]>([
-    {
-      id: "gene-track",
-      title: "GENCODE Genes",
-      titleSize: 12,
-      height: 50,
-      color: "#aaaaaa",
-      trackType: TrackType.Transcript,
-      assembly: "GRCh38",
-      version: 40,
-      displayMode: DisplayMode.Squish,
-    } as TranscriptConfig,
-  ]);
   const initialState: InitialBrowserState = {
     domain: {
       chromosome: coordinates.chromosome as Chromosome,
@@ -49,8 +36,12 @@ export default function ChromHMMBrowser({
       { id: "feature", color: "#000000", domain: { ...coordinates } },
     ],
   };
-  useEffect(() => {
-    if (!tracks || initialTracks.length > 1) return;
+  const browserStore = createBrowserStore(initialState);
+  const addHighlight = browserStore((state) => state.addHighlight);
+  const removeHighlight = browserStore((state) => state.removeHighlight);
+
+  const initialTracks = useMemo(() => {
+    if (!tracks) return [];
     const tempTracks: Track[] = [];
     for (const tissue of Object.keys(tracks)) {
       const samples = tracks[tissue];
@@ -69,21 +60,30 @@ export default function ChromHMMBrowser({
         title: tissue,
         height: 15 * samples.length,
         tooltip: (rect) => Tooltip(rect, tissue),
+        onHover: (rect) => {
+          addHighlight({
+            color: rect.color,
+            domain: { start: rect.start, end: rect.end },
+            id: "tmp-bulkbed",
+          });
+        },
+        onLeave: () => {
+          removeHighlight("tmp-bulkbed");
+        },
       };
       tempTracks.push(bulkbed);
     }
-    setInitialTracks([...initialTracks, ...tempTracks]);
+    return tempTracks;
   }, [tracks]);
+  const trackStore = createTrackStore(initialTracks);
 
   if (initialTracks.length === 0) return null;
 
   return (
     <div>
-      <GBControls 
-        assembly="GRCh38"
-      />
+      <GBControls assembly="GRCh38" browserStore={browserStore} />
       <Legend />
-      <Browser tracks={initialTracks} state={initialState} />
+      <Browser browserStore={browserStore} trackStore={trackStore} />
     </div>
   );
 }

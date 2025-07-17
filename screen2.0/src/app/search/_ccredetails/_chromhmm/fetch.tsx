@@ -27,7 +27,7 @@ export function useChromHMMData(coordinates) {
             return tracksData[tissue].map((track) => ({
               tissue: tissue,
               url: track.url,
-              biosample: track.sample,
+              biosample: track.displayName,
             }));
           })
           .flat();

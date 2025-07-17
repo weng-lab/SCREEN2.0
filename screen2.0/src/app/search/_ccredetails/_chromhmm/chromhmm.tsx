@@ -28,10 +28,18 @@ export default function ChromHMM({ coordinates }) {
         <StyledTab value={0} label="Genome Browser View" />
         <StyledTab value={1} label="Table View" />
       </Tabs>
-      {page === 0 && (
-        <ChromHMMBrowser tracks={tracks} coordinates={coordinates} />
-      )}
-      {page === 1 && <ChromHMMTable data={processedTableData} />}
+      {page === 0 &&
+        (loading ? (
+          <div>Loading...</div>
+        ) : (
+          <ChromHMMBrowser tracks={tracks} coordinates={coordinates} />
+        ))}
+      {page === 1 &&
+        (loading ? (
+          <div>Loading...</div>
+        ) : (
+          <ChromHMMTable data={processedTableData} />
+        ))}
     </div>
   );
 }

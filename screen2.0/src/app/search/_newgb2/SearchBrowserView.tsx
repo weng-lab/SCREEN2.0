@@ -1,7 +1,8 @@
 import { useEffect, useMemo } from "react";
 import {
   Browser,
-  InitialBrowserState,
+  createBrowserStore,
+  createTrackStore,
   Track,
   BigBedConfig,
   BigWigConfig,
@@ -9,11 +10,9 @@ import {
   DisplayMode,
   TranscriptConfig,
   Rect,
-  useBrowserStore,
   Domain,
-  useTrackStore,
+  InitialBrowserState,
 } from "track-logic";
-import { LoadingMessage } from "../../../common/lib/utility";
 import { RegistryBiosample } from "../types";
 import GBControls from "../../../common/GBControls";
 
@@ -37,21 +36,24 @@ type SearchBrowserViewProps = {
   geneName: string | null;
   biosample: RegistryBiosample | null;
 };
+
 export default function SearchBrowserView({
   coordinates,
   cCREClick,
   geneName,
   biosample,
 }: SearchBrowserViewProps) {
-  const addHighlight = useBrowserStore((state) => state.addHighlight);
-  const removeHighlight = useBrowserStore((state) => state.removeHighlight);
+  const browserStore = useMemo(() => {
+    return createBrowserStore({
+      domain: expandCoordinates({ ...coordinates }) as Domain,
+      marginWidth: 150,
+      trackWidth: 1350,
+      multiplier: 3,
+    } as InitialBrowserState);
+  }, []);
 
-  const initialState: InitialBrowserState = {
-    domain: expandCoordinates(coordinates) as Domain,
-    marginWidth: 150,
-    trackWidth: 1350,
-    multiplier: 3,
-  };
+  const addHighlight = browserStore((state) => state.addHighlight);
+  const removeHighlight = browserStore((state) => state.removeHighlight);
   const initialTracks = useMemo(() => {
     const tracks =
       coordinates.assembly === "GRCh38" ? humanTracks : mouseTracks;
@@ -90,7 +92,6 @@ export default function SearchBrowserView({
         cCREClick(item);
       },
     };
-
     return [geneTrack, ccreTrack, ...tracks];
   }, [
     coordinates.assembly,
@@ -100,48 +101,67 @@ export default function SearchBrowserView({
     cCREClick,
   ]);
 
-  const biosampleTracks = useMemo(() => {
-    return biosample
-      ? generateBiosampleTracks(biosample, coordinates.assembly, colors)
-      : [];
-  }, [biosample, coordinates.assembly]);
+  const trackStore = useMemo(() => {
+    return createTrackStore(initialTracks);
+  }, []);
 
-  // useEffect(() => {
-  //   const tracks = useTrackStore.getState().tracks;
-  //   const biosampleTracks = biosample
-  //     ? generateBiosampleTracks(biosample, coordinates.assembly, colors)
-  //     : [];
-  //   let index = tracks.length;
-  //   biosampleTracks.forEach((track) => {
-  //     console.log("inserting track", track, " at index ", index);
-  //     insertTrack(track, index);
-  //     index++;
-  //   });
-  // }, [biosample, coordinates.assembly, insertTrack]);
+  const tracks = trackStore((state) => state.tracks);
+  const insertTrack = trackStore((state) => state.insertTrack);
+  const removeTrack = trackStore((state) => state.removeTrack);
 
-  if (initialTracks.length === 0) return <LoadingMessage />;
+  useEffect(() => {
+    if (!biosample) {
+      // Remove existing biosample tracks
+      const existingBiosampleTracks = tracks.filter((track) =>
+        track.id.startsWith("biosample-")
+      );
+      existingBiosampleTracks.forEach((track) => {
+        removeTrack(track.id);
+      });
+      return;
+    }
+
+    // Add new biosample tracks if biosample is provided
+    if (biosample) {
+      const onHover = (item: Rect) => {
+        addHighlight({
+          color: item.color || "blue",
+          domain: { start: item.start, end: item.end },
+          id: "tmp-ccre",
+        });
+      };
+
+      const onLeave = () => {
+        removeHighlight("tmp-ccre");
+      };
+
+      const onClick = (item: Rect) => {
+        cCREClick(item);
+      };
+
+      const biosampleTracks = generateBiosampleTracks(
+        biosample,
+        onHover,
+        onLeave,
+        onClick,
+        colors
+      );
+      biosampleTracks.forEach((track) => {
+        insertTrack(track);
+      });
+    }
+  }, [biosample]);
 
   return (
     <div>
-      <TrackTracker />
       <GBControls
+        browserStore={browserStore}
         assembly={coordinates.assembly}
         style={{ marginBottom: "10px" }}
       />
-      <Browser
-        tracks={[...initialTracks, ...biosampleTracks]}
-        state={initialState}
-      />
+      <Browser browserStore={browserStore} trackStore={trackStore} />
     </div>
   );
-}
-
-function TrackTracker() {
-  const tracks = useTrackStore((state) => state.tracks);
-  useEffect(() => {
-    console.log("tracks", tracks);
-  }, [tracks]);
-  return null;
 }
 
 function expandCoordinates(
@@ -167,14 +187,15 @@ function expandCoordinates(
 
 function generateBiosampleTracks(
   biosample: RegistryBiosample,
-  assembly: "GRCh38" | "mm10",
+  onHover: (item: Rect) => void,
+  onLeave: (item: Rect) => void,
+  onClick: (item: Rect) => void,
   colors: {
     ccre: string;
     dnase: string;
     h3k4me3: string;
     h3k27ac: string;
     ctcf: string;
-    atac: string;
   }
 ): Track[] {
   const tracks: Track[] = [];
@@ -185,7 +206,6 @@ function generateBiosampleTracks(
     biosample.h3k4me3_signal,
     biosample.h3k27ac_signal,
     biosample.ctcf_signal,
-    biosample.atac_signal,
   ].filter((signal): signal is string => !!signal);
 
   if (signals.length > 0) {
@@ -201,6 +221,9 @@ function generateBiosampleTracks(
       color: colors.ccre,
       height: 50,
       url: bigBedUrl,
+      onHover: onHover,
+      onLeave: onLeave,
+      onClick: onClick,
     };
     tracks.push(ccreTrack);
   }
@@ -254,19 +277,6 @@ function generateBiosampleTracks(
       color: colors.ctcf,
       height: 100,
       url: `https://www.encodeproject.org/files/${biosample.ctcf_signal}/@@download/${biosample.ctcf_signal}.bigWig`,
-    } as BigWigConfig);
-  }
-
-  if (biosample.atac_signal) {
-    tracks.push({
-      id: `biosample-atac-${biosample.name}`,
-      title: `ATAC-seq signal in ${biosample.displayname}`,
-      titleSize: 12,
-      trackType: TrackType.BigWig,
-      displayMode: DisplayMode.Full,
-      color: colors.atac,
-      height: 100,
-      url: `https://www.encodeproject.org/files/${biosample.atac_signal}/@@download/${biosample.atac_signal}.bigWig`,
     } as BigWigConfig);
   }
 

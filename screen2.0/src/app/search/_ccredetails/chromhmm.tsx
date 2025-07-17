@@ -356,7 +356,7 @@ export const ChromHMM = (props: { coordinates; assembly; accession }) => {
               {
                 header: "Biosample",
                 HeaderRender: () => <b>Biosample</b>,
-                value: (row) => row.biosample,
+                value: (row) => (row.biosample as string).replace("_", " "),
               },
               {
                 header: "State",

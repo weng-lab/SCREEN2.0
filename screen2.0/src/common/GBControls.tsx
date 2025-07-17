@@ -1,15 +1,18 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { Button, TextField, IconButton } from "@mui/material";
 import { Search } from "@mui/icons-material";
-import { useBrowserStore, Domain } from "track-logic";
+import { Domain } from "track-logic";
+import { BrowserStoreInstance } from "track-logic/dist/store/browserStore";
 
 export interface GBControlsProps {
+  browserStore: BrowserStoreInstance;
   assembly: "GRCh38" | "mm10";
   onDomainChanged?: (domain: Domain) => void;
   style?: React.CSSProperties;
 }
 
 interface ShiftButtonProps {
+  browserStore: BrowserStoreInstance;
   text: string;
   shift: number;
   domain: Domain;
@@ -17,14 +20,20 @@ interface ShiftButtonProps {
 }
 
 interface ZoomButtonProps {
+  browserStore: BrowserStoreInstance;
   text: string;
   factor: number;
   domain: Domain;
   onClick: (domain: Domain) => void;
 }
 
-const ShiftButton: React.FC<ShiftButtonProps> = ({ text, shift, domain }) => {
-  const setDomain = useBrowserStore((state) => state.setDomain);
+const ShiftButton: React.FC<ShiftButtonProps> = ({
+  browserStore,
+  text,
+  shift,
+  domain,
+}) => {
+  const setDomain = browserStore((state) => state.setDomain);
   const handleClick = () => {
     setDomain({
       ...domain,
@@ -49,8 +58,13 @@ const ShiftButton: React.FC<ShiftButtonProps> = ({ text, shift, domain }) => {
   );
 };
 
-const ZoomButton: React.FC<ZoomButtonProps> = ({ text, factor, domain }) => {
-  const setDomain = useBrowserStore((state) => state.setDomain);
+const ZoomButton: React.FC<ZoomButtonProps> = ({
+  browserStore,
+  text,
+  factor,
+  domain,
+}) => {
+  const setDomain = browserStore((state) => state.setDomain);
 
   const handleClick = () => {
     const midPoint = (domain.end + domain.start) / 2.0;
@@ -145,9 +159,13 @@ const SearchInput: React.FC<{
   );
 };
 
-const GBControls: React.FC<GBControlsProps> = ({ onDomainChanged, style }) => {
-  const domain = useBrowserStore((state) => state.domain);
-  const updateDomain = useBrowserStore((state) => state.setDomain);
+const GBControls: React.FC<GBControlsProps> = ({
+  browserStore,
+  onDomainChanged,
+  style,
+}) => {
+  const domain = browserStore((state) => state.domain);
+  const updateDomain = browserStore((state) => state.setDomain);
 
   const handleDomainChange = useCallback(
     (newDomain: Domain) => {
@@ -220,18 +238,21 @@ const GBControls: React.FC<GBControlsProps> = ({ onDomainChanged, style }) => {
             shift={domain.start - domain.end}
             domain={domain}
             onClick={handleDomainChange}
+            browserStore={browserStore}
           />
           <ShiftButton
             text="<<"
             shift={(domain.start - domain.end) / 2}
             domain={domain}
             onClick={handleDomainChange}
+            browserStore={browserStore}
           />
           <ShiftButton
             text="<"
             shift={(domain.start - domain.end) / 4}
             domain={domain}
             onClick={handleDomainChange}
+            browserStore={browserStore}
           />
         </div>
       </div>
@@ -255,18 +276,21 @@ const GBControls: React.FC<GBControlsProps> = ({ onDomainChanged, style }) => {
             shift={(domain.end - domain.start) / 4}
             domain={domain}
             onClick={handleDomainChange}
+            browserStore={browserStore}
           />
           <ShiftButton
             text=">>"
             shift={(domain.end - domain.start) / 2}
             domain={domain}
             onClick={handleDomainChange}
+            browserStore={browserStore}
           />
           <ShiftButton
             text=">>>"
             shift={domain.end - domain.start}
             domain={domain}
             onClick={handleDomainChange}
+            browserStore={browserStore}
           />
         </div>
       </div>
@@ -290,18 +314,21 @@ const GBControls: React.FC<GBControlsProps> = ({ onDomainChanged, style }) => {
             factor={1.0 / 1.5}
             domain={domain}
             onClick={handleDomainChange}
+            browserStore={browserStore}
           />
           <ZoomButton
             text="+3x"
             factor={1.0 / 3}
             domain={domain}
             onClick={handleDomainChange}
+            browserStore={browserStore}
           />
           <ZoomButton
             text="+10x"
             factor={1.0 / 10}
             domain={domain}
             onClick={handleDomainChange}
+            browserStore={browserStore}
           />
         </div>
       </div>
@@ -325,18 +352,21 @@ const GBControls: React.FC<GBControlsProps> = ({ onDomainChanged, style }) => {
             factor={1.5}
             domain={domain}
             onClick={handleDomainChange}
+            browserStore={browserStore}
           />
           <ZoomButton
             text="-3x"
             factor={3}
             domain={domain}
             onClick={handleDomainChange}
+            browserStore={browserStore}
           />
           <ZoomButton
             text="-10x"
             factor={10}
             domain={domain}
             onClick={handleDomainChange}
+            browserStore={browserStore}
           />
         </div>
       </div>
