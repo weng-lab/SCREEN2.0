@@ -6,6 +6,8 @@ import {
   MainQueryData,
   MainQueryParams,
   RegistryBiosample,
+  LinkedGenes,
+  LinkedGenesVariables,
 } from "./types";
 import {
   constructFilterCriteriaFromURL,
@@ -181,16 +183,7 @@ function CircularProgressWithLabel(
   );
 }
 
-export type LinkedGenes = {
-  linkedGenes: LinkedGeneInfo[];
-};
 
-export type LinkedGenesVariables = {
-  assembly: string;
-  accessions: string[];
-  methods?: string[];
-  celltypes?: string[];
-};
 
 /**
  * @todo move this to a better location
@@ -691,7 +684,6 @@ export default function Search(props: {
   //Handle opening a cCRE or navigating to its open tab
   const handlecCREClick = useCallback(
     (item) => {
-      console.log("item", item);
       const newcCRE = {
         ID: item.name || item.accession,
         region: {
@@ -1144,27 +1136,6 @@ export default function Search(props: {
       </CloseIconButton>
     );
   };
-
-  //Once coordinates have been determined, send analytics with search type
-  // const parsedSearchSent = useRef(false)
-  // useEffect(() => {
-  //   if (haveCoordinates && !parsedSearchSent.current) {
-  //     let searchType = 'region'
-  //     if (mainQueryParams.gene.name) searchType = 'gene'
-  //     if (mainQueryParams.snp.rsID) searchType = 'snp'
-  //     if (mainQueryParams.searchConfig.bed_intersect) searchType = 'bed intersect'
-  //     track('Search', {type: searchType, assembly: mainQueryParams.coordinates.assembly, searchConfig: JSON.stringify(mainQueryParams), referrer: document.referrer})
-  //     parsedSearchSent.current = true
-  //   }
-  // }, [haveCoordinates, mainQueryParams])
-
-  // const rawSearchSent = useRef(false)
-  // useEffect(() => {
-  //   if (!rawSearchSent.current){
-  //     track('Raw Search', {searchParams: JSON.stringify(searchParams), referrer: document.referrer })
-  //     rawSearchSent.current = true
-  //   }
-  // }, [searchParams])
 
   return (
     <>

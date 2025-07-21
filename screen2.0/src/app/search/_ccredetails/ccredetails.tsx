@@ -22,7 +22,7 @@ import {
 } from "./queries";
 import { calcDistToTSS } from "./utils";
 import { LoadingMessage } from "../../../common/lib/utility";
-import { ComputationalGeneLinksQuery } from "../../../graphql/__generated__/graphql";
+import { ComputationalGeneLinksQuery, ComputationalGeneLinksQueryVariables } from "../../../graphql/__generated__/graphql";
 
 //Passing these props through this file could be done with context to reduce prop drilling
 type CcreDetailsProps = {
@@ -127,8 +127,8 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({
   const {
     data: otherComputationalLinkedGenes,
     loading: loadingOtherComputationalLinkedGenes,
-  } = useQuery(ComputationalGeneLinks_Query, {
-    variables: { accession },
+  } = useQuery<ComputationalGeneLinksQuery, ComputationalGeneLinksQueryVariables>(ComputationalGeneLinks_Query, {
+    variables: { accession: accession },
     skip: !accession,
   });
 

@@ -1,7 +1,7 @@
 import { useQuery } from "@apollo/client"
 import React from "react"
 import { DataTable } from "psychscreen-legacy-components"
-import Grid from "@mui/material/Grid2"
+import Grid from "@mui/material/Grid"
 import { client } from "./client"
 import { CircularProgress } from "@mui/material"
 import { CreateLink } from "../../../common/lib/utility"

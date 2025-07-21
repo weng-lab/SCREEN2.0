@@ -3,7 +3,7 @@ import { Accordion, AccordionDetails, AccordionSummary, IconButton, Paper, Stack
 import React, { useState, useMemo } from "react"
 import { DataTable, DataTableColumn } from "psychscreen-legacy-components"
 import { CreateLink, LoadingMessage } from "../../../common/lib/utility"
-import Grid from "@mui/material/Grid2"
+import Grid from "@mui/material/Grid"
 import { CircularProgress } from "@mui/material"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import { client } from "../../search/_ccredetails/client"

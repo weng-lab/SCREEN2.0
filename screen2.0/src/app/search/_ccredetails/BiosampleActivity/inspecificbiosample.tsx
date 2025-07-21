@@ -4,7 +4,7 @@ import { useQuery } from "@apollo/client";
 import { TOP_TISSUES, GET_CCRE_CT_TF } from "../queries";
 import { DataTable } from "psychscreen-legacy-components";
 import { z_score, z_score_render, GROUP_COLOR_MAP } from "../utils";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import { LoadingMessage } from "../../../../common/lib/utility";
 import { DataTableColumn } from "psychscreen-legacy-components";
 import ParentSize from "@visx/responsive/lib/components/ParentSize";

@@ -1,5 +1,5 @@
 import { DataTable } from "psychscreen-legacy-components";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 
 export default function ChromHMMTable({
   data,

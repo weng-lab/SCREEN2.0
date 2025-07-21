@@ -9,7 +9,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { LinkedGeneInfo } from "./_ccredetails/ccredetails"
 import { InfoOutlined } from "@mui/icons-material"
 import { CreateLink } from "../../common/lib/utility"
-import { LinkedGenes, LinkedGenesVariables } from "./page"
+import { LinkedGenes, LinkedGenesVariables } from "./types"
 import GeneLink from "../_utility/GeneLink"
 
 

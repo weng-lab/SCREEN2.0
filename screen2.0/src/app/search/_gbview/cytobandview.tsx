@@ -1,7 +1,7 @@
 import React, { useMemo } from "react"
 import { gql, useQuery } from "@apollo/client"
 import { Cytobands } from "umms-gb"
-import { Grid } from "@mui/material"
+import Grid from "@mui/material/GridLegacy"
 import { client } from "../_ccredetails/client"
 export type GenomicRange = {
   chromosome?: string

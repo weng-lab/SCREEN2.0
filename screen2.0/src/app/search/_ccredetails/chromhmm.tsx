@@ -13,7 +13,7 @@ import { gql, useQuery } from "@apollo/client";
 import { Tab, Tabs, CircularProgress, Box } from "@mui/material";
 import CytobandView, { GenomicRange } from "../_gbview/cytobandview";
 import { client } from "./client";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import { RulerTrack, GenomeBrowser } from "umms-gb";
 import Controls from "../_gbview/controls";
 import { HumanChromHmmTracks, stateDetails } from "./humanchromhmmtracks";

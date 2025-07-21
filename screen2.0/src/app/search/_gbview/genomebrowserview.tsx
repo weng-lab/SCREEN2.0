@@ -1,6 +1,6 @@
 "use client"
 import React, { useMemo, useState, useRef, useCallback, useEffect } from "react"
-import Grid from "@mui/material/Grid2"
+import Grid from "@mui/material/Grid"
 import { RulerTrack, GenomeBrowser } from "umms-gb"
 import Controls from "./controls"
 import { gql, useQuery } from "@apollo/client"

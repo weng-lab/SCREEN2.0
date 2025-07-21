@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import Grid from "@mui/material/Grid2";
+import Grid from "@mui/material/Grid";
 import { DataTable } from "psychscreen-legacy-components";
 import {
   CreateLink,

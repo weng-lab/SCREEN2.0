@@ -14,7 +14,7 @@ import {
   Paper,
 } from "@mui/material"
 import { useQuery } from "@apollo/client"
-import Grid from "@mui/material/Grid2"
+import Grid from "@mui/material/Grid"
 import { Download, Visibility, CancelRounded } from "@mui/icons-material"
 import Image from "next/image"
 import humanTransparentIcon from "../../../public/Transparent_HumanIcon.png"

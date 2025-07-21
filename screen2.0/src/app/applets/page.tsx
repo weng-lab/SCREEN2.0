@@ -1,7 +1,7 @@
 "use client"
 
 import { Box, Button, Divider, IconButton, Stack, Typography } from "@mui/material";
-import Grid from "@mui/material/Grid2"
+import Grid from "@mui/material/Grid"
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import React from "react";
 import Carousel from "./carousel";
