@@ -1132,7 +1132,9 @@ export default function Search(props: {
           handleClosecCRE(cCRE.ID);
         }}
       >
-        <CloseIcon />
+        <Box component="span">
+          <CloseIcon />
+        </Box>
       </CloseIconButton>
     );
   };

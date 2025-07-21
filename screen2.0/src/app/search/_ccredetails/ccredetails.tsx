@@ -13,7 +13,7 @@ import { ENTExData } from "./entexdata";
 import { Silencers } from "./silencers";
 import Rampage from "./rampage";
 import { GeneExpression } from "../../applets/gene-expression/geneexpression";
-import { TfSequenceFeatures } from "../_gbview/tfsequencefeatures";
+import TfSequenceFeatures from "../_gbview/tfsequencefeatures";
 import ConfigureGBTab from "./configuregbtab";
 import { useQuery } from "@apollo/client";
 import {

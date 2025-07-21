@@ -7,6 +7,7 @@ import { TF_INTERSECTION_QUERY, CRE_TF_DCC_QUERY } from "./queries"
 import Grid from "@mui/material/Grid"
 import { DataTable, DataTableColumn } from "psychscreen-legacy-components"
 import { LoadingMessage } from "../../../common/lib/utility"
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 
 type TFBindData = {
   name: string;
@@ -91,8 +92,8 @@ export const TfIntersection: React.FC<{ assembly: string; coordinates: { chromos
         header: "Factor",
         value: (row) => row.name,
         render: (row) => (
-          <Link href={`https://www.factorbook.org/tf/human/${row.name}/function`} rel="noopener noreferrer" target="_blank">
-            <button>{row.name}</button>
+          <Link variant="body1" href={`https://www.factorbook.org/tf/human/${row.name}/function`} rel="noopener noreferrer" target="_blank">
+            {row.name} <OpenInNewIcon sx={{ fontSize: 'inherit' }} />
           </Link>
         ),
       },
