@@ -6732,10 +6732,10 @@ tr46@~0.0.3:
   resolved "https://registry.yarnpkg.com/tr46/-/tr46-0.0.3.tgz#8184fd347dac9cdc185992f3a6622e14b9d9ab6a"
   integrity sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==
 
-track-logic@0.0.4:
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/track-logic/-/track-logic-0.0.4.tgz#6697df7efc07253a09d7321a65c84d6c2af833e1"
-  integrity sha512-sP25aQYnMkj+RFBzeLx6Hd86Kb/lTPo5/VQPXa+xiRhFJCZ3Kba87eWNCcnPx7F1d2L4Mbbay2EokOAA2HCw4A==
+track-logic@0.0.5:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/track-logic/-/track-logic-0.0.5.tgz#0a08c83ce7f9c6d7352be0039e7927fec182337b"
+  integrity sha512-ztjdaut0mM/pZqrBULd5ca1amXftB2H9ncHEmOJW7jWWO94LezbEG5xy2o8gX9sgnnVzAu0Z3cxPxlzzcHjcJQ==
   dependencies:
     "@apollo/client" "^3.11.10"
     graphql "^16.9.0"

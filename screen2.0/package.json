@@ -44,7 +44,7 @@
     "react-dropzone": "^14.2.3",
     "semantic-ui-react": "^2.1.5",
     "swiper": "^11.1.15",
-    "track-logic": "0.0.4",
+    "track-logic": "0.0.5",
     "umap-js": "1.4.0",
     "umms-gb": "^3.10.0",
     "uuid": "^10.0.0"
