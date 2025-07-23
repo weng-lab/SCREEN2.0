@@ -11,7 +11,7 @@ import {
   Rect,
   createBrowserStore,
   createTrackStore,
-} from "track-logic";
+} from "@weng-lab/genomebrowser";
 import { tissueColors } from "../../../../common/lib/colors";
 import { ChromTrack, stateDetails } from "./chromhmm";
 import GBControls from "../../../../common/GBControls";

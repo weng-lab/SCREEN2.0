@@ -29,7 +29,7 @@
     "@parcel/watcher": "^2.4.1",
     "@vercel/analytics": "^1.4.1",
     "@visx/visx": "^3.12.0",
-    "@weng-lab/genomebrowser": "^0.0.24",
+    "@weng-lab/genomebrowser": "^1.0.0",
     "@weng-lab/ts-ztable": "^4.0.1",
     "@weng-lab/ui-components": "^1.0.1",
     "autoprefixer": "10.4.20",
@@ -44,7 +44,6 @@
     "react-dropzone": "^14.2.3",
     "semantic-ui-react": "^2.1.5",
     "swiper": "^11.1.15",
-    "track-logic": "0.0.5",
     "umap-js": "1.4.0",
     "umms-gb": "^3.10.0",
     "uuid": "^10.0.0"

@@ -15,6 +15,7 @@ import {
 } from "track-logic";
 import { RegistryBiosample } from "../types";
 import GBControls from "../../../common/GBControls";
+import CCRETooltip from "./ccretooltip";
 
 const colors = {
   ccre: "#D05F45",
@@ -91,6 +92,7 @@ export default function SearchBrowserView({
       onClick: (item: Rect) => {
         cCREClick(item);
       },
+      tooltip: (rect: Rect) => <CCRETooltip assembly={coordinates.assembly} name={rect.name || ''} {...rect} />,
     };
     return [geneTrack, ccreTrack, ...tracks];
   }, [
@@ -164,7 +166,7 @@ export default function SearchBrowserView({
   );
 }
 
-function expandCoordinates(
+export function expandCoordinates(
   coordinates: {
     assembly: "GRCh38" | "mm10";
     chromosome: string | null;

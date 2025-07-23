@@ -12,11 +12,10 @@ import {
   Rect,
   Track,
   TrackType,
-} from "track-logic";
+} from "@weng-lab/genomebrowser";
 import GBControls from "../../../common/GBControls";
 import { DNALogo } from "logots-react";
 import { MOTIFS } from "./allmotifs";
-import { Typography } from "@mui/material";
 
 type TfSequenceFeaturesProps = {
   coordinates: {

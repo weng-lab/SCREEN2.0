@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { Button, TextField, IconButton } from "@mui/material";
 import { Search } from "@mui/icons-material";
-import { Domain } from "track-logic";
-import { BrowserStoreInstance } from "track-logic/dist/store/browserStore";
+import { Domain } from "@weng-lab/genomebrowser";
+import { BrowserStoreInstance } from "@weng-lab/genomebrowser/dist/store/browserStore";
 
 export interface GBControlsProps {
   browserStore: BrowserStoreInstance;

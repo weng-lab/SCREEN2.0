@@ -1,10 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { styled, Tab, Tabs } from "@mui/material";
-import { useQuery } from "@apollo/client";
-import { BigQueryResponse } from "../../_gbview/types";
-import { BIG_QUERY } from "../../_gbview/queries";
-import { BigBedData } from "bigwig-reader";
-import config from "../../../../config.json";
 import ChromHMMBrowser from "./browserView";
 import ChromHMMTable from "./tableView";
 import { useChromHMMData } from "./fetch";

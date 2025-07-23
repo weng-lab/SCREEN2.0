@@ -41,7 +41,6 @@ import { MainResultsTable } from "./mainresultstable";
 import { MainResultsFilters } from "./mainresultsfilters";
 import { CcreDetails, LinkedGeneInfo } from "./_ccredetails/ccredetails";
 import { usePathname, useRouter } from "next/navigation";
-import { expandCoordinates } from "./_gbview/genomebrowserview";
 import { generateFilteredRows } from "./searchhelpers";
 import { Drawer } from "@mui/material";
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from "@mui/material/AppBar";
@@ -57,12 +56,9 @@ import { Download } from "@mui/icons-material";
 import { ApolloQueryResult, useLazyQuery } from "@apollo/client";
 import { LINKED_GENES } from "./_ccredetails/queries";
 import { gql } from "../../graphql/__generated__/gql";
-import { Browser } from "./_newgbview/browser";
-import { BrowserActionType, useBrowserState } from "@weng-lab/genomebrowser";
-import { getDefaultTracks } from "./_newgbview/genTracks";
 import { GROUP_COLOR_MAP } from "./_ccredetails/utils";
 import UrlErrorDialog from "./UrlErrorDialog";
-import SearchBrowserView from "./_newgb2/SearchBrowserView";
+import SearchBrowserView, { expandCoordinates } from "./_gbview/SearchBrowserView";
 // import { track } from "@vercel/analytics/react"
 
 /**
@@ -295,29 +291,6 @@ export default function Search(props: {
     initialBrowserCoords.end,
     initialBrowserCoords.start,
   ]);
-
-  const initialTracks = useMemo(() => {
-    if (mainQueryParams.coordinates.assembly) {
-      return getDefaultTracks({
-        ...initialBrowserCoords,
-        assembly: mainQueryParams.coordinates.assembly,
-      });
-    } else return [];
-  }, [initialBrowserCoords, mainQueryParams.coordinates.assembly]);
-
-  const initialBrowserState = useMemo(() => {
-    return {
-      domain: initialDomain,
-      width: 1500,
-      tracks: initialTracks,
-      highlights: [],
-    };
-  }, [initialDomain, initialTracks]);
-
-  const [browserState, browserDispatch] = useBrowserState(initialBrowserState);
-  const [browserInitialized, setBrowserInitialized] = useState(
-    haveCoordinates ? true : false
-  );
 
   /**
    * Backwards compatibility for ENCODE
@@ -621,32 +594,6 @@ export default function Search(props: {
     searchParams,
   ]);
 
-  //This is really bad, this file relies way too much on useEffects. Need major rewrite.
-  //Initialize genome browser if coordinates were missing initially
-  useEffect(() => {
-    if (!browserInitialized && haveCoordinates) {
-      const tracks = getDefaultTracks(mainQueryParams.coordinates);
-      browserDispatch({
-        type: BrowserActionType.SET_DOMAIN,
-        domain: initialDomain,
-      });
-      tracks.forEach((track) => {
-        if (!browserState.tracks.find((t) => t.id === track.id)) {
-          browserDispatch({ type: BrowserActionType.ADD_TRACK, track });
-        }
-      });
-      // Mark as initialized
-      setBrowserInitialized(true);
-    }
-  }, [
-    browserDispatch,
-    browserInitialized,
-    browserState.tracks,
-    haveCoordinates,
-    initialDomain,
-    mainQueryParams.coordinates,
-  ]);
-
   //Used to set just biosample in filters.
   const handleSetBiosample = (biosample: RegistryBiosample) => {
     setMainQueryParams({ ...mainQueryParams, biosample: biosample });
@@ -696,18 +643,6 @@ export default function Search(props: {
         item.color ||
         GROUP_COLOR_MAP.get(item.class).split(":")[1] ||
         "#8c8c8c";
-      browserDispatch({
-        type: BrowserActionType.ADD_HIGHLIGHT,
-        highlight: {
-          domain: {
-            chromosome: item.chromosome,
-            start: item.start,
-            end: item.end,
-          },
-          color,
-          id: item.name || item.accession,
-        },
-      });
       //If cCRE isn't in open cCREs, add and push as current accession.
       if (!opencCREs.find((x) => x.ID === newcCRE.ID)) {
         setOpencCREs([...opencCREs, newcCRE]);
@@ -716,12 +651,11 @@ export default function Search(props: {
         setPage(findTabByID(newcCRE.ID, numberOfDefaultTabs));
       }
     },
-    [browserDispatch, opencCREs, numberOfDefaultTabs, findTabByID]
+    [opencCREs, numberOfDefaultTabs, findTabByID]
   );
 
   //Handle closing cCRE, and changing page if needed
   const handleClosecCRE = (closedID: string) => {
-    browserDispatch({ type: BrowserActionType.REMOVE_HIGHLIGHT, id: closedID });
     const newOpencCREs = opencCREs.filter((cCRE) => cCRE.ID != closedID);
 
     const closedPage =
@@ -956,18 +890,6 @@ export default function Search(props: {
         ...opencCRE_data.map((cCRE) => {
           const color =
             GROUP_COLOR_MAP.get(cCRE.class).split(":")[1] || "#8c8c8c";
-          browserDispatch({
-            type: BrowserActionType.ADD_HIGHLIGHT,
-            highlight: {
-              domain: {
-                chromosome: cCRE.chromosome,
-                start: cCRE.start,
-                end: cCRE.end,
-              },
-              color,
-              id: cCRE.accession,
-            },
-          });
           return {
             ID: cCRE.accession,
             region: {
@@ -1008,7 +930,6 @@ export default function Search(props: {
     mainQueryParams.coordinates.assembly,
     searchParams.accessions,
     haveCoordinates,
-    browserDispatch,
   ]);
 
   //Generate and filter rows
