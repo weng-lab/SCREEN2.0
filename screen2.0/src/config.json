@@ -49,9 +49,14 @@
     "HumanTF_only": "https://downloads.wenglab.org/Registry-V4/GRCh38-cCREs.TF.bed",
     "HumanCA_Bound": "https://downloads.wenglab.org/GRCh38-cCREs.CTCF-bound.bed",
     "HumanSilencers": "https://downloads.wenglab.org/Human_Silencers.tar.gz",
-    "HumanGeneLinks": "https://downloads.wenglab.org/Human-Gene-Links.zip",
+    "HumanGeneLinks1": "https://downloads.wenglab.org/Human-Gene-Links.zip",
+    "HumanGeneLinks2": "https://downloads.wenglab.org/V4-hg38.Gene-Links.Computational-Methods.txt.gz",
     "HumanNearestPC": "https://downloads.wenglab.org/GRCh38-Closest-Genes-PC.tsv",
     "HumanNearestAll": "https://downloads.wenglab.org/GRCh38-Closest-Genes-All.tsv",
+    "HumanCAPRA": "https://downloads.wenglab.org/human_capra_functional_characterization.tar.gz",
+    "HumanMPRA": "https://downloads.wenglab.org/human_mpra_functional_characterization.tar.gz",
+    "HumanCRISPR": "https://downloads.wenglab.org/human_crispr_functional_characterization.tar.gz",
+    "HumanVISTA": "https://downloads.wenglab.org/VISTA-hg38.04-22-2023.bed",
 
     "MouseCCREs": "https://downloads.wenglab.org/Registry-V4/mm10-cCREs.bed",
     "MousePromoters": "https://downloads.wenglab.org/Registry-V4/mm10-cCREs.PLS.bed",
@@ -64,6 +69,9 @@
     "MouseCA_only": "https://downloads.wenglab.org/Registry-V4/mm10-cCREs.CA.bed",
     "MouseTF_only": "https://downloads.wenglab.org/Registry-V4/mm10-cCREs.TF.bed",
     "MouseCA_Bound": "https://downloads.wenglab.org/mm10-cCREs.CTCF-bound.bed",
+    "MouseVISTA": "https://downloads.wenglab.org/VISTA-mm10.04-22-2023.bed",
+
+    "HumanMouseOrtholog": "https://downloads.wenglab.org/hg38-mm10-Homologous.tsv",
 
     "HumanDNaseSignalMatrix": "https://www.encodeproject.org/files/ENCFF434ORT/@@download/ENCFF434ORT.txt.gz",
     "HumanPromoterSignalMatrix": "https://www.encodeproject.org/files/ENCFF015SIE/@@download/ENCFF015SIE.txt.gz",

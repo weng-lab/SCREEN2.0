@@ -5,11 +5,12 @@ import {
   AlertTitle,
   CircularProgress,
   Typography,
+  TypographyPropsVariantOverrides,
   TypographyOwnProps,
-  TypographyVariant,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { Snackbar, Box } from "@mui/material";
+import { OverridableStringUnion } from "@mui/types";
 import { Launch } from "@mui/icons-material";
 
 /**
@@ -22,19 +23,23 @@ export const CreateLink: React.FC<{
   linkArg?: string;
   label: string;
   showExternalIcon?: boolean;
-  variant?: TypographyVariant;
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
+  variant?: OverridableStringUnion<
+    any | "inherit",
+    TypographyPropsVariantOverrides
+  >;
   textColor?: string;
   underline?: "none" | "always" | "hover";
 }> = (props) => {
   const link = props.linkPrefix + (props.linkArg ?? "");
   return (
     <Link
-      variant={props.variant ?? "inherit"}
       href={link}
       rel="noopener noreferrer"
       target="_blank"
       color={props.textColor}
       underline={props.underline}
+      onClick={props.onClick}
     >
       {props.label}
       {props.showExternalIcon && (

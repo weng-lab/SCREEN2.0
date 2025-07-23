@@ -6,8 +6,7 @@ import { useQuery } from "@apollo/client"
 import { TF_INTERSECTION_QUERY, CRE_TF_DCC_QUERY } from "./queries"
 import Grid from "@mui/material/Grid"
 import { DataTable, DataTableColumn } from "psychscreen-legacy-components"
-import { LoadingMessage } from "../../../common/lib/utility"
-import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import { CreateLink, LoadingMessage } from "../../../common/lib/utility"
 
 type TFBindData = {
   name: string;
@@ -92,9 +91,13 @@ export const TfIntersection: React.FC<{ assembly: string; coordinates: { chromos
         header: "Factor",
         value: (row) => row.name,
         render: (row) => (
-          <Link variant="body1" href={`https://www.factorbook.org/tf/human/${row.name}/function`} rel="noopener noreferrer" target="_blank">
-            {row.name} <OpenInNewIcon sx={{ fontSize: 'inherit' }} />
-          </Link>
+          <CreateLink
+            linkPrefix={`https://www.factorbook.org/tf/human/${row.name}/function`}
+            label={row.name}
+            showExternalIcon
+            underline="hover"
+            onClick={(e) => e.stopPropagation()}
+          />
         ),
       },
       {
@@ -155,13 +158,20 @@ export const TfIntersection: React.FC<{ assembly: string; coordinates: { chromos
                     header: "experiment/file",
                     value: (row) => row.expID,
                     render: (row) => (
-                      <Link
-                        href={`https://www.encodeproject.org/experiments/${row.expID.split("/")[0]}/`}
-                        rel="noopener noreferrer"
-                        target="_blank"
-                      >
-                        <button>{row.expID}</button>
-                      </Link>
+                      <CreateLink
+                        linkPrefix={`https://www.encodeproject.org/experiments/${row.expID.split("/")[0]}/`}
+                        label={row.expID}
+                        showExternalIcon
+                        underline="hover"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      // <Link
+                      //   href={`https://www.encodeproject.org/experiments/${row.expID.split("/")[0]}/`}
+                      //   rel="noopener noreferrer"
+                      //   target="_blank"
+                      // >
+                      //   <button>{row.expID}</button>
+                      // </Link>
                     ),
                   },
                 ]}

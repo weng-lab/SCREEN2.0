@@ -43,7 +43,7 @@ export const LinkedGenes: React.FC<props> = (props) => {
   const crisprLinked = props.linkedGenes.filter((x) => x.method === "CRISPR");
   const eqtlLinked = props.linkedGenes.filter((x) => x.method === "eQTLs");
   const { data, loading } = useQuery(ComputationalGeneLinks_Query, {
-    variables: { accession: props.accession },
+    variables: { accession: [props.accession] },
     skip: !props.accession,
   });
 

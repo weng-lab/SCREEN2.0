@@ -127,8 +127,8 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({
   const {
     data: otherComputationalLinkedGenes,
     loading: loadingOtherComputationalLinkedGenes,
-  } = useQuery<ComputationalGeneLinksQuery, ComputationalGeneLinksQueryVariables>(ComputationalGeneLinks_Query, {
-    variables: { accession: accession },
+  } = useQuery(ComputationalGeneLinks_Query, {
+    variables: { accession: [accession] },
     skip: !accession,
   });
 
