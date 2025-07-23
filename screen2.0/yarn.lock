@@ -2574,18 +2574,17 @@
     "@visx/event" "3.12.0"
     prop-types "^15.6.2"
 
-"@weng-lab/genomebrowser@^0.0.24":
-  version "0.0.24"
-  resolved "https://registry.yarnpkg.com/@weng-lab/genomebrowser/-/genomebrowser-0.0.24.tgz#883ee695d50599bc990a6b229960cde71347bf76"
-  integrity sha512-C0VtN9DiRzjCxf6PXk0gTLIl2+g1SIpztM/CrPsgIJMCh4dWD6Uz4hVhfAElQO4I0IM1r109LWO50rN9MJDDlg==
+"@weng-lab/genomebrowser@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@weng-lab/genomebrowser/-/genomebrowser-1.0.0.tgz#d49efc55fb3c3b648e6c56fea19ed9654c029470"
+  integrity sha512-kFDY5PUo6VRcN1LAiqfLKRUuV0Ij6O3BafRkRf3hgS4xOlozT0vhog2ohrUZw1qno0QXIKsva1RiuJnNuuHFPg==
   dependencies:
     "@apollo/client" "^3.11.10"
-    bigwig-reader "^1.3.1"
     graphql "^16.9.0"
-    logojs-react "^2.1.1"
+    logo-test "^0.0.4"
     react-colorful "^5.6.1"
     react-draggable "^4.4.6"
-    use-deep-compare-effect "^1.8.1"
+    zustand "^5.0.3"
 
 "@weng-lab/ts-ztable@^4.0.1":
   version "4.0.1"
@@ -5339,18 +5338,10 @@ log-update@^4.0.0:
     slice-ansi "^4.0.0"
     wrap-ansi "^6.2.0"
 
-logo-test@^0.0.3:
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/logo-test/-/logo-test-0.0.3.tgz#74e335aae0a56df5d420ff3eff8ebc693c67e6a2"
-  integrity sha512-6rUHdAC/g/bkpBt07tge+xtmE2i1Bi16qyiedjqd2xv45eGPXgGtsmarEofsNrasnqaT9QWNXlPZFS/eG8yIJw==
-
-logojs-react@^2.1.1:
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/logojs-react/-/logojs-react-2.1.1.tgz#fe3417b4bda72a2dad82dc8ca72d78989e264832"
-  integrity sha512-hlKK5Jt8r8VvDAFrOESWznfBGbdYkM5NK+fVXG1aMyXDj+oVelYW3JcOrsRstMgt79oOTa3MqpwwOkk9htjTzw==
-  dependencies:
-    react "^16.3.1"
-    react-dom "^16.3.1"
+logo-test@^0.0.4:
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/logo-test/-/logo-test-0.0.4.tgz#77ad9fa4970a1750caa3a607bee25744451990b5"
+  integrity sha512-63vLa5+ql/tfL+2eByVm04T9V+7qG5PBisgH+ZNAng8xfGK5LlXflVyStxHwCLF+D6ImPl5vE4F3HZwhXGOzhA==
 
 logots-react@^0.1.6:
   version "0.1.6"
@@ -5362,7 +5353,7 @@ logots-react@^0.2.0:
   resolved "https://registry.yarnpkg.com/logots-react/-/logots-react-0.2.2.tgz#35bf43d6a8ee8100fffdb998d7399fdd8dd2cc08"
   integrity sha512-efbpQUiN0BEk9xOs246SFMSxhsDX09GIEa435vf1nn6w5cCkZMXBm0NyCev3zqLagj1kO8gdFuo/uWYjIY/hCQ==
 
-loose-envify@^1.0.0, loose-envify@^1.1.0, loose-envify@^1.4.0:
+loose-envify@^1.0.0, loose-envify@^1.4.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/loose-envify/-/loose-envify-1.4.0.tgz#71ee51fa7be4caec1a63839f7e682d8132d30caf"
   integrity sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==
@@ -5936,16 +5927,6 @@ react-colorful@^5.6.1:
   resolved "https://registry.yarnpkg.com/react-colorful/-/react-colorful-5.6.1.tgz#7dc2aed2d7c72fac89694e834d179e32f3da563b"
   integrity sha512-1exovf0uGTGyq5mXQT0zgQ80uvj2PCwvF8zY1RN9/vbJVSjSo3fsB/4L3ObbF7u70NduSiK4xu4Y6q1MHoUGEw==
 
-react-dom@^16.3.1:
-  version "16.14.0"
-  resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-16.14.0.tgz#7ad838ec29a777fb3c75c3a190f661cf92ab8b89"
-  integrity sha512-1gCeQXDLoIqMgqD3IO2Ah9bnf0w9kzhwN5q4FGnHZ67hBm9yePzB5JJAIQCc8x3pFnNlwFq4RidZggNAAkzWWw==
-  dependencies:
-    loose-envify "^1.1.0"
-    object-assign "^4.1.1"
-    prop-types "^15.6.2"
-    scheduler "^0.19.1"
-
 react-dom@^19:
   version "19.1.0"
   resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-19.1.0.tgz#133558deca37fa1d682708df8904b25186793623"
@@ -6012,15 +5993,6 @@ react-use-measure@^2.0.4:
   version "2.1.7"
   resolved "https://registry.yarnpkg.com/react-use-measure/-/react-use-measure-2.1.7.tgz#36b8a2e7fd2fa58109ab851b3addcb0aad66ad1d"
   integrity sha512-KrvcAo13I/60HpwGO5jpW7E9DfusKyLPLvuHlUyP5zqnmAPhNc6qTRjUQrdTADl0lpPpDVU2/Gg51UlOGHXbdg==
-
-react@^16.3.1:
-  version "16.14.0"
-  resolved "https://registry.yarnpkg.com/react/-/react-16.14.0.tgz#94d776ddd0aaa37da3eda8fc5b6b18a4c9a3114d"
-  integrity sha512-0X2CImDkJGApiAlcf0ODKIneSwBPhqJawOa5wCtKbu7ZECrmS26NvtSILynQ66cgkT/RJ4LidJOc3bUESwmU8g==
-  dependencies:
-    loose-envify "^1.1.0"
-    object-assign "^4.1.1"
-    prop-types "^15.6.2"
 
 react@^19:
   version "19.1.0"
@@ -6239,14 +6211,6 @@ safe-regex-test@^1.0.3, safe-regex-test@^1.1.0:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/safer-buffer/-/safer-buffer-2.1.2.tgz#44fa161b0187b9549dd84bb91802f9bd8385cd6a"
   integrity sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==
-
-scheduler@^0.19.1:
-  version "0.19.1"
-  resolved "https://registry.yarnpkg.com/scheduler/-/scheduler-0.19.1.tgz#4f3e2ed2c1a7d65681f4c854fa8c5a1ccb40f196"
-  integrity sha512-n/zwRWRYSUj0/3g/otKDRPMh6qv2SYMWNq85IEa8iZyAv8od9zDYpGSnpBEjNgcMNq6Scbu5KfIPxNF72R/2EA==
-  dependencies:
-    loose-envify "^1.1.0"
-    object-assign "^4.1.1"
 
 scheduler@^0.26.0:
   version "0.26.0"
@@ -6732,18 +6696,6 @@ tr46@~0.0.3:
   resolved "https://registry.yarnpkg.com/tr46/-/tr46-0.0.3.tgz#8184fd347dac9cdc185992f3a6622e14b9d9ab6a"
   integrity sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==
 
-track-logic@0.0.5:
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/track-logic/-/track-logic-0.0.5.tgz#0a08c83ce7f9c6d7352be0039e7927fec182337b"
-  integrity sha512-ztjdaut0mM/pZqrBULd5ca1amXftB2H9ncHEmOJW7jWWO94LezbEG5xy2o8gX9sgnnVzAu0Z3cxPxlzzcHjcJQ==
-  dependencies:
-    "@apollo/client" "^3.11.10"
-    graphql "^16.9.0"
-    logo-test "^0.0.3"
-    react-colorful "^5.6.1"
-    react-draggable "^4.4.6"
-    zustand "^5.0.3"
-
 ts-api-utils@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/ts-api-utils/-/ts-api-utils-2.1.0.tgz#595f7094e46eed364c13fd23e75f9513d29baf91"
@@ -6987,7 +6939,7 @@ urs@^0.0.8:
   resolved "https://registry.yarnpkg.com/urs/-/urs-0.0.8.tgz#8a0e0b792073cdb7eec926d08ab1e017ffab3f66"
   integrity sha512-LaSSPpr91XrVA3vW2zPupw4K6DSQEDKdL4yQZX1mO2fpljIMpB5zctrjRvxLurelWSgKsHsCmfHNCImscryirQ==
 
-use-deep-compare-effect@^1.4.0, use-deep-compare-effect@^1.8.1:
+use-deep-compare-effect@^1.4.0:
   version "1.8.1"
   resolved "https://registry.yarnpkg.com/use-deep-compare-effect/-/use-deep-compare-effect-1.8.1.tgz#ef0ce3b3271edb801da1ec23bf0754ef4189d0c6"
   integrity sha512-kbeNVZ9Zkc0RFGpfMN3MNfaKNvcLNyxOAAd9O4CBZ+kCBXXscn9s/4I+8ytUER4RDpEYs5+O6Rs4PqiZ+rHr5Q==

@@ -12,7 +12,7 @@ import {
   Rect,
   Domain,
   InitialBrowserState,
-} from "track-logic";
+} from "@weng-lab/genomebrowser";
 import { RegistryBiosample } from "../types";
 import GBControls from "../../../common/GBControls";
 import CCRETooltip from "./ccretooltip";
