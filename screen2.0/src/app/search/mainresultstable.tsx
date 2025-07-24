@@ -1,5 +1,5 @@
 "use client"
-import { DataTable, DataTableProps, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
+import { DataTable, DataTableProps, DataTableColumn } from "psychscreen-legacy-components"
 import React, { useState, useMemo } from "react"
 import { Box, Typography, Stack, Button, Accordion, AccordionSummary, AccordionDetails, Tooltip, CircularProgress, List } from "@mui/material"
 import { MainResultTableRow, ConservationData } from "./types"
@@ -9,7 +9,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { LinkedGeneInfo } from "./_ccredetails/ccredetails"
 import { InfoOutlined } from "@mui/icons-material"
 import { CreateLink } from "../../common/lib/utility"
-import { LinkedGenes, LinkedGenesVariables } from "./page"
+import { LinkedGenes, LinkedGenesVariables } from "./types"
 import GeneLink from "../_utility/GeneLink"
 
 

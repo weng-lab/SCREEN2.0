@@ -103,7 +103,7 @@ const cCRE_QUERY = gql`
 `
 
 function cCRE_QUERY_VARIABLES(assembly: string, coordinates: {chromosome: string, start: number, end: number}[], biosample: string, nearbygenesdistancethreshold: number, nearbygeneslimit: number, accessions: string[], noLimit?: boolean) {
-  let vars = {
+  const vars = {
     uuid: null,
     assembly: assembly,
     gene_all_start: 0,
@@ -219,16 +219,14 @@ const BIOSAMPLE_QUERY: TypedDocumentNode<BIOSAMPLE_Data> = gql`
 `
 
 export async function biosampleQuery() {
-  let returnData: ApolloQueryResult<BIOSAMPLE_Data>
   try {
     const res = await getClient().query({
       query: BIOSAMPLE_QUERY,
     })
-    returnData = { data: res.data, loading: res.loading, networkStatus: res.networkStatus, error: res.error }
+    return { data: res.data, loading: res.loading, networkStatus: res.networkStatus, error: res.error }
   } catch (error) {
     console.log(error)
-  } finally {
-    return returnData
+    throw error
   }
 }
 

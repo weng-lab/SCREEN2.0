@@ -1,10 +1,10 @@
-import { Divider, Stack, styled, Tooltip, Typography, CircularProgress, IconOwnProps, TypographyProps, LinkProps, Link } from '@mui/material'
+import { Divider, Stack, Tooltip, Typography, CircularProgress, IconOwnProps, TypographyProps, LinkProps, Link } from '@mui/material'
 import { gql } from '../../graphql/__generated__';
 import { useLazyQuery } from '@apollo/client';
 import { useMemo, useState } from 'react';
 import NextLink from 'next/link';
 import { UrlObject } from 'url';
-import { ArrowOutward, OpenInNew } from '@mui/icons-material';
+import {  OpenInNew } from '@mui/icons-material';
 
 export interface GeneLinkProps {
   geneName: string,
@@ -36,7 +36,7 @@ const GeneLink = ({ geneName, assembly, typographyProps }: GeneLinkProps) => {
     setOpen(true);
   };
 
-  const [getGeneCoords, { data: dataCoords, loading: loadingCoords, error: errorCoords, called: coordsWereFetched }] = useLazyQuery(
+  const [getGeneCoords, { data: dataCoords }] = useLazyQuery(
     GET_GENE_COORDS,
     { variables: { name: geneName, assembly: assembly, version: assembly === "GRCh38" ? 40 :25 } }
   )

@@ -2,7 +2,7 @@
 import React, { useRef, useState } from "react"
 import emailjs from '@emailjs/browser';
 import { Box, Button, Divider, Link, Stack, TextField, Typography } from "@mui/material"
-import Grid from "@mui/material/Grid2"
+import Grid from "@mui/material/Grid"
 import Image from "next/image"
 import encodeEncyclopedia from "../../../public/assets/about/images/encodeencyclopedia.png"
 import classifications from "../../../public/assets/about/images/classifications.png"
@@ -17,9 +17,9 @@ export default function About() {
   const [error, setError] = useState({ name: false, email: false, message: false })
   const [success, setSuccess] = useState(false)
 
-  const form = useRef();
+  const form = useRef<HTMLFormElement>(null);
 
-  function isValidEmail(email) {
+  function isValidEmail(email: string) {
     //hopefully this is right, got it from ChatGPT
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);

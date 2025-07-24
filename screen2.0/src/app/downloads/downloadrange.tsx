@@ -1,5 +1,5 @@
 import { SetStateAction, useState } from "react"
-import Grid from "@mui/material/Grid2"
+import Grid from "@mui/material/Grid"
 import { Box, Button, Checkbox, CircularProgress, CircularProgressProps, FormControl, FormControlLabel, FormLabel, IconButton, Radio, RadioGroup, Stack, TextField, Typography } from "@mui/material"
 import { downloadBED } from "../search/searchhelpers"
 import { parseGenomicRegion } from "../_mainsearch/parsegenomicregion"

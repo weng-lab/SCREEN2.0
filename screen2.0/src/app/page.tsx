@@ -2,7 +2,7 @@
 
 import { Box, IconButton, Stack, Tooltip, Typography } from "@mui/material"
 import { MainSearch } from "./_mainsearch/mainsearch"
-import Grid from "@mui/material/Grid2"
+import Grid from "@mui/material/Grid"
 import Image from "next/image"
 import humanTransparentIcon from "../../public/Transparent_HumanIcon.png"
 import mouseTransparentIcon from "../../public/Transparent_MouseIcon.png"

@@ -14,7 +14,7 @@ import {
 } from "@mui/material"
 import { useState, SetStateAction, useEffect, useMemo } from "react"
 import { Search } from "@mui/icons-material"
-import Grid from "@mui/material/Grid2"
+import Grid from "@mui/material/Grid"
 import { parseGenomicRegion } from "./parsegenomicregion"
 
 //https://mui.com/material-ui/react-text-field/#integration-with-3rd-party-input-libraries

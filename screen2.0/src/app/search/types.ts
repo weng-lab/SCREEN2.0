@@ -144,6 +144,17 @@ export type MainQueryData = {
   }
 }
 
+export type LinkedGenes = {
+  linkedGenes: LinkedGeneInfo[];
+};
+
+export type LinkedGenesVariables = {
+  assembly: string;
+  accessions: string[];
+  methods?: string[];
+  celltypes?: string[];
+};
+
 type SCREENCellTypeSpecificResponse = {
   __typename: "SCREENCellTypeSpecificResponse";
   ct: null | any; // Replace 'any' with the actual type if 'ct' has a specific type

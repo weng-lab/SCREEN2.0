@@ -488,11 +488,11 @@ export function constructFilterCriteriaFromURL(searchParams: { [key: string]: st
       TF: sP.TF ? checkTrueFalse(sP.TF) : true,
       linkedGeneName: sP.linkedGeneName ? sP.linkedGeneName : null,
       //For these, with be 't' or 'f', a comma, and then the biosample if specified. Splitting to separate check state from it's biosample. Default to checked, no biosample
-      CTCFChIAPET: sP.CTCFChIAPET ? {checked: checkTrueFalse(sP.CTCFChIAPET.split('_')[0]), biosample: sP.CTCFChIAPET.split('_')[1]} : {checked: true, biosample: null},
-      RNAPIIChIAPET: sP.RNAPIIChIAPET ? {checked: checkTrueFalse(sP.RNAPIIChIAPET.split('_')[0]), biosample: sP.RNAPIIChIAPET.split('_')[1]} : {checked: true, biosample: null},
-      HiC: sP.HiC ? {checked: checkTrueFalse(sP.HiC.split('_')[0]), biosample: sP.HiC.split('_')[1]} : {checked: true, biosample: null},
-      CRISPRiFlowFISH: sP.CRISPRiFlowFISH ? {checked: checkTrueFalse(sP.CRISPRiFlowFISH.split('_')[0]), biosample: sP.CRISPRiFlowFISH.split('_')[1]} : {checked: true, biosample: null},
-      eQTLs: sP.eQTLs ? {checked: checkTrueFalse(sP.eQTLs.split('_')[0]), biosample: sP.eQTLs.split('_')[1]} : {checked: true, biosample: null}
+      CTCFChIAPET: sP.CTCFChIAPET ? {checked: checkTrueFalse(sP.CTCFChIAPET.split('_')[0]), biosample: sP.CTCFChIAPET.split('_')[1]} : {checked: true, biosample: ""},
+      RNAPIIChIAPET: sP.RNAPIIChIAPET ? {checked: checkTrueFalse(sP.RNAPIIChIAPET.split('_')[0]), biosample: sP.RNAPIIChIAPET.split('_')[1]} : {checked: true, biosample: ""},
+      HiC: sP.HiC ? {checked: checkTrueFalse(sP.HiC.split('_')[0]), biosample: sP.HiC.split('_')[1]} : {checked: true, biosample: ""},
+      CRISPRiFlowFISH: sP.CRISPRiFlowFISH ? {checked: checkTrueFalse(sP.CRISPRiFlowFISH.split('_')[0]), biosample: sP.CRISPRiFlowFISH.split('_')[1]} : {checked: true, biosample: ""},
+      eQTLs: sP.eQTLs ? {checked: checkTrueFalse(sP.eQTLs.split('_')[0]), biosample: sP.eQTLs.split('_')[1]} : {checked: true, biosample: ""}
     }
   )
 }
