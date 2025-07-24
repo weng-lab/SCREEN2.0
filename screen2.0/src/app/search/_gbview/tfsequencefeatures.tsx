@@ -95,10 +95,7 @@ export default function TfSequenceFeatures(props: TfSequenceFeaturesProps) {
   return (
     <Grid container spacing={3} sx={{ mt: "1rem", mb: "1rem" }}>
       <Grid size={{ xs: 12, lg: 12 }}>
-        <GBControls
-          browserStore={browserStore}
-          assembly={props.assembly as "GRCh38" | "mm10"}
-        />
+        <GBControls browserStore={browserStore} />
         <Browser browserStore={browserStore} trackStore={trackStore} />
       </Grid>
     </Grid>

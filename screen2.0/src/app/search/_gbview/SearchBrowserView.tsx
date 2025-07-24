@@ -156,11 +156,7 @@ export default function SearchBrowserView({
 
   return (
     <div>
-      <GBControls
-        browserStore={browserStore}
-        assembly={coordinates.assembly}
-        style={{ marginBottom: "10px" }}
-      />
+      <GBControls browserStore={browserStore} />
       <Browser browserStore={browserStore} trackStore={trackStore} />
     </div>
   );

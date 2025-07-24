@@ -1,14 +1,13 @@
-import React, { useState, useMemo, useCallback } from "react";
-import { Button, TextField, IconButton } from "@mui/material";
+import React, { useCallback } from "react";
+import { Button, IconButton } from "@mui/material";
 import { Search } from "@mui/icons-material";
-import { Domain } from "@weng-lab/genomebrowser";
-import { BrowserStoreInstance } from "@weng-lab/genomebrowser/dist/store/browserStore";
+import { GenomeSearch, Result } from "@weng-lab/ui-components";
+import { useTheme } from "@mui/material/styles";
+import { Domain, BrowserStoreInstance } from "@weng-lab/genomebrowser";
+import { expandCoordinates } from "../app/search/_gbview/SearchBrowserView";
 
 export interface GBControlsProps {
   browserStore: BrowserStoreInstance;
-  assembly: "GRCh38" | "mm10";
-  onDomainChanged?: (domain: Domain) => void;
-  style?: React.CSSProperties;
 }
 
 interface ShiftButtonProps {
@@ -93,118 +92,22 @@ const ZoomButton: React.FC<ZoomButtonProps> = ({
   );
 };
 
-const SearchInput: React.FC<{
-  placeholder: string;
-  onSearch: (region: string) => void;
-}> = ({ placeholder, onSearch }) => {
-  const [searchValue, setSearchValue] = useState("");
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchValue.trim()) {
-      onSearch(searchValue.trim());
-    }
-  };
-
-  return (
-    <form
-      onSubmit={handleSubmit}
-      style={{ display: "flex", alignItems: "center" }}
-    >
-      <TextField
-        variant="outlined"
-        id="region-input"
-        label="Enter a genomic region"
-        placeholder={placeholder}
-        value={searchValue}
-        onChange={(e) => setSearchValue(e.target.value)}
-        slotProps={{
-          inputLabel: {
-            shrink: true,
-            htmlFor: "region-input",
-            style: {
-              color: "#000F9F",
-              fontSize: "0.8rem",
-            },
-          },
-          input: {
-            style: {
-              color: "#000F9F",
-              fontSize: "0.8rem",
-            },
-          },
-        }}
-        sx={{
-          mr: "0.5rem",
-          minWidth: "14rem",
-          maxWidth: "250px",
-          "& .MuiOutlinedInput-notchedOutline": {
-            borderColor: "#000F9F",
-          },
-          mb: "5px",
-        }}
-        size="small"
-      />
-      <IconButton
-        type="submit"
-        sx={{
-          color: "black",
-          maxHeight: "100%",
-          padding: "4px",
-        }}
-      >
-        <Search fontSize="small" />
-      </IconButton>
-    </form>
-  );
-};
-
-const GBControls: React.FC<GBControlsProps> = ({
-  browserStore,
-  onDomainChanged,
-  style,
-}) => {
+const GBControls: React.FC<GBControlsProps> = ({ browserStore }) => {
   const domain = browserStore((state) => state.domain);
-  const updateDomain = browserStore((state) => state.setDomain);
+  const setDomain = browserStore((state) => state.setDomain);
+
+  const theme = useTheme();
 
   const handleDomainChange = useCallback(
     (newDomain: Domain) => {
-      updateDomain(newDomain);
-      if (onDomainChanged) {
-        onDomainChanged(newDomain);
-      }
+      setDomain(newDomain);
     },
-    [updateDomain, onDomainChanged]
+    [setDomain]
   );
 
-  const handleSearch = useCallback(
-    (region: string) => {
-      // Parse genomic region format like "chr1:1000-2000"
-      const match = region.match(/^(.+?):(\d+)-(\d+)$/);
-      if (match) {
-        const [, chromosome, start, end] = match;
-        const newDomain = {
-          chromosome: chromosome.startsWith("chr")
-            ? chromosome
-            : `chr${chromosome}`,
-          start: parseInt(start, 10),
-          end: parseInt(end, 10),
-        };
-        handleDomainChange(newDomain as Domain);
-      }
-    },
-    [handleDomainChange]
-  );
-
-  const currentRegionString = useMemo(
-    () =>
-      domain.chromosome
-        ? `${
-            domain.chromosome
-          }:${domain.start.toLocaleString()}-${domain.end.toLocaleString()}`
-        : `${domain.start.toLocaleString()}-${domain.end.toLocaleString()}`,
-    [domain.chromosome, domain.start, domain.end]
-  );
+  const handeSearchSubmit = (r: Result) => {
+    setDomain(expandCoordinates(r.domain));
+  };
 
   return (
     <div
@@ -216,7 +119,6 @@ const GBControls: React.FC<GBControlsProps> = ({
         width: "100%",
         gap: "24px",
         flexWrap: "nowrap",
-        ...style,
       }}
     >
       {/* Move Left Section */}
@@ -389,9 +291,36 @@ const GBControls: React.FC<GBControlsProps> = ({
         >
           Search
         </div>
-        <SearchInput
-          placeholder={currentRegionString}
-          onSearch={handleSearch}
+        <GenomeSearch
+          size="small"
+          assembly="GRCh38"
+          onSearchSubmit={handeSearchSubmit}
+          queries={["Gene", "SNP", "iCRE", "Coordinate"]}
+          geneLimit={3}
+          sx={{ width: "400px" }}
+          slots={{
+            button: (
+              <IconButton sx={{ color: theme.palette.primary.main }}>
+                <Search />
+              </IconButton>
+            ),
+          }}
+          slotProps={{
+            input: {
+              label: "Change browser region",
+              sx: {
+                backgroundColor: "white",
+                "& label.Mui-focused": {
+                  color: theme.palette.primary.main,
+                },
+                "& .MuiOutlinedInput-root": {
+                  "&.Mui-focused fieldset": {
+                    borderColor: theme.palette.primary.main,
+                  },
+                },
+              },
+            },
+          }}
         />
       </div>
     </div>

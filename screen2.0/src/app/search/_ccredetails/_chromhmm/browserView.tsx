@@ -81,7 +81,7 @@ export default function ChromHMMBrowser({
 
   return (
     <div>
-      <GBControls assembly="GRCh38" browserStore={browserStore} />
+      <GBControls browserStore={browserStore} />
       <Legend />
       <Browser browserStore={browserStore} trackStore={trackStore} />
     </div>
