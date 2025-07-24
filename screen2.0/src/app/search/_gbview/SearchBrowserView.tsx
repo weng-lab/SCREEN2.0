@@ -92,7 +92,13 @@ export default function SearchBrowserView({
       onClick: (item: Rect) => {
         cCREClick(item);
       },
-      tooltip: (rect: Rect) => <CCRETooltip assembly={coordinates.assembly} name={rect.name || ''} {...rect} />,
+      tooltip: (rect: Rect) => (
+        <CCRETooltip
+          assembly={coordinates.assembly}
+          name={rect.name || ""}
+          {...rect}
+        />
+      ),
     };
     return [geneTrack, ccreTrack, ...tracks];
   }, [
@@ -156,7 +162,7 @@ export default function SearchBrowserView({
 
   return (
     <div>
-      <GBControls browserStore={browserStore} />
+      <GBControls assembly={coordinates.assembly} browserStore={browserStore} />
       <Browser browserStore={browserStore} trackStore={trackStore} />
     </div>
   );

@@ -19,9 +19,11 @@ import GBControls from "../../../../common/GBControls";
 export default function ChromHMMBrowser({
   coordinates,
   tracks,
+  assembly,
 }: {
   tracks: Record<string, ChromTrack[]>;
   coordinates: { chromosome: string; start: number; end: number };
+  assembly: string;
 }) {
   const initialState: InitialBrowserState = {
     domain: {
@@ -81,7 +83,7 @@ export default function ChromHMMBrowser({
 
   return (
     <div>
-      <GBControls browserStore={browserStore} />
+      <GBControls assembly={assembly} browserStore={browserStore} />
       <Legend />
       <Browser browserStore={browserStore} trackStore={trackStore} />
     </div>

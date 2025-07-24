@@ -27,7 +27,11 @@ export default function ChromHMM({ coordinates }) {
         (loading ? (
           <div>Loading...</div>
         ) : (
-          <ChromHMMBrowser tracks={tracks} coordinates={coordinates} />
+          <ChromHMMBrowser
+            assembly={coordinates.assembly}
+            tracks={tracks}
+            coordinates={coordinates}
+          />
         ))}
       {page === 1 &&
         (loading ? (

@@ -8,6 +8,7 @@ import { expandCoordinates } from "../app/search/_gbview/SearchBrowserView";
 
 export interface GBControlsProps {
   browserStore: BrowserStoreInstance;
+  assembly: string;
 }
 
 interface ShiftButtonProps {
@@ -92,7 +93,7 @@ const ZoomButton: React.FC<ZoomButtonProps> = ({
   );
 };
 
-const GBControls: React.FC<GBControlsProps> = ({ browserStore }) => {
+const GBControls: React.FC<GBControlsProps> = ({ assembly, browserStore }) => {
   const domain = browserStore((state) => state.domain);
   const setDomain = browserStore((state) => state.setDomain);
 
@@ -106,7 +107,7 @@ const GBControls: React.FC<GBControlsProps> = ({ browserStore }) => {
   );
 
   const handeSearchSubmit = (r: Result) => {
-    setDomain(expandCoordinates(r.domain));
+    setDomain(expandCoordinates({ assembly: "GRCh38", ...r.domain }) as Domain);
   };
 
   return (
