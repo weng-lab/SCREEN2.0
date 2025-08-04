@@ -8,6 +8,8 @@ import { CssBaseline, Stack, ThemeProvider } from "@mui/material"
 import { Analytics } from "@vercel/analytics/react"
 import theme from "../theme"
 import MuiXLicense from "../common/MuiXLicense";
+import ClientAppWrapper from "./ClientAppWrapper" // <-- import your new client component
+
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -17,6 +19,7 @@ export const metadata = {
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  
   return (
     <html lang="en">
       <body className={inter.className} id="page-container">
@@ -24,13 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <AppRouterCacheProvider> {/* Wrapper for MUIxNextjs integration, see https://mui.com/material-ui/integrations/nextjs/ */}
             <CssBaseline /> {/* See https://mui.com/material-ui/react-css-baseline/ */}
             <ThemeProvider theme={theme}> {/* Exposes theme to children */}
-              <Stack height={"100vh"} minHeight={0} id="app-wrapper">
-                <ResponsiveAppBar maintenance={false}/>
-                <Stack flexGrow={1} overflow={"auto"} minHeight={0} id="content-wrapper">
-                  <Stack flexGrow={1}>{children}</Stack>
-                  <Footer />
-                </Stack>
-              </Stack>
+            <ClientAppWrapper>{children}</ClientAppWrapper>
             </ThemeProvider>
           </AppRouterCacheProvider>
         </ApolloWrapper>
