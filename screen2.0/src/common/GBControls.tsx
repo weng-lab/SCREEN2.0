@@ -8,7 +8,7 @@ import { expandCoordinates } from "../app/search/_gbview/SearchBrowserView";
 
 export interface GBControlsProps {
   browserStore: BrowserStoreInstance;
-  assembly: string;
+  assembly: "GRCh38" | "mm10";
 }
 
 interface ShiftButtonProps {
@@ -107,7 +107,12 @@ const GBControls: React.FC<GBControlsProps> = ({ assembly, browserStore }) => {
   );
 
   const handeSearchSubmit = (r: Result) => {
-    setDomain(expandCoordinates({ assembly: "GRCh38", ...r.domain }) as Domain);
+    setDomain(
+      expandCoordinates({
+        assembly: assembly as "GRCh38" | "mm10",
+        ...r.domain,
+      }) as Domain
+    );
   };
 
   return (
@@ -294,9 +299,9 @@ const GBControls: React.FC<GBControlsProps> = ({ assembly, browserStore }) => {
         </div>
         <GenomeSearch
           size="small"
-          assembly="GRCh38"
+          assembly={assembly}
           onSearchSubmit={handeSearchSubmit}
-          queries={["Gene", "SNP", "iCRE", "Coordinate"]}
+          queries={["Gene", "SNP", "cCRE", "Coordinate"]}
           geneLimit={3}
           sx={{ width: "400px" }}
           slots={{

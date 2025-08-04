@@ -79,7 +79,7 @@ const CCRETooltip: React.FC<CCRETooltipProps> = ({
   });
 
   const width = 400;
-  const height = loading || !data?.cCREQuery?.[0] ? 40 : 205;
+  const height = loading || !data?.cCREQuery?.[0] ? 40 : 210;
   const padding = 16;
   const lineHeight = 20;
   const startY = padding + 35;

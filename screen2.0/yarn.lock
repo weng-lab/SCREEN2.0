@@ -2584,10 +2584,10 @@
     "@mui/material" "^5.11.7"
     tslib "^2.5.0"
 
-"@weng-lab/ui-components@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@weng-lab/ui-components/-/ui-components-1.0.1.tgz#9f146a20124058bfe9732f948fe4721cd965d2b8"
-  integrity sha512-wZO939frPKFmL6qGeSjmwADEuL7pDDTarLg5GzZqWJQK8Ktj9OWZXc9mTvhr58YxFCwj6BUk5k/0KulQ3jiVnA==
+"@weng-lab/ui-components@^1.0.5":
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/@weng-lab/ui-components/-/ui-components-1.0.5.tgz#40db9e937fe93780d96a38e89231a7f1016ae145"
+  integrity sha512-fJHm3cwaSLBwg1+TvLhmfVJ2/XAdttEw0AYfyezgIvNTBX/I2q/myf8J5PzEH64+W4K616okXKMOJmfzhBXtUg==
   dependencies:
     "@mui/x-data-grid-pro" "^8.7.0"
     "@mui/x-license" "^8.7.0"
