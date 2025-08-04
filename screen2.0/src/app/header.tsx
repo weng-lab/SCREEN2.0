@@ -157,8 +157,7 @@ function ResponsiveAppBar({ maintenance }: ResponsiveAppBarProps) {
       >
         <WarningAmberIcon />
         <Typography sx={{ fontWeight: "bold" }}>
-          Scheduled maintenance is in progress... Some features may be
-          unavailable
+            SCREEN API is temporarily unavailable. We are working to resolve the issue and will be back shortly.
         </Typography>
         <WarningAmberIcon />
       </Stack>
