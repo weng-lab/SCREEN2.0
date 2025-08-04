@@ -8,7 +8,7 @@ import { expandCoordinates } from "../app/search/_gbview/SearchBrowserView";
 
 export interface GBControlsProps {
   browserStore: BrowserStoreInstance;
-  assembly: "GRCh38" | "mm10";
+  assembly: string;
 }
 
 interface ShiftButtonProps {
@@ -299,7 +299,7 @@ const GBControls: React.FC<GBControlsProps> = ({ assembly, browserStore }) => {
         </div>
         <GenomeSearch
           size="small"
-          assembly={assembly}
+          assembly={assembly as "GRCh38" | "mm10"}
           onSearchSubmit={handeSearchSubmit}
           queries={["Gene", "SNP", "cCRE", "Coordinate"]}
           geneLimit={3}
