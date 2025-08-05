@@ -18,7 +18,26 @@
     "@wry/equality" "^0.5.6"
     ts-invariant "^0.10.3"
 
-"@apollo/client@^3.11.10", "@apollo/client@^3.11.8":
+"@apollo/client@^3.11.10":
+  version "3.13.9"
+  resolved "https://registry.yarnpkg.com/@apollo/client/-/client-3.13.9.tgz#311e0df1734aaa5598e01a292bb7982df49cc062"
+  integrity sha512-RStSzQfL1XwL6/NWd7W8avhGQYTgPCtJ+qHkkTTSj9Upp3VVm6Oppv81YWdXG1FgEpDPW4hvCrTUELdcC4inCQ==
+  dependencies:
+    "@graphql-typed-document-node/core" "^3.1.1"
+    "@wry/caches" "^1.0.0"
+    "@wry/equality" "^0.5.6"
+    "@wry/trie" "^0.5.0"
+    graphql-tag "^2.12.6"
+    hoist-non-react-statics "^3.3.2"
+    optimism "^0.18.0"
+    prop-types "^15.7.2"
+    rehackt "^0.1.0"
+    symbol-observable "^4.0.0"
+    ts-invariant "^0.10.3"
+    tslib "^2.3.0"
+    zen-observable-ts "^1.2.5"
+
+"@apollo/client@^3.11.8":
   version "3.13.8"
   resolved "https://registry.yarnpkg.com/@apollo/client/-/client-3.13.8.tgz#ef1d49a5b134c69a55e3f137164a8e323aef4e2a"
   integrity sha512-YM9lQpm0VfVco4DSyKooHS/fDTiKQcCHfxr7i3iL6a0kP/jNO5+4NFK6vtRDxaYisd5BrwOZHLJpPBnvRVpKPg==
@@ -2561,10 +2580,10 @@
     "@visx/event" "3.12.0"
     prop-types "^15.6.2"
 
-"@weng-lab/genomebrowser@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@weng-lab/genomebrowser/-/genomebrowser-1.0.0.tgz#d49efc55fb3c3b648e6c56fea19ed9654c029470"
-  integrity sha512-kFDY5PUo6VRcN1LAiqfLKRUuV0Ij6O3BafRkRf3hgS4xOlozT0vhog2ohrUZw1qno0QXIKsva1RiuJnNuuHFPg==
+"@weng-lab/genomebrowser@^1.0.0-alpha.1":
+  version "1.0.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/@weng-lab/genomebrowser/-/genomebrowser-1.0.0-alpha.1.tgz#ffd1e176d7624fee16fca7f568179dc802980aff"
+  integrity sha512-Ge+IffS68I63HDebDK+rtJlloC+5pWQKHixVR4bEhWLFIddomUbO0OHwChyoiz9l2jQadaAZGUR67L6KD8YadQ==
   dependencies:
     "@apollo/client" "^3.11.10"
     graphql "^16.9.0"
@@ -7166,6 +7185,6 @@ zen-observable@0.8.15:
   integrity sha512-PQ2PC7R9rslx84ndNBZB/Dkv8V8fZEpk83RLgXtYd0fwUgEjseMn1Dgajh2x6S8QbZAFa9p2qVCEuYZNgve0dQ==
 
 zustand@^5.0.3:
-  version "5.0.6"
-  resolved "https://registry.yarnpkg.com/zustand/-/zustand-5.0.6.tgz#a2da43d8dc3d31e314279e5baec06297bea70a5c"
-  integrity sha512-ihAqNeUVhe0MAD+X8M5UzqyZ9k3FFZLBTtqo6JLPwV53cbRB/mJwBI0PxcIgqhBBHlEs8G45OTDTMq3gNcLq3A==
+  version "5.0.7"
+  resolved "https://registry.yarnpkg.com/zustand/-/zustand-5.0.7.tgz#e325364e82c992a84bf386d8445aa7f180c450dc"
+  integrity sha512-Ot6uqHDW/O2VdYsKLLU8GQu8sCOM1LcoE8RwvLv9uuRT9s6SOHCKs0ZEOhxg+I1Ld+A1Q5lwx+UlKXXUoCZITg==

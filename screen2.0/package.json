@@ -29,7 +29,7 @@
     "@parcel/watcher": "^2.4.1",
     "@vercel/analytics": "^1.4.1",
     "@visx/visx": "^3.12.0",
-    "@weng-lab/genomebrowser": "^1.0.0",
+    "@weng-lab/genomebrowser": "^1.0.0-alpha.1",
     "@weng-lab/ts-ztable": "^4.0.1",
     "@weng-lab/ui-components": "^1.0.5",
     "autoprefixer": "10.4.20",
