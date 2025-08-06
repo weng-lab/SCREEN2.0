@@ -44,14 +44,12 @@ export default function SearchBrowserView({
   geneName,
   biosample,
 }: SearchBrowserViewProps) {
-  const browserStore = useMemo(() => {
-    return createBrowserStore({
-      domain: expandCoordinates({ ...coordinates }) as Domain,
-      marginWidth: 150,
-      trackWidth: 1350,
-      multiplier: 3,
-    } as InitialBrowserState);
-  }, []);
+  const browserStore = createBrowserStore({
+    domain: expandCoordinates({ ...coordinates }) as Domain,
+    marginWidth: 150,
+    trackWidth: 1350,
+    multiplier: 3,
+  } as InitialBrowserState);
 
   const addHighlight = browserStore((state) => state.addHighlight);
   const removeHighlight = browserStore((state) => state.removeHighlight);
@@ -109,13 +107,28 @@ export default function SearchBrowserView({
     cCREClick,
   ]);
 
-  const trackStore = useMemo(() => {
-    return createTrackStore(initialTracks);
-  }, []);
+  const trackStore = createTrackStore(initialTracks);
+  return (
+    <div>
+      <BiosampleAdder
+        biosample={biosample}
+        trackStore={trackStore}
+        browserStore={browserStore}
+        cCREClick={cCREClick}
+      />
+      <GBControls assembly={coordinates.assembly} browserStore={browserStore} />
+      <Browser browserStore={browserStore} trackStore={trackStore} />
+    </div>
+  );
+}
 
+function BiosampleAdder({ biosample, trackStore, browserStore, cCREClick }) {
   const tracks = trackStore((state) => state.tracks);
   const insertTrack = trackStore((state) => state.insertTrack);
   const removeTrack = trackStore((state) => state.removeTrack);
+
+  const addHighlight = browserStore((state) => state.addHighlight);
+  const removeHighlight = browserStore((state) => state.removeHighlight);
 
   useEffect(() => {
     if (!biosample) {
@@ -159,13 +172,7 @@ export default function SearchBrowserView({
       });
     }
   }, [biosample]);
-
-  return (
-    <div>
-      <GBControls assembly={coordinates.assembly} browserStore={browserStore} />
-      <Browser browserStore={browserStore} trackStore={trackStore} />
-    </div>
-  );
+  return null;
 }
 
 export function expandCoordinates(
