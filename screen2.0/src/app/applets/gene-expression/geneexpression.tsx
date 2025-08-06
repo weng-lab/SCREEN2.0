@@ -2,7 +2,7 @@
 import React, { useCallback, useMemo, useRef, useState } from "react"
 import { LoadingMessage } from "../../../common/lib/utility"
 import { useQuery } from "@apollo/client"
-import { Button, Typography, Stack, MenuItem, FormControl, InputLabel, OutlinedInput, Select, ToggleButton, ToggleButtonGroup, FormLabel, Tooltip, IconButton, Divider } from "@mui/material"
+import { Button, Typography, Stack, MenuItem, FormControl, InputLabel, OutlinedInput, Select, ToggleButton, ToggleButtonGroup, FormLabel, Tooltip, IconButton, Divider, Box } from "@mui/material"
 import Grid from "@mui/material/Grid2"
 import Image from "next/image"
 import { GENE_EXP_QUERY, GENE_QUERY, GET_ORTHOLOG, GET_ORTHOLOG_DATA, GET_ORTHOLOG_VARS } from "./queries"
@@ -146,7 +146,7 @@ export function GeneExpression(props: {
   })
 
   const makeLabel = (tpm: number, biosample: string, accession: string, biorep?: number): string => {
-    const name = capitalizeFirstLetter(biosample.replaceAll("_", " ")) 
+    const name = capitalizeFirstLetter(biosample.includes(',') ? biosample.split(',')[0] + '...' : biosample) 
     return `${tpm.toFixed(2)}, ${name} (${accession}${biorep ? ', rep. ' + biorep : ''})`
   }
 
@@ -295,7 +295,7 @@ export function GeneExpression(props: {
 
   const PlotTooltip = useCallback((bar: BarData<GeneDataset>) => {
     return (
-      <>
+      <Box maxWidth={350}>
         <Typography variant="body2">Clicking opens this experiment on ENCODE <OpenInNew fontSize="inherit" /></Typography>
         <br />
         <Typography variant="body2"><b>Accession:</b> {bar.metadata.accession}</Typography>
@@ -307,7 +307,7 @@ export function GeneExpression(props: {
           :
           <Typography variant="body2"><b>Log<sub>10</sub>(TPM + 1):</b> {bar.value.toFixed(2)}</Typography>
         }
-      </>
+      </Box>
     )
   }, [scale])
 

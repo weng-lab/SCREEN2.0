@@ -230,7 +230,7 @@ const VerticalBarPlot = <T,>({
           <TooltipWithBounds
             top={tooltipTop}
             left={tooltipLeft}
-            style={{ ...defaultTooltipStyles, backgroundColor: '#283238', color: 'white', zIndex: 1000 }}
+            style={{ ...defaultTooltipStyles, backgroundColor: '#283238', color: 'white', zIndex: 2000 }}
           >
             <TooltipContents {...tooltipData} />
           </TooltipWithBounds>
