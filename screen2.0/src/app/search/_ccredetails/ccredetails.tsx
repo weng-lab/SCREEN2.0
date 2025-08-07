@@ -22,7 +22,10 @@ import {
 } from "./queries";
 import { calcDistToTSS } from "./utils";
 import { LoadingMessage } from "../../../common/lib/utility";
-import { ComputationalGeneLinksQuery, ComputationalGeneLinksQueryVariables } from "../../../graphql/__generated__/graphql";
+import {
+  ComputationalGeneLinksQuery,
+  ComputationalGeneLinksQueryVariables,
+} from "../../../graphql/__generated__/graphql";
 
 //Passing these props through this file could be done with context to reduce prop drilling
 type CcreDetailsProps = {
@@ -290,7 +293,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({
           <Rampage genes={uniqueGenes} />
         ))}
       {page === 8 && (
-        <>
+        <Stack spacing={4}>
           <TfSequenceFeatures
             assembly={assembly}
             coordinates={{
@@ -307,7 +310,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({
               end: region.end,
             }}
           />
-        </>
+        </Stack>
       )}
       {page === 9 && assembly !== "mm10" && (
         <ChromHMM

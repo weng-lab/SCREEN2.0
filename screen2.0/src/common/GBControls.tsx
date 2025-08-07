@@ -1,9 +1,13 @@
 import React, { useCallback } from "react";
-import { Button, IconButton } from "@mui/material";
+import { Button, IconButton, Grid, Stack, Typography } from "@mui/material";
 import { Search } from "@mui/icons-material";
 import { GenomeSearch, Result } from "@weng-lab/ui-components";
 import { useTheme } from "@mui/material/styles";
-import { Domain, BrowserStoreInstance } from "@weng-lab/genomebrowser";
+import {
+  Domain,
+  BrowserStoreInstance,
+  Cytobands,
+} from "@weng-lab/genomebrowser";
 import { expandCoordinates } from "../app/search/_gbview/SearchBrowserView";
 
 export interface GBControlsProps {
@@ -116,220 +120,204 @@ const GBControls: React.FC<GBControlsProps> = ({ assembly, browserStore }) => {
   };
 
   return (
-    <div
-      style={{
+    <Stack
+      direction="column"
+      alignItems="center"
+      spacing={2}
+      sx={{
         padding: "12px 16px",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
         width: "100%",
-        gap: "24px",
-        flexWrap: "nowrap",
       }}
     >
-      {/* Move Left Section */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-        }}
+      {/* Cytoband Section - Centered at top */}
+      <svg width={700} height={20}>
+        <Cytobands
+          assembly={assembly === "GRCh38" ? "hg38" : "mm10"}
+          currentDomain={domain}
+        />
+      </svg>
+      
+      {/* Control Buttons - Horizontal layout */}
+      <Grid
+        container
+        spacing={3}
+        justifyContent="center"
+        alignItems="center"
+        sx={{ flexWrap: "nowrap" }}
       >
-        <div
-          style={{ fontSize: "0.8rem", marginBottom: "4px", fontWeight: "500" }}
-        >
-          Move Left
-        </div>
-        <div style={{ display: "flex", gap: "2px" }}>
-          <ShiftButton
-            text="<<<"
-            shift={domain.start - domain.end}
-            domain={domain}
-            onClick={handleDomainChange}
-            browserStore={browserStore}
-          />
-          <ShiftButton
-            text="<<"
-            shift={(domain.start - domain.end) / 2}
-            domain={domain}
-            onClick={handleDomainChange}
-            browserStore={browserStore}
-          />
-          <ShiftButton
-            text="<"
-            shift={(domain.start - domain.end) / 4}
-            domain={domain}
-            onClick={handleDomainChange}
-            browserStore={browserStore}
-          />
-        </div>
-      </div>
+        {/* Move Left Section */}
+      <Grid size="auto">
+        <Stack direction="column" alignItems="center" spacing={1}>
+          <Typography variant="caption" fontWeight="500">
+            Move Left
+          </Typography>
+          <Stack direction="row" spacing={0.25}>
+            <ShiftButton
+              text="<<<"
+              shift={domain.start - domain.end}
+              domain={domain}
+              onClick={handleDomainChange}
+              browserStore={browserStore}
+            />
+            <ShiftButton
+              text="<<"
+              shift={(domain.start - domain.end) / 2}
+              domain={domain}
+              onClick={handleDomainChange}
+              browserStore={browserStore}
+            />
+            <ShiftButton
+              text="<"
+              shift={(domain.start - domain.end) / 4}
+              domain={domain}
+              onClick={handleDomainChange}
+              browserStore={browserStore}
+            />
+          </Stack>
+        </Stack>
+      </Grid>
 
       {/* Move Right Section */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-        }}
-      >
-        <div
-          style={{ fontSize: "0.8rem", marginBottom: "4px", fontWeight: "500" }}
-        >
-          Move Right
-        </div>
-        <div style={{ display: "flex", gap: "2px" }}>
-          <ShiftButton
-            text=">"
-            shift={(domain.end - domain.start) / 4}
-            domain={domain}
-            onClick={handleDomainChange}
-            browserStore={browserStore}
-          />
-          <ShiftButton
-            text=">>"
-            shift={(domain.end - domain.start) / 2}
-            domain={domain}
-            onClick={handleDomainChange}
-            browserStore={browserStore}
-          />
-          <ShiftButton
-            text=">>>"
-            shift={domain.end - domain.start}
-            domain={domain}
-            onClick={handleDomainChange}
-            browserStore={browserStore}
-          />
-        </div>
-      </div>
+      <Grid size="auto">
+        <Stack direction="column" alignItems="center" spacing={1}>
+          <Typography variant="caption" fontWeight="500">
+            Move Right
+          </Typography>
+          <Stack direction="row" spacing={0.25}>
+            <ShiftButton
+              text=">"
+              shift={(domain.end - domain.start) / 4}
+              domain={domain}
+              onClick={handleDomainChange}
+              browserStore={browserStore}
+            />
+            <ShiftButton
+              text=">>"
+              shift={(domain.end - domain.start) / 2}
+              domain={domain}
+              onClick={handleDomainChange}
+              browserStore={browserStore}
+            />
+            <ShiftButton
+              text=">>>"
+              shift={domain.end - domain.start}
+              domain={domain}
+              onClick={handleDomainChange}
+              browserStore={browserStore}
+            />
+          </Stack>
+        </Stack>
+      </Grid>
 
       {/* Zoom In Section */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-        }}
-      >
-        <div
-          style={{ fontSize: "0.8rem", marginBottom: "4px", fontWeight: "500" }}
-        >
-          Zoom In
-        </div>
-        <div style={{ display: "flex", gap: "2px" }}>
-          <ZoomButton
-            text="+1.5x"
-            factor={1.0 / 1.5}
-            domain={domain}
-            onClick={handleDomainChange}
-            browserStore={browserStore}
-          />
-          <ZoomButton
-            text="+3x"
-            factor={1.0 / 3}
-            domain={domain}
-            onClick={handleDomainChange}
-            browserStore={browserStore}
-          />
-          <ZoomButton
-            text="+10x"
-            factor={1.0 / 10}
-            domain={domain}
-            onClick={handleDomainChange}
-            browserStore={browserStore}
-          />
-        </div>
-      </div>
+      <Grid size="auto">
+        <Stack direction="column" alignItems="center" spacing={1}>
+          <Typography variant="caption" fontWeight="500">
+            Zoom In
+          </Typography>
+          <Stack direction="row" spacing={0.25}>
+            <ZoomButton
+              text="+1.5x"
+              factor={1.0 / 1.5}
+              domain={domain}
+              onClick={handleDomainChange}
+              browserStore={browserStore}
+            />
+            <ZoomButton
+              text="+3x"
+              factor={1.0 / 3}
+              domain={domain}
+              onClick={handleDomainChange}
+              browserStore={browserStore}
+            />
+            <ZoomButton
+              text="+10x"
+              factor={1.0 / 10}
+              domain={domain}
+              onClick={handleDomainChange}
+              browserStore={browserStore}
+            />
+          </Stack>
+        </Stack>
+      </Grid>
 
       {/* Zoom Out Section */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-        }}
-      >
-        <div
-          style={{ fontSize: "0.8rem", marginBottom: "4px", fontWeight: "500" }}
-        >
-          Zoom Out
-        </div>
-        <div style={{ display: "flex", gap: "2px" }}>
-          <ZoomButton
-            text="-1.5x"
-            factor={1.5}
-            domain={domain}
-            onClick={handleDomainChange}
-            browserStore={browserStore}
-          />
-          <ZoomButton
-            text="-3x"
-            factor={3}
-            domain={domain}
-            onClick={handleDomainChange}
-            browserStore={browserStore}
-          />
-          <ZoomButton
-            text="-10x"
-            factor={10}
-            domain={domain}
-            onClick={handleDomainChange}
-            browserStore={browserStore}
-          />
-        </div>
-      </div>
+      <Grid size="auto">
+        <Stack direction="column" alignItems="center" spacing={1}>
+          <Typography variant="caption" fontWeight="500">
+            Zoom Out
+          </Typography>
+          <Stack direction="row" spacing={0.25}>
+            <ZoomButton
+              text="-1.5x"
+              factor={1.5}
+              domain={domain}
+              onClick={handleDomainChange}
+              browserStore={browserStore}
+            />
+            <ZoomButton
+              text="-3x"
+              factor={3}
+              domain={domain}
+              onClick={handleDomainChange}
+              browserStore={browserStore}
+            />
+            <ZoomButton
+              text="-10x"
+              factor={10}
+              domain={domain}
+              onClick={handleDomainChange}
+              browserStore={browserStore}
+            />
+          </Stack>
+        </Stack>
+      </Grid>
 
       {/* Search Section */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-        }}
-      >
-        <div
-          style={{
-            fontSize: "0.8rem",
-            marginBottom: "4px",
-            fontWeight: "500",
-            visibility: "hidden",
-          }}
-        >
-          Search
-        </div>
-        <GenomeSearch
-          size="small"
-          assembly={assembly as "GRCh38" | "mm10"}
-          onSearchSubmit={handeSearchSubmit}
-          queries={["Gene", "SNP", "cCRE", "Coordinate"]}
-          geneLimit={3}
-          sx={{ width: "400px" }}
-          slots={{
-            button: (
-              <IconButton sx={{ color: theme.palette.primary.main }}>
-                <Search />
-              </IconButton>
-            ),
-          }}
-          slotProps={{
-            input: {
-              label: "Change browser region",
-              sx: {
-                backgroundColor: "white",
-                "& label.Mui-focused": {
-                  color: theme.palette.primary.main,
-                },
-                "& .MuiOutlinedInput-root": {
-                  "&.Mui-focused fieldset": {
-                    borderColor: theme.palette.primary.main,
+      <Grid size="auto">
+        <Stack direction="column" alignItems="center" spacing={1}>
+          <Typography
+            variant="caption"
+            fontWeight="500"
+            sx={{ visibility: "hidden" }}
+          >
+            Search
+          </Typography>
+          <GenomeSearch
+            size="small"
+            assembly={assembly as "GRCh38" | "mm10"}
+            onSearchSubmit={handeSearchSubmit}
+            queries={["Gene", "SNP", "cCRE", "Coordinate"]}
+            geneLimit={3}
+            sx={{ width: "400px" }}
+            slots={{
+              button: (
+                <IconButton sx={{ color: theme.palette.primary.main }}>
+                  <Search />
+                </IconButton>
+              ),
+            }}
+            slotProps={{
+              input: {
+                label: "Change browser region",
+                sx: {
+                  backgroundColor: "white",
+                  "& label.Mui-focused": {
+                    color: theme.palette.primary.main,
+                  },
+                  "& .MuiOutlinedInput-root": {
+                    "&.Mui-focused fieldset": {
+                      borderColor: theme.palette.primary.main,
+                    },
                   },
                 },
               },
-            },
-          }}
-        />
-      </div>
-    </div>
+            }}
+          />
+        </Stack>
+      </Grid>
+      </Grid>
+    </Stack>
   );
 };
 

@@ -2574,10 +2574,10 @@
     "@visx/event" "3.12.0"
     prop-types "^15.6.2"
 
-"@weng-lab/genomebrowser@1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@weng-lab/genomebrowser/-/genomebrowser-1.0.1.tgz#9f48413e665e29cc2aaed257bdea243ac16ba56d"
-  integrity sha512-0WVo1Gst79bfztaGsE1612tt4EnLTYKV2bIIWQCu67wn4IdvqTDRCKW70UdXbT7mzIbUCd9hWd4GsWT9xAiFbg==
+"@weng-lab/genomebrowser@1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@weng-lab/genomebrowser/-/genomebrowser-1.1.1.tgz#97b27d1955dcde75727071c349b1680b602afd11"
+  integrity sha512-HqwhU7c3YPwUJLWcpAwCNKZFp1ndyGkXokVNhRUIFJquJuHkfIy5JOyNuQsPQT/2hXNKnKvpz3mwaVaLNIx0Bg==
   dependencies:
     "@apollo/client" "^3.11.10"
     graphql "^16.9.0"

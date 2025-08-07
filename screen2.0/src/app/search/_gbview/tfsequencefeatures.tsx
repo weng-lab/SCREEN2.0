@@ -16,6 +16,7 @@ import {
 import GBControls from "../../../common/GBControls";
 import { DNALogo } from "logots-react";
 import { MOTIFS } from "./allmotifs";
+import Stack from "@mui/material/Stack";
 
 type TfSequenceFeaturesProps = {
   coordinates: {
@@ -93,12 +94,10 @@ export default function TfSequenceFeatures(props: TfSequenceFeaturesProps) {
   ];
   const trackStore = createTrackStore(initialTracks);
   return (
-    <Grid container spacing={3} sx={{ mt: "1rem", mb: "1rem" }}>
-      <Grid size={{ xs: 12, lg: 12 }}>
-        <GBControls assembly={props.assembly} browserStore={browserStore} />
-        <Browser browserStore={browserStore} trackStore={trackStore} />
-      </Grid>
-    </Grid>
+    <Stack spacing={3}>
+      <GBControls assembly={props.assembly} browserStore={browserStore} />
+      <Browser browserStore={browserStore} trackStore={trackStore} />
+    </Stack>
   );
 }
 
