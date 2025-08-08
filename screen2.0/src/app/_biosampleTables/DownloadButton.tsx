@@ -1,41 +1,58 @@
-import { useState } from "react";
-import { Box, IconButton, Tooltip } from "@mui/material";
-import { Download } from "@mui/icons-material";
+import { useState, useEffect } from "react";
+import {
+  CircularProgressProps,
+  Box,
+  CircularProgress,
+  Typography,
+  IconButton,
+  Tooltip,
+} from "@mui/material";
+import { Close, Download } from "@mui/icons-material";
+import { downloadTSV } from "../downloads/utils";
 import { BiosampleData } from "./types";
 import Link from "next/link";
 
 export type DownloadButtonProps<T extends boolean> = {
-  row: BiosampleData<T>
-  downloadType: "dnase" | "h3k4me3" | "h3k27ac" | "ctcf" | "atac" | "celltypeccres"
-}
+  row: BiosampleData<T>;
+  downloadType:
+    | "dnase"
+    | "h3k4me3"
+    | "h3k27ac"
+    | "ctcf"
+    | "atac"
+    | "celltypeccres";
+};
 
-const fetchFileSize = async (url: string, setFileSize: React.Dispatch<React.SetStateAction<number>>) => {
+const fetchFileSize = async (
+  url: string,
+  setFileSize: React.Dispatch<React.SetStateAction<number>>
+) => {
   try {
-    const response = await fetch(url, { method: 'HEAD' });
-    const contentLength = response.headers.get('Content-Length');
+    const response = await fetch(url, { method: "HEAD" });
+    const contentLength = response.headers.get("Content-Length");
     if (contentLength) {
       setFileSize(parseInt(contentLength, 10));
     }
   } catch (error) {
-    console.error("error fetching file size for ", url)
-    console.error(error)
+    console.error("error fetching file size for ", url);
+    console.error(error);
   }
-}
+};
 
 /**
- * 
+ *
  * @prop row
  * @prop downloadType
  * ```jsx
  * "dnase" | "h3k4me3" | "h3k27ac" | "ctcf" | "atac" | "celltypeccres"
  * ```
- * @returns 
+ * @returns
  */
 export const DownloadButton = <T extends boolean>({ row, downloadType }: DownloadButtonProps<T>) => {
   const [fileSize, setFileSize] = useState<number>(null)
 
-  let url: string
-  let fileName: string
+  let url: string;
+  let fileName: string;
   switch (downloadType) {
     case "dnase":
       url = `https://downloads.wenglab.org/Registry-V4/SCREEN/Signal-Files/${row.dnase}-${row.dnase_signal}.tsv`
@@ -62,11 +79,13 @@ export const DownloadButton = <T extends boolean>({ row, downloadType }: Downloa
         row.dnase_signal,
         row.h3k4me3_signal,
         row.h3k27ac_signal,
-        row.ctcf_signal
-      ].filter(id => id !== null && id !== undefined);
-      url = `https://downloads.wenglab.org/Registry-V4/${signalIDs.join('_')}.bed`
-      fileName = `${signalIDs.join('_')}.bed`
-      break
+        row.ctcf_signal,
+      ].filter((id) => id !== null && id !== undefined);
+      url = `https://downloads.wenglab.org/Registry-V4/${signalIDs.join(
+        "_"
+      )}.bed`;
+      fileName = `${signalIDs.join("_")}.bed`;
+      break;
     }
   }
 
@@ -89,6 +108,6 @@ export const DownloadButton = <T extends boolean>({ row, downloadType }: Downloa
           </IconButton>
         </Tooltip>
       </Box>
-    )
-  } else return null
-}
+    );
+  } else return null;
+};

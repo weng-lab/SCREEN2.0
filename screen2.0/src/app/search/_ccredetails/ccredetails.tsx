@@ -8,12 +8,12 @@ import { LinkedGenes } from "./linkedgenes";
 import { Ortholog } from "./linkedccres";
 import { TfIntersection } from "./tfintersection";
 import { FunctionData } from "./functionaldata";
-import { ChromHMM } from "./chromhmm";
+import ChromHMM from "./_chromhmm/chromhmm";
 import { ENTExData } from "./entexdata";
 import { Silencers } from "./silencers";
 import Rampage from "./rampage";
 import { GeneExpression } from "../../applets/gene-expression/geneexpression";
-import { TfSequenceFeatures } from "../_gbview/tfsequencefeatures";
+import TfSequenceFeatures from "../_gbview/tfsequencefeatures";
 import ConfigureGBTab from "./configuregbtab";
 import { useQuery } from "@apollo/client";
 import {
@@ -22,7 +22,10 @@ import {
 } from "./queries";
 import { calcDistToTSS } from "./utils";
 import { LoadingMessage } from "../../../common/lib/utility";
-import { ComputationalGeneLinksQuery } from "../../../graphql/__generated__/graphql";
+import {
+  ComputationalGeneLinksQuery,
+  ComputationalGeneLinksQueryVariables,
+} from "../../../graphql/__generated__/graphql";
 
 //Passing these props through this file could be done with context to reduce prop drilling
 type CcreDetailsProps = {
@@ -83,7 +86,7 @@ export type NearbyAndLinked = {
 export type NearbyWithDistanceAndLinked = {
   nearbyGenes: NearbyGeneInfoWithDistance[];
   linkedGenes: LinkedGeneInfo[];
-  otherComputationalLinkedGenes: ComputationalGeneLinksQuery["ComputationalGeneLinksQuery"]
+  otherComputationalLinkedGenes: ComputationalGeneLinksQuery["ComputationalGeneLinksQuery"];
 };
 
 export type NearbyAndLinkedVariables = {
@@ -169,7 +172,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({
       for (const gene of [
         ...nearest3AndLinkedGenes.nearbyGenes,
         ...nearest3AndLinkedGenes.linkedGenes,
-        ...nearest3AndLinkedGenes.otherComputationalLinkedGenes
+        ...nearest3AndLinkedGenes.otherComputationalLinkedGenes,
       ]) {
         const isNearbyGene: boolean = Object.hasOwn(gene, "distanceToTSS");
         let geneName: string;
@@ -180,7 +183,11 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({
             gene as NearbyGeneInfoWithDistance
           ).distanceToTSS.toLocaleString()} bp`;
         } else {
-          geneName = (gene as LinkedGeneInfo | ComputationalGeneLinksQuery["ComputationalGeneLinksQuery"][number]).gene;
+          geneName = (
+            gene as
+              | LinkedGeneInfo
+              | ComputationalGeneLinksQuery["ComputationalGeneLinksQuery"][number]
+          ).gene;
           methodToPush =
             //bad but whatever. This all will be refactored in redesign
             (gene as any)?.assay ?? (gene as any)?.method;
@@ -276,7 +283,9 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({
 
       {page === 7 &&
         assembly !== "mm10" &&
-        (!dataNearbyAndLinked || loadingLinkedGenes || loadingOtherComputationalLinkedGenes ? (
+        (!dataNearbyAndLinked ||
+        loadingLinkedGenes ||
+        loadingOtherComputationalLinkedGenes ? (
           <CircularProgress />
         ) : errorNearbyAndLinked ? (
           <Typography>{`Issue fetching Linked Genes for ${accession}.`}</Typography>
@@ -284,7 +293,7 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({
           <Rampage genes={uniqueGenes} />
         ))}
       {page === 8 && (
-        <>
+        <Stack spacing={4}>
           <TfSequenceFeatures
             assembly={assembly}
             coordinates={{
@@ -301,17 +310,15 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({
               end: region.end,
             }}
           />
-        </>
+        </Stack>
       )}
       {page === 9 && assembly !== "mm10" && (
         <ChromHMM
-          accession={accession}
           coordinates={{
             chromosome: region.chrom,
             start: region.start,
             end: region.end,
           }}
-          assembly={assembly}
         />
       )}
       {page === 10 && (

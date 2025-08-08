@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
-import Grid from "@mui/material/Grid2";
-import { DataTable } from "@weng-lab/psychscreen-ui-components";
+import Grid from "@mui/material/Grid";
+import { DataTable } from "psychscreen-legacy-components";
 import {
   CreateLink,
   toScientificNotationElement,

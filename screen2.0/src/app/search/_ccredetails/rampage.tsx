@@ -88,7 +88,7 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
   const [availableTissues, setAvailableTissues] = useState<string[]>([])
   const [selectedTissues, setSelectedTissues] = useState<string[]>([])
 
-  const plotRef = useRef<SVGSVGElement>()
+  const plotRef = useRef<SVGSVGElement>(null)
 
   const handleSetSearch = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setSearch(event.target.value)

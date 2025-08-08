@@ -20,15 +20,15 @@ import {
   Divider,
   Autocomplete,
   TextField,
-} from "@mui/material/"
+} from "@mui/material";
 
 import Radio from '@mui/material/Radio';
 import RadioGroup from '@mui/material/RadioGroup';
 import FormControl from '@mui/material/FormControl';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
-import Grid from "@mui/material/Grid2"
-import { RangeSlider } from "@weng-lab/psychscreen-ui-components"
-import {  FilterCriteria, MainQueryParams, RegistryBiosample } from "./types"
+import Grid from "@mui/material/Grid"
+import { RangeSlider } from "psychscreen-legacy-components"
+import {  FilterCriteria, MainQueryParams, RegistryBiosample, LinkedGenes, LinkedGenesVariables } from "./types"
 import { eQTLsTissues, filtersModified } from "./searchhelpers"
 import {  LazyQueryResultTuple, gql, useLazyQuery } from "@apollo/client"
 import { useQuery } from "@apollo/client"
@@ -36,7 +36,6 @@ import { CancelRounded, InfoOutlined } from "@mui/icons-material";
 import ClearIcon from '@mui/icons-material/Clear';
 import { GeneAutocomplete } from "./_geneAutocomplete/GeneAutocomplete";
 import { GeneInfo } from "./_geneAutocomplete/types";
-import { LinkedGenes, LinkedGenesVariables } from "./page";
 import BiosampleTables from "../_biosampleTables/BiosampleTables";
 
 const snpMarks = [
@@ -129,7 +128,7 @@ export function MainResultsFilters(
     genomeBrowserView: boolean,
     useLinkedGenes: LazyQueryResultTuple<LinkedGenes, LinkedGenesVariables>
   }
-): JSX.Element {
+): React.ReactElement {
   const {
     mainQueryParams,
     setMainQueryParams,

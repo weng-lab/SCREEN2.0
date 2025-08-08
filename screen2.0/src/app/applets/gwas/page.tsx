@@ -1,9 +1,9 @@
 "use client"
 import { Accordion, AccordionDetails, AccordionSummary, IconButton, Paper, Stack, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material"
 import React, { useState, useMemo } from "react"
-import { DataTable, DataTableColumn } from "@weng-lab/psychscreen-ui-components"
+import { DataTable, DataTableColumn } from "psychscreen-legacy-components"
 import { CreateLink, LoadingMessage } from "../../../common/lib/utility"
-import Grid from "@mui/material/Grid2"
+import Grid from "@mui/material/Grid"
 import { CircularProgress } from "@mui/material"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import { client } from "../../search/_ccredetails/client"
@@ -113,7 +113,7 @@ export default function GWAS() {
     skip: !study
   })
 
-  let snpsRegions = gwasstudySNPs && gwasstudySNPs.getSNPsforGWASStudies.map(g => {
+  const snpsRegions = gwasstudySNPs && gwasstudySNPs.getSNPsforGWASStudies.map(g => {
     return [g.chromosome.toString(), g.start.toString(), g.stop.toString(), g.snpid.toString(), g.rsquare.toString(), g.ldblocksnpid.toString(), g.ldblock.toString()]
   })
 

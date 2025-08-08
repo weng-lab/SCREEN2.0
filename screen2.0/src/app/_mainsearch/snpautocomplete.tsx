@@ -6,7 +6,7 @@ import Typography from "@mui/material/Typography"
 import { debounce } from "@mui/material/utils"
 import { SNP_AUTOCOMPLETE_QUERY } from "./queries"
 import Config from "../../config.json"
-import Grid from "@mui/material/Grid2"
+import Grid from "@mui/material/Grid"
 import { IconButton, Stack } from "@mui/material"
 import { Search } from "@mui/icons-material"
 
