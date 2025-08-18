@@ -282,7 +282,7 @@ export const LinkedGenes: React.FC<props> = (props) => {
             tableTitle="CRISPRi-FlowFISH"
             rows={crisprLinked}
             emptyText="test"
-            sortColumn={7}
+            sortColumn={6}
             sortDescending
             searchable
           />
