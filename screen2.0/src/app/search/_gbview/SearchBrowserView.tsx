@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import {
   Browser,
   createBrowserStore,
@@ -98,51 +98,7 @@ export default function SearchBrowserView({
         />
       ),
     };
-    return [geneTrack, ccreTrack, ...tracks];
-  }, [
-    coordinates.assembly,
-    geneName,
-    addHighlight,
-    removeHighlight,
-    cCREClick,
-  ]);
-
-  const trackStore = createTrackStore(initialTracks);
-  return (
-    <div>
-      <BiosampleAdder
-        biosample={biosample}
-        trackStore={trackStore}
-        browserStore={browserStore}
-        cCREClick={cCREClick}
-      />
-      <GBControls assembly={coordinates.assembly} browserStore={browserStore} />
-      <Browser browserStore={browserStore} trackStore={trackStore} />
-    </div>
-  );
-}
-
-function BiosampleAdder({ biosample, trackStore, browserStore, cCREClick }) {
-  const tracks = trackStore((state) => state.tracks);
-  const insertTrack = trackStore((state) => state.insertTrack);
-  const removeTrack = trackStore((state) => state.removeTrack);
-
-  const addHighlight = browserStore((state) => state.addHighlight);
-  const removeHighlight = browserStore((state) => state.removeHighlight);
-
-  useEffect(() => {
-    if (!biosample) {
-      // Remove existing biosample tracks
-      const existingBiosampleTracks = tracks.filter((track) =>
-        track.id.startsWith("biosample-")
-      );
-      existingBiosampleTracks.forEach((track) => {
-        removeTrack(track.id);
-      });
-      return;
-    }
-
-    // Add new biosample tracks if biosample is provided
+    let biosampleTracks: Track[] = [];
     if (biosample) {
       const onHover = (item: Rect) => {
         addHighlight({
@@ -160,19 +116,30 @@ function BiosampleAdder({ biosample, trackStore, browserStore, cCREClick }) {
         cCREClick(item);
       };
 
-      const biosampleTracks = generateBiosampleTracks(
+      biosampleTracks = generateBiosampleTracks(
         biosample,
         onHover,
         onLeave,
         onClick,
         colors
       );
-      biosampleTracks.forEach((track) => {
-        insertTrack(track);
-      });
     }
-  }, [biosample]);
-  return null;
+    return [geneTrack, ccreTrack, ...tracks, ...biosampleTracks];
+  }, [
+    coordinates.assembly,
+    geneName,
+    addHighlight,
+    removeHighlight,
+    cCREClick,
+  ]);
+
+  const trackStore = createTrackStore(initialTracks);
+  return (
+    <div>
+      <GBControls assembly={coordinates.assembly} browserStore={browserStore} />
+      <Browser browserStore={browserStore} trackStore={trackStore} />
+    </div>
+  );
 }
 
 export function expandCoordinates(
