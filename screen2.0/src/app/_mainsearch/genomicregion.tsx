@@ -127,7 +127,7 @@ const GenomicRegion = (props: { assembly: "mm10" | "GRCh38"; header?: boolean })
     const expression = /^chr(\d+|X|Y):[0-9,]*-[0-9,]*$/
     let isValid = false
 
-    if (input.includes("\t")) {
+    if (input.includes("\t") && input.split("\t").length === 3) {
       const inputArr = input.split("\t")
       const c = inputArr[0]
       const s = inputArr[1].replace(/,/g, "")
