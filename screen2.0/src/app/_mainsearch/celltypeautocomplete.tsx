@@ -42,7 +42,8 @@ export const CelltypeAutocomplete: React.FC<{ assembly: string, header?: boolean
           )
         }
         catch (msg) {
-          window.alert("Error in input format - " + msg)
+          window.alert("Error in input format, please check to make sure region is inputted correctly")
+          console.error(msg)
           setValueRegion("")
         }
       } else {

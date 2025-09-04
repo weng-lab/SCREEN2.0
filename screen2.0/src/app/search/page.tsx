@@ -59,7 +59,6 @@ import { gql } from "../../graphql/__generated__/gql";
 import { GROUP_COLOR_MAP } from "./_ccredetails/utils";
 import UrlErrorDialog from "./UrlErrorDialog";
 import SearchBrowserView, { expandCoordinates } from "./_gbview/SearchBrowserView";
-
 // import { track } from "@vercel/analytics/react"
 
 /**
@@ -179,8 +178,6 @@ function CircularProgressWithLabel(
     </Box>
   );
 }
-
-
 
 /**
  * @todo move this to a better location
@@ -362,9 +359,9 @@ export default function Search(props: {
           }
 
           //No human or mouse genes have "chr" followed by a number, so safe to check this way
-          if (/chr\d+/.test(encodeInput)) searchType = "region"
+          if (/chr\d+/.test(encodeInput)) searchType = "region";
           //handle rs1 edge case in case user searches in lowercase
-          else if (encodeInput.toLowerCase() === "rs1") searchType = "gene"
+          else if (encodeInput.toLowerCase() === "rs1") searchType = "gene";
           //check for "rs" followed by number. Genes RS1 and Rs1 exist, but lowercase r is differentiator
           else if (/rs\d+/.test(encodeInput)) searchType = "snp";
           //check for beginning of cCRE accession. No Genes start with these
@@ -720,16 +717,24 @@ export default function Search(props: {
    */
   useEffect(() => {
     //Check if the URL params representing state are stale
+    const urlMQP = constructMainQueryParamsFromURL(searchParams);
+    const urlFC = constructFilterCriteriaFromURL(searchParams);
+
+    // Compare everything except biosample objects (URL has partial, state has full)
+    const urlMQPNoBiosample = { ...urlMQP, biosample: null };
+    const stateMQPNoBiosample = { ...mainQueryParams, biosample: null };
+    const biosampleNamesDiff = (urlMQP.biosample?.name || null) !== (mainQueryParams.biosample?.name || null);
+    
+    const mqpDiff = JSON.stringify(urlMQPNoBiosample) !== JSON.stringify(stateMQPNoBiosample) || biosampleNamesDiff;
+    const fcDiff = JSON.stringify(urlFC) !== JSON.stringify(filterCriteria);
+    const pageDiff = (searchParams.page ? +searchParams.page : 0) !== page;
+    const accessionsDiff = (searchParams.accessions || "") !== opencCREs.map((x) => x.ID).join(",");
+
     if (
       opencCREsInitialized &&
       !loadingFetch &&
       //bug potentially?
-      (JSON.stringify(constructMainQueryParamsFromURL(searchParams)) !==
-        JSON.stringify(mainQueryParams) ||
-        JSON.stringify(constructFilterCriteriaFromURL(searchParams)) !==
-          JSON.stringify(filterCriteria) ||
-        +searchParams.page !== page ||
-        searchParams.accessions !== opencCREs.map((x) => x.ID).join(","))
+      (mqpDiff || fcDiff || pageDiff || accessionsDiff)
     ) {
       const newURL = constructSearchURL(
         mainQueryParams,
