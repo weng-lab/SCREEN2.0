@@ -20,7 +20,7 @@ import {
   ComputationalGeneLinks_Query,
   NEARBY_AND_LINKED_GENES,
 } from "./queries";
-import { calcDistToTSS } from "./utils";
+import { calcDistCcreToTSS, ccreOverlapsTSS } from "./utils";
 import { LoadingMessage } from "../../../common/lib/utility";
 import {
   ComputationalGeneLinksQuery,
@@ -76,6 +76,7 @@ type NearbyGeneInfo = {
 
 export type NearbyGeneInfoWithDistance = NearbyGeneInfo & {
   distanceToTSS: number;
+  overlapsTSS: boolean
 };
 
 export type NearbyAndLinked = {
@@ -149,8 +150,21 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({
             ...dataNearbyAndLinked.nearbyGenes.map((gene) => {
               return {
                 ...gene,
-                distanceToTSS: calcDistToTSS(
-                  region,
+                distanceToTSS: calcDistCcreToTSS(
+                  {
+                    chromosome: region.chrom,
+                    start: region.start,
+                    end: region.end,
+                  },
+                  gene.transcripts,
+                  gene.strand
+                ),
+                overlapsTSS: ccreOverlapsTSS(
+                  {
+                    chromosome: region.chrom,
+                    start: region.start,
+                    end: region.end,
+                  },
                   gene.transcripts,
                   gene.strand
                 ),
@@ -231,6 +245,9 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({
             nearest3AndLinkedGenes.nearbyGenes.sort(
               (a, b) => a.distanceToTSS - b.distanceToTSS
             )[0].distanceToTSS
+          }
+          overlapsTSS={
+            nearest3AndLinkedGenes.nearbyGenes.some(x => x.overlapsTSS)
           }
         />
       )}

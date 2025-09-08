@@ -8,7 +8,7 @@ import { Typography } from "@mui/material"
 import { DataTable } from "psychscreen-legacy-components"
 import { LoadingMessage } from "../../../common/lib/utility"
 import { calcDistRegionToPosition, calcDistRegionToRegion } from "./utils"
-import { calcDistToTSS } from "./utils"
+import { calcDistCcreToTSS } from "./utils"
 import GeneLink from "../../_utility/GeneLink"
 import { NearbyGenomicFeaturesQuery } from "../../../graphql/__generated__/graphql"
 
@@ -92,7 +92,7 @@ export const NearByGenomicFeatures: React.FC<{
         chrom: g.coordinates.chromosome,
         start: g.coordinates.start,
         stop: g.coordinates.end,
-        distance: calcDistToTSS({...coordinates, chrom: coordinates.chromosome}, g.transcripts, g.strand as "+" | "-")
+        distance: calcDistCcreToTSS(coordinates, g.transcripts, g.strand as "+" | "-")
       }
     })
   const ccres =
