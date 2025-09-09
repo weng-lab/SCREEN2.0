@@ -420,9 +420,6 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({
     ancillaryCollection = ccreCts.filter((c) => c.type === "ancillary");
   }
 
-  console.log(distanceToTSS)
-  console.log(overlapsTSS)
-
   return loading_toptissues || error_toptissues ? (
     <Grid container spacing={3} sx={{ mt: "0rem", mb: "0rem" }}>
       <Grid
