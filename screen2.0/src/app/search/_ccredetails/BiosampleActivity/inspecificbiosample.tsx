@@ -26,6 +26,8 @@ export type CcreClass =
 export type cCRERow = {
   ct?: string;
   celltypename: string;
+  ontology: string;
+  sampleType: string;
   dnase: number;
   h3k4me3: number;
   h3k27ac: number;
@@ -48,6 +50,14 @@ const tableCols = (typeC = false) => {
         {
           header: "Cell Type",
           value: (row: cCRERow) => row.celltypename,
+        },
+        {
+          header: "Ontolgoy",
+          value: (row: cCRERow) => row.ontology,
+        },
+        {
+          header: "Sample Type",
+          value: (row: cCRERow) => row.sampleType,
         },
         {
           header: "ATAC Z-score",
@@ -83,6 +93,14 @@ const tableCols = (typeC = false) => {
         {
           header: "Cell Type",
           value: (row: cCRERow) => row.celltypename,
+        },
+        {
+          header: "Ontolgoy",
+          value: (row: cCRERow) => row.ontology,
+        },
+        {
+          header: "Sample Type",
+          value: (row: cCRERow) => row.sampleType,
         },
         {
           header: "DNase Z-score",
@@ -333,7 +351,8 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({
                 ?.tf.toString()
             : undefined,
         celltypename: d.displayname,
-        tissue: d.ontology,
+        ontology: d.ontology,
+        sampleType: d.sampleType,
         dnase: d.cCREZScores.find((cz) => cz.assay.toLowerCase() === "dnase")
           ? d.cCREZScores.find((cz) => cz.assay.toLowerCase() === "dnase").score
           : -11.0,
@@ -468,7 +487,7 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({
                   columns={tableCols()}
                   tableTitle={"Core Collection"}
                   rows={coreCollection}
-                  sortColumn={1}
+                  sortColumn={3}
                   searchable
                   downloadFileName={`${assembly} ${accession} - Core Collection.tsv`}
                 />
@@ -499,7 +518,7 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({
                 />
                 <DataTable
                   columns={tableCols()}
-                  sortColumn={1}
+                  sortColumn={3}
                   tableTitle="Partial Data Collection"
                   rows={partialDataCollection}
                   searchable
@@ -519,7 +538,7 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({
             columns={tableCols(true)}
             tableTitle="Ancillary Collection"
             rows={ancillaryCollection}
-            sortColumn={1}
+            sortColumn={3}
             searchable
             downloadFileName={`${assembly} ${accession} - Ancillary Collection.tsv`}
           />
