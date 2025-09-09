@@ -129,7 +129,7 @@ export const MainSearch: React.FC<MainSearchProps> = (props: MainSearchProps) =>
             slotProps={{
               box: { gap: 1 },
               input: {
-                size: "small",
+                size: props.header ? "small" : "medium",
                 label: `Enter a gene, cCRE${
                   assembly === "GRCh38" ? ", variant" : ""
                 } or locus`,
