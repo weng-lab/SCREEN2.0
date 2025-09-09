@@ -92,7 +92,7 @@ export const NearByGenomicFeatures: React.FC<{
         chrom: g.coordinates.chromosome,
         start: g.coordinates.start,
         stop: g.coordinates.end,
-        distance: calcDistCcreToTSS(coordinates, g.transcripts, g.strand as "+" | "-")
+        distance: calcDistCcreToTSS(coordinates, g.transcripts, g.strand as "+" | "-", "closest")
       }
     })
   const ccres =

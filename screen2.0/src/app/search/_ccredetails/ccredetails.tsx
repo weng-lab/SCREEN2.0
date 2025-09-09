@@ -157,7 +157,8 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({
                     end: region.end,
                   },
                   gene.transcripts,
-                  gene.strand
+                  gene.strand,
+                  "middle"
                 ),
                 overlapsTSS: ccreOverlapsTSS(
                   {

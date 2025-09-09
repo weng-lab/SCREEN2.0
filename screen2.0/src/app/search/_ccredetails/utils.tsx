@@ -45,13 +45,14 @@ type Coordinates = {
 export function calcDistCcreToTSS(
   region: Coordinates,
   transcripts: { id: string; coordinates: Coordinates }[],
-  strand: "+" | "-"
+  strand: "+" | "-",
+  anchor: "middle" | "closest"
 ): number {
   const distances: number[] = transcripts.map((transcript) =>
     calcDistRegionToPosition(
       region.start,
       region.end,
-      "middle",
+      anchor,
       strand === "+" ? transcript.coordinates.start : transcript.coordinates.end
     )
   );
