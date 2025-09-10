@@ -2,7 +2,7 @@ import { useState } from "react";
 import { styled, Tab, Tabs } from "@mui/material";
 import ChromHMMBrowser from "./browserView";
 import ChromHMMTable from "./tableView";
-import { useChromHMMData } from "./fetch";
+import { useChromHMMTracks, useChromHMMTableData } from "./fetch";
 
 const StyledTab = styled(Tab)(() => ({
   textTransform: "none",
@@ -10,11 +10,17 @@ const StyledTab = styled(Tab)(() => ({
 
 export default function ChromHMM({ coordinates }) {
   const [page, setPage] = useState(0);
-  const { tracks, processedTableData, loading } = useChromHMMData(coordinates);
-  const handlePageChange = (_, newValue: number) => {
+
+  // Split hooks for parallel loading
+  const { tracks, loading: tracksLoading } = useChromHMMTracks();
+  const { processedTableData, loading: tableLoading } =
+    useChromHMMTableData(coordinates);
+
+  const handlePageChange = (_: React.SyntheticEvent, newValue: number) => {
     setPage(newValue);
   };
 
+  // Show nothing if tracks haven't loaded yet (needed for browser view)
   if (!tracks) return null;
 
   return (
@@ -24,7 +30,7 @@ export default function ChromHMM({ coordinates }) {
         <StyledTab value={1} label="Table View" />
       </Tabs>
       {page === 0 &&
-        (loading ? (
+        (tracksLoading ? (
           <div>Loading...</div>
         ) : (
           <ChromHMMBrowser
@@ -34,7 +40,7 @@ export default function ChromHMM({ coordinates }) {
           />
         ))}
       {page === 1 &&
-        (loading ? (
+        (tableLoading ? (
           <div>Loading...</div>
         ) : (
           <ChromHMMTable data={processedTableData} />

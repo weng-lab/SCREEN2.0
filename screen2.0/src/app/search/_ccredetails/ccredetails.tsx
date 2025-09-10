@@ -1,5 +1,5 @@
 "use client";
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 import { Typography, Stack, Divider, CircularProgress } from "@mui/material";
 import { GenomicRegion } from "../types";
 import { InSpecificBiosamples } from "./BiosampleActivity/inspecificbiosample";
@@ -9,6 +9,7 @@ import { Ortholog } from "./linkedccres";
 import { TfIntersection } from "./tfintersection";
 import { FunctionData } from "./functionaldata";
 import ChromHMM from "./_chromhmm/chromhmm";
+import { useChromHMMPrefetch } from "./_chromhmm/fetch";
 import { ENTExData } from "./entexdata";
 import { Silencers } from "./silencers";
 import Rampage from "./rampage";
@@ -135,6 +136,21 @@ export const CcreDetails: React.FC<CcreDetailsProps> = ({
     variables: { accession: [accession] },
     skip: !accession,
   });
+
+  // Prefetch ChromHMM data in background when component loads
+  const { prefetchChromHMMData } = useChromHMMPrefetch();
+  
+  // Prefetch ChromHMM data when region is available and assembly is not mm10
+  useEffect(() => {
+    if (region && assembly !== "mm10") {
+      prefetchChromHMMData({
+        chromosome: region.chrom,
+        start: region.start,
+        end: region.end,
+        assembly: assembly,
+      });
+    }
+  }, [region, assembly, prefetchChromHMMData]);
 
   //Find distance to nearest TSS for each nearby gene, and only keep the closest 3
   const nearest3AndLinkedGenes: NearbyWithDistanceAndLinked = useMemo(() => {
