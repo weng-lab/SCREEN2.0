@@ -26,10 +26,10 @@ export default function ChromHMM({ coordinates }) {
   return (
     <div>
       <Tabs value={page} onChange={handlePageChange}>
-        <StyledTab value={0} label="Genome Browser View" />
-        <StyledTab value={1} label="Table View" />
+        <StyledTab value={0} label="Table View" />
+        <StyledTab value={1} label="Genome Browser View" />
       </Tabs>
-      {page === 0 &&
+      {page === 1 &&
         (tracksLoading ? (
           <div>Loading...</div>
         ) : (
@@ -39,7 +39,7 @@ export default function ChromHMM({ coordinates }) {
             coordinates={coordinates}
           />
         ))}
-      {page === 1 &&
+      {page === 0 &&
         (tableLoading ? (
           <div>Loading...</div>
         ) : (

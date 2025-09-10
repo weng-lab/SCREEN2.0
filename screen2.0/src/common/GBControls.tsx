@@ -139,7 +139,7 @@ const GBControls: React.FC<GBControlsProps> = ({ assembly, browserStore }) => {
         sx={{ width: "100%", textAlign: "center" }}
         fontSize="1rem"
       >
-        {assembly} at {domain.chromosome}:{domain.start.toLocaleString()}-
+        {domain.chromosome}:{domain.start.toLocaleString()}-
         {domain.end.toLocaleString()}
       </Typography>
       {/* Cytoband Section */}
