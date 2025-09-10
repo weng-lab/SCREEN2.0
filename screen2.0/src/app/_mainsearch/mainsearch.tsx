@@ -9,12 +9,16 @@ import {
   RadioGroup,
   FormControlLabel,
   Radio,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Typography,
 } from "@mui/material";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import BedUpload from "./bedupload";
 import AutoComplete from "./Autocomplete";
-import { ArrowDropDown, Search } from "@mui/icons-material";
+import { ArrowDropDown, ExpandMore, KeyboardArrowRight, Search } from "@mui/icons-material";
 import HumanIcon from "../_utility/humanIcon";
 import MouseIcon from "../_utility/mouseIcon";
 import { Result } from "@weng-lab/ui-components";
@@ -31,6 +35,7 @@ export const MainSearch: React.FC<MainSearchProps> = (
     React.useState<null | HTMLElement>(null);
   const dropdownRef = useRef<HTMLButtonElement | null>(null);
 
+
   const handleIconMenuOpen = () => {
     if (dropdownRef.current) {
       setIconMenuAnchor(dropdownRef.current);
@@ -45,8 +50,6 @@ export const MainSearch: React.FC<MainSearchProps> = (
     setAssembly(icon);
     handleIconMenuClose();
   };
-
-  // <BedUpload assembly={assembly} header={props.header} />
 
   const defaultResults: Result[] = useMemo(() => {
     if (assembly === "GRCh38") {
@@ -154,7 +157,9 @@ export const MainSearch: React.FC<MainSearchProps> = (
         </IconButton>
       ) : (
         <FormControl>
-          <FormLabel id="demo-radio-buttons-group-label">Search cCREs in</FormLabel>
+          <FormLabel id="demo-radio-buttons-group-label">
+            Search cCREs in
+          </FormLabel>
           <RadioGroup
             aria-labelledby="demo-radio-buttons-group-label"
             defaultValue="GRCh38"
@@ -173,7 +178,7 @@ export const MainSearch: React.FC<MainSearchProps> = (
         </FormControl>
       )}
       <AutoComplete
-        style={{ width: 400 }}
+        sx={{ width: 400 }}
         slots={{
           button: (
             <IconButton sx={props.header && { color: "white" }}>
@@ -211,6 +216,27 @@ export const MainSearch: React.FC<MainSearchProps> = (
           },
         }}
       />
+      {!props.header && (
+        <div>
+          <Accordion elevation={0} disableGutters>
+            <AccordionSummary
+              expandIcon={<KeyboardArrowRight />}
+              sx={{
+                paddingX: 0,
+                flexDirection: "row-reverse",
+                "& .MuiAccordionSummary-expandIconWrapper.Mui-expanded": {
+                  transform: "rotate(90deg)",
+                },
+              }}
+            >
+              <Typography variant="caption">Intersect cCREs by .bed</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <BedUpload assembly={assembly} header={props.header} />
+            </AccordionDetails>
+          </Accordion>
+        </div>
+      )}
       <Menu
         id="icon-menu"
         anchorEl={iconMenuAnchor}
