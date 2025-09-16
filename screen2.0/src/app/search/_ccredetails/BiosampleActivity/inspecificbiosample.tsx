@@ -95,7 +95,7 @@ const tableCols = (typeC = false) => {
           value: (row: cCRERow) => row.celltypename,
         },
         {
-          header: "Ontolgoy",
+          header: "Organ/Tissue",
           value: (row: cCRERow) => row.ontology,
         },
         {
