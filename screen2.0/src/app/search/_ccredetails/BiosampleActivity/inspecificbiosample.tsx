@@ -39,6 +39,7 @@ type InSpecificBiosamplesProps = {
   accession: string;
   assembly: "GRCh38" | "mm10";
   distanceToTSS: number;
+  overlapsTSS: boolean;
 };
 
 const tableCols = (typeC = false) => {
@@ -211,6 +212,7 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({
   accession,
   assembly,
   distanceToTSS,
+  overlapsTSS
 }) => {
   const {
     data: data_toptissues,
@@ -235,8 +237,6 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({
     },
     fetchPolicy: "cache-first",
   });
-
-  const distance = distanceToTSS;
 
   let partialDataCollection: cCRERow[],
     coreCollection: cCRERow[],
@@ -370,19 +370,19 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({
       if (t.dnase != -11.0) {
         if (t.dnase >= 1.64) {
           if (t.h3k4me3 >= 1.64) {
-            if (distance <= 200) {
+            if (distanceToTSS <= 200 || overlapsTSS) {
               ccreClass = "PLS"; //Promoter-like signatures (promoter) must fall within 200 bp of a TSS and have high chromatin accessibility and H3K4me3 signals.
-            } else if (t.h3k27ac < 1.64 && distance > 200) {
+            } else if (t.h3k27ac < 1.64 && distanceToTSS > 200) {
               ccreClass = "CA-H3K4me3"; //Chromatin accessibility + H3K4me3 (CA-H3K4me3) have high chromatin accessibility and H3K4me3 signals but low H3K27ac signals and do not fall within 200 bp of a TSS.
-            } else if (distance <= 2000 && t.h3k27ac >= 1.64) {
+            } else if (distanceToTSS <= 2000 && t.h3k27ac >= 1.64) {
               ccreClass = "pELS"; //Enhancer-like signatures (enhancer) have high chromatin accessibility and H3K27ac signals. Enhancers are further divided into TSS-proximal or distal with a 2 kb distance cutoff.
-            } else if (distance > 2000 && t.h3k27ac >= 1.64) {
+            } else if (distanceToTSS > 2000 && t.h3k27ac >= 1.64) {
               ccreClass = "dELS"; //Enhancer-like signatures (enhancer) have high chromatin accessibility and H3K27ac signals. Enhancers are further divided into TSS-proximal or distal with a 2 kb distance cutoff.
             }
           } else if (t.h3k27ac >= 1.64) {
-            if (distance <= 2000) {
+            if (distanceToTSS <= 2000) {
               ccreClass = "pELS"; //Enhancer-like signatures (enhancer) have high chromatin accessibility and H3K27ac signals. Enhancers are further divided into TSS-proximal or distal with a 2 kb distance cutoff.
-            } else if (distance > 2000) {
+            } else if (distanceToTSS > 2000) {
               ccreClass = "dELS"; //Enhancer-like signatures (enhancer) have high chromatin accessibility and H3K27ac signals. Enhancers are further divided into TSS-proximal or distal with a 2 kb distance cutoff.
             }
           } else if (t.ctcf >= 1.64) {

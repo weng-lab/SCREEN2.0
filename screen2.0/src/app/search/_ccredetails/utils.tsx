@@ -37,43 +37,72 @@ type Coordinates = {
 }
 
 /**
- * 
+ *
  * @param region {chrom, start, end}
- * @param transcripts 
- * @returns distance to nearest TSS from any point in inputted region. 
+ * @param transcripts
+ * @returns distance to nearest TSS from the center of cCRE body.
  */
-export function calcDistToTSS(region: GenomicRegion, transcripts: { id: string, coordinates: Coordinates }[], strand: '+' | '-'): number {
-  const distances: number [] = transcripts.map((transcript) => calcDistRegionToPosition(
-    region.start,
-    region.end,
-    "closest",
-    strand === "+" ? transcript.coordinates.start : transcript.coordinates.end
-  ))
-  return Math.min(...distances)
+export function calcDistCcreToTSS(
+  region: Coordinates,
+  transcripts: { id: string; coordinates: Coordinates }[],
+  strand: "+" | "-",
+  anchor: "middle" | "closest"
+): number {
+  const distances: number[] = transcripts.map((transcript) =>
+    calcDistRegionToPosition(
+      region.start,
+      region.end,
+      anchor,
+      strand === "+" ? transcript.coordinates.start : transcript.coordinates.end
+    )
+  );
+  return Math.min(...distances);
+}
+
+export function ccreOverlapsTSS(
+  region: Coordinates,
+  transcripts: { id: string; coordinates: Coordinates }[],
+  strand: "+" | "-"
+): boolean {
+  const distances: number[] = transcripts.map((transcript) => {
+    const tss = strand === "+" ? transcript.coordinates.start : transcript.coordinates.end
+    return calcDistRegionToRegion(region, {start: tss, end: tss})
+  })
+  
+  return distances.includes(0);
 }
 
 /**
- * 
+ *
  * @param start Start of Region
  * @param end End of Region
  * @param anchor The anchor of region to be used: start, end, middle, or closest (finds minimum of all anchors)
  * @param point Point to Find Distance to
  * @returns The distance from the anchor specified to the position
  */
-export function calcDistRegionToPosition(start: number, end: number, anchor: 'closest' | 'start' | 'end' | 'middle', point: number ): number {
-  const distToStart = Math.abs(start - point)
-  const distToEnd = Math.abs(end - point)
-  const distToMiddle = Math.abs(((start + end) / 2) - point)
+export function calcDistRegionToPosition(
+  start: number,
+  end: number,
+  anchor: "closest" | "start" | "end" | "middle",
+  point: number
+): number {
+  const distToStart = Math.abs(start - point);
+  const distToEnd = Math.abs(end - point);
+  const distToMiddle = Math.abs(Math.floor((start + end) / 2) - point);
 
   if (start <= point && point <= end) {
-    return 0
+    return 0;
   }
 
-  switch(anchor) {
-    case ('start'): return distToStart
-    case ('end'): return distToEnd
-    case ('middle'): return distToMiddle
-    case ('closest'): return Math.min(distToStart, distToEnd, distToMiddle)
+  switch (anchor) {
+    case "start":
+      return distToStart;
+    case "end":
+      return distToEnd;
+    case "middle":
+      return distToMiddle;
+    case "closest":
+      return Math.min(distToStart, distToEnd, distToMiddle);
   }
 }
 
