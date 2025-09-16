@@ -158,7 +158,7 @@ export const MainSearch: React.FC<MainSearchProps> = (
       ) : (
         <FormControl>
           <FormLabel id="demo-radio-buttons-group-label">
-            Search cCREs in
+            Search in
           </FormLabel>
           <RadioGroup
             aria-labelledby="demo-radio-buttons-group-label"
