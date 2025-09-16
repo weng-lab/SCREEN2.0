@@ -3840,9 +3840,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@weng-lab/ui-components@npm:^1.0.5":
-  version: 1.0.6
-  resolution: "@weng-lab/ui-components@npm:1.0.6"
+"@weng-lab/ui-components@npm:^1.0.13":
+  version: 1.0.13
+  resolution: "@weng-lab/ui-components@npm:1.0.13"
   dependencies:
     "@mui/x-data-grid-pro": ^8.7.0
     "@mui/x-license": ^8.7.0
@@ -3854,7 +3854,7 @@ __metadata:
     "@mui/material": ^7.1.1
     react: ^19.1.0
     react-dom: ^19.1.0
-  checksum: f41f0dc14498485589892ec6ce6fe19ae05e6f25c1c2e48fdf26eb29926b9a7505064efd07dd64a93df5ef08ee06530025c54a535c6f051c6a3f632ff7ac2836
+  checksum: 22b873337640519ad8d13ed091cc5fc06827fbaea3d52a527df2564abdd3de91b341d8c7e0a931d96f9b93e39248f2e7c0e16a490254f85228f63cdd7d9c5301
   languageName: node
   linkType: hard
 
@@ -9121,7 +9121,7 @@ __metadata:
     "@visx/visx": ^3.12.0
     "@weng-lab/genomebrowser": 1.1.1
     "@weng-lab/ts-ztable": ^4.0.1
-    "@weng-lab/ui-components": ^1.0.5
+    "@weng-lab/ui-components": ^1.0.13
     autoprefixer: 10.4.20
     bpnet-ui: ^0.3.8
     eslint: 9.13.0
