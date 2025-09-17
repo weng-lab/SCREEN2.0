@@ -129,6 +129,8 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
     },
   })
 
+  
+
   const {
     data: data_gene
   } = useQuery(GENE_QUERY, {
@@ -169,7 +171,7 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
 
   const plotData: BarData<RampageData>[] = useMemo(() => {
     if (dataRampage) {
-      let data = dataRampage.tssrampageQuery
+      let data = dataRampage.tssrampageQuery.filter(d => !selectedPeak || (d.peakId === selectedPeak.peakID))
         .filter(d => sampleMatchesSearch(d)) //filter by search
         .filter(d => selectedTissues.includes(d.organ)) //filter by tissue
         .map((x: RampageData) => {
@@ -212,7 +214,9 @@ export default function Rampage(props: { genes: { name: string, linkedBy?: strin
 
       return data
     } else return null
-  }, [dataRampage, viewBy, sampleMatchesSearch, selectedTissues])
+  }, [dataRampage, viewBy, sampleMatchesSearch, selectedTissues, selectedPeak])
+
+  
 
   const PlotTooltip = (bar: BarData<RampageData>) => {
     return (
