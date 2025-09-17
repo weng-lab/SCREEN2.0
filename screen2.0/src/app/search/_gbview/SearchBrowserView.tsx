@@ -36,6 +36,14 @@ type SearchBrowserViewProps = {
   cCREClick: (item: any) => void;
   geneName: string | null;
   biosample: RegistryBiosample | null;
+  browserStore?: ReturnType<typeof createBrowserStore>;
+  addPersistentHighlight?: (highlight: {
+    color: string;
+    domain: { start: number; end: number };
+    id: string;
+  }) => void;
+  removePersistentHighlight?: (id: string) => void;
+  getPersistentHighlights?: () => any[];
 };
 
 export default function SearchBrowserView({
@@ -43,16 +51,24 @@ export default function SearchBrowserView({
   cCREClick,
   geneName,
   biosample,
+  browserStore: providedBrowserStore,
+  addPersistentHighlight,
+  removePersistentHighlight,
+  getPersistentHighlights,
 }: SearchBrowserViewProps) {
-  const browserStore = createBrowserStore({
-    domain: expandCoordinates({ ...coordinates }) as Domain,
-    marginWidth: 150,
-    trackWidth: 1350,
-    multiplier: 3,
-  } as InitialBrowserState);
+  const browserStore =
+    providedBrowserStore ||
+    createBrowserStore({
+      domain: expandCoordinates({ ...coordinates }) as Domain,
+      marginWidth: 150,
+      trackWidth: 1350,
+      multiplier: 3,
+    } as InitialBrowserState);
 
-  const addHighlight = browserStore((state) => state.addHighlight);
-  const removeHighlight = browserStore((state) => state.removeHighlight);
+  // Local highlight functions for temporary hover effects
+  const addTempHighlight = browserStore((state) => state.addHighlight);
+  const removeTempHighlight = browserStore((state) => state.removeHighlight);
+
   const initialTracks = useMemo(() => {
     const tracks =
       coordinates.assembly === "GRCh38" ? humanTracks : mouseTracks;
@@ -78,17 +94,18 @@ export default function SearchBrowserView({
       height: 30,
       url: `https://downloads.wenglab.org/${coordinates.assembly}-cCREs.DCC.bigBed`,
       onHover: (item: Rect) => {
-        addHighlight({
+        addTempHighlight({
           color: item.color || "blue",
           domain: { start: item.start, end: item.end },
           id: "tmp-ccre",
         });
       },
       onLeave: () => {
-        removeHighlight("tmp-ccre");
+        removeTempHighlight("tmp-ccre");
       },
       onClick: (item: Rect) => {
         cCREClick(item);
+        // Highlight management is now handled by the parent component
       },
       tooltip: (rect: Rect) => (
         <CCRETooltip
@@ -101,7 +118,7 @@ export default function SearchBrowserView({
     let biosampleTracks: Track[] = [];
     if (biosample) {
       const onHover = (item: Rect) => {
-        addHighlight({
+        addTempHighlight({
           color: item.color || "blue",
           domain: { start: item.start, end: item.end },
           id: "tmp-ccre",
@@ -109,7 +126,7 @@ export default function SearchBrowserView({
       };
 
       const onLeave = () => {
-        removeHighlight("tmp-ccre");
+        removeTempHighlight("tmp-ccre");
       };
 
       const onClick = (item: Rect) => {
@@ -128,9 +145,10 @@ export default function SearchBrowserView({
   }, [
     coordinates.assembly,
     geneName,
-    addHighlight,
-    removeHighlight,
+    addTempHighlight,
+    removeTempHighlight,
     cCREClick,
+    biosample,
   ]);
 
   const trackStore = createTrackStore(initialTracks);

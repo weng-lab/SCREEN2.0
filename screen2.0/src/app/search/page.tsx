@@ -61,6 +61,11 @@ import UrlErrorDialog from "./UrlErrorDialog";
 import SearchBrowserView, {
   expandCoordinates,
 } from "./_gbview/SearchBrowserView";
+import {
+  createBrowserStore,
+  Domain,
+  InitialBrowserState,
+} from "@weng-lab/genomebrowser";
 // import { track } from "@vercel/analytics/react"
 
 /**
@@ -291,6 +296,77 @@ export default function Search(props: {
     initialBrowserCoords.end,
     initialBrowserCoords.start,
   ]);
+
+  // Memoized browser store to preserve state when switching tabs
+  const browserStore = useMemo(() => {
+    if (!haveCoordinates) return null;
+    return createBrowserStore({
+      domain: initialDomain as Domain,
+      marginWidth: 150,
+      trackWidth: 1350,
+      multiplier: 3,
+    } as InitialBrowserState);
+  }, [haveCoordinates, initialDomain]);
+
+  // Highlight management functions for genome browser
+  const addPersistentHighlight = useCallback(
+    (highlight: {
+      color: string;
+      domain: { start: number; end: number };
+      id: string;
+    }) => {
+      if (browserStore) {
+        browserStore.getState().addHighlight(highlight);
+      }
+    },
+    [browserStore]
+  );
+
+  const removePersistentHighlight = useCallback(
+    (id: string) => {
+      if (browserStore) {
+        browserStore.getState().removeHighlight(id);
+      }
+    },
+    [browserStore]
+  );
+
+  const getPersistentHighlights = useCallback(() => {
+    if (browserStore) {
+      return browserStore.getState().highlights;
+    }
+    return [];
+  }, [browserStore]);
+
+  // Sync highlights with opencCREs state
+  useEffect(() => {
+    if (!browserStore) return;
+
+    const currentHighlights = browserStore.getState().highlights;
+    const expectedHighlightIds = opencCREs.map((ccre) => ccre.ID);
+
+    // Remove highlights for cCREs that are no longer open
+    currentHighlights.forEach((highlight) => {
+      if (
+        highlight.id !== "tmp-ccre" &&
+        !expectedHighlightIds.includes(highlight.id)
+      ) {
+        browserStore.getState().removeHighlight(highlight.id);
+      }
+    });
+
+    // Add highlights for newly opened cCREs
+    opencCREs.forEach((ccre) => {
+      const existingHighlight = currentHighlights.find((h) => h.id === ccre.ID);
+      if (!existingHighlight && ccre.region) {
+        browserStore.getState().addHighlight({
+          color: "#D05F45", // Default cCRE color
+          domain: { start: ccre.region.start, end: ccre.region.end },
+          id: ccre.ID,
+        });
+      }
+    });
+  }, [browserStore, opencCREs]);
 
   /**
    * Backwards compatibility for ENCODE
@@ -647,13 +723,35 @@ export default function Search(props: {
         "#8c8c8c";
       //If cCRE isn't in open cCREs, add and push as current accession.
       if (!opencCREs.find((x) => x.ID === newcCRE.ID)) {
-        setOpencCREs([...opencCREs, newcCRE]);
-        setPage(opencCREs.length + numberOfDefaultTabs);
+        const newOpencCREs = [...opencCREs, newcCRE];
+        const newPage = opencCREs.length + numberOfDefaultTabs;
+        setOpencCREs(newOpencCREs);
+        setPage(newPage);
+
+        // Immediately update URL with new accessions
+        if (opencCREsInitialized && !loadingFetch) {
+          const newURL = constructSearchURL(
+            mainQueryParams,
+            filterCriteria,
+            newPage,
+            newOpencCREs.map((x) => x.ID).join(",")
+          );
+          router.replace(newURL);
+        }
       } else {
         setPage(findTabByID(newcCRE.ID, numberOfDefaultTabs));
       }
     },
-    [opencCREs, numberOfDefaultTabs, findTabByID]
+    [
+      opencCREs,
+      numberOfDefaultTabs,
+      findTabByID,
+      mainQueryParams,
+      filterCriteria,
+      opencCREsInitialized,
+      loadingFetch,
+      router,
+    ]
   );
 
   //Handle closing cCRE, and changing page if needed
@@ -692,12 +790,17 @@ export default function Search(props: {
     // Compare everything except biosample objects (URL has partial, state has full)
     const urlMQPNoBiosample = { ...urlMQP, biosample: null };
     const stateMQPNoBiosample = { ...mainQueryParams, biosample: null };
-    const biosampleNamesDiff = (urlMQP.biosample?.name || null) !== (mainQueryParams.biosample?.name || null);
-    
-    const mqpDiff = JSON.stringify(urlMQPNoBiosample) !== JSON.stringify(stateMQPNoBiosample) || biosampleNamesDiff;
+    const biosampleNamesDiff =
+      (urlMQP.biosample?.name || null) !==
+      (mainQueryParams.biosample?.name || null);
+
+    const mqpDiff =
+      JSON.stringify(urlMQPNoBiosample) !==
+        JSON.stringify(stateMQPNoBiosample) || biosampleNamesDiff;
     const fcDiff = JSON.stringify(urlFC) !== JSON.stringify(filterCriteria);
     const pageDiff = (searchParams.page ? +searchParams.page : 0) !== page;
-    const accessionsDiff = (searchParams.accessions || "") !== opencCREs.map((x) => x.ID).join(",");
+    const accessionsDiff =
+      (searchParams.accessions || "") !== opencCREs.map((x) => x.ID).join(",");
 
     if (
       opencCREsInitialized &&
@@ -1358,12 +1461,16 @@ export default function Search(props: {
 
             {/* Genome Browser View */}
             <TabPanel page={page} value={1}>
-              {haveCoordinates && (
+              {haveCoordinates && browserStore && (
                 <SearchBrowserView
                   cCREClick={handlecCREClick}
                   coordinates={mainQueryParams.coordinates}
                   geneName={mainQueryParams.gene.name}
                   biosample={mainQueryParams.biosample}
+                  browserStore={browserStore}
+                  addPersistentHighlight={addPersistentHighlight}
+                  removePersistentHighlight={removePersistentHighlight}
+                  getPersistentHighlights={getPersistentHighlights}
                 />
               )}
             </TabPanel>
