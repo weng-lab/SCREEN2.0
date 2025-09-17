@@ -37,13 +37,6 @@ type SearchBrowserViewProps = {
   geneName: string | null;
   biosample: RegistryBiosample | null;
   browserStore?: ReturnType<typeof createBrowserStore>;
-  addPersistentHighlight?: (highlight: {
-    color: string;
-    domain: { start: number; end: number };
-    id: string;
-  }) => void;
-  removePersistentHighlight?: (id: string) => void;
-  getPersistentHighlights?: () => any[];
 };
 
 export default function SearchBrowserView({
@@ -52,9 +45,6 @@ export default function SearchBrowserView({
   geneName,
   biosample,
   browserStore: providedBrowserStore,
-  addPersistentHighlight,
-  removePersistentHighlight,
-  getPersistentHighlights,
 }: SearchBrowserViewProps) {
   const browserStore =
     providedBrowserStore ||

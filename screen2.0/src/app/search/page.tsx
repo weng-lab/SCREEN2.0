@@ -1468,9 +1468,6 @@ export default function Search(props: {
                   geneName={mainQueryParams.gene.name}
                   biosample={mainQueryParams.biosample}
                   browserStore={browserStore}
-                  addPersistentHighlight={addPersistentHighlight}
-                  removePersistentHighlight={removePersistentHighlight}
-                  getPersistentHighlights={getPersistentHighlights}
                 />
               )}
             </TabPanel>
