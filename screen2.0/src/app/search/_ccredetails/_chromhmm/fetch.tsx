@@ -1,49 +1,105 @@
-import { useState, useEffect, useMemo } from "react";
-import { useQuery } from "@apollo/client";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { useQuery, useLazyQuery } from "@apollo/client";
 import { BigQueryResponse } from "../../_gbview/types";
 import { BIG_QUERY } from "../../_gbview/queries";
 import { ChromTrack, stateDetails } from "./chromhmm";
 import { BigBedData } from "bigwig-reader";
 import config from "../../../../config.json";
 
-export function useChromHMMData(coordinates) {
+// Shared state for tracks data to avoid duplicate fetches
+let sharedTracksCache = null;
+let sharedTracksPromise = null;
+
+// Utility to get tracks with shared caching
+async function getTracksShared() {
+  // Return cached data if available
+  if (sharedTracksCache) {
+    return sharedTracksCache;
+  }
+
+  // Return existing promise if already fetching
+  if (sharedTracksPromise) {
+    return sharedTracksPromise;
+  }
+
+  // Create new promise and cache it
+  sharedTracksPromise = getTracks().then((data) => {
+    sharedTracksCache = data;
+    return data;
+  });
+
+  return sharedTracksPromise;
+}
+
+// Utility to process tracks into flat structure - ensures consistent ordering
+function processTracksToFlat(tracksData) {
+  return Object.keys(tracksData)
+    .sort() // Ensure consistent tissue ordering
+    .map((tissue) => {
+      return tracksData[tissue]
+        .sort((a, b) => a.url.localeCompare(b.url)) // Ensure consistent track ordering
+        .map((track) => ({
+          tissue: tissue,
+          url: track.url,
+          biosample: track.displayName,
+        }));
+    })
+    .flat();
+}
+
+// Hook for browser view - uses shared tracks
+export function useChromHMMTracks() {
   const [tracks, setTracks] = useState(null);
-  const [chromhmmtrackswithtissue, setChromhmmtrackswithtissue] =
-    useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchAndProcessData = async () => {
+    const fetchTracks = async () => {
       try {
         setLoading(true);
-
-        // Fetch tracks
-        const tracksData = await getTracks();
+        const tracksData = await getTracksShared();
         setTracks(tracksData);
-
-        // Process tracks into flat structure
-        const flatTracks = Object.keys(tracksData)
-          .map((tissue) => {
-            return tracksData[tissue].map((track) => ({
-              tissue: tissue,
-              url: track.url,
-              biosample: track.displayName,
-            }));
-          })
-          .flat();
-
-        setChromhmmtrackswithtissue(flatTracks);
       } catch (error) {
-        console.error("Error fetching ChromHMM data:", error);
+        console.error("Error fetching ChromHMM tracks:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAndProcessData();
+    fetchTracks();
   }, []);
 
-  // BigQuery for the table data
+  return { tracks, loading };
+}
+
+// Hook for table view - uses shared tracks data
+export function useChromHMMTableData(coordinates) {
+  const [chromhmmtrackswithtissue, setChromhmmtrackswithtissue] =
+    useState(null);
+  const [tracksLoading, setTracksLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAndProcessTracks = async () => {
+      try {
+        setTracksLoading(true);
+        
+        // Use shared tracks data
+        const tracksData = await getTracksShared();
+
+        // Process tracks into flat structure for BigQuery
+        const flatTracks = processTracksToFlat(tracksData);
+
+        setChromhmmtrackswithtissue(flatTracks);
+      } catch (error) {
+        console.error("Error fetching ChromHMM tracks for table:", error);
+      } finally {
+        setTracksLoading(false);
+      }
+    };
+
+    fetchAndProcessTracks();
+  }, []);
+
+  // BigQuery for the table data - use cache-first policy to leverage prefetched data
   const { data: bigQueryData, loading: bigQueryLoading } =
     useQuery<BigQueryResponse>(BIG_QUERY, {
       variables: {
@@ -57,6 +113,8 @@ export function useChromHMMData(coordinates) {
           })) || [],
       },
       skip: !chromhmmtrackswithtissue,
+      fetchPolicy: "cache-first", // Use cached data if available from prefetch
+      nextFetchPolicy: "cache-first",
     });
 
   // Process the data for the table view
@@ -83,9 +141,53 @@ export function useChromHMMData(coordinates) {
   }, [bigQueryData, chromhmmtrackswithtissue, bigQueryLoading]);
 
   return {
+    processedTableData,
+    loading: tracksLoading || bigQueryLoading,
+  };
+}
+
+// Hook to prefetch ChromHMM BigQuery data in the background
+export function useChromHMMPrefetch() {
+  const [prefetchQuery, { data: prefetchedData, loading: prefetchLoading }] = useLazyQuery<BigQueryResponse>(BIG_QUERY);
+
+  const prefetchChromHMMData = useCallback(async (coordinates) => {
+    try {
+      // Use shared tracks data - same as table hook
+      const tracksData = await getTracksShared();
+      
+      // Use same processing function to ensure identical cache keys
+      const flatTracks = processTracksToFlat(tracksData);
+
+      // Create the exact same bigRequests structure as table hook
+      const bigRequests = flatTracks.map((track) => ({
+        chr1: coordinates.chromosome!,
+        start: coordinates.start,
+        end: coordinates.end,
+        preRenderedWidth: 1400,
+        url: track.url,
+      }));
+
+      // Prefetch the BigQuery data
+      await prefetchQuery({
+        variables: { bigRequests },
+      });
+    } catch (error) {
+      console.error("Error prefetching ChromHMM data:", error);
+    }
+  }, [prefetchQuery]);
+
+  return { prefetchChromHMMData, prefetchedData, prefetchLoading };
+}
+
+// Legacy hook - kept for backwards compatibility if needed
+export function useChromHMMData(coordinates) {
+  const { tracks, loading: tracksLoading } = useChromHMMTracks();
+  const { processedTableData, loading: tableLoading } = useChromHMMTableData(coordinates);
+  
+  return {
     tracks,
     processedTableData,
-    loading: loading || bigQueryLoading,
+    loading: tracksLoading || tableLoading,
   };
 }
 
