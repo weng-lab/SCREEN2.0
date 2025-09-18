@@ -66,6 +66,7 @@ import {
   Domain,
   InitialBrowserState,
 } from "@weng-lab/genomebrowser";
+
 // import { track } from "@vercel/analytics/react"
 
 /**
@@ -227,6 +228,16 @@ const GET_ACCESSION_COORDS = gql(`
   }
 `);
 
+const GET_V2_CCRE_MAPPINGS = gql(` 
+  query getv2cCREMappings($v2_accession: [String]!, $assembly: String!) {
+    getv2cCREMappings(v2_accession: $v2_accession, assembly: $assembly) {
+      v2_region
+      v4_accession
+      v2_accession
+      v4_region
+    }
+  }`);
+
 export default function Search(props: {
   searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {
@@ -273,6 +284,7 @@ export default function Search(props: {
   const [getGeneCoords] = useLazyQuery(GET_GENE_COORDS);
   const [getSNPCoords] = useLazyQuery(GET_SNP_COORDS);
   const [getAccessionCoords] = useLazyQuery(GET_ACCESSION_COORDS);
+  const [getV2cCREMappings] = useLazyQuery(GET_V2_CCRE_MAPPINGS);
   const haveCoordinates = Boolean(
     mainQueryParams.coordinates.assembly &&
       mainQueryParams.coordinates.chromosome &&
@@ -592,6 +604,7 @@ export default function Search(props: {
           }
           case "accession": {
             let accession: string;
+
             if (isFromENCODE) {
               accession = encodeInput;
             } else {
@@ -603,12 +616,28 @@ export default function Search(props: {
               }
             }
             if (accession) {
+              const v2mappings = await getV2cCREMappings({
+                variables: {
+                  v2_accession: [accession],
+                  assembly,
+                },
+              });
+              if (v2mappings.error)
+                throw new Error(JSON.stringify(v2mappings.error));
+              if (v2mappings.data?.getv2cCREMappings?.length > 0) {
+                setOpencCREs([]);
+                throw new Error(
+                  `V2 cCRE redirection error :${v2mappings.data?.getv2cCREMappings[0].v2_accession}..${v2mappings.data?.getv2cCREMappings[0].v2_region}..${v2mappings.data?.getv2cCREMappings[0].v4_accession}..${v2mappings.data?.getv2cCREMappings[0].v4_region}..${assembly} `
+                );
+              }
+
               const accessionCoords = await getAccessionCoords({
                 variables: {
                   accession,
                   assembly,
                 },
               });
+
               const coords = accessionCoords.data?.cCREQuery[0]?.coordinates;
               if (accessionCoords.error)
                 throw new Error(JSON.stringify(accessionCoords.error));
@@ -624,6 +653,7 @@ export default function Search(props: {
                 start: coords.start,
                 end: coords.end,
               };
+
               setOpencCREs([
                 {
                   ID: accession,
@@ -665,6 +695,7 @@ export default function Search(props: {
     }
   }, [
     biosampleData,
+    getV2cCREMappings,
     getAccessionCoords,
     getGeneCoords,
     getSNPCoords,
@@ -766,6 +797,7 @@ export default function Search(props: {
     } else if (page === opencCREs.length + numberOfDefaultTabs - 1)
       setPage(page - 1);
     // If you're closing the tab you're on or one to the left:
+
     setOpencCREs(newOpencCREs);
     //No action needed when closing a tab to the right of the page you're on
   };
@@ -1013,6 +1045,7 @@ export default function Search(props: {
           };
         }),
       ];
+
       //sort to match url order
       setOpencCREs(
         newOpencCREs.sort((a, b) => {

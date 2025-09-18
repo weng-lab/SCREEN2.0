@@ -1,5 +1,5 @@
 import { Tooltip, Typography, AccordionSummary, AccordionDetails, TextField, CircularProgress, Accordion, IconButton, Menu, InputAdornment, Paper, Stack, Checkbox, FormControl, FormControlLabel, FormGroup, FormLabel, Box, Button} from "@mui/material"
-import { DataTable, DataTableColumn } from "psychscreen-legacy-components"
+import { DataTable, DataTableColumn } from "@weng-lab/ui-components"
 import { useCallback, useMemo, useState } from "react"
 import { BiosampleData, CollectionCheckboxes, LifeStageCheckboxes, BiosampleTablesProps, RegistryBiosamplePlusRNA, SampleTypeCheckboxes } from "./types"
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
@@ -47,10 +47,6 @@ export const BiosampleTables = <
   const [mustHaveRnaSeq, setMustHaveRnaSeq] = useState<boolean>(false)
   const [searchString, setSearchString] = useState<string>("")
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)  //Anchor for dropdown menu
-
-  //This should not be necessary, but is needed until DataTable is fixed to refresh when columns are changed.
-  //This is needed so that DataTable can be refreshed manually to sync checkbox states without losing page state
-  const [pageStates, setPageStates] = useState<{ [key: string]: number }>({})
 
   const handleSetSampleTypeFilter = (newState: SampleTypeCheckboxes) => { setSampleTypeFilter(newState) }
   const handleSetCollectionFilter = (newState: CollectionCheckboxes) => { setCollectionFilter(newState) }
@@ -225,7 +221,7 @@ export const BiosampleTables = <
         if (allowMultiSelect) {
           //If clicked sample is already selected, remove it, otherwise add it
           if (selectedSamples.some(sample => sample.name === clicked.name)) {
-            //using type casting since proper type guard was a big cumbersome
+            //using type casting since proper type guard was a bit cumbersome
             (onChange as (selected: BiosampleData<HasRNASeq>[]) => void)(selectedSamples.filter(x => x.name !== clicked.name))
           } else {
             (onChange as (selected: BiosampleData<HasRNASeq>[]) => void)([...selectedSamples, clicked])
@@ -313,21 +309,13 @@ export const BiosampleTables = <
               </AccordionSummary>
               <AccordionDetails>
                 <DataTable
-                  //force refresh when selected samples change - this is hacky
-                  key={JSON.stringify(selectedSamples) + biosamples.length}
-                  page={pageStates[ontology] || 0}
-                  onDisplayedRowsChange={(newPage) => {
-                    if (pageStates[ontology] === undefined || pageStates[ontology] !== newPage) {
-                      setPageStates({ ...pageStates, [ontology]: newPage })
-                    }
-                  }}
                   columns={columns}
                   rows={biosamples}
                   dense
                   itemsPerPage={5}
                   searchable
                   highlighted={selectedSamples}
-                  sortColumn={1}
+                  sortColumn={showCheckboxes ? 2 : 1}
                   onRowClick={handleRowClick}
                 />
               </AccordionDetails>
@@ -336,7 +324,7 @@ export const BiosampleTables = <
         })
     )
 
-  }, [showRNAseq, showDownloads, loadingBiosamples, loading_rnaseq, errorBiosamples, error_rnaseq, filteredBiosamples, onChange, allowMultiSelect, selectedSamples, showCheckboxes, unfilteredBiosamples, assembly, pageStates])
+  }, [showRNAseq, showDownloads, loadingBiosamples, loading_rnaseq, errorBiosamples, error_rnaseq, filteredBiosamples, onChange, allowMultiSelect, selectedSamples, showCheckboxes, unfilteredBiosamples, assembly])
 
   const filtersActive: boolean = useMemo(() => {
     return mustHaveRnaSeq
