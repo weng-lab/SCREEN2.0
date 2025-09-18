@@ -36,6 +36,7 @@ type SearchBrowserViewProps = {
   cCREClick: (item: any) => void;
   geneName: string | null;
   biosample: RegistryBiosample | null;
+  browserStore?: ReturnType<typeof createBrowserStore>;
 };
 
 export default function SearchBrowserView({
@@ -43,16 +44,21 @@ export default function SearchBrowserView({
   cCREClick,
   geneName,
   biosample,
+  browserStore: providedBrowserStore,
 }: SearchBrowserViewProps) {
-  const browserStore = createBrowserStore({
-    domain: expandCoordinates({ ...coordinates }) as Domain,
-    marginWidth: 150,
-    trackWidth: 1350,
-    multiplier: 3,
-  } as InitialBrowserState);
+  const browserStore =
+    providedBrowserStore ||
+    createBrowserStore({
+      domain: expandCoordinates({ ...coordinates }) as Domain,
+      marginWidth: 150,
+      trackWidth: 1350,
+      multiplier: 3,
+    } as InitialBrowserState);
 
-  const addHighlight = browserStore((state) => state.addHighlight);
-  const removeHighlight = browserStore((state) => state.removeHighlight);
+  // Local highlight functions for temporary hover effects
+  const addTempHighlight = browserStore((state) => state.addHighlight);
+  const removeTempHighlight = browserStore((state) => state.removeHighlight);
+
   const initialTracks = useMemo(() => {
     const tracks =
       coordinates.assembly === "GRCh38" ? humanTracks : mouseTracks;
@@ -64,7 +70,7 @@ export default function SearchBrowserView({
       displayMode: DisplayMode.Squish,
       title: "GENCODE genes",
       titleSize: 12,
-      height: 100,
+      height: 50,
       color: "#AAAAAA",
       geneName: geneName,
     };
@@ -75,20 +81,21 @@ export default function SearchBrowserView({
       trackType: TrackType.BigBed,
       displayMode: DisplayMode.Dense,
       color: colors.ccre,
-      height: 50,
+      height: 25,
       url: `https://downloads.wenglab.org/${coordinates.assembly}-cCREs.DCC.bigBed`,
       onHover: (item: Rect) => {
-        addHighlight({
+        addTempHighlight({
           color: item.color || "blue",
           domain: { start: item.start, end: item.end },
           id: "tmp-ccre",
         });
       },
       onLeave: () => {
-        removeHighlight("tmp-ccre");
+        removeTempHighlight("tmp-ccre");
       },
       onClick: (item: Rect) => {
         cCREClick(item);
+        // Highlight management is now handled by the parent component
       },
       tooltip: (rect: Rect) => (
         <CCRETooltip
@@ -101,7 +108,7 @@ export default function SearchBrowserView({
     let biosampleTracks: Track[] = [];
     if (biosample) {
       const onHover = (item: Rect) => {
-        addHighlight({
+        addTempHighlight({
           color: item.color || "blue",
           domain: { start: item.start, end: item.end },
           id: "tmp-ccre",
@@ -109,7 +116,7 @@ export default function SearchBrowserView({
       };
 
       const onLeave = () => {
-        removeHighlight("tmp-ccre");
+        removeTempHighlight("tmp-ccre");
       };
 
       const onClick = (item: Rect) => {
@@ -128,9 +135,10 @@ export default function SearchBrowserView({
   }, [
     coordinates.assembly,
     geneName,
-    addHighlight,
-    removeHighlight,
+    addTempHighlight,
+    removeTempHighlight,
     cCREClick,
+    biosample,
   ]);
 
   const trackStore = createTrackStore(initialTracks);
@@ -197,7 +205,7 @@ function generateBiosampleTracks(
       trackType: TrackType.BigBed,
       displayMode: DisplayMode.Dense,
       color: colors.ccre,
-      height: 50,
+      height: 40,
       url: bigBedUrl,
       onHover: onHover,
       onLeave: onLeave,
@@ -264,52 +272,57 @@ function generateBiosampleTracks(
 const humanTracks: Track[] = [
   {
     id: "default-dnase",
-    title: "Aggregated DNase-seq signal, all Registry biosamples",
+    title: "Aggregated DNase-seq signal, all ENCODE biosamples",
+    shortLabel: "DNase (avg.)",
     titleSize: 12,
     trackType: TrackType.BigWig,
     displayMode: DisplayMode.Full,
     color: "#06da93",
-    height: 100,
+    height: 40,
     url: "https://downloads.wenglab.org/DNAse_All_ENCODE_MAR20_2024_merged.bw",
   } as BigWigConfig,
   {
     id: "default-h3k4me3",
-    title: "Aggregated H3K4me3 ChIP-seq signal, all Registry biosamples",
+    title: "Aggregated H3K4me3 ChIP-seq signal, all ENCODE biosamples",
+    shortLabel: "H3K4me3 (avg.)",
     titleSize: 12,
     trackType: TrackType.BigWig,
     displayMode: DisplayMode.Full,
     color: "#ff0000",
-    height: 100,
+    height: 40,
     url: "https://downloads.wenglab.org/H3K4me3_All_ENCODE_MAR20_2024_merged.bw",
   } as BigWigConfig,
   {
     id: "default-h3k27ac",
-    title: "Aggregated H3K27ac ChIP-seq signal, all Registry biosamples",
+    title: "Aggregated H3K27ac ChIP-seq signal, all ENCODE biosamples",
+    shortLabel: "H3K27ac (avg.)",
     titleSize: 12,
     trackType: TrackType.BigWig,
     displayMode: DisplayMode.Full,
     color: "#ffcd00",
-    height: 100,
+    height: 40,
     url: "https://downloads.wenglab.org/H3K27ac_All_ENCODE_MAR20_2024_merged.bw",
   } as BigWigConfig,
   {
     id: "default-ctcf",
-    title: "Aggregated CTCF ChIP-seq signal, all Registry biosamples",
+    title: "Aggregated CTCF ChIP-seq signal, all ENCODE biosamples",
+    shortLabel: "CTCF (avg.)",
     titleSize: 12,
     trackType: TrackType.BigWig,
     displayMode: DisplayMode.Full,
     color: "#00b0d0",
-    height: 100,
+    height: 40,
     url: "https://downloads.wenglab.org/CTCF_All_ENCODE_MAR20_2024_merged.bw",
   } as BigWigConfig,
   {
     id: "default-atac",
-    title: "Aggregated ATAC ChIP-seq signal, all Registry biosamples",
+    title: "Aggregated ATAC-seq signal, all ENCODE biosamples",
+    shortLabel: "ATAC (avg.)",
     titleSize: 12,
     trackType: TrackType.BigWig,
     displayMode: DisplayMode.Full,
     color: "#02c7b9",
-    height: 100,
+    height: 40,
     url: "https://downloads.wenglab.org/ATAC_All_ENCODE_MAR20_2024_merged.bw",
   } as BigWigConfig,
 ];
@@ -317,52 +330,57 @@ const humanTracks: Track[] = [
 const mouseTracks: Track[] = [
   {
     id: "default-dnase",
-    title: "Aggregated DNase-seq signal, all Registry biosamples",
+    title: "Aggregated DNase-seq signal, all ENCODE biosamples",
+    shortLabel: "DNase (avg.)",
     titleSize: 12,
     trackType: TrackType.BigWig,
     displayMode: DisplayMode.Full,
     color: "#06da93",
-    height: 100,
+    height: 40,
     url: "https://downloads.wenglab.org/DNase_MM10_ENCODE_DEC2024_merged_nanrm.bigWig",
   } as BigWigConfig,
   {
     id: "default-h3k4me3",
-    title: "Aggregated H3K4me3 ChIP-seq signal, all Registry biosamples",
+    title: "Aggregated H3K4me3 ChIP-seq signal, all ENCODE biosamples",
+    shortLabel: "H3K4me3 (avg.)",
     titleSize: 12,
     trackType: TrackType.BigWig,
     displayMode: DisplayMode.Full,
     color: "#ff0000",
-    height: 100,
+    height: 40,
     url: "https://downloads.wenglab.org/H3K4me3_MM10_ENCODE_DEC2024_merged_nanrm.bigWig",
   } as BigWigConfig,
   {
     id: "default-h3k27ac",
-    title: "Aggregated H3K27ac ChIP-seq signal, all Registry biosamples",
+    title: "Aggregated H3K27ac ChIP-seq signal, all ENCODE biosamples",
+    shortLabel: "H3K27ac (avg.)",
     titleSize: 12,
     trackType: TrackType.BigWig,
     displayMode: DisplayMode.Full,
     color: "#ffcd00",
-    height: 100,
+    height: 40,
     url: "https://downloads.wenglab.org/H3K27ac_MM10_ENCODE_DEC2024_merged_nanrm.bigWig",
   } as BigWigConfig,
   {
     id: "default-ctcf",
-    title: "Aggregated CTCF ChIP-seq signal, all Registry biosamples",
+    title: "Aggregated CTCF ChIP-seq signal, all ENCODE biosamples",
+    shortLabel: "CTCF (avg.)",
     titleSize: 12,
     trackType: TrackType.BigWig,
     displayMode: DisplayMode.Full,
     color: "#00b0d0",
-    height: 100,
+    height: 40,
     url: "https://downloads.wenglab.org/CTCF_MM10_ENCODE_DEC2024_merged_nanrm.bigWig",
   } as BigWigConfig,
   {
     id: "default-atac",
-    title: "Aggregated ATAC ChIP-seq signal, all Registry biosamples",
+    title: "Aggregated ATAC-seq signal, all ENCODE biosamples",
+    shortLabel: "ATAC (avg.)",
     titleSize: 12,
     trackType: TrackType.BigWig,
     displayMode: DisplayMode.Full,
     color: "#02c7b9",
-    height: 100,
+    height: 40,
     url: "https://downloads.wenglab.org/ATAC_MM10_ENCODE_DEC2024_merged_nanrm.bigWig",
   } as BigWigConfig,
 ];

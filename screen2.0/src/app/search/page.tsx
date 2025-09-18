@@ -58,7 +58,15 @@ import { LINKED_GENES } from "./_ccredetails/queries";
 import { gql } from "../../graphql/__generated__/gql";
 import { GROUP_COLOR_MAP } from "./_ccredetails/utils";
 import UrlErrorDialog from "./UrlErrorDialog";
-import SearchBrowserView, { expandCoordinates } from "./_gbview/SearchBrowserView";
+import SearchBrowserView, {
+  expandCoordinates,
+} from "./_gbview/SearchBrowserView";
+import {
+  createBrowserStore,
+  Domain,
+  InitialBrowserState,
+} from "@weng-lab/genomebrowser";
+
 // import { track } from "@vercel/analytics/react"
 
 /**
@@ -220,7 +228,7 @@ const GET_ACCESSION_COORDS = gql(`
   }
 `);
 
-const GET_V2_CCRE_MAPPINGS= gql(` 
+const GET_V2_CCRE_MAPPINGS = gql(` 
   query getv2cCREMappings($v2_accession: [String]!, $assembly: String!) {
     getv2cCREMappings(v2_accession: $v2_accession, assembly: $assembly) {
       v2_region
@@ -228,7 +236,7 @@ const GET_V2_CCRE_MAPPINGS= gql(`
       v2_accession
       v4_region
     }
-  }`)
+  }`);
 
 export default function Search(props: {
   searchParams: Promise<{ [key: string]: string | undefined }>;
@@ -272,7 +280,7 @@ export default function Search(props: {
     useState<{ start: number; end: number }[]>(null);
   const [bedLoadingPercent, setBedLoadingPercent] = useState<number>(null);
   const [urlParseError, setUrlParseError] = useState<string>(null);
-  
+
   const [getGeneCoords] = useLazyQuery(GET_GENE_COORDS);
   const [getSNPCoords] = useLazyQuery(GET_SNP_COORDS);
   const [getAccessionCoords] = useLazyQuery(GET_ACCESSION_COORDS);
@@ -300,6 +308,77 @@ export default function Search(props: {
     initialBrowserCoords.end,
     initialBrowserCoords.start,
   ]);
+
+  // Memoized browser store to preserve state when switching tabs
+  const browserStore = useMemo(() => {
+    if (!haveCoordinates) return null;
+    return createBrowserStore({
+      domain: initialDomain as Domain,
+      marginWidth: 150,
+      trackWidth: 1350,
+      multiplier: 3,
+    } as InitialBrowserState);
+  }, [haveCoordinates, initialDomain]);
+
+  // Highlight management functions for genome browser
+  const addPersistentHighlight = useCallback(
+    (highlight: {
+      color: string;
+      domain: { start: number; end: number };
+      id: string;
+    }) => {
+      if (browserStore) {
+        browserStore.getState().addHighlight(highlight);
+      }
+    },
+    [browserStore]
+  );
+
+  const removePersistentHighlight = useCallback(
+    (id: string) => {
+      if (browserStore) {
+        browserStore.getState().removeHighlight(id);
+      }
+    },
+    [browserStore]
+  );
+
+  const getPersistentHighlights = useCallback(() => {
+    if (browserStore) {
+      return browserStore.getState().highlights;
+    }
+    return [];
+  }, [browserStore]);
+
+  // Sync highlights with opencCREs state
+  useEffect(() => {
+    if (!browserStore) return;
+
+    const currentHighlights = browserStore.getState().highlights;
+    const expectedHighlightIds = opencCREs.map((ccre) => ccre.ID);
+
+    // Remove highlights for cCREs that are no longer open
+    currentHighlights.forEach((highlight) => {
+      if (
+        highlight.id !== "tmp-ccre" &&
+        !expectedHighlightIds.includes(highlight.id)
+      ) {
+        browserStore.getState().removeHighlight(highlight.id);
+      }
+    });
+
+    // Add highlights for newly opened cCREs
+    opencCREs.forEach((ccre) => {
+      const existingHighlight = currentHighlights.find((h) => h.id === ccre.ID);
+      if (!existingHighlight && ccre.region) {
+        browserStore.getState().addHighlight({
+          color: "#D05F45", // Default cCRE color
+          domain: { start: ccre.region.start, end: ccre.region.end },
+          id: ccre.ID,
+        });
+      }
+    });
+  }, [browserStore, opencCREs]);
 
   /**
    * Backwards compatibility for ENCODE
@@ -525,11 +604,10 @@ export default function Search(props: {
           }
           case "accession": {
             let accession: string;
-            
+
             if (isFromENCODE) {
               accession = encodeInput;
             } else {
-              
               accession = searchParams.accessions;
               if (accession.split(",").length > 1) {
                 throw new Error(
@@ -538,7 +616,6 @@ export default function Search(props: {
               }
             }
             if (accession) {
-              
               const v2mappings = await getV2cCREMappings({
                 variables: {
                   v2_accession: [accession],
@@ -547,19 +624,20 @@ export default function Search(props: {
               });
               if (v2mappings.error)
                 throw new Error(JSON.stringify(v2mappings.error));
-              if(v2mappings.data?.getv2cCREMappings?.length > 0) 
-              {    
-                setOpencCREs([])             
-                throw new Error(`V2 cCRE redirection error :${v2mappings.data?.getv2cCREMappings[0].v2_accession}..${v2mappings.data?.getv2cCREMappings[0].v2_region}..${v2mappings.data?.getv2cCREMappings[0].v4_accession}..${v2mappings.data?.getv2cCREMappings[0].v4_region}..${assembly} `)
+              if (v2mappings.data?.getv2cCREMappings?.length > 0) {
+                setOpencCREs([]);
+                throw new Error(
+                  `V2 cCRE redirection error :${v2mappings.data?.getv2cCREMappings[0].v2_accession}..${v2mappings.data?.getv2cCREMappings[0].v2_region}..${v2mappings.data?.getv2cCREMappings[0].v4_accession}..${v2mappings.data?.getv2cCREMappings[0].v4_region}..${assembly} `
+                );
               }
-              
+
               const accessionCoords = await getAccessionCoords({
                 variables: {
                   accession,
                   assembly,
                 },
               });
-              
+
               const coords = accessionCoords.data?.cCREQuery[0]?.coordinates;
               if (accessionCoords.error)
                 throw new Error(JSON.stringify(accessionCoords.error));
@@ -575,7 +653,7 @@ export default function Search(props: {
                 start: coords.start,
                 end: coords.end,
               };
-              
+
               setOpencCREs([
                 {
                   ID: accession,
@@ -676,14 +754,35 @@ export default function Search(props: {
         "#8c8c8c";
       //If cCRE isn't in open cCREs, add and push as current accession.
       if (!opencCREs.find((x) => x.ID === newcCRE.ID)) {
-        
-        setOpencCREs([...opencCREs, newcCRE]);
-        setPage(opencCREs.length + numberOfDefaultTabs);
+        const newOpencCREs = [...opencCREs, newcCRE];
+        const newPage = opencCREs.length + numberOfDefaultTabs;
+        setOpencCREs(newOpencCREs);
+        setPage(newPage);
+
+        // Immediately update URL with new accessions
+        if (opencCREsInitialized && !loadingFetch) {
+          const newURL = constructSearchURL(
+            mainQueryParams,
+            filterCriteria,
+            newPage,
+            newOpencCREs.map((x) => x.ID).join(",")
+          );
+          router.replace(newURL);
+        }
       } else {
         setPage(findTabByID(newcCRE.ID, numberOfDefaultTabs));
       }
     },
-    [opencCREs, numberOfDefaultTabs, findTabByID]
+    [
+      opencCREs,
+      numberOfDefaultTabs,
+      findTabByID,
+      mainQueryParams,
+      filterCriteria,
+      opencCREsInitialized,
+      loadingFetch,
+      router,
+    ]
   );
 
   //Handle closing cCRE, and changing page if needed
@@ -698,7 +797,7 @@ export default function Search(props: {
     } else if (page === opencCREs.length + numberOfDefaultTabs - 1)
       setPage(page - 1);
     // If you're closing the tab you're on or one to the left:
-    
+
     setOpencCREs(newOpencCREs);
     //No action needed when closing a tab to the right of the page you're on
   };
@@ -723,12 +822,17 @@ export default function Search(props: {
     // Compare everything except biosample objects (URL has partial, state has full)
     const urlMQPNoBiosample = { ...urlMQP, biosample: null };
     const stateMQPNoBiosample = { ...mainQueryParams, biosample: null };
-    const biosampleNamesDiff = (urlMQP.biosample?.name || null) !== (mainQueryParams.biosample?.name || null);
-    
-    const mqpDiff = JSON.stringify(urlMQPNoBiosample) !== JSON.stringify(stateMQPNoBiosample) || biosampleNamesDiff;
+    const biosampleNamesDiff =
+      (urlMQP.biosample?.name || null) !==
+      (mainQueryParams.biosample?.name || null);
+
+    const mqpDiff =
+      JSON.stringify(urlMQPNoBiosample) !==
+        JSON.stringify(stateMQPNoBiosample) || biosampleNamesDiff;
     const fcDiff = JSON.stringify(urlFC) !== JSON.stringify(filterCriteria);
     const pageDiff = (searchParams.page ? +searchParams.page : 0) !== page;
-    const accessionsDiff = (searchParams.accessions || "") !== opencCREs.map((x) => x.ID).join(",");
+    const accessionsDiff =
+      (searchParams.accessions || "") !== opencCREs.map((x) => x.ID).join(",");
 
     if (
       opencCREsInitialized &&
@@ -941,7 +1045,7 @@ export default function Search(props: {
           };
         }),
       ];
-      
+
       //sort to match url order
       setOpencCREs(
         newOpencCREs.sort((a, b) => {
@@ -1102,7 +1206,6 @@ export default function Search(props: {
     );
   };
 
-  
   return (
     <>
       <Box id="Outer Box" sx={{ display: "flex" }} component={"main"}>
@@ -1391,12 +1494,13 @@ export default function Search(props: {
 
             {/* Genome Browser View */}
             <TabPanel page={page} value={1}>
-              {haveCoordinates && (
+              {haveCoordinates && browserStore && (
                 <SearchBrowserView
                   cCREClick={handlecCREClick}
                   coordinates={mainQueryParams.coordinates}
                   geneName={mainQueryParams.gene.name}
                   biosample={mainQueryParams.biosample}
+                  browserStore={browserStore}
                 />
               )}
             </TabPanel>
@@ -1429,7 +1533,7 @@ export default function Search(props: {
                   value={index + numberOfDefaultTabs}
                   key={ccre.ID}
                 >
-                  <CcreDetails 
+                  <CcreDetails
                     accession={ccre.ID}
                     region={ccre.region}
                     assembly={mainQueryParams.coordinates.assembly}
@@ -1442,11 +1546,11 @@ export default function Search(props: {
           </div>
         </Main>
       </Box>
-       <UrlErrorDialog
+      <UrlErrorDialog
         open={Boolean(urlParseError)}
         searchParams={searchParams}
-        errorMsg={urlParseError}        
-      /> 
+        errorMsg={urlParseError}
+      />
     </>
   );
 }
