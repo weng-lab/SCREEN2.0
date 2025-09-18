@@ -19,7 +19,7 @@ export default function Home() {
           </Box>  
           <Typography variant="h5" mb={3} mt={2}>Search Candidate cis-Regulatory Elements by ENCODE</Typography>
           <MainSearch />
-          <Typography variant="h5" mt={4}>
+          <Typography variant="h5" mt={1}>
             What is SCREEN?
           </Typography>
           <Typography>

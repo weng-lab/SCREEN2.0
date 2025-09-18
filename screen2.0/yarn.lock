@@ -30,7 +30,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@apollo/client@npm:^3.11.10, @apollo/client@npm:^3.11.8":
+"@apollo/client@npm:^3.11.8":
   version: 3.13.9
   resolution: "@apollo/client@npm:3.13.9"
   dependencies:
@@ -63,6 +63,42 @@ __metadata:
     subscriptions-transport-ws:
       optional: true
   checksum: 68e778048cc17191c63202970729ef736f576ed27dabc35deb604b01f9b8109e8c04e168c2413cd5c55bce4d26b3948c821dd6ada80df407d7a652193123ed43
+  languageName: node
+  linkType: hard
+
+"@apollo/client@npm:^3.14.0":
+  version: 3.14.0
+  resolution: "@apollo/client@npm:3.14.0"
+  dependencies:
+    "@graphql-typed-document-node/core": ^3.1.1
+    "@wry/caches": ^1.0.0
+    "@wry/equality": ^0.5.6
+    "@wry/trie": ^0.5.0
+    graphql-tag: ^2.12.6
+    hoist-non-react-statics: ^3.3.2
+    optimism: ^0.18.0
+    prop-types: ^15.7.2
+    rehackt: ^0.1.0
+    symbol-observable: ^4.0.0
+    ts-invariant: ^0.10.3
+    tslib: ^2.3.0
+    zen-observable-ts: ^1.2.5
+  peerDependencies:
+    graphql: ^15.0.0 || ^16.0.0
+    graphql-ws: ^5.5.5 || ^6.0.3
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || >=19.0.0-rc
+    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || >=19.0.0-rc
+    subscriptions-transport-ws: ^0.9.0 || ^0.11.0
+  peerDependenciesMeta:
+    graphql-ws:
+      optional: true
+    react:
+      optional: true
+    react-dom:
+      optional: true
+    subscriptions-transport-ws:
+      optional: true
+  checksum: 682a8c8103c80940ee89e0f5d6a5dba3d47dd6915b7016f4d19bcebabbe8c6d0d52ca9ff9598d50d4bc0711f8ef66b4f9b8e832494244bcdf3b91377e489e293
   languageName: node
   linkType: hard
 
@@ -3807,20 +3843,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@weng-lab/genomebrowser@npm:1.1.1":
-  version: 1.1.1
-  resolution: "@weng-lab/genomebrowser@npm:1.1.1"
+"@weng-lab/genomebrowser@npm:^1.0.0":
+  version: 1.3.1
+  resolution: "@weng-lab/genomebrowser@npm:1.3.1"
   dependencies:
-    "@apollo/client": ^3.11.10
-    graphql: ^16.9.0
-    logo-test: ^0.0.4
+    "@apollo/client": ^3.14.0
+    graphql: ^16.11.0
+    logo-test: ^0.0.5
     react-colorful: ^5.6.1
-    react-draggable: ^4.4.6
-    zustand: ^5.0.3
+    react-draggable: ^4.5.0
+    zustand: ^5.0.8
   peerDependencies:
-    react: ^19.1.0
-    react-dom: ^19.1.0
-  checksum: 957e6e064ec1d170b3b3b6eec95129505c78189783e6e7596ac0099678c4225f73a0371fdfe531b70d0c3afc6615042c72822ebd609fe92d0ca145a4e921a0f8
+    react: ^18.0.0 || ^19.0.0
+    react-dom: ^18.0.0 || ^19.0.0
+  checksum: c7ee188ed4d46112d5531d5f7e37c7f3a8240d05a692a945cd5ef9c5918811411f97cf8cc1cbc33672a63e7996c7e29120ac0c5675fe617068bb7acacf7f724f
   languageName: node
   linkType: hard
 
@@ -6640,7 +6676,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql@npm:^16.9.0":
+"graphql@npm:^16.11.0, graphql@npm:^16.9.0":
   version: 16.11.0
   resolution: "graphql@npm:16.11.0"
   checksum: 65bc206edbe980f2759a8e4cf324873f75a66ab48263961472716e50127ae446739be20f926bb7f036a8d199bd4de072f684fd147c285bd6ba965d98cebb6200
@@ -7619,13 +7655,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"logo-test@npm:^0.0.4":
-  version: 0.0.4
-  resolution: "logo-test@npm:0.0.4"
+"logo-test@npm:^0.0.5":
+  version: 0.0.5
+  resolution: "logo-test@npm:0.0.5"
   peerDependencies:
-    react: ^19
-    react-dom: ^19
-  checksum: d65e949e28aac8db1778954231fba676b80a8139e3b2efcf19fa5ff209abe47078e435c014fe07082a79f2147d6f4e444881c27320c3d2fb41a27d7777c51244
+    react: ">=18"
+    react-dom: ">=18"
+  checksum: 3cf67f351212c82405a4e5c78abbdef4745acd411418e151584226e14c066c233996abf47a127ea1c011513968791176d39860861978c26bba2ba9aba5896c7a
   languageName: node
   linkType: hard
 
@@ -8663,7 +8699,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-draggable@npm:^4.4.6":
+"react-draggable@npm:^4.5.0":
   version: 4.5.0
   resolution: "react-draggable@npm:4.5.0"
   dependencies:
@@ -9119,7 +9155,7 @@ __metadata:
     "@types/react-dom": ^19
     "@vercel/analytics": ^1.4.1
     "@visx/visx": ^3.12.0
-    "@weng-lab/genomebrowser": 1.1.1
+    "@weng-lab/genomebrowser": ^1.0.0
     "@weng-lab/ts-ztable": ^4.0.1
     "@weng-lab/ui-components": ^1.0.5
     autoprefixer: 10.4.20
@@ -10660,9 +10696,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zustand@npm:^5.0.3":
-  version: 5.0.7
-  resolution: "zustand@npm:5.0.7"
+"zustand@npm:^5.0.8":
+  version: 5.0.8
+  resolution: "zustand@npm:5.0.8"
   peerDependencies:
     "@types/react": ">=18.0.0"
     immer: ">=9.0.6"
@@ -10677,6 +10713,6 @@ __metadata:
       optional: true
     use-sync-external-store:
       optional: true
-  checksum: 4ced1a2d227d59f700f9d3cf2ae0eb1c531183e66d92fe7b68e4d1a46b4f6123c66a9080763916b283ca74c6e207f0a71225e87ee326fc1ba81fbde3719b1634
+  checksum: 1a0f896f335e21841509a605fb61db34342497c5073f8c4b69889a669f829c9cf39d0282d68ac8fec1c8814cdaa89ee6711d59989feb80dc0364f19ac72e75e0
   languageName: node
   linkType: hard

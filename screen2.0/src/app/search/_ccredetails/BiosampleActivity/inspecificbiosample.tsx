@@ -26,6 +26,8 @@ export type CcreClass =
 export type cCRERow = {
   ct?: string;
   celltypename: string;
+  ontology: string;
+  sampleType: string;
   dnase: number;
   h3k4me3: number;
   h3k27ac: number;
@@ -50,25 +52,33 @@ const tableCols = (typeC = false) => {
           value: (row: cCRERow) => row.celltypename,
         },
         {
-          header: "ATAC Z-score",
+          header: "Organ/Tissue",
+          value: (row: cCRERow) => row.ontology,
+        },
+        {
+          header: "Sample Type",
+          value: (row: cCRERow) => row.sampleType,
+        },
+        {
+          header: "ATAC",
           value: (row: cCRERow) => z_score(row.atac),
           render: (row: cCRERow) => z_score_render(row.atac),
           sort: (a: cCRERow, b: cCRERow) => a.atac - b.atac,
         },
         {
-          header: "H3K4me3 Z-score",
+          header: "H3K4me3",
           value: (row: cCRERow) => z_score(row.h3k4me3),
           render: (row: cCRERow) => z_score_render(row.h3k4me3),
           sort: (a: cCRERow, b: cCRERow) => a.h3k4me3 - b.h3k4me3,
         },
         {
-          header: "H3K27ac Z-score",
+          header: "H3K27ac",
           value: (row: cCRERow) => z_score(row.h3k27ac),
           render: (row: cCRERow) => z_score_render(row.h3k27ac),
           sort: (a: cCRERow, b: cCRERow) => a.h3k27ac - b.h3k27ac,
         },
         {
-          header: "CTCF Z-score",
+          header: "CTCF",
           value: (row: cCRERow) => z_score(row.ctcf),
           render: (row: cCRERow) => z_score_render(row.ctcf),
           sort: (a: cCRERow, b: cCRERow) => a.ctcf - b.ctcf,
@@ -85,31 +95,39 @@ const tableCols = (typeC = false) => {
           value: (row: cCRERow) => row.celltypename,
         },
         {
-          header: "DNase Z-score",
+          header: "Organ/Tissue",
+          value: (row: cCRERow) => row.ontology,
+        },
+        {
+          header: "Sample Type",
+          value: (row: cCRERow) => row.sampleType,
+        },
+        {
+          header: "DNase",
           value: (row: cCRERow) => z_score(row.dnase),
           render: (row: cCRERow) => z_score_render(row.dnase),
           sort: (a: cCRERow, b: cCRERow) => a.dnase - b.dnase,
         },
         {
-          header: "ATAC Z-score",
+          header: "ATAC",
           value: (row: cCRERow) => z_score(row.atac),
           render: (row: cCRERow) => z_score_render(row.atac),
           sort: (a: cCRERow, b: cCRERow) => a.atac - b.atac,
         },
         {
-          header: "H3K4me3 Z-score",
+          header: "H3K4me3",
           value: (row: cCRERow) => z_score(row.h3k4me3),
           render: (row: cCRERow) => z_score_render(row.h3k4me3),
           sort: (a: cCRERow, b: cCRERow) => a.h3k4me3 - b.h3k4me3,
         },
         {
-          header: "H3K27ac Z-score",
+          header: "H3K27ac",
           value: (row: cCRERow) => z_score(row.h3k27ac),
           render: (row: cCRERow) => z_score_render(row.h3k27ac),
           sort: (a: cCRERow, b: cCRERow) => a.h3k27ac - b.h3k27ac,
         },
         {
-          header: "CTCF Z-score",
+          header: "CTCF",
           value: (row: cCRERow) => z_score(row.ctcf),
           render: (row: cCRERow) => z_score_render(row.ctcf),
           sort: (a: cCRERow, b: cCRERow) => a.ctcf - b.ctcf,
@@ -333,7 +351,8 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({
                 ?.tf.toString()
             : undefined,
         celltypename: d.displayname,
-        tissue: d.ontology,
+        ontology: d.ontology,
+        sampleType: d.sampleType,
         dnase: d.cCREZScores.find((cz) => cz.assay.toLowerCase() === "dnase")
           ? d.cCREZScores.find((cz) => cz.assay.toLowerCase() === "dnase").score
           : -11.0,
@@ -468,7 +487,7 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({
                   columns={tableCols()}
                   tableTitle={"Core Collection"}
                   rows={coreCollection}
-                  sortColumn={1}
+                  sortColumn={3}
                   searchable
                   downloadFileName={`${assembly} ${accession} - Core Collection.tsv`}
                 />
@@ -499,7 +518,7 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({
                 />
                 <DataTable
                   columns={tableCols()}
-                  sortColumn={1}
+                  sortColumn={3}
                   tableTitle="Partial Data Collection"
                   rows={partialDataCollection}
                   searchable
@@ -519,7 +538,7 @@ export const InSpecificBiosamples: React.FC<InSpecificBiosamplesProps> = ({
             columns={tableCols(true)}
             tableTitle="Ancillary Collection"
             rows={ancillaryCollection}
-            sortColumn={1}
+            sortColumn={3}
             searchable
             downloadFileName={`${assembly} ${accession} - Ancillary Collection.tsv`}
           />

@@ -55,7 +55,6 @@ export interface BiosampleTablesProps<
   fetchBiosamplesWith?: ("dnase" | "h3k4me3" | "h3k27ac" | "ctcf" | "atac")[],
   /**
    * @param selected 
-   * @param selected 
    * Fired on click of biosample
    * @param selected
    * Fired on click of biosample
