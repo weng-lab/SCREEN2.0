@@ -3843,9 +3843,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@weng-lab/genomebrowser@npm:^1.0.0":
-  version: 1.3.1
-  resolution: "@weng-lab/genomebrowser@npm:1.3.1"
+"@weng-lab/genomebrowser@npm:^1.4.2":
+  version: 1.4.2
+  resolution: "@weng-lab/genomebrowser@npm:1.4.2"
   dependencies:
     "@apollo/client": ^3.14.0
     graphql: ^16.11.0
@@ -3856,7 +3856,7 @@ __metadata:
   peerDependencies:
     react: ^18.0.0 || ^19.0.0
     react-dom: ^18.0.0 || ^19.0.0
-  checksum: c7ee188ed4d46112d5531d5f7e37c7f3a8240d05a692a945cd5ef9c5918811411f97cf8cc1cbc33672a63e7996c7e29120ac0c5675fe617068bb7acacf7f724f
+  checksum: 50b06b076d1f9f429082b5c00f79abd48c27cd86e5d8cf958ab685dbd1d7d6f4b647b0d14d7bc5850653a042fa094abc5f0302a3abf19034794a36b3dbe9f07a
   languageName: node
   linkType: hard
 
@@ -3876,9 +3876,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@weng-lab/ui-components@npm:^1.0.5":
-  version: 1.0.6
-  resolution: "@weng-lab/ui-components@npm:1.0.6"
+"@weng-lab/ui-components@npm:^1.0.13":
+  version: 1.0.14
+  resolution: "@weng-lab/ui-components@npm:1.0.14"
   dependencies:
     "@mui/x-data-grid-pro": ^8.7.0
     "@mui/x-license": ^8.7.0
@@ -3890,7 +3890,7 @@ __metadata:
     "@mui/material": ^7.1.1
     react: ^19.1.0
     react-dom: ^19.1.0
-  checksum: f41f0dc14498485589892ec6ce6fe19ae05e6f25c1c2e48fdf26eb29926b9a7505064efd07dd64a93df5ef08ee06530025c54a535c6f051c6a3f632ff7ac2836
+  checksum: 0e354e59e6912f6f5205c7652cf8c3c8dfe0d03b5b96d55a9d94dfa417051a58e24d79be65ace0eaf02930e168174f74d9c47ea4f94f98fd17488f7ddd0ffe8f
   languageName: node
   linkType: hard
 
@@ -9155,9 +9155,9 @@ __metadata:
     "@types/react-dom": ^19
     "@vercel/analytics": ^1.4.1
     "@visx/visx": ^3.12.0
-    "@weng-lab/genomebrowser": ^1.0.0
+    "@weng-lab/genomebrowser": ^1.4.2
     "@weng-lab/ts-ztable": ^4.0.1
-    "@weng-lab/ui-components": ^1.0.5
+    "@weng-lab/ui-components": ^1.0.13
     autoprefixer: 10.4.20
     bpnet-ui: ^0.3.8
     eslint: 9.13.0

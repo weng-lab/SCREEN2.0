@@ -69,6 +69,7 @@ export default function SearchBrowserView({
       trackType: TrackType.Transcript,
       displayMode: DisplayMode.Squish,
       title: "GENCODE genes",
+      shortLabel: "GENCODE genes",
       titleSize: 12,
       height: 50,
       color: "#AAAAAA",
@@ -76,7 +77,9 @@ export default function SearchBrowserView({
     };
     const ccreTrack: BigBedConfig = {
       id: "default-ccre",
-      title: "All cCREs colored by group",
+      title:
+        "Candidate cis-regulatory elements (cCREs) from the ENCODE Registry",
+      shortLabel: "ENCODE cCREs",
       titleSize: 12,
       trackType: TrackType.BigBed,
       displayMode: DisplayMode.Dense,
@@ -95,7 +98,6 @@ export default function SearchBrowserView({
       },
       onClick: (item: Rect) => {
         cCREClick(item);
-        // Highlight management is now handled by the parent component
       },
       tooltip: (rect: Rect) => (
         <CCRETooltip
