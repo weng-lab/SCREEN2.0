@@ -296,12 +296,12 @@ export function GeneExpression(props: {
             parsedReplicates.push({
               category: capitalizeWords(biosample.tissue),
               label: makeLabel(
-                scaleData(exp.quantifications[0].tpm),
+                scaleData(exp.quantifications[0]?.tpm),
                 biosample.biosample,
                 biosample.accession,
                 exp.biorep
               ),
-              value: scaleData(exp.quantifications[0].tpm), //indexing into 0th position, only one gene so quantifications should always be length 1
+              value: scaleData(exp.quantifications[0]?.tpm), //indexing into 0th position, only one gene so quantifications should always be length 1
               color: tissueColors[biosample.tissue] ?? tissueColors.missing,
               metadata: biosample as GeneDataset,
             });
@@ -310,7 +310,7 @@ export function GeneExpression(props: {
           //average replicates
           let sum = 0;
           biosample.gene_quantification_files.forEach((exp) => {
-            sum += exp.quantifications[0].tpm; //using reduce had terrible readability so doing avg manually
+            sum += exp.quantifications[0]?.tpm; //using reduce had terrible readability so doing avg manually
           });
           const avgTPM = sum / biosample.gene_quantification_files.length;
           parsedReplicates.push({
@@ -909,7 +909,7 @@ export function GeneExpression(props: {
         >
           <LoadingMessage />
         </Grid>
-      ) : dataExperiments ? (
+      ) : dataExperiments ?  dataExperiments.gene_dataset?.length > 0 && dataExperiments.gene_dataset[0].gene_quantification_files[0]?.quantifications[0]?.tpm ? (
         <VerticalBarPlot
           data={plotData}
           topAxisLabel={
@@ -930,6 +930,8 @@ export function GeneExpression(props: {
           }
           TooltipContents={(bar) => <PlotTooltip {...bar} />}
         />
+      ) : (
+        <Typography variant="h5">No Gene Expression data found</Typography>
       ) : (
         <Typography variant="h5">Please Select a Gene</Typography>
       )}
