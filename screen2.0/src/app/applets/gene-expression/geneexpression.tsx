@@ -909,7 +909,7 @@ export function GeneExpression(props: {
         >
           <LoadingMessage />
         </Grid>
-      ) : dataExperiments ?  dataExperiments.gene_dataset?.length > 0 && dataExperiments.gene_dataset[0].gene_quantification_files[0]?.quantifications[0]?.tpm ? (
+      ) : dataExperiments ?  dataExperiments.gene_dataset?.length > 0 && dataExperiments.gene_dataset[0].gene_quantification_files[0]?.quantifications[0]?.tpm!==undefined ? (
         <VerticalBarPlot
           data={plotData}
           topAxisLabel={
