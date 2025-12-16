@@ -57,7 +57,7 @@ export default function TfSequenceFeatures(props: TfSequenceFeaturesProps) {
       height: 40,
       titleSize: 12,
       color: "#228B22",
-      url: "gs://gcp.wenglab.org/SCREEN/all-sites.sorted.formatted.bigBed",
+      url: "https://downloads.wenglab.org/all-sites.sorted.formatted.bigBed",
       tooltip: (rect) => MotifTooltip({ rect }),
       onHover: (rect) => {
         addHighlight({
@@ -84,12 +84,12 @@ export default function TfSequenceFeatures(props: TfSequenceFeaturesProps) {
       color: "#8888ff",
       url:
         props.assembly === "GRCh38"
-          ? "gs://gcp.wenglab.org/hg38.2bit"
-          : "gs://gcp.wenglab.org/mm10.2bit",
+          ? "https://downloads.wenglab.org/hg38.2bit"
+          : "https://downloads.wenglab.org/mm10.2bit",
       signalURL:
         props.assembly === "GRCh38"
-          ? "gs://gcp.wenglab.org/241-mammalian-2020v2.bigWig"
-          : "gs://gcp.wenglab.org/mm10.phylop.bigWig",
+          ? "https://downloads.wenglab.org/241-mammalian-2020v2.bigWig"
+          : "https://downloads.wenglab.org/mm10.phylop.bigWig",
     },
   ];
   const trackStore = createTrackStore(initialTracks);
