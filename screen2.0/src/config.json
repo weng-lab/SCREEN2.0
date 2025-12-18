@@ -38,6 +38,7 @@
   },
   "Downloads": {
     "HumanCCREs": "https://downloads.wenglab.org/Registry-V4/GRCh38-cCREs.bed",
+    "HumanCCREsHg19": "https://storage.googleapis.com/gcp.wenglab.org/Registry-V4/cCRE.hg19.bed",
     "HumanPromoters": "https://downloads.wenglab.org/Registry-V4/GRCh38-cCREs.PLS.bed",
     "HumanProximalEnhancers": "https://downloads.wenglab.org/Registry-V4/GRCh38-cCREs.pELS.bed",
     "HumanDistalEnhancers": "https://downloads.wenglab.org/Registry-V4/GRCh38-cCREs.dELS.bed",

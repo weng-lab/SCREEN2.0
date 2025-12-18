@@ -14,7 +14,7 @@ import {
   ELS,
 } from "../../../common/lib/colors";
 import DownloadContentLayout from "./DownloadContentLayout";
-import { Assembly } from "./Annotations";
+import type { Assembly } from "./Annotations";
 
 const classDownloads: {
   GRCh38: DownloadButtonProps[];
@@ -85,8 +85,8 @@ const classDownloads: {
       href: Config.Downloads.HumanSilencers,
       label: "Silencer Sets (.tar.gz)",
       fileSize: "14.3 MB (unzipped)",
-      bordercolor: "gray"
-    }
+      bordercolor: "gray",
+    },
   ],
   mm10: [
     {
@@ -152,19 +152,33 @@ const classDownloads: {
   ],
 };
 
+const otherAssemblies: DownloadButtonProps[] = [
+  {
+    href: Config.Downloads.HumanCCREsHg19,
+    label: "GRCh37/hg19 (Lifted down from GRCh38/hg38)",
+    fileSize: "128.8 MB",
+    bordercolor: "#0c184a",
+  },
+];
+
 interface NewAnnotationsByClassProps {
   assembly: Assembly;
 }
 
-const AnnotationsByClass: React.FC<NewAnnotationsByClassProps> = ({
-  assembly,
-}) => {
+const AnnotationsByClass: React.FC<NewAnnotationsByClassProps> = ({ assembly }) => {
   return (
-    <DownloadContentLayout title="cCREs by Class (.bed)">
-      {classDownloads[assembly].map((item) => (
-        <DownloadButton key={item.label} {...item} />
-      ))}
-    </DownloadContentLayout>
+    <>
+      <DownloadContentLayout title="cCREs by Class (.bed)">
+        {classDownloads[assembly].map((item) => (
+          <DownloadButton key={item.label} {...item} />
+        ))}
+      </DownloadContentLayout>
+      <DownloadContentLayout title="cCREs in Other Assemblies">
+        {otherAssemblies.map((item) => (
+          <DownloadButton key={item.label} {...item} />
+        ))}
+      </DownloadContentLayout>
+    </>
   );
 };
 
