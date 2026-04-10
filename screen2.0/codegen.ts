@@ -6,7 +6,7 @@ const config: CodegenConfig = {
     {
       [x.API.CcreAPI]: {
         headers: {
-          "api-key": process.env.API_KEY!,
+          "api-key": process.env.SCREEN_API_KEY!,
         },
       },
     },

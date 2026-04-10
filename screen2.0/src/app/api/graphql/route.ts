@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "api-key": process.env.API_KEY!,
+      "api-key": process.env.SCREEN_API_KEY!,
     },
     body,
   });

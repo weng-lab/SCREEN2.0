@@ -12,7 +12,7 @@ export const { getClient } = registerApolloClient(() => {
     link: new HttpLink({
       uri: Config.API.CcreAPI,
       headers: {
-        "api-key": process.env.API_KEY!,
+        "api-key": process.env.SCREEN_API_KEY!,
       },
     }),
   })
