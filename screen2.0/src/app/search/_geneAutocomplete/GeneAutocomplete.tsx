@@ -4,7 +4,6 @@ import Grid from "@mui/material/Grid"
 import Typography from "@mui/material/Typography"
 import { debounce } from "@mui/material/utils"
 import { GENE_AUTOCOMPLETE_QUERY } from "../../_mainsearch/queries"
-import Config from "../../../config.json"
 import { IconButton, IconButtonProps, Stack, TextFieldProps, Autocomplete, TextField } from "@mui/material"
 import { Add, Search } from "@mui/icons-material"
 import { GeneAutoComplete2Props, GeneInfo, QueryResponse } from "./types"
@@ -64,7 +63,7 @@ export const GeneAutocomplete = (
   const onSearchChange = async (value: string, assembly: string) => {
     setOptions([])
     setLoadingOptions(true)
-    const response = await fetch(Config.API.CcreAPI, {
+    const response = await fetch("/api/graphql", {
       method: "POST",
       body: JSON.stringify({
         query: GENE_AUTOCOMPLETE_QUERY,

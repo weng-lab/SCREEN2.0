@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Button, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Snackbar, Stack, Tooltip, Typography } from "@mui/material";
 import { Close, CloseOutlined } from "@mui/icons-material";
 import { v4 as uuidv4 } from "uuid"
-import Config from "../../../config.json"
 import SendIcon from '@mui/icons-material/Send';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -42,7 +41,7 @@ const ConfigureGenomeBrowser = (props: {
   };
 
   const createTrackHub = async (value) => {
-    const response = await fetch(Config.API.CcreAPI, {
+    const response = await fetch("/api/graphql", {
       method: "POST",
       body: JSON.stringify({
         query: CREATE_TRACKHUB_QUERY,
