@@ -10,8 +10,8 @@
     "start": "next start",
     "lint": "next lint",
     "export": "next export",
-    "gen-types": "graphql-codegen",
-    "gen-types -w": "graphql-codegen -w"
+    "gen-types": "dotenv -e .env.local -- graphql-codegen",
+    "gen-types -w": "dotenv -e .env.local -- graphql-codegen -w"
   },
   "dependencies": {
     "@apollo/client": "^3.11.8",
@@ -34,6 +34,7 @@
     "@weng-lab/ui-components": "^1.0.16",
     "autoprefixer": "10.4.20",
     "bpnet-ui": "^0.3.8",
+    "dotenv-cli": "^11.0.0",
     "graphql": "^16.9.0",
     "logots-react": "^0.2.0",
     "next": "^15.0.0",
