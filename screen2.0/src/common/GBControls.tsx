@@ -297,20 +297,17 @@ const GBControls: React.FC<GBControlsProps> = ({ assembly, browserStore }) => {
               Search
             </Typography>
             <GenomeSearch
+              graphqlUrl="/api/graphql"
               size="small"
               assembly={assembly as "GRCh38" | "mm10"}
               onSearchSubmit={handeSearchSubmit}
               queries={["Gene", "SNP", "cCRE", "Coordinate"]}
-              geneLimit={3}
               sx={{ width: "400px" }}
               slots={{
-                button: (
-                  <IconButton sx={{ color: theme.palette.primary.main }}>
-                    <Search />
-                  </IconButton>
-                ),
+                button: IconButton,
               }}
               slotProps={{
+                button: { sx: { color: theme.palette.primary.main }, children: <Search /> },
                 input: {
                   label: "Change browser region",
                   sx: {

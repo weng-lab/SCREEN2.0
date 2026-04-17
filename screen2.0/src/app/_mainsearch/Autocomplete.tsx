@@ -33,9 +33,9 @@ export default function AutoComplete(props: AutoCompleteProps) {
 
   return (
     <GenomeSearch
+      graphqlUrl="/api/graphql"
       assembly={props.assembly}
       geneVersion={geneVersion}
-      ccreLimit={3}
       showiCREFlag={false}
       queries={["Gene", "cCRE", "SNP", "Coordinate"]}
       onSearchSubmit={handleSearchSubmit}

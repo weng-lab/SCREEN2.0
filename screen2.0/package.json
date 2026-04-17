@@ -24,6 +24,7 @@
     "@mui/lab": "6.0.0-beta.13",
     "@mui/material": "^7.2.0",
     "@mui/material-nextjs": "^6.1.5",
+    "@mui/x-data-grid-premium": "^8",
     "@mui/x-license": "^8.7.0",
     "@mui/x-tree-view-pro": "^8.5.0",
     "@parcel/watcher": "^2.4.1",
@@ -31,7 +32,7 @@
     "@visx/visx": "^3.12.0",
     "@weng-lab/genomebrowser": "^1.4.2",
     "@weng-lab/ts-ztable": "^4.0.1",
-    "@weng-lab/ui-components": "^1.0.16",
+    "@weng-lab/ui-components": "3.0.0",
     "autoprefixer": "10.4.20",
     "bpnet-ui": "^0.3.8",
     "dotenv-cli": "^11.0.0",
@@ -65,5 +66,5 @@
     "typescript": "5.6.2",
     "typescript-eslint": "^8.18.0"
   },
-  "packageManager": "yarn@3.5.0+sha512.2dc70be5fce9f66756d25b00a888f3ca66f86b502b76750e72ba54cec89da767b938c54124595e26f868825688e0fe3552c26c76a330673343057acadd5cfcf2"
+  "packageManager": "yarn@1.22.22"
 }
