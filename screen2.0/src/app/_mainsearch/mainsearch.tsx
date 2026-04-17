@@ -180,15 +180,15 @@ export const MainSearch: React.FC<MainSearchProps> = (
       <AutoComplete
         sx={{ width: 400 }}
         slots={{
-          button: (
-            <IconButton sx={props.header && { color: "white" }}>
-              <Search />
-            </IconButton>
-          ),
+          button: IconButton,
         }}
         defaultResults={defaultResults}
         assembly={assembly}
         slotProps={{
+          button: {
+            sx: props.header ? {color: "white"} : {},
+            children: <Search />
+          },
           box: { gap: 1 },
           input: {
             size: props.header ? "small" : "medium",
