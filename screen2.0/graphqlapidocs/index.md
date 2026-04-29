@@ -12,14 +12,18 @@ is a good introduction.
 
 ## Getting started
 
-The host url for the API is [`https://factorbook.api.wenglab.org/graphql`](https://factorbook.api.wenglab.org/graphql).
+<span style="color:red;">
+**NOTE: We are working on adding authentication to [`https://screen.api.wenglab.org/graphql`](https://screen.api.wenglab.org/graphql). Hence it's currently unavailable for public access. It will be available as soon as possible. Meanwhile, please feel free to [contact us](https://screen.wenglab.org/about#contact-us) if you want to access any SCREEN data.**
+</span>
+
+The host url for the API is [`https://screen.api.wenglab.org/graphql`](https://screen.api.wenglab.org/graphql).
 
 ### Playground
 
 Navigating to the host url directly in the browser gives an interactive
 playground:
 
-<a href="https://factorbook.api.wenglab.org/graphql" rel="noopener noreferrer" target="_blank">
+<a href="https://screen.api.wenglab.org/graphql" rel="noopener noreferrer" target="_blank">
     <img src="img/playground.png"></img>
 </a>
 

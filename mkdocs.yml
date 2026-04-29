@@ -1,0 +1,26 @@
+site_name: SCREEN GraphQL API Docs
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.instant
+
+docs_dir: screen2.0/graphqlapidocs
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Command-line: getting_started/command_line.md
+      - Python: getting_started/python.md
+      - Javascript: getting_started/javascript.md
+
+  - Queries:
+      - Searching cCREs: queries/ccres.md
+      - cCRE details: queries/ccredetails.md
+      - Gene expression: queries/geneexpression.md
+      - GWAS: queries/gwas.md
+      - Rampage: queries/rampage.md
+      - Suggest cCRE, genes and SNPs on search: queries/searchautocomplete.md
+      - Functional Characterization: queries/functionalcharacterizationdata.md

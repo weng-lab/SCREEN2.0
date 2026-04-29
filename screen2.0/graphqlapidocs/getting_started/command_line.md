@@ -6,7 +6,7 @@ command for reference.
 
 The following command
 ```bash
-curl 'https://factorbook.api.wenglab.org/graphql'\
+curl 'https://screen.api.wenglab.org/graphql'\
  -H 'Content-Type: application/json'\
  -H 'Accept: application/json'\
  --data-binary '{"query":"{ cCREQuery(accession: EH38E1516972, assembly: grch38) { 

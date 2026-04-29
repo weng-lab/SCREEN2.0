@@ -1,5 +1,7 @@
 # Searching cCREs
 
+**NOTE: If you are looking for details for ALL cCREs best choice is to download files at [`https://screen.wenglab.org/downloads`](https://screen.wenglab.org/downloads)**
+
 ## Query cCREs by genomic region 
 
 Returns the cCREs in the given range, their location, and their group, zscores.
