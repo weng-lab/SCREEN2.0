@@ -23,7 +23,7 @@ query cCREQuery($accession: [String!], $assembly: String!) {
 }
 """
 request = requests.post(
-    'https://factorbook.api.wenglab.org/graphql',
+    'https://screen.api.wenglab.org/graphql',
     json={ 'query': query, 'variables': variables },
     headers={}
 )

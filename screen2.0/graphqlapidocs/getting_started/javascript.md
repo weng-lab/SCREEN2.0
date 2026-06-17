@@ -27,7 +27,7 @@ const variables = {
   assembly: "grch38"
 }
 
-request('https://factorbook.api.wenglab.org/graphql', query).then(data =>
+request('https://screen.api.wenglab.org/graphql', query).then(data =>
 
 )
 ```

@@ -2,6 +2,8 @@
 
 ## Query a max Z scores of a cCRE 
 
+**NOTE: If you are looking for max z-scores for ALL cCREs best choice is to download zscore files at [`https://screen.wenglab.org/downloads`](https://screen.wenglab.org/downloads) (Data Matrices tab)**
+
 Returns a cell type agnostic max Z scores of a cCRE 
 
 ```graphql
@@ -22,6 +24,8 @@ query {
 ```
 
 ## Get biosample-specific epigenetic signals
+
+**NOTE: If you are looking for biosample specific z-scores for ALL cCREs best choice is to download zscore files at [`https://screen.wenglab.org/downloads`](https://screen.wenglab.org/downloads) (Data Matrices tab)**
 
 Returns all biosample-specific signals for a given cCRE.
 
