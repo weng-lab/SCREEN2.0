@@ -122,9 +122,6 @@ export async function MainQuery(
 
     const [baseCcreData, biosampleZScores] = await Promise.all([getBaseCcreData, getBiosampleZ])
 
-    console.log(baseCcreData.data.getmaxZScoresQuery[0])
-    console.log(biosampleZScores)
-
     const biosampleScoreLookup: Record<
       string,
       SCREENCellTypeSpecificResponse
