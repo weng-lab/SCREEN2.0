@@ -155,8 +155,7 @@ export type LinkedGenesVariables = {
   celltypes?: string[];
 };
 
-type SCREENCellTypeSpecificResponse = {
-  __typename: "SCREENCellTypeSpecificResponse";
+export type SCREENCellTypeSpecificResponse = {
   ct: null | any; // Replace 'any' with the actual type if 'ct' has a specific type
   dnase_zscore: null | number;
   h3k4me3_zscore: null | number;
@@ -166,10 +165,7 @@ type SCREENCellTypeSpecificResponse = {
 };
 
 type CCREInfo = {
-  __typename: "CCREInfo";
   accession: string;
-  isproximal: boolean;
-  concordant: boolean;
 };
 
 type NearestGene = {
@@ -178,7 +174,6 @@ type NearestGene = {
 };
 
 export type SCREENSearchResult = {
-  __typename: "SCREENSearchResult";
   chrom: string;
   start: number;
   len: number;
