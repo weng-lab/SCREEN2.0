@@ -8,7 +8,8 @@ import { CircularProgress } from "@mui/material"
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore"
 import { client } from "../../search/_ccredetails/client"
 import { useQuery } from "@apollo/client"
-import { GET_ALL_GWAS_STUDIES, GET_SNPS_FOR_GIVEN_GWASSTUDY, BED_INTERSECT, CCRE_SEARCH, CT_ENRICHMENT, BIOSAMPLE_DISPLAYNAMES } from "./queries"
+import { GET_ALL_GWAS_STUDIES, GET_SNPS_FOR_GIVEN_GWASSTUDY, BED_INTERSECT, NEW_CCRE_SEARCH, CT_ENRICHMENT, BIOSAMPLE_DISPLAYNAMES } from "./queries"
+import { parseZScoresArray, ZScoresEntry } from "../../../common/lib/zscores"
 import BiosampleTables from "../../_biosampleTables/BiosampleTables"
 import { RegistryBiosamplePlusRNA } from "../../search/types"
 import { EnrichmentLollipopPlot, RawEnrichmentData, TransformedEnrichmentData } from "./_lollipop-plot/lollipopplot"
@@ -186,17 +187,37 @@ export default function GWAS() {
     }
   )
 
-  const { data: cCREDetails, loading: cCREDetailsLoading } = useQuery(CCRE_SEARCH, {
+  const { data: cCREDetails, loading: cCREDetailsLoading } = useQuery(NEW_CCRE_SEARCH, {
     variables: {
-      accessions: uniqueAccessions,
+      accession: uniqueAccessions,
       assembly: "grch38",
-      celltype: selectedSample ? selectedSample.name : null
+      biosampleValue: selectedSample ? [selectedSample.name] : []
     },
     fetchPolicy: "cache-and-network",
     nextFetchPolicy: "cache-first",
     skip:  !(uniqueAccessions && uniqueAccessions.length > 0),
     client,
   })
+
+  //Pipe the new getcCREZScoresQuery shape into the old SCREENSearchResult-like shape the table consumers expect.
+  //ctspecific is only parsed when a biosample is selected; otherwise it stays undefined and consumers fall back to max z-scores.
+  const cCRESearchResults = useMemo(() => {
+    return (cCREDetails?.getcCREZScoresQuery ?? []).map((item) => ({
+      info: { accession: item.accession },
+      chrom: item.chromosome,
+      start: item.start,
+      len: item.stop - item.start,
+      nearestgenes: item.nearestgenes,
+      atac_zscore: item.atac_max_zscore,
+      ctcf_zscore: item.ctcf_max_zscore,
+      dnase_zscore: item.dnase_max_zscore,
+      promoter_zscore: item.h3k4me3_max_zscore,
+      enhancer_zscore: item.h3k27ac_max_zscore,
+      ctspecific: selectedSample && item.zscores?.length
+        ? parseZScoresArray(item.zscores as ZScoresEntry<null>[])
+        : undefined,
+    }))
+  }, [cCREDetails, selectedSample])
 
   const plotData: RawEnrichmentData[] = useMemo(() => {
     if (!enrichmentData || !biosampleNames) return null
@@ -219,7 +240,7 @@ export default function GWAS() {
     if (cCREDetails && cCREsIntersectionData) {
       return uniqueAccessions.map((x, i) => {
         const snpInfo = cCREsIntersectionData.find(y => y.accession === x)
-        const cCREInfo = cCREDetails.cCRESCREENSearch.find(y => y.info.accession === x)
+        const cCREInfo = cCRESearchResults.find(y => y.info.accession === x)
         return {
           accession: x,
           coordinates: {chromosome: cCREInfo.chrom, start: cCREInfo.start, end: cCREInfo.start + cCREInfo.len},
@@ -233,7 +254,7 @@ export default function GWAS() {
         }
       })
     } else return []
-  }, [cCREDetails, cCREsIntersectionData, uniqueAccessions])
+  }, [cCREDetails, cCRESearchResults, cCREsIntersectionData, uniqueAccessions])
 
   const columns: DataTableColumn<TableRow>[] = useMemo(() => {
     const cols: DataTableColumn<TableRow>[] = [
@@ -264,8 +285,8 @@ export default function GWAS() {
     ]
 
     //if sample selected, check before adding assays
-    if (selectedSample && cCREDetails) {
-      const cCRE = cCREDetails.cCRESCREENSearch[0]
+    if (selectedSample && cCRESearchResults[0]) {
+      const cCRE = cCRESearchResults[0]
       cCRE.ctspecific?.dnase_zscore && cols.push({ header: "DNase Z\u2011Score", value: (row: TableRow) => row.dnase_zscore?.toFixed(2) })
       cCRE.ctspecific?.atac_zscore && cols.push({ header: "ATAC Z\u2011Score", value: (row: TableRow) => row.atac_zscore?.toFixed(2) })
       cCRE.ctspecific?.ctcf_zscore && cols.push({ header: "CTCF Z\u2011Score", value: (row: TableRow) => row.ctcf_zscore?.toFixed(2) })
@@ -280,7 +301,7 @@ export default function GWAS() {
     }
     return cols
 
-  }, [selectedSample, cCREDetails])
+  }, [selectedSample, cCRESearchResults])
 
   type SelectInfoProps = {
     info1: string,

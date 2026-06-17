@@ -37,44 +37,35 @@ export const BED_INTERSECT= gql(`
   }
 `)
 
-export const CCRE_SEARCH = gql(`
-  query ccreSearchQuery_2(
-    $assembly: String!
-    $celltype: String
-    $accessions: [String!]
+export const NEW_CCRE_SEARCH = gql(`
+  query NewCcreSearch(
+  $assembly: String!
+  $accession: [String]
+  $biosampleValue: [String]
+) {
+  getcCREZScoresQuery(
+    assembly: $assembly
+    accession: $accession
+    biosample_value: $biosampleValue
+    nearbygeneslimit: 1
   ) {
-    cCRESCREENSearch(
-      assembly: $assembly
-      accessions: $accessions
-      cellType: $celltype
-      nearbygeneslimit: 1
-    ) {
-      chrom
-      start
-      len
-      pct
-      nearestgenes {
-        gene
-        distance
-      }
-      ctcf_zscore
-      dnase_zscore
-      enhancer_zscore
-      promoter_zscore
-      atac_zscore
-      ctspecific {
-        dnase_zscore
-        ctcf_zscore
-        atac_zscore
-        h3k4me3_zscore
-        h3k27ac_zscore
-      }
-      info {
-        accession
-      }
+    accession
+    chromosome
+    start
+    stop
+    dnase_max_zscore
+    h3k4me3_max_zscore
+    h3k27ac_max_zscore
+    ctcf_max_zscore
+    atac_max_zscore
+    nearestgenes {
+      gene
+      distance
     }
+    zscores
   }
-`)
+}
+`);
 
 export const CT_ENRICHMENT = gql(`
   query getGWASCTEnrichmentQuery($study: String!) {
