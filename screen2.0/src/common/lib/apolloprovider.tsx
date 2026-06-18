@@ -8,32 +8,30 @@ import {
   ApolloClient,
   SSRMultipartLink,
 } from "@apollo/experimental-nextjs-app-support";
-
 import { setVerbosity } from "ts-invariant";
+import Config from "../../config.json";
+
 setVerbosity("debug");
 
 function makeClient() {
-  const httpLink = new HttpLink({
-    uri: "/api/graphql",
-  });
+  if (typeof window === "undefined") {
+    return new ApolloClient({
+      // SSR: hit the backend directly to avoid the /api/graphql proxy hop,
+      // attaching the API key which is only available server-side.
+      cache: new InMemoryCache(),
+      link: ApolloLink.from([
+        new SSRMultipartLink({ stripDefer: true }),
+        new HttpLink({
+          uri: Config.API.CcreAPI,
+          headers: { Authorization: "Bearer " + process.env.SCREEN_API_KEY! },
+        }),
+      ]),
+    });
+  }
 
   return new ApolloClient({
     cache: new InMemoryCache(),
-    link:
-      typeof window === "undefined"
-        ? ApolloLink.from([
-          // in a SSR environment, if you use multipart features like
-          // @defer, you need to decide how to handle these.
-          // This strips all interfaces with a `@defer` directive from your queries.
-          new SSRMultipartLink({
-            stripDefer: true,
-          }),
-          httpLink,
-        ])
-        : httpLink,
-    devtools: {
-      enabled: true,
-    },
+    link: new HttpLink({ uri: "/api/graphql" }),
   });
 }
 
