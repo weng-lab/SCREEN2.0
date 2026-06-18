@@ -71,7 +71,7 @@ export default function TfSequenceFeatures(props: TfSequenceFeaturesProps) {
         });
       },
       onLeave: (rect) => {
-        removeHighlight(rect.name);
+        removeHighlight(rect.name as string);
       },
     },
     {
