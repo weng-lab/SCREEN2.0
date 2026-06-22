@@ -868,7 +868,7 @@ export default function Search(props: {
   useEffect(() => {
     const fetchBiosamples = async () => {
       const biosamples = await biosampleQuery();
-      setBiosampleData(biosamples);
+      setBiosampleData(biosamples as ApolloQueryResult<BIOSAMPLE_Data>);
     };
 
     fetchBiosamples();

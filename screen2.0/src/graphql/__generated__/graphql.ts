@@ -21,6 +21,7 @@ export type Scalars = {
   DeepLearnedMotitfResponseData: { input: any; output: any; }
   /** A string-serialized scalar represents a set of fields that's passed to a federated directive, such as @key, @requires, or @provides */
   FieldSet: { input: any; output: any; }
+  /** The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf). */
   JSON: { input: any; output: any; }
   PeakCentralityData: { input: any; output: any; }
   /** PeaksResponseData */
@@ -87,6 +88,16 @@ export type AlleleFrequency = {
   frequency?: Maybe<Scalars['Float']['output']>;
   sas_af?: Maybe<Scalars['Float']['output']>;
   sequence?: Maybe<Scalars['String']['output']>;
+};
+
+export type AlleleResult = {
+  __typename?: 'AlleleResult';
+  altallele: Scalars['String']['output'];
+  chrom: Scalars['String']['output'];
+  refallele: Scalars['String']['output'];
+  snp: Scalars['String']['output'];
+  start: Scalars['Int']['output'];
+  stop: Scalars['Int']['output'];
 };
 
 export enum AssayEnum {
@@ -165,6 +176,13 @@ export type BigResponseWithRange = {
   end: Scalars['Int']['output'];
   start: Scalars['Int']['output'];
   url: Scalars['String']['output'];
+};
+
+export type BinaryTfCallsBiosamples = {
+  __typename?: 'BinaryTFCallsBiosamples';
+  accession: Scalars['String']['output'];
+  negative_tf_calls_biosamples?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
+  positive_tf_calls_biosamples?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
 };
 
 export type Biosample = {
@@ -276,6 +294,26 @@ export type CcreInfo = {
   k27acmax: Scalars['Float']['output'];
 };
 
+export type CcreMaxZscores = {
+  __typename?: 'CCREMaxZscores';
+  accession: Scalars['String']['output'];
+  atac_max_zscore?: Maybe<Scalars['Float']['output']>;
+  ccre_group: Scalars['String']['output'];
+  chromosome?: Maybe<Scalars['String']['output']>;
+  ctcf_max_zscore?: Maybe<Scalars['Float']['output']>;
+  dnase_max_zscore?: Maybe<Scalars['Float']['output']>;
+  h3k4me3_max_zscore?: Maybe<Scalars['Float']['output']>;
+  h3k27ac_max_zscore?: Maybe<Scalars['Float']['output']>;
+  mammals?: Maybe<Scalars['Float']['output']>;
+  midccre_nearestgenes?: Maybe<Array<Maybe<NearestGenes>>>;
+  nearestgenes?: Maybe<Array<Maybe<NearestGenes>>>;
+  primates?: Maybe<Scalars['Float']['output']>;
+  rdhs: Scalars['String']['output'];
+  start?: Maybe<Scalars['Int']['output']>;
+  stop?: Maybe<Scalars['Int']['output']>;
+  vertebrates?: Maybe<Scalars['Float']['output']>;
+};
+
 export type CcreWithRegion = {
   __typename?: 'CCREWithRegion';
   accession: Scalars['String']['output'];
@@ -293,6 +331,24 @@ export type CcrezScore = {
   cCRE: Scalars['String']['output'];
   experiment_accession: Scalars['String']['output'];
   score: Scalars['Float']['output'];
+};
+
+export type CcrezScoresEntry = {
+  __typename?: 'CCREZScoresEntry';
+  accession?: Maybe<Scalars['String']['output']>;
+  atac_max_zscore?: Maybe<Scalars['Float']['output']>;
+  ccre_group?: Maybe<Scalars['String']['output']>;
+  chromosome?: Maybe<Scalars['String']['output']>;
+  ctcf_max_zscore?: Maybe<Scalars['Float']['output']>;
+  dnase_max_zscore?: Maybe<Scalars['Float']['output']>;
+  h3k4me3_max_zscore?: Maybe<Scalars['Float']['output']>;
+  h3k27ac_max_zscore?: Maybe<Scalars['Float']['output']>;
+  midccre_nearestgenes?: Maybe<Array<Maybe<NearestGenes>>>;
+  nearestgenes?: Maybe<Array<Maybe<NearestGenes>>>;
+  rdhs?: Maybe<Scalars['String']['output']>;
+  start?: Maybe<Scalars['Int']['output']>;
+  stop?: Maybe<Scalars['Int']['output']>;
+  zscores?: Maybe<Array<Maybe<Array<Maybe<Scalars['JSON']['output']>>>>>;
 };
 
 export type Crisprfccdata = {
@@ -339,6 +395,12 @@ export type CcreNodeGroups = {
   __typename?: 'CcreNodeGroups';
   accession: Scalars['String']['output'];
   ccre_group: Scalars['String']['output'];
+};
+
+export type CcreSequenceAlignmentData = {
+  __typename?: 'CcreSequenceAlignmentData';
+  accession: Scalars['String']['output'];
+  sequence_alignment?: Maybe<Array<Maybe<Array<Maybe<Scalars['Int']['output']>>>>>;
 };
 
 export type CellTypeEnrichment = {
@@ -397,6 +459,17 @@ export type ClosestGene = {
   transcriptid?: Maybe<Scalars['String']['output']>;
 };
 
+export type ClosestGenesTocCre = {
+  __typename?: 'ClosestGenesTocCRE';
+  accession: Scalars['String']['output'];
+  distance?: Maybe<Scalars['Int']['output']>;
+  gene_id: Scalars['String']['output'];
+  gene_name: Scalars['String']['output'];
+  midccre_distance?: Maybe<Scalars['Int']['output']>;
+  midccre_gene_id: Scalars['String']['output'];
+  midccre_gene_name: Scalars['String']['output'];
+};
+
 export type Collection = DatasetCollection & {
   __typename?: 'Collection';
   counts: DatasetCounts;
@@ -423,8 +496,10 @@ export type CollectionPartitionByTargetArgs = {
 
 export type CompuLinkedGenesCelltypesList = {
   __typename?: 'CompuLinkedGenesCelltypesList';
+  biosample_mapping?: Maybe<Scalars['String']['output']>;
   biosample_value?: Maybe<Scalars['String']['output']>;
   method?: Maybe<Scalars['String']['output']>;
+  tissue?: Maybe<Scalars['String']['output']>;
 };
 
 export type ComputationalGeneLinks = {
@@ -447,6 +522,28 @@ export type ConservationAggregate = {
   peaks_accession: Scalars['String']['output'];
   peaks_dataset_accession: Scalars['String']['output'];
   values: Array<Scalars['Float']['output']>;
+};
+
+export type ConservationData = {
+  __typename?: 'ConservationData';
+  accession: Scalars['String']['output'];
+  mammals?: Maybe<Scalars['Float']['output']>;
+  mammals_241_phastcons?: Maybe<Scalars['Float']['output']>;
+  mammals_241_phylop?: Maybe<Scalars['Float']['output']>;
+  primates?: Maybe<Scalars['Float']['output']>;
+  primates_43_phastcons?: Maybe<Scalars['Float']['output']>;
+  primates_43_phylop?: Maybe<Scalars['Float']['output']>;
+  vertebrates?: Maybe<Scalars['Float']['output']>;
+  vertebrates_100_phastcons?: Maybe<Scalars['Float']['output']>;
+  vertebrates_100_phylop?: Maybe<Scalars['Float']['output']>;
+};
+
+export type ConservationHeatmapData = {
+  __typename?: 'ConservationHeatmapData';
+  accession: Scalars['String']['output'];
+  ccre_class?: Maybe<Scalars['String']['output']>;
+  x_coord?: Maybe<Scalars['Int']['output']>;
+  y_coord?: Maybe<Scalars['Int']['output']>;
 };
 
 export type CoordinateInput = {
@@ -596,6 +693,12 @@ export type Deg = {
   padj?: Maybe<Scalars['Float']['output']>;
   pvalue?: Maybe<Scalars['Float']['output']>;
   stat?: Maybe<Scalars['Float']['output']>;
+};
+
+export type DynamicEnhacersData = {
+  __typename?: 'DynamicEnhacersData';
+  accession: Scalars['String']['output'];
+  celltype?: Maybe<Scalars['String']['output']>;
 };
 
 export type EbiAssociations = {
@@ -819,6 +922,16 @@ export type GwasLeadSnPsArgs = {
   linkedSNP?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type GwasBiosampleEnrichment = {
+  __typename?: 'GWASBiosampleEnrichment';
+  accession: Scalars['String']['output'];
+  celltype: Scalars['String']['output'];
+  fc: Scalars['Float']['output'];
+  fdr: Scalars['Float']['output'];
+  pvalue: Scalars['Float']['output'];
+  studyid: Scalars['String']['output'];
+};
+
 export type GwasCelltypeEnrichment = {
   __typename?: 'GWASCelltypeEnrichment';
   accession: Scalars['String']['output'];
@@ -830,8 +943,10 @@ export type GwasCelltypeEnrichment = {
 
 export type Gene = GenomicObject & {
   __typename?: 'Gene';
+  alias?: Maybe<Scalars['String']['output']>;
   assembly: Scalars['String']['output'];
   coordinates: GenomicRange;
+  description?: Maybe<Scalars['String']['output']>;
   gene_quantification?: Maybe<Array<Maybe<GeneQuantification>>>;
   gene_type: Scalars['String']['output'];
   havana_id?: Maybe<Scalars['String']['output']>;
@@ -943,6 +1058,16 @@ export type GeneOrtholog = {
   mmusculus_homolog_wga_coverage?: Maybe<Scalars['Float']['output']>;
   start_position?: Maybe<Scalars['Int']['output']>;
   strand?: Maybe<Scalars['String']['output']>;
+};
+
+export type GenePromoterData = {
+  __typename?: 'GenePromoterData';
+  accession?: Maybe<Scalars['String']['output']>;
+  ccre_group?: Maybe<Scalars['String']['output']>;
+  chromosome?: Maybe<Scalars['String']['output']>;
+  geneid?: Maybe<Scalars['String']['output']>;
+  start?: Maybe<Scalars['Int']['output']>;
+  stop?: Maybe<Scalars['Int']['output']>;
 };
 
 export type GeneQuantification = {
@@ -1179,10 +1304,56 @@ export type GwasSnpAssociation = {
 export type GwasStudies = {
   __typename?: 'GwasStudies';
   author?: Maybe<Scalars['String']['output']>;
+  gbldblock?: Maybe<Scalars['Int']['output']>;
   pubmedid?: Maybe<Scalars['String']['output']>;
   study?: Maybe<Scalars['String']['output']>;
   studyname?: Maybe<Scalars['String']['output']>;
   totalldblocks?: Maybe<Scalars['Int']['output']>;
+};
+
+export type GwasStudiesCcres = {
+  __typename?: 'GwasStudiesCcres';
+  ccre: Scalars['String']['output'];
+  ldblocksnpid: Scalars['String']['output'];
+  rsquare: Scalars['String']['output'];
+  snpid: Scalars['String']['output'];
+  studyid: Scalars['String']['output'];
+};
+
+export type GwasStudiesMetadata = {
+  __typename?: 'GwasStudiesMetadata';
+  author?: Maybe<Scalars['String']['output']>;
+  disease_trait?: Maybe<Scalars['String']['output']>;
+  genotyping_technology?: Maybe<Scalars['String']['output']>;
+  has_enrichment_info?: Maybe<Scalars['Boolean']['output']>;
+  initial_sample_size?: Maybe<Scalars['String']['output']>;
+  journal?: Maybe<Scalars['String']['output']>;
+  layer_2_terms?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
+  ld_blocks_overlapping_ccres?: Maybe<Scalars['Int']['output']>;
+  link?: Maybe<Scalars['String']['output']>;
+  mapped_efo_uris?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
+  mapped_trait_uri?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
+  overlapping_ccres?: Maybe<Scalars['Int']['output']>;
+  parent_terms?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
+  platform?: Maybe<Scalars['String']['output']>;
+  population?: Maybe<Scalars['String']['output']>;
+  pubmedid?: Maybe<Scalars['String']['output']>;
+  replication_sample_size?: Maybe<Scalars['String']['output']>;
+  study?: Maybe<Scalars['String']['output']>;
+  studyid?: Maybe<Scalars['String']['output']>;
+  total_ld_blocks?: Maybe<Scalars['Int']['output']>;
+};
+
+export type GwasStudiesSnPs = {
+  __typename?: 'GwasStudiesSNPs';
+  chromosome: Scalars['String']['output'];
+  ldblock: Scalars['Int']['output'];
+  ldblocksnpid: Scalars['String']['output'];
+  rsquare: Scalars['String']['output'];
+  snpid: Scalars['String']['output'];
+  start: Scalars['Int']['output'];
+  stop: Scalars['Int']['output'];
+  studyid: Scalars['String']['output'];
 };
 
 export type GwasStudySnPs = {
@@ -2144,6 +2315,7 @@ export type QuantificationRange = {
 
 export type Query = {
   __typename?: 'Query';
+  ComputationalCcreLinksQuery?: Maybe<Array<Maybe<ComputationalGeneLinks>>>;
   ComputationalGeneLinksQuery?: Maybe<Array<Maybe<ComputationalGeneLinks>>>;
   aggregationQuery: AggregationResult;
   assemblies: Array<Assembly>;
@@ -2161,10 +2333,12 @@ export type Query = {
   capraFccSoloQuery?: Maybe<Array<Maybe<Caprafccsolodata>>>;
   caqtls?: Maybe<Array<Maybe<CaQtls>>>;
   ccREBiosampleQuery: RegistryBiosampleCollection;
+  ccreSequenceAlignmentQuery?: Maybe<Array<Maybe<CcreSequenceAlignmentData>>>;
   ccreTranscriptionQuery?: Maybe<Array<Maybe<CcreTranscription>>>;
   celltype?: Maybe<Array<Maybe<Celltype>>>;
   chromlengths?: Maybe<Array<Maybe<ChromLength>>>;
   closestGenetocCRE?: Maybe<Array<Maybe<ClosestGene>>>;
+  conservationHeatmapQuery?: Maybe<Array<Maybe<ConservationHeatmapData>>>;
   conservation_aggregate?: Maybe<Array<ConservationAggregate>>;
   createTrackhubQuery: Scalars['String']['output'];
   createicresFilesQuery: Scalars['String']['output'];
@@ -2178,6 +2352,7 @@ export type Query = {
   deep_learned_motifs_data?: Maybe<DeepLearnedMotitfResponse>;
   degQuery?: Maybe<Array<Maybe<Deg>>>;
   dnase_aggregate?: Maybe<Array<DNaseAggregate>>;
+  dynamicEnhancersQuery?: Maybe<Array<Maybe<DynamicEnhacersData>>>;
   eQTLQuery: Array<EQtl>;
   ebiAssociationsQuery?: Maybe<Array<Maybe<EbiAssociations>>>;
   elementQuery: Array<Maybe<Element>>;
@@ -2187,6 +2362,7 @@ export type Query = {
   fieldQuery: Array<Maybe<FieldResult>>;
   functionalCharacterizationQuery?: Maybe<Array<Maybe<Fcdata>>>;
   gene?: Maybe<Array<Maybe<Gene>>>;
+  genePromoterQuery?: Maybe<Array<Maybe<GenePromoterData>>>;
   geneSpecificity?: Maybe<Array<Maybe<GeneSpecificity>>>;
   gene_count?: Maybe<Array<Maybe<GenesCountResponse>>>;
   gene_dataset?: Maybe<Array<Maybe<GeneDataset>>>;
@@ -2197,17 +2373,28 @@ export type Query = {
   genomeWideAssociationQuery: Array<Gwas>;
   genomicAssemblies?: Maybe<Array<Maybe<GenomicAssembly>>>;
   getAllGwasStudies?: Maybe<Array<Maybe<GwasStudies>>>;
+  getCcresforGivenGWASStudy?: Maybe<Array<Maybe<GwasStudiesCcres>>>;
+  getClosest3GenesTocCREQuery?: Maybe<Array<Maybe<ClosestGenesTocCre>>>;
   getCompuLinkedGenesCelltypes?: Maybe<Array<Maybe<CompuLinkedGenesCelltypesList>>>;
+  getGWASBiosampleEnrichmentQuery?: Maybe<Array<Maybe<GwasBiosampleEnrichment>>>;
   getGWASCtEnrichmentQuery?: Maybe<Array<Maybe<GwasCelltypeEnrichment>>>;
+  getGWASStudiesMetadata?: Maybe<Array<Maybe<GwasStudiesMetadata>>>;
   getLinkedGenesCelltypes?: Maybe<Array<Maybe<LinkedGenesCelltypes>>>;
   getLinkedGenesCelltypesByAssay?: Maybe<Array<Maybe<LinkedGenesCelltypesList>>>;
   getPedatasetValuesbyCelltypeQuery?: Maybe<Array<Maybe<PsychEncodeDatasetValues>>>;
   getPedatasetValuesbySubclassQuery?: Maybe<Array<Maybe<PsychEncodeDatasetValues>>>;
+  getSNPAllele?: Maybe<Array<Maybe<AlleleResult>>>;
   getSNPsforGWASStudies?: Maybe<Array<Maybe<GwasStudySnPs>>>;
+  getSNPsforGivenGWASStudy?: Maybe<Array<Maybe<GwasStudiesSnPs>>>;
+  getcCREConservationDataQuery?: Maybe<Array<Maybe<ConservationData>>>;
   getcCRELinksQuery?: Maybe<CcreLinksDetails>;
   getcCRENodeCelltypes?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
+  getcCRERPeaksQuery?: Maybe<Array<Maybe<CCrerPeaksData>>>;
   getcCRETFQuery?: Maybe<Array<Maybe<CelltypeTf>>>;
+  getcCREZScoresQuery?: Maybe<Array<Maybe<CcrezScoresEntry>>>;
+  getcCRFBinaryTFCallsQuery?: Maybe<Array<Maybe<BinaryTfCallsBiosamples>>>;
   getcartAccessionsQuery?: Maybe<Array<Scalars['String']['output']>>;
+  getmaxZScoresQuery?: Maybe<Array<Maybe<CcreMaxZscores>>>;
   gettssRampagePeaks?: Maybe<Array<Maybe<TssPeaksResponse>>>;
   getv2cCREMappings?: Maybe<Array<Maybe<V2cCreMapping>>>;
   groundLevelVersionsQuery: Array<GroundLevelVersionsEntries>;
@@ -2294,6 +2481,14 @@ export type Query = {
   user_collection?: Maybe<UserCollection>;
   vistaQuery: Array<VistaEnhancer>;
   zScoreQuery: Array<ZScore>;
+};
+
+
+export type QueryComputationalCcreLinksQueryArgs = {
+  biosample_value?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  celltype?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  geneid: Array<InputMaybe<Scalars['String']['input']>>;
+  method?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
 };
 
 
@@ -2452,6 +2647,12 @@ export type QueryCcReBiosampleQueryArgs = {
 };
 
 
+export type QueryCcreSequenceAlignmentQueryArgs = {
+  accession: Array<InputMaybe<Scalars['String']['input']>>;
+  assembly: Scalars['String']['input'];
+};
+
+
 export type QueryCcreTranscriptionQueryArgs = {
   assembly: Scalars['String']['input'];
   chromosome: Scalars['String']['input'];
@@ -2479,6 +2680,11 @@ export type QueryChromlengthsArgs = {
 export type QueryClosestGenetocCreArgs = {
   ccre?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   geneid?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+};
+
+
+export type QueryConservationHeatmapQueryArgs = {
+  accession: Array<InputMaybe<Scalars['String']['input']>>;
 };
 
 
@@ -2607,6 +2813,11 @@ export type QueryDnase_AggregateArgs = {
 };
 
 
+export type QueryDynamicEnhancersQueryArgs = {
+  accession: Array<InputMaybe<Scalars['String']['input']>>;
+};
+
+
 export type QueryEQtlQueryArgs = {
   assembly: Scalars['String']['input'];
   coordinates?: InputMaybe<GenomicRangeInput>;
@@ -2672,14 +2883,22 @@ export type QueryGeneArgs = {
   havana_id?: InputMaybe<Scalars['String']['input']>;
   id?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   idprefix?: InputMaybe<Array<Scalars['String']['input']>>;
+  includealiassearch?: InputMaybe<Scalars['Boolean']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   name?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   name_prefix?: InputMaybe<Array<Scalars['String']['input']>>;
   offset?: InputMaybe<Scalars['Int']['input']>;
   orderby?: InputMaybe<Scalars['String']['input']>;
+  range?: InputMaybe<Array<InputMaybe<ChromRange>>>;
   start?: InputMaybe<Scalars['Int']['input']>;
   strand?: InputMaybe<Scalars['String']['input']>;
   version?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryGenePromoterQueryArgs = {
+  accession?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  geneid?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
 };
 
 
@@ -2780,14 +2999,42 @@ export type QueryGetAllGwasStudiesArgs = {
 };
 
 
+export type QueryGetCcresforGivenGwasStudyArgs = {
+  studyid: Array<Scalars['String']['input']>;
+};
+
+
+export type QueryGetClosest3GenesTocCreQueryArgs = {
+  accession?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  assembly: Scalars['String']['input'];
+  gene_id?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  gene_name?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+};
+
+
 export type QueryGetCompuLinkedGenesCelltypesArgs = {
   biosample_value?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   method?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
 };
 
 
+export type QueryGetGwasBiosampleEnrichmentQueryArgs = {
+  biosamples?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  studyid?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+};
+
+
 export type QueryGetGwasCtEnrichmentQueryArgs = {
   study: Scalars['String']['input'];
+};
+
+
+export type QueryGetGwasStudiesMetadataArgs = {
+  layer_2_terms?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  parent_terms?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  studyid?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  studyname_prefix?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
 };
 
 
@@ -2810,9 +3057,27 @@ export type QueryGetPedatasetValuesbySubclassQueryArgs = {
 };
 
 
+export type QueryGetSnpAlleleArgs = {
+  snp: Array<InputMaybe<Scalars['String']['input']>>;
+};
+
+
 export type QueryGetSnPsforGwasStudiesArgs = {
+  coordinates?: InputMaybe<Array<InputMaybe<GenomicRangeInput>>>;
   ldblock?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   study: Array<Scalars['String']['input']>;
+};
+
+
+export type QueryGetSnPsforGivenGwasStudyArgs = {
+  coordinates?: InputMaybe<Array<InputMaybe<GenomicRangeInput>>>;
+  ldblock?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  studyid: Array<Scalars['String']['input']>;
+};
+
+
+export type QueryGetcCreConservationDataQueryArgs = {
+  accession: Array<InputMaybe<Scalars['String']['input']>>;
 };
 
 
@@ -2830,8 +3095,43 @@ export type QueryGetcCreNodeCelltypesArgs = {
 };
 
 
+export type QueryGetcCrerPeaksQueryArgs = {
+  accession: Array<InputMaybe<Scalars['String']['input']>>;
+};
+
+
 export type QueryGetcCretfQueryArgs = {
   accession: Scalars['String']['input'];
+  assembly: Scalars['String']['input'];
+};
+
+
+export type QueryGetcCrezScoresQueryArgs = {
+  accession?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  accession_prefix?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  assembly: Scalars['String']['input'];
+  biosample_value?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  coordinates?: InputMaybe<Array<InputMaybe<GenomicRangeInput>>>;
+  group?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  include_biosample_details?: InputMaybe<Scalars['Boolean']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  nearbygenesdistancethreshold?: InputMaybe<Scalars['Int']['input']>;
+  nearbygeneslimit?: InputMaybe<Scalars['Int']['input']>;
+  rank_atac_end?: InputMaybe<Scalars['Float']['input']>;
+  rank_atac_start?: InputMaybe<Scalars['Float']['input']>;
+  rank_ctcf_end?: InputMaybe<Scalars['Float']['input']>;
+  rank_ctcf_start?: InputMaybe<Scalars['Float']['input']>;
+  rank_dnase_end?: InputMaybe<Scalars['Float']['input']>;
+  rank_dnase_start?: InputMaybe<Scalars['Float']['input']>;
+  rank_enhancer_end?: InputMaybe<Scalars['Float']['input']>;
+  rank_enhancer_start?: InputMaybe<Scalars['Float']['input']>;
+  rank_promoter_end?: InputMaybe<Scalars['Float']['input']>;
+  rank_promoter_start?: InputMaybe<Scalars['Float']['input']>;
+};
+
+
+export type QueryGetcCrfBinaryTfCallsQueryArgs = {
+  accession: Array<InputMaybe<Scalars['String']['input']>>;
   assembly: Scalars['String']['input'];
 };
 
@@ -2841,14 +3141,43 @@ export type QueryGetcartAccessionsQueryArgs = {
 };
 
 
+export type QueryGetmaxZScoresQueryArgs = {
+  accession?: InputMaybe<Array<Scalars['String']['input']>>;
+  accession_prefix?: InputMaybe<Array<Scalars['String']['input']>>;
+  assembly: Scalars['String']['input'];
+  coordinates?: InputMaybe<Array<InputMaybe<GenomicRangeInput>>>;
+  group?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  mammals_max?: InputMaybe<Scalars['Float']['input']>;
+  mammals_min?: InputMaybe<Scalars['Float']['input']>;
+  nearbygenesdistancethreshold?: InputMaybe<Scalars['Int']['input']>;
+  nearbygeneslimit?: InputMaybe<Scalars['Int']['input']>;
+  primates_max?: InputMaybe<Scalars['Float']['input']>;
+  primates_min?: InputMaybe<Scalars['Float']['input']>;
+  rank_atac_end?: InputMaybe<Scalars['Float']['input']>;
+  rank_atac_start?: InputMaybe<Scalars['Float']['input']>;
+  rank_ctcf_end?: InputMaybe<Scalars['Float']['input']>;
+  rank_ctcf_start?: InputMaybe<Scalars['Float']['input']>;
+  rank_dnase_end?: InputMaybe<Scalars['Float']['input']>;
+  rank_dnase_start?: InputMaybe<Scalars['Float']['input']>;
+  rank_enhancer_end?: InputMaybe<Scalars['Float']['input']>;
+  rank_enhancer_start?: InputMaybe<Scalars['Float']['input']>;
+  rank_promoter_end?: InputMaybe<Scalars['Float']['input']>;
+  rank_promoter_start?: InputMaybe<Scalars['Float']['input']>;
+  vertebrates_max?: InputMaybe<Scalars['Float']['input']>;
+  vertebrates_min?: InputMaybe<Scalars['Float']['input']>;
+};
+
+
 export type QueryGettssRampagePeaksArgs = {
   coordinates: ChromRange;
 };
 
 
 export type QueryGetv2cCreMappingsArgs = {
+  accession_prefix?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   assembly: Scalars['String']['input'];
-  v2_accession: Array<InputMaybe<Scalars['String']['input']>>;
+  v2_accession?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
 };
 
 
@@ -4244,6 +4573,23 @@ export type ZScoreHistogramBin = {
   count: Scalars['Int']['output'];
 };
 
+export type CCrerPeaksData = {
+  __typename?: 'cCRERPeaksData';
+  accession?: Maybe<Scalars['String']['output']>;
+  decorator_chromosome?: Maybe<Scalars['String']['output']>;
+  decorator_start?: Maybe<Scalars['Int']['output']>;
+  decorator_stop?: Maybe<Scalars['Int']['output']>;
+  decorator_tf_number?: Maybe<Scalars['String']['output']>;
+  metadata?: Maybe<Scalars['JSON']['output']>;
+  rpeak_chromosome?: Maybe<Scalars['String']['output']>;
+  rpeak_id?: Maybe<Scalars['String']['output']>;
+  rpeak_start?: Maybe<Scalars['Int']['output']>;
+  rpeak_stop?: Maybe<Scalars['Int']['output']>;
+  strand?: Maybe<Scalars['String']['output']>;
+  tf?: Maybe<Scalars['String']['output']>;
+  tf_number?: Maybe<Scalars['String']['output']>;
+};
+
 export type CQtl = {
   __typename?: 'cQTL';
   coordinates: GenomicRange;
@@ -4312,6 +4658,7 @@ export type TrackHubUrl = {
 
 export type V2cCreMapping = {
   __typename?: 'v2cCREMapping';
+  ccre_version?: Maybe<Scalars['String']['output']>;
   v2_accession?: Maybe<Scalars['String']['output']>;
   v2_region?: Maybe<Scalars['String']['output']>;
   v4_accession?: Maybe<Scalars['String']['output']>;
@@ -4407,14 +4754,14 @@ export type BedIntersectCcreQueryVariables = Exact<{
 
 export type BedIntersectCcreQuery = { __typename?: 'Query', intersection?: Array<any | null> | null };
 
-export type CcreSearchQuery_2QueryVariables = Exact<{
+export type NewCcreSearchQueryVariables = Exact<{
   assembly: Scalars['String']['input'];
-  celltype?: InputMaybe<Scalars['String']['input']>;
-  accessions?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
+  accession?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>> | InputMaybe<Scalars['String']['input']>>;
+  biosampleValue?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>> | InputMaybe<Scalars['String']['input']>>;
 }>;
 
 
-export type CcreSearchQuery_2Query = { __typename?: 'Query', cCRESCREENSearch: Array<{ __typename?: 'SCREENSearchResult', chrom: string, start: number, len: number, pct: string, ctcf_zscore: number, dnase_zscore: number, enhancer_zscore: number, promoter_zscore: number, atac_zscore: number, nearestgenes: Array<{ __typename?: 'NearestGenes', gene: string, distance: number } | null>, ctspecific?: { __typename?: 'SCREENCellTypeSpecificResponse', dnase_zscore?: number | null, ctcf_zscore?: number | null, atac_zscore?: number | null, h3k4me3_zscore?: number | null, h3k27ac_zscore?: number | null } | null, info: { __typename?: 'CCREInfo', accession: string } }> };
+export type NewCcreSearchQuery = { __typename?: 'Query', getcCREZScoresQuery?: Array<{ __typename?: 'CCREZScoresEntry', accession?: string | null, chromosome?: string | null, start?: number | null, stop?: number | null, dnase_max_zscore?: number | null, h3k4me3_max_zscore?: number | null, h3k27ac_max_zscore?: number | null, ctcf_max_zscore?: number | null, atac_max_zscore?: number | null, zscores?: Array<Array<any | null> | null> | null, nearestgenes?: Array<{ __typename?: 'NearestGenes', gene: string, distance: number } | null> | null } | null> | null };
 
 export type GetGwasctEnrichmentQueryQueryVariables = Exact<{
   study: Scalars['String']['input'];
@@ -4708,40 +5055,28 @@ export type Getv2cCreMappingsQueryVariables = Exact<{
 
 export type Getv2cCreMappingsQuery = { __typename?: 'Query', getv2cCREMappings?: Array<{ __typename?: 'v2cCREMapping', v2_region?: string | null, v4_accession?: string | null, v2_accession?: string | null, v4_region?: string | null } | null> | null };
 
-export type CcreSearchQuery_1QueryVariables = Exact<{
-  accessions?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
+export type GetBaseCcreDataQueryVariables = Exact<{
   assembly: Scalars['String']['input'];
-  cellType?: InputMaybe<Scalars['String']['input']>;
+  accession?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
   coordinates?: InputMaybe<Array<InputMaybe<GenomicRangeInput>> | InputMaybe<GenomicRangeInput>>;
-  element_type?: InputMaybe<Scalars['String']['input']>;
-  gene_all_start?: InputMaybe<Scalars['Int']['input']>;
-  gene_all_end?: InputMaybe<Scalars['Int']['input']>;
-  gene_pc_start?: InputMaybe<Scalars['Int']['input']>;
-  gene_pc_end?: InputMaybe<Scalars['Int']['input']>;
-  rank_ctcf_end?: InputMaybe<Scalars['Float']['input']>;
-  rank_ctcf_start?: InputMaybe<Scalars['Float']['input']>;
-  rank_dnase_end?: InputMaybe<Scalars['Float']['input']>;
-  rank_dnase_start?: InputMaybe<Scalars['Float']['input']>;
-  rank_enhancer_end?: InputMaybe<Scalars['Float']['input']>;
-  rank_enhancer_start?: InputMaybe<Scalars['Float']['input']>;
-  rank_promoter_end?: InputMaybe<Scalars['Float']['input']>;
-  rank_promoter_start?: InputMaybe<Scalars['Float']['input']>;
-  rank_atac_end?: InputMaybe<Scalars['Float']['input']>;
-  rank_atac_start?: InputMaybe<Scalars['Float']['input']>;
-  mammals_min?: InputMaybe<Scalars['Float']['input']>;
-  mammals_max?: InputMaybe<Scalars['Float']['input']>;
-  vertebrates_min?: InputMaybe<Scalars['Float']['input']>;
-  vertebrates_max?: InputMaybe<Scalars['Float']['input']>;
-  primates_min?: InputMaybe<Scalars['Float']['input']>;
-  primates_max?: InputMaybe<Scalars['Float']['input']>;
-  uuid?: InputMaybe<Scalars['String']['input']>;
-  limit?: InputMaybe<Scalars['Int']['input']>;
   nearbygeneslimit?: InputMaybe<Scalars['Int']['input']>;
   nearbygenesdistancethreshold?: InputMaybe<Scalars['Int']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
 }>;
 
 
-export type CcreSearchQuery_1Query = { __typename?: 'Query', cCRESCREENSearch: Array<{ __typename?: 'SCREENSearchResult', chrom: string, start: number, len: number, pct: string, vertebrates?: number | null, mammals?: number | null, primates?: number | null, ctcf_zscore: number, dnase_zscore: number, enhancer_zscore: number, promoter_zscore: number, atac_zscore: number, ctspecific?: { __typename?: 'SCREENCellTypeSpecificResponse', ct?: string | null, dnase_zscore?: number | null, h3k4me3_zscore?: number | null, h3k27ac_zscore?: number | null, ctcf_zscore?: number | null, atac_zscore?: number | null } | null, info: { __typename?: 'CCREInfo', accession: string, isproximal: boolean, concordant: boolean }, nearestgenes: Array<{ __typename?: 'NearestGenes', gene: string, distance: number } | null> }> };
+export type GetBaseCcreDataQuery = { __typename?: 'Query', getmaxZScoresQuery?: Array<{ __typename?: 'CCREMaxZscores', accession: string, ccre_group: string, chromosome?: string | null, start?: number | null, stop?: number | null, dnase_max_zscore?: number | null, h3k4me3_max_zscore?: number | null, h3k27ac_max_zscore?: number | null, ctcf_max_zscore?: number | null, atac_max_zscore?: number | null, mammals?: number | null, vertebrates?: number | null, primates?: number | null, nearestgenes?: Array<{ __typename?: 'NearestGenes', gene: string, distance: number } | null> | null } | null> | null };
+
+export type GetBiosampleZQueryVariables = Exact<{
+  assembly: Scalars['String']['input'];
+  accession?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>> | InputMaybe<Scalars['String']['input']>>;
+  coordinates?: InputMaybe<Array<InputMaybe<GenomicRangeInput>> | InputMaybe<GenomicRangeInput>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  biosampleValue?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>> | InputMaybe<Scalars['String']['input']>>;
+}>;
+
+
+export type GetBiosampleZQuery = { __typename?: 'Query', getcCREZScoresQuery?: Array<{ __typename?: 'CCREZScoresEntry', accession?: string | null, zscores?: Array<Array<any | null> | null> | null } | null> | null };
 
 export type Biosamples_3QueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -4760,7 +5095,7 @@ export const GeneOrthologQueryDocument = {"kind":"Document","definitions":[{"kin
 export const GetAllGwasStudiesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getAllGWASStudies"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getAllGwasStudies"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"study"}},{"kind":"Field","name":{"kind":"Name","value":"totalldblocks"}},{"kind":"Field","name":{"kind":"Name","value":"author"}},{"kind":"Field","name":{"kind":"Name","value":"pubmedid"}},{"kind":"Field","name":{"kind":"Name","value":"studyname"}}]}}]}}]} as unknown as DocumentNode<GetAllGwasStudiesQuery, GetAllGwasStudiesQueryVariables>;
 export const GetSnPsforgivengwasStudyDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getSNPsforgivengwasStudy"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"study"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getSNPsforGWASStudies"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"study"},"value":{"kind":"Variable","name":{"kind":"Name","value":"study"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"snpid"}},{"kind":"Field","name":{"kind":"Name","value":"ldblock"}},{"kind":"Field","name":{"kind":"Name","value":"rsquare"}},{"kind":"Field","name":{"kind":"Name","value":"chromosome"}},{"kind":"Field","name":{"kind":"Name","value":"stop"}},{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"ldblocksnpid"}}]}}]}}]} as unknown as DocumentNode<GetSnPsforgivengwasStudyQuery, GetSnPsforgivengwasStudyQueryVariables>;
 export const BedIntersectCcreDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"bedIntersectCCRE"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"inp"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NamedType","name":{"kind":"Name","value":"cCRE"}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"assembly"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"maxOutputLength"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"intersection"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"userCcres"},"value":{"kind":"Variable","name":{"kind":"Name","value":"inp"}}},{"kind":"Argument","name":{"kind":"Name","value":"assembly"},"value":{"kind":"Variable","name":{"kind":"Name","value":"assembly"}}},{"kind":"Argument","name":{"kind":"Name","value":"maxOutputLength"},"value":{"kind":"Variable","name":{"kind":"Name","value":"maxOutputLength"}}}]}]}}]} as unknown as DocumentNode<BedIntersectCcreQuery, BedIntersectCcreQueryVariables>;
-export const CcreSearchQuery_2Document = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ccreSearchQuery_2"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"assembly"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"celltype"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"accessions"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cCRESCREENSearch"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assembly"},"value":{"kind":"Variable","name":{"kind":"Name","value":"assembly"}}},{"kind":"Argument","name":{"kind":"Name","value":"accessions"},"value":{"kind":"Variable","name":{"kind":"Name","value":"accessions"}}},{"kind":"Argument","name":{"kind":"Name","value":"cellType"},"value":{"kind":"Variable","name":{"kind":"Name","value":"celltype"}}},{"kind":"Argument","name":{"kind":"Name","value":"nearbygeneslimit"},"value":{"kind":"IntValue","value":"1"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"chrom"}},{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"len"}},{"kind":"Field","name":{"kind":"Name","value":"pct"}},{"kind":"Field","name":{"kind":"Name","value":"nearestgenes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"gene"}},{"kind":"Field","name":{"kind":"Name","value":"distance"}}]}},{"kind":"Field","name":{"kind":"Name","value":"ctcf_zscore"}},{"kind":"Field","name":{"kind":"Name","value":"dnase_zscore"}},{"kind":"Field","name":{"kind":"Name","value":"enhancer_zscore"}},{"kind":"Field","name":{"kind":"Name","value":"promoter_zscore"}},{"kind":"Field","name":{"kind":"Name","value":"atac_zscore"}},{"kind":"Field","name":{"kind":"Name","value":"ctspecific"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"dnase_zscore"}},{"kind":"Field","name":{"kind":"Name","value":"ctcf_zscore"}},{"kind":"Field","name":{"kind":"Name","value":"atac_zscore"}},{"kind":"Field","name":{"kind":"Name","value":"h3k4me3_zscore"}},{"kind":"Field","name":{"kind":"Name","value":"h3k27ac_zscore"}}]}},{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"accession"}}]}}]}}]}}]} as unknown as DocumentNode<CcreSearchQuery_2Query, CcreSearchQuery_2QueryVariables>;
+export const NewCcreSearchDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"NewCcreSearch"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"assembly"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"accession"}},"type":{"kind":"ListType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"biosampleValue"}},"type":{"kind":"ListType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getcCREZScoresQuery"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assembly"},"value":{"kind":"Variable","name":{"kind":"Name","value":"assembly"}}},{"kind":"Argument","name":{"kind":"Name","value":"accession"},"value":{"kind":"Variable","name":{"kind":"Name","value":"accession"}}},{"kind":"Argument","name":{"kind":"Name","value":"biosample_value"},"value":{"kind":"Variable","name":{"kind":"Name","value":"biosampleValue"}}},{"kind":"Argument","name":{"kind":"Name","value":"nearbygeneslimit"},"value":{"kind":"IntValue","value":"1"}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"accession"}},{"kind":"Field","name":{"kind":"Name","value":"chromosome"}},{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"stop"}},{"kind":"Field","name":{"kind":"Name","value":"dnase_max_zscore"}},{"kind":"Field","name":{"kind":"Name","value":"h3k4me3_max_zscore"}},{"kind":"Field","name":{"kind":"Name","value":"h3k27ac_max_zscore"}},{"kind":"Field","name":{"kind":"Name","value":"ctcf_max_zscore"}},{"kind":"Field","name":{"kind":"Name","value":"atac_max_zscore"}},{"kind":"Field","name":{"kind":"Name","value":"nearestgenes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"gene"}},{"kind":"Field","name":{"kind":"Name","value":"distance"}}]}},{"kind":"Field","name":{"kind":"Name","value":"zscores"}}]}}]}}]} as unknown as DocumentNode<NewCcreSearchQuery, NewCcreSearchQueryVariables>;
 export const GetGwasctEnrichmentQueryDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getGWASCTEnrichmentQuery"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"study"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getGWASCtEnrichmentQuery"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"study"},"value":{"kind":"Variable","name":{"kind":"Name","value":"study"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"celltype"}},{"kind":"Field","name":{"kind":"Name","value":"accession"}},{"kind":"Field","name":{"kind":"Name","value":"fc"}},{"kind":"Field","name":{"kind":"Name","value":"fdr"}},{"kind":"Field","name":{"kind":"Name","value":"pvalue"}}]}}]}}]} as unknown as DocumentNode<GetGwasctEnrichmentQueryQuery, GetGwasctEnrichmentQueryQueryVariables>;
 export const GetDisplayNamesDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getDisplayNames"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"assembly"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"samples"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ccREBiosampleQuery"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assembly"},"value":{"kind":"Variable","name":{"kind":"Name","value":"assembly"}}},{"kind":"Argument","name":{"kind":"Name","value":"name"},"value":{"kind":"Variable","name":{"kind":"Name","value":"samples"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"biosamples"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"displayname"}},{"kind":"Field","name":{"kind":"Name","value":"ontology"}}]}}]}}]}}]} as unknown as DocumentNode<GetDisplayNamesQuery, GetDisplayNamesQueryVariables>;
 export const Q_4Document = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"q_4"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"assembly"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"assay"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"a"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ccREBiosampleQuery"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assay"},"value":{"kind":"Variable","name":{"kind":"Name","value":"assay"}}},{"kind":"Argument","name":{"kind":"Name","value":"assembly"},"value":{"kind":"Variable","name":{"kind":"Name","value":"assembly"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"biosamples"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"displayname"}},{"kind":"Field","name":{"kind":"Name","value":"ontology"}},{"kind":"Field","name":{"kind":"Name","value":"sampleType"}},{"kind":"Field","name":{"kind":"Name","value":"lifeStage"}},{"kind":"Field","name":{"kind":"Name","value":"umap_coordinates"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assay"},"value":{"kind":"Variable","name":{"kind":"Name","value":"a"}}}]},{"kind":"Field","name":{"kind":"Name","value":"experimentAccession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assay"},"value":{"kind":"Variable","name":{"kind":"Name","value":"a"}}}]}]}}]}}]}}]} as unknown as DocumentNode<Q_4Query, Q_4QueryVariables>;
@@ -4796,5 +5131,6 @@ export const GetGeneLocation1Document = {"kind":"Document","definitions":[{"kind
 export const SnpAutocompleteQueryDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"snpAutocompleteQuery"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"snpid"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"assembly"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"snpAutocompleteQuery"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"snpid"},"value":{"kind":"Variable","name":{"kind":"Name","value":"snpid"}}},{"kind":"Argument","name":{"kind":"Name","value":"assembly"},"value":{"kind":"Variable","name":{"kind":"Name","value":"assembly"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"coordinates"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"chromosome"}},{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"end"}}]}}]}}]}}]} as unknown as DocumentNode<SnpAutocompleteQueryQuery, SnpAutocompleteQueryQueryVariables>;
 export const GetAcccessionCoordsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getAcccessionCoords"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"accession"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"assembly"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cCREQuery"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"accession"},"value":{"kind":"Variable","name":{"kind":"Name","value":"accession"}}},{"kind":"Argument","name":{"kind":"Name","value":"assembly"},"value":{"kind":"Variable","name":{"kind":"Name","value":"assembly"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"accession"}},{"kind":"Field","name":{"kind":"Name","value":"coordinates"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"end"}},{"kind":"Field","name":{"kind":"Name","value":"chromosome"}}]}}]}}]}}]} as unknown as DocumentNode<GetAcccessionCoordsQuery, GetAcccessionCoordsQueryVariables>;
 export const Getv2cCreMappingsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"getv2cCREMappings"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"v2_accession"}},"type":{"kind":"NonNullType","type":{"kind":"ListType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"assembly"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getv2cCREMappings"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"v2_accession"},"value":{"kind":"Variable","name":{"kind":"Name","value":"v2_accession"}}},{"kind":"Argument","name":{"kind":"Name","value":"assembly"},"value":{"kind":"Variable","name":{"kind":"Name","value":"assembly"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"v2_region"}},{"kind":"Field","name":{"kind":"Name","value":"v4_accession"}},{"kind":"Field","name":{"kind":"Name","value":"v2_accession"}},{"kind":"Field","name":{"kind":"Name","value":"v4_region"}}]}}]}}]} as unknown as DocumentNode<Getv2cCreMappingsQuery, Getv2cCreMappingsQueryVariables>;
-export const CcreSearchQuery_1Document = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ccreSearchQuery_1"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"accessions"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"assembly"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"cellType"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"coordinates"}},"type":{"kind":"ListType","type":{"kind":"NamedType","name":{"kind":"Name","value":"GenomicRangeInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"element_type"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"gene_all_start"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"gene_all_end"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"gene_pc_start"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"gene_pc_end"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"rank_ctcf_end"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Float"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"rank_ctcf_start"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Float"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"rank_dnase_end"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Float"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"rank_dnase_start"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Float"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"rank_enhancer_end"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Float"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"rank_enhancer_start"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Float"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"rank_promoter_end"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Float"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"rank_promoter_start"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Float"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"rank_atac_end"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Float"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"rank_atac_start"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Float"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"mammals_min"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Float"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"mammals_max"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Float"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"vertebrates_min"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Float"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"vertebrates_max"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Float"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"primates_min"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Float"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"primates_max"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Float"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"uuid"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"limit"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"nearbygeneslimit"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"nearbygenesdistancethreshold"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cCRESCREENSearch"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assembly"},"value":{"kind":"Variable","name":{"kind":"Name","value":"assembly"}}},{"kind":"Argument","name":{"kind":"Name","value":"accessions"},"value":{"kind":"Variable","name":{"kind":"Name","value":"accessions"}}},{"kind":"Argument","name":{"kind":"Name","value":"cellType"},"value":{"kind":"Variable","name":{"kind":"Name","value":"cellType"}}},{"kind":"Argument","name":{"kind":"Name","value":"coordinates"},"value":{"kind":"Variable","name":{"kind":"Name","value":"coordinates"}}},{"kind":"Argument","name":{"kind":"Name","value":"element_type"},"value":{"kind":"Variable","name":{"kind":"Name","value":"element_type"}}},{"kind":"Argument","name":{"kind":"Name","value":"gene_all_start"},"value":{"kind":"Variable","name":{"kind":"Name","value":"gene_all_start"}}},{"kind":"Argument","name":{"kind":"Name","value":"gene_all_end"},"value":{"kind":"Variable","name":{"kind":"Name","value":"gene_all_end"}}},{"kind":"Argument","name":{"kind":"Name","value":"gene_pc_start"},"value":{"kind":"Variable","name":{"kind":"Name","value":"gene_pc_start"}}},{"kind":"Argument","name":{"kind":"Name","value":"gene_pc_end"},"value":{"kind":"Variable","name":{"kind":"Name","value":"gene_pc_end"}}},{"kind":"Argument","name":{"kind":"Name","value":"rank_atac_end"},"value":{"kind":"Variable","name":{"kind":"Name","value":"rank_atac_end"}}},{"kind":"Argument","name":{"kind":"Name","value":"rank_atac_start"},"value":{"kind":"Variable","name":{"kind":"Name","value":"rank_atac_start"}}},{"kind":"Argument","name":{"kind":"Name","value":"rank_ctcf_end"},"value":{"kind":"Variable","name":{"kind":"Name","value":"rank_ctcf_end"}}},{"kind":"Argument","name":{"kind":"Name","value":"rank_ctcf_start"},"value":{"kind":"Variable","name":{"kind":"Name","value":"rank_ctcf_start"}}},{"kind":"Argument","name":{"kind":"Name","value":"rank_dnase_end"},"value":{"kind":"Variable","name":{"kind":"Name","value":"rank_dnase_end"}}},{"kind":"Argument","name":{"kind":"Name","value":"rank_dnase_start"},"value":{"kind":"Variable","name":{"kind":"Name","value":"rank_dnase_start"}}},{"kind":"Argument","name":{"kind":"Name","value":"rank_enhancer_end"},"value":{"kind":"Variable","name":{"kind":"Name","value":"rank_enhancer_end"}}},{"kind":"Argument","name":{"kind":"Name","value":"rank_enhancer_start"},"value":{"kind":"Variable","name":{"kind":"Name","value":"rank_enhancer_start"}}},{"kind":"Argument","name":{"kind":"Name","value":"rank_promoter_end"},"value":{"kind":"Variable","name":{"kind":"Name","value":"rank_promoter_end"}}},{"kind":"Argument","name":{"kind":"Name","value":"rank_promoter_start"},"value":{"kind":"Variable","name":{"kind":"Name","value":"rank_promoter_start"}}},{"kind":"Argument","name":{"kind":"Name","value":"mammals_min"},"value":{"kind":"Variable","name":{"kind":"Name","value":"mammals_min"}}},{"kind":"Argument","name":{"kind":"Name","value":"mammals_max"},"value":{"kind":"Variable","name":{"kind":"Name","value":"mammals_max"}}},{"kind":"Argument","name":{"kind":"Name","value":"vertebrates_min"},"value":{"kind":"Variable","name":{"kind":"Name","value":"vertebrates_min"}}},{"kind":"Argument","name":{"kind":"Name","value":"vertebrates_max"},"value":{"kind":"Variable","name":{"kind":"Name","value":"vertebrates_max"}}},{"kind":"Argument","name":{"kind":"Name","value":"primates_min"},"value":{"kind":"Variable","name":{"kind":"Name","value":"primates_min"}}},{"kind":"Argument","name":{"kind":"Name","value":"primates_max"},"value":{"kind":"Variable","name":{"kind":"Name","value":"primates_max"}}},{"kind":"Argument","name":{"kind":"Name","value":"uuid"},"value":{"kind":"Variable","name":{"kind":"Name","value":"uuid"}}},{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"Variable","name":{"kind":"Name","value":"limit"}}},{"kind":"Argument","name":{"kind":"Name","value":"nearbygeneslimit"},"value":{"kind":"Variable","name":{"kind":"Name","value":"nearbygeneslimit"}}},{"kind":"Argument","name":{"kind":"Name","value":"nearbygenesdistancethreshold"},"value":{"kind":"Variable","name":{"kind":"Name","value":"nearbygenesdistancethreshold"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"chrom"}},{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"len"}},{"kind":"Field","name":{"kind":"Name","value":"pct"}},{"kind":"Field","name":{"kind":"Name","value":"vertebrates"}},{"kind":"Field","name":{"kind":"Name","value":"mammals"}},{"kind":"Field","name":{"kind":"Name","value":"primates"}},{"kind":"Field","name":{"kind":"Name","value":"ctcf_zscore"}},{"kind":"Field","name":{"kind":"Name","value":"dnase_zscore"}},{"kind":"Field","name":{"kind":"Name","value":"enhancer_zscore"}},{"kind":"Field","name":{"kind":"Name","value":"promoter_zscore"}},{"kind":"Field","name":{"kind":"Name","value":"atac_zscore"}},{"kind":"Field","name":{"kind":"Name","value":"ctspecific"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"ct"}},{"kind":"Field","name":{"kind":"Name","value":"dnase_zscore"}},{"kind":"Field","name":{"kind":"Name","value":"h3k4me3_zscore"}},{"kind":"Field","name":{"kind":"Name","value":"h3k27ac_zscore"}},{"kind":"Field","name":{"kind":"Name","value":"ctcf_zscore"}},{"kind":"Field","name":{"kind":"Name","value":"atac_zscore"}}]}},{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"accession"}},{"kind":"Field","name":{"kind":"Name","value":"isproximal"}},{"kind":"Field","name":{"kind":"Name","value":"concordant"}}]}},{"kind":"Field","name":{"kind":"Name","value":"nearestgenes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"gene"}},{"kind":"Field","name":{"kind":"Name","value":"distance"}}]}}]}}]}}]} as unknown as DocumentNode<CcreSearchQuery_1Query, CcreSearchQuery_1QueryVariables>;
+export const GetBaseCcreDataDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetBaseCcreData"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"assembly"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"accession"}},"type":{"kind":"ListType","type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"coordinates"}},"type":{"kind":"ListType","type":{"kind":"NamedType","name":{"kind":"Name","value":"GenomicRangeInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"nearbygeneslimit"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"nearbygenesdistancethreshold"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"limit"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getmaxZScoresQuery"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assembly"},"value":{"kind":"Variable","name":{"kind":"Name","value":"assembly"}}},{"kind":"Argument","name":{"kind":"Name","value":"accession"},"value":{"kind":"Variable","name":{"kind":"Name","value":"accession"}}},{"kind":"Argument","name":{"kind":"Name","value":"coordinates"},"value":{"kind":"Variable","name":{"kind":"Name","value":"coordinates"}}},{"kind":"Argument","name":{"kind":"Name","value":"nearbygeneslimit"},"value":{"kind":"Variable","name":{"kind":"Name","value":"nearbygeneslimit"}}},{"kind":"Argument","name":{"kind":"Name","value":"nearbygenesdistancethreshold"},"value":{"kind":"Variable","name":{"kind":"Name","value":"nearbygenesdistancethreshold"}}},{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"Variable","name":{"kind":"Name","value":"limit"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"accession"}},{"kind":"Field","name":{"kind":"Name","value":"ccre_group"}},{"kind":"Field","name":{"kind":"Name","value":"chromosome"}},{"kind":"Field","name":{"kind":"Name","value":"start"}},{"kind":"Field","name":{"kind":"Name","value":"stop"}},{"kind":"Field","name":{"kind":"Name","value":"dnase_max_zscore"}},{"kind":"Field","name":{"kind":"Name","value":"h3k4me3_max_zscore"}},{"kind":"Field","name":{"kind":"Name","value":"h3k27ac_max_zscore"}},{"kind":"Field","name":{"kind":"Name","value":"ctcf_max_zscore"}},{"kind":"Field","name":{"kind":"Name","value":"atac_max_zscore"}},{"kind":"Field","name":{"kind":"Name","value":"nearestgenes"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"gene"}},{"kind":"Field","name":{"kind":"Name","value":"distance"}}]}},{"kind":"Field","name":{"kind":"Name","value":"mammals"}},{"kind":"Field","name":{"kind":"Name","value":"vertebrates"}},{"kind":"Field","name":{"kind":"Name","value":"primates"}}]}}]}}]} as unknown as DocumentNode<GetBaseCcreDataQuery, GetBaseCcreDataQueryVariables>;
+export const GetBiosampleZDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GetBiosampleZ"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"assembly"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"accession"}},"type":{"kind":"ListType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"coordinates"}},"type":{"kind":"ListType","type":{"kind":"NamedType","name":{"kind":"Name","value":"GenomicRangeInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"limit"}},"type":{"kind":"NamedType","name":{"kind":"Name","value":"Int"}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"biosampleValue"}},"type":{"kind":"ListType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"getcCREZScoresQuery"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assembly"},"value":{"kind":"Variable","name":{"kind":"Name","value":"assembly"}}},{"kind":"Argument","name":{"kind":"Name","value":"accession"},"value":{"kind":"Variable","name":{"kind":"Name","value":"accession"}}},{"kind":"Argument","name":{"kind":"Name","value":"coordinates"},"value":{"kind":"Variable","name":{"kind":"Name","value":"coordinates"}}},{"kind":"Argument","name":{"kind":"Name","value":"limit"},"value":{"kind":"Variable","name":{"kind":"Name","value":"limit"}}},{"kind":"Argument","name":{"kind":"Name","value":"biosample_value"},"value":{"kind":"Variable","name":{"kind":"Name","value":"biosampleValue"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"accession"}},{"kind":"Field","name":{"kind":"Name","value":"zscores"}}]}}]}}]} as unknown as DocumentNode<GetBiosampleZQuery, GetBiosampleZQueryVariables>;
 export const Biosamples_3Document = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"biosamples_3"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"human"},"name":{"kind":"Name","value":"ccREBiosampleQuery"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assembly"},"value":{"kind":"StringValue","value":"grch38","block":false}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"biosamples"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"ontology"}},{"kind":"Field","name":{"kind":"Name","value":"lifeStage"}},{"kind":"Field","name":{"kind":"Name","value":"sampleType"}},{"kind":"Field","name":{"kind":"Name","value":"displayname"}},{"kind":"Field","alias":{"kind":"Name","value":"dnase"},"name":{"kind":"Name","value":"experimentAccession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assay"},"value":{"kind":"StringValue","value":"DNase","block":false}}]},{"kind":"Field","alias":{"kind":"Name","value":"h3k4me3"},"name":{"kind":"Name","value":"experimentAccession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assay"},"value":{"kind":"StringValue","value":"H3K4me3","block":false}}]},{"kind":"Field","alias":{"kind":"Name","value":"h3k27ac"},"name":{"kind":"Name","value":"experimentAccession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assay"},"value":{"kind":"StringValue","value":"H3K27ac","block":false}}]},{"kind":"Field","alias":{"kind":"Name","value":"ctcf"},"name":{"kind":"Name","value":"experimentAccession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assay"},"value":{"kind":"StringValue","value":"CTCF","block":false}}]},{"kind":"Field","alias":{"kind":"Name","value":"atac"},"name":{"kind":"Name","value":"experimentAccession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assay"},"value":{"kind":"StringValue","value":"ATAC","block":false}}]},{"kind":"Field","alias":{"kind":"Name","value":"dnase_signal"},"name":{"kind":"Name","value":"fileAccession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assay"},"value":{"kind":"StringValue","value":"DNase","block":false}}]},{"kind":"Field","alias":{"kind":"Name","value":"h3k4me3_signal"},"name":{"kind":"Name","value":"fileAccession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assay"},"value":{"kind":"StringValue","value":"H3K4me3","block":false}}]},{"kind":"Field","alias":{"kind":"Name","value":"h3k27ac_signal"},"name":{"kind":"Name","value":"fileAccession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assay"},"value":{"kind":"StringValue","value":"H3K27ac","block":false}}]},{"kind":"Field","alias":{"kind":"Name","value":"ctcf_signal"},"name":{"kind":"Name","value":"fileAccession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assay"},"value":{"kind":"StringValue","value":"CTCF","block":false}}]},{"kind":"Field","alias":{"kind":"Name","value":"atac_signal"},"name":{"kind":"Name","value":"fileAccession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assay"},"value":{"kind":"StringValue","value":"ATAC","block":false}}]}]}}]}},{"kind":"Field","alias":{"kind":"Name","value":"mouse"},"name":{"kind":"Name","value":"ccREBiosampleQuery"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assembly"},"value":{"kind":"StringValue","value":"mm10","block":false}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"biosamples"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"ontology"}},{"kind":"Field","name":{"kind":"Name","value":"lifeStage"}},{"kind":"Field","name":{"kind":"Name","value":"sampleType"}},{"kind":"Field","name":{"kind":"Name","value":"displayname"}},{"kind":"Field","alias":{"kind":"Name","value":"dnase"},"name":{"kind":"Name","value":"experimentAccession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assay"},"value":{"kind":"StringValue","value":"DNase","block":false}}]},{"kind":"Field","alias":{"kind":"Name","value":"h3k4me3"},"name":{"kind":"Name","value":"experimentAccession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assay"},"value":{"kind":"StringValue","value":"H3K4me3","block":false}}]},{"kind":"Field","alias":{"kind":"Name","value":"h3k27ac"},"name":{"kind":"Name","value":"experimentAccession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assay"},"value":{"kind":"StringValue","value":"H3K27ac","block":false}}]},{"kind":"Field","alias":{"kind":"Name","value":"ctcf"},"name":{"kind":"Name","value":"experimentAccession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assay"},"value":{"kind":"StringValue","value":"CTCF","block":false}}]},{"kind":"Field","alias":{"kind":"Name","value":"atac"},"name":{"kind":"Name","value":"experimentAccession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assay"},"value":{"kind":"StringValue","value":"ATAC","block":false}}]},{"kind":"Field","alias":{"kind":"Name","value":"dnase_signal"},"name":{"kind":"Name","value":"fileAccession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assay"},"value":{"kind":"StringValue","value":"DNase","block":false}}]},{"kind":"Field","alias":{"kind":"Name","value":"h3k4me3_signal"},"name":{"kind":"Name","value":"fileAccession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assay"},"value":{"kind":"StringValue","value":"H3K4me3","block":false}}]},{"kind":"Field","alias":{"kind":"Name","value":"h3k27ac_signal"},"name":{"kind":"Name","value":"fileAccession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assay"},"value":{"kind":"StringValue","value":"H3K27ac","block":false}}]},{"kind":"Field","alias":{"kind":"Name","value":"ctcf_signal"},"name":{"kind":"Name","value":"fileAccession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assay"},"value":{"kind":"StringValue","value":"CTCF","block":false}}]},{"kind":"Field","alias":{"kind":"Name","value":"atac_signal"},"name":{"kind":"Name","value":"fileAccession"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"assay"},"value":{"kind":"StringValue","value":"ATAC","block":false}}]}]}}]}}]}}]} as unknown as DocumentNode<Biosamples_3Query, Biosamples_3QueryVariables>;

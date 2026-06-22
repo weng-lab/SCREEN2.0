@@ -61,7 +61,7 @@ export default function TfSequenceFeatures(props: TfSequenceFeaturesProps) {
       tooltip: (rect) => MotifTooltip({ rect }),
       onHover: (rect) => {
         addHighlight({
-          id: rect.name,
+          id: rect.name as string,
           domain: {
             chromosome: props.coordinates.chromosome,
             start: rect.start,
@@ -71,7 +71,7 @@ export default function TfSequenceFeatures(props: TfSequenceFeaturesProps) {
         });
       },
       onLeave: (rect) => {
-        removeHighlight(rect.name);
+        removeHighlight(rect.name as string);
       },
     },
     {

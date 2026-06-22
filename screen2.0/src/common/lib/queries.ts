@@ -3,171 +3,166 @@
  */
 'use server'
 import { getClient } from "../lib/client"
-import { ApolloQueryResult, TypedDocumentNode, gql } from "@apollo/client"
-import { RegistryBiosample } from "../../app/search/types"
+import { MainQueryData, RegistryBiosample, SCREENCellTypeSpecificResponse } from "../../app/search/types"
+import { gql } from "../../graphql/__generated__"
+import { parseZScoresArray, ZScoresEntry } from "./zscores"
 
-const cCRE_QUERY = gql`
-  query ccreSearchQuery_1(
-    $accessions: [String!]
+const NULL_CTSPECIFIC: SCREENCellTypeSpecificResponse = {
+  ct: null,
+  dnase_zscore: null,
+  h3k4me3_zscore: null,
+  h3k27ac_zscore: null,
+  ctcf_zscore: null,
+  atac_zscore: null,
+}
+
+const BASE_CCRE_QUERY = gql(`
+  query GetBaseCcreData(
     $assembly: String!
-    $cellType: String
+    $accession: [String!]
     $coordinates: [GenomicRangeInput]
-    $element_type: String
-    $gene_all_start: Int
-    $gene_all_end: Int
-    $gene_pc_start: Int
-    $gene_pc_end: Int
-    $rank_ctcf_end: Float
-    $rank_ctcf_start: Float
-    $rank_dnase_end: Float
-    $rank_dnase_start: Float
-    $rank_enhancer_end: Float
-    $rank_enhancer_start: Float
-    $rank_promoter_end: Float
-    $rank_promoter_start: Float
-    $rank_atac_end: Float
-    $rank_atac_start: Float
-    $mammals_min: Float
-    $mammals_max: Float
-    $vertebrates_min: Float
-    $vertebrates_max: Float
-    $primates_min: Float
-    $primates_max: Float
-    $uuid: String
-    $limit: Int
     $nearbygeneslimit: Int
     $nearbygenesdistancethreshold: Int
+    $limit: Int
   ) {
-    cCRESCREENSearch(
+    getmaxZScoresQuery(
       assembly: $assembly
-      accessions: $accessions
-      cellType: $cellType
+      accession: $accession
       coordinates: $coordinates
-      element_type: $element_type
-      gene_all_start: $gene_all_start
-      gene_all_end: $gene_all_end
-      gene_pc_start: $gene_pc_start
-      gene_pc_end: $gene_pc_end
-      rank_atac_end: $rank_atac_end
-      rank_atac_start: $rank_atac_start
-      rank_ctcf_end: $rank_ctcf_end
-      rank_ctcf_start: $rank_ctcf_start
-      rank_dnase_end: $rank_dnase_end
-      rank_dnase_start: $rank_dnase_start
-      rank_enhancer_end: $rank_enhancer_end
-      rank_enhancer_start: $rank_enhancer_start
-      rank_promoter_end: $rank_promoter_end
-      rank_promoter_start: $rank_promoter_start
-      mammals_min: $mammals_min
-      mammals_max: $mammals_max
-      vertebrates_min: $vertebrates_min
-      vertebrates_max: $vertebrates_max
-      primates_min: $primates_min
-      primates_max: $primates_max
-      uuid: $uuid
-      limit: $limit
       nearbygeneslimit: $nearbygeneslimit
       nearbygenesdistancethreshold: $nearbygenesdistancethreshold
+      limit: $limit
     ) {
-      chrom
+      accession
+      ccre_group
+      chromosome
       start
-      len
-      pct
-      vertebrates
-      mammals
-      primates
-      ctcf_zscore
-      dnase_zscore
-      enhancer_zscore
-      promoter_zscore
-      atac_zscore
-      ctspecific {
-        ct
-        dnase_zscore
-        h3k4me3_zscore
-        h3k27ac_zscore
-        ctcf_zscore
-        atac_zscore
-      }
-      info {
-        accession
-        isproximal
-        concordant
-      }
+      stop
+      dnase_max_zscore
+      h3k4me3_max_zscore
+      h3k27ac_max_zscore
+      ctcf_max_zscore
+      atac_max_zscore
       nearestgenes {
         gene
         distance
       }
+      mammals
+      vertebrates
+      primates
     }
   }
-`
+`)
 
-function cCRE_QUERY_VARIABLES(assembly: string, coordinates: {chromosome: string, start: number, end: number}[], biosample: string, nearbygenesdistancethreshold: number, nearbygeneslimit: number, accessions: string[], noLimit?: boolean) {
-  const vars = {
-    uuid: null,
-    assembly: assembly,
-    gene_all_start: 0,
-    gene_all_end: 5000000,
-    gene_pc_start: 0,
-    gene_pc_end: 5000000,
-    rank_dnase_start: -10,
-    rank_dnase_end: 11,
-    rank_atac_start: -10,
-    rank_atac_end: 11,
-    rank_promoter_start: -10,
-    rank_promoter_end: 11,
-    rank_enhancer_start: -10,
-    rank_enhancer_end: 11,
-    rank_ctcf_start: -10,
-    rank_ctcf_end: 11,
-    cellType: biosample,
-    element_type: null,
-    limit: noLimit ? null : 25000,
-    nearbygenesdistancethreshold: nearbygenesdistancethreshold,
-    nearbygeneslimit: nearbygeneslimit
+const GET_BIOSAMPLE_Z = gql(`
+  query GetBiosampleZ(
+    $assembly: String!
+    $accession: [String]
+    $coordinates: [GenomicRangeInput]
+    $limit: Int
+    $biosampleValue: [String]
+  ) {
+    getcCREZScoresQuery(
+      assembly: $assembly
+      accession: $accession
+      coordinates: $coordinates
+      limit: $limit
+      biosample_value: $biosampleValue
+    ) {
+      accession
+      zscores
+    }
   }
-  //Can't just null out accessions field if not using due to API functionality as of writing this, so push to vars only if using
-  if (accessions) {
-    vars["accessions"] = accessions
-  }
-  if (coordinates) {
-    vars["coordinates"] = coordinates
-  }
+`)
 
-  return vars
-}
-
-
-/**
- *
- * @param assembly string, "GRCh38" or "mm10"
- * @param chromosome string, ex: "chr11"
- * @param start number
- * @param end number
- * @param biosample a biosample selection. If not specified or "undefined", will be marked as "null" in gql query
- * @param nearbygenesdistancethreshold the distance from cCRE that will be used for distance-linked genes
- * @param nearbygeneslimit limit of returned ditance-linked genes
- * @param accessions a list of accessions to fetch information on. Set chromosome, start, end to "undefined" if using so they're set to null
- * @returns cCREs matching the search
- */
-export async function MainQuery(assembly: string = null, chromosome: string = null, start: number = null, end: number = null, biosample: string = null, nearbygenesdistancethreshold: number, nearbygeneslimit: number, accessions: string[] = null, noLimit?: boolean) {
-  console.log("queried with: " + assembly, chromosome, start, end, biosample + `${accessions ? " with accessions" : " no accessions"}`)
-  let data: ApolloQueryResult<any>
+export async function MainQuery(
+  assembly: string = null,
+  chromosome: string = null,
+  start: number = null,
+  end: number = null,
+  biosample: string = null,
+  nearbygenesdistancethreshold: number,
+  nearbygeneslimit: number,
+  accessions: string[] = null,
+  noLimit?: boolean,
+): Promise<MainQueryData> {
   try {
-    data = await getClient().query({
-      query: cCRE_QUERY,
-      variables: cCRE_QUERY_VARIABLES(assembly, chromosome ? [{chromosome, start, end}] : null, biosample, nearbygenesdistancethreshold, nearbygeneslimit, accessions, noLimit),
-      //Telling it to not cache, next js caches also and for things that exceed the 2mb cache limit it slows down substantially for some reason
-      fetchPolicy: "no-cache",
-    })
+    const client = getClient()
+    const accession = accessions ?? undefined
+    const coordinates = chromosome ? [{ chromosome, start, end }] : undefined;
+    const limit = noLimit ? undefined : 25000
+
+
+    const getBaseCcreData = client.query({
+      query: BASE_CCRE_QUERY,
+      variables: {
+        assembly,
+        accession,
+        coordinates,
+        nearbygenesdistancethreshold: nearbygenesdistancethreshold ?? undefined,
+        nearbygeneslimit,
+        limit
+      },
+      fetchPolicy: "no-cache"
+    });
+
+    const getBiosampleZ = biosample
+      ? client.query({
+          query: GET_BIOSAMPLE_Z,
+          variables: {
+            assembly,
+            accession,
+            coordinates,
+            limit,
+            biosampleValue: [biosample]
+          },
+          fetchPolicy: "no-cache"
+        })
+      : null
+
+    const [baseCcreData, biosampleZScores] = await Promise.all([getBaseCcreData, getBiosampleZ])
+
+    const biosampleScoreLookup: Record<
+      string,
+      SCREENCellTypeSpecificResponse
+    > = Object.fromEntries(
+      biosampleZScores?.data
+        ? biosampleZScores.data.getcCREZScoresQuery.map((item) => [
+            item.accession,
+            parseZScoresArray(item.zscores as ZScoresEntry<null>[]),
+          ])
+        : [],
+    );
+
+    return {
+      data: {
+        cCRESCREENSearch: baseCcreData?.data?.getmaxZScoresQuery.map((item) => ({
+          chrom: item.chromosome,
+          start: item.start,
+          len: item.stop - item.start,
+          pct: item.ccre_group,
+          vertebrates: item.vertebrates,
+          mammals: item.mammals,
+          primates: item.primates,
+          dnase_zscore: item.dnase_max_zscore,
+          promoter_zscore: item.h3k4me3_max_zscore,
+          enhancer_zscore: item.h3k27ac_max_zscore,
+          ctcf_zscore: item.ctcf_max_zscore,
+          atac_zscore: item.atac_max_zscore,
+          ctspecific: biosampleScoreLookup[item.accession] ?? NULL_CTSPECIFIC,
+          info: { accession: item.accession },
+          nearestgenes: item.nearestgenes,
+        })),
+      },
+    };
   } catch (error) {
-    console.log("error fetching main cCRE data")
-    console.log(error)
-    throw error
+    console.log("error fetching main cCRE data");
+    console.log(error);
+    throw error;
   }
-  
-  return data
 }
+
+
 
 
 export type BIOSAMPLE_Data = {
@@ -175,7 +170,7 @@ export type BIOSAMPLE_Data = {
   mouse: {biosamples: RegistryBiosample[]}
 }
 
-const BIOSAMPLE_QUERY: TypedDocumentNode<BIOSAMPLE_Data> = gql`
+const BIOSAMPLE_QUERY = gql(`
   query biosamples_3 {
     human: ccREBiosampleQuery(assembly: "grch38") {
       biosamples {
@@ -216,7 +211,7 @@ const BIOSAMPLE_QUERY: TypedDocumentNode<BIOSAMPLE_Data> = gql`
       }
     }
   }
-`
+`)
 
 export async function biosampleQuery() {
   try {
